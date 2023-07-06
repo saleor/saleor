@@ -9,6 +9,7 @@ from .....giftcard.search import mark_gift_cards_search_index_as_dirty
 from .....giftcard.utils import assign_user_gift_cards, get_user_gift_cards
 from .....order.utils import match_orders_with_new_user
 from .....permission.enums import AccountPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
@@ -16,6 +17,7 @@ from ....core.descriptions import ADDED_IN_310
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import AccountError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ..base import CustomerInput
 from .customer_create import CustomerCreate
@@ -43,6 +45,16 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
         error_type_field = "account_errors"
         support_meta_field = True
         support_private_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A new customer account was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
+                description="Optionally called when customer's metadata was updated.",
+            ),
+        ]
 
     @classmethod
     def generate_events(

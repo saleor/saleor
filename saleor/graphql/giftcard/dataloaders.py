@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from ...checkout.models import Checkout
 from ...giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ...order.models import Order
 from ..core.dataloaders import DataLoader
@@ -73,3 +74,24 @@ class GiftCardsByOrderIdLoader(DataLoader):
                 gift_cards[getattr(gift_card_order, "giftcard_id")]
             )
         return [cards_map.get(order_id, []) for order_id in keys]
+
+
+class GiftCardsByCheckoutIdLoader(DataLoader):
+    context_key = "gift_cards_by_checkout_id"
+
+    def batch_load(self, keys):
+        checkouts_and_gift_cards_pairs = (
+            Checkout.gift_cards.through.objects.using(self.database_connection_name)
+            .filter(checkout_id__in=keys)
+            .values_list("checkout_id", "giftcard_id")
+        )
+
+        gift_cards = GiftCard.objects.using(self.database_connection_name).in_bulk(
+            [gift_card_id for _, gift_card_id in checkouts_and_gift_cards_pairs]
+        )
+
+        cards_map = defaultdict(list)
+        for checkout_id, gift_card_id in checkouts_and_gift_cards_pairs:
+            cards_map[checkout_id].append(gift_cards[gift_card_id])
+
+        return [cards_map.get(checkout_id, []) for checkout_id in keys]

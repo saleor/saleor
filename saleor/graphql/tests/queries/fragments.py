@@ -453,7 +453,7 @@ fragment TransactionFragment on TransactionItem {
     currency
     amount
   }
-  voidedAmount {
+  canceledAmount {
     currency
     amount
   }
@@ -464,10 +464,7 @@ fragment TransactionFragment on TransactionItem {
   events {
     id
   }
-  status
-  type
   pspReference
-  reference
   order {
     id
   }

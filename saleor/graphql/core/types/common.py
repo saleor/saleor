@@ -78,6 +78,7 @@ from ..enums import (
     TransactionInitializeErrorCode,
     TransactionProcessErrorCode,
     TransactionRequestActionErrorCode,
+    TransactionRequestRefundForGrantedRefundErrorCode,
     TransactionUpdateErrorCode,
     TranslationErrorCode,
     UploadErrorCode,
@@ -590,6 +591,15 @@ class TransactionUpdateError(Error):
 
 class TransactionRequestActionError(Error):
     code = TransactionRequestActionErrorCode(
+        description="The error code.", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class TransactionRequestRefundForGrantedRefundError(Error):
+    code = TransactionRequestRefundForGrantedRefundErrorCode(
         description="The error code.", required=True
     )
 

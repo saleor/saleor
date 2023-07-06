@@ -6,9 +6,11 @@ from ....app.error_codes import AppErrorCode
 from ....app.tasks import install_app_task
 from ....core import JobStatus
 from ....permission.enums import AppPermission
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import AppError
+from ...core.utils import WebhookEventInfo
 from ..types import AppInstallation
 
 
@@ -28,6 +30,12 @@ class AppRetryInstall(ModelMutation):
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.APP_INSTALLED,
+                description="An app was installed.",
+            ),
+        ]
 
     @classmethod
     def save(cls, _info: ResolveInfo, instance, _cleaned_input, /):

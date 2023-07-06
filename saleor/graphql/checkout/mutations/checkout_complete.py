@@ -19,6 +19,7 @@ from ....checkout.fetch import (
 from ....checkout.utils import is_shipping_required
 from ....order import models as order_models
 from ....permission.enums import AccountPermissions
+from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
@@ -28,6 +29,7 @@ from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
+from ...core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...meta.inputs import MetadataInput
 from ...order.types import Order
@@ -110,6 +112,59 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                description=(
+                    "Optionally triggered when cached external shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                description=(
+                    "Optionally triggered when cached filtered shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_CREATED,
+                description="Triggered when order is created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for order placement.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A staff notification for order placement.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_UPDATED,
+                description=(
+                    "Triggered when order received the update after placement."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_PAID,
+                description="Triggered when newly created order is paid.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_FULLY_PAID,
+                description="Triggered when newly created order is fully paid.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_CONFIRMED,
+                description=(
+                    "Optionally triggered when newly created order are automatically "
+                    "marked as confirmed."
+                ),
+            ),
+        ]
 
     @classmethod
     def validate_checkout_addresses(

@@ -33,6 +33,13 @@ order_updated_event_enum_description = (
 
 
 WEBHOOK_EVENT_DESCRIPTION = {
+    WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: (
+        "An account confirmation is requested."
+    ),
+    WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED: (
+        "Account email change is requested."
+    ),
+    WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: "An account delete is requested.",
     WebhookEventAsyncType.ADDRESS_CREATED: "A new address created.",
     WebhookEventAsyncType.ADDRESS_UPDATED: "An address updated.",
     WebhookEventAsyncType.ADDRESS_DELETED: "An address deleted.",
@@ -179,12 +186,6 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.STAFF_CREATED: "A new staff user is created.",
     WebhookEventAsyncType.STAFF_UPDATED: "A staff user is updated.",
     WebhookEventAsyncType.STAFF_DELETED: "A staff user is deleted.",
-    WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: (
-        "An action requested for transaction."
-        + "\n\nDEPRECATED: this subscription will be removed in Saleor 3.14 "
-        + "(Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, "
-        + "`TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead."
-    ),
     WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: (
         "Transaction item metadata is updated." + ADDED_IN_38
     ),

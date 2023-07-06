@@ -264,16 +264,6 @@ def test_create_product_type_with_rich_text_attribute(
                             "dateTime": None,
                         }
                     },
-                    {
-                        "node": {
-                            "name": "Blue",
-                            "richText": None,
-                            "plainText": None,
-                            "boolean": None,
-                            "date": None,
-                            "dateTime": None,
-                        }
-                    },
                 ]
             },
         },

@@ -847,6 +847,22 @@ class OrderGrantedRefund(models.Model):
     order = models.ForeignKey(
         Order, related_name="granted_refunds", on_delete=models.CASCADE
     )
+    shipping_costs_included = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("created_at", "id")
+
+
+class OrderGrantedRefundLine(models.Model):
+    """Model used to store granted refund line for the order."""
+
+    order_line = models.ForeignKey(
+        OrderLine, related_name="granted_refund_lines", on_delete=models.CASCADE
+    )
+    quantity = models.PositiveIntegerField()
+
+    granted_refund = models.ForeignKey(
+        OrderGrantedRefund, related_name="lines", on_delete=models.CASCADE
+    )
+
+    reason = models.TextField(blank=True, null=True, default="")

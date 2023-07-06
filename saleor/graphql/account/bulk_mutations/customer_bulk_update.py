@@ -16,6 +16,7 @@ from ....giftcard.search import mark_gift_cards_search_index_as_dirty_by_users
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
 from ....permission.enums import AccountPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import CustomerBulkUpdateErrorCode, ErrorPolicyEnum
@@ -26,7 +27,7 @@ from ...core.types import (
     CustomerBulkUpdateError,
     NonNullList,
 )
-from ...core.utils import get_duplicated_values
+from ...core.utils import WebhookEventInfo, get_duplicated_values
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...payment.utils import metadata_contains_empty_key
 from ...plugins.dataloaders import get_app_promise, get_plugin_manager_promise
@@ -97,6 +98,16 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         doc_category = DOC_CATEGORY_USERS
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = CustomerBulkUpdateError
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A customer account was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
+                description="Optionally called when customer's metadata was updated.",
+            ),
+        ]
 
     @classmethod
     def format_errors(cls, index, errors, index_error_map, field_prefix=None):

@@ -3,10 +3,12 @@ from django.core.exceptions import ValidationError
 
 from ....channel.error_codes import ChannelErrorCode
 from ....permission.enums import ChannelPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import BaseMutation
 from ...core.types import ChannelError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Channel
 
@@ -23,6 +25,12 @@ class ChannelDeactivate(BaseMutation):
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
+                description="A channel was deactivated.",
+            ),
+        ]
 
     @classmethod
     def clean_channel_availability(cls, channel):

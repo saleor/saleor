@@ -149,6 +149,26 @@ class BasePlugin:
     def __str__(self):
         return self.PLUGIN_NAME
 
+    # Trigger when account confirmation is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # confirmation is requested.
+    account_confirmation_requested: Callable[
+        ["User", str, str, Optional[str], None], None
+    ]
+
+    # Trigger when account change email is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # change email is requested.
+    account_change_email_requested: Callable[["User", str, str, str, str, None], None]
+
+    # Trigger when account delete is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # delete is requested.
+    account_delete_requested: Callable[["User", str, str, str, None], None]
+
     # Trigger when address is created.
     #
     # Overwrite this method if you need to trigger specific logic after an address is
@@ -810,8 +830,6 @@ class BasePlugin:
     ]
 
     process_payment: Callable[["PaymentData", Any], Any]
-
-    transaction_action_request: Callable[["TransactionActionData", None], None]
 
     transaction_charge_requested: Callable[["TransactionActionData", None], None]
 

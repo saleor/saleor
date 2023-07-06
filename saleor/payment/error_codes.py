@@ -48,6 +48,15 @@ class TransactionRequestActionErrorCode(Enum):
     )
 
 
+class TransactionRequestRefundForGrantedRefundErrorCode(Enum):
+    INVALID = "invalid"
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK = (
+        "missing_transaction_action_request_webhook"
+    )
+
+
 class TransactionEventReportErrorCode(Enum):
     INVALID = "invalid"
     GRAPHQL_ERROR = "graphql_error"

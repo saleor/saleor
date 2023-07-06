@@ -23,7 +23,6 @@ from ....core.mutations import BaseMutation
 from ....core.scalars import PositiveDecimal
 from ....core.types import common as common_types
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ....utils import get_user_or_app_from_context
 from ...enums import TransactionActionEnum
 from ...types import TransactionItem
 from .utils import get_transaction_item
@@ -61,17 +60,6 @@ class TransactionRequestAction(BaseMutation):
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
     @classmethod
-    def check_permissions(cls, context, permissions=None, **data):
-        required_permissions = permissions or cls._meta.permissions
-        requestor = get_user_or_app_from_context(context)
-        for required_permission in required_permissions:
-            # We want to allow to call this mutation for requestor with one of following
-            # permission: manage_orders, handle_payments
-            if requestor and requestor.has_perm(required_permission):
-                return True
-        return False
-
-    @classmethod
     def handle_transaction_action(
         cls,
         action,
@@ -80,7 +68,7 @@ class TransactionRequestAction(BaseMutation):
         user: Optional["User"],
         app: Optional[App],
     ):
-        if action == TransactionAction.VOID or action == TransactionAction.CANCEL:
+        if action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]
             request_event = cls.create_transaction_event_requested(
                 transaction, 0, action, user=user, app=app
@@ -116,7 +104,7 @@ class TransactionRequestAction(BaseMutation):
     def create_transaction_event_requested(
         cls, transaction, action_value, action, user=None, app=None
     ):
-        if action in (TransactionAction.CANCEL, TransactionAction.VOID):
+        if action == TransactionAction.CANCEL:
             type = TransactionEventType.CANCEL_REQUEST
         elif action == TransactionAction.CHARGE:
             type = TransactionEventType.CHARGE_REQUEST

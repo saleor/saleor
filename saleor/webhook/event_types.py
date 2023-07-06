@@ -19,6 +19,10 @@ from ..permission.enums import (
 class WebhookEventAsyncType:
     ANY = "any_events"
 
+    ACCOUNT_CONFIRMATION_REQUESTED = "account_confirmation_requested"
+    ACCOUNT_CHANGE_EMAIL_REQUESTED = "account_change_email_requested"
+    ACCOUNT_DELETE_REQUESTED = "account_delete_requested"
+
     ADDRESS_CREATED = "address_created"
     ADDRESS_UPDATED = "address_updated"
     ADDRESS_DELETED = "address_deleted"
@@ -150,7 +154,6 @@ class WebhookEventAsyncType:
     STAFF_UPDATED = "staff_updated"
     STAFF_DELETED = "staff_deleted"
 
-    TRANSACTION_ACTION_REQUEST = "transaction_action_request"
     TRANSACTION_ITEM_METADATA_UPDATED = "transaction_item_metadata_updated"
 
     TRANSLATION_CREATED = "translation_created"
@@ -172,6 +175,9 @@ class WebhookEventAsyncType:
 
     DISPLAY_LABELS = {
         ANY: "Any events",
+        ACCOUNT_CONFIRMATION_REQUESTED: "Account confirmation requested",
+        ACCOUNT_CHANGE_EMAIL_REQUESTED: "Account change email requested",
+        ACCOUNT_DELETE_REQUESTED: "Account delete requested",
         ADDRESS_CREATED: "Address created",
         ADDRESS_UPDATED: "Address updated",
         ADDRESS_DELETED: "Address deleted",
@@ -276,7 +282,6 @@ class WebhookEventAsyncType:
         STAFF_CREATED: "Staff created",
         STAFF_UPDATED: "Staff updated",
         STAFF_DELETED: "Staff deleted",
-        TRANSACTION_ACTION_REQUEST: "Payment action request",
         TRANSACTION_ITEM_METADATA_UPDATED: "Transaction item metadata updated",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
@@ -294,6 +299,15 @@ class WebhookEventAsyncType:
 
     CHOICES = [
         (ANY, DISPLAY_LABELS[ANY]),
+        (
+            ACCOUNT_CONFIRMATION_REQUESTED,
+            DISPLAY_LABELS[ACCOUNT_CONFIRMATION_REQUESTED],
+        ),
+        (
+            ACCOUNT_CHANGE_EMAIL_REQUESTED,
+            DISPLAY_LABELS[ACCOUNT_CHANGE_EMAIL_REQUESTED],
+        ),
+        (ACCOUNT_DELETE_REQUESTED, DISPLAY_LABELS[ACCOUNT_DELETE_REQUESTED]),
         (ADDRESS_CREATED, DISPLAY_LABELS[ADDRESS_CREATED]),
         (ADDRESS_UPDATED, DISPLAY_LABELS[ADDRESS_UPDATED]),
         (ADDRESS_DELETED, DISPLAY_LABELS[ADDRESS_DELETED]),
@@ -404,7 +418,6 @@ class WebhookEventAsyncType:
         (STAFF_CREATED, DISPLAY_LABELS[STAFF_CREATED]),
         (STAFF_UPDATED, DISPLAY_LABELS[STAFF_UPDATED]),
         (STAFF_DELETED, DISPLAY_LABELS[STAFF_DELETED]),
-        (TRANSACTION_ACTION_REQUEST, DISPLAY_LABELS[TRANSACTION_ACTION_REQUEST]),
         (
             TRANSACTION_ITEM_METADATA_UPDATED,
             DISPLAY_LABELS[TRANSACTION_ITEM_METADATA_UPDATED],
@@ -426,6 +439,9 @@ class WebhookEventAsyncType:
     ALL = [event[0] for event in CHOICES]
 
     PERMISSIONS = {
+        ACCOUNT_CONFIRMATION_REQUESTED: AccountPermissions.MANAGE_USERS,
+        ACCOUNT_CHANGE_EMAIL_REQUESTED: AccountPermissions.MANAGE_USERS,
+        ACCOUNT_DELETE_REQUESTED: AccountPermissions.MANAGE_USERS,
         ADDRESS_CREATED: AccountPermissions.MANAGE_USERS,
         ADDRESS_UPDATED: AccountPermissions.MANAGE_USERS,
         ADDRESS_DELETED: AccountPermissions.MANAGE_USERS,
@@ -530,7 +546,6 @@ class WebhookEventAsyncType:
         STAFF_CREATED: AccountPermissions.MANAGE_STAFF,
         STAFF_UPDATED: AccountPermissions.MANAGE_STAFF,
         STAFF_DELETED: AccountPermissions.MANAGE_STAFF,
-        TRANSACTION_ACTION_REQUEST: PaymentPermissions.HANDLE_PAYMENTS,
         TRANSACTION_ITEM_METADATA_UPDATED: PaymentPermissions.HANDLE_PAYMENTS,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
@@ -640,10 +655,15 @@ class WebhookEventSyncType:
         PAYMENT_VOID,
     ]
 
+    # Events that are used only in the mutation logic can be excluded from the
+    # circular query check.
     ALLOWED_IN_CIRCULAR_QUERY = [
         PAYMENT_GATEWAY_INITIALIZE_SESSION,
         TRANSACTION_INITIALIZE_SESSION,
         TRANSACTION_PROCESS_SESSION,
+        TRANSACTION_CHARGE_REQUESTED,
+        TRANSACTION_REFUND_REQUESTED,
+        TRANSACTION_CANCELATION_REQUESTED,
     ]
 
     PERMISSIONS = {
