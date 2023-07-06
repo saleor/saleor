@@ -856,7 +856,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
             rule_discount_amount = _get_rule_discount_amount(
                 rule_info.variant_listing_promotion_rule, line.quantity
             )
-            discount_name = _get_discount_name(rule, rule_info.promotion)
+            discount_name = get_discount_name(rule, rule_info.promotion)
             if not discount_to_update:
                 line_discount = CheckoutLineDiscount(
                     line=line,
@@ -933,7 +933,7 @@ def _get_rule_discount_amount(
     return discount_amount * line_quantity
 
 
-def _get_discount_name(rule: "PromotionRule", promotion: "Promotion"):
+def get_discount_name(rule: "PromotionRule", promotion: "Promotion"):
     if promotion.name and rule.name:
         return f"{promotion.name}: {rule.name}"
     return rule.name or promotion.name
@@ -957,7 +957,7 @@ def _update_line_discount(
     if discount_to_update.amount_value != rule_discount_amount:
         discount_to_update.amount_value = rule_discount_amount
         updated_fields.append("amount_value")
-    discount_name = _get_discount_name(rule, promotion)
+    discount_name = get_discount_name(rule, promotion)
     if discount_to_update.name != discount_name:
         discount_to_update.name = discount_name
         updated_fields.append("name")
