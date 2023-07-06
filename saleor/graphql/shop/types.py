@@ -130,8 +130,7 @@ class LimitInfo(graphene.ObjectType):
     )
 
 
-class Shop(ModelObjectType[site_models.SiteSettings]):
-    id = graphene.GlobalID(required=True)
+class Shop(graphene.ObjectType):
     available_payment_gateways = NonNullList(
         PaymentGateway,
         currency=graphene.Argument(
@@ -353,17 +352,8 @@ class Shop(ModelObjectType[site_models.SiteSettings]):
         description = (
             "Represents a shop resource containing general shop data and configuration."
         )
-        interfaces = [graphene.relay.Node,ObjectWithMetadata]
-        model = site_models.SiteSettings
-    
-    @staticmethod
-    def resolve_id(_, _info):
-        return "1"
-    
-    @staticmethod
-    def get_node(info: ResolveInfo, id):
-        return site_models.SiteSettings.objects.first()
-        
+        interfaces = [ObjectWithMetadata]
+
     @staticmethod
     @traced_resolver
     @plugin_manager_promise_callback
