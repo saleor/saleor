@@ -13,16 +13,29 @@ from ..dataloaders import ProductVariantByIdLoader
 
 
 class DigitalContentUrl(ModelObjectType[models.DigitalContentUrl]):
-    id = graphene.GlobalID(required=True)
-    content = graphene.Field(lambda: DigitalContent, required=True)
-    created = graphene.DateTime(required=True)
-    download_num = graphene.Int(required=True)
+    id = graphene.GlobalID(
+        required=True, description="The ID of the digital content URL."
+    )
+    content = graphene.Field(
+        lambda: DigitalContent,
+        required=True,
+        description="Digital content associated with the URL.",
+    )
+    created = graphene.DateTime(
+        required=True,
+        description="Date and time when the digital content URL was created.",
+    )
+    download_num = graphene.Int(
+        required=True,
+        description="Number of times digital content has been downloaded.",
+    )
     url = graphene.String(description="URL for digital content.")
     token = graphene.Field(UUID, description="UUID of digital content.", required=True)
 
     class Meta:
         model = models.DigitalContentUrl
         interfaces = (relay.Node,)
+        description = "Represents a URL for digital content."
 
     @staticmethod
     def resolve_created(root: models.DigitalContentUrl, _info):
@@ -34,12 +47,24 @@ class DigitalContentUrl(ModelObjectType[models.DigitalContentUrl]):
 
 
 class DigitalContent(ModelObjectType[models.DigitalContent]):
-    id = graphene.GlobalID(required=True)
-    use_default_settings = graphene.Boolean(required=True)
-    automatic_fulfillment = graphene.Boolean(required=True)
-    content_file = graphene.String(required=True)
-    max_downloads = graphene.Int()
-    url_valid_days = graphene.Int()
+    id = graphene.GlobalID(required=True, description="The ID of the digital content.")
+    use_default_settings = graphene.Boolean(
+        required=True,
+        description="Default settings indicator for digital content.",
+    )
+    automatic_fulfillment = graphene.Boolean(
+        required=True,
+        description="Indicator for automatic fulfillment of digital content.",
+    )
+    content_file = graphene.String(
+        required=True, description="File associated with digital content."
+    )
+    max_downloads = graphene.Int(
+        description="Maximum number of allowed downloads for the digital content."
+    )
+    url_valid_days = graphene.Int(
+        description="Number of days the URL for the digital content remains valid."
+    )
     urls = NonNullList(
         lambda: DigitalContentUrl,
         description="List of URLs for the digital variant.",
@@ -53,6 +78,7 @@ class DigitalContent(ModelObjectType[models.DigitalContent]):
     class Meta:
         model = models.DigitalContent
         interfaces = (relay.Node, ObjectWithMetadata)
+        description = "Represents digital content associated with a product variant."
 
     @staticmethod
     def resolve_urls(root: models.DigitalContent, _info):
@@ -71,3 +97,4 @@ class DigitalContentCountableConnection(CountableConnection):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         node = DigitalContent
+        description = "A connection to a list of digital content items."
