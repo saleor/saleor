@@ -318,6 +318,28 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_item_on_sale(checkout_with_item):
+    line = checkout_with_item.lines.first()
+    channel = checkout_with_item.channel
+    sale = Sale.objects.create(name="Sale")
+    discount_amount = Decimal("5.0")
+    SaleChannelListing.objects.create(
+        sale=sale,
+        channel=channel,
+        discount_value=discount_amount,
+        currency=channel.currency_code,
+    )
+    variant = line.variant
+    sale.products.add(variant.product)
+    channel_listing = variant.channel_listings.get(channel=channel)
+    channel_listing.discounted_price_amount = (
+        channel_listing.price_amount - discount_amount
+    )
+    channel_listing.save(update_fields=["discounted_price_amount"])
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_with_item_and_transaction_item(checkout_with_item):
     TransactionItem.objects.create(
         name="Credit card",
@@ -3897,7 +3919,7 @@ def order_line(order, variant):
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -3930,7 +3952,7 @@ def gift_card_non_shippable_order_line(
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 1
@@ -3963,7 +3985,7 @@ def gift_card_shippable_order_line(order, gift_card_shippable_variant, warehouse
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4000,7 +4022,7 @@ def order_line_JPY(order_generator, channel_JPY, product_in_channel_JPY):
     variant = product_in_channel_JPY.variants.get()
     channel = order_JPY.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    base_price = variant.get_price(product, [], channel, channel_listing)
+    base_price = variant.get_price(channel_listing)
     currency = base_price.currency
     gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4041,7 +4063,7 @@ def order_line_with_allocation_in_many_stocks(
 
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel_USD)
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4098,7 +4120,7 @@ def order_line_with_one_allocation(
 
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel_USD)
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 2
@@ -4410,7 +4432,7 @@ def order_with_lines(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    base_price = variant.get_price(product, [], channel_USD, channel_listing)
+    base_price = variant.get_price(channel_listing)
     currency = base_price.currency
     gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4465,7 +4487,7 @@ def order_with_lines(
     )
     stock.refresh_from_db()
 
-    base_price = variant.get_price(product, [], channel_USD, channel_listing)
+    base_price = variant.get_price(channel_listing)
     currency = base_price.currency
     gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     unit_price = TaxedMoney(net=base_price, gross=gross)
@@ -4546,7 +4568,7 @@ def order_with_lines_for_cc(
     variant = product_variant_list[0]
     channel_listing = variant.channel_listings.get(channel=channel_USD)
     quantity = 1
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     unit_price = TaxedMoney(net=net, gross=gross)
@@ -4697,7 +4719,7 @@ def order_with_lines_channel_PLN(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(product, [], channel_PLN, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4750,7 +4772,7 @@ def order_with_lines_channel_PLN(
         product_variant=variant, warehouse=warehouse, quantity=2
     )
 
-    net = variant.get_price(product, [], channel_PLN, channel_listing, None)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 2
@@ -4807,7 +4829,7 @@ def order_with_line_without_inventory_tracking(
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4867,7 +4889,7 @@ def order_with_preorder_lines(
         preorder_quantity_threshold=10,
     )
 
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -5355,6 +5377,16 @@ def promotion(channel_USD, product, collection):
     )
     for rule in rules:
         rule.channels.add(channel_USD)
+    return promotion
+
+
+@pytest.fixture
+def promotion_without_rules(db):
+    promotion = Promotion.objects.create(
+        name="Promotion",
+        description=dummy_editorjs("Test description."),
+        end_date=timezone.now() + timedelta(days=30),
+    )
     return promotion
 
 
@@ -7168,7 +7200,7 @@ def allocations(order_list, stock, channel_USD):
     variant = stock.product_variant
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel_USD)
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     price = TaxedMoney(net=net, gross=gross)
     lines = OrderLine.objects.bulk_create(

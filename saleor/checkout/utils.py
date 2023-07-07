@@ -432,8 +432,6 @@ def get_discounted_lines(
 
 
 def get_prices_of_discounted_specific_product(
-    manager: PluginsManager,
-    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
 ) -> List[Money]:
@@ -447,33 +445,20 @@ def get_prices_of_discounted_specific_product(
     discounted_lines: Iterable["CheckoutLineInfo"] = get_discounted_lines(
         lines, voucher_info
     )
-    line_prices = get_base_lines_prices(checkout_info, discounted_lines)
+    line_prices = get_base_lines_prices(discounted_lines)
 
     return line_prices
 
 
 def get_base_lines_prices(
-    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
 ):
     """Get base total price of checkout lines without voucher discount applied."""
-    line_prices = []
-    for line_info in lines:
-        line = line_info.line
-        line_unit_price = line.variant.get_price(
-            line_info.product,
-            line_info.collections,
-            checkout_info.channel,
-            line_info.channel_listing,
-            [],
-            line_info.line.price_override,
-        )
-        line_price = line_unit_price * line.quantity
-        for discount in line_info.discounts:
-            line_price -= Money(discount.amount_value, line_price.currency)
-        line_unit_price = line_price / line.quantity
-        line_prices.extend([line_unit_price] * line.quantity)
-    return line_prices
+    return [
+        line_info.channel_listing.discounted_price
+        for line_info in lines
+        for i in range(line_info.line.quantity)
+    ]
 
 
 def get_voucher_discount_for_checkout(
@@ -490,7 +475,7 @@ def get_voucher_discount_for_checkout(
     validate_voucher_for_checkout(manager, voucher, checkout_info, lines)
     if voucher.type == VoucherType.ENTIRE_ORDER:
         if voucher.apply_once_per_order:
-            prices = get_base_lines_prices(checkout_info, lines)
+            prices = get_base_lines_prices(lines)
             return voucher.get_discount_amount_for(min(prices), checkout_info.channel)
         subtotal = base_calculations.base_checkout_subtotal(
             lines,
@@ -506,12 +491,11 @@ def get_voucher_discount_for_checkout(
             address,
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        return _get_products_voucher_discount(manager, checkout_info, lines, voucher)
+        return _get_products_voucher_discount(checkout_info, lines, voucher)
     raise NotImplementedError("Unknown discount type")
 
 
 def _get_products_voucher_discount(
-    manager: PluginsManager,
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher,
@@ -519,9 +503,7 @@ def _get_products_voucher_discount(
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        prices = get_prices_of_discounted_specific_product(
-            manager, checkout_info, lines, voucher
-        )
+        prices = get_prices_of_discounted_specific_product(lines, voucher)
     if not prices:
         msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
