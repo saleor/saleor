@@ -275,6 +275,7 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     variant = line.variant
     channel_listing = variant.channel_listings.get(channel=channel.pk)
     channel_listing.price_amount = Decimal("9.60")
+    channel_listing.discounted_price_amount = Decimal("9.60")
     channel_listing.save()
 
     line.quantity = 7
@@ -290,9 +291,7 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     lines, _ = fetch_checkout_lines(checkout)
     line_info = list(lines)[0]
     variant = line_info.variant
-    product_price = variant.get_price(
-        line_info.product, [], channel, line_info.channel_listing, []
-    )
+    product_price = variant.get_price(line_info.channel_listing)
 
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout, lines, manager)

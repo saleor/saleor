@@ -365,9 +365,7 @@ def test_checkout_lines_update_checkout_with_voucher(
     variant = line.variant
 
     channel_listing = variant.channel_listings.get(channel=channel)
-    unit_price = variant.get_price(
-        variant.product, [], checkout_with_item.channel, channel_listing
-    )
+    unit_price = variant.get_price(channel_listing)
 
     voucher_channel_listing = voucher_percentage.channel_listings.get(channel=channel)
     voucher_channel_listing.discount_value = 100
