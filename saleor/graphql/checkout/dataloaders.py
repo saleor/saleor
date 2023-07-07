@@ -7,6 +7,7 @@ from promise import Promise
 from ...checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
+    VariantPromotionRuleInfo,
     apply_voucher_to_checkout_line,
     get_delivery_method_info,
     update_delivery_method_lists_for_checkout_info,
@@ -31,6 +32,8 @@ from ..channel.dataloaders import ChannelByIdLoader
 from ..core.dataloaders import DataLoader
 from ..discount.dataloaders import (
     CheckoutLineDiscountsByCheckoutLineIdLoader,
+    PromotionByRuleIdLoader,
+    PromotionRuleByIdLoader,
     VoucherByCodeLoader,
     VoucherInfoByVoucherCodeLoader,
 )
@@ -42,6 +45,7 @@ from ..product.dataloaders import (
     ProductTypeByVariantIdLoader,
     ProductVariantByIdLoader,
     VariantChannelListingByVariantIdAndChannelIdLoader,
+    VariantChannelListingPromotionRuleByListingIdLoader,
 )
 from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
@@ -94,62 +98,114 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                     channels,
                     checkout_lines_discounts,
                 ) = results
-                variants_map = dict(zip(variants_pks, variants))
-                products_map = dict(zip(variants_pks, products))
-                product_types_map = dict(zip(variants_pks, product_types))
-                collections_map = dict(zip(variants_pks, collections))
-                tax_class_map = dict(zip(variants_pks, tax_classes))
-                channel_listings_map = dict(
-                    zip(variant_ids_channel_ids, channel_listings)
-                )
-                channels = dict(zip(channel_pks, channels))
-                checkout_lines_discounts = dict(
-                    zip(lines_pks, checkout_lines_discounts)
-                )
 
-                lines_info_map = defaultdict(list)
-                voucher_infos_map = {
-                    voucher_info.voucher.code: voucher_info
-                    for voucher_info in voucher_infos
-                    if voucher_info
-                }
-                for checkout, lines in zip(checkouts, checkout_lines):
-                    lines_info_map[checkout.pk].extend(
-                        [
-                            CheckoutLineInfo(
-                                line=line,
-                                variant=variants_map[line.variant_id],
-                                channel_listing=channel_listings_map[
+                def with_channel_listing_promotion_rules(
+                    variant_listing_promotion_rules,
+                ):
+                    rule_ids = [
+                        listing_promotion_rule.promotion_rule_id
+                        for listing_promotion_rules in variant_listing_promotion_rules
+                        for listing_promotion_rule in listing_promotion_rules
+                    ]
+
+                    def with_promotion_rules(results):
+                        promotion_rules, promotions = results
+
+                        variants_map = dict(zip(variants_pks, variants))
+                        products_map = dict(zip(variants_pks, products))
+                        product_types_map = dict(zip(variants_pks, product_types))
+                        collections_map = dict(zip(variants_pks, collections))
+                        tax_class_map = dict(zip(variants_pks, tax_classes))
+                        channel_listings_map = dict(
+                            zip(variant_ids_channel_ids, channel_listings)
+                        )
+                        channel_maps = dict(zip(channel_pks, channels))
+                        checkout_lines_discounts_map = dict(
+                            zip(lines_pks, checkout_lines_discounts)
+                        )
+                        listing_promotion_rules_map = dict(
+                            zip(channel_listing_ids, variant_listing_promotion_rules)
+                        )
+                        rule_map = dict(zip(rule_ids, promotion_rules))
+                        rule_id_to_promotion_map = dict(zip(rule_ids, promotions))
+
+                        lines_info_map = defaultdict(list)
+                        voucher_infos_map = {
+                            voucher_info.voucher.code: voucher_info
+                            for voucher_info in voucher_infos
+                            if voucher_info
+                        }
+                        for checkout, lines in zip(checkouts, checkout_lines):
+                            for line in lines:
+                                channel_listing = channel_listings_map[
                                     (line.variant_id, checkout.channel_id)
-                                ],
-                                product=products_map[line.variant_id],
-                                product_type=product_types_map[line.variant_id],
-                                collections=collections_map[line.variant_id],
-                                discounts=checkout_lines_discounts[line.id],
-                                tax_class=tax_class_map[line.variant_id],
-                                channel=channels[checkout.channel_id],
-                            )
-                            for line in lines
-                        ]
+                                ]
+                                listing_promotion_rules = (
+                                    listing_promotion_rules_map[channel_listing.id]
+                                    if channel_listing
+                                    else []
+                                )
+                                rules_info = [
+                                    VariantPromotionRuleInfo(
+                                        rule=rule_map[listing_rule.promotion_rule_id],
+                                        variant_listing_promotion_rule=listing_rule,
+                                        promotion=rule_id_to_promotion_map[
+                                            listing_rule.promotion_rule_id
+                                        ],
+                                    )
+                                    for listing_rule in listing_promotion_rules
+                                ]
+                                lines_info_map[checkout.pk].append(
+                                    CheckoutLineInfo(
+                                        line=line,
+                                        variant=variants_map[line.variant_id],
+                                        channel_listing=channel_listing,
+                                        product=products_map[line.variant_id],
+                                        product_type=product_types_map[line.variant_id],
+                                        collections=collections_map[line.variant_id],
+                                        discounts=checkout_lines_discounts_map[line.id],
+                                        rules_info=rules_info,
+                                        tax_class=tax_class_map[line.variant_id],
+                                        channel=channel_maps[checkout.channel_id],
+                                    )
+                                )
+
+                        for checkout in checkouts:
+                            if not checkout.voucher_code:
+                                continue
+                            voucher_info = voucher_infos_map.get(checkout.voucher_code)
+                            if not voucher_info:
+                                continue
+                            voucher = voucher_info.voucher
+                            if (
+                                voucher.type == VoucherType.SPECIFIC_PRODUCT
+                                or voucher.apply_once_per_order
+                            ):
+                                apply_voucher_to_checkout_line(
+                                    voucher_info=voucher_info,
+                                    checkout=checkout,
+                                    lines_info=lines_info_map[checkout.pk],
+                                )
+                        return [lines_info_map[key] for key in keys]
+
+                    promotion_rules = PromotionRuleByIdLoader(self.context).load_many(
+                        rule_ids
+                    )
+                    promotions = PromotionByRuleIdLoader(self.context).load_many(
+                        rule_ids
+                    )
+                    return Promise.all([promotion_rules, promotions]).then(
+                        with_promotion_rules
                     )
 
-                for checkout in checkouts:
-                    if not checkout.voucher_code:
-                        continue
-                    voucher_info = voucher_infos_map.get(checkout.voucher_code)
-                    if not voucher_info:
-                        continue
-                    voucher = voucher_info.voucher
-                    if (
-                        voucher.type == VoucherType.SPECIFIC_PRODUCT
-                        or voucher.apply_once_per_order
-                    ):
-                        apply_voucher_to_checkout_line(
-                            voucher_info=voucher_info,
-                            checkout=checkout,
-                            lines_info=lines_info_map[checkout.pk],
-                        )
-                return [lines_info_map[key] for key in keys]
+                channel_listing_ids = [
+                    listing.id for listing in channel_listings if listing
+                ]
+                return (
+                    VariantChannelListingPromotionRuleByListingIdLoader(self.context)
+                    .load_many(channel_listing_ids)
+                    .then(with_channel_listing_promotion_rules)
+                )
 
             checkout_lines_discounts = CheckoutLineDiscountsByCheckoutLineIdLoader(
                 self.context
