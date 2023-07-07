@@ -6,11 +6,13 @@ from ....giftcard import events, models
 from ....giftcard.error_codes import GiftCardErrorCode
 from ....giftcard.utils import is_gift_card_expired
 from ....permission.enums import GiftcardPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseBulkMutation
 from ...core.types import GiftCardError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import GiftCard
 
@@ -27,6 +29,12 @@ class GiftCardBulkActivate(BaseBulkMutation):
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED,
+                description="A gift card was activated.",
+            )
+        ]
 
     @classmethod
     def clean_instance(cls, _info: ResolveInfo, instance):
