@@ -159,6 +159,7 @@ class AccountRegister(ModelMutation):
         site = get_site_promise(info.context).get()
 
         with traced_atomic_transaction():
+            user.is_confirmed = False
             if site.settings.enable_account_confirmation_by_email:
                 user.is_active = False
                 user.save()
