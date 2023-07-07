@@ -5,6 +5,8 @@ import graphene
 from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
 from ......account.search import generate_address_search_document_value
+from ......giftcard.models import GiftCard
+from ......giftcard.search import update_gift_cards_search_vector
 from .....tests.utils import get_graphql_content
 from ....tests.utils import convert_dict_keys_to_camel_case
 
@@ -527,3 +529,48 @@ def test_customer_update_assign_gift_cards_and_orders(
     assert gift_card.created_by_email == customer_user.email
     order.refresh_from_db()
     assert order.user == customer_user
+
+
+def test_customer_update_trigger_gift_card_search_vector_update(
+    staff_api_client,
+    customer_user,
+    gift_card_list,
+    permission_manage_users,
+):
+    # given
+    query = UPDATE_CUSTOMER_EMAIL_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    new_email = "mirumee@example.com"
+
+    gift_card_1, gift_card_2, gift_card_3 = gift_card_list
+    gift_card_1.created_by = customer_user
+    gift_card_2.used_by = customer_user
+    gift_card_3.used_by_email = new_email
+    GiftCard.objects.bulk_update(
+        gift_card_list, ["created_by", "used_by", "used_by_email"]
+    )
+
+    update_gift_cards_search_vector(gift_card_list)
+    for card in gift_card_list:
+        card.refresh_from_db()
+        assert card.search_index_dirty is False
+
+    variables = {
+        "id": user_id,
+        "email": new_email,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["customerUpdate"]["errors"]
+    customer_user.refresh_from_db()
+    assert customer_user.email == new_email
+    for card in gift_card_list:
+        card.refresh_from_db()
+        assert card.search_index_dirty is True

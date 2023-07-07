@@ -12,6 +12,7 @@ from ....giftcard import events, models
 from ....giftcard.error_codes import GiftCardErrorCode
 from ....giftcard.notifications import send_gift_card_notification
 from ....permission.enums import GiftcardPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
@@ -19,6 +20,7 @@ from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import ModelMutation
 from ...core.scalars import Date
 from ...core.types import BaseInputObjectType, GiftCardError, NonNullList, PriceInput
+from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_price_precision
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import GiftCard
@@ -93,6 +95,16 @@ class GiftCardCreate(ModelMutation):
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.GIFT_CARD_CREATED,
+                description="A gift card was created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for created gift card.",
+            ),
+        ]
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
