@@ -1,7 +1,4 @@
-
-import graphene
-
-from ....tests.utils import  get_graphql_content
+from ....tests.utils import get_graphql_content
 from . import PRIVATE_KEY, PRIVATE_VALUE, PUBLIC_KEY, PUBLIC_VALUE
 
 SHOP_SETTINGS_UPDATE_METADATA_MUTATION = """

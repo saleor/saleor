@@ -1,5 +1,3 @@
-import graphene
-
 from ....tests.utils import get_graphql_content
 from .utils import PRIVATE_KEY, PRIVATE_VALUE, PUBLIC_KEY, PUBLIC_VALUE
 
@@ -17,10 +15,11 @@ SHOP_METADATA_QUERY = """
             value
             }
             privateMetafield(key: "private_key")
-            privateMetafields(keys: ["private_key", "private_vale"])
+            privateMetafields(keys: ["private_key"])
         }
 }
 """
+
 
 def test_shop_metadata_query_as_user(
     user_api_client, site_settings, permission_manage_settings
