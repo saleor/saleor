@@ -652,7 +652,7 @@ def test_calculate_order_line_total(
     channel = order_line.order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
 
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     unit_price = TaxedMoney(net=net, gross=net)
     order_line.unit_price = unit_price
     total_price = unit_price * order_line.quantity
@@ -713,7 +713,7 @@ def test_calculate_order_line_without_sku_total(
     channel = order_line.order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
 
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     unit_price = TaxedMoney(net=net, gross=net)
     order_line.unit_price = unit_price
     total_price = unit_price * order_line.quantity
@@ -774,7 +774,7 @@ def test_calculate_order_line_total_with_discount(
     order_line.unit_discount = Money(discount_amount, currency)
     order_line.unit_discount_value = discount_amount
 
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     unit_price = TaxedMoney(net=net, gross=net)
     order_line.unit_price = unit_price
     undiscounted_unit_price = order_line.unit_price + order_line.unit_discount
@@ -848,7 +848,7 @@ def test_calculate_order_line_total_entire_order_voucher(
 
     channel_listing = variant.channel_listings.get(channel=channel)
 
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     unit_price = TaxedMoney(net=net, gross=net)
     order_line.unit_price = unit_price
     total_price = unit_price * order_line.quantity
@@ -940,7 +940,7 @@ def test_calculate_order_line_total_shipping_voucher(
 
     channel_listing = variant.channel_listings.get(channel=channel)
 
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     unit_price = TaxedMoney(net=net, gross=net)
     order_line.unit_price = unit_price
     total_price = unit_price * order_line.quantity
@@ -1015,7 +1015,7 @@ def test_calculate_order_line_total_order_not_valid(
     tax_configuration.save(update_fields=["charge_taxes"])
     tax_configuration.country_exceptions.all().delete()
 
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     unit_price = TaxedMoney(net=net, gross=net)
     order_line.base_unit_price = net
     order_line.undiscounted_base_unit_price = net
@@ -1563,12 +1563,7 @@ def test_calculate_checkout_total_voucher_on_entire_order(
     tax_configuration.country_exceptions.all().delete()
 
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = (
-        variant.get_price(
-            variant.product, [], checkout_with_item.channel, channel_listing
-        )
-        * checkout_with_item.lines.first().quantity
-    )
+    net = variant.get_price(channel_listing) * checkout_with_item.lines.first().quantity
 
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -1617,12 +1612,7 @@ def test_calculate_checkout_total_voucher_on_entire_order_applied_once_per_order
 
     channel = checkout_with_item.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = (
-        variant.get_price(
-            variant.product, [], checkout_with_item.channel, channel_listing
-        )
-        * checkout_with_item.lines.first().quantity
-    )
+    net = variant.get_price(channel_listing) * checkout_with_item.lines.first().quantity
 
     voucher_percentage.apply_once_per_order = True
     voucher_percentage.save(update_fields=["apply_once_per_order"])
@@ -1694,12 +1684,7 @@ def test_calculate_checkout_total_voucher_on_entire_order_product_without_taxes(
     tax_configuration.country_exceptions.all().delete()
 
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = (
-        variant.get_price(
-            variant.product, [], checkout_with_item.channel, channel_listing
-        )
-        * checkout_with_item.lines.first().quantity
-    )
+    net = variant.get_price(channel_listing) * checkout_with_item.lines.first().quantity
 
     discount_amount = Decimal("2.0")
     checkout_with_item.shipping_address = ship_to_pl_address
@@ -2072,12 +2057,7 @@ def test_calculate_checkout_subtotal_voucher_on_entire_order(
     tax_configuration.country_exceptions.all().delete()
 
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = (
-        variant.get_price(
-            variant.product, [], checkout_with_item.channel, channel_listing
-        )
-        * checkout_with_item.lines.first().quantity
-    )
+    net = variant.get_price(channel_listing) * checkout_with_item.lines.first().quantity
 
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -2242,7 +2222,7 @@ def test_calculate_order_shipping_entire_order_voucher(
     channel_listing = variant.channel_listings.get(channel=channel)
     order = order_line.order
 
-    net = variant.get_price(variant.product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     unit_price = TaxedMoney(net=net, gross=net)
     total_price = unit_price * order_line.quantity
     total = total_price * order.lines.count()
@@ -2294,7 +2274,7 @@ def test_calculate_order_shipping_free_shipping_voucher(
     channel_listing = variant.channel_listings.get(channel=channel)
     order = order_line.order
 
-    net = variant.get_price(variant.product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     unit_price = TaxedMoney(net=net, gross=net)
     total_price = unit_price * order_line.quantity
     total = total_price * order.lines.count()
@@ -2353,7 +2333,7 @@ def test_calculate_order_shipping_voucher_on_shipping(
     channel_listing = variant.channel_listings.get(channel=channel)
     order = order_line.order
 
-    net = variant.get_price(variant.product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     unit_price = TaxedMoney(net=net, gross=net)
     total_price = unit_price * order_line.quantity
     total = total_price * order.lines.count()
