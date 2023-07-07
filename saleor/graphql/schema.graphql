@@ -8622,10 +8622,14 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """The end date and time of voucher."""
   endDate: DateTime
 
-  """Determine if the voucher should be applied once per order. If set to True, the voucher is applied to a single cheapest eligible product in checkout."""
+  """
+  Determine if the voucher should be applied once per order. If set to True, the voucher is applied to a single cheapest eligible product in checkout.
+  """
   applyOncePerOrder: Boolean!
 
-  """Determine if the voucher usage should be limited to one use per customer."""
+  """
+  Determine if the voucher usage should be limited to one use per customer.
+  """
   applyOncePerCustomer: Boolean!
 
   """Determine if the voucher is available only for staff members."""
