@@ -60,10 +60,9 @@ from .models import Order, OrderGrantedRefund, OrderLine
 if TYPE_CHECKING:
     from ..app.models import App
     from ..channel.models import Channel
-    from ..checkout.fetch import CheckoutInfo
+    from ..checkout.fetch import CheckoutInfo, VariantPromotionRuleInfo
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
-    from ..product.models import ProductVariantChannelListing
 
 
 def get_order_country(order: Order) -> str:
@@ -211,13 +210,13 @@ def create_order_line(
     order,
     line_data,
     manager,
-    discounts=None,
     allocate_stock=False,
 ):
     channel = order.channel
     variant = line_data.variant
     quantity = line_data.quantity
     price_override = line_data.price_override
+    rules_info = line_data.rules_info
 
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel)
@@ -226,14 +225,14 @@ def create_order_line(
     untaxed_unit_price = variant.get_price(
         channel_listing,
         price_override=price_override,
+        promotion_rules=[rule_info.rule for rule_info in rules_info]
+        if rules_info
+        else None,
     )
-    if not discounts:
-        untaxed_undiscounted_price = untaxed_unit_price
-    else:
-        untaxed_undiscounted_price = variant.get_base_price(
-            channel_listing,
-            price_override=price_override,
-        )
+    untaxed_undiscounted_price = variant.get_base_price(
+        channel_listing,
+        price_override=price_override,
+    )
     unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
     undiscounted_unit_price = TaxedMoney(
         net=untaxed_undiscounted_price, gross=untaxed_undiscounted_price
@@ -278,7 +277,8 @@ def create_order_line(
 
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
-        create_order_line_discounts(line, channel_listing)
+        if rules_info:
+            create_order_line_discounts(line, rules_info)
 
         tax_configuration = channel.tax_configuration
         prices_entered_with_tax = tax_configuration.prices_entered_with_tax
@@ -289,12 +289,10 @@ def create_order_line(
             discount_amount = unit_discount.net
         line.unit_discount = discount_amount
         line.unit_discount_value = discount_amount.amount
-        # Update for promotion
+        # TODO: Do we still need this?
         # line.unit_discount_reason = (
         #     f"Sale: {graphene.Node.to_global_id('Sale', sale_id)}"
         # )
-        # line.sale_id = graphene.Node.to_global_id("Sale", sale_id) if sale_id
-        # else None
 
         line.save(
             update_fields=[
@@ -322,17 +320,12 @@ def create_order_line(
 
 
 def create_order_line_discounts(
-    line: "OrderLine", channel_listing: "ProductVariantChannelListing"
+    line: "OrderLine", rules_info: Iterable["VariantPromotionRuleInfo"]
 ):
     line_discounts_to_create: List[OrderLineDiscount] = []
-    listing_promotion_rules = (
-        channel_listing.variantlistingpromotionrule.prefetch_related(
-            "promotion_rule", "promotion_rule__promotion"
-        ).all()
-    )
-    for listing_rule in listing_promotion_rules:
-        rule = listing_rule.promotion_rule
-        rule_discount_amount = listing_rule.discount_amount
+    for rule_info in rules_info:
+        rule = rule_info.rule
+        rule_discount_amount = rule_info.variant_listing_promotion_rule.discount_amount
         line_discounts_to_create.append(
             OrderLineDiscount(
                 line=line,
@@ -341,7 +334,7 @@ def create_order_line_discounts(
                 value=rule.reward_value,
                 amount_value=rule_discount_amount,
                 currency=line.currency,
-                name=get_discount_name(rule, rule.promotion),
+                name=get_discount_name(rule, rule_info.promotion),
                 # TODO: set the promotion translation
                 translated_name="",
                 reason=None,
@@ -359,7 +352,6 @@ def add_variant_to_order(
     user,
     app,
     manager,
-    discounts=None,
     allocate_stock=False,
 ):
     """Add total_quantity of variant to order.
@@ -405,7 +397,6 @@ def add_variant_to_order(
             order,
             line_data,
             manager,
-            discounts,
             allocate_stock,
         )
 

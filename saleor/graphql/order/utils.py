@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...checkout.fetch import VariantPromotionRuleInfo
 from ...core.exceptions import InsufficientStock
 from ...order.error_codes import OrderErrorCode
 from ...order.utils import get_valid_shipping_methods_for_order
@@ -18,6 +19,7 @@ from ..core.validators import validate_variants_available_in_channel
 if TYPE_CHECKING:
     from ...channel.models import Channel
     from ...order.models import Order
+
 from dataclasses import dataclass
 
 T_ERRORS = Dict[str, List[ValidationError]]
@@ -30,6 +32,7 @@ class OrderLineData:
     line_id: Optional[str] = None
     price_override: Optional[Decimal] = None
     quantity: int = 0
+    rules_info: Optional[Iterable[VariantPromotionRuleInfo]] = None
 
 
 def validate_total_quantity(order: "Order", errors: T_ERRORS):

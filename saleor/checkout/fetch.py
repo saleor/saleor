@@ -289,7 +289,7 @@ def fetch_checkout_lines(
         collections = list(product.collections.all())
         discounts = list(line.discounts.all())
 
-        variant_channel_listing = _get_variant_channel_listing(
+        variant_channel_listing = get_variant_channel_listing(
             variant, checkout.channel_id
         )
         translation_language_code = checkout.language_code
@@ -348,7 +348,7 @@ def fetch_checkout_lines(
     return lines_info, unavailable_variant_pks
 
 
-def _get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
+def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
     variant_channel_listing = None
     for channel_listing in variant.channel_listings.all():
         if channel_listing.channel_id == channel_id:
