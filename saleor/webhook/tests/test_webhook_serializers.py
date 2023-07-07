@@ -1,3 +1,4 @@
+from decimal import Decimal
 from operator import itemgetter
 from unittest.mock import ANY, sentinel
 
@@ -5,10 +6,17 @@ import graphene
 import pytest
 
 from ...checkout import base_calculations
-from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...checkout.fetch import (
+    VariantPromotionRuleInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ...core.prices import quantize_price
-from ...discount import DiscountType
-from ...discount.utils import create_or_update_discount_objects_from_sale_for_checkout
+from ...discount import DiscountType, RewardValueType
+from ...discount.utils import (
+    create_or_update_discount_objects_from_promotion_for_checkout,
+    create_or_update_discount_objects_from_sale_for_checkout,
+)
 from ...plugins.manager import get_plugins_manager
 from ..serializers import (
     serialize_checkout_lines,
@@ -97,12 +105,9 @@ def test_serialize_checkout_lines(
     for data, line_info in zip(checkout_lines_data, checkout_lines):
         variant = line_info.line.variant
         product = variant.product
-        collections = line_info.collections
         variant_channel_listing = line_info.channel_listing
 
-        base_price = variant.get_price(
-            product, collections, channel, variant_channel_listing
-        )
+        base_price = variant.get_price(variant_channel_listing)
         currency = checkout.currency
         assert data == {
             "sku": variant.sku,
@@ -118,16 +123,49 @@ def test_serialize_checkout_lines(
     assert len(checkout_lines_data) == len(list(checkout_lines))
 
 
-def test_serialize_checkout_lines_with_sale(checkout_with_item, discount_info):
+def test_serialize_checkout_lines_with_promotion(
+    checkout_with_item_on_sale, promotion_without_rules
+):
     # given
-    checkout = checkout_with_item
+    checkout = checkout_with_item_on_sale
     channel = checkout.channel
     checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
-    manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, checkout_lines, [discount_info]
+
+    variant = checkout_lines[0].variant
+    channel_listing = variant.channel_listings.first()
+
+    reward_value = Decimal("5")
+    rule = promotion_without_rules.rules.create(
+        name="Percentage promotion rule",
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
     )
+    rule.channels.add(channel_listing.channel)
+
+    channel_listing.discounted_price_amount = (
+        channel_listing.price_amount - reward_value
+    )
+    channel_listing.save(update_fields=["discounted_price_amount"])
+
+    listing_promotion_rule = channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel_listing.channel.currency_code,
+    )
+    checkout_lines[0].rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=promotion_without_rules,
+        )
+    ]
+
+    create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines)
 
     # when
     checkout_lines_data = serialize_checkout_lines(checkout)
@@ -138,15 +176,10 @@ def test_serialize_checkout_lines_with_sale(checkout_with_item, discount_info):
     for data, line_info in zip(checkout_lines_data, checkout_lines):
         variant = line_info.line.variant
         product = variant.product
-        collections = line_info.collections
         variant_channel_listing = line_info.channel_listing
 
-        base_price = variant.get_price(
-            product, collections, channel, variant_channel_listing, [discount_info]
-        )
-        undiscounted_base_price = variant.get_price(
-            product, collections, channel, variant_channel_listing
-        )
+        base_price = variant.get_price(variant_channel_listing)
+        undiscounted_base_price = variant.get_base_price(variant_channel_listing)
         currency = checkout.currency
         assert base_price < undiscounted_base_price
         assert data == {
@@ -274,11 +307,7 @@ def test_serialize_checkout_lines_for_tax_calculation_with_sale(
         discount = line_info.discounts[0]
         assert discount.type == DiscountType.SALE
         undiscounted_unit_price = variant.get_price(
-            line_info.product,
-            line_info.collections,
-            checkout_info.channel,
             line_info.channel_listing,
-            [],
             line_info.line.price_override,
         ).amount
         assert unit_price < undiscounted_unit_price

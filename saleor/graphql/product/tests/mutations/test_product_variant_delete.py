@@ -187,7 +187,7 @@ def test_delete_variant_in_draft_order(
     variables = {"id": variant_id}
 
     product = variant.product
-    net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
+    net = variant.get_price(variant_channel_listing)
     gross = Money(amount=net.amount, currency=net.currency)
     order_not_draft = order_list[-1]
     unit_price = TaxedMoney(net=net, gross=gross)

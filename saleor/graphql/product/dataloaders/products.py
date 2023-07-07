@@ -15,6 +15,7 @@ from ....product.models import (
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
+    VariantChannelListingPromotionRule,
     VariantMedia,
 )
 from ...core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
@@ -656,3 +657,23 @@ class ThumbnailByCollectionIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoa
 class ThumbnailByProductMediaIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoader):
     context_key = "thumbnail_by_productmedia_size_and_format"
     model_name = "product_media"
+
+
+class VariantChannelListingPromotionRuleByListingIdLoader(DataLoader):
+    context_key = "variant_channel_listing_promotion_rule_by_listing_id"
+
+    def batch_load(self, keys):
+        listing_promotion_rules = VariantChannelListingPromotionRule.objects.using(
+            self.database_connection_name
+        ).filter(variant_channel_listing_id__in=keys)
+
+        channel_listing_to_channel_rules_map = defaultdict(list)
+        for listing_rule in listing_promotion_rules:
+            channel_listing_to_channel_rules_map[
+                listing_rule.variant_channel_listing_id
+            ].append(listing_rule)
+
+        return [
+            channel_listing_to_channel_rules_map.get(listing_id, [])
+            for listing_id in keys
+        ]
