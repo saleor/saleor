@@ -284,23 +284,10 @@ def fetch_checkout_lines(
         collections = list(product.collections.all())
         discounts = list(line.discounts.all())
 
-        variant_channel_listing = _get_variant_channel_listing(
+        variant_channel_listing = get_variant_channel_listing(
             variant, checkout.channel_id
         )
-
-        listings_rules = (
-            variant_channel_listing.variantlistingpromotionrule.all()
-            if variant_channel_listing
-            else []
-        )
-        rules_info = [
-            VariantPromotionRuleInfo(
-                rule=listing_promotion_rule.promotion_rule,
-                variant_listing_promotion_rule=listing_promotion_rule,
-                promotion=listing_promotion_rule.promotion_rule.promotion,
-            )
-            for listing_promotion_rule in listings_rules
-        ]
+        rules_info = get_variant_rules_info(variant_channel_listing)
 
         if not skip_recalculation and not _is_variant_valid(
             checkout, product, variant_channel_listing, product_channel_listing_mapping
@@ -353,12 +340,29 @@ def fetch_checkout_lines(
     return lines_info, unavailable_variant_pks
 
 
-def _get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
+def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
     variant_channel_listing = None
     for channel_listing in variant.channel_listings.all():
         if channel_listing.channel_id == channel_id:
             variant_channel_listing = channel_listing
     return variant_channel_listing
+
+
+def get_variant_rules_info(variant_channel_listing):
+    listings_rules = (
+        variant_channel_listing.variantlistingpromotionrule.all()
+        if variant_channel_listing
+        else []
+    )
+    rules_info = [
+        VariantPromotionRuleInfo(
+            rule=listing_promotion_rule.promotion_rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=listing_promotion_rule.promotion_rule.promotion,
+        )
+        for listing_promotion_rule in listings_rules
+    ]
+    return rules_info
 
 
 def _is_variant_valid(

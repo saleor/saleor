@@ -255,7 +255,6 @@ def test_add_variant_to_order(
     customer_user,
     variant,
     sale,
-    discount_info,
 ):
     # given
     manager = get_plugins_manager()
@@ -289,7 +288,6 @@ def test_add_variant_to_order(
         customer_user,
         None,
         manager,
-        [discount_info],
     )
 
     # then
