@@ -14037,8 +14037,8 @@ type Mutation {
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   
   Triggers the following webhook events:
-  - TRANSLATION_CREATED (async): A translation was created.
-  - TRANSLATION_UPDATED (async): A translation was updated.
+  - TRANSLATION_CREATED (async): Called when a translation was created.
+  - TRANSLATION_UPDATED (async): Called when a translation was updated.
   """
   productBulkTranslate(
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
@@ -20434,8 +20434,8 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 
 Triggers the following webhook events:
-- TRANSLATION_CREATED (async): A translation was created.
-- TRANSLATION_UPDATED (async): A translation was updated.
+- TRANSLATION_CREATED (async): Called when a translation was created.
+- TRANSLATION_UPDATED (async): Called when a translation was updated.
 """
 type ProductBulkTranslate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [TRANSLATION_CREATED, TRANSLATION_UPDATED], syncEvents: []) {
   """Returns how many translations were created/updated."""

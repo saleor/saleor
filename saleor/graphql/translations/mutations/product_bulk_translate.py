@@ -89,11 +89,11 @@ class ProductBulkTranslate(BaseBulkTranslateMutation):
         webhook_events_info = [
             WebhookEventInfo(
                 type=WebhookEventAsyncType.TRANSLATION_CREATED,
-                description="A translation was created.",
+                description="Called when a translation was created.",
             ),
             WebhookEventInfo(
                 type=WebhookEventAsyncType.TRANSLATION_UPDATED,
-                description="A translation was updated.",
+                description="Called when a translation was updated.",
             ),
         ]
 
