@@ -225,9 +225,9 @@ def create_order_line(
     untaxed_unit_price = variant.get_price(
         channel_listing,
         price_override=price_override,
-        promotion_rules=[rule_info.rule for rule_info in rules_info]
-        if rules_info
-        else None,
+        promotion_rules=(
+            [rule_info.rule for rule_info in rules_info] if rules_info else None
+        ),
     )
     untaxed_undiscounted_price = variant.get_base_price(
         channel_listing,
