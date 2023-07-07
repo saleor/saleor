@@ -60,9 +60,18 @@ jobs:
           python -m pip install wheel
           python -m pip install -r requirements_dev.txt
 
-      - name: Run tests
+      # Run linters and Django related checks
+      # `git config` command is a workaround for https://github.com/actions/runner-images/issues/6775
+      - name: Run Linters and Checks
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          pre-commit run --all
+        if: ${{ always() }}
+
+      - name: Run unit tests
         run: |
           pytest \
+            -m "not e2e" \
             --cov \
             --junitxml=junit/test-results.xml \
             --django-db-bench=${{ env.BENCH_PATH }}
@@ -99,10 +108,7 @@ jobs:
           upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
         if: github.event_name == 'push' && github.repository == 'saleor/saleor'
 
-      # Run linters and Django related checks
-      # `git config` command is a workaround for https://github.com/actions/runner-images/issues/6775
-      - name: Run Linters and Checks
+      - name: Run E2E tests
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          pre-commit run --all
-        if: ${{ always() }}
+          pytest \
+            -m "e2e"

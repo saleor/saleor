@@ -1,6 +1,6 @@
 import graphene
 
-from ...permission.enums import CheckoutPermissions
+from ...permission.enums import AccountPermissions, CheckoutPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import (
@@ -46,7 +46,12 @@ from .types import (
 class CheckoutQueries(graphene.ObjectType):
     checkout = BaseField(
         Checkout,
-        description="Look up a checkout by token and slug of channel.",
+        description=(
+            "Look up a checkout by id.\n\nRequires one of the following permissions to "
+            "query checkouts that belong to other users: "
+            f"{CheckoutPermissions.MANAGE_CHECKOUTS.name}, "
+            f"{AccountPermissions.IMPERSONATE_USER.name}. "
+        ),
         id=graphene.Argument(
             graphene.ID, description="The checkout's ID." + ADDED_IN_34
         ),
