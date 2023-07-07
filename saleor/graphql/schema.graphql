@@ -5335,6 +5335,7 @@ type ProductCountableEdge @doc(category: "Products") {
 
 """Represents an individual item for sale in the storefront."""
 type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the product."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -5374,8 +5375,14 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """SEO title of the product."""
   seoTitle: String
+
+  """SEO description of the product."""
   seoDescription: String
+
+  """SEO description of the product."""
   name: String!
 
   """
@@ -5384,14 +5391,28 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """Type of the product."""
   productType: ProductType!
+
+  """Slug of the product."""
   slug: String!
   category: Category
+
+  """The date and time when the product was created."""
   created: DateTime!
+
+  """The date and time when the product was last updated."""
   updatedAt: DateTime!
   chargeTaxes: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` field to determine whether tax collection is enabled.")
+
+  """Weight of the product."""
   weight: Weight
+
+  """Default variant of the product."""
   defaultVariant: ProductVariant
+
+  """Rating of the product."""
   rating: Float
 
   """
@@ -5405,6 +5426,8 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """Thumbnail of the product."""
   thumbnail(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -5546,6 +5569,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
 Represents a type of product. It defines what attributes are available to products of this type.
 """
 type ProductType implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the product type."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -5585,11 +5609,23 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Name of the product type."""
   name: String!
+
+  """Slug of the product type."""
   slug: String!
+
+  """Whether the product type has variants."""
   hasVariants: Boolean!
+
+  """Whether shipping is required for this product type."""
   isShippingRequired: Boolean!
+
+  """Whether the product type is digital."""
   isDigital: Boolean!
+
+  """Weight of the product type."""
   weight: Weight
 
   """The product type kind."""
@@ -6307,6 +6343,7 @@ input MeasurementUnitsEnumFilterInput @doc(category: "Attributes") {
 Represents a single category of products. Categories allow to organize products in a tree-hierarchies which can be used for navigation in the storefront.
 """
 type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the category."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -6346,8 +6383,14 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """SEO title of category."""
   seoTitle: String
+
+  """SEO description of category."""
   seoDescription: String
+
+  """Name of category"""
   name: String!
 
   """
@@ -6356,8 +6399,14 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """Slug of the category."""
   slug: String!
+
+  """Parent category."""
   parent: Category
+
+  """Level of the category."""
   level: Int!
 
   """
@@ -6451,6 +6500,8 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     """
     last: Int
   ): CategoryCountableConnection
+
+  """Background image of the category."""
   backgroundImage(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -6870,6 +6921,7 @@ type CategoryTranslation implements Node @doc(category: "Products") {
 
 """Represents a version of a product such as different size or color."""
 type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the product variant."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -6909,11 +6961,23 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """The name of the product variant."""
   name: String!
+
+  """The SKU (stock keeping unit) of the product variant."""
   sku: String
+
+  """The product to which the variant belongs."""
   product: Product!
+
+  """Whether the inventory of the variant is tracked."""
   trackInventory: Boolean!
+
+  """The maximum quantity of this variant that a customer can purchase."""
   quantityLimitPerCustomer: Int
+
+  """The weight of the product variant."""
   weight: Weight
 
   """
@@ -7022,7 +7086,11 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   Added in Saleor 3.1.
   """
   preorder: PreorderData
+
+  """The date and time when the product variant was created."""
   created: DateTime!
+
+  """The date and time when the product variant was last updated."""
   updatedAt: DateTime!
 
   """
@@ -7035,8 +7103,13 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
 
 """Represents product variant channel listing."""
 type ProductVariantChannelListing implements Node @doc(category: "Products") {
+  """The ID of the variant channel listing."""
   id: ID!
+
+  """The channel to which the variant listing belongs."""
   channel: Channel!
+
+  """The price of the variant."""
   price: Money
 
   """Cost price of the variant."""
@@ -7169,6 +7242,8 @@ type ProductImage @doc(category: "Products") {
   The new relative sorting position of the item (from -inf to +inf). 1 moves the item one position forward, -1 moves the item one position backward, 0 leaves the item unchanged.
   """
   sortOrder: Int
+
+  """The URL of the image."""
   url(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -7186,6 +7261,7 @@ type ProductImage @doc(category: "Products") {
 
 """Represents a product media."""
 type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The unique ID of the product media."""
   id: ID!
 
   """
@@ -7233,10 +7309,20 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
   Added in Saleor 3.12.
   """
   metafields(keys: [String!]): Metadata
+
+  """The sort order of the media."""
   sortOrder: Int
+
+  """The alt text of the media."""
   alt: String!
+
+  """The type of the media."""
   type: ProductMediaType!
+
+  """The oEmbed data of the media."""
   oembedData: JSONString!
+
+  """The URL of the media."""
   url(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -7273,7 +7359,9 @@ type ProductVariantTranslation implements Node @doc(category: "Products") {
   name: String!
 }
 
+"""Represents digital content associated with a product variant."""
 type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the digital content."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -7313,10 +7401,20 @@ type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Product
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Default settings indicator for digital content."""
   useDefaultSettings: Boolean!
+
+  """Indicator for automatic fulfillment of digital content."""
   automaticFulfillment: Boolean!
+
+  """File associated with digital content."""
   contentFile: String!
+
+  """Maximum number of allowed downloads for the digital content."""
   maxDownloads: Int
+
+  """Number of days the URL for the digital content remains valid."""
   urlValidDays: Int
 
   """List of URLs for the digital variant."""
@@ -7326,10 +7424,18 @@ type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Product
   productVariant: ProductVariant!
 }
 
+"""Represents a URL for digital content."""
 type DigitalContentUrl implements Node @doc(category: "Products") {
+  """The ID of the digital content URL."""
   id: ID!
+
+  """Digital content associated with the URL."""
   content: DigitalContent!
+
+  """Date and time when the digital content URL was created."""
   created: DateTime!
+
+  """Number of times digital content has been downloaded."""
   downloadNum: Int!
 
   """URL for digital content."""
@@ -7435,6 +7541,7 @@ type TaxedMoneyRange {
 
 """Represents product channel listing."""
 type ProductChannelListing implements Node @doc(category: "Products") {
+  """The ID of the product channel listing."""
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
@@ -7444,8 +7551,14 @@ type ProductChannelListing implements Node @doc(category: "Products") {
   Added in Saleor 3.3.
   """
   publishedAt: DateTime
+
+  """Indicates if the product is published in the channel."""
   isPublished: Boolean!
+
+  """The channel in which the product is listed."""
   channel: Channel!
+
+  """Indicates product visibility in the channel listings."""
   visibleInListings: Boolean!
   availableForPurchase: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
 
@@ -7489,8 +7602,12 @@ type ProductChannelListing implements Node @doc(category: "Products") {
   ): ProductPricingInfo
 }
 
+"""Metadata for the Margin class."""
 type Margin @doc(category: "Products") {
+  """The starting value of the margin."""
   start: Int
+
+  """The ending value of the margin."""
   stop: Int
 }
 
@@ -7509,6 +7626,7 @@ enum MediaChoicesSortField @doc(category: "Products") {
 
 """Represents a collection of products."""
 type Collection implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the collection."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -7548,8 +7666,14 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """SEO title of the collection."""
   seoTitle: String
+
+  """SEO description of the collection."""
   seoDescription: String
+
+  """Name of the collection."""
   name: String!
 
   """
@@ -7558,6 +7682,8 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """Slug of the collection."""
   slug: String!
 
   """
@@ -7605,6 +7731,8 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
     """
     last: Int
   ): ProductCountableConnection
+
+  """Background image of the collection."""
   backgroundImage(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -7659,6 +7787,7 @@ type CollectionTranslation implements Node @doc(category: "Products") {
 
 """Represents collection channel listing."""
 type CollectionChannelListing implements Node @doc(category: "Products") {
+  """The ID of the collection channel listing."""
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
@@ -7668,7 +7797,11 @@ type CollectionChannelListing implements Node @doc(category: "Products") {
   Added in Saleor 3.3.
   """
   publishedAt: DateTime
+
+  """Indicates if the collection is published in the channel."""
   isPublished: Boolean!
+
+  """The channel to which the collection belongs."""
   channel: Channel!
 }
 
@@ -8350,6 +8483,7 @@ enum SaleType @doc(category: "Discounts") {
   PERCENTAGE
 }
 
+"""Represents a connection to a list of collections."""
 type CollectionCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -11926,6 +12060,7 @@ input ShippingZoneFilterInput @doc(category: "Shipping") {
   channels: [ID!]
 }
 
+"""A connection to a list of digital content items."""
 type DigitalContentCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
