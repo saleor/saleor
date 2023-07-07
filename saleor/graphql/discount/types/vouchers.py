@@ -72,7 +72,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     end_date = graphene.DateTime(description="The end date and time of voucher.")
     apply_once_per_order = graphene.Boolean(
         required=True,
-        description="Determine if the voucher should be applied once per order.If set "
+        description="Determine if the voucher should be applied once per order. If set "
         "to True, the voucher is applied to a single cheapest eligible product in "
         "checkout.",
     )
