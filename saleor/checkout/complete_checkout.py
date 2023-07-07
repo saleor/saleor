@@ -665,7 +665,13 @@ def _prepare_checkout_with_transactions(
 ):
     """Prepare checkout object with transactions to complete the checkout process."""
     clean_billing_address(checkout_info, CheckoutErrorCode)
-    if checkout_info.checkout.authorize_status != CheckoutAuthorizeStatus.FULL:
+    if (
+        checkout_info.checkout.authorize_status != CheckoutAuthorizeStatus.FULL
+        and not (
+            checkout_info.checkout.authorize_status == CheckoutAuthorizeStatus.NONE
+            and checkout_info.channel.allow_to_create_order_without_payment
+        )
+    ):
         raise ValidationError(
             {
                 "id": ValidationError(
@@ -1299,10 +1305,18 @@ def complete_checkout(
     # paid is used. In case when we have TRANSACTION_FLOW we use transaction flow to
     # finalize the checkout.
     checkout_is_zero = checkout_info.checkout.total.gross.amount == Decimal(0)
-    if transactions or (
-        checkout_is_zero
-        and checkout_info.channel.order_mark_as_paid_strategy
-        == MarkAsPaidStrategy.TRANSACTION_FLOW
+    if (
+        transactions
+        or (
+            checkout_is_zero
+            and checkout_info.channel.order_mark_as_paid_strategy
+            == MarkAsPaidStrategy.TRANSACTION_FLOW
+        )
+        or (
+            checkout_info.channel.allow_to_create_order_without_payment
+            and checkout_info.channel.order_mark_as_paid_strategy
+            == MarkAsPaidStrategy.TRANSACTION_FLOW
+        )
     ):
         order = complete_checkout_with_transaction(
             manager=manager,

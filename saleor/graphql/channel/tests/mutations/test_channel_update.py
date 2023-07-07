@@ -44,6 +44,7 @@ CHANNEL_UPDATE_MUTATION = """
                     markAsPaidStrategy
                     defaultTransactionFlowStrategy
                     deleteExpiredOrdersAfter
+                    allowToCreateOrderWithoutPayment
                 }
             }
             errors{
@@ -78,6 +79,7 @@ def test_channel_update_mutation_as_staff_user(
                 "automaticallyConfirmAllNewOrders": False,
                 "automaticallyFulfillNonShippableGiftCard": False,
                 "expireOrdersAfter": 10,
+                "allowToCreateOrderWithoutPayment": True,
             },
         },
     }
@@ -110,6 +112,7 @@ def test_channel_update_mutation_as_staff_user(
         is False
     )
     assert channel_data["orderSettings"]["expireOrdersAfter"] == 10
+    assert channel_data["orderSettings"]["allowToCreateOrderWithoutPayment"] is True
 
 
 def test_channel_update_mutation_as_app(
@@ -805,6 +808,7 @@ def test_channel_update_order_settings_manage_orders(
             "orderSettings": {
                 "automaticallyConfirmAllNewOrders": False,
                 "automaticallyFulfillNonShippableGiftCard": False,
+                "allowToCreateOrderWithoutPayment": True,
             },
         },
     }
@@ -826,6 +830,7 @@ def test_channel_update_order_settings_manage_orders(
         channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
         is False
     )
+    assert channel_data["orderSettings"]["allowToCreateOrderWithoutPayment"] is True
 
 
 def test_channel_update_order_settings_empty_order_settings(

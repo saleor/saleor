@@ -475,4 +475,7 @@ class Channel(ModelObjectType):
             mark_as_paid_strategy=root.order_mark_as_paid_strategy,
             default_transaction_flow_strategy=root.default_transaction_flow_strategy,
             delete_expired_orders_after=root.delete_expired_orders_after.days,
+            allow_to_create_order_without_payment=(
+                root.allow_to_create_order_without_payment
+            ),
         )

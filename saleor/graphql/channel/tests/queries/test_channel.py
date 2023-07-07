@@ -292,6 +292,7 @@ QUERY_CHANNEL_ORDER_SETTINGS = """
                 markAsPaidStrategy
                 defaultTransactionFlowStrategy
                 deleteExpiredOrdersAfter
+                allowToCreateOrderWithoutPayment
             }
         }
     }
@@ -343,6 +344,10 @@ def test_query_channel_order_settings_as_staff_user(
     assert (
         channel_data["orderSettings"]["deleteExpiredOrdersAfter"]
         == channel_USD.delete_expired_orders_after.days
+    )
+    assert (
+        channel_data["orderSettings"]["allowToCreateOrderWithoutPayment"]
+        == channel_USD.allow_to_create_order_without_payment
     )
 
 
