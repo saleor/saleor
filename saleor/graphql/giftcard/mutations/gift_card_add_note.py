@@ -4,12 +4,14 @@ from django.core.exceptions import ValidationError
 from ....giftcard import events
 from ....giftcard.error_codes import GiftCardErrorCode
 from ....permission.enums import GiftcardPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, GiftCardError
+from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_required_string_field
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import GiftCard, GiftCardEvent
@@ -40,6 +42,12 @@ class GiftCardAddNote(BaseMutation):
         doc_category = DOC_CATEGORY_GIFT_CARDS
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.GIFT_CARD_UPDATED,
+                description="A gift card was updated.",
+            )
+        ]
 
     @classmethod
     def clean_input(cls, _info: ResolveInfo, _instance, data):
