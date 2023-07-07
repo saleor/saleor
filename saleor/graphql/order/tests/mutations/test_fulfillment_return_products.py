@@ -959,7 +959,7 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
     channel_listing = variant.channel_listings.get()
-    net = variant.get_price(variant.product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     variant.track_inventory = False
     variant.save()
@@ -1082,7 +1082,7 @@ def test_fulfillment_return_products_calls_order_refunded(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
     channel_listing = variant.channel_listings.get()
-    net = variant.get_price(variant.product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     variant.track_inventory = False
     variant.save()

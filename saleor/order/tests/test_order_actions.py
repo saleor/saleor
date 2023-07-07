@@ -60,7 +60,7 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
     product = variant.product
     channel = order.channel
     variant_channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, variant_channel_listing, None)
+    net = variant.get_price(variant_channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(

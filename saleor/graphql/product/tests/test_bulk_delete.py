@@ -456,7 +456,7 @@ def test_delete_products(
     for variant in [product_list[0].variants.first(), product_list[1].variants.first()]:
         product = variant.product
         variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-        net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
+        net = variant.get_price(variant_channel_listing)
         gross = Money(amount=net.amount, currency=net.currency)
         quantity = 3
         total_price = TaxedMoney(net=net * quantity, gross=gross * quantity)
@@ -1460,9 +1460,7 @@ def test_delete_product_variants_in_draft_orders(
     second_variant_channel_listing = second_variant_in_draft.channel_listings.get(
         channel=channel_USD
     )
-    net = second_variant_in_draft.get_price(
-        second_product, [], channel_USD, second_variant_channel_listing, None
-    )
+    net = second_variant_in_draft.get_price(second_variant_channel_listing)
     gross = Money(amount=net.amount, currency=net.currency)
     unit_price = TaxedMoney(net=net, gross=gross)
     quantity = 3
@@ -1484,7 +1482,7 @@ def test_delete_product_variants_in_draft_orders(
     variant = variants[0]
     product = variant.product
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-    net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
+    net = variant.get_price(variant_channel_listing)
     gross = Money(amount=net.amount, currency=net.currency)
     unit_price = TaxedMoney(net=net, gross=gross)
     quantity = 3
