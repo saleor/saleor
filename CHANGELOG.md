@@ -65,6 +65,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
 - Remove `Preview feature` label from `metafield`, `metafields`, `metadata`,
 `privateMetafield`, `privateMetafields` and `privateMetadata` fields - #13245 by @korycins
+- [Preview] Add possibility to completeCheckout without payment in transaction flow - #13339 by @kadewu:
+    - New field `allowToCreateOrderWithoutPayment` in `OrderSettings` for `Channel`
 
 ### Saleor Apps
 
