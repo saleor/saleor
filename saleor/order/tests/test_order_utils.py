@@ -251,21 +251,29 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
 
 
 def test_add_variant_to_order(
-    order, customer_user, variant, site_settings, discount_info
+    order,
+    customer_user,
+    variant,
+    sale,
+    discount_info,
 ):
     # given
     manager = get_plugins_manager()
     quantity = 4
-    collections = variant.product.collections.all()
+
+    sale_channel_listing = sale.channel_listings.get(channel=order.channel)
+
     channel_listing = variant.channel_listings.get(channel=order.channel)
-    base_unit_price = variant.get_price(
-        variant.product, collections, order.channel, channel_listing, [discount_info]
+    channel_listing.discounted_price_amount = (
+        channel_listing.price.amount - sale_channel_listing.discount_value
     )
+    channel_listing.save(update_fields=["discounted_price_amount"])
+
+    base_unit_price = variant.get_price(channel_listing)
     unit_price = TaxedMoney(net=base_unit_price, gross=base_unit_price)
     total_price = unit_price * quantity
-    undiscounted_base_unit_price = variant.get_price(
-        variant.product, collections, order.channel, channel_listing, []
-    )
+
+    undiscounted_base_unit_price = variant.get_base_price(channel_listing)
     undiscounted_unit_price = TaxedMoney(
         net=undiscounted_base_unit_price, gross=undiscounted_base_unit_price
     )
