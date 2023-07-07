@@ -230,7 +230,7 @@ def test_delete_product_variant_in_draft_order(
     not_draft_order_lines_pks = []
     for variant in product.variants.all():
         variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-        net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
+        net = variant.get_price(variant_channel_listing)
         gross = Money(amount=net.amount, currency=net.currency)
         unit_price = TaxedMoney(net=net, gross=gross)
         quantity = 3

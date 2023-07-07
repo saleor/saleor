@@ -31,11 +31,7 @@ def test_calculate_base_line_unit_price(checkout_with_single_item):
 
     # then
     expected_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     assert unit_price == expected_price
 
@@ -89,11 +85,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale(
 
     # then
     expected_undiscounted_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     product_collections = set(pc.id for pc in checkout_line_info.collections)
     _, sale_discount = get_product_discount_on_sale(
@@ -182,11 +174,7 @@ def test_calculate_base_line_unit_price_with_fixed_voucher(
 
     # then
     expected_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     assert unit_price == expected_price - voucher_amount
 
@@ -255,11 +243,7 @@ def test_calculate_base_line_unit_price_with_percentage_voucher(
     # then
     expected_voucher_amount = Money(Decimal("1"), checkout_with_single_item.currency)
     expected_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     assert unit_price == expected_price - expected_voucher_amount
 
@@ -332,11 +316,7 @@ def test_calculate_base_line_unit_price_with_discounts_apply_once_per_order(
 
     # then
     expected_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     expected_voucher_amount = expected_price * voucher_percent_value / 100
     assert unit_price == expected_price - expected_voucher_amount
@@ -416,11 +396,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_and_voucher(
 
     # then
     expected_undiscounted_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     product_collections = set(pc.id for pc in checkout_line_info.collections)
     _, sale_discount = get_product_discount_on_sale(
@@ -455,11 +431,7 @@ def test_calculate_base_line_total_price(checkout_with_single_item):
 
     # then
     expected_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     assert total_price == expected_price * quantity
 
@@ -496,11 +468,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale(
 
     # then
     expected_undiscounted_unit_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     product_collections = set(pc.id for pc in checkout_line_info.collections)
     _, sale_discount = get_product_discount_on_sale(
@@ -601,11 +569,7 @@ def test_calculate_base_line_total_price_with_fixed_voucher(
 
     # then
     expected_unit_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     assert total_price == (expected_unit_price - voucher_amount) * quantity
 
@@ -645,11 +609,7 @@ def test_calculate_base_line_total_price_with_percentage_voucher(
     # then
     expected_voucher_amount = Money(Decimal("1"), checkout_with_single_item.currency)
     expected_unit_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     assert total_price == (expected_unit_price - expected_voucher_amount) * quantity
 
@@ -690,11 +650,7 @@ def test_calculate_base_line_total_price_with_discounts_apply_once_per_order(
     # then
     expected_voucher_amount = Money(Decimal("1"), checkout_with_single_item.currency)
     expected_unit_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     # apply once per order is applied when calculating line total.
     assert total_price == (expected_unit_price * quantity) - expected_voucher_amount
@@ -745,11 +701,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher(
 
     # then
     expected_undiscounted_unit_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     product_collections = set(pc.id for pc in checkout_line_info.collections)
     _, sale_discount = get_product_discount_on_sale(
@@ -811,11 +763,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher_applie
 
     # then
     expected_undiscounted_unit_price = variant.get_price(
-        product=checkout_line_info.product,
-        collections=checkout_line_info.collections,
-        channel=checkout_with_single_item.channel,
         channel_listing=checkout_line_info.channel_listing,
-        discounts=[],
     )
     product_collections = set(pc.id for pc in checkout_line_info.collections)
     _, sale_discount = get_product_discount_on_sale(
@@ -864,7 +812,7 @@ def test_base_checkout_total(checkout_with_item, shipping_method, voucher_percen
     # then
     variant = checkout_with_item.lines.first().variant
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(variant.product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     shipping_channel_listings = shipping_method.channel_listings.get(channel=channel)
     expected_price = (
         net * checkout_with_item.lines.first().quantity
@@ -932,6 +880,6 @@ def test_base_checkout_total_high_discount_on_shipping(
     # then
     variant = checkout_with_item.lines.first().variant
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(variant.product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     expected_price = net * checkout_with_item.lines.first().quantity
     assert total == expected_price

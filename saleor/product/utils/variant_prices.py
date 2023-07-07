@@ -7,6 +7,7 @@ from django.db.models.query_utils import Q
 from prices import Money
 
 from ...channel.models import Channel
+from ...core.taxes import zero_money
 from ...discount import DiscountInfo, PromotionRuleInfo
 from ...discount.models import Sale
 from ...discount.utils import (
@@ -43,7 +44,7 @@ def update_discounted_prices_for_promotion(
         Exists(products.filter(id=OuterRef("product_id")))
     )
     if rules_info is None:
-        rules_info = fetch_active_promotion_rules(variant_qs)
+        rules_info_per_promotion_id = fetch_active_promotion_rules(variant_qs)
     product_to_variant_listings_per_channel_map = (
         _get_product_to_variant_channel_listings_per_channel_map(variant_qs)
     )
@@ -75,7 +76,7 @@ def update_discounted_prices_for_promotion(
             variant_listing_promotion_rule_to_update,
         ) = _get_discounted_variants_prices_for_promotions(
             variant_listings,
-            rules_info,
+            rules_info_per_promotion_id,
             product_channel_listing.channel,
             variant_listing_to_listing_rule_per_rule_map,
         )
@@ -292,7 +293,7 @@ def _get_discounted_variants_prices(
 
 def _get_discounted_variants_prices_for_promotions(
     variant_listings: List[ProductVariantChannelListing],
-    rules_info: List[PromotionRuleInfo],
+    rules_info_per_promotion_id: Dict[int, List[PromotionRuleInfo]],
     channel: Channel,
     variant_listing_to_listing_rule_per_rule_map: dict,
 ) -> Tuple[
@@ -310,34 +311,42 @@ def _get_discounted_variants_prices_for_promotions(
         VariantChannelListingPromotionRule
     ] = []
     for variant_listing in variant_listings:
-        rule_id, discounted_variant_price = calculate_discounted_price_for_promotions(
+        applied_discounts = calculate_discounted_price_for_promotions(
             price=variant_listing.price,
-            rules_info=rules_info,
+            rules_info_per_promotion_id=rules_info_per_promotion_id,
             channel=channel,
             variant_id=variant_listing.variant_id,
         )
+        rule_ids = []
+        discounted_variant_price = variant_listing.price
+        for rule_id, discount in applied_discounts:
+            if discounted_variant_price.amount < discount.amount:
+                discount = discounted_variant_price
+                discounted_variant_price = zero_money(discounted_variant_price.currency)
+            else:
+                discounted_variant_price -= discount
+            _handle_discount_rule_id(
+                variant_listing,
+                rule_id,
+                variant_listing_to_listing_rule_per_rule_map,
+                discount.amount,
+                channel.currency_code,
+                variant_listing_promotion_rule_to_update,
+                variant_listing_promotion_rule_to_create,
+            )
+            rule_ids.append(rule_id)
+            if discounted_variant_price.amount == 0:
+                break
+
         if variant_listing.discounted_price != discounted_variant_price:
             variant_listing.discounted_price_amount = discounted_variant_price.amount
             variants_listings_to_update.append(variant_listing)
-            if rule_id:
-                discount_amount = (
-                    variant_listing.price - discounted_variant_price
-                ).amount
-                _handle_discount_rule_id(
-                    variant_listing,
-                    rule_id,
-                    variant_listing_to_listing_rule_per_rule_map,
-                    discount_amount,
-                    channel.currency_code,
-                    variant_listing_promotion_rule_to_update,
-                    variant_listing_promotion_rule_to_create,
-                )
-            else:
-                # delete variant listing - promotion rules relationd that are not valid
-                # anymore
-                VariantChannelListingPromotionRule.objects.filter(
-                    variant_channel_listing_id=variant_listing.id
-                ).delete()
+
+            # delete variant listing - promotion rules relationd that are not valid
+            # anymore
+            VariantChannelListingPromotionRule.objects.filter(
+                variant_channel_listing_id=variant_listing.id
+            ).exclude(promotion_rule_id__in=rule_ids).delete()
 
         discounted_variants_price.append(discounted_variant_price)
 

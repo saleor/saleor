@@ -555,7 +555,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
     )
 
     channel_listing = variant.channel_listings.get()
-    net = variant.get_price(variant.product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     unit_price = TaxedMoney(net=net, gross=gross)
     quantity = 5

@@ -551,6 +551,13 @@ def test_order_lines_create_variant_on_sale(
     variant = variant_with_many_stocks
     sale.variants.add(variant)
 
+    sale_channel_listing = sale.channel_listings.first()
+    variant_channel_listing = variant.channel_listings.get(channel=order.channel)
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price.amount - sale_channel_listing.discount_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
     quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -573,8 +580,7 @@ def test_order_lines_create_variant_on_sale(
     assert line_data["productSku"] == variant.sku
     assert line_data["quantity"] == quantity
     assert line_data["quantity"] == quantity
-    variant_channel_listing = variant.channel_listings.get(channel=order.channel)
-    sale_channel_listing = sale.channel_listings.first()
+
     assert (
         line_data["unitPrice"]["gross"]["amount"]
         == variant_channel_listing.price_amount - sale_channel_listing.discount_value

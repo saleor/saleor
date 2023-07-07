@@ -17,6 +17,7 @@ from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
 from ...discount.utils import generate_sale_discount_objects_for_checkout
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
+from ...product.models import ProductVariantChannelListing
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingZone
 from .. import base_calculations, calculations
@@ -322,6 +323,7 @@ def test_get_discount_for_checkout_value_entire_order_voucher(
             product=line.variant.product,
             variant=line.variant,
             discounts=list(line.discounts.all()),
+            rules_info=[],
             product_type=line.variant.product.product_type,
             channel=channel_USD,
         )
@@ -477,6 +479,7 @@ def test_get_discount_for_checkout_value_specific_product_voucher(
             collections=[],
             channel=channel_USD,
             discounts=list(line.discounts.all()),
+            rules_info=[],
             product=line.variant.product,
             variant=line.variant,
             product_type=line.variant.product.product_type,
@@ -1189,6 +1192,7 @@ def test_recalculate_checkout_discount_with_sale(
     checkout_with_voucher_percentage,
     sale,
 ):
+    # given
     checkout = checkout_with_voucher_percentage
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
@@ -1196,8 +1200,22 @@ def test_recalculate_checkout_discount_with_sale(
 
     # To properly apply a sale at checkout, we need to generate discount objects.
     generate_sale_discount_objects_for_checkout(checkout_info, lines)
+    listings_to_update = []
+    for line in lines:
+        discount = line.discounts[0]
+        line.channel_listing.discounted_price = (
+            line.channel_listing.price - discount.amount
+        )
+        listings_to_update.append(line.channel_listing)
 
+    ProductVariantChannelListing.objects.bulk_update(
+        listings_to_update, ["discounted_price_amount"]
+    )
+
+    # when
     recalculate_checkout_discount(manager, checkout_info, lines)
+
+    # then
     assert checkout.discount == Money("1.50", "USD")
 
     checkout.price_expiration = timezone.now()

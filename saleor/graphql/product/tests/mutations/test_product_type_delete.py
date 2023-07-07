@@ -114,7 +114,7 @@ def test_product_type_delete_mutation_variants_in_draft_order(
     draft_order.save(update_fields=["status"])
 
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-    net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
+    net = variant.get_price(variant_channel_listing)
     gross = Money(amount=net.amount, currency=net.currency)
     quantity = 3
     unit_price = TaxedMoney(net=net, gross=gross)
