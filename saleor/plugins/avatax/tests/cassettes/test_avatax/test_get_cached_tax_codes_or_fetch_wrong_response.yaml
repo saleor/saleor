@@ -28,6 +28,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
+<<<<<<< HEAD
       - Thu, 02 Mar 2023 10:30:06 GMT
       X-Content-Type-Options:
       - nosniff
@@ -35,6 +36,15 @@ interactions:
       - 44c983e1-6b41-4537-9272-776b322378a0
       x-correlation-id:
       - 44c983e1-6b41-4537-9272-776b322378a0
+=======
+      - Thu, 16 Feb 2023 12:53:49 GMT
+      X-Content-Type-Options:
+      - nosniff
+      x-avalara-uid:
+      - 7ca9a8dc-f173-4109-b246-b63c4436ec54
+      x-correlation-id:
+      - 7ca9a8dc-f173-4109-b246-b63c4436ec54
+>>>>>>> main
     status:
       code: 401
       message: Unauthorized

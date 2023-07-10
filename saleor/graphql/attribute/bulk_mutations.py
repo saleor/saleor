@@ -2,11 +2,17 @@ import graphene
 from django.db.models import Exists, OuterRef, Q
 
 from ...attribute import models
-from ...core.permissions import PageTypePermissions
+from ...permission.enums import PageTypePermissions
 from ...product import models as product_models
 from ...product.search import update_products_search_vector
+from ...webhook.event_types import WebhookEventAsyncType
+from ..core import ResolveInfo
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types import AttributeError, NonNullList
+<<<<<<< HEAD
+=======
+from ..core.utils import WebhookEventInfo
+>>>>>>> main
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import resolve_global_ids_to_primary_keys
 from .types import Attribute, AttributeValue
@@ -25,14 +31,22 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_DELETED,
+                description="An attribute was deleted.",
+            ),
+        ]
 
     @classmethod
-    def perform_mutation(cls, root, info, ids, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, root, info: ResolveInfo, /, *, ids
+    ):
         if not ids:
             return 0, {}
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "Attribute")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
-        response = super().perform_mutation(root, info, ids, **data)
+        response = super().perform_mutation(root, info, ids=ids)
         update_products_search_vector(
             product_models.Product.objects.filter(id__in=product_ids)
         )
@@ -64,7 +78,7 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         return list(product_ids)
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         attributes = list(queryset)
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
@@ -87,21 +101,33 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
+                description="An attribute value was deleted.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+                description="An attribute was updated.",
+            ),
+        ]
 
     @classmethod
-    def perform_mutation(cls, root, info, ids, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, root, info: ResolveInfo, /, *, ids
+    ):
         if not ids:
             return 0, {}
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "AttributeValue")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
-        response = super().perform_mutation(root, info, ids, **data)
+        response = super().perform_mutation(root, info, ids=ids)
         update_products_search_vector(
             product_models.Product.objects.filter(id__in=product_ids)
         )
         return response
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         attributes = {value.attribute for value in queryset}
         values = list(queryset)
         queryset.delete()
@@ -127,7 +153,7 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
             Exists(assigned_variant_values.filter(assignment_id=OuterRef("id")))
         )
         variants = product_models.ProductVariant.objects.filter(
-            Exists(Exists(assigned_variant_attrs.filter(variant_id=OuterRef("id"))))
+            Exists(assigned_variant_attrs.filter(variant_id=OuterRef("id")))
         )
 
         product_ids = product_models.Product.objects.filter(

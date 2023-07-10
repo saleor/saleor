@@ -28,3 +28,7 @@ class TranslationErrorCode(Enum):
 
 class UploadErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
+
+
+class CoreErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"

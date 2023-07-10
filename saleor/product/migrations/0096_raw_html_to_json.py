@@ -50,7 +50,6 @@ def sanitize_descriptions_json(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0095_auto_20190618_0842")]
 
     operations = [

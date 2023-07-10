@@ -2,7 +2,7 @@ from django.db import models
 
 from ...core.models import SortableModel
 from ...product.models import ProductType, ProductVariant
-from .base import AssociatedAttributeQuerySet, BaseAssignedAttribute
+from .base import AssociatedAttributeManager, BaseAssignedAttribute
 
 
 class AssignedVariantAttributeValue(SortableModel):
@@ -61,7 +61,7 @@ class AttributeVariant(SortableModel):
     )
     variant_selection = models.BooleanField(default=False)
 
-    objects = models.Manager.from_queryset(AssociatedAttributeQuerySet)()
+    objects = AssociatedAttributeManager()
 
     class Meta:
         unique_together = (("attribute", "product_type"),)

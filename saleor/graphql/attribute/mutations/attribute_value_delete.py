@@ -2,19 +2,30 @@ import graphene
 from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
-from ....core.permissions import ProductTypePermissions
+from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
-from ...core.mutations import ModelDeleteMutation
+from ....webhook.event_types import WebhookEventAsyncType
+from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_310
+from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
+<<<<<<< HEAD
+=======
+from ...core.utils import WebhookEventInfo
+>>>>>>> main
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 
 
-class AttributeValueDelete(ModelDeleteMutation):
+class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a value to delete.")
+        id = graphene.ID(required=False, description="ID of a value to delete.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a value to delete. {ADDED_IN_310}",
+        )
 
     class Meta:
         model = models.AttributeValue
@@ -23,13 +34,26 @@ class AttributeValueDelete(ModelDeleteMutation):
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
+                description="An attribute value was deleted.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+                description="An attribute was updated.",
+            ),
+        ]
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, only_type=AttributeValue)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
+    ):
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
         product_ids = cls.get_product_ids_to_update(instance)
-        response = super().perform_mutation(_root, info, **data)
+        response = super().perform_mutation(
+            _root, info, external_reference=external_reference, id=id
+        )
         product_models.Product.objects.filter(id__in=product_ids).update(
             search_index_dirty=True
         )

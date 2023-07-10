@@ -2,10 +2,11 @@ import graphene
 from django.db.models import Min, Q, QuerySet
 
 from ..core.descriptions import CHANNEL_REQUIRED
-from ..core.types import ChannelSortInputObjectType
+from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
+from ..core.types import BaseEnum, ChannelSortInputObjectType
 
 
-class SaleSortField(graphene.Enum):
+class SaleSortField(BaseEnum):
     NAME = ["name", "pk"]
     START_DATE = ["start_date", "name", "pk"]
     END_DATE = ["end_date", "name", "pk"]
@@ -14,9 +15,14 @@ class SaleSortField(graphene.Enum):
     CREATED_AT = ["created_at", "name", "pk"]
     LAST_MODIFIED_AT = ["updated_at", "name", "pk"]
 
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+
     @property
     def description(self):
-        descrption_extras = {SaleSortField.VALUE.name: [CHANNEL_REQUIRED]}
+        descrption_extras = {
+            SaleSortField.VALUE.name: [CHANNEL_REQUIRED]  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+        }
         if self.name in SaleSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             description = f"Sort sales by {sort_name}."
@@ -37,6 +43,7 @@ class SaleSortField(graphene.Enum):
 
 class SaleSortingInput(ChannelSortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
         sort_enum = SaleSortField
         type_name = "sales"
 
@@ -50,11 +57,14 @@ class VoucherSortField(graphene.Enum):
     USAGE_LIMIT = ["usage_limit", "name", "code"]
     MINIMUM_SPENT_AMOUNT = ["min_spent_amount", "name", "code"]
 
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+
     @property
     def description(self):
         descrption_extras = {
-            VoucherSortField.VALUE.name: [CHANNEL_REQUIRED],
-            VoucherSortField.MINIMUM_SPENT_AMOUNT.name: [CHANNEL_REQUIRED],
+            VoucherSortField.VALUE.name: [CHANNEL_REQUIRED],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            VoucherSortField.MINIMUM_SPENT_AMOUNT.name: [CHANNEL_REQUIRED],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in VoucherSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
@@ -85,5 +95,6 @@ class VoucherSortField(graphene.Enum):
 
 class VoucherSortingInput(ChannelSortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
         sort_enum = VoucherSortField
         type_name = "vouchers"

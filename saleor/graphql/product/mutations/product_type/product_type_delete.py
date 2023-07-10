@@ -3,11 +3,13 @@ from django.db.models import Q
 
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
-from .....core.permissions import ProductTypePermissions
 from .....core.tracing import traced_atomic_transaction
 from .....order import OrderStatus
 from .....order import models as order_models
+from .....permission.enums import ProductTypePermissions
 from .....product import models
+from ....core import ResolveInfo
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import ProductError
 from ...types import ProductType
@@ -19,6 +21,7 @@ class ProductTypeDelete(ModelDeleteMutation):
 
     class Meta:
         description = "Deletes a product type."
+        doc_category = DOC_CATEGORY_PRODUCTS
         model = models.ProductType
         object_type = ProductType
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
@@ -27,10 +30,11 @@ class ProductTypeDelete(ModelDeleteMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
-        node_id = data.get("id")
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str
+    ):
         product_type_pk = cls.get_global_id_or_error(
-            node_id, only_type=ProductType, field="pk"
+            id, only_type=ProductType, field="pk"
         )
         variants_pks = models.Product.objects.filter(
             product_type__pk=product_type_pk
@@ -43,7 +47,7 @@ class ProductTypeDelete(ModelDeleteMutation):
         )
         cls.delete_assigned_attribute_values(product_type_pk)
 
-        response = super().perform_mutation(_root, info, **data)
+        response = super().perform_mutation(_root, info, id=id)
 
         # delete order lines for deleted variants
         order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()

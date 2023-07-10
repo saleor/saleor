@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 import graphene
+import pytest
 from django.utils.dateparse import parse_datetime
 
 from .....core.postgres import FlatConcatSearchVector
@@ -578,6 +579,7 @@ def test_sort_products(user_api_client, product, channel_USD):
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(20),
+        discounted_price_amount=Decimal(20),
         cost_price_amount=Decimal(2),
         currency=channel_USD.currency_code,
     )
@@ -688,6 +690,7 @@ def test_sort_products_by_price_as_staff(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(20),
+        discounted_price_amount=Decimal(20),
         cost_price_amount=Decimal(2),
         currency=channel_USD.currency_code,
     )
@@ -796,7 +799,6 @@ SEARCH_PRODUCTS_QUERY = """
 
 
 def test_search_product_by_description(user_api_client, product_list, channel_USD):
-
     variables = {"filters": {"search": "big"}, "channel": channel_USD.slug}
     response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)
@@ -1133,3 +1135,45 @@ def test_products_with_variants_query_as_app(
         attrs = response_product["node"]["attributes"]
         assert len(attrs) == 1
         assert attrs[0]["attribute"]["id"] == attribute_id
+
+
+PRODUCT_SEARCH_QUERY = """
+    query($search: String, $channel: String) {
+      products(first: 10, search: $search, channel: $channel) {
+        edges {
+          node {
+            name
+            slug
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "search, indexes",
+    [
+        ("small", [2]),
+        ("big", [0, 1]),
+        ("product", [0, 1, 2]),
+        ("ABCD", []),
+        (None, [0, 1, 2]),
+        ("", [0, 1, 2]),
+    ],
+)
+def test_search_products_on_root_level(
+    search, indexes, api_client, product_list, channel_USD
+):
+    # given
+    variables = {"search": search, "channel": channel_USD.slug}
+
+    # when
+    response = api_client.post_graphql(PRODUCT_SEARCH_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {product_list[index].slug for index in indexes}

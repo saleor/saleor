@@ -1,9 +1,9 @@
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from prices import Money
 
 from ....core.taxes import zero_money
-from ....discount import DiscountValueType, OrderDiscountType
+from ....discount import DiscountType, DiscountValueType
 from ... import base_calculations
 
 
@@ -36,7 +36,7 @@ def test_base_order_total_with_fixed_voucher(order_with_lines):
 
     discount_amount = 10
     order_discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=discount_amount,
         name="Voucher",
@@ -64,7 +64,7 @@ def test_base_order_total_with_fixed_voucher_more_then_total(order_with_lines):
         subtotal += line.base_unit_price * line.quantity
 
     order_discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=100,
         name="Voucher",
@@ -95,7 +95,7 @@ def test_base_order_total_with_percentage_voucher(order_with_lines):
 
     discount_amount = subtotal.amount * Decimal(0.5)
     order_discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=50,
         name="Voucher",
@@ -125,7 +125,7 @@ def test_base_order_total_with_fixed_manual_discount(order_with_lines):
 
     discount_amount = 10
     order_discount = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="StaffDiscount",
@@ -148,7 +148,7 @@ def test_base_order_total_with_fixed_manual_discount_and_zero_order_total(order)
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=0,
         name="StaffDiscount",
@@ -175,7 +175,7 @@ def test_base_order_total_with_fixed_manual_discount_more_then_total(order_with_
     undiscounted_total = subtotal + shipping_price
 
     order_discount = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=100,
         name="StaffDiscount",
@@ -205,7 +205,7 @@ def test_base_order_total_with_percentage_manual_discount(order_with_lines):
 
     discount_amount = undiscounted_total.amount * Decimal(0.5)
     order_discount = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.PERCENTAGE,
         value=50,
         name="StaffDiscount",
@@ -237,7 +237,7 @@ def test_base_order_total_with_fixed_voucher_and_fixed_manual_discount(
 
     voucher_discount_amount = 10
     voucher_order_discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=voucher_discount_amount,
         name="StaffDiscount",
@@ -247,7 +247,7 @@ def test_base_order_total_with_fixed_voucher_and_fixed_manual_discount(
     )
     manual_discount_amount = 10
     manual_order_discount = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=manual_discount_amount,
         name="StaffDiscount",
@@ -283,7 +283,7 @@ def test_base_order_total_with_percentage_voucher_and_fixed_manual_discount(
 
     voucher_discount_amount = subtotal.amount * Decimal(0.5)
     voucher_order_discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=50,
         name="StaffDiscount",
@@ -293,7 +293,7 @@ def test_base_order_total_with_percentage_voucher_and_fixed_manual_discount(
     )
     manual_discount_amount = 10
     manual_order_discount = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="StaffDiscount",
@@ -329,7 +329,7 @@ def test_base_order_total_with_fixed_voucher_and_percentage_manual_discount(
 
     voucher_discount_amount = 10
     voucher_order_discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="StaffDiscount",
@@ -342,7 +342,7 @@ def test_base_order_total_with_fixed_voucher_and_percentage_manual_discount(
     )
     manual_discount_amount = temporary_total.amount * Decimal(0.5)
     manual_order_discount = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.PERCENTAGE,
         value=50,
         name="StaffDiscount",
@@ -378,7 +378,7 @@ def test_base_order_total_with_percentage_voucher_and_percentage_manual_discount
 
     voucher_discount_amount = subtotal.amount * Decimal(0.5)
     voucher_order_discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=50,
         name="StaffDiscount",
@@ -392,7 +392,7 @@ def test_base_order_total_with_percentage_voucher_and_percentage_manual_discount
     )
     manual_discount_amount = temporary_total.amount * Decimal(0.5)
     manual_order_discount = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.PERCENTAGE,
         value=50,
         name="StaffDiscount",
@@ -428,7 +428,7 @@ def test_base_order_total_with_fixed_manual_discount_and_fixed_voucher(
 
     manual_discount_amount = 10
     manual_order_discount = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=manual_discount_amount,
         name="StaffDiscount",
@@ -439,7 +439,7 @@ def test_base_order_total_with_fixed_manual_discount_and_fixed_voucher(
 
     voucher_discount_amount = 10
     voucher_order_discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=voucher_discount_amount,
         name="StaffDiscount",
@@ -475,7 +475,7 @@ def test_base_order_total_with_fixed_manual_discount_and_percentage_voucher(
 
     manual_discount_amount = 10
     manual_order_discount = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="StaffDiscount",
@@ -488,9 +488,11 @@ def test_base_order_total_with_fixed_manual_discount_and_percentage_voucher(
         subtotal / undiscounted_total * manual_discount_amount
     )
     temporary_subtotal_amount = subtotal.amount - subtotal_discount_from_order_discount
-    voucher_discount_amount = round(temporary_subtotal_amount * Decimal(0.5), 2)
+    voucher_discount_amount = (temporary_subtotal_amount * Decimal(0.5)).quantize(
+        Decimal("0.01"), ROUND_HALF_UP
+    )
     voucher_order_discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=50,
         name="StaffDiscount",
@@ -503,7 +505,7 @@ def test_base_order_total_with_fixed_manual_discount_and_percentage_voucher(
     order_total = base_calculations.base_order_total(order, lines)
 
     # then
-    assert voucher_discount_amount == Decimal("30.62")
+    assert voucher_discount_amount == Decimal("30.63")
     expected_total = (
         undiscounted_total
         - Money(voucher_discount_amount, order.currency)
@@ -530,7 +532,7 @@ def test_base_order_total_with_percentage_manual_discount_and_fixed_voucher(
 
     manual_discount_amount = undiscounted_total.amount * Decimal(0.5)
     manual_order_discount = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.PERCENTAGE,
         value=50,
         name="StaffDiscount",
@@ -541,7 +543,7 @@ def test_base_order_total_with_percentage_manual_discount_and_fixed_voucher(
 
     voucher_discount_amount = 10
     voucher_order_discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="StaffDiscount",
@@ -577,7 +579,7 @@ def test_base_order_total_with_percentage_manual_discount_and_percentage_voucher
 
     manual_discount_amount = undiscounted_total.amount * Decimal(0.5)
     manual_order_discount = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.PERCENTAGE,
         value=50,
         name="StaffDiscount",
@@ -589,7 +591,7 @@ def test_base_order_total_with_percentage_manual_discount_and_percentage_voucher
     temporary_subtotal_amount = subtotal.amount * Decimal(0.5)
     voucher_discount_amount = temporary_subtotal_amount * Decimal(0.5)
     voucher_order_discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=50,
         name="StaffDiscount",

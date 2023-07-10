@@ -38,12 +38,24 @@ class AccountErrorCode(Enum):
     ACCOUNT_NOT_CONFIRMED = "account_not_confirmed"
 
 
+class CustomerBulkUpdateErrorCode(Enum):
+    BLANK = "blank"
+    DUPLICATED_INPUT_ITEM = "duplicated_input_item"
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    REQUIRED = "required"
+    UNIQUE = "unique"
+    NOT_FOUND = "not_found"
+    MAX_LENGTH = "max_length"
+
+
 class PermissionGroupErrorCode(Enum):
+    REQUIRED = "required"
+    UNIQUE = "unique"
     ASSIGN_NON_STAFF_MEMBER = "assign_non_staff_member"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     CANNOT_REMOVE_FROM_LAST_GROUP = "cannot_remove_from_last_group"
     LEFT_NOT_MANAGEABLE_PERMISSION = "left_not_manageable_permission"
     OUT_OF_SCOPE_PERMISSION = "out_of_scope_permission"
     OUT_OF_SCOPE_USER = "out_of_scope_user"
-    REQUIRED = "required"
-    UNIQUE = "unique"
+    OUT_OF_SCOPE_CHANNEL = "out_of_scope_channel"

@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, timedelta
+from decimal import Decimal
 
 import graphene
 import pytest
@@ -7,8 +8,10 @@ from freezegun import freeze_time
 
 from ....account.models import User
 from ....checkout.models import Checkout
+from ....checkout.payment_utils import update_checkout_payment_statuses
 from ....payment.models import ChargeStatus, Payment
 from ...tests.utils import get_graphql_content
+from ..enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 
 
 @pytest.fixture
@@ -307,7 +310,6 @@ def test_checkouts_query_with_filter_search(
     customer_user,
     channel_USD,
 ):
-
     user1 = User.objects.create(email="user_email1@example.com")
     user2 = User.objects.create(email="user_email2@example.com")
     user3 = User.objects.create(email="john@wayne.com")
@@ -357,7 +359,6 @@ def test_checkouts_query_with_filter_search_by_global_payment_id(
     customer_user,
     channel_USD,
 ):
-
     checkouts = Checkout.objects.bulk_create(
         [
             Checkout(
@@ -392,3 +393,214 @@ def test_checkouts_query_with_filter_search_by_token(
     response = staff_api_client.post_graphql(checkout_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["checkouts"]["totalCount"] == 1
+
+
+@pytest.mark.parametrize(
+    "transaction_data, statuses, expected_count",
+    [
+        (
+            {"authorized_value": Decimal("10")},
+            [CheckoutAuthorizeStatusEnum.PARTIAL.name],
+            1,
+        ),
+        (
+            {"charged_value": Decimal("10")},
+            [CheckoutAuthorizeStatusEnum.PARTIAL.name],
+            1,
+        ),
+        (
+            {"authorize_pending_value": Decimal("10")},
+            [CheckoutAuthorizeStatusEnum.PARTIAL.name],
+            1,
+        ),
+        (
+            {"charge_pending_value": Decimal("10")},
+            [CheckoutAuthorizeStatusEnum.PARTIAL.name],
+            1,
+        ),
+        (
+            {"authorized_value": Decimal("0")},
+            [CheckoutAuthorizeStatusEnum.NONE.name],
+            1,
+        ),
+        (
+            {"authorized_value": Decimal("200")},
+            [CheckoutAuthorizeStatusEnum.FULL.name],
+            2,
+        ),
+        (
+            {"charged_value": Decimal("200")},
+            [CheckoutAuthorizeStatusEnum.FULL.name],
+            2,
+        ),
+        (
+            {"authorize_pending_value": Decimal("200")},
+            [CheckoutAuthorizeStatusEnum.FULL.name],
+            2,
+        ),
+        (
+            {"charge_pending_value": Decimal("200")},
+            [CheckoutAuthorizeStatusEnum.FULL.name],
+            2,
+        ),
+        (
+            {"authorized_value": Decimal("10")},
+            [
+                CheckoutAuthorizeStatusEnum.FULL.name,
+                CheckoutAuthorizeStatusEnum.PARTIAL.name,
+            ],
+            2,
+        ),
+        (
+            {"authorized_value": Decimal("0")},
+            [
+                CheckoutAuthorizeStatusEnum.FULL.name,
+                CheckoutAuthorizeStatusEnum.NONE.name,
+            ],
+            2,
+        ),
+        (
+            {"authorized_value": Decimal("10"), "charged_value": Decimal("90")},
+            [CheckoutAuthorizeStatusEnum.PARTIAL.name],
+            1,
+        ),
+    ],
+)
+def test_checkouts_query_with_filter_authorize_status(
+    transaction_data,
+    statuses,
+    expected_count,
+    checkout_query_with_filter,
+    staff_api_client,
+    permission_manage_checkouts,
+    customer_user,
+    channel_USD,
+    checkout_with_prices,
+    checkout,
+):
+    # given
+    first_checkout = Checkout.objects.create(
+        currency=channel_USD.currency_code, channel=channel_USD
+    )
+    first_checkout.payment_transactions.create(
+        currency=checkout_with_prices.currency, authorized_value=Decimal("10")
+    )
+
+    update_checkout_payment_statuses(first_checkout, first_checkout.total.gross)
+
+    checkout_with_prices.payment_transactions.create(
+        currency=checkout_with_prices.currency, **transaction_data
+    )
+    update_checkout_payment_statuses(
+        checkout_with_prices, checkout_with_prices.total.gross
+    )
+
+    variables = {"filter": {"authorizeStatus": statuses}}
+    staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+
+    # when
+    response = staff_api_client.post_graphql(checkout_query_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkouts"]["totalCount"] == expected_count
+
+
+@pytest.mark.parametrize(
+    "transaction_data, statuses, expected_count",
+    [
+        (
+            {"charged_value": Decimal("10")},
+            [CheckoutChargeStatusEnum.PARTIAL.name],
+            1,
+        ),
+        (
+            {"charge_pending_value": Decimal("10")},
+            [CheckoutChargeStatusEnum.PARTIAL.name],
+            1,
+        ),
+        (
+            {"charged_value": Decimal("00")},
+            [CheckoutChargeStatusEnum.PARTIAL.name],
+            0,
+        ),
+        (
+            {"charged_value": Decimal("178.00")},
+            [CheckoutChargeStatusEnum.FULL.name],
+            1,
+        ),
+        (
+            {"charge_pending_value": Decimal("178.00")},
+            [CheckoutChargeStatusEnum.FULL.name],
+            1,
+        ),
+        (
+            {
+                "charge_pending_value": Decimal("100.00"),
+                "charged_value": Decimal("78.00"),
+            },
+            [CheckoutChargeStatusEnum.FULL.name],
+            1,
+        ),
+        (
+            {"charged_value": Decimal("0.00")},
+            [CheckoutChargeStatusEnum.OVERCHARGED.name],
+            1,
+        ),
+        (
+            {"charged_value": Decimal("10")},
+            [CheckoutChargeStatusEnum.FULL.name, CheckoutChargeStatusEnum.PARTIAL.name],
+            1,
+        ),
+        (
+            {"charged_value": Decimal("0")},
+            [CheckoutChargeStatusEnum.FULL.name, CheckoutChargeStatusEnum.NONE.name],
+            1,
+        ),
+        (
+            {"charged_value": Decimal("178.00")},
+            [
+                CheckoutChargeStatusEnum.FULL.name,
+                CheckoutChargeStatusEnum.OVERCHARGED.name,
+            ],
+            2,
+        ),
+    ],
+)
+def test_checkouts_query_with_filter_charge_status(
+    transaction_data,
+    statuses,
+    expected_count,
+    checkout_query_with_filter,
+    checkout_with_prices,
+    staff_api_client,
+    permission_manage_checkouts,
+    customer_user,
+    channel_USD,
+):
+    # given
+    first_checkout = Checkout.objects.create(
+        currency=channel_USD.currency_code, channel=channel_USD
+    )
+    first_checkout.payment_transactions.create(
+        currency=checkout_with_prices.currency, charged_value=Decimal("10")
+    )
+
+    update_checkout_payment_statuses(first_checkout, first_checkout.total.gross)
+
+    checkout_with_prices.payment_transactions.create(
+        currency=checkout_with_prices.currency, **transaction_data
+    )
+    update_checkout_payment_statuses(
+        checkout_with_prices, checkout_with_prices.total.gross
+    )
+
+    variables = {"filter": {"chargeStatus": statuses}}
+    staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+
+    # when
+    response = staff_api_client.post_graphql(checkout_query_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkouts"]["totalCount"] == expected_count

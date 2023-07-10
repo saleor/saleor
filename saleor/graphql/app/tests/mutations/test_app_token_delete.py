@@ -28,7 +28,6 @@ def test_app_token_delete(
     app_with_token,
     permission_manage_products,
 ):
-
     query = APP_TOKEN_DELETE_MUTATION
     app = app_with_token
     token = app.tokens.get()
@@ -66,7 +65,6 @@ def test_app_token_delete_for_app(
 
 
 def test_app_token_delete_no_permissions(staff_api_client, app_with_token):
-
     query = APP_TOKEN_DELETE_MUTATION
     token = app_with_token.tokens.get()
     id = graphene.Node.to_global_id("AppToken", token.id)

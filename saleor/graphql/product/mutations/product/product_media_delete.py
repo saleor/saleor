@@ -1,8 +1,10 @@
 import graphene
 
-from .....core.permissions import ProductPermissions
+from .....permission.enums import ProductPermissions
 from .....product import models
 from ....channel import ChannelContext
+from ....core import ResolveInfo
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -18,14 +20,16 @@ class ProductMediaDelete(BaseMutation):
 
     class Meta:
         description = "Deletes a product media."
-
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        media_obj = cls.get_node_or_error(info, data.get("id"), only_type=ProductMedia)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str
+    ):
+        media_obj = cls.get_node_or_error(info, id, only_type=ProductMedia)
         media_id = media_obj.id
         media_obj.delete()
         media_obj.id = media_id
@@ -34,5 +38,6 @@ class ProductMediaDelete(BaseMutation):
         )
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
+        cls.call_event(manager.product_media_deleted, media_obj)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaDelete(product=product, media=media_obj)

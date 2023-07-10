@@ -1,23 +1,37 @@
+from typing import Dict, Optional
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....channel import models
+from ....channel.error_codes import ChannelErrorCode
 from ....checkout.models import Checkout
-from ....core.permissions import ChannelPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order.models import Order
+from ....permission.enums import ChannelPermissions
+from ....webhook.event_types import WebhookEventAsyncType
+from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import ModelDeleteMutation
+<<<<<<< HEAD
 from ...core.types import ChannelError, ChannelErrorCode
+=======
+from ...core.types import BaseInputObjectType, ChannelError
+from ...core.utils import WebhookEventInfo
+>>>>>>> main
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Channel
 from ..utils import delete_invalid_warehouse_to_shipping_zone_relations
 
 
-class ChannelDeleteInput(graphene.InputObjectType):
+class ChannelDeleteInput(BaseInputObjectType):
     channel_id = graphene.ID(
         required=True,
         description="ID of channel to migrate orders from origin channel.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHANNELS
 
 
 class ChannelDelete(ModelDeleteMutation):
@@ -36,6 +50,12 @@ class ChannelDelete(ModelDeleteMutation):
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHANNEL_DELETED,
+                description="A channel was deleted.",
+            ),
+        ]
 
     @classmethod
     def validate_input(cls, origin_channel, target_channel):
@@ -44,7 +64,7 @@ class ChannelDelete(ModelDeleteMutation):
                 {
                     "channel_id": ValidationError(
                         "Cannot migrate data to the channel that is being removed.",
-                        code=ChannelErrorCode.INVALID,
+                        code=ChannelErrorCode.INVALID.value,
                     )
                 }
             )
@@ -57,7 +77,7 @@ class ChannelDelete(ModelDeleteMutation):
                         f"Cannot migrate from {origin_channel_currency} "
                         f"to {target_channel_currency}. "
                         "Migration are allowed between the same currency",
-                        code=ChannelErrorCode.CHANNELS_CURRENCY_MUST_BE_THE_SAME,
+                        code=ChannelErrorCode.CHANNELS_CURRENCY_MUST_BE_THE_SAME.value,
                     )
                 }
             )
@@ -91,7 +111,7 @@ class ChannelDelete(ModelDeleteMutation):
                     "id": ValidationError(
                         "Cannot remove channel with orders. Try to migrate orders to "
                         "another channel by passing `targetChannel` param.",
-                        code=ChannelErrorCode.CHANNEL_WITH_ORDERS,
+                        code=ChannelErrorCode.CHANNEL_WITH_ORDERS.value,
                     )
                 }
             )
@@ -99,14 +119,20 @@ class ChannelDelete(ModelDeleteMutation):
             cls.delete_checkouts(origin_channel.id)
 
     @classmethod
+<<<<<<< HEAD
     def post_save_action(cls, info, instance, cleaned_input):
+=======
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+>>>>>>> main
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.channel_deleted, instance)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        origin_channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
-        target_channel_global_id = data.get("input", {}).get("channel_id")
+    def perform_mutation(  # type: ignore[override]
+        cls, root, info: ResolveInfo, /, *, id: str, input: Optional[Dict] = None
+    ):
+        origin_channel = cls.get_node_or_error(info, id, only_type=Channel)
+        target_channel_global_id = input.get("channel_id") if input else None
         if target_channel_global_id:
             target_channel = cls.get_node_or_error(
                 info, target_channel_global_id, only_type=Channel
@@ -120,4 +146,4 @@ class ChannelDelete(ModelDeleteMutation):
                 origin_channel.warehouses.values("id"),
                 channel_deletion=True,
             )
-        return super().perform_mutation(_root, info, **data)
+        return super().perform_mutation(root, info, id=id)

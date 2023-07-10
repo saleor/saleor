@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sites", "0002_alter_domain_unique"),
         ("site", "0007_auto_20171027_0856"),

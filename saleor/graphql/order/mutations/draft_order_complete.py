@@ -1,10 +1,11 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
-from ....core.permissions import OrderPermissions
 from ....core.postgres import FlatConcatSearchVector
 from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
@@ -15,9 +16,15 @@ from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderInfo, OrderLineInfo
 from ....order.search import prepare_order_search_vector_value
 from ....order.utils import get_order_country, update_order_display_gross_prices
+from ....permission.enums import OrderPermissions
 from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import get_app_promise
+<<<<<<< HEAD
+=======
+from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
+>>>>>>> main
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -39,6 +46,7 @@ class DraftOrderComplete(BaseMutation):
 
     class Meta:
         description = "Completes creating an order."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -63,9 +71,19 @@ class DraftOrderComplete(BaseMutation):
                     )
                 }
             )
+        return order
 
     @classmethod
+<<<<<<< HEAD
     def perform_mutation(cls, _root, info, id):
+=======
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str
+    ):
+        user = info.context.user
+        user = cast(User, user)
+
+>>>>>>> main
         manager = get_plugin_manager_promise(info.context).get()
         order = cls.get_node_or_error(
             info,
@@ -73,6 +91,7 @@ class DraftOrderComplete(BaseMutation):
             only_type=Order,
             qs=models.Order.objects.prefetch_related("lines__variant"),
         )
+        cls.check_channel_permissions(info, [order.channel_id])
         order, _ = fetch_order_prices_if_expired(order, manager)
         cls.validate_order(order)
 
@@ -98,6 +117,9 @@ class DraftOrderComplete(BaseMutation):
             channel = order.channel
             order_lines_info = []
             for line in order.lines.all():
+                if not line.variant:
+                    # we only care about stock for variants that still exist
+                    continue
                 if line.variant.track_inventory or line.variant.is_preorder_active():
                     line_data = OrderLineInfo(
                         line=line, quantity=line.quantity, variant=line.variant
@@ -137,7 +159,7 @@ class DraftOrderComplete(BaseMutation):
             transaction.on_commit(
                 lambda: order_created(
                     order_info=order_info,
-                    user=info.context.user,
+                    user=user,
                     app=app,
                     manager=manager,
                     from_draft=True,

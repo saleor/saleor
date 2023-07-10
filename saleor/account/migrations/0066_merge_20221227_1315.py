@@ -4,7 +4,10 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
     dependencies = [
         ("account", "0065_address_warehouse_address_search_gin"),
         ("account", "0065_merge_20221227_1254"),

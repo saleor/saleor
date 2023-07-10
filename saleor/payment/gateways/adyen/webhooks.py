@@ -32,12 +32,11 @@ from ....checkout.models import Checkout
 from ....core.prices import quantize_price
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
-from ....discount.utils import fetch_active_discounts
 from ....graphql.core.utils import from_global_id_or_error
 from ....order.actions import (
     cancel_order,
     order_authorized,
-    order_captured,
+    order_charged,
     order_refunded,
 )
 from ....order.events import external_notification_event
@@ -182,20 +181,18 @@ def create_payment_notification_for_order(
 
 def create_order(payment, checkout, manager):
     try:
-        discounts = fetch_active_discounts()
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         if unavailable_variant_pks:
             payment_refund_or_void(payment, manager, checkout.channel.slug)
             raise ValidationError(
                 "Some of the checkout lines variants are unavailable."
             )
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
         checkout_total = calculate_checkout_total_with_gift_cards(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
             address=checkout.shipping_address or checkout.billing_address,
-            discounts=discounts,
         )
         # when checkout total value is different than total amount from payments
         # it means that some products has been removed during the payment was completed
@@ -205,12 +202,11 @@ def create_order(payment, checkout, manager):
                 "Cannot create order - some products do not exist anymore."
             )
         order, _, _ = complete_checkout(
-            manager=manager,
             checkout_info=checkout_info,
             lines=lines,
+            manager=manager,
             payment_data={},
             store_source=False,
-            discounts=discounts,
             user=checkout.user or None,
             app=None,
         )
@@ -241,7 +237,7 @@ def handle_not_created_order(notification, payment, checkout, kind, manager):
     )
 
     # Only when we confirm that notification is success we will create the order
-    if transaction.is_success and checkout:  # type: ignore
+    if transaction.is_success and checkout:
         confirm_payment_and_set_back_to_confirm(payment, manager, checkout.channel.slug)
         payment.refresh_from_db()  # refresh charge_status
         order = create_order(payment, checkout, manager)
@@ -326,7 +322,7 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
                 gateway_postprocess(new_transaction, payment)
                 if adyen_auto_capture:
                     order_info = fetch_order_info(payment.order)
-                    order_captured(
+                    order_charged(
                         order_info,
                         None,
                         None,
@@ -440,7 +436,11 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
             if new_transaction.is_success:
                 gateway_postprocess(new_transaction, payment)
                 order_info = fetch_order_info(payment.order)
+<<<<<<< HEAD
                 order_captured(
+=======
+                order_charged(
+>>>>>>> main
                     order_info, None, None, new_transaction.amount, payment, manager
                 )
 
@@ -726,10 +726,21 @@ def get_or_create_adyen_partial_payments(
         # payments.
         payment_total_to_cover -= new_payment.total
 
+<<<<<<< HEAD
     already_existing_partial_payments = Payment.objects.filter(
         psp_reference__in=[p.psp_reference for p in new_payments],
         partial=True,
         checkout_id=payment.checkout_id,  # type: ignore
+=======
+    already_existing_partial_payments = (
+        Payment.objects.filter(
+            psp_reference__in=[p.psp_reference for p in new_payments],
+            partial=True,
+            checkout_id=payment.checkout_id,
+        )
+        if payment.checkout_id
+        else []
+>>>>>>> main
     )
     if already_existing_partial_payments:
         return list(already_existing_partial_payments)
@@ -906,16 +917,13 @@ def validate_hmac_signature(
         "hmacSignature"
     )
     hmac_key: Optional[str] = gateway_config.connection_params.get("webhook_hmac")
-    if not hmac_key and not hmac_signature:
-        return True
+    if not hmac_key:
+        return not hmac_signature
 
-    if not hmac_key and hmac_signature:
+    if not hmac_signature:
         return False
 
-    if not hmac_signature and hmac_key:
-        return False
-
-    hmac_key = hmac_key.encode()  # type: ignore
+    hmac_key = hmac_key.encode()
 
     success = "true" if notification.get("success", "") == "true" else "false"
     if notification.get("success", None) is None:
@@ -936,7 +944,10 @@ def validate_hmac_signature(
     hmac_key = binascii.a2b_hex(hmac_key)
     hm = hmac.new(hmac_key, payload.encode("utf-8"), hashlib.sha256)
     expected_merchant_sign = base64.b64encode(hm.digest())
+<<<<<<< HEAD
     hmac_signature = cast(str, hmac_signature)
+=======
+>>>>>>> main
     return hmac.compare_digest(hmac_signature, expected_merchant_sign.decode("utf-8"))
 
 
@@ -1001,7 +1012,7 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
 
     event_handler = EVENT_MAP.get(notification.get("eventCode", ""))
     if event_handler:
-        event_handler(notification, gateway_config)  # type: ignore
+        event_handler(notification, gateway_config)
         return HttpResponse("[accepted]")
     return HttpResponse("[accepted]")
 
@@ -1109,7 +1120,7 @@ def prepare_api_request_data(request: WSGIRequest, data: dict):
 def prepare_redirect_url(
     payment_id: str, checkout_pk: str, api_response: Adyen.Adyen, return_url: str
 ):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)  # type: ignore
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
 
     params = {
         "checkout": checkout_id,

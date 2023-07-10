@@ -12,7 +12,6 @@ def move_existing_token(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("account", "0033_serviceaccount")]
 
     operations = [

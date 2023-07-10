@@ -4,17 +4,21 @@ from oauthlib.common import generate_token
 
 from ....app import models
 from ....app.error_codes import AppErrorCode
-from ....core.permissions import AppPermission
+from ....permission.enums import AppPermission
 from ...account.utils import can_manage_app
+from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import ModelMutation
-from ...core.types import AppError
+from ...core.types import AppError, BaseInputObjectType
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from ..types import AppToken
 
 
-class AppTokenInput(graphene.InputObjectType):
+class AppTokenInput(BaseInputObjectType):
     name = graphene.String(description="Name of the token.", required=False)
     app = graphene.ID(description="ID of app.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
 
 
 class AppTokenCreate(ModelMutation):
@@ -36,7 +40,7 @@ class AppTokenCreate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info, /, **data):
         input_data = data.get("input", {})
         instance = cls.get_instance(info, **data)
         cleaned_input = cls.clean_input(info, instance, input_data)

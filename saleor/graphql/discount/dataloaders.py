@@ -1,10 +1,12 @@
 from collections import defaultdict
+from typing import List, Optional
 
 from django.db.models import F
 
 from ...discount import DiscountInfo
 from ...discount.interface import VoucherInfo
 from ...discount.models import (
+    CheckoutLineDiscount,
     OrderDiscount,
     Sale,
     SaleChannelListing,
@@ -34,6 +36,7 @@ class DiscountsByDateTimeLoader(DataLoader):
             for datetime in keys
         }
         pks = {s.pk for d, ss in sales_map.items() for s in ss}
+<<<<<<< HEAD
         collections = fetch_collections(pks, self.database_connection_name)
         channel_listings = fetch_sale_channel_listings(
             pks, self.database_connection_name
@@ -41,6 +44,23 @@ class DiscountsByDateTimeLoader(DataLoader):
         products = fetch_products(pks, self.database_connection_name)
         categories = fetch_categories(pks, self.database_connection_name)
         variants = fetch_variants(pks, self.database_connection_name)
+=======
+        collections = fetch_collections(
+            pks, database_connection_name=self.database_connection_name
+        )
+        channel_listings = fetch_sale_channel_listings(
+            pks, self.database_connection_name
+        )
+        products = fetch_products(
+            pks, database_connection_name=self.database_connection_name
+        )
+        categories = fetch_categories(
+            pks, database_connection_name=self.database_connection_name
+        )
+        variants = fetch_variants(
+            pks, database_connection_name=self.database_connection_name
+        )
+>>>>>>> main
 
         return [
             [
@@ -153,7 +173,7 @@ class VoucherChannelListingByVoucherIdLoader(DataLoader):
         ]
 
 
-class VoucherInfoByVoucherCodeLoader(DataLoader):
+class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
     context_key = "voucher_info_by_voucher_code"
 
     def batch_load(self, keys):
@@ -200,7 +220,7 @@ class VoucherInfoByVoucherCodeLoader(DataLoader):
             category_pks_map[voucher_id].append(category_id)
         for voucher_id, collection_id in voucher_collections:
             collection_pks_map[voucher_id].append(collection_id)
-        voucher_infos = []
+        voucher_infos: List[Optional[VoucherInfo]] = []
         for code in keys:
             voucher = vouchers_map.get(code)
             if not voucher:
@@ -233,3 +253,16 @@ class OrderDiscountsByOrderIDLoader(DataLoader):
 
 def load_discounts(request):
     return DiscountsByDateTimeLoader(request).load(request.request_time).get()
+
+
+class CheckoutLineDiscountsByCheckoutLineIdLoader(DataLoader):
+    context_key = "checkout_line_discounts_by_checkout_line_id"
+
+    def batch_load(self, keys):
+        discounts = CheckoutLineDiscount.objects.using(
+            self.database_connection_name
+        ).filter(line_id__in=keys)
+        discount_map = defaultdict(list)
+        for discount in discounts:
+            discount_map[discount.line_id].append(discount)
+        return [discount_map.get(checkout_line_id, []) for checkout_line_id in keys]

@@ -88,7 +88,6 @@ def test_product_type_create_mutation(
     monkeypatch,
     tax_classes,
 ):
-
     query = PRODUCT_TYPE_CREATE_MUTATION
     product_type_name = "test type"
     slug = "test-type"
@@ -258,16 +257,6 @@ def test_create_product_type_with_rich_text_attribute(
                     {
                         "node": {
                             "name": "Red",
-                            "richText": None,
-                            "plainText": None,
-                            "boolean": None,
-                            "date": None,
-                            "dateTime": None,
-                        }
-                    },
-                    {
-                        "node": {
-                            "name": "Blue",
                             "richText": None,
                             "plainText": None,
                             "boolean": None,

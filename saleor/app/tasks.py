@@ -15,8 +15,10 @@ logger = logging.getLogger(__name__)
 def install_app_task(job_id, activate=False):
     app_installation = AppInstallation.objects.get(id=job_id)
     try:
-        install_app(app_installation, activate=activate)
+        app, _ = install_app(app_installation, activate=activate)
         app_installation.delete()
+        app.is_installed = True
+        app.save(update_fields=["is_installed"])
         return
     except ValidationError as e:
         msg = ", ".join([f"{name}: {err}" for name, err in e.message_dict.items()])
@@ -43,4 +45,4 @@ def install_app_task(job_id, activate=False):
         logger.warning("Failed to install app. Error: %s", e)
         app_installation.message = "Unknown error. Contact with app support."
     app_installation.status = JobStatus.FAILED
-    app_installation.save()
+    app_installation.save(update_fields=["message", "status"])

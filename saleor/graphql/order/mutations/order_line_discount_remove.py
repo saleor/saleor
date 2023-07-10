@@ -1,10 +1,16 @@
 import graphene
 
-from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.utils import invalidate_order_prices, remove_discount_from_order_line
+<<<<<<< HEAD
 from ...app.dataloaders import get_app_promise
+=======
+from ....permission.enums import OrderPermissions
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
+>>>>>>> main
 from ...core.types import OrderError
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon
@@ -25,20 +31,22 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
 
     class Meta:
         description = "Remove discount applied to the order line."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
     @classmethod
-    def validate(cls, info, order):
+    def validate(cls, info: ResolveInfo, order):
         cls.validate_order(info, order)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        order_line = cls.get_node_or_error(
-            info, data.get("order_line_id"), only_type=OrderLine
-        )
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, order_line_id: str
+    ):
+        order_line = cls.get_node_or_error(info, order_line_id, only_type=OrderLine)
         order = order_line.order
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate(info, order)
         with traced_atomic_transaction():
             remove_discount_from_order_line(order_line, order)

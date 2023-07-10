@@ -6,6 +6,10 @@ from ....attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.utils import prepare_unique_slug
+<<<<<<< HEAD
+=======
+from ...core import ResolveInfo
+>>>>>>> main
 from ...core.validators import validate_slug_and_generate_if_needed
 
 
@@ -182,8 +186,8 @@ class AttributeMixin:
             raise ValidationError(errors)
 
     @classmethod
-    def _save_m2m(cls, info, attribute, cleaned_data):
-        super()._save_m2m(info, attribute, cleaned_data)
+    def _save_m2m(cls, info: ResolveInfo, attribute, cleaned_data):
+        super()._save_m2m(info, attribute, cleaned_data)  # type: ignore[misc] # mixin
         values = cleaned_data.get(cls.ATTRIBUTE_VALUES_FIELD) or []
         for value in values:
             attribute.values.create(**value)

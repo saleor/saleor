@@ -6,7 +6,6 @@ from django.core.management import CommandError, call_command
 from django.db.utils import DataError
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
-from django_countries.fields import Country
 
 from ...account.models import Address, User
 from ...account.utils import create_superuser
@@ -19,13 +18,7 @@ from ...product import ProductTypeKind
 from ...product.models import ProductType
 from ...shipping.models import ShippingZone
 from ..storages import S3MediaStorage
-from ..utils import (
-    build_absolute_uri,
-    generate_unique_slug,
-    get_client_ip,
-    get_currency_for_country,
-    random_data,
-)
+from ..utils import build_absolute_uri, generate_unique_slug, get_client_ip, random_data
 
 type_schema = {
     "Vegetable": {
@@ -60,15 +53,6 @@ def test_get_client_ip(ip_address, expected_ip):
     headers = {"HTTP_X_FORWARDED_FOR": ip_address} if ip_address else {}
     request = RequestFactory(**headers).get("/")
     assert get_client_ip(request) == expected_ip
-
-
-@pytest.mark.parametrize(
-    "country, expected_currency",
-    [(Country("PL"), "PLN"), (Country("US"), "USD"), (Country("GB"), "GBP")],
-)
-def test_get_currency_for_country(country, expected_currency, monkeypatch):
-    currency = get_currency_for_country(country.code)
-    assert currency == expected_currency
 
 
 def test_create_superuser(db, client, media_root):

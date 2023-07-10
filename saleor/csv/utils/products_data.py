@@ -278,7 +278,7 @@ def add_collection_info_to_data(
     if collection:
         header = "collections__slug"
         if header in result_data[pk]:
-            result_data[pk][header].add(collection)  # type: ignore
+            result_data[pk][header].add(collection)
         else:
             result_data[pk][header] = {collection}
     return result_data
@@ -415,7 +415,7 @@ def add_attribute_info_to_data(
     value = prepare_attribute_value(attribute_data)
 
     if header in result_data[pk]:
-        result_data[pk][header].add(value)  # type: ignore
+        result_data[pk][header].add(value)
     else:
         result_data[pk][header] = {value}
 

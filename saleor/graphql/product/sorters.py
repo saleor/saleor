@@ -22,13 +22,17 @@ from ...product.models import (
     ProductChannelListing,
 )
 from ..core.descriptions import ADDED_IN_38, CHANNEL_REQUIRED, DEPRECATED_IN_3X_INPUT
-from ..core.types import ChannelSortInputObjectType, SortInputObjectType
+from ..core.doc_category import DOC_CATEGORY_PRODUCTS
+from ..core.types import BaseEnum, ChannelSortInputObjectType, SortInputObjectType
 
 
-class CategorySortField(graphene.Enum):
+class CategorySortField(BaseEnum):
     NAME = ["name", "slug"]
     PRODUCT_COUNT = ["product_count", "name", "slug"]
     SUBCATEGORY_COUNT = ["subcategory_count", "name", "slug"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -47,7 +51,7 @@ class CategorySortField(graphene.Enum):
         return queryset.annotate(
             product_count=Coalesce(
                 Subquery(
-                    Category.tree.add_related_count(  # type: ignore
+                    Category.tree.add_related_count(
                         queryset, Product, "category", "p_c", cumulative=True
                     )
                     .values("p_c")
@@ -65,26 +69,30 @@ class CategorySortField(graphene.Enum):
 
 class CategorySortingInput(ChannelSortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = CategorySortField
         type_name = "categories"
 
 
-class CollectionSortField(graphene.Enum):
+class CollectionSortField(BaseEnum):
     NAME = ["name", "slug"]
     AVAILABILITY = ["is_published", "slug"]
     PRODUCT_COUNT = ["product_count", "slug"]
     PUBLICATION_DATE = ["published_at", "slug"]
     PUBLISHED_AT = ["published_at", "slug"]
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
     @property
     def description(self):
         descrption_extras = {
-            CollectionSortField.AVAILABILITY.name: [CHANNEL_REQUIRED],
-            CollectionSortField.PUBLICATION_DATE.name: [
+            CollectionSortField.AVAILABILITY.name: [CHANNEL_REQUIRED],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            CollectionSortField.PUBLICATION_DATE.name: [  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 CHANNEL_REQUIRED,
                 DEPRECATED_IN_3X_INPUT,
             ],
-            CollectionSortField.PUBLISHED_AT.name: [CHANNEL_REQUIRED],
+            CollectionSortField.PUBLISHED_AT.name: [CHANNEL_REQUIRED],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in CollectionSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
@@ -127,11 +135,12 @@ class CollectionSortField(graphene.Enum):
 
 class CollectionSortingInput(ChannelSortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = CollectionSortField
         type_name = "collections"
 
 
-class ProductOrderField(graphene.Enum):
+class ProductOrderField(BaseEnum):
     NAME = ["name", "slug"]
     RANK = ["search_rank", "id"]
     PRICE = ["min_variants_price_amount", "name", "slug"]
@@ -147,40 +156,43 @@ class ProductOrderField(graphene.Enum):
     RATING = ["rating", "name", "slug"]
     CREATED_AT = ["created_at", "name", "slug"]
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
     @property
     def description(self):
         # pylint: disable=no-member
         descriptions = {
-            ProductOrderField.COLLECTION.name: (
+            ProductOrderField.COLLECTION.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 "collection. Note: "
                 "This option is available only for the `Collection.products` query."
                 + CHANNEL_REQUIRED
             ),
-            ProductOrderField.RANK.name: (
+            ProductOrderField.RANK.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 "rank. Note: This option is available only with the `search` filter."
             ),
-            ProductOrderField.NAME.name: "name.",
-            ProductOrderField.PRICE.name: ("price." + CHANNEL_REQUIRED),
-            ProductOrderField.TYPE.name: "type.",
-            ProductOrderField.MINIMAL_PRICE.name: (
+            ProductOrderField.NAME.name: "name.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            ProductOrderField.PRICE.name: ("price." + CHANNEL_REQUIRED),  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            ProductOrderField.TYPE.name: "type.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            ProductOrderField.MINIMAL_PRICE.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 "a minimal price of a product's variant." + CHANNEL_REQUIRED
             ),
-            ProductOrderField.DATE.name: f"update date. {DEPRECATED_IN_3X_INPUT}",
-            ProductOrderField.PUBLISHED.name: (
+            ProductOrderField.DATE.name: f"update date. {DEPRECATED_IN_3X_INPUT}",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            ProductOrderField.PUBLISHED.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 "publication status." + CHANNEL_REQUIRED
             ),
-            ProductOrderField.PUBLICATION_DATE.name: (
+            ProductOrderField.PUBLICATION_DATE.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 "publication date." + CHANNEL_REQUIRED + DEPRECATED_IN_3X_INPUT
             ),
-            ProductOrderField.LAST_MODIFIED.name: (
+            ProductOrderField.LAST_MODIFIED.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 f"update date. {DEPRECATED_IN_3X_INPUT}"
             ),
-            ProductOrderField.PUBLISHED_AT.name: (
+            ProductOrderField.PUBLISHED_AT.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 "publication date." + CHANNEL_REQUIRED
             ),
-            ProductOrderField.LAST_MODIFIED_AT.name: "update date.",
-            ProductOrderField.RATING.name: "rating.",
-            ProductOrderField.CREATED_AT.name: "creation date." + ADDED_IN_38,
+            ProductOrderField.LAST_MODIFIED_AT.name: "update date.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            ProductOrderField.RATING.name: "rating.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            ProductOrderField.CREATED_AT.name: "creation date." + ADDED_IN_38,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}"
@@ -257,11 +269,16 @@ class ProductOrder(ChannelSortInputObjectType):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = ProductOrderField
+        type_name = "products"
 
 
-class ProductVariantSortField(graphene.Enum):
+class ProductVariantSortField(BaseEnum):
     LAST_MODIFIED_AT = ["updated_at", "name", "pk"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -275,22 +292,26 @@ class ProductVariantSortField(graphene.Enum):
 
 class ProductVariantSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = ProductVariantSortField
         type_name = "productVariants"
 
 
-class ProductTypeSortField(graphene.Enum):
+class ProductTypeSortField(BaseEnum):
     NAME = ["name", "slug"]
     DIGITAL = ["is_digital", "name", "slug"]
     SHIPPING_REQUIRED = ["is_shipping_required", "name", "slug"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
         # pylint: disable=no-member
         descriptions = {
-            ProductTypeSortField.NAME.name: "name",
-            ProductTypeSortField.DIGITAL.name: "type",
-            ProductTypeSortField.SHIPPING_REQUIRED.name: "shipping",
+            ProductTypeSortField.NAME.name: "name",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            ProductTypeSortField.DIGITAL.name: "type",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            ProductTypeSortField.SHIPPING_REQUIRED.name: "shipping",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}."
@@ -299,17 +320,21 @@ class ProductTypeSortField(graphene.Enum):
 
 class ProductTypeSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = ProductTypeSortField
         type_name = "product types"
 
 
-class MediaChoicesSortField(graphene.Enum):
+class MediaChoicesSortField(BaseEnum):
     ID = ["id"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
         descriptions = {
-            MediaChoicesSortField.ID.name: "Sort media by ID.",
+            MediaChoicesSortField.ID.name: "Sort media by ID.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in descriptions:
             return descriptions[self.name]
@@ -318,5 +343,6 @@ class MediaChoicesSortField(graphene.Enum):
 
 class MediaSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = MediaChoicesSortField
         type_name = "media"

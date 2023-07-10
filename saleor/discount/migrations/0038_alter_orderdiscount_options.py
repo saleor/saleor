@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("discount", "0037_rewrite_discount_order_relations"),
     ]

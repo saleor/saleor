@@ -1,11 +1,14 @@
 import graphene
+from prices import TaxedMoney
 
+from .....core.prices import quantize_price
+from .....core.taxes import zero_money
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
-DRAFT_UPDATE_QUERY = """
+DRAFT_ORDER_UPDATE_MUTATION = """
         mutation draftUpdate(
         $id: ID!,
         $input: DraftOrderInput!,
@@ -21,6 +24,7 @@ DRAFT_UPDATE_QUERY = """
                 }
                 order {
                     userEmail
+                    externalReference
                     channel {
                         id
                     }
@@ -31,12 +35,13 @@ DRAFT_UPDATE_QUERY = """
 
 
 def test_draft_order_update_existing_channel_id(
-    staff_api_client, permission_manage_orders, order_with_lines, channel_PLN
+    staff_api_client, permission_group_manage_orders, order_with_lines, channel_PLN
 ):
     order = order_with_lines
     order.status = OrderStatus.DRAFT
     order.save()
-    query = DRAFT_UPDATE_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
@@ -46,9 +51,7 @@ def test_draft_order_update_existing_channel_id(
         },
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderUpdate"]["errors"][0]
 
@@ -57,13 +60,14 @@ def test_draft_order_update_existing_channel_id(
 
 
 def test_draft_order_update_voucher_not_available(
-    staff_api_client, permission_manage_orders, order_with_lines, voucher
+    staff_api_client, permission_group_manage_orders, order_with_lines, voucher
 ):
     order = order_with_lines
     order.status = OrderStatus.DRAFT
     order.save()
     assert order.voucher is None
-    query = DRAFT_UPDATE_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     voucher.channel_listings.all().delete()
@@ -74,9 +78,7 @@ def test_draft_order_update_voucher_not_available(
         },
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderUpdate"]["errors"][0]
 
@@ -84,48 +86,28 @@ def test_draft_order_update_voucher_not_available(
     assert error["field"] == "voucher"
 
 
-DRAFT_ORDER_UPDATE_MUTATION = """
-    mutation draftUpdate(
-        $id: ID!, $voucher: ID!, $customerNote: String, $shippingAddress: AddressInput
-    ) {
-        draftOrderUpdate(id: $id,
-                            input: {
-                                voucher: $voucher,
-                                customerNote: $customerNote,
-                                shippingAddress: $shippingAddress,
-                            }) {
-            errors {
-                field
-                message
-                code
-            }
-            order {
-                userEmail
-            }
-        }
-    }
-"""
-
-
 def test_draft_order_update(
-    staff_api_client, permission_manage_orders, draft_order, voucher
+    staff_api_client, permission_group_manage_orders, draft_order, voucher
 ):
     order = draft_order
     assert not order.voucher
     assert not order.customer_note
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     query = DRAFT_ORDER_UPDATE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     customer_note = "Test customer note"
+    external_reference = "test-ext-ref"
     variables = {
         "id": order_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
+        "input": {
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "externalReference": external_reference,
+        },
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
     assert not data["errors"]
@@ -133,20 +115,27 @@ def test_draft_order_update(
     assert order.voucher
     assert order.customer_note == customer_note
     assert order.search_vector
+    assert (
+        data["order"]["externalReference"]
+        == external_reference
+        == order.external_reference
+    )
 
 
 def test_draft_order_update_with_non_draft_order(
-    staff_api_client, permission_manage_orders, order_with_lines, voucher
+    staff_api_client, permission_group_manage_orders, order_with_lines, voucher
 ):
     order = order_with_lines
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     query = DRAFT_ORDER_UPDATE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     customer_note = "Test customer note"
-    variables = {"id": order_id, "voucher": voucher_id, "customerNote": customer_note}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    variables = {
+        "id": order_id,
+        "input": {"voucher": voucher_id, "customerNote": customer_note},
+    }
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderUpdate"]["errors"][0]
     assert error["field"] == "id"
@@ -155,7 +144,7 @@ def test_draft_order_update_with_non_draft_order(
 
 def test_draft_order_update_invalid_address(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     draft_order,
     voucher,
     graphql_address_data,
@@ -164,19 +153,20 @@ def test_draft_order_update_invalid_address(
     assert not order.voucher
     assert not order.customer_note
     graphql_address_data["postalCode"] = "TEST TEST invalid postal code 12345"
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     query = DRAFT_ORDER_UPDATE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
 
     variables = {
         "id": order_id,
-        "voucher": voucher_id,
-        "shippingAddress": graphql_address_data,
+        "input": {
+            "voucher": voucher_id,
+            "shippingAddress": graphql_address_data,
+        },
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
     assert len(data["errors"]) == 2
@@ -188,9 +178,75 @@ def test_draft_order_update_invalid_address(
     assert {error["field"] for error in data["errors"]} == {"postalCode"}
 
 
-def test_draft_order_update_doing_nothing_generates_no_events(
-    staff_api_client, permission_manage_orders, order_with_lines
+def test_draft_order_update_by_user_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    draft_order,
+    channel_PLN,
 ):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    order = draft_order
+    order.channel = channel_PLN
+    order.save(update_fields=["channel"])
+
+    assert not order.customer_note
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    customer_note = "Test customer note"
+    variables = {
+        "id": order_id,
+        "input": {
+            "customerNote": customer_note,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_draft_order_update_by_app(
+    app_api_client, permission_manage_orders, draft_order, channel_PLN
+):
+    # given
+    order = draft_order
+    order.channel = channel_PLN
+    order.save(update_fields=["channel"])
+
+    assert not order.customer_note
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    customer_note = "Test customer note"
+    variables = {
+        "id": order_id,
+        "input": {
+            "customerNote": customer_note,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    order.refresh_from_db()
+    assert order.customer_note == customer_note
+    assert order.search_vector
+
+
+def test_draft_order_update_doing_nothing_generates_no_events(
+    staff_api_client, permission_group_manage_orders, order_with_lines
+):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     assert not OrderEvent.objects.exists()
 
     query = """
@@ -204,9 +260,7 @@ def test_draft_order_update_doing_nothing_generates_no_events(
         }
         """
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
-    response = staff_api_client.post_graphql(
-        query, {"id": order_id}, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, {"id": order_id})
     get_graphql_content(response)
 
     # Ensure not event was created
@@ -214,8 +268,9 @@ def test_draft_order_update_doing_nothing_generates_no_events(
 
 
 def test_draft_order_update_free_shipping_voucher(
-    staff_api_client, permission_manage_orders, draft_order, voucher_free_shipping
+    staff_api_client, permission_group_manage_orders, draft_order, voucher_free_shipping
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     assert not order.voucher
     query = """
@@ -247,9 +302,7 @@ def test_draft_order_update_free_shipping_voucher(
         "id": order_id,
         "voucher": voucher_id,
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
     assert not data["errors"]
@@ -283,9 +336,10 @@ DRAFT_ORDER_UPDATE_USER_EMAIL_MUTATION = """
 
 
 def test_draft_order_update_when_not_existing_customer_email_provided(
-    staff_api_client, permission_manage_orders, draft_order
+    staff_api_client, permission_group_manage_orders, draft_order
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     assert order.user
 
@@ -295,9 +349,7 @@ def test_draft_order_update_when_not_existing_customer_email_provided(
     variables = {"id": order_id, "userEmail": email}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
     order.refresh_from_db()
@@ -309,9 +361,10 @@ def test_draft_order_update_when_not_existing_customer_email_provided(
 
 
 def test_draft_order_update_assign_user_when_existing_customer_email_provided(
-    staff_api_client, permission_manage_orders, draft_order
+    staff_api_client, permission_group_manage_orders, draft_order
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     user = order.user
     user_email = user.email
@@ -324,9 +377,7 @@ def test_draft_order_update_assign_user_when_existing_customer_email_provided(
     variables = {"id": order_id, "userEmail": user_email}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
     order.refresh_from_db()
@@ -337,6 +388,7 @@ def test_draft_order_update_assign_user_when_existing_customer_email_provided(
     assert order.user_email == user_email
 
 
+<<<<<<< HEAD
 DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION = """
     mutation draftUpdate(
         $id: ID!, $shippingMethod: ID
@@ -345,6 +397,154 @@ DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION = """
                             input: {
                                 shippingMethod: $shippingMethod
                             }) {
+=======
+DRAFT_ORDER_UPDATE_BY_EXTERNAL_REFERENCE = """
+    mutation draftUpdate(
+        $id: ID
+        $externalReference: String
+        $input: DraftOrderInput!
+    ) {
+        draftOrderUpdate(
+            id: $id
+            externalReference: $externalReference
+            input: $input
+        ) {
+            errors {
+                field
+                message
+                code
+            }
+            order {
+                id
+                externalReference
+                voucher {
+                    id
+                }
+            }
+        }
+    }
+    """
+
+
+def test_draft_order_update_by_external_reference(
+    staff_api_client, permission_group_manage_orders, draft_order, voucher_free_shipping
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_BY_EXTERNAL_REFERENCE
+
+    order = draft_order
+    assert not order.voucher
+    voucher = voucher_free_shipping
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    ext_ref = "test-ext-ref"
+    order.external_reference = ext_ref
+    order.save(update_fields=["external_reference"])
+
+    variables = {
+        "externalReference": ext_ref,
+        "input": {"voucher": voucher_id},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    assert data["order"]["externalReference"] == ext_ref
+    assert data["order"]["id"] == graphene.Node.to_global_id("Order", order.id)
+    assert data["order"]["voucher"]["id"] == voucher_id
+    order.refresh_from_db()
+    assert order.voucher
+
+
+def test_draft_order_update_by_both_id_and_external_reference(
+    staff_api_client, permission_group_manage_orders, voucher_free_shipping
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_BY_EXTERNAL_REFERENCE
+
+    variables = {
+        "id": "test-id",
+        "externalReference": "test-ext-ref",
+        "input": {},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["order"]
+    assert (
+        data["errors"][0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_draft_order_update_by_external_reference_not_existing(
+    staff_api_client, permission_group_manage_orders, voucher_free_shipping
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_BY_EXTERNAL_REFERENCE
+    ext_ref = "non-existing-ext-ref"
+    variables = {
+        "externalReference": ext_ref,
+        "input": {},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["order"]
+    assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+
+
+def test_draft_order_update_with_non_unique_external_reference(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    order_list,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_BY_EXTERNAL_REFERENCE
+
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+    ext_ref = "test-ext-ref"
+    order = order_list[1]
+    order.external_reference = ext_ref
+    order.save(update_fields=["external_reference"])
+
+    variables = {"id": draft_order_id, "input": {"externalReference": ext_ref}}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["draftOrderUpdate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == OrderErrorCode.UNIQUE.name
+    assert error["message"] == "Order with this External reference already exists."
+
+
+DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION = """
+    mutation draftUpdate($id: ID!, $shippingMethod: ID){
+        draftOrderUpdate(
+            id: $id,
+            input: {
+                shippingMethod: $shippingMethod
+            }) {
+>>>>>>> main
             errors {
                 field
                 message
@@ -353,6 +553,15 @@ DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION = """
             order {
                 shippingMethodName
                 shippingPrice {
+<<<<<<< HEAD
+=======
+                net {
+                        amount
+                    }
+                    gross {
+                        amount
+                    }
+>>>>>>> main
                 tax {
                     amount
                     }
@@ -364,6 +573,10 @@ DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION = """
                     }
                 }
             shippingTaxRate
+<<<<<<< HEAD
+=======
+            userEmail
+>>>>>>> main
             }
         }
     }
@@ -372,12 +585,20 @@ DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION = """
 
 def test_draft_order_update_shipping_method_from_different_channel(
     staff_api_client,
+<<<<<<< HEAD
     permission_manage_orders,
+=======
+    permission_group_manage_orders,
+>>>>>>> main
     draft_order,
     address_usa,
     shipping_method_channel_PLN,
 ):
     # given
+<<<<<<< HEAD
+=======
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+>>>>>>> main
     order = draft_order
     order.shipping_address = address_usa
     order.save(update_fields=["shipping_address"])
@@ -388,9 +609,13 @@ def test_draft_order_update_shipping_method_from_different_channel(
     )
     variables = {"id": order_id, "shippingMethod": shipping_method_id}
     # when
+<<<<<<< HEAD
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
+=======
+    response = staff_api_client.post_graphql(query, variables)
+>>>>>>> main
 
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
@@ -405,13 +630,21 @@ def test_draft_order_update_shipping_method_from_different_channel(
 
 def test_draft_order_update_shipping_method_prices_updates(
     staff_api_client,
+<<<<<<< HEAD
     permission_manage_orders,
+=======
+    permission_group_manage_orders,
+>>>>>>> main
     draft_order,
     address_usa,
     shipping_method,
     shipping_method_weight_based,
 ):
     # given
+<<<<<<< HEAD
+=======
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+>>>>>>> main
     order = draft_order
     order.shipping_address = address_usa
     order.shipping_method = shipping_method
@@ -426,9 +659,13 @@ def test_draft_order_update_shipping_method_prices_updates(
     shipping_method_id = graphene.Node.to_global_id("ShippingMethod", method_2.id)
     variables = {"id": order_id, "shippingMethod": shipping_method_id}
     # when
+<<<<<<< HEAD
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
+=======
+    response = staff_api_client.post_graphql(query, variables)
+>>>>>>> main
 
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
@@ -442,12 +679,20 @@ def test_draft_order_update_shipping_method_prices_updates(
 
 def test_draft_order_update_shipping_method_clear_with_none(
     staff_api_client,
+<<<<<<< HEAD
     permission_manage_orders,
+=======
+    permission_group_manage_orders,
+>>>>>>> main
     draft_order,
     address_usa,
     shipping_method,
 ):
     # given
+<<<<<<< HEAD
+=======
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+>>>>>>> main
     order = draft_order
     order.shipping_address = address_usa
     order.shipping_method = shipping_method
@@ -462,9 +707,13 @@ def test_draft_order_update_shipping_method_clear_with_none(
     }
 
     # when
+<<<<<<< HEAD
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
+=======
+    response = staff_api_client.post_graphql(query, variables)
+>>>>>>> main
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
     order.refresh_from_db()
@@ -475,3 +724,86 @@ def test_draft_order_update_shipping_method_clear_with_none(
     assert data["order"]["shippingPrice"] == zero_shipping_price_data
     assert data["order"]["shippingTaxRate"] == 0.0
     assert order.shipping_method is None
+<<<<<<< HEAD
+=======
+
+
+def test_draft_order_update_shipping_method(
+    staff_api_client, permission_group_manage_orders, draft_order, shipping_method
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    order.shipping_method = None
+    order.base_shipping_price = zero_money(order.currency)
+    order.save()
+
+    query = DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {
+        "id": order_id,
+        "shippingMethod": method_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order.refresh_from_db()
+
+    shipping_total = shipping_method.channel_listings.get(
+        channel_id=order.channel_id
+    ).get_total()
+    shipping_price = TaxedMoney(shipping_total, shipping_total)
+
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+
+    assert data["order"]["shippingMethodName"] == shipping_method.name
+    assert data["order"]["shippingPrice"]["net"]["amount"] == quantize_price(
+        shipping_price.net.amount, shipping_price.currency
+    )
+    assert data["order"]["shippingPrice"]["gross"]["amount"] == quantize_price(
+        shipping_price.gross.amount, shipping_price.currency
+    )
+
+    assert order.base_shipping_price == shipping_total
+    assert order.shipping_method == shipping_method
+    assert order.base_shipping_price == shipping_total
+    assert order.shipping_price_net == shipping_price.net
+    assert order.shipping_price_gross == shipping_price.gross
+
+
+def test_draft_order_update_no_shipping_method_channel_listings(
+    staff_api_client, permission_group_manage_orders, draft_order, shipping_method
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    order.shipping_method = None
+    order.base_shipping_price = zero_money(order.currency)
+    order.save()
+
+    shipping_method.channel_listings.all().delete()
+
+    query = DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {
+        "id": order_id,
+        "shippingMethod": method_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    assert errors[0]["field"] == "shippingMethod"
+>>>>>>> main

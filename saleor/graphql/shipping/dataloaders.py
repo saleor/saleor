@@ -100,15 +100,19 @@ class ShippingMethodsByShippingZoneIdAndChannelSlugLoader(DataLoader):
     context_key = "shippingmethod_by_shippingzone_and_channel"
 
     def batch_load(self, keys):
+        shipping_zone_ids = [zone_id for (zone_id, _) in keys]
         shipping_methods = (
             ShippingMethod.objects.using(self.database_connection_name)
-            .filter(shipping_zone_id__in=keys)
+            .filter(shipping_zone_id__in=shipping_zone_ids)
             .annotate(channel_slug=F("channel_listings__channel__slug"))
         )
 
         shipping_methods_by_shipping_zone_and_channel_map = defaultdict(list)
         for shipping_method in shipping_methods:
-            key = (shipping_method.shipping_zone_id, shipping_method.channel_slug)
+            key = (
+                shipping_method.shipping_zone_id,
+                getattr(shipping_method, "channel_slug"),  # annotation
+            )
             shipping_methods_by_shipping_zone_and_channel_map[key].append(
                 shipping_method
             )

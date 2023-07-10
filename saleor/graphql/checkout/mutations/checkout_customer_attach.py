@@ -3,11 +3,20 @@ from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions, AuthorizationFilters
+from ....permission.auth_filters import AuthorizationFilters
+from ....permission.enums import AccountPermissions
+from ....webhook.event_types import WebhookEventAsyncType
+from ...account.types import User
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+<<<<<<< HEAD
+=======
+from ...core.utils import WebhookEventInfo
+>>>>>>> main
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
@@ -43,25 +52,32 @@ class CheckoutCustomerAttach(BaseMutation):
 
     class Meta:
         description = "Sets the customer as the owner of the checkout."
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
         permissions = (
             AuthorizationFilters.AUTHENTICATED_APP,
             AuthorizationFilters.AUTHENTICATED_USER,
         )
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
+                description="A checkout was updated.",
+            )
+        ]
 
     @classmethod
     def perform_mutation(
-        cls, _root, info, checkout_id=None, token=None, customer_id=None, id=None
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        checkout_id=None,
+        token=None,
+        customer_id=None,
+        id=None,
     ):
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=checkout_id,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         # Raise error when trying to attach a user to a checkout
         # that is already owned by another user.
@@ -85,7 +101,7 @@ class CheckoutCustomerAttach(BaseMutation):
                 raise PermissionDenied(
                     permissions=[AccountPermissions.IMPERSONATE_USER]
                 )
-            customer = cls.get_node_or_error(info, customer_id, only_type="User")
+            customer = cls.get_node_or_error(info, customer_id, only_type=User)
         elif not info.context.user:
             raise ValidationError(
                 {

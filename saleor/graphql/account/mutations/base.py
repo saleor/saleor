@@ -1,42 +1,56 @@
+from collections import defaultdict
+from typing import List
+
 import graphene
+<<<<<<< HEAD
 from django.conf import settings
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils import timezone
+=======
+from django.core.exceptions import ValidationError
+>>>>>>> main
 
 from ....account import events as account_events
-from ....account import models
 from ....account.error_codes import AccountErrorCode
-from ....account.notifications import (
-    send_password_reset_notification,
-    send_set_password_notification,
-)
+from ....account.notifications import send_set_password_notification
 from ....account.search import prepare_user_search_document_value
-from ....account.utils import retrieve_user_by_email
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
-from ....giftcard.utils import assign_user_gift_cards
+from ....giftcard.search import mark_gift_cards_search_index_as_dirty
+from ....giftcard.utils import get_user_gift_cards
 from ....graphql.utils import get_user_or_app_from_context
-from ....order.utils import match_orders_with_new_user
+from ....permission.auth_filters import AuthorizationFilters
+from ....permission.enums import AccountPermissions
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel, validate_channel
+<<<<<<< HEAD
 from ...core.context import disallow_replica_in_context
+=======
+from ...core import ResolveInfo, SaleorContext
+from ...core.descriptions import ADDED_IN_310, ADDED_IN_314
+from ...core.doc_category import DOC_CATEGORY_USERS
+>>>>>>> main
 from ...core.enums import LanguageCodeEnum
-from ...core.mutations import (
-    BaseMutation,
-    ModelDeleteMutation,
-    ModelMutation,
-    validation_error_to_error_type,
+from ...core.mutations import ModelDeleteMutation, ModelMutation
+from ...core.types import BaseInputObjectType, NonNullList
+from ...meta.inputs import MetadataInput
+from ...plugins.dataloaders import get_plugin_manager_promise
+from ..utils import (
+    get_not_manageable_permissions_when_deactivate_or_remove_users,
+    get_out_of_scope_users,
 )
+<<<<<<< HEAD
 from ...core.types import AccountError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .authentication import CreateToken
+=======
+>>>>>>> main
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
@@ -56,7 +70,7 @@ def check_can_edit_address(context, address):
         return True
     app = get_app_promise(context).get()
     if not app and context.user:
-        is_owner = requester.addresses.filter(pk=address.pk).exists()
+        is_owner = context.user.addresses.filter(pk=address.pk).exists()
         if is_owner:
             return True
     raise PermissionDenied(
@@ -64,6 +78,7 @@ def check_can_edit_address(context, address):
     )
 
 
+<<<<<<< HEAD
 class SetPassword(CreateToken):
     class Arguments:
         token = graphene.String(
@@ -312,6 +327,8 @@ class PasswordChange(BaseMutation):
         return PasswordChange(user=user)
 
 
+=======
+>>>>>>> main
 class BaseAddressUpdate(ModelMutation, I18nMixin):
     """Base mutation for address update used by staff and account."""
 
@@ -329,14 +346,14 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         abstract = True
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
         check_can_edit_address(info.context, instance)
-        return super().clean_input(info, instance, data)
+        return super().clean_input(info, instance, data, **kwargs)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
         cleaned_input = cls.clean_input(
             info=info, instance=instance, data=data.get("input")
@@ -347,10 +364,17 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         cls._save_m2m(info, address, cleaned_input)
 
         user = address.user_addresses.first()
+<<<<<<< HEAD
         user.search_document = prepare_user_search_document_value(user)
         user.save(update_fields=["search_document", "updated_at"])
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.customer_updated, user)
+=======
+        if user:
+            user.search_document = prepare_user_search_document_value(user)
+            user.save(update_fields=["search_document", "updated_at"])
+        manager = get_plugin_manager_promise(info.context).get()
+>>>>>>> main
         address = manager.change_user_address(address, None, user)
         cls.call_event(manager.address_updated, address)
 
@@ -374,19 +398,20 @@ class BaseAddressDelete(ModelDeleteMutation):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance) -> None:
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
         check_can_edit_address(info.context, instance)
         return super().clean_instance(info, instance)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str
+    ):
         if not cls.check_permissions(info.context):
             raise PermissionDenied()
 
-        node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, only_type=Address)
+        instance = cls.get_node_or_error(info, id, only_type=Address)
         if instance:
             cls.clean_instance(info, instance)
 
@@ -400,33 +425,52 @@ class BaseAddressDelete(ModelDeleteMutation):
         instance.delete()
         instance.id = db_id
 
-        # Refresh the user instance to clear the default addresses. If the
-        # deleted address was used as default, it would stay cached in the
-        # user instance and the invalid ID returned in the response might cause
-        # an error.
-        user.refresh_from_db()
+        if user:
+            # Refresh the user instance to clear the default addresses. If the
+            # deleted address was used as default, it would stay cached in the
+            # user instance and the invalid ID returned in the response might cause
+            # an error.
+            user.refresh_from_db()
 
-        user.search_document = prepare_user_search_document_value(user)
-        user.save(update_fields=["search_document", "updated_at"])
+            user.search_document = prepare_user_search_document_value(user)
+            user.save(update_fields=["search_document", "updated_at"])
 
         response = cls.success_response(instance)
 
         response.user = user
         manager = get_plugin_manager_promise(info.context).get()
+<<<<<<< HEAD
         cls.call_event(manager.customer_updated, user)
+=======
+>>>>>>> main
         cls.call_event(manager.address_deleted, instance)
         return response
 
 
-class UserInput(graphene.InputObjectType):
+class UserInput(BaseInputObjectType):
     first_name = graphene.String(description="Given name.")
     last_name = graphene.String(description="Family name.")
     email = graphene.String(description="The unique email address of the user.")
     is_active = graphene.Boolean(required=False, description="User account is active.")
     note = graphene.String(description="A note about the user.")
+    metadata = NonNullList(
+        MetadataInput,
+        description="Fields required to update the user metadata." + ADDED_IN_314,
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the user private metadata." + ADDED_IN_314
+        ),
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
-class UserAddressInput(graphene.InputObjectType):
+class UserAddressInput(BaseInputObjectType):
     default_billing_address = AddressInput(
         description="Billing address of the customer."
     )
@@ -434,11 +478,20 @@ class UserAddressInput(graphene.InputObjectType):
         description="Shipping address of the customer."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+
 
 class CustomerInput(UserInput, UserAddressInput):
     language_code = graphene.Field(
         LanguageCodeEnum, required=False, description="User language code."
     )
+    external_reference = graphene.String(
+        description="External ID of the customer." + ADDED_IN_310, required=False
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
 class UserCreateInput(CustomerInput):
@@ -455,6 +508,9 @@ class UserCreateInput(CustomerInput):
         )
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+
 
 class BaseCustomerCreate(ModelMutation, I18nMixin):
     """Base mutation for customer create used by staff and account."""
@@ -468,10 +524,10 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         abstract = True
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         shipping_address_data = data.pop(SHIPPING_ADDRESS_FIELD, None)
         billing_address_data = data.pop(BILLING_ADDRESS_FIELD, None)
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         if shipping_address_data:
             shipping_address = cls.validate_address(
@@ -496,7 +552,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                 validate_storefront_url(cleaned_input.get("redirect_url"))
             except ValidationError as error:
                 raise ValidationError(
-                    {"redirect_url": error}, code=AccountErrorCode.INVALID
+                    {"redirect_url": error}, code=AccountErrorCode.INVALID.value
                 )
 
         email = cleaned_input.get("email")
@@ -507,7 +563,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
     @classmethod
     @traced_atomic_transaction()
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
         manager = get_plugin_manager_promise(info.context).get()
         if default_shipping_address:
@@ -536,7 +592,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
         # The instance is a new object in db, create an event
         if is_creation:
-            manager.customer_created(customer=instance)
+            cls.call_event(manager.customer_created, instance)
             account_events.customer_account_created_event(user=instance)
         else:
             manager.customer_updated(instance)
@@ -551,9 +607,162 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                 channel_slug = validate_channel(
                     channel_slug, error_class=AccountErrorCode
                 ).slug
+
             send_set_password_notification(
                 cleaned_input.get("redirect_url"),
                 instance,
                 manager,
                 channel_slug,
             )
+
+    @classmethod
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        if cleaned_input.get("metadata"):
+            manager = get_plugin_manager_promise(info.context).get()
+            cls.call_event(manager.customer_metadata_updated, instance)
+
+        if cleaned_input.get("first_name") or cleaned_input.get("last_name"):
+            if user_gift_cards := get_user_gift_cards(instance):
+                mark_gift_cards_search_index_as_dirty(user_gift_cards)
+
+
+class UserDeleteMixin:
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def clean_instance(cls, info: ResolveInfo, instance) -> None:
+        user = info.context.user
+        if instance == user:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "You cannot delete your own account.",
+                        code=AccountErrorCode.DELETE_OWN_ACCOUNT.value,
+                    )
+                }
+            )
+        elif instance.is_superuser:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Cannot delete this account.",
+                        code=AccountErrorCode.DELETE_SUPERUSER_ACCOUNT.value,
+                    )
+                }
+            )
+
+
+class CustomerDeleteMixin(UserDeleteMixin):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def clean_instance(cls, info: ResolveInfo, instance) -> None:
+        super().clean_instance(info, instance)
+        if instance.is_staff:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Cannot delete a staff account.",
+                        code=AccountErrorCode.DELETE_STAFF_ACCOUNT.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def post_process(cls, info: ResolveInfo, deleted_count=1):
+        app = get_app_promise(info.context).get()
+        account_events.customer_deleted_event(
+            staff_user=info.context.user,
+            app=app,
+            deleted_count=deleted_count,
+        )
+
+
+class StaffDeleteMixin(UserDeleteMixin):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def check_permissions(cls, context: SaleorContext, permissions=None, **data):
+        if get_app_promise(context).get():
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+        return super().check_permissions(context, permissions)  # type: ignore[misc] # mixin # noqa: E501
+
+    @classmethod
+    def clean_instance(cls, info: ResolveInfo, instance):
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+
+        requestor = info.context.user
+
+        cls.check_if_users_can_be_deleted(info, [instance], "id", errors)
+        cls.check_if_requestor_can_manage_users(requestor, [instance], "id", errors)
+        cls.check_if_removing_left_not_manageable_permissions(
+            requestor, [instance], "id", errors
+        )
+        if errors:
+            raise ValidationError(errors)
+
+    @classmethod
+    def check_if_users_can_be_deleted(cls, info: ResolveInfo, instances, field, errors):
+        """Check if only staff users will be deleted. Cannot delete non-staff users."""
+        not_staff_users = set()
+        for user in instances:
+            if not user.is_staff:
+                not_staff_users.add(user)
+            try:
+                super().clean_instance(info, user)
+            except ValidationError as error:
+                errors["ids"].append(error)
+
+        if not_staff_users:
+            user_pks = [
+                graphene.Node.to_global_id("User", user.pk) for user in not_staff_users
+            ]
+            msg = "Cannot delete a non-staff users."
+            code = AccountErrorCode.DELETE_NON_STAFF_USER.value
+            params = {"users": user_pks}
+            errors[field].append(ValidationError(msg, code=code, params=params))
+
+    @classmethod
+    def check_if_requestor_can_manage_users(cls, requestor, instances, field, errors):
+        """Requestor can't manage users with wider scope of permissions."""
+        if requestor.is_superuser:
+            return
+        out_of_scope_users = get_out_of_scope_users(requestor, instances)
+        if out_of_scope_users:
+            user_pks = [
+                graphene.Node.to_global_id("User", user.pk)
+                for user in out_of_scope_users
+            ]
+            msg = "You can't manage this users."
+            code = AccountErrorCode.OUT_OF_SCOPE_USER.value
+            params = {"users": user_pks}
+            error = ValidationError(msg, code=code, params=params)
+            errors[field] = error
+
+    @classmethod
+    def check_if_removing_left_not_manageable_permissions(
+        cls, requestor, users, field, errors: defaultdict[str, List[ValidationError]]
+    ):
+        """Check if after removing users all permissions will be manageable.
+
+        After removing users, for each permission, there should be at least one
+        active staff member who can manage it (has both “manage staff” and
+        this permission).
+        """
+        if requestor.is_superuser:
+            return
+        permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
+            users
+        )
+        if permissions:
+            # add error
+            msg = "Users cannot be removed, some of permissions will not be manageable."
+            code = AccountErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.value
+            params = {"permissions": permissions}
+            error = ValidationError(msg, code=code, params=params)
+            errors[field] = [error]

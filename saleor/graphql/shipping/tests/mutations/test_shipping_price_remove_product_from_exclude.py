@@ -47,6 +47,7 @@ def test_remove_products_from_excluded_products_for_shipping_method_delete_all_p
     permission_manage_shipping,
     app_api_client,
 ):
+    # given
     api = staff_api_client if requestor == "staff" else app_api_client
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethodType", shipping_method.pk
@@ -55,12 +56,15 @@ def test_remove_products_from_excluded_products_for_shipping_method_delete_all_p
 
     product_ids = [graphene.Node.to_global_id("Product", p.pk) for p in product_list]
     variables = {"id": shipping_method_id, "products": product_ids}
+
+    # when
     response = api.post_graphql(
         REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
 
+    # then
     content = get_graphql_content(response)
     shipping_method = content["data"]["shippingPriceRemoveProductFromExclude"][
         "shippingMethod"
@@ -82,6 +86,7 @@ def test_remove_products_from_excluded_products_for_shipping_method(
     product,
     app_api_client,
 ):
+    # given
     api = staff_api_client if requestor == "staff" else app_api_client
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethodType", shipping_method.pk
@@ -93,12 +98,15 @@ def test_remove_products_from_excluded_products_for_shipping_method(
         graphene.Node.to_global_id("Product", product.pk),
     ]
     variables = {"id": shipping_method_id, "products": product_ids}
+
+    # when
     response = api.post_graphql(
         REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
 
+    # then
     content = get_graphql_content(response)
     shipping_method = content["data"]["shippingPriceRemoveProductFromExclude"][
         "shippingMethod"

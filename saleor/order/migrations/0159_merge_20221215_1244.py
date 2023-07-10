@@ -4,7 +4,10 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
     dependencies = [
         ("order", "0156_merge_20221215_1235"),
         ("order", "0158_migrate_base_shipping_price_amount"),

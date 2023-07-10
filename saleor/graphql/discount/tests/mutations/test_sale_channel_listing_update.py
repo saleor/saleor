@@ -34,8 +34,8 @@ mutation UpdateSaleChannelListing(
 
 
 @patch(
-    "saleor.graphql.discount.mutations.sale_channel_listing_update"
-    ".update_products_discounted_prices_of_discount_task"
+    "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
+    ".update_products_discounted_prices_of_sale_task"
 )
 def test_sale_channel_listing_create_as_staff_user(
     mock_update_discounted_prices_of_discount_task,
@@ -82,8 +82,8 @@ def test_sale_channel_listing_create_as_staff_user(
 
 
 @patch(
-    "saleor.graphql.discount.mutations.sale_channel_listing_update"
-    ".update_products_discounted_prices_of_discount_task"
+    "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
+    ".update_products_discounted_prices_of_sale_task"
 )
 def test_sale_channel_listing_update_as_staff_user(
     mock_update_discounted_prices_of_discount_task,
@@ -162,8 +162,16 @@ def test_sale_channel_listing_update_with_negative_discounted_value(
     assert_negative_positive_decimal_value(response)
 
 
+@patch(
+    "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
+    ".update_products_discounted_prices_of_sale_task"
+)
 def test_sale_channel_listing_update_duplicated_ids_in_add_and_remove(
-    staff_api_client, sale, permission_manage_discounts, channel_USD
+    mock_update_discounted_prices_of_discount_task,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    channel_USD,
 ):
     # given
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
@@ -191,10 +199,19 @@ def test_sale_channel_listing_update_duplicated_ids_in_add_and_remove(
     assert errors[0]["field"] == "input"
     assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
     assert errors[0]["channels"] == [channel_id]
+    mock_update_discounted_prices_of_discount_task.assert_not_called()
 
 
+@patch(
+    "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
+    ".update_products_discounted_prices_of_sale_task"
+)
 def test_sale_channel_listing_update_duplicated_channel_in_add(
-    staff_api_client, sale, permission_manage_discounts, channel_USD
+    mock_update_discounted_prices_of_discount_task,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    channel_USD,
 ):
     # given
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
@@ -224,10 +241,19 @@ def test_sale_channel_listing_update_duplicated_channel_in_add(
     assert errors[0]["field"] == "addChannels"
     assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
     assert errors[0]["channels"] == [channel_id]
+    mock_update_discounted_prices_of_discount_task.assert_not_called()
 
 
+@patch(
+    "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
+    ".update_products_discounted_prices_of_sale_task"
+)
 def test_sale_channel_listing_update_duplicated_channel_in_remove(
-    staff_api_client, sale, permission_manage_discounts, channel_USD
+    mock_update_discounted_prices_of_discount_task,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    channel_USD,
 ):
     # given
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
@@ -251,10 +277,19 @@ def test_sale_channel_listing_update_duplicated_channel_in_remove(
     assert errors[0]["field"] == "removeChannels"
     assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
     assert errors[0]["channels"] == [channel_id]
+    mock_update_discounted_prices_of_discount_task.assert_not_called()
 
 
+@patch(
+    "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
+    ".update_products_discounted_prices_of_sale_task"
+)
 def test_sale_channel_listing_update_with_invalid_decimal_places(
-    staff_api_client, sale, permission_manage_discounts, channel_USD
+    mock_update_discounted_prices_of_discount_task,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    channel_USD,
 ):
     # given
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
@@ -281,10 +316,19 @@ def test_sale_channel_listing_update_with_invalid_decimal_places(
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["field"] == "input"
     assert errors[0]["channels"] == [channel_id]
+    mock_update_discounted_prices_of_discount_task.assert_not_called()
 
 
+@patch(
+    "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
+    ".update_products_discounted_prices_of_sale_task"
+)
 def test_sale_channel_listing_update_with_invalid_percentage_value(
-    staff_api_client, sale, permission_manage_discounts, channel_USD
+    mock_update_discounted_prices_of_discount_task,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    channel_USD,
 ):
     # given
     sale = sale
@@ -314,6 +358,7 @@ def test_sale_channel_listing_update_with_invalid_percentage_value(
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["field"] == "input"
     assert errors[0]["channels"] == [channel_id]
+    mock_update_discounted_prices_of_discount_task.assert_not_called()
 
 
 SALE_AND_SALE_CHANNEL_LISTING_UPDATE_MUTATION = """
@@ -349,8 +394,16 @@ mutation UpdateSaleChannelListing(
 """
 
 
+@patch(
+    "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
+    ".update_products_discounted_prices_of_sale_task"
+)
 def test_invalidate_data_sale_channel_listings_update(
-    staff_api_client, sale, permission_manage_discounts, channel_USD
+    mock_update_discounted_prices_of_discount_task,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    channel_USD,
 ):
     # given
     discount_value = 10
@@ -391,3 +444,6 @@ def test_invalidate_data_sale_channel_listings_update(
 
     # response from the second mutation contains data
     assert channel_listings_data["channelListings"][0]["channel"]["id"] == channel_id
+    mock_update_discounted_prices_of_discount_task.delay.assert_called_once_with(
+        sale.pk,
+    )

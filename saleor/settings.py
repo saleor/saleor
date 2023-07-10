@@ -4,10 +4,12 @@ import os
 import os.path
 import warnings
 from datetime import timedelta
+from typing import List
 
 import dj_database_url
 import dj_email_url
 import django_cache_url
+import django_stubs_ext
 import jaeger_client.config
 import pkg_resources
 import sentry_sdk
@@ -25,6 +27,8 @@ from sentry_sdk.integrations.logging import ignore_logger
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_sale_webhook_schedule
+
+django_stubs_ext.monkeypatch()
 
 
 def get_list(text):
@@ -82,19 +86,20 @@ DATABASE_CONNECTION_DEFAULT_NAME = "default"
 # TODO: For local envs will be activated in separate PR.
 # We need to update docs an saleor platform.
 # This variable should be set to `replica`
-DATABASE_CONNECTION_REPLICA_NAME = "default"
+DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
         default="postgres://saleor:saleor@localhost:5432/saleor",
         conn_max_age=DB_CONN_MAX_AGE,
     ),
-    # TODO: We need to add read only user to saleor platfrom, and we need to update
-    # docs.
-    # DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-    #     default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
-    #     conn_max_age=DB_CONN_MAX_AGE,
-    # ),
+    DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
+        default="postgres://saleor:saleor@localhost:5432/saleor",
+        # TODO: We need to add read only user to saleor platform,
+        # and we need to update docs.
+        # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
+        conn_max_age=DB_CONN_MAX_AGE,
+    ),
 }
 
 DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
@@ -120,36 +125,31 @@ if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
         f":{SENDGRID_PASSWORD}@smtp.sendgrid.net:587/?tls=True"
     )
 
-email_config = dj_email_url.parse(
-    EMAIL_URL or "console://demo@example.com:console@example/"
-)
+email_config = dj_email_url.parse(EMAIL_URL or "")
 
-EMAIL_FILE_PATH = email_config["EMAIL_FILE_PATH"]
-EMAIL_HOST_USER = email_config["EMAIL_HOST_USER"]
-EMAIL_HOST_PASSWORD = email_config["EMAIL_HOST_PASSWORD"]
-EMAIL_HOST = email_config["EMAIL_HOST"]
-EMAIL_PORT = email_config["EMAIL_PORT"]
-EMAIL_BACKEND = email_config["EMAIL_BACKEND"]
-EMAIL_USE_TLS = email_config["EMAIL_USE_TLS"]
-EMAIL_USE_SSL = email_config["EMAIL_USE_SSL"]
-
-# If enabled, make sure you have set proper storefront address in ALLOWED_CLIENT_HOSTS.
-ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = get_bool_from_env(
-    "ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL", True
-)
+EMAIL_FILE_PATH: str = email_config.get("EMAIL_FILE_PATH", "")
+EMAIL_HOST_USER: str = email_config.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD: str = email_config.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_HOST: str = email_config.get("EMAIL_HOST", "")
+EMAIL_PORT: str = str(email_config.get("EMAIL_PORT", ""))
+EMAIL_BACKEND: str = email_config.get("EMAIL_BACKEND", "")
+EMAIL_USE_TLS: bool = email_config.get("EMAIL_USE_TLS", False)
+EMAIL_USE_SSL: bool = email_config.get("EMAIL_USE_SSL", False)
 
 ENABLE_SSL = get_bool_from_env("ENABLE_SSL", False)
 
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
 
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+DEFAULT_FROM_EMAIL: str = os.environ.get(
+    "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "noreply@example.com"
+)
 
-MEDIA_ROOT = os.path.join(PROJECT_ROOT, "media")
-MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
+MEDIA_ROOT: str = os.path.join(PROJECT_ROOT, "media")
+MEDIA_URL: str = os.environ.get("MEDIA_URL", "/media/")
 
-STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
-STATIC_URL = os.environ.get("STATIC_URL", "/static/")
+STATIC_ROOT: str = os.path.join(PROJECT_ROOT, "static")
+STATIC_URL: str = os.environ.get("STATIC_URL", "/static/")
 STATICFILES_DIRS = [
     ("images", os.path.join(PROJECT_ROOT, "saleor", "static", "images"))
 ]
@@ -208,8 +208,6 @@ JWT_MANAGER_PATH = os.environ.get(
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "saleor.core.middleware.request_time",
-    "saleor.core.middleware.google_analytics",
     "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
 
@@ -220,10 +218,11 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sites",
     "django.contrib.staticfiles",
-    "django.contrib.auth",
     "django.contrib.postgres",
     "django_celery_beat",
     # Local apps
+    "saleor.permission",
+    "saleor.auth",
     "saleor.plugins",
     "saleor.account",
     "saleor.discount",
@@ -252,8 +251,6 @@ INSTALLED_APPS = [
     # External apps
     "django_measurement",
     "django_prices",
-    "django_prices_openexchangerates",
-    "django_prices_vatlayer",
     "mptt",
     "django_countries",
     "django_filters",
@@ -409,10 +406,6 @@ DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 
 COUNTRIES_OVERRIDE = {"EU": "European Union"}
 
-OPENEXCHANGERATES_API_KEY = os.environ.get("OPENEXCHANGERATES_API_KEY")
-
-GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get("GOOGLE_ANALYTICS_TRACKING_ID")
-
 
 def get_host():
     from django.contrib.sites.models import Site
@@ -432,7 +425,9 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
 ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
-ALLOWED_GRAPHQL_ORIGINS = get_list(os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*"))
+ALLOWED_GRAPHQL_ORIGINS: List[str] = get_list(
+    os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
+)
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
@@ -542,6 +537,21 @@ CELERY_TASK_ROUTES = {
     },
 }
 
+# Expire orders task setting
+BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA", "5 minutes"))
+)
+
+# Defines after how many seconds should the task triggered by the Celery beat
+# entry 'update-products-search-vectors' expire if it wasn't picked up by a worker.
+BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC = 20
+
+# Defines the Celery beat scheduler entries.
+#
+# Note: if a Celery task triggered by a Celery beat entry has an expiration
+# @task(expires=...), the Celery beat scheduler entry should also define
+# the expiration value. This makes sure if the task or scheduling is wrapped
+# by custom code (e.g., a Saleor fork), the expiration is still present.
 CELERY_BEAT_SCHEDULE = {
     "delete-empty-allocations": {
         "task": "saleor.warehouse.tasks.delete_empty_allocations_task",
@@ -559,6 +569,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.checkout.tasks.delete_expired_checkouts",
         "schedule": crontab(hour=0, minute=0),
     },
+    "delete_expired_orders": {
+        "task": "saleor.order.tasks.delete_expired_orders_task",
+        "schedule": crontab(hour=2, minute=0),
+    },
     "delete-outdated-event-data": {
         "task": "saleor.core.tasks.delete_event_payloads_task",
         "schedule": timedelta(days=1),
@@ -575,13 +589,23 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.csv.tasks.delete_old_export_files",
         "schedule": crontab(hour=1, minute=0),
     },
-    "send-sale-toggle-notifications": {
-        "task": "saleor.discount.tasks.send_sale_toggle_notifications",
+    "handle-sale-toggle": {
+        "task": "saleor.discount.tasks.handle_sale_toggle",
         "schedule": initiated_sale_webhook_schedule,
     },
     "update-products-search-vectors": {
         "task": "saleor.product.tasks.update_products_search_vector_task",
         "schedule": timedelta(seconds=20),
+        "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
+    },
+    "update-gift-cards-search-vectors": {
+        "task": "saleor.giftcard.tasks.update_gift_cards_search_vector_task",
+        "schedule": timedelta(seconds=20),
+        "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
+    },
+    "expire-orders": {
+        "task": "saleor.order.tasks.expire_orders_task",
+        "schedule": BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA,
     },
 }
 
@@ -660,10 +684,8 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
     ignore_logger("graphql.execution.executor")
 
 
-GRAPHENE = {
-    "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
-    "RELAY_CONNECTION_MAX_LIMIT": 100,
-}
+GRAPHQL_PAGINATION_LIMIT = 100
+GRAPHQL_MIDDLEWARE: List[str] = []
 
 # Set GRAPHQL_QUERY_MAX_COMPLEXITY=0 in env to disable (not recommended)
 GRAPHQL_QUERY_MAX_COMPLEXITY = int(
@@ -706,16 +728,6 @@ for entry_point in installed_plugins:
         EXTERNAL_PLUGINS.append(plugin_path)
 
 PLUGINS = BUILTIN_PLUGINS + EXTERNAL_PLUGINS
-
-if (
-    not DEBUG
-    and ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
-    and ALLOWED_CLIENT_HOSTS == get_list(_DEFAULT_CLIENT_HOSTS)
-):
-    raise ImproperlyConfigured(
-        "Make sure you've added storefront address to ALLOWED_CLIENT_HOSTS "
-        "if ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL is enabled."
-    )
 
 # Timeouts for webhook requests. Sync webhooks (eg. payment webhook) need more time
 # for getting response from the server.
@@ -779,6 +791,7 @@ CHECKOUT_PRICES_TTL = timedelta(
 INDEX_MAXIMUM_EXPR_COUNT = 4000
 
 # Maximum related objects that can be indexed in an order
+SEARCH_ORDERS_MAX_INDEXED_TRANSACTIONS = 20
 SEARCH_ORDERS_MAX_INDEXED_PAYMENTS = 20
 SEARCH_ORDERS_MAX_INDEXED_DISCOUNTS = 20
 SEARCH_ORDERS_MAX_INDEXED_LINES = 100

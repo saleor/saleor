@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0065_address_warehouse_address_search_gin"),
     ]

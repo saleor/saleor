@@ -2,13 +2,17 @@ import graphene
 from django.core.exceptions import ValidationError
 from prices import Money
 
+from ....order import models
 from ....order.error_codes import OrderErrorCode
+from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
+from ...core.types import BaseInputObjectType
 from ...discount.enums import DiscountValueTypeEnum
 
 
-class OrderDiscountCommonInput(graphene.InputObjectType):
+class OrderDiscountCommonInput(BaseInputObjectType):
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,
@@ -22,13 +26,16 @@ class OrderDiscountCommonInput(graphene.InputObjectType):
         required=False, description="Explanation for the applied discount."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+
 
 class OrderDiscountCommon(BaseMutation):
     class Meta:
         abstract = True
 
     @classmethod
-    def validate_order(cls, info, order):
+    def validate_order(cls, _info: ResolveInfo, order: models.Order) -> models.Order:
         if not (order.is_draft() or order.is_unconfirmed()):
             error_msg = "Only draft and unconfirmed order can be modified."
             raise ValidationError(
@@ -38,6 +45,7 @@ class OrderDiscountCommon(BaseMutation):
                     )
                 }
             )
+        return order
 
     @classmethod
     def _validation_error_for_input_value(
@@ -46,7 +54,7 @@ class OrderDiscountCommon(BaseMutation):
         return ValidationError({"value": ValidationError(error_msg, code=code)})
 
     @classmethod
-    def validate_order_discount_input(cls, _info, max_total: Money, input: dict):
+    def validate_order_discount_input(cls, max_total: Money, input: dict):
         value_type = input["value_type"]
         value = input["value"]
         if value_type == DiscountValueTypeEnum.FIXED:

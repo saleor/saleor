@@ -1,10 +1,12 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from .....core.permissions import ProductPermissions
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from ....channel import ChannelContext
+from ....core import ResolveInfo
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -29,12 +31,15 @@ class ProductVariantSetDefault(BaseMutation):
             "Set default variant for a product. "
             "Mutation triggers PRODUCT_UPDATED webhook."
         )
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, product_id, variant_id):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, product_id, variant_id
+    ):
         qs = models.Product.objects.prefetched_for_webhook()
         product = cls.get_node_or_error(
             info, product_id, field="product_id", only_type=Product, qs=qs
@@ -51,7 +56,7 @@ class ProductVariantSetDefault(BaseMutation):
                 {
                     "variant_id": ValidationError(
                         "Provided variant doesn't belong to provided product.",
-                        code=ProductErrorCode.NOT_PRODUCTS_VARIANT,
+                        code=ProductErrorCode.NOT_PRODUCTS_VARIANT.value,
                     )
                 }
             )

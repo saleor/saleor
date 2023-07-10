@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("giftcard", "0015_rename_created_giftcard_created_at"),
     ]

@@ -1,24 +1,40 @@
+from typing import Optional, cast
+
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import OrderPermissions
+from ....account.models import User
 from ....giftcard.utils import order_has_gift_card_lines
 from ....order import FulfillmentStatus
 from ....order.actions import cancel_fulfillment, cancel_waiting_fulfillment
 from ....order.error_codes import OrderErrorCode
+<<<<<<< HEAD
 from ...app.dataloaders import get_app_promise
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
+=======
+from ....permission.enums import OrderPermissions
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
+from ...core.mutations import BaseMutation
+from ...core.types import BaseInputObjectType, OrderError
+from ...plugins.dataloaders import get_plugin_manager_promise
+from ...warehouse.types import Warehouse
+>>>>>>> main
 from ..types import Fulfillment, Order
 
 
-class FulfillmentCancelInput(graphene.InputObjectType):
+class FulfillmentCancelInput(BaseInputObjectType):
     warehouse_id = graphene.ID(
         description="ID of a warehouse where items will be restocked. Optional "
         "when fulfillment is in WAITING_FOR_APPROVAL state.",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class FulfillmentCancel(BaseMutation):
@@ -33,6 +49,7 @@ class FulfillmentCancel(BaseMutation):
 
     class Meta:
         description = "Cancels existing fulfillment and optionally restocks items."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -44,7 +61,7 @@ class FulfillmentCancel(BaseMutation):
                 {
                     "fulfillment": ValidationError(
                         "This fulfillment can't be canceled",
-                        code=OrderErrorCode.CANNOT_CANCEL_FULFILLMENT,
+                        code=OrderErrorCode.CANNOT_CANCEL_FULFILLMENT.value,
                     )
                 }
             )
@@ -57,7 +74,7 @@ class FulfillmentCancel(BaseMutation):
                     "warehouseId": ValidationError(
                         "This parameter is required for fulfillments which are not in "
                         "WAITING_FOR_APPROVAL state.",
-                        code=OrderErrorCode.REQUIRED,
+                        code=OrderErrorCode.REQUIRED.value,
                     )
                 }
             )
@@ -73,40 +90,37 @@ class FulfillmentCancel(BaseMutation):
                     )
                 }
             )
+        return order
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, input=None
+    ):
+        user = info.context.user
+        user = cast(User, user)
+        fulfillment = cls.get_node_or_error(info, id, only_type=Fulfillment)
         order = fulfillment.order
+        cls.check_channel_permissions(info, [order.channel_id])
 
         cls.validate_order(order)
 
         warehouse = None
         if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
             warehouse = None
-        elif warehouse_id := data.get("input", {}).get("warehouse_id"):
-            warehouse = cls.get_node_or_error(
-                info, warehouse_id, only_type="Warehouse", field="warehouse_id"
-            )
+        elif input:
+            warehouse_id: Optional[str] = input.get("warehouse_id")
+            if warehouse_id:
+                warehouse = cls.get_node_or_error(
+                    info, warehouse_id, only_type=Warehouse, field="warehouse_id"
+                )
 
         cls.validate_fulfillment(fulfillment, warehouse)
 
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
-            fulfillment = cancel_waiting_fulfillment(
-                fulfillment,
-                info.context.user,
-                app,
-                manager,
-            )
+            fulfillment = cancel_waiting_fulfillment(fulfillment, user, app, manager)
         else:
-            fulfillment = cancel_fulfillment(
-                fulfillment,
-                info.context.user,
-                app,
-                warehouse,
-                manager,
-            )
+            fulfillment = cancel_fulfillment(fulfillment, user, app, warehouse, manager)
         order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(fulfillment=fulfillment, order=order)

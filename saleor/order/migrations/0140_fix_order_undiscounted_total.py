@@ -114,7 +114,10 @@ def update_order_undiscounted_price(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
     dependencies = [
         ("order", "0139_fix_undiscounted_total_on_lines"),
     ]

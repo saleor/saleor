@@ -1,26 +1,23 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.http import HttpRequest
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
-from graphql import GraphQLDocument, get_default_backend, parse
-from graphql.error import GraphQLError, GraphQLSyntaxError
-from graphql.language.ast import FragmentDefinition, OperationDefinition
+from graphql import get_default_backend, parse
+from graphql.error import GraphQLError
 from promise import Promise
 
 from ...app.models import App
 from ...core.exceptions import PermissionDenied
-from ...plugins.manager import PluginsManager
 from ...settings import get_host
-from ...webhook.error_codes import WebhookErrorCode
+from ..core import SaleorContext
 from ..utils import format_error
 
 logger = get_task_logger(__name__)
 
 
+<<<<<<< HEAD
 def validate_subscription_query(query: str) -> bool:
     from ..api import schema
 
@@ -74,6 +71,14 @@ def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
 def initialize_request(
     requestor=None, sync_event=False, allow_replica=True
 ) -> HttpRequest:
+=======
+def initialize_request(
+    requestor=None,
+    sync_event=False,
+    allow_replica=True,
+    event_type: Optional[str] = None,
+) -> SaleorContext:
+>>>>>>> main
     """Prepare a request object for webhook subscription.
 
     It creates a dummy request object.
@@ -81,12 +86,8 @@ def initialize_request(
     return: HttpRequest
     """
 
-    def _get_plugins(requestor_getter):
-        return PluginsManager(settings.PLUGINS, requestor_getter)
-
     request_time = timezone.now()
-
-    request = HttpRequest()
+    request = SaleorContext()
     request.path = "/graphql/"
     request.path_info = "/graphql/"
     request.method = "GET"
@@ -95,10 +96,18 @@ def initialize_request(
         request.META["HTTP_X_FORWARDED_PROTO"] = "https"
         request.META["SERVER_PORT"] = "443"
 
+<<<<<<< HEAD
     request.sync_event = sync_event  # type: ignore
     request.requestor = requestor  # type: ignore
     request.request_time = request_time  # type: ignore
     request.allow_replica = allow_replica  # type: ignore
+=======
+    setattr(request, "sync_event", sync_event)
+    setattr(request, "event_type", event_type)
+    request.requestor = requestor
+    request.request_time = request_time
+    request.allow_replica = allow_replica
+>>>>>>> main
 
     return request
 
@@ -115,7 +124,7 @@ def generate_payload_from_subscription(
     event_type: str,
     subscribable_object,
     subscription_query: Optional[str],
-    request: HttpRequest,
+    request: SaleorContext,
     app: Optional[App] = None,
 ) -> Optional[Dict[str, Any]]:
     """Generate webhook payload from subscription query.
@@ -144,9 +153,7 @@ def generate_payload_from_subscription(
         ast,
     )
     app_id = app.pk if app else None
-
-    request.app = app  # type: ignore
-
+    request.app = app
     results = document.execute(
         allow_subscriptions=True,
         root=(event_type, subscribable_object),
@@ -160,7 +167,7 @@ def generate_payload_from_subscription(
         )
         return None
 
-    payload = []  # type: ignore
+    payload: List[Any] = []
     results.subscribe(payload.append)
 
     if not payload:

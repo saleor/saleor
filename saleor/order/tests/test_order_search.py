@@ -47,12 +47,15 @@ def test_prepare_order_search_vector_value(
         translated_name="discount translated",
         value=Decimal("20"),
         reason="Discount reason",
-        amount=(order.undiscounted_total - order.total).gross,  # type: ignore
+        amount=(order.undiscounted_total - order.total).gross,
     )
 
     psp_reference = "TestABC"
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["psp_reference"])
+
+    transaction = order.payment_transactions.create(psp_reference="ABC")
+    transaction.events.create(psp_reference="event-psp-reference")
 
     # when
     search_vector = prepare_order_search_vector_value(order)
@@ -73,7 +76,7 @@ def test_prepare_order_search_vector_value_empty_relation_fields(
         value_type=DiscountValueType.FIXED,
         value=Decimal("20"),
         reason="Discount reason",
-        amount=(order.undiscounted_total - order.total).gross,  # type: ignore
+        amount=(order.undiscounted_total - order.total).gross,
     )
 
     payment_dummy.psp_reference = None

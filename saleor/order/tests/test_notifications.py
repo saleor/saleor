@@ -224,7 +224,6 @@ def test_get_default_order_payload(order_line):
         value=value,
         reason="Discount reason",
         amount=(order.undiscounted_total - order.total).gross,
-        # type: ignore
     )
     order.save()
 
@@ -439,7 +438,6 @@ def test_send_confirmation_emails_without_addresses_for_order(
     digital_content,
     anonymous_plugins,
 ):
-
     assert not order.lines.count()
     line_data = OrderLineData(
         variant_id=str(digital_content.product_variant.id),

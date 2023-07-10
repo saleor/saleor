@@ -1,5 +1,90 @@
 from .....graphql.tests.queries import fragments
 
+ACCOUNT_CONFIRMATION_REQUESTED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountConfirmationRequested{
+          user{
+            ...CustomerDetails
+          }
+          token
+          redirectUrl
+          channel{
+            slug
+            id
+          }
+          shop{
+            domain{
+                host
+                url
+            }
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ACCOUNT_CHANGE_EMAIL_REQUESTED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountChangeEmailRequested{
+          user{
+            ...CustomerDetails
+          }
+          token
+          redirectUrl
+          channel{
+            slug
+            id
+          }
+          shop{
+            domain{
+                host
+                url
+            }
+          }
+          newEmail
+        }
+      }
+    }
+"""
+)
+
+
+ACCOUNT_DELETE_REQUESTED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountDeleteRequested{
+          user{
+            ...CustomerDetails
+          }
+          token
+          redirectUrl
+          channel{
+            slug
+            id
+          }
+          shop{
+            domain{
+                host
+                url
+            }
+          }
+        }
+      }
+    }
+"""
+)
+
+
 ADDRESS_CREATED = (
     fragments.ADDRESS_DETAILS
     + """
@@ -246,6 +331,24 @@ GIFT_CARD_DELETED = (
           giftCard{
             ...GiftCardDetails
           }
+        }
+      }
+    }
+"""
+)
+
+
+GIFT_CARD_SENT = (
+    fragments.GIFT_CARD_DETAILS
+    + """
+    subscription{
+      event{
+        ...on GiftCardSent {
+          giftCard{
+            ...GiftCardDetails
+          }
+          channel
+          sentToEmail
         }
       }
     }
@@ -688,6 +791,48 @@ PRODUCT_METADATA_UPDATED = """
     }
 """
 
+PRODUCT_MEDIA_CREATED = """
+    subscription{
+      event{
+        ...on ProductMediaCreated{
+          productMedia{
+            id
+            url(size: 0)
+            productId
+          }
+        }
+      }
+    }
+"""
+
+PRODUCT_MEDIA_UPDATED = """
+    subscription{
+      event{
+        ...on ProductMediaUpdated{
+          productMedia{
+            id
+            url(size: 0)
+            productId
+          }
+        }
+      }
+    }
+"""
+
+PRODUCT_MEDIA_DELETED = """
+    subscription{
+      event{
+        ...on ProductMediaDeleted{
+          productMedia{
+            id
+            url(size: 0)
+            productId
+          }
+        }
+      }
+    }
+"""
+
 PRODUCT_VARIANT_CREATED = """
     subscription{
       event{
@@ -761,6 +906,21 @@ PRODUCT_VARIANT_BACK_IN_STOCK = """
     }
 """
 
+PRODUCT_VARIANT_STOCK_UPDATED = """
+    subscription{
+      event{
+        ...on ProductVariantStockUpdated{
+          productVariant{
+            id
+          }
+          warehouse{
+            id
+          }
+        }
+      }
+    }
+"""
+
 ORDER_CREATED = """
     subscription{
       event{
@@ -809,6 +969,42 @@ ORDER_FULLY_PAID = """
     }
 """
 
+ORDER_PAID = """
+    subscription{
+      event{
+        ...on OrderPaid{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
+ORDER_FULLY_REFUNDED = """
+    subscription{
+      event{
+        ...on OrderFullyRefunded{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
+ORDER_REFUNDED = """
+    subscription{
+      event{
+        ...on OrderRefunded{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
 ORDER_CANCELLED = """
     subscription{
       event{
@@ -820,6 +1016,20 @@ ORDER_CANCELLED = """
       }
     }
 """
+
+
+ORDER_EXPIRED = """
+    subscription{
+      event{
+        ...on OrderExpired{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
 
 ORDER_FULFILLED = """
     subscription{
@@ -838,6 +1048,18 @@ ORDER_METADATA_UPDATED = """
       event{
         ...on OrderMetadataUpdated{
           order{
+            id
+          }
+        }
+      }
+    }
+"""
+
+ORDER_BULK_CREATED = """
+    subscription{
+      event{
+        ...on OrderBulkCreated{
+          orders{
             id
           }
         }
@@ -944,12 +1166,16 @@ SALE_TOGGLE = (
 
 INVOICE_REQUESTED = (
     fragments.INVOICE_DETAILS
+    + fragments.INVOICE_ORDER_DETAILS
     + """
     subscription{
       event{
         ...on InvoiceRequested{
           invoice{
             ...InvoiceDetails
+          }
+          order {
+            ...InvoiceOrderDetails
           }
         }
       }
@@ -959,12 +1185,16 @@ INVOICE_REQUESTED = (
 
 INVOICE_DELETED = (
     fragments.INVOICE_DETAILS
+    + fragments.INVOICE_ORDER_DETAILS
     + """
     subscription{
       event{
         ...on InvoiceDeleted{
           invoice{
             ...InvoiceDetails
+          }
+          order {
+            ...InvoiceOrderDetails
           }
         }
       }
@@ -974,12 +1204,16 @@ INVOICE_DELETED = (
 
 INVOICE_SENT = (
     fragments.INVOICE_DETAILS
+    + fragments.INVOICE_ORDER_DETAILS
     + """
     subscription{
       event{
         ...on InvoiceSent{
           invoice{
             ...InvoiceDetails
+          }
+          order {
+            ...InvoiceOrderDetails
           }
         }
       }
@@ -1206,6 +1440,18 @@ CHECKOUT_UPDATED = """
     subscription{
       event{
         ...on CheckoutUpdated{
+          checkout{
+            id
+          }
+        }
+      }
+    }
+"""
+
+CHECKOUT_FULLY_PAID = """
+    subscription{
+      event{
+        ...on CheckoutFullyPaid{
           checkout{
             id
           }
@@ -2007,20 +2253,24 @@ INVALID_MULTIPLE_EVENTS_WITH_FRAGMENTS = (
       event{
         ...on ProductUpdated{
           product{
-          variants{
-            ...ProductVariant
-            }
-            ...CategoryDetails
+              variants{
+                ...ProductVariant
+                }
+              category {
+                ...CategoryDetails
+              }
           }
         }
       }
       event{
         ...on ProductCreated{
           product{
-          variants{
+            variants{
                 ...ProductVariant
             }
-            ...CategoryDetails
+            category{
+              ...CategoryDetails
+            }
           }
         }
       }
@@ -2037,10 +2287,12 @@ QUERY_WITH_MULTIPLE_FRAGMENTS = (
       event{
         ...on ProductUpdated{
           product{
-          variants{
-            ...ProductVariant
+            variants{
+              ...ProductVariant
             }
-            ...CategoryDetails
+            category{
+              ...CategoryDetails
+            }
           }
         }
       }
@@ -2048,6 +2300,22 @@ QUERY_WITH_MULTIPLE_FRAGMENTS = (
     """
 )
 
+<<<<<<< HEAD
+=======
+THUMBNAIL_CREATED = """
+    subscription {
+      event {
+        ... on ThumbnailCreated {
+          url
+          id
+          objectId
+          mediaUrl
+        }
+      }
+    }
+"""
+
+>>>>>>> main
 
 ORDER_CALCULATE_TAXES = """
     subscription {

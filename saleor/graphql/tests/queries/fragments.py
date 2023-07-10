@@ -107,6 +107,18 @@ fragment InvoiceDetails on Invoice {
   id
   status
   number
+  order {
+    id
+  }
+}
+"""
+
+INVOICE_ORDER_DETAILS = """
+fragment InvoiceOrderDetails on Order {
+  id
+  number
+  userEmail
+  isPaid
 }
 """
 
@@ -424,5 +436,37 @@ fragment PaymentDetails on Payment {
   }
   isActive
   gateway
+}
+"""
+
+
+TRANSACTION_ITEM_DETAILS = """
+fragment TransactionFragment on TransactionItem {
+  id
+  createdAt
+  actions
+  authorizedAmount {
+    currency
+    amount
+  }
+  refundedAmount {
+    currency
+    amount
+  }
+  canceledAmount {
+    currency
+    amount
+  }
+  chargedAmount {
+    currency
+    amount
+  }
+  events {
+    id
+  }
+  pspReference
+  order {
+    id
+  }
 }
 """

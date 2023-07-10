@@ -13,6 +13,7 @@ def validate_possible_number(phone, country=None):
         or not phone_number.is_valid()
     ):
         raise ValidationError(
-            "The phone number entered is not valid.", code=AccountErrorCode.INVALID
+            "The phone number entered is not valid.",
+            code=AccountErrorCode.INVALID.value,
         )
     return phone_number

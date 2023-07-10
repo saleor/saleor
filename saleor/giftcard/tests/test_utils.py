@@ -1,17 +1,23 @@
+import json
 from datetime import date, timedelta
 from unittest.mock import patch
 
+import graphene
 import pytest
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
+from freezegun import freeze_time
 
 from ...core import TimePeriodType
 from ...core.exceptions import GiftCardNotApplicable
+from ...core.utils.json_serializer import CustomJsonEncoder
 from ...core.utils.promo_code import InvalidPromoCode
 from ...order.models import OrderLine
 from ...plugins.manager import get_plugins_manager
 from ...site import GiftCardSettingsExpiryType
 from ...tests.utils import flush_post_commit_hooks
+from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.payloads import generate_meta, generate_requestor
 from .. import GiftCardEvents, GiftCardLineData, events
 from ..models import GiftCard, GiftCardEvent
 from ..utils import (
@@ -38,6 +44,17 @@ def test_add_gift_card_code_to_checkout(checkout, gift_card):
     add_gift_card_code_to_checkout(
         checkout, "test@example.com", gift_card.code, gift_card.currency
     )
+
+    # then
+    assert checkout.gift_cards.count() == 1
+
+
+def test_add_gift_card_code_to_checkout_without_email(checkout, gift_card):
+    # given
+    assert checkout.gift_cards.count() == 0
+
+    # when
+    add_gift_card_code_to_checkout(checkout, None, gift_card.code, gift_card.currency)
 
     # then
     assert checkout.gift_cards.count() == 1
@@ -103,23 +120,6 @@ def test_add_gift_card_code_to_checkout_used_gift_card(checkout, gift_card_used)
 
     # then
     assert checkout.gift_cards.count() == 1
-
-
-def test_add_gift_card_code_to_checkout_used_gift_card_invalid_user(
-    checkout, gift_card_used
-):
-    # given
-    email = "new_user@example.com"
-    assert gift_card_used.used_by_email
-    assert gift_card_used.used_by_email != email
-    assert checkout.gift_cards.count() == 0
-
-    # when
-    # then
-    with pytest.raises(InvalidPromoCode):
-        add_gift_card_code_to_checkout(
-            checkout, email, gift_card_used.code, gift_card_used.currency
-        )
 
 
 def test_remove_gift_card_code_from_checkout(checkout, gift_card):
@@ -403,6 +403,87 @@ def test_gift_cards_create_multiple_quantity(
     assert send_notification_mock.call_count == quantity
 
 
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.giftcard.utils.send_gift_card_notification")
+def test_gift_cards_create_trigger_webhook(
+    send_notification_mock,
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    webhook_app,
+    settings,
+    order,
+    gift_card_shippable_order_line,
+    gift_card_non_shippable_order_line,
+    site_settings,
+    staff_user,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    manager = get_plugins_manager()
+    line_1, line_2 = gift_card_shippable_order_line, gift_card_non_shippable_order_line
+    fulfillment = order.fulfillments.create(tracking_number="123")
+    fulfillment_line_1 = fulfillment.lines.create(
+        order_line=line_1,
+        quantity=line_1.quantity,
+        stock=line_1.allocations.get().stock,
+    )
+    fulfillment_line_2 = fulfillment.lines.create(
+        order_line=line_2,
+        quantity=line_2.quantity,
+        stock=line_2.allocations.get().stock,
+    )
+    lines_data = [
+        GiftCardLineData(
+            quantity=1,
+            order_line=line_1,
+            variant=line_1.variant,
+            fulfillment_line=fulfillment_line_1,
+        ),
+        GiftCardLineData(
+            quantity=1,
+            order_line=line_2,
+            variant=line_2.variant,
+            fulfillment_line=fulfillment_line_2,
+        ),
+    ]
+
+    # when
+    gift_cards = gift_cards_create(
+        order, lines_data, site_settings, staff_user, None, manager
+    )
+
+    # then
+    flush_post_commit_hooks()
+    assert len(gift_cards) == len(lines_data)
+
+    gift_card = gift_cards[-1]
+    gift_card_global_id = graphene.Node.to_global_id("GiftCard", gift_card.id)
+
+    mocked_webhook_trigger.assert_called_with(
+        json.dumps(
+            {
+                "id": gift_card_global_id,
+                "is_active": True,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(),
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
+        WebhookEventAsyncType.GIFT_CARD_CREATED,
+        [any_webhook],
+        gift_card,
+        None,
+    )
+
+    send_notification_mock.assert_called()
+
+
 def test_get_gift_card_lines(
     gift_card_non_shippable_order_line, gift_card_shippable_order_line, order_line
 ):
@@ -487,7 +568,7 @@ def test_fulfill_non_shippable_gift_cards(
 
     # then
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {
                 "order_line": gift_card_non_shippable_order_line,
                 "quantity": gift_card_non_shippable_order_line.quantity,
@@ -533,7 +614,7 @@ def test_fulfill_non_shippable_gift_cards_line_with_allocation(
     )
 
     fulfillment_lines_for_warehouses = {
-        str(stock.warehouse.pk): [
+        stock.warehouse.pk: [
             {
                 "order_line": gift_card_non_shippable_order_line,
                 "quantity": gift_card_non_shippable_order_line.quantity,

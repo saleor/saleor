@@ -9,7 +9,6 @@ def remove_empty_lines(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0036_alter_checkout_language_code"),
     ]

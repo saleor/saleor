@@ -5,7 +5,10 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
     dependencies = [
         ("account", "0062_alter_user_updated_at"),
     ]

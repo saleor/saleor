@@ -7,8 +7,11 @@ from ...account.models import User
 from ...checkout.models import Checkout
 from ...payment.models import Payment
 from ..channel.types import Channel
+from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
+    ListObjectTypeFilter,
+    MetadataFilter,
     MetadataFilterBase,
     ObjectTypeFilter,
 )
@@ -16,6 +19,7 @@ from ..core.types import DateRangeInput, FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_range_field
+from .enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 
 
 def get_checkout_token_from_query(value):
@@ -50,6 +54,22 @@ def filter_checkout_by_payment(qs, payment_id):
 
 def filter_created_range(qs, _, value):
     return filter_range_field(qs, "created_at__date", value)
+
+
+def filter_authorize_status(qs, _, value):
+    if value:
+        qs = qs.filter(authorize_status__in=value)
+    return qs
+
+
+def filter_charge_status(qs, _, value):
+    if value:
+        qs = qs.filter(charge_status__in=value)
+    return qs
+
+
+def filter_updated_at_range(qs, _, value):
+    return filter_range_field(qs, "last_change__date", value)
 
 
 def filter_customer(qs, _, value):
@@ -88,11 +108,36 @@ def filter_checkout_search(qs, _, value):
     return qs.filter(filter_option)
 
 
+def filter_checkout_metadata(qs, _, value):
+    for metadata_item in value:
+        if metadata_item.value:
+            qs = qs.filter(
+                metadata_storage__metadata__contains={
+                    metadata_item.key: metadata_item.value
+                }
+            )
+        else:
+            qs = qs.filter(metadata_storage__metadata__has_key=metadata_item.key)
+    return qs
+
+
 class CheckoutFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
     search = django_filters.CharFilter(method=filter_checkout_search)
     channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
+    metadata = ListObjectTypeFilter(
+        input_class=MetadataFilter, method=filter_checkout_metadata
+    )
+    updated_at = ObjectTypeFilter(
+        input_class=DateRangeInput, method=filter_updated_at_range
+    )
+    authorize_status = ListObjectTypeFilter(
+        input_class=CheckoutAuthorizeStatusEnum, method=filter_authorize_status
+    )
+    charge_status = ListObjectTypeFilter(
+        input_class=CheckoutChargeStatusEnum, method=filter_charge_status
+    )
 
     class Meta:
         model = Checkout
@@ -101,4 +146,5 @@ class CheckoutFilter(MetadataFilterBase):
 
 class CheckoutFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
         filterset_class = CheckoutFilter

@@ -182,11 +182,17 @@ def test_variant_channel_listing_update_with_too_many_decimal_places_in_price(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 def test_variant_channel_listing_update_as_staff_user(
-    staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
+    update_product_discounted_price_task_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    channel_USD,
+    channel_PLN,
 ):
     # given
-    ProductChannelListing.objects.create(
+    pln_channel_listing = ProductChannelListing.objects.create(
         product=product,
         channel=channel_PLN,
         is_published=True,
@@ -240,6 +246,11 @@ def test_variant_channel_listing_update_as_staff_user(
     assert channel_pln_data["price"]["amount"] == second_price
     assert channel_pln_data["costPrice"]["amount"] == second_price
     assert channel_pln_data["channel"]["slug"] == channel_PLN.slug
+    usd_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    pln_channel_listing = variant.channel_listings.get(channel=channel_PLN)
+    assert usd_channel_listing.discounted_price_amount == price
+    assert pln_channel_listing.discounted_price_amount == second_price
+    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
 
 
 def test_variant_channel_listing_update_by_sku(

@@ -21,7 +21,6 @@ def link_to_sites(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sites", "0002_alter_domain_unique"),
         ("site", "0006_auto_20171025_0454"),

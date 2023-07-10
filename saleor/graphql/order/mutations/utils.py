@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.core.exceptions import ValidationError
 
 from ....core.taxes import zero_money, zero_taxed_money
@@ -5,6 +7,7 @@ from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
 from ....payment import PaymentError
+from ....payment import models as payment_models
 from ....plugins.manager import PluginsManager
 from ....shipping.interface import ShippingMethodData
 from ....shipping.models import ShippingMethodChannelListing
@@ -38,10 +41,77 @@ class EditableOrderValidationMixin:
                 {
                     "id": ValidationError(
                         "Only draft and unconfirmed orders can be edited.",
-                        code=OrderErrorCode.NOT_EDITABLE,
+                        code=OrderErrorCode.NOT_EDITABLE.value,
                     )
                 }
             )
+        return order
+
+
+class ShippingMethodUpdateMixin:
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def clear_shipping_method_from_order(cls, order):
+        order.shipping_method = None
+        order.base_shipping_price = zero_money(order.currency)
+        order.shipping_price = zero_taxed_money(order.currency)
+        order.shipping_method_name = None
+        order.shipping_tax_rate = None
+        order.shipping_tax_class = None
+        order.shipping_tax_class_name = None
+        order.shipping_tax_class_private_metadata = {}
+        order.shipping_tax_class_metadata = {}
+        invalidate_order_prices(order)
+
+    @classmethod
+    def update_shipping_method(cls, order, method, shipping_method_data):
+        order.shipping_method = method
+        order.shipping_method_name = method.name
+
+        tax_class = method.tax_class
+        if tax_class:
+            order.shipping_tax_class = tax_class
+            order.shipping_tax_class_name = tax_class.name
+            order.shipping_tax_class_private_metadata = tax_class.private_metadata
+            order.shipping_tax_class_metadata = tax_class.metadata
+        invalidate_order_prices(order)
+
+    @classmethod
+    def validate_shipping_channel_listing(cls, method, order):
+        shipping_channel_listing = ShippingMethodChannelListing.objects.filter(
+            shipping_method=method, channel=order.channel
+        ).first()
+        if not shipping_channel_listing:
+            raise ValidationError(
+                {
+                    "shipping_method": ValidationError(
+                        "Shipping method not available in the given channel.",
+                        code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+                    )
+                }
+            )
+        return shipping_channel_listing
+
+    @classmethod
+    def _update_shipping_price(
+        cls,
+        order,
+        shipping_channel_listing,
+    ):
+        if not shipping_channel_listing:
+            order.base_shipping_price = zero_money(order.currency)
+            return
+
+        if (
+            order.shipping_method
+            and order.shipping_address
+            and order.is_shipping_required()
+        ):
+            order.base_shipping_price = shipping_channel_listing.price
+        else:
+            order.base_shipping_price = zero_money(order.currency)
 
 
 class ShippingMethodUpdateMixin:
@@ -131,17 +201,22 @@ def try_payment_action(order, user, app, payment, func, *args, **kwargs):
             order=order, user=user, app=app, message=message, payment=payment
         )
         raise ValidationError(
-            {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
+            {
+                "payment": ValidationError(
+                    message, code=OrderErrorCode.PAYMENT_ERROR.value
+                )
+            }
         )
 
 
-def clean_payment(payment):
+def clean_payment(payment: Optional[payment_models.Payment]) -> payment_models.Payment:
     if not payment:
         raise ValidationError(
             {
                 "payment": ValidationError(
                     "There's no payment associated with the order.",
-                    code=OrderErrorCode.PAYMENT_MISSING,
+                    code=OrderErrorCode.PAYMENT_MISSING.value,
                 )
             }
         )
+    return payment

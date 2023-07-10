@@ -9,9 +9,13 @@ from graphql import GraphQLError
 from graphql.execution import ExecutionResult
 
 from ....core.jwt import create_access_token
+<<<<<<< HEAD
 from ....core.permissions import ProductPermissions
+=======
+>>>>>>> main
 from ....graphql.tests.utils import get_graphql_content
 from ....order.models import Order
+from ....permission.enums import ProductPermissions
 from ....plugins.tests.sample_plugins import PluginSample
 from ....product.models import Product
 from ...order import types as order_types

@@ -3,28 +3,36 @@ from typing import Optional
 import graphene
 from django.conf import settings
 from django_countries import countries
-from django_prices_vatlayer.models import VAT
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
-from ... import __version__
+from ... import __version__, schema_version
 from ...account import models as account_models
 from ...channel import models as channel_models
-from ...core.permissions import AuthorizationFilters, SitePermissions, get_permissions
-from ...core.tracing import traced_resolver
+from ...core.models import ModelWithMetadata
 from ...core.utils import build_absolute_uri
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import SitePermissions, get_permissions
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
+from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
+    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
+)
+from ..core.doc_category import (
+    DOC_CATEGORY_AUTH,
+    DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_ORDERS,
 )
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.fields import PermissionsField
+from ..core.tracing import traced_resolver
 from ..core.types import (
+    BaseObjectType,
     CountryDisplay,
     LanguageDisplay,
     ModelObjectType,
@@ -33,6 +41,10 @@ from ..core.types import (
     TimePeriod,
 )
 from ..core.utils import str_to_enum
+<<<<<<< HEAD
+=======
+from ..meta.types import ObjectWithMetadata
+>>>>>>> main
 from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..shipping.types import ShippingMethod
 from ..site.dataloaders import load_site_callback
@@ -56,16 +68,17 @@ class Domain(graphene.ObjectType):
         description = "Represents shop's domain."
 
 
-class OrderSettings(ModelObjectType):
+class OrderSettings(ModelObjectType[site_models.SiteSettings]):
     automatically_confirm_all_new_orders = graphene.Boolean(required=True)
     automatically_fulfill_non_shippable_gift_card = graphene.Boolean(required=True)
 
     class Meta:
         description = "Order related settings from site settings."
+        doc_category = DOC_CATEGORY_ORDERS
         model = site_models.SiteSettings
 
 
-class GiftCardSettings(ModelObjectType):
+class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
     expiry_type = GiftCardSettingsExpiryTypeEnum(
         description="The gift card expiry type settings.", required=True
     )
@@ -75,6 +88,7 @@ class GiftCardSettings(ModelObjectType):
 
     class Meta:
         description = "Gift card related settings from site settings."
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         model = site_models.SiteSettings
 
     def resolve_expiry_type(root, info):
@@ -88,19 +102,25 @@ class GiftCardSettings(ModelObjectType):
         )
 
 
-class ExternalAuthentication(graphene.ObjectType):
+class ExternalAuthentication(BaseObjectType):
     id = graphene.String(
         description="ID of external authentication plugin.", required=True
     )
     name = graphene.String(description="Name of external authentication plugin.")
 
+    class Meta:
+        description = "External authentication plugin."
+        doc_category = DOC_CATEGORY_AUTH
+
 
 class Limits(graphene.ObjectType):
-    channels = graphene.Int()
-    orders = graphene.Int()
-    product_variants = graphene.Int()
-    staff_users = graphene.Int()
-    warehouses = graphene.Int()
+    channels = graphene.Int(description="Defines the number of channels.")
+    orders = graphene.Int(description="Defines the number of order.")
+    product_variants = graphene.Int(
+        description="Defines the number of product variants."
+    )
+    staff_users = graphene.Int(description="Defines the number of staff users.")
+    warehouses = graphene.Int(description="Defines the number of warehouses.")
 
 
 class LimitInfo(graphene.ObjectType):
@@ -114,6 +134,9 @@ class LimitInfo(graphene.ObjectType):
         required=True,
         description="Defines the allowed maximum resource usage, null means unlimited.",
     )
+
+    class Meta:
+        description = "Store the current and allowed usage."
 
 
 class Shop(graphene.ObjectType):
@@ -252,7 +275,7 @@ class Shop(graphene.ObjectType):
         graphene.Int,
         description=(
             "Default number of maximum line quantity in single checkout "
-            "(per single checkout line)." + ADDED_IN_31 + PREVIEW_FEATURE
+            "(per single checkout line)." + ADDED_IN_31
         ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
@@ -277,6 +300,13 @@ class Shop(graphene.ObjectType):
         NonNullList(StaffNotificationRecipient),
         description="List of staff notification recipients.",
         required=False,
+        permissions=[SitePermissions.MANAGE_SETTINGS],
+    )
+    enable_account_confirmation_by_email = PermissionsField(
+        graphene.Boolean,
+        description=(
+            "Determines if account confirmation by email is enabled." + ADDED_IN_314
+        ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
     limits = PermissionsField(
@@ -331,6 +361,7 @@ class Shop(graphene.ObjectType):
         description = (
             "Represents a shop resource containing general shop data and configuration."
         )
+        interfaces = [ObjectWithMetadata]
 
     @staticmethod
     @traced_resolver
@@ -436,9 +467,8 @@ class Shop(graphene.ObjectType):
         default_country_code = settings.DEFAULT_COUNTRY
         default_country_name = countries.countries.get(default_country_code)
         if default_country_name:
-            vat = VAT.objects.filter(country_code=default_country_code).first()
             default_country = CountryDisplay(
-                code=default_country_code, country=default_country_name, vat=vat
+                code=default_country_code, country=default_country_name, vat=None
             )
         else:
             default_country = None
@@ -504,6 +534,11 @@ class Shop(graphene.ObjectType):
         return account_models.StaffNotificationRecipient.objects.all()
 
     @staticmethod
+    @load_site_callback
+    def resolve_enable_account_confirmation_by_email(_, _info, site):
+        return site.settings.enable_account_confirmation_by_email
+
+    @staticmethod
     def resolve_limits(_, _info):
         return LimitInfo(current_usage=Limits(), allowed_usage=Limits())
 
@@ -513,8 +548,7 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     def resolve_schema_version(_, _info):
-        major, minor, _ = __version__.split(".", 2)
-        return f"{major}.{minor}"
+        return schema_version
 
     # deprecated
 
@@ -527,3 +561,37 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_display_gross_prices(_, _info, site):
         return site.settings.display_gross_prices
+
+    @staticmethod
+    @load_site_callback
+    def resolve_metadata(root: ModelWithMetadata, info: ResolveInfo, site):
+        return ObjectWithMetadata.resolve_metadata(site.settings, info)
+
+    @staticmethod
+    @load_site_callback
+    def resolve_metafield(_, info: ResolveInfo, site, *, key: str):
+        return ObjectWithMetadata.resolve_metafield(site.settings, info, key=key)
+
+    @staticmethod
+    @load_site_callback
+    def resolve_metafields(_, info: ResolveInfo, site, *, keys=None):
+        return ObjectWithMetadata.resolve_metafields(site.settings, info, keys=keys)
+
+    @staticmethod
+    @load_site_callback
+    def resolve_private_metadata(_, info: ResolveInfo, site):
+        return ObjectWithMetadata.resolve_private_metadata(site.settings, info)
+
+    @staticmethod
+    @load_site_callback
+    def resolve_private_metafield(_, info: ResolveInfo, site, *, key: str):
+        return ObjectWithMetadata.resolve_private_metafield(
+            site.settings, info, key=key
+        )
+
+    @staticmethod
+    @load_site_callback
+    def resolve_private_metafields(_, info: ResolveInfo, site, *, keys=None):
+        return ObjectWithMetadata.resolve_private_metafields(
+            site.settings, info, keys=keys
+        )

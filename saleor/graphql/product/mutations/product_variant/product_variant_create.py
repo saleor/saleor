@@ -7,8 +7,8 @@ from django.utils.text import slugify
 
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
-from .....core.permissions import ProductPermissions
 from .....core.tracing import traced_atomic_transaction
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.search import update_product_search_vector
@@ -17,12 +17,18 @@ from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....channel import ChannelContext
-from ....core.descriptions import ADDED_IN_31, ADDED_IN_38, PREVIEW_FEATURE
+from ....core import ResolveInfo
+from ....core.descriptions import ADDED_IN_31, ADDED_IN_38, ADDED_IN_310
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
-from ....core.types import NonNullList, ProductError
+from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.utils import get_duplicated_values
+<<<<<<< HEAD
 from ....meta.mutations import MetadataInput
+=======
+from ....meta.inputs import MetadataInput
+>>>>>>> main
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....warehouse.types import Warehouse
 from ...types import ProductVariant
@@ -36,14 +42,17 @@ from ..product.product_create import StockInput
 T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
-class PreorderSettingsInput(graphene.InputObjectType):
+class PreorderSettingsInput(BaseInputObjectType):
     global_threshold = graphene.Int(
         description="The global threshold for preorder variant."
     )
     end_date = graphene.DateTime(description="The end date for preorder.")
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class ProductVariantInput(graphene.InputObjectType):
+
+class ProductVariantInput(BaseInputObjectType):
     attributes = NonNullList(
         AttributeValueInput,
         required=False,
@@ -59,15 +68,13 @@ class ProductVariantInput(graphene.InputObjectType):
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
     preorder = PreorderSettingsInput(
-        description=(
-            "Determines if variant is in preorder." + ADDED_IN_31 + PREVIEW_FEATURE
-        )
+        description=("Determines if variant is in preorder." + ADDED_IN_31)
     )
     quantity_limit_per_customer = graphene.Int(
         required=False,
         description=(
             "Determines maximum quantity of `ProductVariant`,"
-            "that can be bought in a single checkout." + ADDED_IN_31 + PREVIEW_FEATURE
+            "that can be bought in a single checkout." + ADDED_IN_31
         ),
     )
     metadata = NonNullList(
@@ -85,6 +92,13 @@ class ProductVariantInput(graphene.InputObjectType):
         ),
         required=False,
     )
+    external_reference = graphene.String(
+        description="External ID of this product variant." + ADDED_IN_310,
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductVariantCreateInput(ProductVariantInput):
@@ -103,6 +117,9 @@ class ProductVariantCreateInput(ProductVariantInput):
         description="Stocks of a product available for sale.",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductVariantCreate(ModelMutation):
@@ -156,9 +173,13 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def clean_input(
-        cls, info, instance: models.ProductVariant, data: dict, input_cls=None
+        cls,
+        info: ResolveInfo,
+        instance: models.ProductVariant,
+        data: dict,
+        **kwargs,
     ):
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         weight = cleaned_input.get("weight")
         if weight and weight.value < 0:
@@ -278,49 +299,7 @@ class ProductVariantCreate(ModelMutation):
             )
 
     @classmethod
-    def get_instance(cls, info, **data):
-        """Prefetch related fields that are needed to process the mutation.
-
-        If we are updating an instance and want to update its attributes,
-        # prefetch them.
-        """
-
-        object_id = data.get("id")
-        object_sku = data.get("sku")
-        attributes = data.get("attributes")
-
-        if attributes:
-            # Prefetches needed by AttributeAssignmentMixin and
-            # associate_attribute_values_to_instance
-            qs = cls.Meta.model.objects.prefetch_related(
-                "product__product_type__variant_attributes__values",
-                "product__product_type__attributevariant",
-            )
-        else:
-            # Use the default queryset.
-            qs = models.ProductVariant.objects.all()
-
-        if object_id:
-            return cls.get_node_or_error(
-                info, object_id, only_type="ProductVariant", qs=qs
-            )
-        elif object_sku:
-            instance = qs.filter(sku=object_sku).first()
-            if not instance:
-                raise ValidationError(
-                    {
-                        "sku": ValidationError(
-                            f"Couldn't resolve to a node: {object_sku}",
-                            code="not_found",
-                        )
-                    }
-                )
-            return instance
-        else:
-            return cls._meta.model()
-
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         new_variant = instance.pk is None
         with traced_atomic_transaction():
             instance.save()

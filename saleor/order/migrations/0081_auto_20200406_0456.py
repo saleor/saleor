@@ -22,7 +22,6 @@ def match_orders_with_users(apps, *_args, **_kwargs):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0080_invoice"),
     ]

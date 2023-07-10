@@ -10,13 +10,19 @@ from ...account import models as account_models
 from ...giftcard import models
 from ...order import models as order_models
 from ...product import models as product_models
+from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
     ObjectTypeFilter,
 )
-from ..core.types import FilterInputObjectType, NonNullList, PriceRangeInput
+from ..core.types import (
+    BaseInputObjectType,
+    FilterInputObjectType,
+    NonNullList,
+    PriceRangeInput,
+)
 from ..utils import resolve_global_ids_to_primary_keys
 from .enums import GiftCardEventsEnum
 
@@ -79,6 +85,12 @@ def filter_code(qs, _, value):
     return qs.filter(code=value)
 
 
+def filter_created_by_email(qs, _, value):
+    if not value:
+        return qs
+    return qs.filter(created_by_email=value)
+
+
 class GiftCardFilter(MetadataFilterBase):
     tags = ListObjectTypeFilter(input_class=graphene.String, method=filter_tags_list)
     products = GlobalIDMultipleChoiceFilter(method=filter_products)
@@ -93,6 +105,7 @@ class GiftCardFilter(MetadataFilterBase):
     )
     is_active = django_filters.BooleanFilter()
     code = django_filters.CharFilter(method=filter_code)
+    created_by_email = django_filters.CharFilter(method=filter_created_by_email)
 
     class Meta:
         model = models.GiftCard
@@ -117,6 +130,7 @@ def check_currency_in_filter_data(filter_data: dict):
 
 class GiftCardFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         filterset_class = GiftCardFilter
 
 
@@ -154,9 +168,12 @@ def _get_order_pks(order_ids: List[str]):
     ).values_list("id", flat=True)
 
 
-class GiftCardEventFilterInput(graphene.InputObjectType):
+class GiftCardEventFilterInput(BaseInputObjectType):
     type = graphene.Argument(GiftCardEventsEnum)
     orders = NonNullList(graphene.ID)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
 def filter_gift_card_tag_search(qs, _, value):
@@ -171,4 +188,5 @@ class GiftCardTagFilter(django_filters.FilterSet):
 
 class GiftCardTagFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         filterset_class = GiftCardTagFilter

@@ -1,7 +1,7 @@
 import json
 import logging
 from os.path import exists, join
-from typing import Optional, Union
+from typing import Optional, Union, cast
 
 import jwt
 from cryptography.hazmat.primitives import serialization
@@ -73,24 +73,29 @@ class JWTManager(JWTManagerBase):
     @classmethod
     def get_private_key(cls) -> rsa.RSAPrivateKey:
         pem = settings.RSA_PRIVATE_KEY
-        if not pem and settings.DEBUG:
-            return cls._load_debug_private_key()
-        return cls._get_private_key(pem)  # type: ignore
+        if not pem:
+            if settings.DEBUG:
+                return cls._load_debug_private_key()
+            raise ImproperlyConfigured(
+                "RSA_PRIVATE_KEY is required when DEBUG mode is disabled."
+            )
+        return cls._get_private_key(pem)
 
     @classmethod
-    def _get_private_key(cls, pem: Union[str, bytes]):
+    def _get_private_key(cls, pem: Union[str, bytes]) -> rsa.RSAPrivateKey:
         if isinstance(pem, str):
             pem = pem.encode("utf-8")
 
-        password = settings.RSA_PRIVATE_PASSWORD
+        password: Union[str, bytes, None] = settings.RSA_PRIVATE_PASSWORD
         if isinstance(password, str):
-            password = password.encode("utf-8")  # type: ignore
-        return serialization.load_pem_private_key(
-            pem, password=password  # type: ignore
+            password = password.encode("utf-8")
+        return cast(
+            rsa.RSAPrivateKey,
+            serialization.load_pem_private_key(pem, password=password),
         )
 
     @classmethod
-    def _load_debug_private_key(cls):
+    def _load_debug_private_key(cls) -> rsa.RSAPrivateKey:
         key_path = join(settings.PROJECT_ROOT, cls.KEY_FILE_FOR_DEBUG)
         if exists(key_path):
             return cls._load_local_private_key(key_path)
@@ -98,14 +103,15 @@ class JWTManager(JWTManagerBase):
         return cls._create_local_private_key(key_path)
 
     @classmethod
-    def _load_local_private_key(cls, path) -> "rsa.RSAPrivateKey":
+    def _load_local_private_key(cls, path) -> rsa.RSAPrivateKey:
         with open(path, "rb") as key_file:
-            return serialization.load_pem_private_key(
-                key_file.read(), password=None
-            )  # type: ignore
+            return cast(
+                rsa.RSAPrivateKey,
+                serialization.load_pem_private_key(key_file.read(), password=None),
+            )
 
     @classmethod
-    def _create_local_private_key(cls, path) -> "rsa.RSAPrivateKey":
+    def _create_local_private_key(cls, path) -> rsa.RSAPrivateKey:
         private_key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=2048,
@@ -138,14 +144,17 @@ class JWTManager(JWTManagerBase):
     @classmethod
     def encode(cls, payload):
         return jwt.encode(
-            payload, cls.get_private_key(), algorithm="RS256", headers={"kid": KID}
+            payload,
+            cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
+            algorithm="RS256",
+            headers={"kid": KID},
         )
 
     @classmethod
     def jws_encode(cls, payload: bytes, is_payload_detached: bool = True) -> str:
         return api_jws.encode(
             payload,
-            key=cls.get_private_key(),  # type: ignore
+            key=cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
             algorithm="RS256",
             headers={"kid": KID},
             is_payload_detached=is_payload_detached,
@@ -159,13 +168,13 @@ class JWTManager(JWTManagerBase):
         if headers.get("alg") == "RS256":
             return jwt.decode(
                 token,
-                cls.get_public_key(),  # type: ignore
+                cls.get_public_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
                 algorithms=["RS256"],
                 options={"verify_exp": verify_expiration, "verify_aud": verify_aud},
             )
         return jwt.decode(
             token,
-            settings.SECRET_KEY,  # type: ignore
+            cast(str, settings.SECRET_KEY),
             algorithms=["HS256"],
             options={"verify_exp": verify_expiration, "verify_aud": verify_aud},
         )

@@ -1471,7 +1471,6 @@ def test_product_variant_without_price_as_staff_without_permission(
     stock,
     channel_USD,
 ):
-
     variant_channel_listing = variant.channel_listings.first()
     variant_channel_listing.price_amount = None
     variant_channel_listing.save()
@@ -1498,7 +1497,6 @@ def test_product_variant_without_price_as_staff_without_permission(
 def test_product_variant_without_price_as_staff_with_permission(
     staff_api_client, variant, stock, channel_USD, permission_manage_products
 ):
-
     variant_channel_listing = variant.channel_listings.first()
     variant_channel_listing.price_amount = None
     variant_channel_listing.save()
@@ -1856,7 +1854,7 @@ def test_query_product_media_by_id_with_size_thumbnail_url_returned(
     )
 
 
-def test_query_product_media_by_id_only_format_provided_original_image_returned(
+def test_query_product_media_by_id_zero_size_custom_format_provided(
     user_api_client, product_with_image, channel_USD, site_settings
 ):
     query = QUERY_PRODUCT_MEDIA_BY_ID
@@ -1870,6 +1868,7 @@ def test_query_product_media_by_id_only_format_provided_original_image_returned(
         "mediaId": media_id,
         "channel": channel_USD.slug,
         "format": format,
+        "size": 0,
     }
 
     response = user_api_client.post_graphql(query, variables)
@@ -1882,7 +1881,61 @@ def test_query_product_media_by_id_only_format_provided_original_image_returned(
     )
 
 
-def test_query_product_media_by_id_no_size_value_original_image_returned(
+def test_query_product_media_by_id_original_format(
+    user_api_client, product_with_image, channel_USD, site_settings
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    format = ThumbnailFormatEnum.ORIGINAL.name
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "format": format,
+        "size": 128,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://{site_settings.site.domain}/thumbnail/{media_id}/128/"
+    )
+
+
+def test_query_product_media_by_id_avif_format(
+    user_api_client, product_with_image, channel_USD, site_settings
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    format = ThumbnailFormatEnum.AVIF.name
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "format": format,
+        "size": 128,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://{site_settings.site.domain}/thumbnail/{media_id}/128/avif/"
+    )
+
+
+def test_query_product_media_by_id_zero_size_value_original_image_returned(
     user_api_client, product_with_image, channel_USD, site_settings
 ):
     query = QUERY_PRODUCT_MEDIA_BY_ID
@@ -1894,6 +1947,7 @@ def test_query_product_media_by_id_no_size_value_original_image_returned(
         "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
         "mediaId": media_id,
         "channel": channel_USD.slug,
+        "size": 0,
     }
 
     response = user_api_client.post_graphql(query, variables)
@@ -1959,7 +2013,7 @@ def test_query_product_media_for_federation(
           __typename
           ... on ProductMedia {
             id
-            url
+            url(size: 0)
           }
         }
       }
@@ -2385,9 +2439,58 @@ def test_fetch_all_products_with_availability_data(
         assert data in product_data
 
 
+<<<<<<< HEAD
 PRODUCT_TAX_CLASS_QUERY = """
     query getProduct($id: ID!) {
         product(id: $id) {
+=======
+QUERY_PRODUCT_BY_EXTERNAL_REFERENCE = """
+    query ($id: ID, $externalReference: String, $slug: String, $channel:String){
+        product(
+            id: $id,
+            slug: $slug,
+            externalReference: $externalReference,
+            channel: $channel
+        ) {
+            id
+            name
+            externalReference
+        }
+    }
+"""
+
+
+def test_product_query_by_external_reference(
+    staff_api_client, permission_manage_products, product, channel_USD
+):
+    # given
+    product.external_reference = "test-ext-id"
+    product.save(update_fields=["external_reference"])
+    variables = {
+        "externalReference": product.external_reference,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["name"] == product.name
+    assert product_data["externalReference"] == product.external_reference
+
+
+PRODUCT_TAX_CLASS_QUERY = """
+    query getProduct($id: ID!, $channel: String) {
+        product(id: $id, channel: $channel) {
+>>>>>>> main
             id
             taxClass {
                 id
@@ -2397,10 +2500,18 @@ PRODUCT_TAX_CLASS_QUERY = """
 """
 
 
+<<<<<<< HEAD
 def test_product_tax_class_query_by_app(app_api_client, product):
     # given
     variables = {
         "id": graphene.Node.to_global_id("Product", product.id),
+=======
+def test_product_tax_class_query_by_app(app_api_client, product, channel_USD):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.id),
+        "channel": channel_USD.slug,
+>>>>>>> main
     }
 
     # when
@@ -2414,10 +2525,18 @@ def test_product_tax_class_query_by_app(app_api_client, product):
     assert data["product"]["taxClass"]["id"]
 
 
+<<<<<<< HEAD
 def test_product_tax_class_query_by_staff(staff_api_client, product):
     # given
     variables = {
         "id": graphene.Node.to_global_id("Product", product.id),
+=======
+def test_product_tax_class_query_by_staff(staff_api_client, product, channel_USD):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.id),
+        "channel": channel_USD.slug,
+>>>>>>> main
     }
 
     # when

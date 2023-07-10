@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0097_auto_20210107_1148"),
         ("discount", "0023_voucher_channel_listing"),

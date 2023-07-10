@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 import graphene
 
 from ..channel.types import Channel
+from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.types import NonNullList
 from .enums import ConfigurationTypeFieldEnum
@@ -38,7 +39,7 @@ class PluginConfiguration(graphene.ObjectType):
         description = "Stores information about a configuration of plugin."
 
     @staticmethod
-    def resolve_configuration(root: "BasePlugin", info):
+    def resolve_configuration(root: "BasePlugin", info: ResolveInfo):
         return root.resolve_plugin_configuration(info.context)
 
 

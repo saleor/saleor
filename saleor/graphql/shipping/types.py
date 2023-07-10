@@ -1,9 +1,17 @@
+from typing import Union
+
 import graphene
+from django.db.models import QuerySet
 from graphene import relay
 
+<<<<<<< HEAD
 from ...core.permissions import AuthorizationFilters, ShippingPermissions
 from ...core.tracing import traced_resolver
+=======
+>>>>>>> main
 from ...core.weight import convert_weight_to_default_weight_unit
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import ShippingPermissions
 from ...product import models as product_models
 from ...shipping import models
 from ...shipping.interface import ShippingMethodData
@@ -18,14 +26,12 @@ from ..channel.types import (
     ChannelContextTypeWithMetadataForObjectType,
 )
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import (
-    ADDED_IN_36,
-    DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
-    RICH_CONTENT,
-)
+from ..core.descriptions import ADDED_IN_36, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import ConnectionField, JSONString, PermissionsField
+from ..core.tracing import traced_resolver
 from ..core.types import (
+    BaseObjectType,
     CountryDisplay,
     ModelObjectType,
     Money,
@@ -52,7 +58,9 @@ from .dataloaders import (
 from .enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 
 
-class ShippingMethodChannelListing(ModelObjectType):
+class ShippingMethodChannelListing(
+    ModelObjectType[models.ShippingMethodChannelListing]
+):
     id = graphene.GlobalID(required=True)
     channel = graphene.Field(Channel, required=True)
     maximum_order_price = graphene.Field(Money)
@@ -76,7 +84,9 @@ class ShippingMethodChannelListing(ModelObjectType):
             return root.minimum_order_price
 
 
-class ShippingMethodPostalCodeRule(ModelObjectType):
+class ShippingMethodPostalCodeRule(
+    ModelObjectType[models.ShippingMethodPostalCodeRule]
+):
     start = graphene.String(description="Start address range.")
     end = graphene.String(description="End address range.")
     inclusion_type = PostalCodeRuleInclusionTypeEnum(
@@ -226,11 +236,13 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     ):
         from ..product.types import ProductCountableConnection
 
+        qs: Union[QuerySet[product_models.Product], ChannelQsContext]
+
         if not root.node.excluded_products:
             qs = product_models.Product.objects.none()
         else:
             qs = ChannelQsContext(
-                qs=root.node.excluded_products.all(), channel_slug=None  # type: ignore
+                qs=root.node.excluded_products.all(), channel_slug=None
             )
 
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
@@ -244,7 +256,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         )
 
 
-class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):
+class ShippingZone(ChannelContextTypeWithMetadata[models.ShippingZone]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     default = graphene.Boolean(required=True)
@@ -329,7 +341,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
 
 
-class ShippingMethod(graphene.ObjectType):
+class ShippingMethod(BaseObjectType):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
     )
@@ -377,6 +389,7 @@ class ShippingMethod(graphene.ObjectType):
 
     class Meta:
         interfaces = [relay.Node, ObjectWithMetadata]
+        doc_category = DOC_CATEGORY_SHIPPING
         description = (
             "Shipping methods that can be used as means of shipping "
             "for orders and checkouts."
@@ -397,10 +410,11 @@ class ShippingMethod(graphene.ObjectType):
 
 class ShippingZoneCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_SHIPPING
         node = ShippingZone
 
 
-class ShippingMethodsPerCountry(graphene.ObjectType):
+class ShippingMethodsPerCountry(BaseObjectType):
     country_code = graphene.Field(
         CountryCodeEnum, required=True, description="The country code."
     )
@@ -409,8 +423,7 @@ class ShippingMethodsPerCountry(graphene.ObjectType):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_SHIPPING
         description = (
-            "List of shipping methods available for the country."
-            + ADDED_IN_36
-            + PREVIEW_FEATURE
+            "List of shipping methods available for the country." + ADDED_IN_36
         )

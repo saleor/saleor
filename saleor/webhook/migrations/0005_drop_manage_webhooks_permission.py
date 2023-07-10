@@ -38,10 +38,13 @@ def change_webhook_permission_to_app_permission(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("webhook", "0004_mount_app"),
         ("account", "0045_auto_20200427_0425"),
+    ]
+
+    run_before = [
+        ("account", "0072_group"),
     ]
 
     operations = [

@@ -1,3 +1,4 @@
+import itertools
 import json
 from unittest import mock
 
@@ -12,10 +13,17 @@ from ...mutations.utils import convert_catalogue_info_to_global_ids
 
 
 @pytest.fixture
-def sale_list(channel_USD):
+def sale_list(channel_USD, product_list, category, collection):
     sales = Sale.objects.bulk_create(
         [Sale(name="Sale 1"), Sale(name="Sale 2"), Sale(name="Sale 3")]
     )
+    for sale, product in zip(sales, product_list):
+        sale.products.add(product)
+        sale.variants.add(product.variants.first())
+
+    sales[0].categories.add(category)
+    sales[1].collections.add(collection)
+
     SaleChannelListing.objects.bulk_create(
         [
             SaleChannelListing(sale=sale, discount_value=5, channel=channel_USD)
@@ -34,18 +42,49 @@ SALE_BULK_DELETE_MUTATION = """
     """
 
 
-def test_delete_sales(staff_api_client, sale_list, permission_manage_discounts):
+@mock.patch(
+    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+)
+def test_delete_sales(
+    update_products_discounted_prices_of_catalogues_task_mock,
+    staff_api_client,
+    sale_list,
+    permission_manage_discounts,
+    product_list,
+):
+    # given
 
     variables = {
         "ids": [graphene.Node.to_global_id("Sale", sale.id) for sale in sale_list]
     }
+    category_pks = itertools.chain.from_iterable(
+        [list(sale.categories.values_list("id", flat=True)) for sale in sale_list]
+    )
+    collection_pks = itertools.chain.from_iterable(
+        [list(sale.collections.values_list("id", flat=True)) for sale in sale_list]
+    )
+    product_pks = itertools.chain.from_iterable(
+        [list(sale.products.values_list("id", flat=True)) for sale in sale_list]
+    )
+    variant_pks = itertools.chain.from_iterable(
+        [list(sale.variants.values_list("id", flat=True)) for sale in sale_list]
+    )
+
+    # when
     response = staff_api_client.post_graphql(
         SALE_BULK_DELETE_MUTATION, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     content = get_graphql_content(response)
 
     assert content["data"]["saleBulkDelete"]["count"] == 3
     assert not Sale.objects.filter(id__in=[sale.id for sale in sale_list]).exists()
+    args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
+    assert set(kwargs["category_ids"]) == set(category_pks)
+    assert set(kwargs["collection_ids"]) == set(collection_pks)
+    assert set(kwargs["product_ids"]) == set(product_pks)
+    assert set(kwargs["variant_ids"]) == set(variant_pks)
 
 
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")

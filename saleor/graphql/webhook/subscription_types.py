@@ -1,17 +1,19 @@
 import graphene
 from django.utils import timezone
-from graphene import AbstractType, ObjectType, Union
+from graphene import AbstractType, Union
 from rx import Observable
 
 from ... import __version__
 from ...account.models import User
 from ...attribute.models import AttributeTranslation, AttributeValueTranslation
+from ...channel.models import Channel
 from ...core.prices import quantize_price
 from ...discount.models import SaleTranslation, VoucherTranslation
+from ...graphql.shop.types import Shop
 from ...menu.models import MenuItemTranslation
 from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
-from ...payment.interface import TransactionActionData
+from ...payment.interface import TransactionActionData, TransactionSessionData
 from ...product.models import (
     CategoryTranslation,
     CollectionTranslation,
@@ -19,11 +21,14 @@ from ...product.models import (
     ProductVariantTranslation,
 )
 from ...shipping.models import ShippingMethodTranslation
+from ...thumbnail.views import TYPE_TO_MODEL_DATA_MAPPING
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
+from ..channel.enums import TransactionFlowStrategyEnum
+from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_32,
     ADDED_IN_34,
@@ -31,16 +36,39 @@ from ..core.descriptions import (
     ADDED_IN_36,
     ADDED_IN_37,
     ADDED_IN_38,
+    ADDED_IN_310,
+    ADDED_IN_311,
+    ADDED_IN_312,
+    ADDED_IN_313,
+    ADDED_IN_314,
+    ADDED_IN_315,
     PREVIEW_FEATURE,
 )
-from ..core.scalars import PositiveDecimal
-from ..core.types import NonNullList
+from ..core.doc_category import (
+    DOC_CATEGORY_CHECKOUT,
+    DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_ORDERS,
+    DOC_CATEGORY_PAYMENTS,
+    DOC_CATEGORY_PRODUCTS,
+    DOC_CATEGORY_SHIPPING,
+    DOC_CATEGORY_TAXES,
+)
+from ..core.scalars import JSON, PositiveDecimal
+from ..core.types import NonNullList, SubscriptionObjectType
+from ..core.types.order_or_checkout import OrderOrCheckout
+from ..order.dataloaders import OrderByIdLoader
+from ..order.types import Order, OrderGrantedRefund
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
 from ..plugins.dataloaders import plugin_manager_promise_callback
+<<<<<<< HEAD
+=======
+from ..product.dataloaders import ProductVariantByIdLoader
+>>>>>>> main
 from ..shipping.dataloaders import ShippingMethodChannelListingByChannelSlugLoader
 from ..shipping.types import ShippingMethod
 from ..translations import types as translation_types
+from ..warehouse.dataloaders import WarehouseByIdLoader
 from .resolvers import resolve_shipping_methods_for_checkout
 
 TRANSLATIONS_TYPES_MAP = {
@@ -63,7 +91,7 @@ class IssuingPrincipal(Union):
         types = (AppType, UserType)
 
     @classmethod
-    def resolve_type(cls, instance, info):
+    def resolve_type(cls, instance, info: ResolveInfo):
         if isinstance(instance, User):
             return UserType
         return AppType
@@ -86,27 +114,107 @@ class Event(graphene.Interface):
         return WEBHOOK_TYPES_MAP.get(object_type)
 
     @classmethod
-    def resolve_type(cls, instance, info):
+    def resolve_type(cls, instance, info: ResolveInfo):
         type_str, _ = instance
         return cls.get_type(type_str)
 
     @staticmethod
-    def resolve_issued_at(_root, _info):
+    def resolve_issued_at(_root, _info: ResolveInfo):
         return timezone.now()
 
     @staticmethod
-    def resolve_version(_root, _info):
+    def resolve_version(_root, _info: ResolveInfo):
         return __version__
 
     @staticmethod
-    def resolve_recipient(_root, info):
+    def resolve_recipient(_root, info: ResolveInfo):
         return info.context.app
 
     @staticmethod
-    def resolve_issuing_principal(_root, info):
+    def resolve_issuing_principal(_root, info: ResolveInfo):
         if not info.context.requestor:
             return None
         return info.context.requestor
+
+
+class AccountOperationBase(AbstractType):
+    redirect_url = graphene.String(
+        description="The URL to redirect the user after he accepts the request.",
+        required=False,
+    )
+    user = graphene.Field(
+        UserType,
+        description="The user the event relates to.",
+    )
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description="The channel data.",
+    )
+    token = graphene.String(description="The token required to confirm request.")
+    shop = graphene.Field(Shop, description="Shop data.")
+
+    @staticmethod
+    def resolve_user(root, _info: ResolveInfo):
+        _, data = root
+        return data["user"]
+
+    @staticmethod
+    def resolve_redirect_url(root, _info: ResolveInfo):
+        _, data = root
+        return data.get("redirect_url")
+
+    @staticmethod
+    def resolve_channel(root, _info: ResolveInfo):
+        _, data = root
+        return Channel.objects.get(slug=data["channel_slug"])
+
+    @staticmethod
+    def resolve_token(root, _info: ResolveInfo):
+        _, data = root
+        return data["token"]
+
+    @staticmethod
+    def resolve_shop(root, _info: ResolveInfo):
+        return Shop()
+
+
+class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = "User"
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when account confirmation requested. This event is always sent."
+            " enableAccountConfirmationByEmail flag set to True is not required."
+            + ADDED_IN_315
+        )
+
+
+class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
+    new_email = graphene.String(
+        description="The new email address the user wants to change to.",
+    )
+
+    class Meta:
+        root_type = "User"
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when account change email is requested." + ADDED_IN_315
+        )
+
+    @staticmethod
+    def resolve_new_email(root, _info: ResolveInfo):
+        _, data = root
+        return data["new_email"]
+
+
+class AccountDeleteRequested(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = "User"
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when account delete is requested." + ADDED_IN_315
 
 
 class AddressBase(AbstractType):
@@ -116,33 +224,33 @@ class AddressBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_address(root, _info):
+    def resolve_address(root, _info: ResolveInfo):
         _, address = root
         return address
 
 
-class AddressCreated(ObjectType, AddressBase):
+class AddressCreated(SubscriptionObjectType, AddressBase):
     class Meta:
+        root_type = "Address"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new address is created." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new address is created." + ADDED_IN_35
 
 
-class AddressUpdated(ObjectType, AddressBase):
+class AddressUpdated(SubscriptionObjectType, AddressBase):
     class Meta:
+        root_type = "Address"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when address is updated." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when address is updated." + ADDED_IN_35
 
 
-class AddressDeleted(ObjectType, AddressBase):
+class AddressDeleted(SubscriptionObjectType, AddressBase):
     class Meta:
+        root_type = "Address"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when address is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when address is deleted." + ADDED_IN_35
 
 
 class AppBase(AbstractType):
@@ -152,37 +260,41 @@ class AppBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_app(root, _info):
+    def resolve_app(root, _info: ResolveInfo):
         _, app = root
         return app
 
 
-class AppInstalled(ObjectType, AppBase):
+class AppInstalled(SubscriptionObjectType, AppBase):
     class Meta:
+        root_type = "App"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new app is installed." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new app is installed." + ADDED_IN_34
 
 
-class AppUpdated(ObjectType, AppBase):
+class AppUpdated(SubscriptionObjectType, AppBase):
     class Meta:
+        root_type = "App"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when app is updated." + ADDED_IN_34 + PREVIEW_FEATURE
+        description = "Event sent when app is updated." + ADDED_IN_34
 
 
-class AppDeleted(ObjectType, AppBase):
+class AppDeleted(SubscriptionObjectType, AppBase):
     class Meta:
+        root_type = "App"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when app is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
+        description = "Event sent when app is deleted." + ADDED_IN_34
 
 
-class AppStatusChanged(ObjectType, AppBase):
+class AppStatusChanged(SubscriptionObjectType, AppBase):
     class Meta:
+        root_type = "App"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when app status has changed." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when app status has changed." + ADDED_IN_34
 
 
 class AttributeBase(AbstractType):
@@ -192,33 +304,33 @@ class AttributeBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_attribute(root, _info):
+    def resolve_attribute(root, _info: ResolveInfo):
         _, attribute = root
         return attribute
 
 
-class AttributeCreated(ObjectType, AttributeBase):
+class AttributeCreated(SubscriptionObjectType, AttributeBase):
     class Meta:
+        root_type = "Attribute"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new attribute is created." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new attribute is created." + ADDED_IN_35
 
 
-class AttributeUpdated(ObjectType, AttributeBase):
+class AttributeUpdated(SubscriptionObjectType, AttributeBase):
     class Meta:
+        root_type = "Attribute"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when attribute is updated." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when attribute is updated." + ADDED_IN_35
 
 
-class AttributeDeleted(ObjectType, AttributeBase):
+class AttributeDeleted(SubscriptionObjectType, AttributeBase):
     class Meta:
+        root_type = "Attribute"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when attribute is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when attribute is deleted." + ADDED_IN_35
 
 
 class AttributeValueBase(AbstractType):
@@ -228,39 +340,33 @@ class AttributeValueBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_attribute_value(root, _info):
+    def resolve_attribute_value(root, _info: ResolveInfo):
         _, attribute = root
         return attribute
 
 
-class AttributeValueCreated(ObjectType, AttributeValueBase):
+class AttributeValueCreated(SubscriptionObjectType, AttributeValueBase):
     class Meta:
+        root_type = "AttributeValue"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new attribute value is created."
-            + ADDED_IN_35
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new attribute value is created." + ADDED_IN_35
 
 
-class AttributeValueUpdated(ObjectType, AttributeValueBase):
+class AttributeValueUpdated(SubscriptionObjectType, AttributeValueBase):
     class Meta:
+        root_type = "AttributeValue"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when attribute value is updated."
-            + ADDED_IN_35
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when attribute value is updated." + ADDED_IN_35
 
 
-class AttributeValueDeleted(ObjectType, AttributeValueBase):
+class AttributeValueDeleted(SubscriptionObjectType, AttributeValueBase):
     class Meta:
+        root_type = "AttributeValue"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when attribute value is deleted."
-            + ADDED_IN_35
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when attribute value is deleted." + ADDED_IN_35
 
 
 class CategoryBase(AbstractType):
@@ -270,33 +376,33 @@ class CategoryBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_category(root, info):
+    def resolve_category(root, info: ResolveInfo):
         _, category = root
         return category
 
 
-class CategoryCreated(ObjectType, CategoryBase):
+class CategoryCreated(SubscriptionObjectType, CategoryBase):
     class Meta:
+        root_type = "Category"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new category is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new category is created." + ADDED_IN_32
 
 
-class CategoryUpdated(ObjectType, CategoryBase):
+class CategoryUpdated(SubscriptionObjectType, CategoryBase):
     class Meta:
+        root_type = "Category"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when category is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when category is updated." + ADDED_IN_32
 
 
-class CategoryDeleted(ObjectType, CategoryBase):
+class CategoryDeleted(SubscriptionObjectType, CategoryBase):
     class Meta:
+        root_type = "Category"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when category is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when category is deleted." + ADDED_IN_32
 
 
 class ChannelBase(AbstractType):
@@ -306,43 +412,41 @@ class ChannelBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_channel(root, info):
+    def resolve_channel(root, info: ResolveInfo):
         _, channel = root
         return channel
 
 
-class ChannelCreated(ObjectType, ChannelBase):
+class ChannelCreated(SubscriptionObjectType, ChannelBase):
     class Meta:
+        root_type = "Channel"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new channel is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new channel is created." + ADDED_IN_32
 
 
-class ChannelUpdated(ObjectType, ChannelBase):
+class ChannelUpdated(SubscriptionObjectType, ChannelBase):
     class Meta:
+        root_type = "Channel"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when channel is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when channel is updated." + ADDED_IN_32
 
 
-class ChannelDeleted(ObjectType, ChannelBase):
+class ChannelDeleted(SubscriptionObjectType, ChannelBase):
     class Meta:
+        root_type = "Channel"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when channel is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when channel is deleted." + ADDED_IN_32
 
 
-class ChannelStatusChanged(ObjectType, ChannelBase):
+class ChannelStatusChanged(SubscriptionObjectType, ChannelBase):
     class Meta:
+        root_type = "Channel"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when channel status has changed."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when channel status has changed." + ADDED_IN_32
 
 
 class OrderBase(AbstractType):
@@ -352,91 +456,151 @@ class OrderBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_order(root, info):
+    def resolve_order(root, info: ResolveInfo):
         _, order = root
         return order
 
 
-class OrderCreated(ObjectType, OrderBase):
+class OrderCreated(SubscriptionObjectType, OrderBase):
     class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new order is created." + ADDED_IN_32
+
+
+class OrderUpdated(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when order is updated." + ADDED_IN_32
+
+
+class OrderConfirmed(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when order is confirmed." + ADDED_IN_32
+
+
+class OrderFullyPaid(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when order is fully paid." + ADDED_IN_32
+
+
+class OrderPaid(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when new order is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
-
-
-class OrderUpdated(ObjectType, OrderBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when order is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
-
-
-class OrderConfirmed(ObjectType, OrderBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when order is confirmed." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
-
-
-class OrderFullyPaid(ObjectType, OrderBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when order is fully paid." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
-
-
-class OrderFulfilled(ObjectType, OrderBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when order is fulfilled." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
-
-
-class OrderCancelled(ObjectType, OrderBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when order is canceled." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
-
-
-class OrderMetadataUpdated(ObjectType, OrderBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when order metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
-        )
-
-
-class DraftOrderCreated(ObjectType, OrderBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when new draft order is created."
-            + ADDED_IN_32
+            "Payment has been made. The order may be partially or fully paid."
+            + ADDED_IN_314
             + PREVIEW_FEATURE
         )
 
 
-class DraftOrderUpdated(ObjectType, OrderBase):
+class OrderRefunded(SubscriptionObjectType, OrderBase):
     class Meta:
+        root_type = "Order"
+        enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when draft order is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+            "The order received a refund. The order may be partially or fully refunded."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
         )
 
 
-class DraftOrderDeleted(ObjectType, OrderBase):
+class OrderFullyRefunded(SubscriptionObjectType, OrderBase):
     class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "The order is fully refunded." + ADDED_IN_314 + PREVIEW_FEATURE
+
+
+class OrderFulfilled(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when order is fulfilled." + ADDED_IN_32
+
+
+class OrderCancelled(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when order is canceled." + ADDED_IN_32
+
+
+class OrderExpired(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when draft order is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+            "Event sent when order becomes expired." + ADDED_IN_313 + PREVIEW_FEATURE
         )
+
+
+class OrderMetadataUpdated(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when order metadata is updated." + ADDED_IN_38
+
+
+class OrderBulkCreated(SubscriptionObjectType):
+    orders = NonNullList(
+        Order,
+        description="The orders the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_orders(root, _info: ResolveInfo):
+        _, orders = root
+        return orders
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when orders are imported." + ADDED_IN_314 + PREVIEW_FEATURE
+        )
+
+
+class DraftOrderCreated(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new draft order is created." + ADDED_IN_32
+
+
+class DraftOrderUpdated(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when draft order is updated." + ADDED_IN_32
+
+
+class DraftOrderDeleted(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when draft order is deleted." + ADDED_IN_32
 
 
 class GiftCardBase(AbstractType):
@@ -446,53 +610,82 @@ class GiftCardBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_gift_card(root, info):
+    def resolve_gift_card(root, info: ResolveInfo):
         _, gift_card = root
         return gift_card
 
 
-class GiftCardCreated(ObjectType, GiftCardBase):
+class GiftCardCreated(SubscriptionObjectType, GiftCardBase):
     class Meta:
+        root_type = "GiftCard"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new gift card is created." + ADDED_IN_32
+
+
+class GiftCardUpdated(SubscriptionObjectType, GiftCardBase):
+    class Meta:
+        root_type = "GiftCard"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when gift card is updated." + ADDED_IN_32
+
+
+class GiftCardDeleted(SubscriptionObjectType, GiftCardBase):
+    class Meta:
+        root_type = "GiftCard"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when gift card is deleted." + ADDED_IN_32
+
+
+class GiftCardSent(SubscriptionObjectType, GiftCardBase):
+    channel = graphene.String(
+        description="Slug of a channel for which this gift card email was sent."
+    )
+    sent_to_email = graphene.String(
+        description="E-mail address to which gift card was sent.",
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = (
-            "Event sent when new gift card is created." + ADDED_IN_32 + PREVIEW_FEATURE
+            "Event sent when gift card is e-mailed." + ADDED_IN_313 + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_GIFT_CARDS
+
+    @staticmethod
+    def resolve_gift_card(root, info: ResolveInfo):
+        _, data = root
+        return data["gift_card"]
+
+    @staticmethod
+    def resolve_channel(root, info: ResolveInfo):
+        _, data = root
+        return data["channel_slug"]
+
+    @staticmethod
+    def resolve_sent_to_email(root, info: ResolveInfo):
+        _, data = root
+        return data["sent_to_email"]
 
 
-class GiftCardUpdated(ObjectType, GiftCardBase):
+class GiftCardStatusChanged(SubscriptionObjectType, GiftCardBase):
     class Meta:
+        root_type = "GiftCard"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when gift card is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when gift card status has changed." + ADDED_IN_32
 
 
-class GiftCardDeleted(ObjectType, GiftCardBase):
+class GiftCardMetadataUpdated(SubscriptionObjectType, GiftCardBase):
     class Meta:
+        root_type = "GiftCard"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when gift card is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
-
-
-class GiftCardStatusChanged(ObjectType, GiftCardBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when gift card status has changed."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
-
-
-class GiftCardMetadataUpdated(ObjectType, GiftCardBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when gift card metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when gift card metadata is updated." + ADDED_IN_38
 
 
 class MenuBase(AbstractType):
@@ -505,29 +698,33 @@ class MenuBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_menu(root, info, channel=None):
+    def resolve_menu(root, info: ResolveInfo, channel=None):
         _, menu = root
         return ChannelContext(node=menu, channel_slug=channel)
 
 
-class MenuCreated(ObjectType, MenuBase):
+class MenuCreated(SubscriptionObjectType, MenuBase):
     class Meta:
+        root_type = "Menu"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new menu is created." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new menu is created." + ADDED_IN_34
 
 
-class MenuUpdated(ObjectType, MenuBase):
+class MenuUpdated(SubscriptionObjectType, MenuBase):
     class Meta:
+        root_type = "Menu"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when menu is updated." + ADDED_IN_34 + PREVIEW_FEATURE
+        description = "Event sent when menu is updated." + ADDED_IN_34
 
 
-class MenuDeleted(ObjectType, MenuBase):
+class MenuDeleted(SubscriptionObjectType, MenuBase):
     class Meta:
+        root_type = "Menu"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when menu is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
+        description = "Event sent when menu is deleted." + ADDED_IN_34
 
 
 class MenuItemBase(AbstractType):
@@ -540,33 +737,33 @@ class MenuItemBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_menu_item(root, info, channel=None):
+    def resolve_menu_item(root, info: ResolveInfo, channel=None):
         _, menu_item = root
         return ChannelContext(node=menu_item, channel_slug=channel)
 
 
-class MenuItemCreated(ObjectType, MenuItemBase):
+class MenuItemCreated(SubscriptionObjectType, MenuItemBase):
     class Meta:
+        root_type = "MenuItem"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new menu item is created." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new menu item is created." + ADDED_IN_34
 
 
-class MenuItemUpdated(ObjectType, MenuItemBase):
+class MenuItemUpdated(SubscriptionObjectType, MenuItemBase):
     class Meta:
+        root_type = "MenuItem"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when menu item is updated." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when menu item is updated." + ADDED_IN_34
 
 
-class MenuItemDeleted(ObjectType, MenuItemBase):
+class MenuItemDeleted(SubscriptionObjectType, MenuItemBase):
     class Meta:
+        root_type = "MenuItem"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when menu item is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when menu item is deleted." + ADDED_IN_34
 
 
 class ProductBase(AbstractType):
@@ -583,48 +780,82 @@ class ProductBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_product(root, info, channel=None):
+    def resolve_product(root, info: ResolveInfo, channel=None):
         _, product = root
         return ChannelContext(node=product, channel_slug=channel)
 
     @staticmethod
-    def resolve_category(root, _info):
+    def resolve_category(root, _info: ResolveInfo):
         _, product = root
         return product.category
 
 
-class ProductCreated(ObjectType, ProductBase):
+class ProductCreated(SubscriptionObjectType, ProductBase):
     class Meta:
+        root_type = "Product"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new product is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new product is created." + ADDED_IN_32
 
 
-class ProductUpdated(ObjectType, ProductBase):
+class ProductUpdated(SubscriptionObjectType, ProductBase):
     class Meta:
+        root_type = "Product"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when product is updated." + ADDED_IN_32
 
 
-class ProductDeleted(ObjectType, ProductBase):
+class ProductDeleted(SubscriptionObjectType, ProductBase):
     class Meta:
+        root_type = "Product"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when product is deleted." + ADDED_IN_32
 
 
-class ProductMetadataUpdated(ObjectType, ProductBase):
+class ProductMetadataUpdated(SubscriptionObjectType, ProductBase):
     class Meta:
+        root_type = "Product"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when product metadata is updated." + ADDED_IN_38
+
+
+class ProductMediaBase(AbstractType):
+    product_media = graphene.Field(
+        "saleor.graphql.product.types.ProductMedia",
+        description="The product media the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_product_media(root, info: ResolveInfo):
+        _, media = root
+        return media
+
+
+class ProductMediaCreated(SubscriptionObjectType, ProductMediaBase):
+    class Meta:
+        root_type = "ProductMedia"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new product media is created." + ADDED_IN_312
+
+
+class ProductMediaUpdated(SubscriptionObjectType, ProductMediaBase):
+    class Meta:
+        root_type = "ProductMedia"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when product media is updated." + ADDED_IN_312
+
+
+class ProductMediaDeleted(SubscriptionObjectType, ProductMediaBase):
+    class Meta:
+        root_type = "ProductMedia"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when product media is deleted." + ADDED_IN_312
 
 
 class ProductVariantBase(AbstractType):
@@ -637,66 +868,81 @@ class ProductVariantBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_product_variant(root, _info, channel=None):
+    def resolve_product_variant(root, _info: ResolveInfo, channel=None):
         _, variant = root
         return ChannelContext(node=variant, channel_slug=channel)
 
 
-class ProductVariantCreated(ObjectType, ProductVariantBase):
+class ProductVariantCreated(SubscriptionObjectType, ProductVariantBase):
     class Meta:
+        root_type = "Product"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new product variant is created." + ADDED_IN_32
+
+
+class ProductVariantUpdated(SubscriptionObjectType, ProductVariantBase):
+    class Meta:
+        root_type = "Product"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when product variant is updated." + ADDED_IN_32
+
+
+class ProductVariantDeleted(SubscriptionObjectType, ProductVariantBase):
+    class Meta:
+        root_type = "Product"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when product variant is deleted." + ADDED_IN_32
+
+
+class ProductVariantMetadataUpdated(SubscriptionObjectType, ProductVariantBase):
+    class Meta:
+        root_type = "Product"
+        enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when new product variant is created."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
+            "Event sent when product variant metadata is updated." + ADDED_IN_38
         )
 
 
-class ProductVariantUpdated(ObjectType, ProductVariantBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when product variant is updated."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
-
-
-class ProductVariantDeleted(ObjectType, ProductVariantBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when product variant is deleted."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
-
-
-class ProductVariantMetadataUpdated(ObjectType, ProductVariantBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when product variant metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
-
-
-class ProductVariantOutOfStock(ObjectType, ProductVariantBase):
+class ProductVariantOutOfStock(SubscriptionObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
     )
 
     class Meta:
+        root_type = "Stock"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product variant is out of stock."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when product variant is out of stock." + ADDED_IN_32
 
     @staticmethod
-    def resolve_product_variant(root, info, channel=None):
+    def resolve_product_variant(root, info: ResolveInfo, channel=None):
+        _, stock = root
+        variant = stock.product_variant
+        return ChannelContext(node=variant, channel_slug=channel)
+
+    @staticmethod
+    def resolve_warehouse(root, _info: ResolveInfo):
+        _, stock = root
+        return stock.warehouse
+
+
+class ProductVariantBackInStock(SubscriptionObjectType, ProductVariantBase):
+    warehouse = graphene.Field(
+        "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
+    )
+
+    class Meta:
+        root_type = "Stock"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when product variant is back in stock." + ADDED_IN_32
+
+    @staticmethod
+    def resolve_product_variant(root, _info: ResolveInfo, channel=None):
         _, stock = root
         variant = stock.product_variant
         return ChannelContext(node=variant, channel_slug=channel)
@@ -707,29 +953,35 @@ class ProductVariantOutOfStock(ObjectType, ProductVariantBase):
         return stock.warehouse
 
 
-class ProductVariantBackInStock(ObjectType, ProductVariantBase):
+class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
     )
 
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = (
-            "Event sent when product variant is back in stock."
-            + ADDED_IN_32
+            "Event sent when product variant stock is updated."
+            + ADDED_IN_311
             + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PRODUCTS
+
+    @staticmethod
+    def resolve_product_variant(root, info: ResolveInfo, channel=None):
+        _, stock = root
+        return (
+            ProductVariantByIdLoader(info.context)
+            .load(stock.product_variant.id)
+            .then(lambda variant: ChannelContext(node=variant, channel_slug=None))
         )
 
     @staticmethod
-    def resolve_product_variant(root, _info, channel=None):
+    def resolve_warehouse(root, info: ResolveInfo):
         _, stock = root
-        variant = stock.product_variant
-        return ChannelContext(node=variant, channel_slug=channel)
-
-    @staticmethod
-    def resolve_warehouse(root, _info):
-        _, stock = root
-        return stock.warehouse
+        return WarehouseByIdLoader(info.context).load(stock.warehouse_id)
 
 
 class SaleBase(AbstractType):
@@ -742,45 +994,49 @@ class SaleBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_sale(root, info, channel=None):
+    def resolve_sale(root, info: ResolveInfo, channel=None):
         _, sale = root
         return ChannelContext(node=sale, channel_slug=channel)
 
 
-class SaleCreated(ObjectType, SaleBase):
+class SaleCreated(SubscriptionObjectType, SaleBase):
     class Meta:
+        root_type = "Sale"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new sale is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new sale is created." + ADDED_IN_32
 
 
-class SaleUpdated(ObjectType, SaleBase):
+class SaleUpdated(SubscriptionObjectType, SaleBase):
     class Meta:
+        root_type = "Sale"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when sale is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        description = "Event sent when sale is updated." + ADDED_IN_32
 
 
-class SaleDeleted(ObjectType, SaleBase):
+class SaleDeleted(SubscriptionObjectType, SaleBase):
     class Meta:
+        root_type = "Sale"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when sale is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        description = "Event sent when sale is deleted." + ADDED_IN_32
 
 
-class SaleToggle(ObjectType, SaleBase):
+class SaleToggle(SubscriptionObjectType, SaleBase):
     sale = graphene.Field(
         "saleor.graphql.discount.types.Sale",
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="The sale the event relates to." + ADDED_IN_35 + PREVIEW_FEATURE,
+        description="The sale the event relates to." + ADDED_IN_35,
     )
 
     class Meta:
+        root_type = "Sale"
+        enable_dry_run = True
         description = (
-            "The event informs about the start or end of the sale."
-            + ADDED_IN_35
-            + PREVIEW_FEATURE
+            "The event informs about the start or end of the sale." + ADDED_IN_35
         )
         interfaces = (Event,)
 
@@ -790,33 +1046,50 @@ class InvoiceBase(AbstractType):
         "saleor.graphql.invoice.types.Invoice",
         description="The invoice the event relates to.",
     )
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order",
+        description="Order related to the invoice." + ADDED_IN_310,
+    )
 
     @staticmethod
-    def resolve_invoice(root, _info):
+    def resolve_invoice(root, _info: ResolveInfo):
         _, invoice = root
         return invoice
 
+    @staticmethod
+    def resolve_order(root, _info):
+        _, invoice = root
+        return OrderByIdLoader(_info.context).load(invoice.order_id)
 
-class InvoiceRequested(ObjectType, InvoiceBase):
+
+class InvoiceRequested(SubscriptionObjectType, InvoiceBase):
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order",
+        required=True,
+        description="Order related to the invoice." + ADDED_IN_310,
+    )
+
     class Meta:
+        root_type = "Invoice"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when invoice is requested." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when invoice is requested." + ADDED_IN_32
 
 
-class InvoiceDeleted(ObjectType, InvoiceBase):
+class InvoiceDeleted(SubscriptionObjectType, InvoiceBase):
     class Meta:
+        root_type = "Invoice"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when invoice is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when invoice is deleted." + ADDED_IN_32
 
 
-class InvoiceSent(ObjectType, InvoiceBase):
+class InvoiceSent(SubscriptionObjectType, InvoiceBase):
     class Meta:
+        root_type = "Invoice"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when invoice is sent." + ADDED_IN_32 + PREVIEW_FEATURE
+        description = "Event sent when invoice is sent." + ADDED_IN_32
 
 
 class FulfillmentBase(AbstractType):
@@ -830,50 +1103,46 @@ class FulfillmentBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_fulfillment(root, _info):
+    def resolve_fulfillment(root, _info: ResolveInfo):
         _, fulfillment = root
         return fulfillment
 
     @staticmethod
-    def resolve_order(root, info):
+    def resolve_order(root, info: ResolveInfo):
         _, fulfillment = root
         return fulfillment.order
 
 
-class FulfillmentCreated(ObjectType, FulfillmentBase):
+class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
     class Meta:
+        root_type = "Fulfillment"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new fulfillment is created."
-            + ADDED_IN_34
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new fulfillment is created." + ADDED_IN_34
 
 
-class FulfillmentCanceled(ObjectType, FulfillmentBase):
+class FulfillmentCanceled(SubscriptionObjectType, FulfillmentBase):
     class Meta:
+        root_type = "Fulfillment"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when fulfillment is canceled." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when fulfillment is canceled." + ADDED_IN_34
 
 
-class FulfillmentApproved(ObjectType, FulfillmentBase):
+class FulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
     class Meta:
+        root_type = "Fulfillment"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when fulfillment is approved." + ADDED_IN_37 + PREVIEW_FEATURE
-        )
+        description = "Event sent when fulfillment is approved." + ADDED_IN_37
 
 
-class FulfillmentMetadataUpdated(ObjectType, FulfillmentBase):
+class FulfillmentMetadataUpdated(SubscriptionObjectType, FulfillmentBase):
     class Meta:
+        root_type = "Fulfillment"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when fulfillment metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when fulfillment metadata is updated." + ADDED_IN_38
 
 
 class UserBase(AbstractType):
@@ -883,37 +1152,33 @@ class UserBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_user(root, _info):
+    def resolve_user(root, _info: ResolveInfo):
         _, user = root
         return user
 
 
-class CustomerCreated(ObjectType, UserBase):
+class CustomerCreated(SubscriptionObjectType, UserBase):
     class Meta:
+        root_type = "User"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new customer user is created."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new customer user is created." + ADDED_IN_32
 
 
-class CustomerUpdated(ObjectType, UserBase):
+class CustomerUpdated(SubscriptionObjectType, UserBase):
     class Meta:
+        root_type = "User"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when customer user is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when customer user is updated." + ADDED_IN_32
 
 
-class CustomerMetadataUpdated(ObjectType, UserBase):
+class CustomerMetadataUpdated(SubscriptionObjectType, UserBase):
     class Meta:
+        root_type = "User"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when customer user metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when customer user metadata is updated." + ADDED_IN_38
 
 
 class CollectionBase(AbstractType):
@@ -926,43 +1191,41 @@ class CollectionBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_collection(root, _info, channel=None):
+    def resolve_collection(root, _info: ResolveInfo, channel=None):
         _, collection = root
         return ChannelContext(node=collection, channel_slug=channel)
 
 
-class CollectionCreated(ObjectType, CollectionBase):
+class CollectionCreated(SubscriptionObjectType, CollectionBase):
     class Meta:
+        root_type = "Collection"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new collection is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new collection is created." + ADDED_IN_32
 
 
-class CollectionUpdated(ObjectType, CollectionBase):
+class CollectionUpdated(SubscriptionObjectType, CollectionBase):
     class Meta:
+        root_type = "Collection"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when collection is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when collection is updated." + ADDED_IN_32
 
 
-class CollectionDeleted(ObjectType, CollectionBase):
+class CollectionDeleted(SubscriptionObjectType, CollectionBase):
     class Meta:
+        root_type = "Collection"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when collection is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when collection is deleted." + ADDED_IN_32
 
 
-class CollectionMetadataUpdated(ObjectType, CollectionBase):
+class CollectionMetadataUpdated(SubscriptionObjectType, CollectionBase):
     class Meta:
+        root_type = "Collection"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when collection metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when collection metadata is updated." + ADDED_IN_38
 
 
 class CheckoutBase(AbstractType):
@@ -972,35 +1235,45 @@ class CheckoutBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_checkout(root, _info):
+    def resolve_checkout(root, _info: ResolveInfo):
         _, checkout = root
         return checkout
 
 
-class CheckoutCreated(ObjectType, CheckoutBase):
+class CheckoutCreated(SubscriptionObjectType, CheckoutBase):
     class Meta:
+        root_type = "Checkout"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new checkout is created." + ADDED_IN_32
+
+
+class CheckoutUpdated(SubscriptionObjectType, CheckoutBase):
+    class Meta:
+        root_type = "Checkout"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when checkout is updated." + ADDED_IN_32
+
+
+class CheckoutFullyPaid(SubscriptionObjectType, CheckoutBase):
+    class Meta:
+        root_type = "Checkout"
+        enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when new checkout is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
-
-
-class CheckoutUpdated(ObjectType, CheckoutBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when checkout is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
-
-
-class CheckoutMetadataUpdated(ObjectType, CheckoutBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when checkout metadata is updated."
-            + ADDED_IN_38
+            "Event sent when checkout is fully paid with transactions."
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+
+
+class CheckoutMetadataUpdated(SubscriptionObjectType, CheckoutBase):
+    class Meta:
+        root_type = "Checkout"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when checkout metadata is updated." + ADDED_IN_38
 
 
 class PageBase(AbstractType):
@@ -1009,29 +1282,33 @@ class PageBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_page(root, _info):
+    def resolve_page(root, _info: ResolveInfo):
         _, page = root
         return page
 
 
-class PageCreated(ObjectType, PageBase):
+class PageCreated(SubscriptionObjectType, PageBase):
     class Meta:
+        root_type = "Page"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new page is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new page is created." + ADDED_IN_32
 
 
-class PageUpdated(ObjectType, PageBase):
+class PageUpdated(SubscriptionObjectType, PageBase):
     class Meta:
+        root_type = "Page"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when page is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        description = "Event sent when page is updated." + ADDED_IN_32
 
 
-class PageDeleted(ObjectType, PageBase):
+class PageDeleted(SubscriptionObjectType, PageBase):
     class Meta:
+        root_type = "Page"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when page is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        description = "Event sent when page is deleted." + ADDED_IN_32
 
 
 class PageTypeBase(AbstractType):
@@ -1041,33 +1318,33 @@ class PageTypeBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_page_type(root, _info):
+    def resolve_page_type(root, _info: ResolveInfo):
         _, page_type = root
         return page_type
 
 
-class PageTypeCreated(ObjectType, PageTypeBase):
+class PageTypeCreated(SubscriptionObjectType, PageTypeBase):
     class Meta:
+        root_type = "PageType"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new page type is created." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new page type is created." + ADDED_IN_35
 
 
-class PageTypeUpdated(ObjectType, PageTypeBase):
+class PageTypeUpdated(SubscriptionObjectType, PageTypeBase):
     class Meta:
+        root_type = "PageType"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when page type is updated." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when page type is updated." + ADDED_IN_35
 
 
-class PageTypeDeleted(ObjectType, PageTypeBase):
+class PageTypeDeleted(SubscriptionObjectType, PageTypeBase):
     class Meta:
+        root_type = "PageType"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when page type is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when page type is deleted." + ADDED_IN_35
 
 
 class PermissionGroupBase(AbstractType):
@@ -1077,39 +1354,33 @@ class PermissionGroupBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_permission_group(root, _info):
+    def resolve_permission_group(root, _info: ResolveInfo):
         _, permission_group = root
         return permission_group
 
 
-class PermissionGroupCreated(ObjectType, PermissionGroupBase):
+class PermissionGroupCreated(SubscriptionObjectType, PermissionGroupBase):
     class Meta:
+        root_type = "Group"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new permission group is created."
-            + ADDED_IN_36
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new permission group is created." + ADDED_IN_36
 
 
-class PermissionGroupUpdated(ObjectType, PermissionGroupBase):
+class PermissionGroupUpdated(SubscriptionObjectType, PermissionGroupBase):
     class Meta:
+        root_type = "Group"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when permission group is updated."
-            + ADDED_IN_36
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when permission group is updated." + ADDED_IN_36
 
 
-class PermissionGroupDeleted(ObjectType, PermissionGroupBase):
+class PermissionGroupDeleted(SubscriptionObjectType, PermissionGroupBase):
     class Meta:
+        root_type = "Group"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when permission group is deleted."
-            + ADDED_IN_36
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when permission group is deleted." + ADDED_IN_36
 
 
 class ShippingPriceBase(AbstractType):
@@ -1129,40 +1400,41 @@ class ShippingPriceBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_shipping_method(root, _info, channel=None):
+    def resolve_shipping_method(root, _info: ResolveInfo, channel=None):
         _, shipping_method = root
         return ChannelContext(node=shipping_method, channel_slug=channel)
 
     @staticmethod
-    def resolve_shipping_zone(root, _info, channel=None):
+    def resolve_shipping_zone(root, _info: ResolveInfo, channel=None):
         _, shipping_method = root
         return ChannelContext(node=shipping_method.shipping_zone, channel_slug=channel)
 
 
-class ShippingPriceCreated(ObjectType, ShippingPriceBase):
+class ShippingPriceCreated(SubscriptionObjectType, ShippingPriceBase):
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Event sent when new shipping price is created."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new shipping price is created." + ADDED_IN_32
+        doc_category = DOC_CATEGORY_SHIPPING
 
 
-class ShippingPriceUpdated(ObjectType, ShippingPriceBase):
+class ShippingPriceUpdated(SubscriptionObjectType, ShippingPriceBase):
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Event sent when shipping price is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when shipping price is updated." + ADDED_IN_32
+        doc_category = DOC_CATEGORY_SHIPPING
 
 
-class ShippingPriceDeleted(ObjectType, ShippingPriceBase):
+class ShippingPriceDeleted(SubscriptionObjectType, ShippingPriceBase):
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Event sent when shipping price is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when shipping price is deleted." + ADDED_IN_32
+        doc_category = DOC_CATEGORY_SHIPPING
 
 
 class ShippingZoneBase(AbstractType):
@@ -1175,72 +1447,68 @@ class ShippingZoneBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_shipping_zone(root, _info, channel=None):
+    def resolve_shipping_zone(root, _info: ResolveInfo, channel=None):
         _, shipping_zone = root
         return ChannelContext(node=shipping_zone, channel_slug=channel)
 
 
-class ShippingZoneCreated(ObjectType, ShippingZoneBase):
+class ShippingZoneCreated(SubscriptionObjectType, ShippingZoneBase):
     class Meta:
+        root_type = "ShippingZone"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new shipping zone is created."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new shipping zone is created." + ADDED_IN_32
 
 
-class ShippingZoneUpdated(ObjectType, ShippingZoneBase):
+class ShippingZoneUpdated(SubscriptionObjectType, ShippingZoneBase):
     class Meta:
+        root_type = "ShippingZone"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when shipping zone is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when shipping zone is updated." + ADDED_IN_32
 
 
-class ShippingZoneDeleted(ObjectType, ShippingZoneBase):
+class ShippingZoneDeleted(SubscriptionObjectType, ShippingZoneBase):
     class Meta:
+        root_type = "ShippingZone"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when shipping zone is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when shipping zone is deleted." + ADDED_IN_32
 
 
-class ShippingZoneMetadataUpdated(ObjectType, ShippingZoneBase):
+class ShippingZoneMetadataUpdated(SubscriptionObjectType, ShippingZoneBase):
     class Meta:
+        root_type = "ShippingZone"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when shipping zone metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when shipping zone metadata is updated." + ADDED_IN_38
 
 
-class StaffCreated(ObjectType, UserBase):
+class StaffCreated(SubscriptionObjectType, UserBase):
     class Meta:
+        root_type = "User"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new staff user is created." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new staff user is created." + ADDED_IN_35
 
 
-class StaffUpdated(ObjectType, UserBase):
+class StaffUpdated(SubscriptionObjectType, UserBase):
     class Meta:
+        root_type = "User"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when staff user is updated." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when staff user is updated." + ADDED_IN_35
 
 
-class StaffDeleted(ObjectType, UserBase):
+class StaffDeleted(SubscriptionObjectType, UserBase):
     class Meta:
+        root_type = "User"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when staff user is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when staff user is deleted." + ADDED_IN_35
 
 
-class TransactionAction(ObjectType, AbstractType):
+class TransactionAction(SubscriptionObjectType, AbstractType):
     action_type = graphene.Field(
         TransactionActionEnum,
         required=True,
@@ -1250,61 +1518,246 @@ class TransactionAction(ObjectType, AbstractType):
         description="Transaction request amount. Null when action type is VOID.",
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
     @staticmethod
-    def resolve_amount(root: TransactionActionData, _info):
+    def resolve_amount(root: TransactionActionData, _info: ResolveInfo):
         if root.action_value:
             return quantize_price(root.action_value, root.transaction.currency)
         return None
 
 
-class TransactionActionRequest(ObjectType):
+class TransactionActionBase(AbstractType):
     transaction = graphene.Field(
         TransactionItem,
-        description="Look up a transaction." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="Look up a transaction.",
     )
     action = graphene.Field(
         TransactionAction,
         required=True,
-        description="Requested action data." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="Requested action data.",
     )
 
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when transaction action is requested."
-            + ADDED_IN_34
-            + PREVIEW_FEATURE
-        )
-
     @staticmethod
-    def resolve_transaction(root, _info):
+    def resolve_transaction(root, _info: ResolveInfo):
         _, transaction_action_data = root
         transaction_action_data: TransactionActionData
         return transaction_action_data.transaction
 
     @staticmethod
-    def resolve_action(root, _info):
+    def resolve_action(root, _info: ResolveInfo):
         _, transaction_action_data = root
         transaction_action_data: TransactionActionData
         return transaction_action_data
 
 
-class TransactionItemMetadataUpdated(ObjectType):
-    transaction = graphene.Field(
-        TransactionItem,
-        description="Look up a transaction." + PREVIEW_FEATURE,
+class TransactionChargeRequested(TransactionActionBase, SubscriptionObjectType):
+    class Meta:
+        interfaces = (Event,)
+        root_type = None
+        enable_dry_run = False
+        description = (
+            "Event sent when transaction charge is requested."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
+    granted_refund = graphene.Field(
+        OrderGrantedRefund,
+        description="Granted refund related to refund request."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
     )
 
     class Meta:
         interfaces = (Event,)
+        root_type = None
+        enable_dry_run = False
         description = (
-            "Event sent when transaction item metadata is updated."
-            + ADDED_IN_38
+            "Event sent when transaction refund is requested."
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
     @staticmethod
-    def resolve_transaction(root, _info):
+    def resolve_granted_refund(root, _info: ResolveInfo):
+        _, transaction_action_data = root
+        transaction_action_data: TransactionActionData
+        return transaction_action_data.granted_refund
+
+
+class TransactionCancelationRequested(TransactionActionBase, SubscriptionObjectType):
+    class Meta:
+        interfaces = (Event,)
+        root_type = None
+        enable_dry_run = False
+        description = (
+            "Event sent when transaction cancelation is requested."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class PaymentGatewayInitializeSession(SubscriptionObjectType):
+    source_object = graphene.Field(
+        OrderOrCheckout, description="Checkout or order", required=True
+    )
+    data = graphene.Field(
+        JSON,
+        description="Payment gateway data in JSON format, recieved from storefront.",
+    )
+    amount = graphene.Field(
+        PositiveDecimal,
+        description="Amount requested for initializing the payment gateway.",
+    )
+
+    class Meta:
+        interfaces = (Event,)
+        root_type = None
+        enable_dry_run = False
+        description = (
+            "Event sent when user wants to initialize the payment gateway."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+    @staticmethod
+    def resolve_source_object(root, _info: ResolveInfo):
+        _, objects = root
+        source_object, _, _ = objects
+        return source_object
+
+    @staticmethod
+    def resolve_data(root, _info: ResolveInfo):
+        _, objects = root
+        _, data, _ = objects
+        return data
+
+    @staticmethod
+    def resolve_amount(root, _info: ResolveInfo):
+        _, objects = root
+        _, _, amount = objects
+        return amount
+
+
+class TransactionProcessAction(SubscriptionObjectType, AbstractType):
+    amount = PositiveDecimal(
+        description="Transaction amount to process.", required=True
+    )
+    currency = graphene.String(description="Currency of the amount.", required=True)
+    action_type = graphene.Field(TransactionFlowStrategyEnum, required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class TransactionSessionBase(SubscriptionObjectType, AbstractType):
+    transaction = graphene.Field(
+        TransactionItem, description="Look up a transaction.", required=True
+    )
+    source_object = graphene.Field(
+        OrderOrCheckout, description="Checkout or order", required=True
+    )
+    data = graphene.Field(
+        JSON,
+        description="Payment gateway data in JSON format, recieved from storefront.",
+    )
+    merchant_reference = graphene.String(
+        description="Merchant reference assigned to this payment.", required=True
+    )
+    action = graphene.Field(
+        TransactionProcessAction,
+        description="Action to proceed for the transaction",
+        required=True,
+    )
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def resolve_transaction(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        _, transaction_session_data = root
+        return transaction_session_data.transaction
+
+    @classmethod
+    def resolve_source_object(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        _, transaction_session_data = root
+        return transaction_session_data.source_object
+
+    @classmethod
+    def resolve_data(cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo):
+        _, transaction_session_data = root
+        return transaction_session_data.payment_gateway.data
+
+    @classmethod
+    def resolve_merchant_reference(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        transaction = cls.resolve_transaction(root, _info)
+        return graphene.Node.to_global_id("TransactionItem", transaction.token)
+
+    @classmethod
+    def resolve_action(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        _, transaction_session_data = root
+        return transaction_session_data.action
+
+
+class TransactionInitializeSession(TransactionSessionBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user starts processing the payment."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class TransactionProcessSession(TransactionSessionBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user has additional payment action to process."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class TransactionItemMetadataUpdated(SubscriptionObjectType):
+    transaction = graphene.Field(
+        TransactionItem,
+        description="Look up a transaction.",
+    )
+
+    class Meta:
+        root_type = "TransactionItem"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when transaction item metadata is updated." + ADDED_IN_38
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+    @staticmethod
+    def resolve_transaction(root, _info: ResolveInfo):
         _, transaction_item = root
         return transaction_item
 
@@ -1314,7 +1767,7 @@ class TranslationTypes(Union):
         types = tuple(TRANSLATIONS_TYPES_MAP.values())
 
     @classmethod
-    def resolve_type(cls, instance, info):
+    def resolve_type(cls, instance, info: ResolveInfo):
         instance_type = type(instance)
         if instance_type in TRANSLATIONS_TYPES_MAP:
             return TRANSLATIONS_TYPES_MAP[instance_type]
@@ -1328,27 +1781,25 @@ class TranslationBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_translation(root, _info):
+    def resolve_translation(root, _info: ResolveInfo):
         _, translation = root
         return translation
 
 
-class TranslationCreated(ObjectType, TranslationBase):
+class TranslationCreated(SubscriptionObjectType, TranslationBase):
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Event sent when new translation is created."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new translation is created." + ADDED_IN_32
 
 
-class TranslationUpdated(ObjectType, TranslationBase):
+class TranslationUpdated(SubscriptionObjectType, TranslationBase):
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Event sent when translation is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when translation is updated." + ADDED_IN_32
 
 
 class VoucherBase(AbstractType):
@@ -1361,55 +1812,41 @@ class VoucherBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_voucher(root, _info):
+    def resolve_voucher(root, _info: ResolveInfo):
         _, voucher = root
         return ChannelContext(node=voucher, channel_slug=None)
 
 
-class VoucherCreated(ObjectType, VoucherBase):
+class VoucherCreated(SubscriptionObjectType, VoucherBase):
     class Meta:
+        root_type = "Voucher"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new voucher is created." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new voucher is created." + ADDED_IN_34
 
 
-class VoucherUpdated(ObjectType, VoucherBase):
+class VoucherUpdated(SubscriptionObjectType, VoucherBase):
     class Meta:
+        root_type = "Voucher"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when voucher is updated." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when voucher is updated." + ADDED_IN_34
 
 
-class VoucherDeleted(ObjectType, VoucherBase):
+class VoucherDeleted(SubscriptionObjectType, VoucherBase):
     class Meta:
+        root_type = "Voucher"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when voucher is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when voucher is deleted." + ADDED_IN_34
 
 
-class VoucherMetadataUpdated(ObjectType, VoucherBase):
+class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
     class Meta:
+        root_type = "Voucher"
+        enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when voucher metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
-
-
-class WarehouseBase(AbstractType):
-    warehouse = graphene.Field(
-        "saleor.graphql.warehouse.types.Warehouse",
-        description="The warehouse the event relates to.",
-    )
-
-    @staticmethod
-    def resolve_warehouse(root, _info):
-        _, warehouse = root
-        return warehouse
+        description = "Event sent when voucher metadata is updated." + ADDED_IN_38
 
 
 class PaymentBase(AbstractType):
@@ -1419,123 +1856,153 @@ class PaymentBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_payment(root, _info):
+    def resolve_payment(root, _info: ResolveInfo):
         _, payment = root
         return payment
 
 
-class PaymentAuthorize(ObjectType, PaymentBase):
+class PaymentAuthorize(SubscriptionObjectType, PaymentBase):
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = "Authorize payment." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "Authorize payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
-class PaymentCaptureEvent(ObjectType, PaymentBase):
+class PaymentCaptureEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = "Capture payment." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "Capture payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
-class PaymentRefundEvent(ObjectType, PaymentBase):
+class PaymentRefundEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = "Refund payment." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "Refund payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
-class PaymentVoidEvent(ObjectType, PaymentBase):
+class PaymentVoidEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = "Void payment." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "Void payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
-class PaymentConfirmEvent(ObjectType, PaymentBase):
+class PaymentConfirmEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = "Confirm payment." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "Confirm payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
-class PaymentProcessEvent(ObjectType, PaymentBase):
+class PaymentProcessEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = "Process payment." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "Process payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
-class PaymentListGateways(ObjectType, CheckoutBase):
+class PaymentListGateways(SubscriptionObjectType, CheckoutBase):
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = "List payment gateways." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "List payment gateways." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
-class ShippingListMethodsForCheckout(ObjectType, CheckoutBase):
+class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
-        + ADDED_IN_36
-        + PREVIEW_FEATURE,
+        + ADDED_IN_36,
     )
 
     @staticmethod
     @plugin_manager_promise_callback
+<<<<<<< HEAD
     def resolve_shipping_methods(root, info, manager):
+=======
+    def resolve_shipping_methods(root, info: ResolveInfo, manager):
+>>>>>>> main
         _, checkout = root
         return resolve_shipping_methods_for_checkout(info, checkout, manager)
 
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "List shipping methods for checkout." + ADDED_IN_36 + PREVIEW_FEATURE
-        )
+        description = "List shipping methods for checkout." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
-class CalculateTaxes(ObjectType):
+class CalculateTaxes(SubscriptionObjectType):
     tax_base = graphene.Field(
         "saleor.graphql.core.types.taxes.TaxableObject", required=True
     )
 
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = (
-            "Synchronous webhook for calculating checkout/order taxes."
-            + ADDED_IN_37
-            + PREVIEW_FEATURE
+            "Synchronous webhook for calculating checkout/order taxes." + ADDED_IN_37
         )
+        doc_category = DOC_CATEGORY_TAXES
 
-    def resolve_tax_base(root, info):
+    @staticmethod
+    def resolve_tax_base(root, _info: ResolveInfo):
         _, tax_base = root
         return tax_base
 
 
-class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
+class CheckoutFilterShippingMethods(SubscriptionObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
-        + ADDED_IN_36
-        + PREVIEW_FEATURE,
+        + ADDED_IN_36,
     )
 
     @staticmethod
     @plugin_manager_promise_callback
+<<<<<<< HEAD
     def resolve_shipping_methods(root, info, manager):
+=======
+    def resolve_shipping_methods(root, info: ResolveInfo, manager):
+>>>>>>> main
         _, checkout = root
         return resolve_shipping_methods_for_checkout(info, checkout, manager)
 
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Filter shipping methods for checkout." + ADDED_IN_36 + PREVIEW_FEATURE
-        )
+        description = "Filter shipping methods for checkout." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
-class OrderFilterShippingMethods(ObjectType, OrderBase):
+class OrderFilterShippingMethods(SubscriptionObjectType, OrderBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
-        + ADDED_IN_36
-        + PREVIEW_FEATURE,
+        + ADDED_IN_36,
     )
 
     @staticmethod
-    def resolve_shipping_methods(root, info):
+    def resolve_shipping_methods(root, info: ResolveInfo):
         _, order = root
 
         def with_channel(channel):
@@ -1551,58 +2018,111 @@ class OrderFilterShippingMethods(ObjectType, OrderBase):
         return ChannelByIdLoader(info.context).load(order.channel_id).then(with_channel)
 
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Filter shipping methods for order." + ADDED_IN_36 + PREVIEW_FEATURE
-        )
+        description = "Filter shipping methods for order." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_ORDERS
 
 
-class WarehouseCreated(ObjectType, WarehouseBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when new warehouse is created." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
-
-
-class WarehouseUpdated(ObjectType, WarehouseBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when warehouse is updated." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
-
-
-class WarehouseDeleted(ObjectType, WarehouseBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when warehouse is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
-
-
-class WarehouseMetadataUpdated(ObjectType, WarehouseBase):
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when warehouse metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
-
-
-class Subscription(ObjectType):
-    event = graphene.Field(
-        Event,
-        description="Look up subscription event." + ADDED_IN_32 + PREVIEW_FEATURE,
+class WarehouseBase(AbstractType):
+    warehouse = graphene.Field(
+        "saleor.graphql.warehouse.types.Warehouse",
+        description="The warehouse the event relates to.",
     )
 
     @staticmethod
-    def resolve_event(root, info):
+    def resolve_warehouse(root, _info: ResolveInfo):
+        _, warehouse = root
+        return warehouse
+
+
+class WarehouseCreated(SubscriptionObjectType, WarehouseBase):
+    class Meta:
+        root_type = "Warehouse"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new warehouse is created." + ADDED_IN_34
+
+
+class WarehouseUpdated(SubscriptionObjectType, WarehouseBase):
+    class Meta:
+        root_type = "Warehouse"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when warehouse is updated." + ADDED_IN_34
+
+
+class WarehouseDeleted(SubscriptionObjectType, WarehouseBase):
+    class Meta:
+        root_type = "Warehouse"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when warehouse is deleted." + ADDED_IN_34
+
+
+class WarehouseMetadataUpdated(SubscriptionObjectType, WarehouseBase):
+    class Meta:
+        root_type = "Warehouse"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when warehouse metadata is updated." + ADDED_IN_38
+
+
+class Subscription(SubscriptionObjectType):
+    event = graphene.Field(
+        Event,
+        description="Look up subscription event." + ADDED_IN_32,
+    )
+
+    @staticmethod
+    def resolve_event(root, info: ResolveInfo):
         return Observable.from_([root])
 
 
+class ThumbnailCreated(SubscriptionObjectType):
+    id = graphene.ID(description="Thumbnail id." + ADDED_IN_312)
+    url = graphene.String(description="Thumbnail url." + ADDED_IN_312)
+    object_id = graphene.ID(
+        description="Object the thumbnail refers to." + ADDED_IN_312
+    )
+    media_url = graphene.String(description="Original media url." + ADDED_IN_312)
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when thumbnail is created." + ADDED_IN_312
+
+    @staticmethod
+    def resolve_id(root, info: ResolveInfo):
+        _, thumbnail = root
+        return graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+
+    @staticmethod
+    def resolve_url(root, info: ResolveInfo):
+        _, thumbnail = root
+        return thumbnail.image.url
+
+    @staticmethod
+    def resolve_object_id(root, info: ResolveInfo):
+        _, thumbnail = root
+        type = thumbnail.instance.__class__.__name__
+        return graphene.Node.to_global_id(type, thumbnail.instance.id)
+
+    @staticmethod
+    def resolve_media_url(root, info: ResolveInfo):
+        _, thumbnail = root
+        type = thumbnail.instance.__class__.__name__
+        image_field = TYPE_TO_MODEL_DATA_MAPPING[type].image_field
+        image = getattr(thumbnail.instance, image_field, None)
+        return image.url if image else None
+
+
 WEBHOOK_TYPES_MAP = {
+    WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: AccountConfirmationRequested,
+    WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED: AccountChangeEmailRequested,
+    WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: AccountDeleteRequested,
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
     WebhookEventAsyncType.ADDRESS_DELETED: AddressDeleted,
@@ -1626,6 +2146,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.GIFT_CARD_CREATED: GiftCardCreated,
     WebhookEventAsyncType.GIFT_CARD_UPDATED: GiftCardUpdated,
     WebhookEventAsyncType.GIFT_CARD_DELETED: GiftCardDeleted,
+    WebhookEventAsyncType.GIFT_CARD_SENT: GiftCardSent,
     WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: GiftCardStatusChanged,
     WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED: GiftCardMetadataUpdated,
     WebhookEventAsyncType.MENU_CREATED: MenuCreated,
@@ -1638,9 +2159,14 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ORDER_UPDATED: OrderUpdated,
     WebhookEventAsyncType.ORDER_CONFIRMED: OrderConfirmed,
     WebhookEventAsyncType.ORDER_FULLY_PAID: OrderFullyPaid,
+    WebhookEventAsyncType.ORDER_PAID: OrderPaid,
+    WebhookEventAsyncType.ORDER_REFUNDED: OrderRefunded,
+    WebhookEventAsyncType.ORDER_FULLY_REFUNDED: OrderFullyRefunded,
     WebhookEventAsyncType.ORDER_FULFILLED: OrderFulfilled,
     WebhookEventAsyncType.ORDER_CANCELLED: OrderCancelled,
+    WebhookEventAsyncType.ORDER_EXPIRED: OrderExpired,
     WebhookEventAsyncType.ORDER_METADATA_UPDATED: OrderMetadataUpdated,
+    WebhookEventAsyncType.ORDER_BULK_CREATED: OrderBulkCreated,
     WebhookEventAsyncType.DRAFT_ORDER_CREATED: DraftOrderCreated,
     WebhookEventAsyncType.DRAFT_ORDER_UPDATED: DraftOrderUpdated,
     WebhookEventAsyncType.DRAFT_ORDER_DELETED: DraftOrderDeleted,
@@ -1648,10 +2174,14 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_UPDATED: ProductUpdated,
     WebhookEventAsyncType.PRODUCT_DELETED: ProductDeleted,
     WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: ProductMetadataUpdated,
+    WebhookEventAsyncType.PRODUCT_MEDIA_CREATED: ProductMediaCreated,
+    WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED: ProductMediaUpdated,
+    WebhookEventAsyncType.PRODUCT_MEDIA_DELETED: ProductMediaDeleted,
     WebhookEventAsyncType.PRODUCT_VARIANT_CREATED: ProductVariantCreated,
     WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: ProductVariantUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: ProductVariantOutOfStock,
     WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: ProductVariantBackInStock,
+    WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED: ProductVariantStockUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: ProductVariantDeleted,
     WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED: (
         ProductVariantMetadataUpdated
@@ -1676,6 +2206,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.COLLECTION_METADATA_UPDATED: CollectionMetadataUpdated,
     WebhookEventAsyncType.CHECKOUT_CREATED: CheckoutCreated,
     WebhookEventAsyncType.CHECKOUT_UPDATED: CheckoutUpdated,
+    WebhookEventAsyncType.CHECKOUT_FULLY_PAID: CheckoutFullyPaid,
     WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: CheckoutMetadataUpdated,
     WebhookEventAsyncType.PAGE_CREATED: PageCreated,
     WebhookEventAsyncType.PAGE_UPDATED: PageUpdated,
@@ -1696,7 +2227,6 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.STAFF_CREATED: StaffCreated,
     WebhookEventAsyncType.STAFF_UPDATED: StaffUpdated,
     WebhookEventAsyncType.STAFF_DELETED: StaffDeleted,
-    WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: TransactionActionRequest,
     WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: (
         TransactionItemMetadataUpdated
     ),
@@ -1710,6 +2240,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.WAREHOUSE_UPDATED: WarehouseUpdated,
     WebhookEventAsyncType.WAREHOUSE_DELETED: WarehouseDeleted,
     WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED: WarehouseMetadataUpdated,
+    WebhookEventAsyncType.THUMBNAIL_CREATED: ThumbnailCreated,
     WebhookEventSyncType.PAYMENT_AUTHORIZE: PaymentAuthorize,
     WebhookEventSyncType.PAYMENT_CAPTURE: PaymentCaptureEvent,
     WebhookEventSyncType.PAYMENT_REFUND: PaymentRefundEvent,
@@ -1717,6 +2248,11 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventSyncType.PAYMENT_CONFIRM: PaymentConfirmEvent,
     WebhookEventSyncType.PAYMENT_PROCESS: PaymentProcessEvent,
     WebhookEventSyncType.PAYMENT_LIST_GATEWAYS: PaymentListGateways,
+    WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED: (
+        TransactionCancelationRequested
+    ),
+    WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED: TransactionChargeRequested,
+    WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED: TransactionRefundRequested,
     WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: (OrderFilterShippingMethods),
     WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
         CheckoutFilterShippingMethods
@@ -1726,4 +2262,9 @@ WEBHOOK_TYPES_MAP = {
     ),
     WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES: CalculateTaxes,
     WebhookEventSyncType.ORDER_CALCULATE_TAXES: CalculateTaxes,
+    WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION: (
+        PaymentGatewayInitializeSession
+    ),
+    WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: TransactionInitializeSession,
+    WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
 }

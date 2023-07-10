@@ -1,35 +1,54 @@
 import collections
 import itertools
-from typing import Dict, List, Type, Union, cast
+from typing import TYPE_CHECKING, Dict, List, Type, TypeVar, Union, cast
 
 import graphene
 from django.db.models import Model
+from django_countries.fields import Country
 from graphene.types.objecttype import ObjectType
 from graphene.types.resolver import get_default_resolver
 from promise import Promise
 
 from ...channel import models
-from ...core.permissions import AuthorizationFilters, ChannelPermissions
+from ...core.models import ModelWithMetadata
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import ChannelPermissions, OrderPermissions
 from ..account.enums import CountryCodeEnum
+from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
     ADDED_IN_36,
     ADDED_IN_37,
+    ADDED_IN_312,
+    ADDED_IN_313,
+    ADDED_IN_314,
+    ADDED_IN_315,
     PREVIEW_FEATURE,
 )
+from ..core.doc_category import DOC_CATEGORY_ORDERS, DOC_CATEGORY_PRODUCTS
 from ..core.fields import PermissionsField
-from ..core.types import CountryDisplay, ModelObjectType, NonNullList
+from ..core.scalars import Day, Minute
+from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
 from ..warehouse.dataloaders import WarehousesByChannelIdLoader
 from ..warehouse.types import Warehouse
 from . import ChannelContext
 from .dataloaders import ChannelWithHasOrdersByIdLoader
-from .enums import AllocationStrategyEnum
+from .enums import (
+    AllocationStrategyEnum,
+    MarkAsPaidStrategyEnum,
+    TransactionFlowStrategyEnum,
+)
+
+if TYPE_CHECKING:
+    from ...shipping.models import ShippingZone
+
+T = TypeVar("T", bound=Model)
 
 
-class ChannelContextTypeForObjectType(graphene.ObjectType):
+class ChannelContextTypeForObjectType(ModelObjectType[T]):
     """A Graphene type that supports resolvers' root as ChannelContext objects."""
 
     class Meta:
@@ -37,32 +56,34 @@ class ChannelContextTypeForObjectType(graphene.ObjectType):
 
     @staticmethod
     def resolver_with_context(
-        attname, default_value, root: ChannelContext, info, **args
+        attname, default_value, root: ChannelContext, info: ResolveInfo, **args
     ):
         resolver = get_default_resolver()
         return resolver(attname, default_value, root.node, info, **args)
 
     @staticmethod
-    def resolve_id(root: ChannelContext, _info):
+    def resolve_id(root: ChannelContext[T], _info: ResolveInfo):
         return root.node.pk
 
     @staticmethod
-    def resolve_translation(root: ChannelContext, info, *, language_code):
+    def resolve_translation(
+        root: ChannelContext[T], info: ResolveInfo, *, language_code
+    ):
         # Resolver for TranslationField; needs to be manually specified.
         return resolve_translation(root.node, info, language_code=language_code)
 
 
-class ChannelContextType(ChannelContextTypeForObjectType, ModelObjectType):
+class ChannelContextType(ChannelContextTypeForObjectType[T]):
     """A Graphene type that supports resolvers' root as ChannelContext objects."""
 
     class Meta:
         abstract = True
 
     @classmethod
-    def is_type_of(cls, root: Union[ChannelContext, Model], _info):
+    def is_type_of(cls, root: Union[ChannelContext[T], T], _info: ResolveInfo) -> bool:
         # Unwrap node from ChannelContext if it didn't happen already
         if isinstance(root, ChannelContext):
-            root = cast(Model, root.node)
+            root = root.node
 
         if isinstance(root, cls):
             return True
@@ -75,7 +96,10 @@ class ChannelContextType(ChannelContextTypeForObjectType, ModelObjectType):
         return model == cls._meta.model
 
 
-class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectType):
+TM = TypeVar("TM", bound=ModelWithMetadata)
+
+
+class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectType[TM]):
     """A Graphene type for that uses ChannelContext as root in resolvers.
 
     Same as ChannelContextType, but for types that implement ObjectWithMetadata
@@ -86,39 +110,41 @@ class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectTyp
         abstract = True
 
     @staticmethod
-    def resolve_metadata(root: ChannelContext, info):
+    def resolve_metadata(root: ChannelContext[TM], info: ResolveInfo):
         # Used in metadata API to resolve metadata fields from an instance.
         return ObjectWithMetadata.resolve_metadata(root.node, info)
 
     @staticmethod
-    def resolve_metafield(root: ChannelContext, info, *, key: str):
+    def resolve_metafield(root: ChannelContext[TM], info: ResolveInfo, *, key: str):
         # Used in metadata API to resolve metadata fields from an instance.
         return ObjectWithMetadata.resolve_metafield(root.node, info, key=key)
 
     @staticmethod
-    def resolve_metafields(root: ChannelContext, info, *, keys=None):
+    def resolve_metafields(root: ChannelContext[TM], info: ResolveInfo, *, keys=None):
         # Used in metadata API to resolve metadata fields from an instance.
         return ObjectWithMetadata.resolve_metafields(root.node, info, keys=keys)
 
     @staticmethod
-    def resolve_private_metadata(root: ChannelContext, info):
+    def resolve_private_metadata(root: ChannelContext[TM], info: ResolveInfo):
         # Used in metadata API to resolve private metadata fields from an instance.
         return ObjectWithMetadata.resolve_private_metadata(root.node, info)
 
     @staticmethod
-    def resolve_private_metafield(root: ChannelContext, info, *, key: str):
+    def resolve_private_metafield(
+        root: ChannelContext[TM], info: ResolveInfo, *, key: str
+    ):
         # Used in metadata API to resolve private metadata fields from an instance.
         return ObjectWithMetadata.resolve_private_metafield(root.node, info, key=key)
 
     @staticmethod
-    def resolve_private_metafields(root: ChannelContext, info, *, keys=None):
+    def resolve_private_metafields(
+        root: ChannelContext[TM], info: ResolveInfo, *, keys=None
+    ):
         # Used in metadata API to resolve private metadata fields from an instance.
         return ObjectWithMetadata.resolve_private_metafields(root.node, info, keys=keys)
 
 
-class ChannelContextTypeWithMetadata(
-    ChannelContextTypeWithMetadataForObjectType, ChannelContextType
-):
+class ChannelContextTypeWithMetadata(ChannelContextTypeWithMetadataForObjectType[TM]):
     """A Graphene type for that uses ChannelContext as root in resolvers.
 
     Same as ChannelContextType, but for types that implement ObjectWithMetadata
@@ -129,7 +155,7 @@ class ChannelContextTypeWithMetadata(
         abstract = True
 
 
-class StockSettings(ObjectType):
+class StockSettings(BaseObjectType):
     allocation_strategy = AllocationStrategyEnum(
         description=(
             "Allocation strategy defines the preference of warehouses "
@@ -139,13 +165,71 @@ class StockSettings(ObjectType):
     )
 
     class Meta:
-        description = (
-            "Represents the channel stock settings." + ADDED_IN_37 + PREVIEW_FEATURE
-        )
+        description = "Represents the channel stock settings." + ADDED_IN_37
+        doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class OrderSettings(ObjectType):
+    automatically_confirm_all_new_orders = graphene.Boolean(
+        required=True,
+        description=(
+            "When disabled, all new orders from checkout "
+            "will be marked as unconfirmed. When enabled orders from checkout will "
+            "become unfulfilled immediately."
+        ),
+    )
+    automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
+        required=True,
+        description=(
+            "When enabled, all non-shippable gift card orders "
+            "will be fulfilled automatically."
+        ),
+    )
+    expire_orders_after = Minute(
+        required=False,
+        description=(
+            "Expiration time in minutes. Default null - means do not expire any orders."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+    )
+
+    mark_as_paid_strategy = MarkAsPaidStrategyEnum(
+        required=True,
+        description=(
+            "Determine what strategy will be used to mark the order as paid. "
+            "Based on the chosen option, the proper object will be created "
+            "and attached to the order when it's manually marked as paid."
+            "\n`PAYMENT_FLOW` - [default option] creates the `Payment` object."
+            "\n`TRANSACTION_FLOW` - creates the `TransactionItem` object."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+    )
+    default_transaction_flow_strategy = TransactionFlowStrategyEnum(
+        required=True,
+        description=(
+            "Determine the transaction flow strategy to be used. "
+            "Include the selected option in the payload sent to the payment app, as a "
+            "requested action for the transaction." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
+    )
+    delete_expired_orders_after = Day(
+        required=True,
+        description=(
+            "The time in days after expired orders will be deleted."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
+        ),
+    )
+
+    class Meta:
+        description = "Represents the channel-specific order settings."
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class Channel(ModelObjectType):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the channel.")
     slug = graphene.String(
         required=True,
         description="Slug of the channel.",
@@ -201,9 +285,7 @@ class Channel(ModelObjectType):
     )
     warehouses = PermissionsField(
         NonNullList(Warehouse),
-        description="List of warehouses assigned to this channel."
-        + ADDED_IN_35
-        + PREVIEW_FEATURE,
+        description="List of warehouses assigned to this channel." + ADDED_IN_35,
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_APP,
@@ -212,37 +294,42 @@ class Channel(ModelObjectType):
     )
     countries = NonNullList(
         CountryDisplay,
-        description="List of shippable countries for the channel."
-        + ADDED_IN_36
-        + PREVIEW_FEATURE,
+        description="List of shippable countries for the channel." + ADDED_IN_36,
     )
 
     available_shipping_methods_per_country = graphene.Field(
         NonNullList("saleor.graphql.shipping.types.ShippingMethodsPerCountry"),
         countries=graphene.Argument(NonNullList(CountryCodeEnum)),
         description="Shipping methods that are available for the channel."
-        + ADDED_IN_36
-        + PREVIEW_FEATURE,
+        + ADDED_IN_36,
     )
     stock_settings = PermissionsField(
         StockSettings,
-        description=(
-            "Define the stock setting for this channel." + ADDED_IN_37 + PREVIEW_FEATURE
-        ),
+        description=("Define the stock setting for this channel." + ADDED_IN_37),
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_APP,
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
         ],
     )
+    order_settings = PermissionsField(
+        OrderSettings,
+        description="Channel-specific order settings." + ADDED_IN_312,
+        required=True,
+        permissions=[
+            ChannelPermissions.MANAGE_CHANNELS,
+            OrderPermissions.MANAGE_ORDERS,
+        ],
+    )
 
     class Meta:
         description = "Represents channel."
         model = models.Channel
-        interfaces = [graphene.relay.Node]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
+        metadata_since = ADDED_IN_315
 
     @staticmethod
-    def resolve_has_orders(root: models.Channel, info):
+    def resolve_has_orders(root: models.Channel, info: ResolveInfo):
         return (
             ChannelWithHasOrdersByIdLoader(info.context)
             .load(root.id)
@@ -250,17 +337,17 @@ class Channel(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_default_country(root: models.Channel, _info):
+    def resolve_default_country(root: models.Channel, _info: ResolveInfo):
         return CountryDisplay(
             code=root.default_country.code, country=root.default_country.name
         )
 
     @staticmethod
-    def resolve_warehouses(root: models.Channel, info):
+    def resolve_warehouses(root: models.Channel, info: ResolveInfo):
         return WarehousesByChannelIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_countries(root: models.Channel, info):
+    def resolve_countries(root: models.Channel, info: ResolveInfo):
         from ..shipping.dataloaders import ShippingZonesByChannelIdLoader
 
         def get_countries(shipping_zones):
@@ -294,7 +381,9 @@ class Channel(ModelObjectType):
         shipping_zones_loader = ShippingZonesByChannelIdLoader(info.context).load(
             root.id
         )
-        shipping_zone_countries: Dict[int, List[str]] = collections.defaultdict(list)
+        shipping_zone_countries: Dict[int, List[Country]] = collections.defaultdict(
+            list
+        )
         requested_countries = data.get("countries", [])
 
         def _group_shipping_methods_by_country(data):
@@ -310,11 +399,12 @@ class Channel(ModelObjectType):
                     shipping_method.shipping_zone_id, []
                 )
                 for country in countries:
-                    shipping_method_dataclass = convert_to_shipping_method_data(
-                        shipping_method, shipping_listing_map.get(shipping_method.id)
-                    )
-                    if not shipping_method_dataclass:
+                    listing = shipping_listing_map.get(shipping_method.id)
+                    if not listing:
                         continue
+                    shipping_method_dataclass = convert_to_shipping_method_data(
+                        shipping_method, listing
+                    )
                     shipping_methods_per_country[country.code].append(
                         shipping_method_dataclass
                     )
@@ -349,7 +439,7 @@ class Channel(ModelObjectType):
                 _group_shipping_methods_by_country
             )
 
-        def get_shipping_methods(shipping_zones):
+        def get_shipping_methods(shipping_zones: List["ShippingZone"]):
             shipping_zones_keys = [shipping_zone.id for shipping_zone in shipping_zones]
             for shipping_zone in shipping_zones:
                 shipping_zone_countries[shipping_zone.id] = shipping_zone.countries
@@ -363,5 +453,20 @@ class Channel(ModelObjectType):
         return shipping_zones_loader.then(get_shipping_methods)
 
     @staticmethod
-    def resolve_stock_settings(root: models.Channel, _info):
+    def resolve_stock_settings(root: models.Channel, _info: ResolveInfo):
         return StockSettings(allocation_strategy=root.allocation_strategy)
+
+    @staticmethod
+    def resolve_order_settings(root: models.Channel, _info):
+        return OrderSettings(
+            automatically_confirm_all_new_orders=(
+                root.automatically_confirm_all_new_orders
+            ),
+            automatically_fulfill_non_shippable_gift_card=(
+                root.automatically_fulfill_non_shippable_gift_card
+            ),
+            expire_orders_after=root.expire_orders_after,
+            mark_as_paid_strategy=root.order_mark_as_paid_strategy,
+            default_transaction_flow_strategy=root.default_transaction_flow_strategy,
+            delete_expired_orders_after=root.delete_expired_orders_after.days,
+        )

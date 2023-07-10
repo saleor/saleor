@@ -1,0 +1,39 @@
+{
+  "name": "Saleor",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "saleor",
+  "workspaceFolder": "/app",
+  "forwardPorts": [
+    8000,
+    "dashboard:9000",
+    "mailpit:8025"
+  ],
+  "portsAttributes": {
+    "8000": {
+        "label": "Saleor Core"
+    },
+    "dashboard:9000": {
+        "label": "Saleor Dashboard"
+    },
+    "mailpit:8025": {
+      "label": "Mailpit UI"
+    }
+  },
+  "postCreateCommand": "python manage.py migrate",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Cameron.vscode-pytest",
+        "charliermarsh.ruff",
+        "editorconfig.editorconfig",
+        "ms-python.black-formatter",
+        "ms-python.flake8",
+        "ms-python.isort",
+        "ms-python.pylint",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "streetsidesoftware.code-spell-checker"
+      ]
+    }
+  }
+}

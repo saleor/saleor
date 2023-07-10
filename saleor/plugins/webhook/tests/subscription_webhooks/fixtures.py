@@ -21,6 +21,30 @@ def subscription_webhook(webhook_app):
 
 
 @pytest.fixture
+def subscription_account_confirmation_requested_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_CONFIRMATION_REQUESTED,
+        WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
+    )
+
+
+@pytest.fixture
+def subscription_account_change_email_requested_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_CHANGE_EMAIL_REQUESTED,
+        WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED,
+    )
+
+
+@pytest.fixture
+def subscription_account_delete_requested_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_DELETE_REQUESTED,
+        WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED,
+    )
+
+
+@pytest.fixture
 def subscription_address_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ADDRESS_CREATED, WebhookEventAsyncType.ADDRESS_CREATED
@@ -183,6 +207,13 @@ def subscription_gift_card_deleted_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_gift_card_sent_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.GIFT_CARD_SENT, WebhookEventAsyncType.GIFT_CARD_SENT
+    )
+
+
+@pytest.fixture
 def subscription_gift_card_status_changed_webhook(subscription_webhook):
     return subscription_webhook(
         queries.GIFT_CARD_STATUS_CHANGED,
@@ -325,6 +356,27 @@ def subscription_product_metadata_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_product_media_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_MEDIA_CREATED, WebhookEventAsyncType.PRODUCT_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_product_media_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_MEDIA_UPDATED, WebhookEventAsyncType.PRODUCT_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_product_media_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_MEDIA_DELETED, WebhookEventAsyncType.PRODUCT_DELETED
+    )
+
+
+@pytest.fixture
 def subscription_product_variant_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.PRODUCT_VARIANT_CREATED,
@@ -373,6 +425,14 @@ def subscription_product_variant_back_in_stock_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_product_variant_stock_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_VARIANT_STOCK_UPDATED,
+        WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED,
+    )
+
+
+@pytest.fixture
 def subscription_order_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ORDER_CREATED, WebhookEventAsyncType.ORDER_CREATED
@@ -401,9 +461,35 @@ def subscription_order_fully_paid_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_order_paid_webhook(subscription_webhook):
+    return subscription_webhook(queries.ORDER_PAID, WebhookEventAsyncType.ORDER_PAID)
+
+
+@pytest.fixture
+def subscription_order_fully_refunded_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ORDER_FULLY_REFUNDED, WebhookEventAsyncType.ORDER_FULLY_REFUNDED
+    )
+
+
+@pytest.fixture
+def subscription_order_refunded_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ORDER_REFUNDED, WebhookEventAsyncType.ORDER_REFUNDED
+    )
+
+
+@pytest.fixture
 def subscription_order_cancelled_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ORDER_CANCELLED, WebhookEventAsyncType.ORDER_CANCELLED
+    )
+
+
+@pytest.fixture
+def subscription_order_expired_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ORDER_EXPIRED, WebhookEventAsyncType.ORDER_EXPIRED
     )
 
 
@@ -418,6 +504,13 @@ def subscription_order_fulfilled_webhook(subscription_webhook):
 def subscription_order_metadata_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ORDER_METADATA_UPDATED, WebhookEventAsyncType.ORDER_METADATA_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_order_bulk_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ORDER_BULK_CREATED, WebhookEventAsyncType.ORDER_BULK_CREATED
     )
 
 
@@ -596,6 +689,13 @@ def subscription_checkout_created_webhook(subscription_webhook):
 def subscription_checkout_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.CHECKOUT_UPDATED, WebhookEventAsyncType.CHECKOUT_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_checkout_fully_paid_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.CHECKOUT_FULLY_PAID, WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     )
 
 
@@ -881,7 +981,6 @@ def subscription_checkout_filter_shipping_method_webhook_with_shipping_methods(
 def subscription_checkout_filter_shipping_method_webhook_with_available_ship_methods(
     subscription_webhook,
 ):
-
     return subscription_webhook(
         queries.CHECKOUT_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS,
         WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
@@ -919,6 +1018,17 @@ def subscription_order_filter_shipping_methods_webhook_with_available_ship_metho
 
 
 @pytest.fixture
+<<<<<<< HEAD
+=======
+def subscription_thumbnail_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.THUMBNAIL_CREATED,
+        WebhookEventAsyncType.THUMBNAIL_CREATED,
+    )
+
+
+@pytest.fixture
+>>>>>>> main
 def subscription_calculate_taxes_for_order(
     subscription_webhook,
 ):

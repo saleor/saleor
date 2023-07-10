@@ -5,7 +5,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0142_alter_fulfillmentline_line"),
         ("warehouse", "0023_alter_orderline_relations"),

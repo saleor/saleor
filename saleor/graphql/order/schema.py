@@ -3,15 +3,25 @@ from typing import List, Optional
 import graphene
 from graphql import GraphQLError
 
-from ...core.permissions import OrderPermissions
+from ...order import models
+from ...permission.enums import OrderPermissions
+from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD
+from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import ReportingPeriod
-from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
+from ..core.fields import (
+    BaseField,
+    ConnectionField,
+    FilterConnectionField,
+    PermissionsField,
+)
 from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
-from ..core.utils import from_global_id_or_error
+from ..core.utils import ext_ref_to_global_id_or_error, from_global_id_or_error
+from ..core.validators import validate_one_of_args_is_in_query
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
+from .bulk_mutations.order_bulk_create import OrderBulkCreate
 from .bulk_mutations.orders import OrderBulkCancel
 from .filters import DraftOrderFilter, OrderFilter
 from .mutations.draft_order_complete import DraftOrderComplete
@@ -23,7 +33,6 @@ from .mutations.fulfillment_cancel import FulfillmentCancel
 from .mutations.fulfillment_refund_products import FulfillmentRefundProducts
 from .mutations.fulfillment_return_products import FulfillmentReturnProducts
 from .mutations.fulfillment_update_tracking import FulfillmentUpdateTracking
-from .mutations.order_add_note import OrderAddNote
 from .mutations.order_cancel import OrderCancel
 from .mutations.order_capture import OrderCapture
 from .mutations.order_confirm import OrderConfirm
@@ -31,12 +40,16 @@ from .mutations.order_discount_add import OrderDiscountAdd
 from .mutations.order_discount_delete import OrderDiscountDelete
 from .mutations.order_discount_update import OrderDiscountUpdate
 from .mutations.order_fulfill import OrderFulfill
+from .mutations.order_grant_refund_create import OrderGrantRefundCreate
+from .mutations.order_grant_refund_update import OrderGrantRefundUpdate
 from .mutations.order_line_delete import OrderLineDelete
 from .mutations.order_line_discount_remove import OrderLineDiscountRemove
 from .mutations.order_line_discount_update import OrderLineDiscountUpdate
 from .mutations.order_line_update import OrderLineUpdate
 from .mutations.order_lines_create import OrderLinesCreate
 from .mutations.order_mark_as_paid import OrderMarkAsPaid
+from .mutations.order_note_add import OrderAddNote, OrderNoteAdd
+from .mutations.order_note_update import OrderNoteUpdate
 from .mutations.order_refund import OrderRefund
 from .mutations.order_update import OrderUpdate
 from .mutations.order_update_shipping import OrderUpdateShipping
@@ -63,11 +76,13 @@ def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
 
 class OrderFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         filterset_class = OrderFilter
 
 
 class OrderDraftFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         filterset_class = DraftOrderFilter
 
 
@@ -82,10 +97,14 @@ class OrderQueries(graphene.ObjectType):
             OrderPermissions.MANAGE_ORDERS,
         ],
     )
-    order = graphene.Field(
+    order = BaseField(
         Order,
-        description="Look up an order by ID.",
-        id=graphene.Argument(graphene.ID, description="ID of an order.", required=True),
+        description="Look up an order by ID or external reference.",
+        id=graphene.Argument(graphene.ID, description="ID of an order."),
+        external_reference=graphene.Argument(
+            graphene.String, description=f"External ID of an order. {ADDED_IN_310}"
+        ),
+        doc_category=DOC_CATEGORY_ORDERS,
     )
     orders = FilterConnectionField(
         OrderCountableConnection,
@@ -98,6 +117,7 @@ class OrderQueries(graphene.ObjectType):
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
+        doc_category=DOC_CATEGORY_ORDERS,
     )
     draft_orders = FilterConnectionField(
         OrderCountableConnection,
@@ -107,6 +127,7 @@ class OrderQueries(graphene.ObjectType):
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
+        doc_category=DOC_CATEGORY_ORDERS,
     )
     orders_total = PermissionsField(
         TaxedMoney,
@@ -119,26 +140,42 @@ class OrderQueries(graphene.ObjectType):
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_by_token = graphene.Field(
+    order_by_token = BaseField(
         Order,
         description="Look up an order by token.",
         deprecation_reason=DEPRECATED_IN_3X_FIELD,
         token=graphene.Argument(UUID, description="The order's token.", required=True),
+        doc_category=DOC_CATEGORY_ORDERS,
     )
 
     @staticmethod
+<<<<<<< HEAD
     def resolve_homepage_events(_root, info, **kwargs):
+=======
+    def resolve_homepage_events(_root, info: ResolveInfo, **kwargs):
+>>>>>>> main
         qs = resolve_homepage_events(info)
         return create_connection_slice(qs, info, kwargs, OrderEventCountableConnection)
 
     @staticmethod
+<<<<<<< HEAD
     def resolve_order(_root, info, **data):
         _, id = from_global_id_or_error(data.get("id"), Order)
+=======
+    def resolve_order(_root, info: ResolveInfo, *, external_reference=None, id=None):
+        validate_one_of_args_is_in_query(
+            "id", id, "external_reference", external_reference
+        )
+        if not id:
+            id = ext_ref_to_global_id_or_error(models.Order, external_reference)
+        _, id = from_global_id_or_error(id, Order)
+>>>>>>> main
         return resolve_order(info, id)
 
     @staticmethod
-    def resolve_orders(_root, info, *, channel=None, **kwargs):
+    def resolve_orders(_root, info: ResolveInfo, *, channel=None, **kwargs):
         if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
             # sort by RANK can be used only with search filter
             if not search_string_in_kwargs(kwargs):
@@ -157,7 +194,7 @@ class OrderQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
     @staticmethod
-    def resolve_draft_orders(_root, info, **kwargs):
+    def resolve_draft_orders(_root, info: ResolveInfo, **kwargs):
         if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
             # sort by RANK can be used only with search filter
             if not search_string_in_kwargs(kwargs):
@@ -176,11 +213,15 @@ class OrderQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
     @staticmethod
-    def resolve_orders_total(_root, info, *, period, channel=None):
+    def resolve_orders_total(_root, info: ResolveInfo, *, period, channel=None):
         return resolve_orders_total(info, period, channel)
 
     @staticmethod
+<<<<<<< HEAD
     def resolve_order_by_token(_root, info, *, token):
+=======
+    def resolve_order_by_token(_root, info: ResolveInfo, *, token):
+>>>>>>> main
         return resolve_order_by_token(info, token)
 
 
@@ -194,7 +235,9 @@ class OrderMutations(graphene.ObjectType):
     )
     draft_order_update = DraftOrderUpdate.Field()
 
-    order_add_note = OrderAddNote.Field()
+    order_add_note = OrderAddNote.Field(
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `orderNoteAdd` instead.")
+    )
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
     order_confirm = OrderConfirm.Field()
@@ -205,6 +248,9 @@ class OrderMutations(graphene.ObjectType):
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
     order_fulfillment_refund_products = FulfillmentRefundProducts.Field()
     order_fulfillment_return_products = FulfillmentReturnProducts.Field()
+
+    order_grant_refund_create = OrderGrantRefundCreate.Field()
+    order_grant_refund_update = OrderGrantRefundUpdate.Field()
 
     order_lines_create = OrderLinesCreate.Field()
     order_line_delete = OrderLineDelete.Field()
@@ -217,9 +263,13 @@ class OrderMutations(graphene.ObjectType):
     order_line_discount_update = OrderLineDiscountUpdate.Field()
     order_line_discount_remove = OrderLineDiscountRemove.Field()
 
+    order_note_add = OrderNoteAdd.Field()
+    order_note_update = OrderNoteUpdate.Field()
+
     order_mark_as_paid = OrderMarkAsPaid.Field()
     order_refund = OrderRefund.Field()
     order_update = OrderUpdate.Field()
     order_update_shipping = OrderUpdateShipping.Field()
     order_void = OrderVoid.Field()
     order_bulk_cancel = OrderBulkCancel.Field()
+    order_bulk_create = OrderBulkCreate.Field()

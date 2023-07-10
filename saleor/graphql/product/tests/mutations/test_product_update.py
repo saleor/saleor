@@ -26,6 +26,9 @@ MUTATION_UPDATE_PRODUCT = """
                     category {
                         name
                     }
+                    collections {
+                        name
+                    }
                     rating
                     description
                     chargeTaxes
@@ -67,6 +70,7 @@ MUTATION_UPDATE_PRODUCT = """
                             }
                         }
                     }
+                    externalReference
                 }
                 errors {
                     message
@@ -78,11 +82,13 @@ MUTATION_UPDATE_PRODUCT = """
 """
 
 
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_update_product(
     created_webhook_mock,
     updated_webhook_mock,
+    update_product_discounted_price_task_mock,
     staff_api_client,
     category,
     non_default_category,
@@ -113,6 +119,7 @@ def test_update_product(
 
     metadata_key = "md key"
     metadata_value = "md value"
+    external_reference = "test-ext-ref"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -135,6 +142,7 @@ def test_update_product(
             "attributes": [{"id": attribute_id, "values": [attr_value]}],
             "metadata": [{"key": metadata_key, "value": metadata_value}],
             "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
+            "externalReference": external_reference,
         },
     }
 
@@ -156,6 +164,11 @@ def test_update_product(
     assert not data["product"]["category"]["name"] == category.name
     assert product.metadata == {metadata_key: metadata_value, **old_meta}
     assert product.private_metadata == {metadata_key: metadata_value, **old_meta}
+    assert (
+        data["product"]["externalReference"]
+        == external_reference
+        == product.external_reference
+    )
 
     attributes = data["product"]["attributes"]
 
@@ -168,9 +181,12 @@ def test_update_product(
 
     updated_webhook_mock.assert_called_once_with(product)
     created_webhook_mock.assert_not_called()
+    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
 
 
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 def test_update_and_search_product_by_description(
+    update_product_discounted_price_task_mock,
     staff_api_client,
     category,
     non_default_category,
@@ -206,6 +222,73 @@ def test_update_and_search_product_by_description(
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["description"] == other_description_json
+    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+
+
+<<<<<<< HEAD
+def test_update_product_clear_description_plaintext_when_description_is_none(
+=======
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+def test_update_product_only_description(
+    update_product_discounted_price_task_mock,
+    staff_api_client,
+    product,
+    other_description_json,
+    permission_manage_products,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    other_description_json = json.dumps(other_description_json)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "description": other_description_json,
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert not data["errors"]
+    assert data["product"]["description"] == other_description_json
+    update_product_discounted_price_task_mock.assert_not_called()
+
+
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+def test_update_product_only_collections(
+    update_product_discounted_price_task_mock,
+    staff_api_client,
+    product,
+    collection,
+    other_description_json,
+    permission_manage_products,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    other_description_json = json.dumps(other_description_json)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "collections": [collection_id],
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert not data["errors"]
+    assert len(data["product"]["collections"]) == 1
+    assert data["product"]["collections"][0]["name"] == collection.name
+    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
 
 
 def test_update_product_clear_description_plaintext_when_description_is_none(
@@ -225,10 +308,7 @@ def test_update_product_clear_description_plaintext_when_description_is_none(
 
     variables = {
         "productId": product_id,
-        "input": {
-            "name": product_name,
-            "description": None,
-        },
+        "input": {"name": product_name, "description": None},
     }
 
     response = staff_api_client.post_graphql(
@@ -242,6 +322,125 @@ def test_update_product_clear_description_plaintext_when_description_is_none(
 
     product.refresh_from_db()
     assert product.description_plaintext == ""
+
+
+def test_update_product_doesnt_clear_description_plaintext_when_no_description(
+>>>>>>> main
+    staff_api_client,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    color_attribute,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    description_plaintext = "some desc"
+    product.description_plaintext = description_plaintext
+    product.save()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    product_name = "updated name"
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "name": product_name,
+<<<<<<< HEAD
+            "description": None,
+=======
+>>>>>>> main
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert not data["errors"]
+    assert data["product"]["name"] == product_name
+<<<<<<< HEAD
+    assert data["product"]["description"] is None
+=======
+>>>>>>> main
+
+    product.refresh_from_db()
+    assert product.description_plaintext == description_plaintext
+
+
+def test_update_product_seo_field_title(
+    staff_api_client,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    color_attribute,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    old_seo_description = "old seo description"
+    product.seo_description = old_seo_description
+    product.seo_title = "old_seo_title"
+    product.save(update_fields=["seo_description", "seo_title"])
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    new_seo_title = "new_seo_title"
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "seo": {
+                "title": new_seo_title,
+            },
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert not data["errors"]
+
+    product.refresh_from_db()
+    assert product.seo_description == old_seo_description
+    assert product.seo_title == new_seo_title
+
+
+def test_update_product_seo_field_description(
+    staff_api_client,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    color_attribute,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    old_seo_title = "old_seo_title"
+    product.seo_description = "old seo description"
+    product.seo_title = old_seo_title
+    product.save(update_fields=["seo_description", "seo_title"])
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    new_seo_description = "new_seo_description"
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "seo": {
+                "description": new_seo_description,
+            },
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert not data["errors"]
+
+    product.refresh_from_db()
+    assert product.seo_description == new_seo_description
+    assert product.seo_title == old_seo_title
 
 
 def test_update_product_doesnt_clear_description_plaintext_when_no_description(
@@ -1435,7 +1634,7 @@ def test_update_product_with_variant_reference_attribute_value(
     assert product_type_variant_reference_attribute.values.count() == values_count + 1
 
 
-def test_update_product_with_no_id(
+def test_update_product_with_attribute_without_id_or_external_ref(
     staff_api_client, product, permission_manage_products, color_attribute
 ):
     """Ensure only supplying values triggers a validation error."""
@@ -2255,7 +2454,6 @@ def test_update_product_with_dropdown_attribute_non_existing_value(
 def test_update_product_with_dropdown_attribute_existing_value(
     updated_webhook_mock,
     staff_api_client,
-    color_attribute,
     product,
     product_type,
     permission_manage_products,
@@ -2265,14 +2463,15 @@ def test_update_product_with_dropdown_attribute_existing_value(
     query = MUTATION_UPDATE_PRODUCT
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute = product_type.product_attributes.first()
 
-    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
-    attribute_value = color_attribute.values.model.objects.first()
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attribute_value = attribute.values.model.objects.first()
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.pk
     )
-    attribute_value_name = color_attribute.values.model.objects.first().name
-    product_type.product_attributes.add(color_attribute)
+    attribute_value_name = attribute.values.model.objects.first().name
+    product_type.product_attributes.add(attribute)
 
     variables = {
         "productId": product_id,
@@ -2307,7 +2506,6 @@ def test_update_product_with_dropdown_attribute_existing_value(
 def test_update_product_with_dropdown_attribute_existing_value_passed_as_new_value(
     updated_webhook_mock,
     staff_api_client,
-    color_attribute,
     product,
     product_type,
     permission_manage_products,
@@ -2317,13 +2515,14 @@ def test_update_product_with_dropdown_attribute_existing_value_passed_as_new_val
     query = MUTATION_UPDATE_PRODUCT
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
-    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
-    attribute_value = color_attribute.values.model.objects.first()
+    attribute = product_type.product_attributes.first()
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attribute_value = attribute.values.model.objects.first()
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.pk
     )
-    attribute_value_name = color_attribute.values.model.objects.first().name
-    product_type.product_attributes.add(color_attribute)
+    attribute_value_name = attribute.values.model.objects.first().name
+    product_type.product_attributes.add(attribute)
 
     value_count = AttributeValue.objects.count()
 
@@ -2842,3 +3041,153 @@ def test_update_product_with_multiselect_attribute_by_name_duplicated(
     assert not data["product"]
     assert len(errors) == 1
     assert errors[0]["message"] == AttributeInputErrors.ERROR_DUPLICATED_VALUES[0]
+
+
+MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE = """
+    mutation updateProduct($id: ID, $externalReference: String, $input: ProductInput!) {
+        productUpdate(id: $id, externalReference: $externalReference, input: $input) {
+                product {
+                    name
+                    id
+                    externalReference
+                }
+                errors {
+                    message
+                    field
+                    code
+                }
+            }
+        }
+"""
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_created")
+def test_update_product_by_external_reference(
+    created_webhook_mock,
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # given
+    new_name = "updated name"
+    product.external_reference = "test-ext-id"
+    product.save(update_fields=["external_reference"])
+
+    variables = {
+        "externalReference": product.external_reference,
+        "input": {"name": new_name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    product.refresh_from_db()
+
+    # then
+    assert data["errors"] == []
+    assert data["product"]["name"] == new_name
+    assert data["product"]["externalReference"] == product.external_reference
+    assert data["product"]["id"] == graphene.Node.to_global_id(
+        product._meta.model.__name__, product.id
+    )
+
+    updated_webhook_mock.assert_called_once_with(product)
+    created_webhook_mock.assert_not_called()
+
+
+def test_update_product_by_both_id_and_external_reference(
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # given
+    new_name = "updated name"
+    product.external_reference = "test-ext-id"
+    product.save(update_fields=["external_reference"])
+
+    variables = {
+        "externalReference": product.external_reference,
+        "id": product.id,
+        "input": {"name": new_name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+
+    # then
+    assert data["errors"]
+    assert (
+        data["errors"][0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_update_product_external_reference_not_existing(
+    staff_api_client,
+    permission_manage_products,
+):
+    # given
+    ext_ref = "non-existing-ext-ref"
+    variables = {
+        "externalReference": ext_ref,
+        "input": {},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+
+    # then
+    assert data["errors"]
+    assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+
+
+def test_update_product_with_non_unique_external_reference(
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+):
+    # given
+    product_1 = product_list[0]
+    product_2 = product_list[1]
+    ext_ref = "test-ext-ref"
+    product_1.external_reference = ext_ref
+    product_1.save(update_fields=["external_reference"])
+    product_2_id = graphene.Node.to_global_id("Product", product_2.id)
+
+    variables = {
+        "id": product_2_id,
+        "input": {"externalReference": ext_ref},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["productUpdate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == ProductErrorCode.UNIQUE.name
+    assert error["message"] == "Product with this External reference already exists."

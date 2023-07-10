@@ -55,7 +55,17 @@ def delete_expired_checkouts(
         last_change__lt=now - settings.USER_CHECKOUTS_TIMEDELTA
     ) & (Q(email__isnull=False) | Q(user__isnull=False))
     empty_checkouts = Q(last_change__lt=now - settings.EMPTY_CHECKOUTS_TIMEDELTA) & ~Q(
+<<<<<<< HEAD
         Exists(Subquery(CheckoutLine.objects.filter(checkout_id=OuterRef("pk"))))
+=======
+        Exists(
+            # Type ignore reason: Subquery can be used inside Exists()
+            # https://github.com/typeddjango/django-stubs/issues/985
+            Subquery(  # type: ignore[arg-type]
+                CheckoutLine.objects.filter(checkout_id=OuterRef("pk"))
+            )
+        )
+>>>>>>> main
     )
 
     qs: QuerySet[Checkout] = Checkout.objects.filter(

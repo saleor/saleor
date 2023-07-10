@@ -1,6 +1,5 @@
 import graphene
 
-from ....core.permissions import OrderPermissions
 from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
@@ -11,7 +10,14 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
+<<<<<<< HEAD
 from ...app.dataloaders import get_app_promise
+=======
+from ....permission.enums import OrderPermissions
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
+>>>>>>> main
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -30,12 +36,19 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
 
     class Meta:
         description = "Deletes an order line from an order."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
     @classmethod
+<<<<<<< HEAD
     def perform_mutation(cls, _root, info, id):
+=======
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id
+    ):
+>>>>>>> main
         manager = get_plugin_manager_promise(info.context).get()
         line = cls.get_node_or_error(
             info,
@@ -43,6 +56,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             only_type=OrderLine,
         )
         order = line.order
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate_order(line.order)
 
         db_id = line.id

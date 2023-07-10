@@ -1,23 +1,24 @@
 import graphene
 
 from ....checkout import AddressType
-from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
     change_billing_address_in_checkout,
     invalidate_checkout_prices,
 )
 from ....core.tracing import traced_atomic_transaction
+from ....webhook.event_types import WebhookEventAsyncType
 from ...account.types import AddressInput
-from ...core.descriptions import (
-    ADDED_IN_34,
-    ADDED_IN_35,
-    DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
-)
+from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_34, ADDED_IN_35, DEPRECATED_IN_3X_INPUT
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+<<<<<<< HEAD
 from ...discount.dataloaders import load_discounts
+=======
+from ...core.utils import WebhookEventInfo
+>>>>>>> main
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
@@ -51,34 +52,35 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             description=(
                 "The rules for changing validation for received billing address data."
                 + ADDED_IN_35
-                + PREVIEW_FEATURE
             ),
         )
 
     class Meta:
         description = "Update billing address in the existing checkout."
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
+                description="A checkout was updated.",
+            )
+        ]
 
     @classmethod
-    def perform_mutation(
+    def perform_mutation(  # type: ignore[override]
         cls,
         _root,
-        info,
+        info: ResolveInfo,
+        /,
+        *,
         billing_address,
         validation_rules=None,
         checkout_id=None,
         token=None,
         id=None,
     ):
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=checkout_id,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         address_validation_rules = validation_rules or {}
         billing_address = cls.validate_address(
@@ -99,13 +101,11 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 checkout, billing_address
             )
             lines, _ = fetch_checkout_lines(checkout)
-            discounts = load_discounts(info.context)
-            checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+            checkout_info = fetch_checkout_info(checkout, lines, manager)
             invalidate_prices_updated_fields = invalidate_checkout_prices(
                 checkout_info,
                 lines,
                 manager,
-                discounts,
                 recalculate_discount=False,
                 save=False,
             )

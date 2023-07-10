@@ -9,7 +9,11 @@ from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils.url import build_absolute_uri, prepare_url
+<<<<<<< HEAD
 from ..discount import OrderDiscountType
+=======
+from ..discount import DiscountType
+>>>>>>> main
 from ..graphql.core.utils import to_global_id_or_none
 from ..product import ProductMediaTypes
 from ..product.models import DigitalContentUrl, Product, ProductMedia, ProductVariant
@@ -28,7 +32,11 @@ def get_image_payload(instance: ProductMedia):
         # should be optimize - we should fetch all thumbnails at once instead of
         # fetching thumbnails by one for each size
         str(size): build_absolute_uri(
+<<<<<<< HEAD
             get_image_or_proxy_url(None, instance.id, "ProductMedia", size, None)
+=======
+            get_image_or_proxy_url(None, str(instance.id), "ProductMedia", size, None)
+>>>>>>> main
         )
         for size in THUMBNAIL_SIZES
     }
@@ -96,7 +104,11 @@ def get_product_variant_payload(variant: ProductVariant):
 
 
 def get_order_line_payload(line: "OrderLine"):
+<<<<<<< HEAD
     digital_url = None
+=======
+    digital_url: Optional[str] = None
+>>>>>>> main
     if line.is_digital:
         content = DigitalContentUrl.objects.filter(line=line).first()
         digital_url = content.get_absolute_url() if content else None
@@ -188,7 +200,7 @@ def get_discounts_payload(order):
             "reason": order_discount.reason,
         }
         all_discounts.append(dicount_obj)
-        if order_discount.type == OrderDiscountType.VOUCHER:
+        if order_discount.type == DiscountType.VOUCHER:
             voucher_discount = dicount_obj
         discount_amount += order_discount.amount_value
 
@@ -374,22 +386,27 @@ def send_fulfillment_update(order, fulfillment, manager):
 def send_payment_confirmation(order_info, manager):
     """Send notification with the payment confirmation."""
     payment = order_info.payment
-    payment_currency = payment.currency
     payload = {
         "order": get_default_order_payload(order_info.order),
         "recipient_email": order_info.customer_email,
-        "payment": {
-            "created": payment.created_at,
-            "modified": payment.modified_at,
-            "charge_status": payment.charge_status,
-            "total": quantize_price(payment.total, payment_currency),
-            "captured_amount": quantize_price(
-                payment.captured_amount, payment_currency
-            ),
-            "currency": payment_currency,
-        },
         **get_site_context(),
     }
+    if payment:
+        payment_currency = payment.currency
+        payload.update(
+            {
+                "payment": {
+                    "created": payment.created_at,
+                    "modified": payment.modified_at,
+                    "charge_status": payment.charge_status,
+                    "total": quantize_price(payment.total, payment_currency),
+                    "captured_amount": quantize_price(
+                        payment.captured_amount, payment_currency
+                    ),
+                    "currency": payment_currency,
+                }
+            }
+        )
     manager.notify(
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
         payload,

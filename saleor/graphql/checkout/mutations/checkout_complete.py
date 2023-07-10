@@ -17,19 +17,24 @@ from ....checkout.fetch import (
     fetch_checkout_lines,
 )
 from ....checkout.utils import is_shipping_required
-from ....core import analytics
-from ....core.permissions import AccountPermissions
 from ....order import models as order_models
+from ....permission.enums import AccountPermissions
+from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import get_app_promise
+<<<<<<< HEAD
+=======
+from ...core import ResolveInfo
+>>>>>>> main
 from ...core.descriptions import ADDED_IN_34, ADDED_IN_38, DEPRECATED_IN_3X_INPUT
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
+from ...core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...discount.dataloaders import load_discounts
-from ...meta.mutations import MetadataInput
+from ...meta.inputs import MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
@@ -107,8 +112,62 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             "confirmationNeeded flag will be set to True and no order created "
             "until payment is confirmed with second call of this mutation."
         )
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                description=(
+                    "Optionally triggered when cached external shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                description=(
+                    "Optionally triggered when cached filtered shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_CREATED,
+                description="Triggered when order is created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for order placement.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A staff notification for order placement.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_UPDATED,
+                description=(
+                    "Triggered when order received the update after placement."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_PAID,
+                description="Triggered when newly created order is paid.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_FULLY_PAID,
+                description="Triggered when newly created order is fully paid.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_CONFIRMED,
+                description=(
+                    "Optionally triggered when newly created order are automatically "
+                    "marked as confirmed."
+                ),
+            ),
+        ]
 
     @classmethod
     def validate_checkout_addresses(
@@ -164,23 +223,28 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             billing_address.save()
 
     @classmethod
-    def perform_mutation(
-        cls, _root, info, store_source, checkout_id=None, token=None, id=None, **data
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        checkout_id=None,
+        id=None,
+        metadata=None,
+        payment_data=None,
+        redirect_url=None,
+        store_source,
+        token=None,
     ):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
-            CheckoutErrorCode, "checkout_id", checkout_id, "token", token, "id", id
+            "checkout_id", checkout_id, "token", token, "id", id
         )
-        tracking_code = analytics.get_client_id(info.context)
 
         try:
             checkout = get_checkout(
-                cls,
-                info,
-                checkout_id=checkout_id,
-                token=token,
-                id=id,
-                error_class=CheckoutErrorCode,
+                cls, info, checkout_id=checkout_id, token=token, id=id
             )
         except ValidationError as e:
             # DEPRECATED
@@ -208,8 +272,6 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                     order=order, confirmation_needed=False, confirmation_data={}
                 )
             raise e
-
-        metadata = data.get("metadata")
         if metadata is not None:
             cls.check_metadata_permissions(
                 info,
@@ -244,8 +306,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                     )
                 }
             )
-        discounts = load_discounts(info.context)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         cls.validate_checkout_addresses(checkout_info, lines)
 
@@ -260,18 +321,16 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         site = get_site_promise(info.context).get()
 
         order, action_required, action_data = complete_checkout(
-            manager=manager,
             checkout_info=checkout_info,
             lines=lines,
-            payment_data=data.get("payment_data", {}),
+            manager=manager,
+            payment_data=payment_data or {},
             store_source=store_source,
-            discounts=discounts,
             user=customer,
             app=get_app_promise(info.context).get(),
             site_settings=site.settings,
-            tracking_code=tracking_code,
-            redirect_url=data.get("redirect_url"),
-            metadata_list=data.get("metadata"),
+            redirect_url=redirect_url,
+            metadata_list=metadata,
         )
 
         # If gateway returns information that additional steps are required we need

@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 
 from ....discount.utils import fetch_active_discounts
 from ...models import Product
-from ...utils.variant_prices import update_product_discounted_price
+from ...utils.variant_prices import update_products_discounted_price
 
 logger = logging.getLogger(__name__)
 
@@ -20,4 +20,4 @@ class Command(BaseCommand):
         qs = Product.objects.all()
         for product in qs.iterator():
             self.stdout.write(f"Updating product PK: {product.pk}")
-            update_product_discounted_price(product, discounts=discounts)
+            update_products_discounted_price([product], discounts=discounts)

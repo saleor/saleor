@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("warehouse", "0016_stock_quantity_allocated"),
         ("warehouse", "0019_auto_20211019_1438"),

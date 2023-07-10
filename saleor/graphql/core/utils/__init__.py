@@ -1,13 +1,17 @@
 import binascii
 import os
 import secrets
-from typing import Union
+from dataclasses import dataclass
+from typing import List, Literal, Optional, Tuple, Type, Union, overload
 
 import graphene
+from django.core.exceptions import ValidationError
 from graphene import ObjectType
 from graphql.error import GraphQLError
 
-from ....plugins.webhook.utils import APP_ID_PREFIX
+from ....plugins.const import APP_ID_PREFIX
+from ....thumbnail import FILE_NAME_MAX_LENGTH
+from ....webhook.event_types import WebhookEventAsyncType
 from ..validators import validate_if_int_or_uuid
 
 
@@ -36,9 +40,27 @@ def get_duplicated_values(values):
     return {value for value in values if values.count(value) > 1}
 
 
+@overload
 def from_global_id_or_error(
     global_id: str,
     only_type: Union[ObjectType, str, None] = None,
+    raise_error: Literal[True] = True,
+) -> Tuple[str, str]:
+    ...
+
+
+@overload
+def from_global_id_or_error(
+    global_id: str,
+    only_type: Union[Type[ObjectType], str, None] = None,
+    raise_error: bool = False,
+) -> Union[Tuple[str, str], Tuple[str, None]]:
+    ...
+
+
+def from_global_id_or_error(
+    global_id: str,
+    only_type: Union[Type[ObjectType], str, None] = None,
     raise_error: bool = False,
 ):
     """Resolve global ID or raise GraphQLError.
@@ -89,6 +111,49 @@ def to_global_id_or_none(instance):
 def add_hash_to_file_name(file):
     """Add unique text fragment to the file name to prevent file overriding."""
     file_name, format = os.path.splitext(file._name)
+    file_name = file_name[:FILE_NAME_MAX_LENGTH]
     hash = secrets.token_hex(nbytes=4)
     new_name = f"{file_name}_{hash}{format}"
     file._name = new_name
+
+
+def raise_validation_error(field=None, message=None, code=None):
+    raise ValidationError({field: ValidationError(message, code=code)})
+
+
+def ext_ref_to_global_id_or_error(model, external_reference):
+    """Convert external reference to graphen global id."""
+    internal_id = (
+        model.objects.filter(external_reference=external_reference)
+        .values_list("id", flat=True)
+        .first()
+    )
+    if internal_id:
+        return graphene.Node.to_global_id(model.__name__, internal_id)
+    else:
+        raise_validation_error(
+            field="externalReference",
+            message=f"Couldn't resolve to a node: {external_reference}",
+            code="not_found",
+        )
+
+
+@dataclass
+class WebhookEventInfo:
+    type: str
+    description: Optional[str] = None
+
+
+CHECKOUT_CALCULATE_TAXES_MESSAGE = (
+    "Optionally triggered when checkout prices are expired."
+)
+
+
+def message_webhook_events(webhook_events: List[WebhookEventInfo]) -> str:
+    description = "\n\nTriggers the following webhook events:"
+    for event in webhook_events:
+        webhook_type = "async" if event.type in WebhookEventAsyncType.ALL else "sync"
+        description += f"\n- {event.type.upper()} ({webhook_type})"
+        if event.description:
+            description += f": {event.description}"
+    return description

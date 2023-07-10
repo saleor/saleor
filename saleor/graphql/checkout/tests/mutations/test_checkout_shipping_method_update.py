@@ -72,7 +72,7 @@ def test_checkout_shipping_method_update(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_info.delivery_method_info = get_delivery_method_info(
         convert_to_shipping_method_data(
             old_shipping_method, old_shipping_method.channel_listings.first()
@@ -144,7 +144,7 @@ def test_checkout_shipping_method_update_external_shipping_method(
     errors = data["errors"]
     assert not errors
     assert data["checkout"]["token"] == str(checkout_with_item.token)
-    assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
+    assert PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")

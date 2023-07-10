@@ -20,7 +20,6 @@ def assign_categories_to_products(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0045_md_to_html")]
 
     operations = [

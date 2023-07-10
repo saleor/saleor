@@ -3,11 +3,11 @@ from unittest.mock import patch
 
 import graphene
 import pytest
-from django.contrib.auth.models import Permission
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from ....attribute.utils import associate_attribute_values_to_instance
+from ....permission.models import Permission
 from ....tests.utils import dummy_editorjs
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_translation_payload
@@ -410,7 +410,13 @@ def test_attribute_translation(user_api_client, color_attribute):
     assert attribute["translation"]["language"]["code"] == "PL"
 
 
-def test_attribute_value_translation(user_api_client, pink_attribute_value):
+def test_attribute_value_translation(user_api_client, attribute_value_generator):
+    # given
+    pink_attribute_value = attribute_value_generator(
+        slug="pink",
+        name="Pink",
+        value="#FF69B4",
+    )
     pink_attribute_value.translations.create(
         language_code="pl", name="Różowy", rich_text=dummy_editorjs("Pink")
     )
@@ -442,11 +448,14 @@ def test_attribute_value_translation(user_api_client, pink_attribute_value):
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", pink_attribute_value.id
     )
+
+    # when
     response = user_api_client.post_graphql(
         query, {"attributeValueId": attribute_value_id}
     )
     data = get_graphql_content(response)["data"]
 
+    # then
     attribute_value = data["attributes"]["edges"][0]["node"]["choices"]["edges"][-1][
         "node"
     ]
@@ -3014,7 +3023,6 @@ def test_translation_query_product(
     product,
     product_translation_fr,
 ):
-
     product_id = graphene.Node.to_global_id("Product", product.id)
 
     variables = {
@@ -3058,7 +3066,6 @@ def test_translation_query_collection(
     permission_manage_translations,
     channel_USD,
 ):
-
     channel_listing = published_collection.channel_listings.get()
     channel_listing.save()
     collection_id = graphene.Node.to_global_id("Collection", published_collection.id)

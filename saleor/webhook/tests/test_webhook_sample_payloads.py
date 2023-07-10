@@ -36,6 +36,7 @@ def _remove_anonymized_order_data(order_data: dict) -> dict:
         (WebhookEventAsyncType.ORDER_CREATED, OrderStatus.UNFULFILLED),
         (WebhookEventAsyncType.ORDER_UPDATED, OrderStatus.CANCELED),
         (WebhookEventAsyncType.ORDER_CANCELLED, OrderStatus.CANCELED),
+        (WebhookEventAsyncType.ORDER_EXPIRED, OrderStatus.CANCELED),
         (WebhookEventAsyncType.ORDER_FULFILLED, OrderStatus.FULFILLED),
         (WebhookEventAsyncType.ORDER_FULLY_PAID, OrderStatus.FULFILLED),
     ],
@@ -180,7 +181,6 @@ def _remove_anonymized_checkout_data(checkout_data: dict) -> dict:
     "user_checkouts", ["regular", "click_and_collect"], indirect=True
 )
 def test_generate_sample_checkout_payload(user_checkouts):
-
     with mock.patch(
         "saleor.webhook.payloads._get_sample_object", return_value=user_checkouts
     ):
@@ -200,8 +200,10 @@ def test_generate_sample_checkout_payload(user_checkouts):
             != payload[0]["shipping_address"]["street_address_1"]
         )
         assert "note" not in payload[0]
-        assert checkout.metadata != payload[0]["metadata"]
-        assert checkout.private_metadata != payload[0]["private_metadata"]
+        assert checkout.metadata_storage.metadata != payload[0]["metadata"]
+        assert (
+            checkout.metadata_storage.private_metadata != payload[0]["private_metadata"]
+        )
         # Remove anonymized data
         payload = _remove_anonymized_checkout_data(payload)
         checkout_payload = _remove_anonymized_checkout_data(checkout_payload)

@@ -634,7 +634,6 @@ def test_validate_plugin_configuration_without_apple_cert(adyen_plugin):
 def test_adyen_check_payment_balance(
     api_call_mock, adyen_plugin, adyen_check_balance_response
 ):
-
     api_call_mock.return_value = adyen_check_balance_response
     plugin = adyen_plugin()
 
@@ -648,7 +647,7 @@ def test_adyen_check_payment_balance(
         },
     }
 
-    result = plugin.check_payment_balance(data)
+    result = plugin.check_payment_balance(data, None)
 
     assert result["pspReference"] == "851634546949980A"
     assert result["resultCode"] == "Success"
@@ -670,7 +669,6 @@ def test_adyen_check_payment_balance(
 
 @mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
 def test_adyen_check_payment_balance_adyen_raises_error(api_call_mock, adyen_plugin):
-
     api_call_mock.return_value = Adyen.AdyenError("Error")
     plugin = adyen_plugin()
 
@@ -684,7 +682,7 @@ def test_adyen_check_payment_balance_adyen_raises_error(api_call_mock, adyen_plu
         },
     }
 
-    result = plugin.check_payment_balance(data)
+    result = plugin.check_payment_balance(data, None)
 
     assert result == "Error"
     api_call_mock.assert_called_once_with(
@@ -717,5 +715,5 @@ def test_adyen_check_payment_timeout(request_post_mock, adyen_plugin):
     }
 
     request_post_mock.side_effect = ConnectTimeout()
-    res = plugin.check_payment_balance(data)
+    res = plugin.check_payment_balance(data, None)
     assert res.startswith("Unable to process the payment request")

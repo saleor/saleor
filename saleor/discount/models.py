@@ -1,5 +1,5 @@
 from datetime import datetime
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
 from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
@@ -17,9 +17,9 @@ from prices import Money, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
-from ..core.permissions import DiscountPermissions
-from ..core.utils.translations import Translation, TranslationProxy
-from . import DiscountValueType, OrderDiscountType, VoucherType
+from ..core.utils.translations import Translation
+from ..permission.enums import DiscountPermissions
+from . import DiscountType, DiscountValueType, VoucherType
 
 if TYPE_CHECKING:
     from ..account.models import User
@@ -40,7 +40,7 @@ class NotApplicable(ValueError):
         self.min_checkout_items_quantity = min_checkout_items_quantity
 
 
-class VoucherQueryset(models.QuerySet):
+class VoucherQueryset(models.QuerySet["Voucher"]):
     def active(self, date):
         return self.filter(
             Q(usage_limit__isnull=True) | Q(used__lt=F("usage_limit")),
@@ -58,6 +58,9 @@ class VoucherQueryset(models.QuerySet):
         return self.filter(
             Q(used__gte=F("usage_limit")) | Q(end_date__lt=date), start_date__lt=date
         )
+
+
+VoucherManager = models.Manager.from_queryset(VoucherQueryset)
 
 
 class Voucher(ModelWithMetadata):
@@ -91,18 +94,10 @@ class Voucher(ModelWithMetadata):
     collections = models.ManyToManyField("product.Collection", blank=True)
     categories = models.ManyToManyField("product.Category", blank=True)
 
-    objects = models.Manager.from_queryset(VoucherQueryset)()
-    translated = TranslationProxy()
+    objects = VoucherManager()
 
     class Meta:
         ordering = ("code",)
-
-    @property
-    def is_free(self):
-        return (
-            self.discount_value == Decimal(100)
-            and self.discount_value_type == DiscountValueType.PERCENTAGE
-        )
 
     def get_discount(self, channel: Channel):
         """Return proper discount amount for given channel.
@@ -125,7 +120,9 @@ class Voucher(ModelWithMetadata):
             return partial(fixed_discount, discount=discount_amount)
         if self.discount_value_type == DiscountValueType.PERCENTAGE:
             return partial(
-                percentage_discount, percentage=voucher_channel_listing.discount_value
+                percentage_discount,
+                percentage=voucher_channel_listing.discount_value,
+                rounding=ROUND_HALF_UP,
             )
         raise NotImplementedError("Unknown discount type")
 
@@ -221,7 +218,7 @@ class VoucherCustomer(models.Model):
         unique_together = (("voucher", "customer_email"),)
 
 
-class SaleQueryset(models.QuerySet):
+class SaleQueryset(models.QuerySet["Sale"]):
     def active(self, date=None):
         if date is None:
             date = timezone.now()
@@ -252,6 +249,9 @@ class VoucherTranslation(Translation):
         return {"name": self.name}
 
 
+SaleManager = models.Manager.from_queryset(SaleQueryset)
+
+
 class Sale(ModelWithMetadata):
     name = models.CharField(max_length=255)
     type = models.CharField(
@@ -270,8 +270,7 @@ class Sale(ModelWithMetadata):
 
     notification_sent_datetime = models.DateTimeField(null=True, blank=True)
 
-    objects = models.Manager.from_queryset(SaleQueryset)()
-    translated = TranslationProxy()
+    objects = SaleManager()
 
     class Meta:
         ordering = ("name", "pk")
@@ -301,6 +300,7 @@ class Sale(ModelWithMetadata):
             return partial(
                 percentage_discount,
                 percentage=sale_channel_listing.discount_value,
+                rounding=ROUND_HALF_UP,
             )
         raise NotImplementedError("Unknown discount type")
 
@@ -356,21 +356,13 @@ class SaleTranslation(Translation):
         return {"name": self.name}
 
 
-class OrderDiscount(models.Model):
+class BaseDiscount(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
-    old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    order = models.ForeignKey(
-        "order.Order",
-        related_name="discounts",
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     type = models.CharField(
         max_length=10,
-        choices=OrderDiscountType.CHOICES,
-        default=OrderDiscountType.MANUAL,
+        choices=DiscountType.CHOICES,
+        default=DiscountType.MANUAL,
     )
     value_type = models.CharField(
         max_length=10,
@@ -382,7 +374,6 @@ class OrderDiscount(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0.0"),
     )
-
     amount_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
@@ -392,12 +383,44 @@ class OrderDiscount(models.Model):
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
     )
-
     name = models.CharField(max_length=255, null=True, blank=True)
     translated_name = models.CharField(max_length=255, null=True, blank=True)
     reason = models.TextField(blank=True, null=True)
+    sale = models.ForeignKey(
+        Sale, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
+    )
+    voucher = models.ForeignKey(
+        Voucher, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
+    )
+
+    class Meta:
+        abstract = True
+
+
+class OrderDiscount(BaseDiscount):
+    order = models.ForeignKey(
+        "order.Order",
+        related_name="discounts",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
 
     class Meta:
         # Orders searching index
         indexes = [GinIndex(fields=["name", "translated_name"])]
+        ordering = ("created_at", "id")
+
+
+class CheckoutLineDiscount(BaseDiscount):
+    line = models.ForeignKey(
+        "checkout.CheckoutLine",
+        related_name="discounts",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
         ordering = ("created_at", "id")

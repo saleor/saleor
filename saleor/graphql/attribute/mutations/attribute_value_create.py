@@ -1,13 +1,21 @@
+from typing import Dict, List
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....attribute import AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ....core.permissions import ProductPermissions
 from ....core.utils import generate_unique_slug
+from ....permission.enums import ProductPermissions
+from ....webhook.event_types import WebhookEventAsyncType
+from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import AttributeError
+<<<<<<< HEAD
+=======
+from ...core.utils import WebhookEventInfo
+>>>>>>> main
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 from .attribute_create import AttributeValueCreateInput
@@ -37,10 +45,20 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED,
+                description="An attribute value was created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+                description="An attribute was updated.",
+            ),
+        ]
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
         if "name" in cleaned_input:
             cleaned_input["slug"] = generate_unique_slug(
                 instance,
@@ -50,14 +68,16 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         input_type = instance.attribute.input_type
 
         is_swatch_attr = input_type == AttributeInputType.SWATCH
-        errors = {}
+        errors: Dict[str, List[ValidationError]] = {}
         if not is_swatch_attr:
             for field in cls.ONLY_SWATCH_FIELDS:
                 if cleaned_input.get(field):
-                    errors[field] = ValidationError(
-                        f"The field {field} can be defined only for swatch attributes.",
-                        code=AttributeErrorCode.INVALID.value,
-                    )
+                    errors[field] = [
+                        ValidationError(
+                            f"The field {field} can be defined only for swatch attributes.",  # noqa: E501
+                            code=AttributeErrorCode.INVALID.value,
+                        )
+                    ]
         else:
             try:
                 cls.validate_swatch_attr_value(cleaned_input)
@@ -71,12 +91,14 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         return cleaned_input
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance):
         validate_value_is_unique(instance.attribute, instance)
         super().clean_instance(info, instance)
 
     @classmethod
-    def perform_mutation(cls, _root, info, attribute_id, input):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, attribute_id, input
+    ):
         attribute = cls.get_node_or_error(info, attribute_id, only_type=Attribute)
         instance = models.AttributeValue(attribute=attribute)
         cleaned_input = cls.clean_input(info, instance, input)
@@ -89,7 +111,11 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         return AttributeValueCreate(attribute=attribute, attributeValue=instance)
 
     @classmethod
+<<<<<<< HEAD
     def post_save_action(cls, info, instance, cleaned_input):
+=======
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+>>>>>>> main
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_value_created, instance)
         cls.call_event(manager.attribute_updated, instance.attribute)

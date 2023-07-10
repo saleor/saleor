@@ -26,7 +26,6 @@ def remove_variant_image_duplicates(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0122_auto_20200828_1135"),
     ]

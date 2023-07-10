@@ -1,5 +1,9 @@
 from collections import defaultdict
 from functools import partial, wraps
+<<<<<<< HEAD
+=======
+from typing import Optional
+>>>>>>> main
 
 from django.contrib.auth.hashers import check_password
 from django.utils.functional import LazyObject
@@ -8,7 +12,12 @@ from promise import Promise
 from ...app.models import App, AppExtension, AppToken
 from ...core.auth import get_token_from_request
 from ...core.utils.lazyobjects import unwrap_lazy
+<<<<<<< HEAD
 from ..core.dataloaders import DataLoader
+=======
+from ..core import SaleorContext
+from ..core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
+>>>>>>> main
 
 
 class AppByIdLoader(DataLoader):
@@ -44,6 +53,22 @@ class AppExtensionByAppIdLoader(DataLoader):
         return [extensions_map.get(app_id, []) for app_id in keys]
 
 
+<<<<<<< HEAD
+=======
+class AppsByAppIdentifierLoader(DataLoader):
+    context_key = "apps_by_app_identifier"
+
+    def batch_load(self, keys):
+        apps = App.objects.using(self.database_connection_name).filter(
+            identifier__in=keys
+        )
+        apps_map = defaultdict(list)
+        for app in apps:
+            apps_map[app.identifier].append(app)
+        return [apps_map.get(app_identifier, []) for app_identifier in keys]
+
+
+>>>>>>> main
 class AppTokensByAppIdLoader(DataLoader):
     context_key = "app_tokens_by_app_id"
 
@@ -87,19 +112,36 @@ class AppByTokenLoader(DataLoader):
         return [apps.get(authed_apps.get(key)) for key in keys]
 
 
-def promise_app(context):
+class ThumbnailByAppIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoader):
+    context_key = "thumbnail_by_app_size_and_format"
+    model_name = "app"
+
+
+class ThumbnailByAppInstallationIdSizeAndFormatLoader(
+    BaseThumbnailBySizeAndFormatLoader
+):
+    context_key = "thumbnail_by_app_installation_size_and_format"
+    model_name = "app_installation"
+
+
+def promise_app(context: SaleorContext) -> Promise[Optional[App]]:
     auth_token = get_token_from_request(context)
     if not auth_token or len(auth_token) != 30:
         return Promise.resolve(None)
     return AppByTokenLoader(context).load(auth_token)
 
 
+<<<<<<< HEAD
 def get_app_promise(context):
+=======
+def get_app_promise(context: SaleorContext) -> Promise[Optional[App]]:
+>>>>>>> main
     if hasattr(context, "app"):
         app = context.app
         if isinstance(app, LazyObject):
             app = unwrap_lazy(app)
         return Promise.resolve(app)
+<<<<<<< HEAD
 
     return Promise.resolve(promise_app(context))
 
@@ -111,4 +153,17 @@ def app_promise_callback(func):
             partial(func, root, info, *args, **kwargs)
         )
 
+=======
+
+    return promise_app(context)
+
+
+def app_promise_callback(func):
+    @wraps(func)
+    def _wrapper(root, info, *args, **kwargs):
+        return get_app_promise(info.context).then(
+            partial(func, root, info, *args, **kwargs)
+        )
+
+>>>>>>> main
     return _wrapper

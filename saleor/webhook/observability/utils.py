@@ -23,7 +23,6 @@ from .payloads import generate_api_call_payload, generate_event_delivery_attempt
 from .tracing import opentracing_trace
 
 if TYPE_CHECKING:
-
     from celery.exceptions import Retry
     from django.http import HttpRequest, HttpResponse
 

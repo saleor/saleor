@@ -4,7 +4,10 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
     dependencies = [
         ("account", "0063_user_user_p_meta_jsonb_path_idx"),
     ]

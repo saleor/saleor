@@ -1,19 +1,22 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import CheckoutPermissions
+from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
-from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
+from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_39
+from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelMutation
-from ...core.types import Error, NonNullList
+from ...core.types import BaseInputObjectType, Error, NonNullList
 from ...core.utils import get_duplicates_items
 from ..types import TaxClass
 
 TaxClassUpdateErrorCode = graphene.Enum.from_enum(error_codes.TaxClassUpdateErrorCode)
+TaxClassUpdateErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
-class CountryRateUpdateInput(graphene.InputObjectType):
+class CountryRateUpdateInput(BaseInputObjectType):
     country_code = CountryCodeEnum(
         description="Country in which this rate applies.", required=True
     )
@@ -25,6 +28,9 @@ class CountryRateUpdateInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
+
 
 class TaxClassUpdateError(Error):
     code = TaxClassUpdateErrorCode(description="The error code.", required=True)
@@ -34,8 +40,11 @@ class TaxClassUpdateError(Error):
         required=True,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
-class TaxClassUpdateInput(graphene.InputObjectType):
+
+class TaxClassUpdateInput(BaseInputObjectType):
     name = graphene.String(description="Name of the tax class.")
     update_country_rates = NonNullList(
         CountryRateUpdateInput,
@@ -51,6 +60,9 @@ class TaxClassUpdateInput(graphene.InputObjectType):
         ),
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
+
 
 class TaxClassUpdate(ModelMutation):
     class Arguments:
@@ -60,14 +72,14 @@ class TaxClassUpdate(ModelMutation):
         )
 
     class Meta:
-        description = "Update a tax class." + ADDED_IN_39 + PREVIEW_FEATURE
+        description = "Update a tax class." + ADDED_IN_39
         error_type_class = TaxClassUpdateError
         model = models.TaxClass
         object_type = TaxClass
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         update_country_rates = data.get("update_country_rates", [])
         update_country_codes = [item["country_code"] for item in update_country_rates]
         remove_country_rates = data.get("remove_country_rates", [])
@@ -80,10 +92,10 @@ class TaxClassUpdate(ModelMutation):
                 "removing items: "
             ) + ", ".join(duplicated_country_codes)
             params = {"country_codes": duplicated_country_codes}
-            code = error_codes.TaxClassUpdateErrorCode.DUPLICATED_INPUT_ITEM
+            code = error_codes.TaxClassUpdateErrorCode.DUPLICATED_INPUT_ITEM.value
             raise ValidationError(message=message, code=code, params=params)
 
-        return super().clean_input(info, instance, data, input_cls)
+        return super().clean_input(info, instance, data, **kwargs)
 
     @classmethod
     def update_country_rates(cls, instance, country_rates):

@@ -1,13 +1,23 @@
 import copy
 
 import graphene
+from django.core.exceptions import ValidationError
 
-from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
-from ....order import events
+from ....order import events, models
 from ....order.calculations import fetch_order_prices_if_expired
+<<<<<<< HEAD
 from ...app.dataloaders import get_app_promise
 from ...core.types import OrderError
+=======
+from ....order.error_codes import OrderErrorCode
+from ....permission.enums import OrderPermissions
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
+from ...core.types import OrderError
+from ...discount.types import OrderDiscount
+>>>>>>> main
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
@@ -27,26 +37,43 @@ class OrderDiscountUpdate(OrderDiscountCommon):
 
     class Meta:
         description = "Update discount for the order."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
     @classmethod
-    def validate(cls, info, order, order_discount, input):
+    def validate(cls, info: ResolveInfo, order: models.Order, order_discount, input):
         cls.validate_order(info, order)
         input["value"] = input.get("value") or order_discount.value
         input["value_type"] = input.get("value_type") or order_discount.value_type
 
-        cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
+        cls.validate_order_discount_input(order.undiscounted_total.gross, input)
 
     @classmethod
+<<<<<<< HEAD
     def perform_mutation(cls, _root, info, **data):
+=======
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, discount_id: str, input
+    ):
+>>>>>>> main
         manager = get_plugin_manager_promise(info.context).get()
         order_discount = cls.get_node_or_error(
-            info, data.get("discount_id"), only_type="OrderDiscount"
+            info, discount_id, only_type=OrderDiscount
         )
         order = order_discount.order
-        input = data.get("input")
+        if not order:
+            # FIXME: the order field in OrderDiscount is nullable
+            raise ValidationError(
+                {
+                    "discountId": ValidationError(
+                        "Discount doesn't belong to any order.",
+                        code=OrderErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate(info, order, order_discount, input)
 
         reason = input.get("reason", order_discount.reason)

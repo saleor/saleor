@@ -18,7 +18,6 @@ def delete_django_celery_beat_data(apps: Apps, _schema_editor):
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [

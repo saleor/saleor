@@ -2,13 +2,15 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....attribute import AttributeType
-from .....core.permissions import ProductTypePermissions
+from .....permission.enums import ProductTypePermissions
 from .....product import ProductTypeKind, models
 from .....product.error_codes import ProductErrorCode
+from ....core import ResolveInfo
 from ....core.descriptions import DEPRECATED_IN_3X_INPUT
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
-from ....core.types import NonNullList, ProductError
+from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.validators import validate_slug_and_generate_if_needed
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import ProductTypeKindEnum
@@ -16,7 +18,7 @@ from ...types import ProductType
 from ..utils import clean_tax_code
 
 
-class ProductTypeInput(graphene.InputObjectType):
+class ProductTypeInput(BaseInputObjectType):
     name = graphene.String(description="Name of the product type.")
     slug = graphene.String(description="Product type slug.")
     kind = ProductTypeKindEnum(description="The product type kind.")
@@ -65,6 +67,9 @@ class ProductTypeInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
 
 class ProductTypeCreate(ModelMutation):
     class Arguments:
@@ -89,8 +94,8 @@ class ProductTypeCreate(ModelMutation):
         return data.get("kind") or ProductTypeKind.NORMAL
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
         cleaned_input["kind"] = cls.clean_product_kind(instance, cleaned_input)
 
         weight = cleaned_input.get("weight")
@@ -99,7 +104,7 @@ class ProductTypeCreate(ModelMutation):
                 {
                     "weight": ValidationError(
                         "Product type can't have negative weight.",
-                        code=ProductErrorCode.INVALID,
+                        code=ProductErrorCode.INVALID.value,
                     )
                 }
             )
@@ -140,7 +145,7 @@ class ProductTypeCreate(ModelMutation):
             raise ValidationError(errors)
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         product_attributes = cleaned_data.get("product_attributes")
         variant_attributes = cleaned_data.get("variant_attributes")

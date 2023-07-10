@@ -14,10 +14,10 @@ from ..warehouse.management import deactivate_preorder_for_variant
 from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
 from .utils.variant_prices import (
-    update_product_discounted_price,
+    update_products_discounted_price,
     update_products_discounted_prices,
     update_products_discounted_prices_of_catalogues,
-    update_products_discounted_prices_of_discount,
+    update_products_discounted_prices_of_sale,
 )
 from .utils.variants import generate_and_set_variant_name
 
@@ -83,7 +83,7 @@ def update_product_discounted_price_task(product_pk: int):
     except ObjectDoesNotExist:
         logging.warning(f"Cannot find product with id: {product_pk}.")
         return
-    update_product_discounted_price(product)
+    update_products_discounted_price([product])
 
 
 @app.task
@@ -99,13 +99,13 @@ def update_products_discounted_prices_of_catalogues_task(
 
 
 @app.task
-def update_products_discounted_prices_of_discount_task(discount_pk: int):
+def update_products_discounted_prices_of_sale_task(discount_pk: int):
     try:
         discount = Sale.objects.get(pk=discount_pk)
     except ObjectDoesNotExist:
         logging.warning(f"Cannot find discount with id: {discount_pk}.")
         return
-    update_products_discounted_prices_of_discount(discount)
+    update_products_discounted_prices_of_sale(discount)
 
 
 @app.task
@@ -131,7 +131,10 @@ def _get_preorder_variants_to_clean():
     )
 
 
-@app.task(queue=settings.UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME, expires=20)
+@app.task(
+    queue=settings.UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME,
+    expires=settings.BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC,
+)
 def update_products_search_vector_task():
     products = Product.objects.filter(search_index_dirty=True).order_by()[
         :PRODUCTS_BATCH_SIZE

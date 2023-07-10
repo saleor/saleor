@@ -5,16 +5,13 @@ from ..order.models import Order, OrderLine
 from . import CustomerEvents
 from .models import CustomerEvent, User
 
-UserType = Optional[User]
-AppType = Optional[App]
-
 
 def customer_account_created_event(*, user: User) -> Optional[CustomerEvent]:
     return CustomerEvent.objects.create(user=user, type=CustomerEvents.ACCOUNT_CREATED)
 
 
 def customer_account_activated_event(
-    *, staff_user: UserType, app: AppType, account_id: int
+    *, staff_user: Optional[User], app: Optional[App], account_id: int
 ) -> Optional[CustomerEvent]:
     return CustomerEvent.objects.create(
         user=staff_user,
@@ -25,7 +22,7 @@ def customer_account_activated_event(
 
 
 def customer_account_deactivated_event(
-    *, staff_user: UserType, app: AppType, account_id: int
+    *, staff_user: Optional[User], app: Optional[App], account_id: int
 ) -> Optional[CustomerEvent]:
     return CustomerEvent.objects.create(
         user=staff_user,
@@ -72,7 +69,7 @@ def customer_placed_order_event(*, user: User, order: Order) -> Optional[Custome
 
 
 def customer_added_to_note_order_event(
-    *, user: UserType, order: Order, message: str
+    *, user: Optional[User], order: Order, message: str
 ) -> CustomerEvent:
     return CustomerEvent.objects.create(
         user=user,
@@ -94,7 +91,7 @@ def customer_downloaded_a_digital_link_event(
 
 
 def customer_deleted_event(
-    *, staff_user: UserType, app: AppType, deleted_count: int = 1
+    *, staff_user: Optional[User], app: Optional[App], deleted_count: int = 1
 ) -> CustomerEvent:
     return CustomerEvent.objects.create(
         user=staff_user,
@@ -106,7 +103,7 @@ def customer_deleted_event(
 
 
 def assigned_email_to_a_customer_event(
-    *, staff_user: UserType, app: AppType, new_email: str
+    *, staff_user: Optional[User], app: Optional[App], new_email: str
 ) -> CustomerEvent:
     return CustomerEvent.objects.create(
         user=staff_user,
@@ -118,7 +115,7 @@ def assigned_email_to_a_customer_event(
 
 
 def assigned_name_to_a_customer_event(
-    *, staff_user: UserType, app: AppType, new_name: str
+    *, staff_user: Optional[User], app: Optional[App], new_name: str
 ) -> CustomerEvent:
     return CustomerEvent.objects.create(
         user=staff_user,

@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0174_merge_20221007_1322"),
         ("product", "0175_alter_productmedia_product"),

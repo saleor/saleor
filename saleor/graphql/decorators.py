@@ -1,27 +1,30 @@
 from enum import Enum
 from functools import wraps
-from typing import Iterable, Union
+from typing import Iterable, List, Union
 
-from graphql.execution.base import ResolveInfo
+from graphene import ResolveInfo
 
 from ..attribute import AttributeType
 from ..core.exceptions import PermissionDenied
-from ..core.permissions import (
+from ..permission.auth_filters import is_app, is_staff_user
+from ..permission.enums import (
+    BasePermissionEnum,
     PagePermissions,
     PageTypePermissions,
     ProductPermissions,
     ProductTypePermissions,
+)
+from ..permission.utils import (
     has_one_of_permissions,
-    is_app,
-    is_staff_user,
     one_of_permissions_or_auth_filter_required,
 )
-from ..core.permissions import permission_required as core_permission_required
+from ..permission.utils import permission_required as core_permission_required
 from .utils import get_user_or_app_from_context
 
 
 def context(f):
     def decorator(func):
+        @wraps(func)
         def wrapper(*args, **kwargs):
             info = next(arg for arg in args if isinstance(arg, ResolveInfo))
             return func(info.context, *args, **kwargs)
@@ -62,10 +65,10 @@ def account_passes_test_for_attribute(test_func):
     return decorator
 
 
-def permission_required(perm: Union[Enum, Iterable[Enum]]):
+def permission_required(perm: Union[BasePermissionEnum, List[BasePermissionEnum]]):
     def check_perms(context):
         if isinstance(perm, Enum):
-            perms = (perm,)
+            perms = [perm]
         else:
             perms = perm
 
@@ -76,7 +79,7 @@ def permission_required(perm: Union[Enum, Iterable[Enum]]):
     return account_passes_test(check_perms)
 
 
-def one_of_permissions_required(perms: Iterable[Enum]):
+def one_of_permissions_required(perms: Iterable[BasePermissionEnum]):
     def check_perms(context):
         if not one_of_permissions_or_auth_filter_required(context, perms):
             raise PermissionDenied(permissions=perms)
@@ -118,16 +121,17 @@ def check_attribute_required_permissions():
 
     def check_perms(context, attribute):
         requestor = get_user_or_app_from_context(context)
+        permissions: List[BasePermissionEnum]
         if attribute.type == AttributeType.PAGE_TYPE:
-            permissions = (
+            permissions = [
                 PagePermissions.MANAGE_PAGES,
                 PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
-            )
+            ]
         else:
-            permissions = (
+            permissions = [
                 ProductPermissions.MANAGE_PRODUCTS,
                 ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
-            )
+            ]
         if not has_one_of_permissions(
             requestor,
             permissions,

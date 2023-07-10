@@ -161,6 +161,8 @@ def test_check_preorder_reserved_threshold_bulk_channel_threshold(
                 product=line.variant.product,
                 variant=line.variant,
                 product_type=line.variant.product.product_type,
+                discounts=[],
+                channel=channel_USD,
             )
         ],
         check_reservations=True,
@@ -228,6 +230,8 @@ def test_check_preorder_reserved_threshold_bulk_global_threshold(
                 product=line.variant.product,
                 variant=line.variant,
                 product_type=line.variant.product.product_type,
+                discounts=[],
+                channel=channel_USD,
             )
         ],
         check_reservations=True,

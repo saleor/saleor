@@ -97,6 +97,8 @@ def np_address_data():
         city_area="本宿",
         street_address_1="2-16-3",
         street_address_2="",
+        metadata={},
+        private_metadata={},
     )
 
 
@@ -160,7 +162,6 @@ def create_refund(payment_dummy):
                 app=None,
                 order=order,
                 payment=payment_dummy,
-                transactions=[],
                 order_lines_to_refund=order_lines or [],
                 fulfillment_lines_to_refund=fulfillment_lines or [],
                 manager=get_plugins_manager(),

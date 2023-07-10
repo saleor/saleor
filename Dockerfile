@@ -36,6 +36,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 RUN echo 'image/webp webp' >> /etc/mime.types
+RUN echo 'image/avif avif' >> /etc/mime.types
 
 RUN mkdir -p /app/media /app/static \
   && chown -R saleor:saleor /app/

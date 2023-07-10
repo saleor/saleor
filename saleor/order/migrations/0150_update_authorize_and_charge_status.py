@@ -41,7 +41,6 @@ def update_authorize_and_charge_status(apps, _schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0149_add_fields_for_authorize_and_charge"),
     ]

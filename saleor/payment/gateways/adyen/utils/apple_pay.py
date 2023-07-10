@@ -70,28 +70,29 @@ def initialize_apple_pay_session(
     display_name: str,
     certificate: str,
 ) -> dict:
-
     request_data = {
         "merchantIdentifier": merchant_identifier,
         "displayName": display_name,
         "initiative": "web",
         "initiativeContext": domain,
     }
-    request_exception = False
-    response = None
     try:
         response = make_request_to_initialize_apple_pay(
             validation_url, request_data, certificate
         )
     except requests.exceptions.RequestException:
         logger.warning("Failed to fetch the Apple Pay session", exc_info=True)
-        request_exception = True
-    if request_exception or response and not response.ok:
         raise PaymentError(
             "Unable to create Apple Pay payment session. Make sure that input data "
             " and certificate are correct."
         )
-    return response.json()  # type: ignore
+    if not response.ok:
+        # FIXME: shouldn't we forward some details here?
+        raise PaymentError(
+            "Unable to create Apple Pay payment session. Make sure that input data "
+            " and certificate are correct."
+        )
+    return response.json()
 
 
 def make_request_to_initialize_apple_pay(

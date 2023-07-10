@@ -50,7 +50,6 @@ def populate_email_config_in_user_email_plugin(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("plugins", "0006_auto_20200909_1253"),
     ]

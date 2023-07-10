@@ -22,6 +22,10 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_voucher_to_checkout
 from ....core.prices import quantize_price
 from ....discount import DiscountValueType, VoucherType
+<<<<<<< HEAD
+=======
+from ....discount.utils import generate_sale_discount_objects_for_checkout
+>>>>>>> main
 from ....payment import TransactionAction
 from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
@@ -33,6 +37,7 @@ from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.models import PreorderReservation, Reservation, Stock, Warehouse
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import assert_no_permission, get_graphql_content
+from ..enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 from ..mutations.utils import (
     clean_delivery_method,
     update_checkout_shipping_method_if_invalid,
@@ -52,7 +57,7 @@ def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     delivery_method = convert_to_shipping_method_data(
         shipping_method, shipping_method.channel_listings.first()
     )
@@ -68,7 +73,7 @@ def test_clean_delivery_method_with_preorder_is_valid_for_enabled_warehouse(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     is_valid_method = clean_delivery_method(checkout_info, lines, warehouses_for_cc[1])
 
     assert is_valid_method is True
@@ -83,7 +88,7 @@ def test_clean_delivery_method_does_nothing_if_no_shipping_method(
     checkout.shipping_address = address
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     is_valid_method = clean_delivery_method(checkout_info, lines, None)
     assert is_valid_method is True
 
@@ -106,9 +111,43 @@ def test_update_checkout_shipping_method_if_invalid(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
+    assert checkout.shipping_method is None
+    assert checkout_info.delivery_method_info.delivery_method is None
+
+    # Ensure the checkout's shipping method was saved
+    checkout.refresh_from_db(fields=["shipping_method"])
+    assert checkout.shipping_method is None
+
+
+def test_update_checkout_shipping_method_if_invalid_no_checkout_metadata(
+    checkout_with_single_item,
+    address,
+    shipping_method,
+    other_shipping_method,
+    shipping_zone_without_countries,
+):
+    # If the shipping method is invalid, it should be removed.
+
+    # given
+    checkout = checkout_with_single_item
+    checkout.metadata_storage.delete()
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+
+    shipping_method.shipping_zone = shipping_zone_without_countries
+    shipping_method.save(update_fields=["shipping_zone"])
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    update_checkout_shipping_method_if_invalid(checkout_info, lines)
+
+    # then
     assert checkout.shipping_method is None
     assert checkout_info.delivery_method_info.delivery_method is None
 
@@ -518,7 +557,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_method_and_discount
     checkout_with_item.shipping_address = address
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
     subtotal = calculations.checkout_subtotal(
         manager=manager,
@@ -561,7 +600,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discou
     checkout_with_item.shipping_address = address
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
     subtotal = calculations.checkout_subtotal(
         manager=manager,
@@ -621,6 +660,7 @@ def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
 
     checkout_with_item.save(update_fields=["shipping_address"])
 
+<<<<<<< HEAD
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
 
@@ -686,6 +726,9 @@ def test_checkout_shipping_methods_with_price_based_method_and_once_per_order_di
     checkout_with_item.save(update_fields=["shipping_address"])
 
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+=======
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+>>>>>>> main
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
 
     subtotal = calculations.checkout_subtotal(
@@ -1522,7 +1565,7 @@ def test_checkout_prices(user_api_client, checkout_with_item):
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
     total = calculations.checkout_total(
         manager=manager,
@@ -1547,7 +1590,6 @@ def test_checkout_prices(user_api_client, checkout_with_item):
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=line_info,
-        discounts=[],
     )
     assert (
         data["lines"][0]["unitPrice"]["gross"]["amount"]
@@ -1598,7 +1640,7 @@ def test_checkout_prices_checkout_with_custom_prices(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
     shipping_price = base_calculations.base_checkout_delivery_price(
         checkout_info, lines
@@ -1630,6 +1672,12 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
     query = QUERY_CHECKOUT_PRICES
     variables = {"id": to_global_id_or_none(checkout_with_item)}
 
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+    # To properly apply a sale at checkout, we need to generate discount objects.
+    generate_sale_discount_objects_for_checkout(checkout_info, lines)
+
     # when
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -1639,16 +1687,15 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
     assert data["token"] == str(checkout_with_item.token)
     assert len(data["lines"]) == checkout_with_item.lines.count()
 
-    manager = get_plugins_manager()
+    checkout_with_item.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
     total = calculations.checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_item.shipping_address,
-        discounts=[discount_info],
     )
     assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
     subtotal = calculations.checkout_subtotal(
@@ -1656,7 +1703,6 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_item.shipping_address,
-        discounts=[discount_info],
     )
     assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
     line_info = lines[0]
@@ -1666,11 +1712,9 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=line_info,
-        discounts=[discount_info],
     )
-    assert (
-        data["lines"][0]["unitPrice"]["gross"]["amount"]
-        == line_total_price.gross.amount / line_info.line.quantity
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == round(
+        line_total_price.gross.amount / line_info.line.quantity, 2
     )
     assert (
         data["lines"][0]["totalPrice"]["gross"]["amount"]
@@ -1684,14 +1728,15 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         [],
         line_info.line.price_override,
     )
+    undiscounted_total_price = undiscounted_unit_price.amount * line_info.line.quantity
     assert (
         data["lines"][0]["undiscountedUnitPrice"]["amount"]
         == undiscounted_unit_price.amount
     )
     assert (
-        data["lines"][0]["undiscountedTotalPrice"]["amount"]
-        == undiscounted_unit_price.amount * line_info.line.quantity
+        data["lines"][0]["undiscountedTotalPrice"]["amount"] == undiscounted_total_price
     )
+    assert line_total_price.gross.amount < undiscounted_total_price
 
 
 def test_checkout_display_gross_prices_use_default(user_api_client, checkout_with_item):
@@ -1749,7 +1794,7 @@ def test_checkout_prices_with_specific_voucher(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.checkout_total(
         manager=manager,
@@ -1773,9 +1818,8 @@ def test_checkout_prices_with_specific_voucher(
         lines=lines,
         checkout_line_info=line_info,
     )
-    assert (
-        data["lines"][0]["unitPrice"]["gross"]["amount"]
-        == line_total_price.gross.amount / line_info.line.quantity
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == round(
+        line_total_price.gross.amount / line_info.line.quantity, 2
     )
     assert (
         data["lines"][0]["totalPrice"]["gross"]["amount"]
@@ -1817,7 +1861,73 @@ def test_checkout_prices_with_voucher_once_per_order(
     assert len(data["lines"]) == checkout.lines.count()
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == float(
+        quantize_price(
+            line_total_price.gross.amount / line_info.line.quantity, checkout.currency
+        )
+    )
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.variant.get_price(
+        line_info.product,
+        line_info.collections,
+        checkout_info.channel,
+        line_info.channel_listing,
+        [],
+        line_info.line.price_override,
+    )
+    assert (
+        data["lines"][0]["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        data["lines"][0]["undiscountedTotalPrice"]["amount"]
+        == undiscounted_unit_price.amount * line_info.line.quantity
+    )
+
+
+def test_checkout_prices_with_voucher(user_api_client, checkout_with_item_and_voucher):
+    # given
+    checkout = checkout_with_item_and_voucher
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.checkout_total(
         manager=manager,
         checkout_info=checkout_info,
@@ -2020,7 +2130,7 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     manager = get_plugins_manager()
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
@@ -2037,7 +2147,7 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
 
     clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
     clean_checkout_payment(
-        manager, checkout_info, lines, None, CheckoutErrorCode, last_payment=payment
+        manager, checkout_info, lines, CheckoutErrorCode, last_payment=payment
     )
 
 
@@ -2048,7 +2158,7 @@ def test_clean_checkout_no_shipping_method(checkout_with_item, address):
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     with pytest.raises(ValidationError) as e:
         clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
 
@@ -2063,7 +2173,7 @@ def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method)
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     with pytest.raises(ValidationError) as e:
         clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
     msg = "Shipping address is not set"
@@ -2081,7 +2191,7 @@ def test_clean_checkout_invalid_shipping_method(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     with pytest.raises(ValidationError) as e:
         clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
 
@@ -2100,11 +2210,11 @@ def test_clean_checkout_no_billing_address(
     payment = checkout.get_last_active_payment()
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     with pytest.raises(ValidationError) as e:
         clean_checkout_payment(
-            manager, checkout_info, lines, None, CheckoutErrorCode, last_payment=payment
+            manager, checkout_info, lines, CheckoutErrorCode, last_payment=payment
         )
     msg = "Billing address is not set"
     assert e.value.error_dict["billing_address"][0].message == msg
@@ -2119,11 +2229,11 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
     payment = checkout.get_last_active_payment()
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     with pytest.raises(ValidationError) as e:
         clean_checkout_payment(
-            manager, checkout_info, lines, None, CheckoutErrorCode, last_payment=payment
+            manager, checkout_info, lines, CheckoutErrorCode, last_payment=payment
         )
 
     msg = "Provided payment methods can not cover the checkout's total amount"
@@ -2187,12 +2297,11 @@ QUERY_CHECKOUT_TRANSACTIONS = """
 def test_checkout_transactions_missing_permission(api_client, checkout):
     # given
     checkout.payment_transactions.create(
-        status="Authorized",
-        type="Credit card",
-        reference="123",
+        name="Credit card",
+        psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"id": to_global_id_or_none(checkout)}
@@ -2209,12 +2318,11 @@ def test_checkout_transactions_with_manage_checkouts(
 ):
     # given
     transaction = checkout.payment_transactions.create(
-        status="Authorized",
-        type="Credit card",
-        reference="123",
+        name="Credit card",
+        psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"id": to_global_id_or_none(checkout)}
@@ -2229,7 +2337,7 @@ def test_checkout_transactions_with_manage_checkouts(
     assert len(content["data"]["checkout"]["transactions"]) == 1
     transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
     assert transaction_id == graphene.Node.to_global_id(
-        "TransactionItem", transaction.id
+        "TransactionItem", transaction.token
     )
 
 
@@ -2238,12 +2346,11 @@ def test_checkout_transactions_with_handle_payments(
 ):
     # given
     transaction = checkout.payment_transactions.create(
-        status="Authorized",
-        type="Credit card",
-        reference="123",
+        name="Credit card",
+        psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"id": to_global_id_or_none(checkout)}
@@ -2258,5 +2365,90 @@ def test_checkout_transactions_with_handle_payments(
     assert len(content["data"]["checkout"]["transactions"]) == 1
     transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
     assert transaction_id == graphene.Node.to_global_id(
-        "TransactionItem", transaction.id
+        "TransactionItem", transaction.token
+    )
+
+
+QUERY_CHECKOUT_STATUSES_AND_BALANCE = """
+query getCheckout($id: ID) {
+  checkout(id: $id) {
+    updatedAt
+    chargeStatus
+    authorizeStatus
+    totalBalance {
+      currency
+      amount
+    }
+  }
+}
+"""
+
+
+def test_checkout_payment_statuses(
+    user_api_client,
+    checkout_with_prices,
+):
+    # given
+    checkout_with_prices.payment_transactions.create(
+        name="Credit card",
+        psp_reference="123",
+        currency="USD",
+        authorized_value=Decimal("15"),
+        charged_value=Decimal("5"),
+        charge_pending_value=Decimal("6"),
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
+    )
+    query = QUERY_CHECKOUT_STATUSES_AND_BALANCE
+    variables = {"id": to_global_id_or_none(checkout_with_prices)}
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    checkout_with_prices.refresh_from_db()
+    content = get_graphql_content(response)
+    assert (
+        content["data"]["checkout"]["chargeStatus"]
+        == CheckoutChargeStatusEnum.PARTIAL.name
+    )
+    assert (
+        content["data"]["checkout"]["authorizeStatus"]
+        == CheckoutAuthorizeStatusEnum.PARTIAL.name
+    )
+
+
+def test_checkout_balance(
+    user_api_client,
+    checkout_with_prices,
+):
+    # given
+    transaction = checkout_with_prices.payment_transactions.create(
+        name="Credit card",
+        psp_reference="123",
+        currency="USD",
+        authorized_value=Decimal("15"),
+        charged_value=Decimal("5"),
+        charge_pending_value=Decimal("6"),
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
+    )
+    query = QUERY_CHECKOUT_STATUSES_AND_BALANCE
+    variables = {"id": to_global_id_or_none(checkout_with_prices)}
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    checkout_with_prices.refresh_from_db()
+    content = get_graphql_content(response)
+    assert (
+        content["data"]["checkout"]["totalBalance"]["amount"]
+        == transaction.charged_value
+        + transaction.charge_pending_value
+        - checkout_with_prices.total.gross.amount
     )

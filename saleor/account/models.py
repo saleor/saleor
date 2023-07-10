@@ -3,18 +3,10 @@ from typing import Iterable, Union
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.auth.models import _user_has_perm  # type: ignore
-from django.contrib.auth.models import (
-    AbstractBaseUser,
-    BaseUserManager,
-    Group,
-    Permission,
-    PermissionsMixin,
-)
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.db.models import JSONField  # type: ignore
-from django.db.models import Q, Value
+from django.db.models import JSONField, Q, Value
 from django.db.models.expressions import Exists, OuterRef
 from django.forms.models import model_to_dict
 from django.utils import timezone
@@ -23,10 +15,11 @@ from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 
 from ..app.models import App
-from ..core.models import ModelWithMetadata
-from ..core.permissions import AccountPermissions, BasePermissionEnum, get_permissions
+from ..core.models import ModelWithExternalReference, ModelWithMetadata
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..order.models import Order
+from ..permission.enums import AccountPermissions, BasePermissionEnum, get_permissions
+from ..permission.models import Permission, PermissionsMixin, _user_has_perm
 from . import CustomerEvents
 from .validators import validate_possible_number
 
@@ -37,7 +30,7 @@ class PossiblePhoneNumberField(PhoneNumberField):
     default_validators = [validate_possible_number]
 
 
-class AddressQueryset(models.QuerySet):
+class AddressQueryset(models.QuerySet["Address"]):
     def annotate_default(self, user):
         # Set default shipping/billing address pk to None
         # if default shipping/billing address doesn't exist
@@ -57,7 +50,10 @@ class AddressQueryset(models.QuerySet):
         )
 
 
-class Address(models.Model):
+AddressManager = models.Manager.from_queryset(AddressQueryset)
+
+
+class Address(ModelWithMetadata):
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
     company_name = models.CharField(max_length=256, blank=True)
@@ -70,11 +66,12 @@ class Address(models.Model):
     country_area = models.CharField(max_length=128, blank=True)
     phone = PossiblePhoneNumberField(blank=True, default="", db_index=True)
 
-    objects = models.Manager.from_queryset(AddressQueryset)()
+    objects = AddressManager()
 
     class Meta:
         ordering = ("pk",)
         indexes = [
+            *ModelWithMetadata.Meta.indexes,
             GinIndex(
                 name="address_search_gin",
                 # `opclasses` and `fields` should be the same length
@@ -95,15 +92,6 @@ class Address(models.Model):
                 opclasses=["gin_trgm_ops"] * 6,
             ),
         ]
-
-    @property
-    def full_name(self):
-        return f"{self.first_name} {self.last_name}"
-
-    def __str__(self):
-        if self.company_name:
-            return f"{self.company_name} - {self.full_name}"
-        return self.full_name
 
     def __eq__(self, other):
         if not isinstance(other, Address):
@@ -129,7 +117,7 @@ class Address(models.Model):
         return Address.objects.create(**self.as_data())
 
 
-class UserManager(BaseUserManager):
+class UserManager(BaseUserManager["User"]):
     def create_user(
         self, email, password=None, is_staff=False, is_active=True, **extra_fields
     ):
@@ -147,9 +135,14 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        return self.create_user(
+        user = self.create_user(
             email, password, is_staff=True, is_superuser=True, **extra_fields
         )
+        group, created = Group.objects.get_or_create(name="Full Access")
+        if created:
+            group.permissions.add(*get_permissions())
+        group.user_set.add(user)
+        return user
 
     def customers(self):
         orders = Order.objects.values("user_id")
@@ -162,7 +155,9 @@ class UserManager(BaseUserManager):
         return self.get_queryset().filter(is_staff=True)
 
 
-class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
+class User(
+    PermissionsMixin, ModelWithMetadata, AbstractBaseUser, ModelWithExternalReference
+):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
@@ -229,12 +224,16 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         super().__init__(*args, **kwargs)
         self._effective_permissions = None
 
+    def __str__(self):
+        # Override the default __str__ of AbstractUser that returns username, which may
+        # lead to leaking sensitive data in logs.
+        return str(self.uuid)
+
     @property
     def effective_permissions(self) -> models.QuerySet[Permission]:
         if self._effective_permissions is None:
             self._effective_permissions = get_permissions()
             if not self.is_superuser:
-
                 UserPermission = User.user_permissions.through
                 user_permission_queryset = UserPermission.objects.filter(
                     user_id=self.pk
@@ -361,3 +360,53 @@ class StaffNotificationRecipient(models.Model):
 
     def get_email(self):
         return self.user.email if self.user else self.staff_email
+
+
+class GroupManager(models.Manager):
+    """The manager for the auth's Group model."""
+
+    use_in_migrations = True
+
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
+class Group(models.Model):
+    """The system provides a way to group users.
+
+    Groups are a generic way of categorizing users to apply permissions, or
+    some other label, to those users. A user can belong to any number of
+    groups.
+
+    A user in a group automatically has all the permissions granted to that
+    group. For example, if the group 'Site editors' has the permission
+    can_edit_home_page, any user in that group will have that permission.
+
+    Beyond permissions, groups are a convenient way to categorize users to
+    apply some label, or extended functionality, to them. For example, you
+    could create a group 'Special users', and you could write code that would
+    do special things to those users -- such as giving them access to a
+    members-only portion of your site, or sending them members-only email
+    messages.
+    """
+
+    name = models.CharField("name", max_length=150, unique=True)
+    permissions = models.ManyToManyField(
+        Permission,
+        verbose_name="permissions",
+        blank=True,
+    )
+    restricted_access_to_channels = models.BooleanField(default=False)
+    channels = models.ManyToManyField("channel.Channel", blank=True)
+
+    objects = GroupManager()
+
+    class Meta:
+        verbose_name = "group"
+        verbose_name_plural = "groups"
+
+    def __str__(self):
+        return self.name
+
+    def natural_key(self):
+        return (self.name,)

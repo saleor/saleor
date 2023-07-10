@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0042_rename_created_checkout_created_at"),
     ]

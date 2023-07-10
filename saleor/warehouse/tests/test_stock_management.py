@@ -856,7 +856,7 @@ def test_decrease_stock_partially(allocation):
                 line=allocation.order_line,
                 quantity=80,
                 variant=stock.product_variant,
-                warehouse_pk=str(warehouse_pk),
+                warehouse_pk=warehouse_pk,
             )
         ],
         manager=get_plugins_manager(),
@@ -881,7 +881,7 @@ def test_decrease_stock_many_allocations(
                 line=order_line,
                 quantity=3,
                 variant=order_line.variant,
-                warehouse_pk=str(warehouse_pk),
+                warehouse_pk=warehouse_pk,
             )
         ],
         manager=get_plugins_manager(),
@@ -906,11 +906,11 @@ def test_decrease_stock_many_allocations_partially(
                 line=order_line,
                 quantity=2,
                 variant=order_line.variant,
-                warehouse_pk=str(warehouse_pk),
+                warehouse_pk=warehouse_pk,
             )
         ],
         manager=get_plugins_manager(),
-    ),
+    )
 
     assert allocations[0].quantity_allocated == 0
     assert allocations[1].quantity_allocated == 1

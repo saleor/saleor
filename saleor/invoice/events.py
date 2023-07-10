@@ -5,12 +5,9 @@ from ..app.models import App
 from ..order.models import Order
 from .models import Invoice, InvoiceEvent, InvoiceEvents
 
-UserType = Optional[User]
-AppType = Optional[App]
-
 
 def invoice_requested_event(
-    *, user: UserType, app: AppType, order: Order, number: str
+    *, user: Optional[User], app: Optional[App], order: Order, number: Optional[str]
 ) -> InvoiceEvent:
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.REQUESTED,
@@ -22,7 +19,7 @@ def invoice_requested_event(
 
 
 def invoice_requested_deletion_event(
-    *, user: UserType, app: AppType, invoice: Invoice
+    *, user: Optional[User], app: Optional[App], invoice: Invoice
 ) -> InvoiceEvent:
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.REQUESTED_DELETION,
@@ -34,7 +31,7 @@ def invoice_requested_deletion_event(
 
 
 def invoice_created_event(
-    *, user: UserType, app: AppType, invoice: Invoice, number: str, url: str
+    *, user: Optional[User], app: Optional[App], invoice: Invoice, number: str, url: str
 ) -> InvoiceEvent:
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.CREATED,
@@ -47,7 +44,7 @@ def invoice_created_event(
 
 
 def invoice_deleted_event(
-    *, user: UserType, app: AppType, invoice_id: int
+    *, user: Optional[User], app: Optional[App], invoice_id: int
 ) -> InvoiceEvent:
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.DELETED,
@@ -69,5 +66,5 @@ def notification_invoice_sent_event(
         user_id=user_id,
         app_id=app_id,
         invoice_id=invoice_id,
-        parameters={"email": customer_email},  # type: ignore
+        parameters={"email": customer_email},
     )

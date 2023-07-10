@@ -8,6 +8,26 @@ from .....graphql.attribute.enums import AttributeInputTypeEnum, AttributeTypeEn
 from .....product.models import Product
 
 
+def generate_account_events_payload(customer_user, channel, new_email=None):
+    payload = {
+        **generate_customer_payload(customer_user),
+        **{
+            "token": "token",
+            "redirectUrl": "http://www.mirumee.com?token=token",
+            "channel": {
+                "slug": channel.slug,
+                "id": graphene.Node.to_global_id("Channel", channel.id),
+            },
+            "shop": {"domain": {"host": "mirumee.com", "url": "http://mirumee.com/"}},
+        },
+    }
+
+    if new_email:
+        payload["newEmail"] = new_email
+
+    return json.dumps(payload)
+
+
 def generate_app_payload(app, app_global_id):
     return json.dumps(
         {
@@ -233,13 +253,24 @@ def generate_permission_group_payload(group):
 
 
 def generate_invoice_payload(invoice):
-    return {
+    payload = {
         "invoice": {
             "id": graphene.Node.to_global_id("Invoice", invoice.pk),
             "status": invoice.status.upper(),
             "number": invoice.number,
+            "order": None,
         }
     }
+    if invoice.order_id:
+        order_id = graphene.Node.to_global_id("Order", invoice.order_id)
+        payload["invoice"]["order"] = {"id": order_id}
+        payload["order"] = {
+            "id": order_id,
+            "number": str(invoice.order.number),
+            "userEmail": invoice.order.user_email,
+            "isPaid": invoice.order.is_fully_paid(),
+        }
+    return payload
 
 
 def generate_category_payload(category):

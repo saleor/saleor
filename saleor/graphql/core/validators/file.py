@@ -1,6 +1,5 @@
 import mimetypes
 import os
-import secrets
 
 import requests
 from django.core.exceptions import ValidationError
@@ -48,14 +47,6 @@ def validate_image_url(url: str, field_name: str, error_code: str) -> None:
         raise ValidationError(
             {field_name: ValidationError("Invalid file type.", code=error_code)}
         )
-
-
-def get_filename_from_url(url: str) -> str:
-    """Prepare unique filename for file from URL to avoid overwritting."""
-    file_name = os.path.basename(url)
-    name, format = os.path.splitext(file_name)
-    hash = secrets.token_hex(nbytes=4)
-    return f"{name}_{hash}{format}"
 
 
 def clean_image_file(cleaned_input, img_field_name, error_class):

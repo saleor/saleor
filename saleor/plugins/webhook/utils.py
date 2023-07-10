@@ -4,9 +4,7 @@ import logging
 from contextlib import contextmanager
 from dataclasses import dataclass
 from time import time
-from typing import TYPE_CHECKING, Any, List, Optional
-
-from django.db.models import QuerySet
+from typing import TYPE_CHECKING, Any, List, Optional, Sequence
 
 from ...app.models import App
 from ...core.models import (
@@ -18,14 +16,13 @@ from ...core.models import (
 from ...core.taxes import TaxData, TaxLineData
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ...webhook.event_types import WebhookEventSyncType
+from ..const import APP_ID_PREFIX
 
 if TYPE_CHECKING:
     from ...payment.interface import PaymentData
+    from ...webhook.models import Webhook
     from .tasks import WebhookResponse
 
-APP_GATEWAY_ID_PREFIX = "app"
-
-APP_ID_PREFIX = "app"
 
 logger = logging.getLogger(__name__)
 
@@ -180,6 +177,22 @@ def parse_tax_data(
         return None
 
 
+def get_delivery_for_webhook(event_delivery_id) -> Optional["EventDelivery"]:
+    try:
+        delivery = EventDelivery.objects.select_related("payload", "webhook__app").get(
+            id=event_delivery_id
+        )
+    except EventDelivery.DoesNotExist:
+        logger.error("Event delivery id: %r not found", event_delivery_id)
+        return None
+
+    if not delivery.webhook.is_active:
+        delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+        logger.info("Event delivery id: %r webhook is disabled.", event_delivery_id)
+        return None
+    return delivery
+
+
 @contextmanager
 def catch_duration_time():
     start = time()
@@ -187,7 +200,7 @@ def catch_duration_time():
 
 
 def create_event_delivery_list_for_webhooks(
-    webhooks: QuerySet,
+    webhooks: Sequence["Webhook"],
     event_payload: "EventPayload",
     event_type: str,
 ) -> List[EventDelivery]:
@@ -207,7 +220,7 @@ def create_event_delivery_list_for_webhooks(
 
 def create_attempt(
     delivery: "EventDelivery",
-    task_id: str = None,
+    task_id: Optional[str] = None,
 ):
     attempt = EventDeliveryAttempt.objects.create(
         delivery=delivery,
@@ -225,7 +238,6 @@ def attempt_update(
     attempt: "EventDeliveryAttempt",
     webhook_response: "WebhookResponse",
 ):
-
     attempt.duration = webhook_response.duration
     attempt.response = webhook_response.content
     attempt.response_headers = json.dumps(webhook_response.response_headers)

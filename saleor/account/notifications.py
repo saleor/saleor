@@ -63,9 +63,11 @@ def send_password_reset_notification(
     manager.notify(event, payload=payload, channel_slug=channel_slug)
 
 
-def send_account_confirmation(user, redirect_url, manager, channel_slug):
+def send_account_confirmation(user, redirect_url, manager, channel_slug, token=None):
     """Trigger sending an account confirmation notification for the given user."""
-    token = default_token_generator.make_token(user)
+
+    if not token:
+        token = default_token_generator.make_token(user)
     params = urlencode({"email": user.email, "token": token})
     confirm_url = prepare_url(params, redirect_url)
     payload = {
@@ -105,11 +107,13 @@ def send_request_user_change_email_notification(
 
 
 def send_user_change_email_notification(recipient_email, user, manager, channel_slug):
-    """Trigger sending a email change notification for the given user."""
+    """Trigger sending an email change notification for the given user."""
     payload = {
         "user": get_default_user_payload(user),
         "recipient_email": recipient_email,
         "channel_slug": channel_slug,
+        "old_email": recipient_email,
+        "new_email": user.email,
         **get_site_context(),
     }
     manager.notify(
@@ -120,10 +124,11 @@ def send_user_change_email_notification(recipient_email, user, manager, channel_
 
 
 def send_account_delete_confirmation_notification(
-    redirect_url, user, manager, channel_slug
+    redirect_url, user, manager, channel_slug, token=None
 ):
-    """Trigger sending a account delete notification for the given user."""
-    token = account_delete_token_generator.make_token(user)
+    """Trigger sending an account delete notification for the given user."""
+    if not token:
+        token = account_delete_token_generator.make_token(user)
     params = urlencode({"token": token})
     delete_url = prepare_url(params, redirect_url)
     payload = {

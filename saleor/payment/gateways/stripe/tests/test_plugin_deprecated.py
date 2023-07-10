@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 from .... import TransactionKind
 from ....utils import create_payment_information, price_to_minor_unit
-from ..consts import AUTOMATIC_CAPTURE_METHOD, STRIPE_API_VERSION, SUCCESS_STATUS
+from ..consts import AUTOMATIC_CAPTURE_METHOD, SUCCESS_STATUS
 
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.Customer.create")
@@ -72,11 +72,9 @@ def test_process_payment_with_customer_and_future_usage(
             "payment_id": payment_info.graphql_payment_id,
         },
         receipt_email=payment_stripe_for_checkout.checkout.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
         email=customer_user.email,
-        stripe_version=STRIPE_API_VERSION,
     )

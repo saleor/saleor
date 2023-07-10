@@ -31,7 +31,7 @@ ROOT_URLCONF = "saleor.demo.urls"
 
 PLUGINS += ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]  # noqa: F405
 
-GRAPHENE.setdefault("MIDDLEWARE", []).insert(  # type: ignore # noqa: F405
+GRAPHQL_MIDDLEWARE.insert(  # noqa: F405
     0, "saleor.graphql.middleware.ReadOnlyMiddleware"
 )
 
@@ -55,7 +55,6 @@ ROOT_EMAIL = os.environ.get("ROOT_EMAIL")
 # (see saleor.demo.management.commands.populatedb).
 INSTALLED_APPS.remove("saleor.core")  # noqa: F405
 INSTALLED_APPS += ["saleor.demo", "saleor.core"]  # noqa: F405
-ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = False
 
 
 def _get_project_name_from_url(url: str) -> str:

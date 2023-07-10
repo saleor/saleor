@@ -1,10 +1,13 @@
 import graphene
 
 from ....app import models
-from ....core.permissions import AppPermission, get_permissions
+from ....permission.enums import AppPermission, get_permissions
+from ....webhook.event_types import WebhookEventAsyncType
+from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelMutation
-from ...core.types import AppError, NonNullList
+from ...core.types import AppError, BaseInputObjectType, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...decorators import staff_member_required
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
@@ -12,12 +15,15 @@ from ..types import App
 from ..utils import ensure_can_manage_permissions
 
 
-class AppInput(graphene.InputObjectType):
+class AppInput(BaseInputObjectType):
     name = graphene.String(description="Name of the app.")
     permissions = NonNullList(
         PermissionEnum,
         description="List of permission code names to assign to this app.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
 
 
 class AppCreate(ModelMutation):
@@ -42,10 +48,16 @@ class AppCreate(ModelMutation):
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.APP_INSTALLED,
+                description="An app was installed.",
+            ),
+        ]
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data, input_cls)
+    def clean_input(cls, info, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
         # clean and prepare permissions
         if "permissions" in cleaned_input:
             requestor = get_user_or_app_from_context(info.context)
@@ -56,7 +68,7 @@ class AppCreate(ModelMutation):
 
     @classmethod
     @staff_member_required
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info, /, **data):
         instance = cls.get_instance(info, **data)
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)

@@ -3,20 +3,27 @@ from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from ...core.permissions import OrderPermissions, ProductPermissions
+from ...permission.enums import OrderPermissions, ProductPermissions
 from ...warehouse import models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
+from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import (
     ADDED_IN_31,
+    ADDED_IN_310,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
 )
+from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.fields import ConnectionField, PermissionsField
-from ..core.types import ModelObjectType, NonNullList
+from ..core.types import (
+    BaseInputObjectType,
+    BaseObjectType,
+    ModelObjectType,
+    NonNullList,
+)
 from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders import ProductVariantByIdLoader
 from ..site.dataloaders import load_site_callback
@@ -24,9 +31,15 @@ from .dataloaders import WarehouseByIdLoader
 from .enums import WarehouseClickAndCollectOptionEnum
 
 
-class WarehouseInput(graphene.InputObjectType):
+class WarehouseInput(BaseInputObjectType):
     slug = graphene.String(description="Warehouse slug.")
     email = graphene.String(description="The email address of the warehouse.")
+    external_reference = graphene.String(
+        description="External ID of the warehouse." + ADDED_IN_310, required=False
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class WarehouseCreateInput(WarehouseInput):
@@ -43,6 +56,9 @@ class WarehouseCreateInput(WarehouseInput):
         + " Providing the zone ids will raise a ValidationError.",
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
 
 class WarehouseUpdateInput(WarehouseInput):
     name = graphene.String(description="Warehouse name.", required=False)
@@ -53,25 +69,32 @@ class WarehouseUpdateInput(WarehouseInput):
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
         description=(
-            "Click and collect options: local, all or disabled."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            "Click and collect options: local, all or disabled." + ADDED_IN_31
         ),
         required=False,
     )
     is_private = graphene.Boolean(
-        description="Visibility of warehouse stocks." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="Visibility of warehouse stocks." + ADDED_IN_31,
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class Warehouse(ModelObjectType):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
-    slug = graphene.String(required=True)
-    email = graphene.String(required=True)
-    is_private = graphene.Boolean(required=True)
-    address = graphene.Field("saleor.graphql.account.types.Address", required=True)
+
+class Warehouse(ModelObjectType[models.Warehouse]):
+    id = graphene.GlobalID(required=True, description="The ID of the warehouse.")
+    name = graphene.String(required=True, description="Warehouse name.")
+    slug = graphene.String(required=True, description="Warehouse slug.")
+    email = graphene.String(required=True, description="Warehouse email.")
+    is_private = graphene.Boolean(
+        required=True, description="Determine if the warehouse is private."
+    )
+    address = graphene.Field(
+        "saleor.graphql.account.types.Address",
+        required=True,
+        description="Address of the warehouse.",
+    )
     company_name = graphene.String(
         required=True,
         description="Warehouse company name.",
@@ -81,15 +104,17 @@ class Warehouse(ModelObjectType):
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
         description=(
-            "Click and collect options: local, all or disabled."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            "Click and collect options: local, all or disabled." + ADDED_IN_31
         ),
         required=True,
     )
     shipping_zones = ConnectionField(
         "saleor.graphql.shipping.types.ShippingZoneCountableConnection",
         required=True,
+        description="Shipping zones supported by the warehouse.",
+    )
+    external_reference = graphene.String(
+        description=f"External ID of this warehouse. {ADDED_IN_310}", required=False
     )
 
     class Meta:
@@ -98,7 +123,7 @@ class Warehouse(ModelObjectType):
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
 
     @staticmethod
-    def resolve_shipping_zones(root, info, *_args, **kwargs):
+    def resolve_shipping_zones(root, info: ResolveInfo, *_args, **kwargs):
         from ..shipping.types import ShippingZoneCountableConnection
 
         instances = root.shipping_zones.all()
@@ -116,14 +141,14 @@ class Warehouse(ModelObjectType):
         return slice
 
     @staticmethod
-    def resolve_address(root, info):
+    def resolve_address(root, info: ResolveInfo):
         if hasattr(root, "is_object_deleted") and root.is_object_deleted:
             return root.address
 
         return AddressByIdLoader(info.context).load(root.address_id)
 
     @staticmethod
-    def resolve_company_name(root, info):
+    def resolve_company_name(root, info: ResolveInfo):
         def _resolve_company_name(address):
             return address.company_name
 
@@ -136,14 +161,19 @@ class Warehouse(ModelObjectType):
 
 class WarehouseCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = Warehouse
 
 
-class Stock(ModelObjectType):
-    id = graphene.GlobalID(required=True)
-    warehouse = graphene.Field(Warehouse, required=True)
+class Stock(ModelObjectType[models.Stock]):
+    id = graphene.GlobalID(required=True, description="The ID of stock.")
+    warehouse = graphene.Field(
+        Warehouse, required=True, description="The warehouse associated with the stock."
+    )
     product_variant = graphene.Field(
-        "saleor.graphql.product.types.ProductVariant", required=True
+        "saleor.graphql.product.types.ProductVariant",
+        required=True,
+        description="Information about the product variant.",
     )
     quantity = PermissionsField(
         graphene.Int,
@@ -182,18 +212,18 @@ class Stock(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_quantity(root, _info):
+    def resolve_quantity(root, _info: ResolveInfo):
         return root.quantity
 
     @staticmethod
-    def resolve_quantity_allocated(root, _info):
+    def resolve_quantity_allocated(root, _info: ResolveInfo):
         return root.allocations.aggregate(
             quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
         )["quantity_allocated"]
 
     @staticmethod
     @load_site_callback
-    def resolve_quantity_reserved(root, _info, site):
+    def resolve_quantity_reserved(root, _info: ResolveInfo, site):
         if not is_reservation_enabled(site.settings):
             return 0
 
@@ -208,13 +238,13 @@ class Stock(ModelObjectType):
         )["quantity_reserved"]
 
     @staticmethod
-    def resolve_warehouse(root, info):
+    def resolve_warehouse(root, info: ResolveInfo):
         if root.warehouse_id:
             return WarehouseByIdLoader(info.context).load(root.warehouse_id)
         return None
 
     @staticmethod
-    def resolve_product_variant(root, info):
+    def resolve_product_variant(root, info: ResolveInfo):
         return (
             ProductVariantByIdLoader(info.context)
             .load(root.product_variant_id)
@@ -224,11 +254,12 @@ class Stock(ModelObjectType):
 
 class StockCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = Stock
 
 
-class Allocation(graphene.ObjectType):
-    id = graphene.GlobalID(required=True)
+class Allocation(BaseObjectType):
+    id = graphene.GlobalID(required=True, description="The ID of allocation.")
     quantity = PermissionsField(
         graphene.Int,
         required=True,
@@ -250,6 +281,7 @@ class Allocation(graphene.ObjectType):
 
     class Meta:
         description = "Represents allocation."
+        doc_category = DOC_CATEGORY_PRODUCTS
         model = models.Allocation
         interfaces = [graphene.relay.Node]
 
@@ -261,9 +293,9 @@ class Allocation(graphene.ObjectType):
             return None
 
     @staticmethod
-    def resolve_warehouse(root, _info):
+    def resolve_warehouse(root, _info: ResolveInfo):
         return root.stock.warehouse
 
     @staticmethod
-    def resolve_quantity(root, _info):
+    def resolve_quantity(root, _info: ResolveInfo):
         return root.quantity_allocated

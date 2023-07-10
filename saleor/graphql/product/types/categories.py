@@ -1,13 +1,16 @@
-from typing import List
+from typing import List, Optional
 
 import graphene
 from graphene import relay
 
-from ....core.permissions import has_one_of_permissions
-from ....core.tracing import traced_resolver
+from ....permission.utils import has_one_of_permissions
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
-from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
+from ....thumbnail.utils import (
+    get_image_or_proxy_url,
+    get_thumbnail_format,
+    get_thumbnail_size,
+)
 from ...channel import ChannelQsContext
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
@@ -15,9 +18,23 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+<<<<<<< HEAD
 from ...core.descriptions import ADDED_IN_39, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
+=======
+from ...core.descriptions import (
+    ADDED_IN_310,
+    ADDED_IN_314,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+    RICH_CONTENT,
+)
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
+from ...core.federation import federated_entity, resolve_federation_references
+from ...core.fields import ConnectionField, FilterConnectionField, JSONString
+from ...core.tracing import traced_resolver
+>>>>>>> main
 from ...core.types import Image, ModelObjectType, ThumbnailField
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
@@ -27,21 +44,25 @@ from ..dataloaders import (
     CategoryChildrenByCategoryIdLoader,
     ThumbnailByCategoryIdSizeAndFormatLoader,
 )
+<<<<<<< HEAD
 from ..filters import ProductFilterInput
+=======
+from ..filters import ProductFilterInput, ProductWhereInput
+>>>>>>> main
 from ..sorters import ProductOrder
 from .products import ProductCountableConnection
 
 
 @federated_entity("id")
-class Category(ModelObjectType):
-    id = graphene.GlobalID(required=True)
-    seo_title = graphene.String()
-    seo_description = graphene.String()
-    name = graphene.String(required=True)
+class Category(ModelObjectType[models.Category]):
+    id = graphene.GlobalID(required=True, description="The ID of the category.")
+    seo_title = graphene.String(description="SEO title of category.")
+    seo_description = graphene.String(description="SEO description of category.")
+    name = graphene.String(required=True, description="Name of category")
     description = JSONString(description="Description of the category." + RICH_CONTENT)
-    slug = graphene.String(required=True)
-    parent = graphene.Field(lambda: Category)
-    level = graphene.Int(required=True)
+    slug = graphene.String(required=True, description="Slug of the category.")
+    parent = graphene.Field(lambda: Category, description="Parent category.")
+    level = graphene.Int(required=True, description="Level of the category.")
     description_json = JSONString(
         description="Description of the category." + RICH_CONTENT,
         deprecation_reason=(
@@ -55,9 +76,20 @@ class Category(ModelObjectType):
     products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(
+<<<<<<< HEAD
             description="Filtering options for products." + ADDED_IN_39
         ),
         sort_by=ProductOrder(description="Sort products." + ADDED_IN_39),
+=======
+            description="Filtering options for products." + ADDED_IN_310
+        ),
+        where=ProductWhereInput(
+            description="Filtering options for products."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
+        ),
+        sort_by=ProductOrder(description="Sort products." + ADDED_IN_310),
+>>>>>>> main
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -71,7 +103,7 @@ class Category(ModelObjectType):
         lambda: CategoryCountableConnection,
         description="List of children of the category.",
     )
-    background_image = ThumbnailField()
+    background_image = ThumbnailField(description="Background image of the category.")
     translation = TranslationField(CategoryTranslation, type_name="category")
 
     class Meta:
@@ -95,24 +127,31 @@ class Category(ModelObjectType):
         return description if description is not None else {}
 
     @staticmethod
-    def resolve_background_image(root: models.Category, info, size=None, format=None):
+    def resolve_background_image(
+        root: models.Category,
+        info,
+        size: Optional[int] = None,
+        format: Optional[str] = None,
+    ):
         if not root.background_image:
             return
 
         alt = root.background_image_alt
-        if not size:
+        if size == 0:
             return Image(url=root.background_image.url, alt=alt)
 
-        format = format.lower() if format else None
-        size = get_thumbnail_size(size)
+        format = get_thumbnail_format(format)
+        selected_size = get_thumbnail_size(size)
 
         def _resolve_background_image(thumbnail):
-            url = get_image_or_proxy_url(thumbnail, root.id, "Category", size, format)
+            url = get_image_or_proxy_url(
+                thumbnail, str(root.id), "Category", selected_size, format
+            )
             return Image(url=url, alt=alt)
 
         return (
             ThumbnailByCategoryIdSizeAndFormatLoader(info.context)
-            .load((root.id, size, format))
+            .load((root.id, selected_size, format))
             .then(_resolve_background_image)
         )
 
@@ -168,4 +207,5 @@ class Category(ModelObjectType):
 
 class CategoryCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = Category

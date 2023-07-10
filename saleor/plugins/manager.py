@@ -4,6 +4,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    DefaultDict,
     Dict,
     Iterable,
     List,
@@ -15,11 +16,10 @@ from typing import (
 
 import opentracing
 from django.conf import settings
-from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
 from graphene import Mutation
-from graphql import GraphQLError, ResolveInfo
+from graphql import GraphQLError
 from graphql.execution import ExecutionResult
 from prices import TaxedMoney
 
@@ -29,7 +29,7 @@ from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
-from ..discount import DiscountInfo
+from ..graphql.core import ResolveInfo, SaleorContext
 from ..order import base_calculations as base_order_calculations
 from ..order.interface import OrderTaxedPricesData
 from ..tax.utils import calculate_tax_rate
@@ -55,20 +55,24 @@ if TYPE_CHECKING:
         InitializedPaymentResponse,
         PaymentData,
         PaymentGateway,
+        PaymentGatewayData,
         TokenConfig,
         TransactionActionData,
+        TransactionSessionData,
     )
     from ..payment.models import TransactionItem
     from ..product.models import (
         Category,
         Collection,
         Product,
+        ProductMedia,
         ProductType,
         ProductVariant,
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..tax.models import TaxClass
+    from ..thumbnail.models import Thumbnail
     from ..translation.models import Translation
     from ..warehouse.models import Stock, Warehouse
     from .base_plugin import BasePlugin
@@ -154,7 +158,7 @@ class PluginsManager(PaymentInterface):
                 .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
                 .prefetch_related("channel")
             )
-            channel_configs = defaultdict(dict)
+            channel_configs: DefaultDict[Channel, Dict] = defaultdict(dict)
             global_configs = {}
             for db_plugin_config in qs:
                 channel = db_plugin_config.channel
@@ -172,7 +176,7 @@ class PluginsManager(PaymentInterface):
         default_value: Any,
         *args,
         channel_slug: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         """Try to run a method with the given name on each declared active plugin."""
         value = default_value
@@ -213,11 +217,15 @@ class PluginsManager(PaymentInterface):
         )
 
     def change_user_address(
-        self, address: "Address", address_type: Optional[str], user: Optional["User"]
+        self,
+        address: "Address",
+        address_type: Optional[str],
+        user: Optional["User"],
+        save: bool = True,
     ) -> "Address":
         default_value = address
         return self.__run_method_on_plugins(
-            "change_user_address", default_value, address, address_type, user
+            "change_user_address", default_value, address, address_type, user, save
         )
 
     def calculate_checkout_total(
@@ -225,13 +233,11 @@ class PluginsManager(PaymentInterface):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         currency = checkout_info.checkout.currency
 
-        default_value = base_calculations.base_checkout_total(
+        default_value = base_calculations.checkout_total(
             checkout_info,
-            discounts,
             lines,
         )
         taxed_default_value = TaxedMoney(net=default_value, gross=default_value)
@@ -249,7 +255,6 @@ class PluginsManager(PaymentInterface):
                 checkout_info,
                 lines,
                 address,
-                discounts,
                 channel_slug=checkout_info.channel.slug,
             ),
             currency,
@@ -260,7 +265,6 @@ class PluginsManager(PaymentInterface):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         line_totals = [
             self.calculate_checkout_line_total(
@@ -268,7 +272,6 @@ class PluginsManager(PaymentInterface):
                 lines,
                 line_info,
                 address,
-                discounts,
             )
             for line_info in lines
         ]
@@ -284,7 +287,6 @@ class PluginsManager(PaymentInterface):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         price = base_calculations.base_checkout_delivery_price(checkout_info, lines)
         default_value = TaxedMoney(price, price)
@@ -295,7 +297,6 @@ class PluginsManager(PaymentInterface):
                 checkout_info,
                 lines,
                 address,
-                discounts,
                 channel_slug=checkout_info.channel.slug,
             ),
             checkout_info.checkout.currency,
@@ -347,7 +348,6 @@ class PluginsManager(PaymentInterface):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
         shipping_price: TaxedMoney,
     ):
         default_value = calculate_tax_rate(shipping_price)
@@ -357,7 +357,6 @@ class PluginsManager(PaymentInterface):
             checkout_info,
             lines,
             address,
-            discounts,
             channel_slug=checkout_info.channel.slug,
         ).quantize(Decimal(".0001"))
 
@@ -376,13 +375,19 @@ class PluginsManager(PaymentInterface):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
     ) -> TaxedMoney:
         default_value = base_calculations.calculate_base_line_total_price(
             checkout_line_info,
             checkout_info.channel,
-            discounts,
         )
+        # apply entire order discount
+        default_value = base_calculations.apply_checkout_discount_on_checkout_line(
+            checkout_info,
+            lines,
+            checkout_line_info,
+            default_value,
+        )
+        default_value = quantize_price(default_value, checkout_info.checkout.currency)
         default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
         line_total = self.__run_method_on_plugins(
             "calculate_checkout_line_total",
@@ -391,7 +396,6 @@ class PluginsManager(PaymentInterface):
             lines,
             checkout_line_info,
             address,
-            discounts,
             channel_slug=checkout_info.channel.slug,
         )
 
@@ -431,12 +435,21 @@ class PluginsManager(PaymentInterface):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
     ) -> TaxedMoney:
+        quantity = checkout_line_info.line.quantity
         default_value = base_calculations.calculate_base_line_unit_price(
-            checkout_line_info, checkout_info.channel, discounts
+            checkout_line_info, checkout_info.channel
         )
-        default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
+        # apply entire order discount
+        total_value = base_calculations.apply_checkout_discount_on_checkout_line(
+            checkout_info,
+            lines,
+            checkout_line_info,
+            default_value * quantity,
+        )
+        default_taxed_value = TaxedMoney(
+            net=total_value / quantity, gross=default_value
+        )
         unit_price = self.__run_method_on_plugins(
             "calculate_checkout_line_unit_price",
             default_taxed_value,
@@ -444,7 +457,6 @@ class PluginsManager(PaymentInterface):
             lines,
             checkout_line_info,
             address,
-            discounts,
             channel_slug=checkout_info.channel.slug,
         )
         return quantize_price(unit_price, checkout_info.checkout.currency)
@@ -490,7 +502,6 @@ class PluginsManager(PaymentInterface):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
         unit_price: TaxedMoney,
     ) -> Decimal:
         default_value = calculate_tax_rate(unit_price)
@@ -501,7 +512,6 @@ class PluginsManager(PaymentInterface):
             lines,
             checkout_line_info,
             address,
-            discounts,
             channel_slug=checkout_info.channel.slug,
         ).quantize(Decimal(".0001"))
 
@@ -548,7 +558,6 @@ class PluginsManager(PaymentInterface):
     def preprocess_order_creation(
         self,
         checkout_info: "CheckoutInfo",
-        discounts: Iterable[DiscountInfo],
         lines: Optional[Iterable["CheckoutLineInfo"]] = None,
     ):
         default_value = None
@@ -556,7 +565,6 @@ class PluginsManager(PaymentInterface):
             "preprocess_order_creation",
             default_value,
             checkout_info,
-            discounts,
             lines,
             channel_slug=checkout_info.channel.slug,
         )
@@ -617,6 +625,24 @@ class PluginsManager(PaymentInterface):
             "product_deleted", default_value, product, variants
         )
 
+    def product_media_created(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_media_created", default_value, media
+        )
+
+    def product_media_updated(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_media_updated", default_value, media
+        )
+
+    def product_media_deleted(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_media_deleted", default_value, media
+        )
+
     def product_metadata_updated(self, product: "Product"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -653,6 +679,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         self.__run_method_on_plugins(
             "product_variant_back_in_stock", default_value, stock
+        )
+
+    def product_variant_stock_updated(self, stock: "Stock"):
+        default_value = None
+        self.__run_method_on_plugins(
+            "product_variant_stock_updated", default_value, stock
         )
 
     def product_variant_metadata_updated(self, product_variant: "ProductVariant"):
@@ -761,6 +793,27 @@ class PluginsManager(PaymentInterface):
             "order_fully_paid", default_value, order, channel_slug=order.channel.slug
         )
 
+    def order_paid(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "order_paid", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def order_fully_refunded(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "order_fully_refunded",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+        )
+
+    def order_refunded(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "order_refunded", default_value, order, channel_slug=order.channel.slug
+        )
+
     def order_updated(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -771,6 +824,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "order_cancelled", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def order_expired(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "order_expired", default_value, order, channel_slug=order.channel.slug
         )
 
     def order_fulfilled(self, order: "Order"):
@@ -784,6 +843,10 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins(
             "order_metadata_updated", default_value, order
         )
+
+    def order_bulk_created(self, orders: List["Order"]):
+        default_value = None
+        return self.__run_method_on_plugins("order_bulk_created", default_value, orders)
 
     def fulfillment_created(self, fulfillment: "Fulfillment"):
         default_value = None
@@ -845,6 +908,15 @@ class PluginsManager(PaymentInterface):
             channel_slug=checkout.channel.slug,
         )
 
+    def checkout_fully_paid(self, checkout: "Checkout"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "checkout_fully_paid",
+            default_value,
+            checkout,
+            channel_slug=checkout.channel.slug,
+        )
+
     def checkout_metadata_updated(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -899,21 +971,128 @@ class PluginsManager(PaymentInterface):
             "permission_group_deleted", default_value, group
         )
 
-    def transaction_action_request(
+    def transaction_charge_requested(
         self, payment_data: "TransactionActionData", channel_slug: str
     ):
         default_value = None
         return self.__run_method_on_plugins(
-            "transaction_action_request",
+            "transaction_charge_requested",
             default_value,
             payment_data,
             channel_slug=channel_slug,
+        )
+
+    def transaction_refund_requested(
+        self, payment_data: "TransactionActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_refund_requested",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
+    def transaction_cancelation_requested(
+        self, payment_data: "TransactionActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_cancelation_requested",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
+    def payment_gateway_initialize_session(
+        self,
+        amount: Decimal,
+        payment_gateways: Optional[list["PaymentGatewayData"]],
+        source_object: Union["Order", "Checkout"],
+    ) -> list["PaymentGatewayData"]:
+        default_value = None
+        return self.__run_method_on_plugins(
+            "payment_gateway_initialize_session",
+            default_value,
+            amount,
+            payment_gateways,
+            source_object,
+            channel_slug=source_object.channel.slug,
+        )
+
+    def transaction_initialize_session(
+        self,
+        transaction_session_data: "TransactionSessionData",
+    ) -> "PaymentGatewayData":
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_initialize_session",
+            default_value,
+            transaction_session_data,
+            channel_slug=transaction_session_data.source_object.channel.slug,
+        )
+
+    def transaction_process_session(
+        self,
+        transaction_session_data: "TransactionSessionData",
+    ) -> "PaymentGatewayData":
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_process_session",
+            default_value,
+            transaction_session_data,
+            channel_slug=transaction_session_data.source_object.channel.slug,
         )
 
     def transaction_item_metadata_updated(self, transaction_item: "TransactionItem"):
         default_value = None
         return self.__run_method_on_plugins(
             "transaction_item_metadata_updated", default_value, transaction_item
+        )
+
+    def account_confirmation_requested(
+        self, user: "User", channel_slug: str, token: str, redirect_url: Optional[str]
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "account_confirmation_requested",
+            default_value,
+            user,
+            channel_slug,
+            token=token,
+            redirect_url=redirect_url,
+        )
+
+    def account_change_email_requested(
+        self,
+        user: "User",
+        channel_slug: str,
+        token: str,
+        redirect_url: str,
+        new_email: str,
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "account_change_email_requested",
+            default_value,
+            user,
+            channel_slug,
+            token=token,
+            redirect_url=redirect_url,
+            new_email=new_email,
+        )
+
+    def account_delete_requested(
+        self, user: "User", channel_slug: str, token: str, redirect_url: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "account_delete_requested",
+            default_value,
+            user,
+            channel_slug,
+            token=token,
+            redirect_url=redirect_url,
         )
 
     def address_created(self, address: "Address"):
@@ -1028,6 +1207,16 @@ class PluginsManager(PaymentInterface):
             "gift_card_deleted", default_value, gift_card
         )
 
+    def gift_card_sent(self, gift_card: "GiftCard", channel_slug: str, email: str):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "gift_card_sent",
+            default_value,
+            gift_card,
+            channel_slug,
+            email,
+        )
+
     def gift_card_status_changed(self, gift_card: "GiftCard"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -1123,6 +1312,15 @@ class PluginsManager(PaymentInterface):
     def staff_deleted(self, staff_user: "User"):
         default_value = None
         return self.__run_method_on_plugins("staff_deleted", default_value, staff_user)
+
+    def thumbnail_created(
+        self,
+        thumbnail: "Thumbnail",
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "thumbnail_created", default_value, thumbnail
+        )
 
     def warehouse_created(self, warehouse: "Warehouse"):
         default_value = None
@@ -1407,7 +1605,9 @@ class PluginsManager(PaymentInterface):
                 plugin_configurations = PluginConfiguration.objects.prefetch_related(
                     "channel"
                 ).all()
-                self._plugin_configs_per_channel = defaultdict(dict)
+                self._plugin_configs_per_channel: DefaultDict[
+                    Channel, Dict
+                ] = defaultdict(dict)
                 self._global_plugin_configs = {}
                 for pc in plugin_configurations:
                     channel = pc.channel
@@ -1471,7 +1671,7 @@ class PluginsManager(PaymentInterface):
         return None
 
     def webhook_endpoint_without_channel(
-        self, request: WSGIRequest, plugin_id: str
+        self, request: SaleorContext, plugin_id: str
     ) -> HttpResponse:
         # This should be removed in 3.0.0-a.25 as we want to give a possibility to have
         # no downtime between RCs
@@ -1489,7 +1689,7 @@ class PluginsManager(PaymentInterface):
         )
 
     def webhook(
-        self, request: WSGIRequest, plugin_id: str, channel_slug: Optional[str] = None
+        self, request: SaleorContext, plugin_id: str, channel_slug: Optional[str] = None
     ) -> HttpResponse:
         split_path = request.path.split(plugin_id, maxsplit=1)
         path = None
@@ -1536,8 +1736,8 @@ class PluginsManager(PaymentInterface):
         )
 
     def external_obtain_access_tokens(
-        self, plugin_id: str, data: dict, request: WSGIRequest
-    ) -> Optional["ExternalAccessTokens"]:
+        self, plugin_id: str, data: dict, request: SaleorContext
+    ) -> ExternalAccessTokens:
         """Obtain access tokens from authentication plugin."""
         default_value = ExternalAccessTokens()
         plugin = self.get_plugin(plugin_id)
@@ -1546,7 +1746,7 @@ class PluginsManager(PaymentInterface):
         )
 
     def external_authentication_url(
-        self, plugin_id: str, data: dict, request: WSGIRequest
+        self, plugin_id: str, data: dict, request: SaleorContext
     ) -> dict:
         """Handle authentication request."""
         default_value = {}  # type: ignore
@@ -1556,8 +1756,8 @@ class PluginsManager(PaymentInterface):
         )
 
     def external_refresh(
-        self, plugin_id: str, data: dict, request: WSGIRequest
-    ) -> Optional["ExternalAccessTokens"]:
+        self, plugin_id: str, data: dict, request: SaleorContext
+    ) -> ExternalAccessTokens:
         """Handle authentication refresh request."""
         default_value = ExternalAccessTokens()
         plugin = self.get_plugin(plugin_id)
@@ -1565,12 +1765,14 @@ class PluginsManager(PaymentInterface):
             plugin, "external_refresh", default_value, data, request
         )
 
-    def authenticate_user(self, request: WSGIRequest) -> Optional["User"]:
+    def authenticate_user(self, request: SaleorContext) -> Optional["User"]:
         """Authenticate user which should be assigned to the request."""
         default_value = None
         return self.__run_method_on_plugins("authenticate_user", default_value, request)
 
-    def external_logout(self, plugin_id: str, data: dict, request: WSGIRequest) -> dict:
+    def external_logout(
+        self, plugin_id: str, data: dict, request: SaleorContext
+    ) -> dict:
         """Logout the user."""
         default_value: Dict[str, str] = {}
         plugin = self.get_plugin(plugin_id)
@@ -1579,7 +1781,7 @@ class PluginsManager(PaymentInterface):
         )
 
     def external_verify(
-        self, plugin_id: str, data: dict, request: WSGIRequest
+        self, plugin_id: str, data: dict, request: SaleorContext
     ) -> Tuple[Optional["User"], dict]:
         """Verify the provided authentication data."""
         default_data: Dict[str, str] = dict()

@@ -114,6 +114,8 @@ def test_exclude_products_for_shipping_method(
 ):
     # product_list has products with slugs slug:test-product-a, slug:test-product-b,
     # slug:test-product-c
+
+    # given
     product_db_ids = [p.pk for p in product_list]
     product_ids = [graphene.Node.to_global_id("Product", p) for p in product_db_ids]
 
@@ -129,10 +131,12 @@ def test_exclude_products_for_shipping_method(
         "input": {"products": product_ids},
     }
 
+    # when
     response = staff_api_client.post_graphql(
         EXCLUDE_PRODUCTS_MUTATION, variables, permissions=[permission_manage_shipping]
     )
 
+    # then
     content = get_graphql_content(response)
     shipping_method = content["data"]["shippingPriceExcludeProducts"]["shippingMethod"]
     excluded_products = shipping_method["excludedProducts"]
@@ -151,15 +155,20 @@ def test_exclude_products_for_shipping_method_already_has_excluded_products(
     staff_api_client,
     permission_manage_shipping,
 ):
+    # given
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethodType", shipping_method.pk
     )
     shipping_method.excluded_products.add(product, product_list[0])
     product_ids = [graphene.Node.to_global_id("Product", p.pk) for p in product_list]
     variables = {"id": shipping_method_id, "input": {"products": product_ids}}
+
+    # when
     response = staff_api_client.post_graphql(
         EXCLUDE_PRODUCTS_MUTATION, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content(response)
     shipping_method = content["data"]["shippingPriceExcludeProducts"]["shippingMethod"]
     excluded_products = shipping_method["excludedProducts"]
@@ -207,6 +216,7 @@ def test_remove_products_from_excluded_products_for_shipping_method(
     permission_manage_shipping,
     product,
 ):
+    # given
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethodType", shipping_method.pk
     )
@@ -217,12 +227,15 @@ def test_remove_products_from_excluded_products_for_shipping_method(
         graphene.Node.to_global_id("Product", product.pk),
     ]
     variables = {"id": shipping_method_id, "products": product_ids}
+
+    # when
     response = staff_api_client.post_graphql(
         REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
 
+    # then
     content = get_graphql_content(response)
     shipping_method = content["data"]["shippingPriceRemoveProductFromExclude"][
         "shippingMethod"

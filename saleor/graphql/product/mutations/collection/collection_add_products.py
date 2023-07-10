@@ -1,13 +1,15 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from .....core.permissions import ProductPermissions
 from .....core.tracing import traced_atomic_transaction
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import CollectionErrorCode
-from .....product.tasks import update_products_discounted_prices_of_catalogues_task
+from .....product.tasks import update_products_discounted_prices_task
 from .....product.utils import get_products_ids_without_variants
 from ....channel import ChannelContext
+from ....core import ResolveInfo
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import CollectionError, NonNullList
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -29,12 +31,15 @@ class CollectionAddProducts(BaseMutation):
 
     class Meta:
         description = "Adds products to a collection."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, collection_id, products):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, collection_id, products
+    ):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )
@@ -50,9 +55,7 @@ class CollectionAddProducts(BaseMutation):
             collection.products.add(*products)
             if collection.sale_set.exists():
                 # Updated the db entries, recalculating discounts of affected products
-                update_products_discounted_prices_of_catalogues_task.delay(
-                    product_ids=[pq.pk for pq in products]
-                )
+                update_products_discounted_prices_task.delay([pq.pk for pq in products])
             for product in products:
                 cls.call_event(manager.product_updated, product)
 

@@ -10,6 +10,7 @@ from django.test.testcases import TransactionTestCase
 
 pytest_plugins = [
     "saleor.tests.fixtures",
+    "saleor.discount.tests.test_utils.fixtures",
     "saleor.plugins.tests.fixtures",
     "saleor.graphql.csv.tests.benchmark.fixtures",
     "saleor.graphql.tests.fixtures",
@@ -45,7 +46,7 @@ if os.environ.get("PYTEST_DB_URL"):
     #  HINT:  Truncate table "new_table" at the same time, or use TRUNCATE ... CASCADE
     class Custom(TransactionTestCase):
         def _fixture_teardown(self):
-            for db_name in self._databases_names(include_mirrors=False):
+            for db_name in self._databases_names(include_mirrors=False):  # type: ignore[attr-defined] # raw internals # noqa: E501
                 inhibit_post_migrate = self.available_apps is not None or (
                     self.serialized_rollback
                     and hasattr(connections[db_name], "_test_serialized_contents")

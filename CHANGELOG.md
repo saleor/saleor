@@ -2,6 +2,470 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+
+# 3.15.0 [Unreleased]
+
+### Breaking changes
+- Remove input and fields related to transaction API and deprecated in 3.13 - #13020 by @korycins
+  - `WebhookEventTypeEnum.TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+  - `WebhookEventTypeAsyncEnum.TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+  - `WebhookSampleEventTypeEnum.TRANSACTION_ACTION_REQUEST`
+  - `TransactionItem`:
+    - `voidedAmount` - Use `canceledAmount` instead.
+    - `status` - The amounts can be used to define the current status of transactions.
+    - `type` - Use `name` or `message`.
+    - `reference` - Use `pspReference` instead.
+  - `TransactionActionEnum.VOID` - Use `CANCEL` instead.
+  - `OrderEvent.status` - Use `TransactionEvent` to track the status of `TransactionItem`.
+  - `OrderEventsEnum`:
+    - `TRANSACTION_CAPTURE_REQUESTED` - Use `TRANSACTION_CHARGE_REQUESTED` instead.
+    - `TRANSACTION_VOID_REQUESTED` -  Use `TRANSACTION_CANCEL_REQUESTED` instead.
+  - `TransactionStatus`
+  - `TransactionEvent`:
+    - `status` -  Use `type` instead.
+    - `reference` - Use `pspReference` instead.
+    - `name` - Use `message` instead.
+  - `TransactionCreateInput`:
+    - `status` - The amounts can be used to define the current status of transactions.
+    - `type` - Use `name` or `message`.
+    - `reference` - Use `pspReference` instead.
+    - `voidedAmount` - Use `canceledAmount` instead.
+  - `TransactionEventInput`:
+    - `status` - Status will be calculated by Saleor.
+    - `reference` - Use `pspReference` instead.
+    - `name` - Use `message` instead.
+  - `TransactionUpdateInput`:
+    - `status` - The amounts can be used to define the current status of transactions.
+    - `type` - Use `name` or `message`.
+    - `reference` - Use `pspReference` instead.
+    - `voidedAmount` - Use `canceledAmount` instead.
+  - `TransactionActionRequest` - Use `TransactionChargeRequested`, `TransactionRefundRequested`, `TransactionCancelationRequested` instead.
+
+- Remove `OrderBulkCreateInput.trackingClientId` field - #13146 by @SzymJ
+- Drop backend integration with Open Exchange Rates API - #13175 by @maarcingebala
+  - Note: this changes doesn't affect Saleor Cloud users, as the integration was never enabled there.
+  - After this change, the following fields in API alway return `null` values:
+    - `ProductPricingInfo.discountLocalCurrency`
+    - `ProductPricingInfo.priceRangeLocalCurrency`
+    - `VariantPricingInfo.discountLocalCurrency`
+    - `VariantPricingInfo.priceLocalCurrency`
+- Change order of resolving country code in checkout - #13159 by @jakubkuc
+  - Until now, checkout mutations were ignoring provided shipping address when shipping was not required. After this change, the shipping address is always set when supplied in the input. It might be breaking, as the shipping address affects the country code used for tax calculation.
+  - The order of resolving the checkout country code is always as follows:
+      1. Shipping address
+      2. Billing address
+      3. Channel's default country
+
+### GraphQL API
+- Add `lines` to `OrderGrantedRefund` - #13014 by @korycins
+
+- Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
+- Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
+- Added `metadata` and `privateMetadata` in `ShopSettingsInput`. #13128 by @Smit-Parmar
+- Fix error "Cannot return null for non-nullable field Webhook.name" - #12989 by @Smit-Parmar
+- Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
+- Add metadata support for channels. #13230 by @Smit-Parmar
+- Remove `Preview feature` label from `metafield`, `metafields`, `metadata`,
+`privateMetafield`, `privateMetafields` and `privateMetadata` fields - #13245 by @korycins
+- Add `search` to `giftCards` query - #13173 by @zedzior
+- Add `ProductBulkTranslate` mutation - #13329 by @SzymJ
+- Add `ProductVariantBulkTranslate` mutation - #13329 by @SzymJ
+
+### Saleor Apps
+
+- Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
+
+### Other changes
+- Add POC of Core API tests - #13034 by @fowczarek
+
+- Expand metric units to support more types of products. - #13043 by @FremahA
+- Remove unused `django-versatileimagefield` package - #13148 by @SzymJ
+- Remove unused `google-measurement-protocol` package - #13146 by @SzymJ
+- Add missing descriptions to App module. - #13163 by @fowczarek
+- Drop TranslationProxy and replace `translated` model property with `get_translation` function where needed. - #13156 by @zedzior
+- Add missing descriptions to account module. - #13155 by @fowczarek
+- Add missing descriptions to channel module. - #13166 by @fowczarek
+- Add missing descriptions to checkout module. - #13167 by @fowczarek
+- Add missing descriptions to attribute module. - #13165 by @fowczarek
+- Add missing descriptions to csv module. - #13184 by @fowczarek
+- Add missing descriptions to Account module. - #13155 by @fowczarek
+- Add `ACCOUNT_CONFIRMATION_REQUESTED` async event - #13162 by @SzymJ
+- Add `ACCOUNT_DELETE_REQUESTED` async event - #13170 by @SzymJ
+- Add `ACCOUNT_CHANGE_EMAIL_REQUESTED` async event - #13233 by @SzymJ
+- Add missing descriptions to Webhook module - #13262 by @Smit-Parmar
+- Add missing descriptions to Shop module. - #13295 by @Smit-Parmar
+- Add missing descriptions to Warehouse module. - #13264 by @Smit-Parmar
+- Add missing descriptions to Product module. - #13259 by @FremahA
+- Add missing description for Invoice module - #13265 by @DevilsAutumn
+- Add missing descriptions to Discount module - #13261 by @devilsautumn
+
+# 3.14.0
+
+### Breaking changes
+
+- Gift cards can now be applied on a checkout without an email, fields `used_by` and `used_by_email` on GiftCard model are deprecated and will be removed in 4.0. - #13019 by @tomaszszymanski129
+- The `ProductBulkCreateError.path` field for errors related to product variants input in the `productBulkCreate` mutation will now return more detailed error paths, e.g. `variants.1.stocks.0.warehouse` instead of `variants.1.warehouses` - #12534 by @SzymJ
+- The `discounts` field has been removed from the listed plugin manager methods. Instead of the `discounts` argument, an applied `discount` is now assigned to each line in the `CheckoutLineInfo` inside the `CheckoutInfo` object. - #11934 by @fowczarek
+
+  - `calculate_checkout_total`
+  - `calculate_checkout_subtotal`
+  - `calculate_checkout_shipping`
+  - `get_checkout_shipping_tax_rate`
+  - `calculate_checkout_line_total`
+  - `calculate_checkout_line_unit_price`
+  - `get_checkout_line_tax_rate`
+  - `preprocess_order_creation`
+
+  This breaking change affect any custom plugins in open-source Saleor, if they override any of the above mentioned methods.
+
+### GraphQL API
+
+- [Preview] Add `orderBulkCreate` mutation - #12269 by @zedzior
+- [Preview] Add `attributeBulkTranslate` and `attributeValueBulkTranslate` mutations - #12965 by @SzymJ
+- [Preview] Add `where` and `search` filtering option on `products` query - #12960 by @zedzior
+- Allow setting metadata during user creating and updating - #12577 by @IKarbowiak
+  - The following mutations have been updated:
+    - `customerCreate`
+    - `customerUpdate`
+    - `staffCreate`
+    - `staffUpdate`
+    - `accountUpdate`
+    - `customerBulkUpdate`
+- Add `checkoutCreateFromOrder` mutation to create checkout from order - #12628 by @korycins
+- Allow setting metadata during invoice creating and updating - #12641 by @IKarbowiak
+- Introduce channel permissions - #10423 by @IKarbowiak
+  - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has already been given access to.
+- Add `enableAccountConfirmationByEmail` option in the `shopSettingsUpdate` mutation, which allows controlling whether account confirmation should be sent on new account registrations (before it was controlled by env variable `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL`) - #12781 by @SzymJ
+- Add `path` field to `ProductVariantBulkError` - #12534 by @SzymJ
+- Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate` mutation - #12781 by @SzymJ
+- Add `brand` optional field with brand data (initially logo image) to `Manifest`, `AppInstallation` and `App` - #12361 by @przlada
+- Add `externalReference` field to `AttributeValueInput`, `BulkAttributeValueInput` and `AttributeValueSelectableTypeInput` - #12823 by @SzymJ
+- [Preview] Add `where` filtering option with `ids` filter for `product_variants`, `collections` and `categories` query - #13004 by @zedzior
+
+### Saleor Apps
+
+- Introduce channel permissions - #10423 by @IKarbowiak
+  - Extend the OpenID connect configuration with `Staff user domains` and `Default permission group name for new staff users`.
+  - When the OpenID plugin is active, the default staff permission group is created, and all staff users are assigned to it.
+  - To ensure the proper functioning of OAuth permissions, ensure that the
+    `Default permission group name for new staff users` is set to a permission group with no channel restrictions.
+- [Preview] Add `ORDER_BULK_CREATED` event, which is sent for successfully imported orders - #12536 by @zedzior
+
+### Other changes
+
+- Fix saving `description_plaintext` for product - #12586 by @SzymJ
+- Fix sending `product_created` event in `ProductBulkCreate` mutation - #12605 by @SzymJ
+- Add `ORDER_REFUNDED`, `ORDER_FULLY_REFUNDED`, `ORDER_PAID` webhooks - #12533 by @korycins
+- Add functionality to delete expired orders automatically - #12710 by @korycins
+- Handle error raised by 0Auth when fetching token - #12672 by @IKarbowiakg
+- Fix adding new lines to draft order when the existing line has deleted product - #12711 by @SzymJ
+- Upgrade checkout `complete_checkout` to assign guest checkout to account if it exists - #12758 by @FremahA
+- Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @Szym
+- Remove default `EMAIL_URL` value pointing to console output; from now on `EMAIL_URL` has to be set explicitly - #12580 by @maarcingebala
+- Match `Orders` to `User` when creating user using OIDC plugin. - #12863 by @kadewu
+- Allow defining a custom price in draft orders - #12855 by @KirillPlaksin
+- Update price resolvers - use `discounted_price` on `ProductChannelListing` and `ProductVariantChannelListing` channel listings to return the pricing - #12713 by @IKarbowiak
+
+# 3.13.0
+
+### Highlights
+
+- Improve support for handling transactions - #10350 by @korycins
+
+  - API changes:
+
+    - Add new mutations:
+      - `transactionEventReport` - Report the event for the transaction.
+      - `orderGrantRefundCreate` - Add granted refund to the order.
+      - `orderGrantRefundUpdate` - Update granted refund.
+    - Add new types:
+      - `OrderGrantedRefund` - The details of the granted refund.
+    - Add new webhooks:
+      - `TRANSACTION_CHARGE_REQUESTED` - triggered when a staff user request charge for the transaction.
+      - `TRANSACTION_REFUND_REQUESTED` - triggered when a staff user request refund for the transaction.
+      - `TRANSACTION_CANCELATION_REQUESTED` - triggered when a staff user request cancelation for the transaction.
+    - Add new webhook subscriptions:
+      - `TransactionChargeRequested` - Event sent when transaction charge is requested.
+      - `TransactionRefundRequested` - Event sent when transaction refund is requested.
+      - `TransactionCancelationRequested` - Event sent when transaction cancelation is requested.
+    - Add new fields:
+      - `OrderSettings.markAsPaidStrategy` - Determine what strategy will be used to mark the order as paid.
+      - `TransactionItem`:
+        - `authorizePendingAmount` - Total amount of ongoing authorization requests for the transaction.
+        - `refundPendingAmount` - Total amount of ongoing refund requests for the transaction.
+        - `cancelPendingAmount` - Total amount of ongoing cancel requests for the transaction.
+        - `chargePendingAmount` - Total amount of ongoing charge requests for the transaction.
+        - `canceledAmount` - Total amount canceled for this transaction.
+        - `name` - Name of the transaction.
+        - `message` - Message related to the transaction.
+        - `pspReference` - PSP reference of transaction.
+        - `createdBy` - User or App that created the transaction.
+        - `externalUrl` - The URL that will allow to redirect user to payment provider page with transaction details.
+      - `TransactionEvent`:
+        - `pspReference` - PSP reference related to the event.
+        - `message` - Message related to the transaction's event.
+        - `externalUrl` - The URL that will allow to redirect user to payment provider page with transaction event details.
+        - `amount` - The amount related to this event.
+        - `type` - The type of action related to this event.
+        - `createdBy` - User or App that created the event.
+      - `Order`:
+        - `totalCharged` - Amount charged for the order.
+        - `totalCanceled` - Amount canceled for the order.
+        - `grantedRefunds` - List of granted refunds.
+        - `totalGrantedRefund` - Total amount of granted refund.
+        - `totalRefunded` - Total refund amount for the order.
+        - `totalRefundPending` - Total amount of ongoing refund requests for the order's transactions.
+        - `totalAuthorizePending` - Total amount of ongoing authorization requests for the order's transactions.
+        - `totalChargePending` - Total amount of ongoing charge requests for the order's transactions.
+        - `totalCancelPending` - Total amount of ongoing cancel requests for the order's transactions.
+        - `totalRemainingGrant` - The difference between the granted refund and the pending and refunded amounts.
+      - `OrderEventsEnum`:
+        - `TRANSACTION_CHARGE_REQUESTED`
+        - `TRANSACTION_CANCEL_REQUESTED`
+        - `TRANSACTION_MARK_AS_PAID_FAILED`
+    - Add new input fields:
+
+      - `TransactionCreateInput` & `TransactionUpdateInput`:
+        - `name` - The name of the transaction.
+        - `message` - The message of the transaction.
+        - `pspReference` - The PSP Reference of the transaction.
+        - `amountCanceled` - Amount canceled by this transaction.
+        - `externalUrl` - The URL that will allow to redirect user to payment provider page with transaction.
+      - `TransactionEventInput`:
+        - `pspReference` - The PSP Reference of the transaction.
+        - `message` - Message related to the transaction's event.
+
+    - Deprecate webhooks:
+      - `TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+    - Deprecate object fields:
+
+      - `TransactionItem`:
+        - `voidedAmount` - Use `canceledAmount`. This field will be removed in Saleor 3.14 (Preview feature).
+        - `status` - Not needed anymore. The transaction amounts will be used to determine a current status of transactions. This field will be removed in Saleor 3.14 (Preview feature).
+        - `reference` - Use `pspReference` instead. This field will be removed in Saleor 3.14 (Preview feature).
+      - `TransactionEvent`:
+        - `status` - Use `type` instead. This field will be removed in Saleor 3.14 (Preview feature).
+        - `reference` - Use `pspReference` instead. This field will be removed in Saleor 3.14 (Preview feature).
+        - `name` - Use `message` instead. This field will be removed in Saleor 3.14 (Preview feature).
+      - `TransactionActionEnum`
+        - `VOID` - Use `CANCEL` instead. This field will be removed in Saleor 3.14 (Preview feature).
+      - `Order`:
+        - `totalCaptured` - Use `totalCharged` instead. Will be removed in Saleor 4.0
+      - `OrderEvent`:
+        - `status` - Use `TransactionEvent` to track the status of `TransactionItem`. This field will be removed in Saleor 3.14 (Preview feature).
+      - `OrderEventsEnum`:
+        - `TRANSACTION_CAPTURE_REQUESTED` - Use `TRANSACTION_CHARGE_REQUESTED` instead. This field will be removed in Saleor 3.14 (Preview feature).
+        - `TRANSACTION_VOID_REQUESTED` - Use `TRANSACTION_CANCEL_REQUESTED` instead. This field will be removed in Saleor 3.14 (Preview feature).
+
+    - Deprecate input fields:
+      - `TransactionCreateInput` & `TransactionUpdateInput`:
+        - `status` - Not needed anymore. The transaction amounts will be used to determine the current status of transactions. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `type` - Use `name` and `message` instead. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `amountVoided` - Use `amountCanceled` instead. This input field will be removed in Saleor 3.14 (Preview feature).
+      - `TransactionEventInput`:
+        - `status` - Status will be calculated by Saleor. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `name` - Use `message` instead. This field will be removed in Saleor 3.14 (Preview feature).
+
+- Support for payment apps - #12179 by @korycins
+  - Add new mutations:
+    - `paymentGatewayInitialize` - Initialize the payment gateway to process a payment.
+    - `transactionInitialize` - Initiate payment processing.
+    - `transactionProcess` - Process the initialized payment.
+  - Add new synchronous webhooks:
+    - `PAYMENT_GATEWAY_INITIALIZE_SESSION` - Triggered when a customer requests the initialization of a payment gateway.
+    - `TRANSACTION_INITIALIZE_SESSION` - Triggered when a customer requests the initialization of a payment processing.
+    - `TRANSACTION_PROCESS_SESSION` - Triggered when a customer requests processing the initialized payment.
+
+### Breaking changes
+
+- **Feature preview breaking change**:
+
+  - Improve support for handling transactions - #10350 by @korycins
+    - For all new `transactionItem` created by `transactionCreate`, any update action can be done only by the same app/user that performed `transactionCreate` action. This change impacts only on new `transactionItem,` the already existing will work in the same way as previously.
+    - `transactionRequestAction` mutation can't be executed with `MANAGE_ORDERS` permission. Permission `HANDLE_PAYMENTS` is required.
+    - Drop calling `TRANSACTION_ACTION_REQUEST` webhook inside a mutation related to `Payment` types. The related mutations: `orderVoid`, `orderCapture`, `orderRefund`, `orderFulfillmentRefundProducts`, `orderFulfillmentReturnProducts`. Use a dedicated mutation for triggering an action: `transactionRequestAction`.
+
+  See the [3.12 to 3.13](https://docs.saleor.io/docs/3.x/upgrade-guides/3-12-to-3-13) upgrade guide for more details.
+
+### GraphQL API
+
+- [Preview] Add `StockBulkUpdate` mutation - #12139 by @SzymJ
+- Upgrade GraphiQL to `2.4.0` for playground - #12271 by @zaiste
+- Add new object type `AppManifestRequiredSaleorVersion` - #12164 by @przlada
+  - Add new optional field `Manifest.requiredSaleorVersion`
+  - Add `requiredSaleorVersion` validation to `appInstall` and `appFetchManifest` mutations
+- Add new field `author` to `Manifest` and `App` object types - #12166 by @przlada
+- Add backward compatibility for `taxCode` field - #12325 by @maarcingebala
+- Support resolving `Order` as an entity in Apollo Federation - #12328 by @binary-koan
+- [Preview] Add `ProductBulkCreate` mutation - #12177 by @SzymJ
+- [Preview] Add `CustomerBulkUpdate` mutation - #12268 by @SzymJ
+
+### Saleor Apps
+
+- Add `requiredSaleorVersion` field to the App manifest determining the required Saleor version as semver range - #12164 by @przlada
+- Add new field `author` to the App manifest - #12166 by @przlada
+- Add `GIFT_CARD_SENT` asynchronous event to webhooks - #12472 by @rafalp
+
+### Other changes
+
+- Add Celery beat task for expiring unconfirmed not paid orders - #11960 by @kadewu:
+  - Add `expireOrdersAfter` to `orderSettings` for `Channel` type.
+  - Add `ORDER_EXPIRED` webhook triggered when `Order` is marked as expired.
+- Create order discounts for all voucher types - #12272 by @IKarbowiak
+- Core now supports Dev Containers for local development - #12391 by @patrys
+- Use Mailhog SMTP server on Dev Container - #12402 by @carlosa54
+- Publish schema.graphql on releases - #12431 by @maarcingebala
+- Fix missing webhook triggers for `order_updated` and `order_fully_paid` when an order is paid with a `transactionItem` - #12508 by @korycins
+- Remove Mailhog in favor of Mailpit - #12447 by @carlosa54
+
+# 3.12.0
+
+### Breaking changes
+
+- `stocks` and `channelListings` inputs for preview `ProductVariantBulkUpdate` mutation has been changed. Both inputs have been extended by:
+
+  - `create` input - list of items that should be created
+  - `update` input - list of items that should be updated
+  - `remove` input - list of objects ID's that should be removed
+
+  If your platform relies on this [Preview] feature, make sure you update your mutations stocks and channel listings inputs from:
+
+  ```
+     {
+      "stocks/channelListings": [
+        {
+          ...
+        }
+      ]
+     }
+  ```
+
+  to:
+
+  ```
+     {
+      "stocks/channelListings": {
+        "create": [
+          {
+           ...
+          }
+        ]
+      }
+     }
+  ```
+
+- Change the discount rounding mode - #12041 by @IKarbowiak
+
+  - Change the rounding mode from `ROUND_DOWN` to `ROUND_HALF_UP` - it affects the discount amount and total price of future checkouts and orders with a percentage discount applied.
+    The discount amount might be 0.01 greater, and the total price might be 0.01 lower.
+    E.g. if you had an order for $13 and applied a 12.5% discount, you would get $11.38 with a $1.62 discount, but now it will be calculated as $11.37 with $1.63 discount.
+
+- Media and image fields now default to returning 4K thumbnails instead of original uploads - #11996 by @patrys
+- Include specific products voucher in checkout discount - #12191 by @IKarbowiak
+  - Make the `specific product` and `apply once per order` voucher discounts visible on `checkout.discount` field.
+    Previously, the discount amount for these vouchers was shown as 0.
+
+### GraphQL API
+
+- Added support for all attributes types in `BulkAttributeValueInput` - #12095 by @SzymJ
+- Add possibility to remove `stocks` and `channel listings` in `ProductVariantBulkUpdate` mutation.
+- Move `orderSettings` query to `Channel` type - #11417 by @kadewu:
+  - Mutation `Channel.channelCreate` and `Channel.channelUpdate` have new `orderSettings` input.
+  - Deprecate `Shop.orderSettings` query. Use `Channel.orderSettings` query instead.
+  - Deprecate `Shop.orderSettingsUpdate` mutation. Use `Channel.channelUpdate` instead.
+- Add meta fields to `ProductMedia` model - #11894 by @zedzior
+- Make `oldPassword` argument on `passwordChange` mutation optional; support accounts without usable passwords - @11999 by @rafalp
+- Added support for AVIF images, added `AVIF` and `ORIGINAL` to `ThumbnailFormatEnum` - #11998 by @patrys
+- Introduce custom headers for webhook requests - #11978 by @zedzior
+- Improve GraphQL playground by storing headers in the local storage - #12176 by @zaiste
+- Fixes for GraphiQL playground - #12192 by @zaiste
+
+### Other changes
+
+- Fix saving `metadata` in `ProductVariantBulkCreate` and `ProductVariantBulkupdate` mutations - #12097 by @SzymJ
+- Enhance webhook's subscription query validation. Apply the validation and event inheritance to manifest validation - #11797 by @zedzior
+- Fix GraphQL playground when the `operationName` is set across different tabs - #11936 by @zaiste
+- Add new asynchronous events related to media: #11918 by @zedzior
+  - `PRODUCT_MEDIA CREATED`
+  - `PRODUCT_MEDIA_UPDATED`
+  - `PRODUCT_MEDIA_DELETED`
+  - `THUMBNAIL_CREATED`
+- CORS is now handled in the ASGI layer - #11415 by @patrys
+- Added native support for gzip compression - #11833 by @patrys
+- Set flat rates as the default tax calculation strategy - #12069 by @maarcingebala
+  - Enables flat rates for channels in which no tax calculation method was set.
+- Users created by the OIDC plugin now have unusable password set instead of empty string - #12103 by @rafalp
+- Fix thumbnail generation long image names - #12435 by @KirillPlaksin
+
+# 3.11.0
+
+### Highlights
+
+Just so you know, changes mentioned in this section are in a preview state and can be subject to changes in the future.
+
+- Bulk mutations for creating and updating multiple product variants in one mutation call - #11392 by @SzymJ
+- Ability to run subscription webhooks in a dry-run mode - #11548 by @zedzior
+- Preview of new `where` filtering API which allows joining multiple filters with `AND`/`OR` operators; currently available only in the `attributes` query - #11737 by @IKarbowiak
+
+### GraphQL API
+
+- [Preview] Add `productVariantBulkUpdate` mutation - #11392 by @SzymJ
+- [Preview] Add new error handling policies in `productVariantBulkCreate` mutation - #11392 by @SzymJ
+- [Preview] Add `webhookDryRun` mutation - #11548 by @zedzior
+- [Preview] Add `webhookTrigger` mutation - #11687 by @zedzior
+- Fix adding an invalid label to meta fields - #11718 by @IKarbowiak
+- Add filter by `checkoutToken` to `Query.orders`. - #11689 by @kadewu
+- [Preview] Attribute filters improvement - #11737 by @IKarbowiak
+  - introduce `where` option on `attributes` query
+  - add `search` option on `attributes` query
+  - deprecate `product.variant` field
+  - deprecate the following `Attribute` fields: `filterableInStorefront`, `storefrontSearchPosition`, `availableInGrid`.
+
+### Other changes
+
+- Allow `webhookCreate` and `webhookUpdate` mutations to inherit events from `query` field - #11736 by @zedzior
+- Add new `PRODUCT_VARIANT_STOCK_UPDATED` event - #11665 by @jakubkuc
+- Disable websocket support by default in `uvicorn` worker configuration - #11785 by @NyanKiyoshi
+- Fix send user email change notification - #11840 by @jakubkuc
+- Fix trigger the `FULFILLMENT_APPPROVED` webhook for partial fulfillments - #11824 by @d-wysocki
+
+# 3.10.0 [Unreleased]
+
+### Breaking changes
+
+### GraphQL API
+
+- Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
+  - Add `filter` argument to `Category.products`
+  - Add `sortBy` argument to `Category.products`
+- Extend invoice object types with `Order` references - #11505 by @przlada
+  - Add `Invoice.order` field
+  - Add `InvoiceRequested.order`, `InvoiceDeleted.order` and `InvoiceSent.order` fields
+- Add support for metadata for `Address` model - #11701 by @IKarbowiak
+- Allow to mutate objects, by newly added `externalReference` field, instead of Saleor-assigned ID. Apply to following models: #11410 by @zedzior
+  - `Product`
+  - `ProductVariant`
+  - `Attribute`
+  - `AttributeValue`
+  - `Order`
+  - `User`
+  - `Warehouse`
+
+### Other changes
+
+- Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
+- Move checkout metadata to separate model - #11264 by @jakubkuc
+- Add ability to set a custom Celery queue for async webhook - #11511 by @NyanKiyoshi
+- Remove `CUSTOMER_UPDATED` webhook trigger from address mutations - #11395 by @jakubkuc
+- Drop `Django.Auth` - #11305 by @fowczarek
+- Add address validation to AddressCreate - #11639 by @jakubkuc
+- Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
+- Fix stock events triggers - #11714 by @jakubkuc
+- Accept the gift card code provided in the input - by @mociepka
+- Fix `GIFT_CARD_CREATED` event not firing when order with gift cards is fulfilled - #11924 by @rafalp
+
 # 3.9.0
 
 ### Highlights
@@ -53,6 +517,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix the observability reporter to obfuscate URLs. #11282 by @przlada
 - Add exif image validation - #11224 by @IKarbowiak
 - Add HTTP headers filtering to observability reporter. #11285 by @przlada
+- Deactivate Webhook before deleting and handle IntegrityErrors - #11239 @jakubkuc
 
 # 3.8.0
 

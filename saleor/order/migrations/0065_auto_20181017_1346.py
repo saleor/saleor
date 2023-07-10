@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0064_auto_20181016_0819"),
         ("payment", "0002_transfer_payment_to_payment_method"),

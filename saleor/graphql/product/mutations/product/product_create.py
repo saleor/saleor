@@ -4,28 +4,40 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....attribute import models as attribute_models
-from .....core.permissions import ProductPermissions
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.editorjs import clean_editor_js
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.search import update_product_search_vector
+from .....product.tasks import update_product_discounted_price_task
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....channel import ChannelContext
-from ....core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ....core import ResolveInfo
+from ....core.descriptions import (
+    ADDED_IN_38,
+    ADDED_IN_310,
+    DEPRECATED_IN_3X_INPUT,
+    RICH_CONTENT,
+)
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
 from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
-from ....core.types import NonNullList, ProductError, SeoInput
+from ....core.types import BaseInputObjectType, NonNullList, ProductError, SeoInput
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
+<<<<<<< HEAD
 from ....meta.mutations import MetadataInput
+=======
+from ....meta.inputs import MetadataInput
+>>>>>>> main
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
 from ..utils import clean_tax_code
 
 
-class ProductInput(graphene.InputObjectType):
+class ProductInput(BaseInputObjectType):
     attributes = NonNullList(AttributeValueInput, description="List of attributes.")
     category = graphene.ID(description="ID of the product's category.", name="category")
     charge_taxes = graphene.Boolean(
@@ -74,15 +86,34 @@ class ProductInput(graphene.InputObjectType):
         ),
         required=False,
     )
+    external_reference = graphene.String(
+        description="External ID of this product." + ADDED_IN_310, required=False
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class StockInput(graphene.InputObjectType):
+class StockInput(BaseInputObjectType):
     warehouse = graphene.ID(
         required=True, description="Warehouse in which stock is located."
     )
     quantity = graphene.Int(
         required=True, description="Quantity of items available for sell."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class StockUpdateInput(BaseInputObjectType):
+    stock = graphene.ID(required=True, description="Stock.")
+    quantity = graphene.Int(
+        required=True, description="Quantity of items available for sell."
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductCreateInput(ProductInput):
@@ -91,6 +122,9 @@ class ProductCreateInput(ProductInput):
         name="productType",
         required=True,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
@@ -121,8 +155,8 @@ class ProductCreate(ModelMutation):
         return attributes
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         if "description" in cleaned_input:
             description = cleaned_input["description"]
@@ -174,25 +208,7 @@ class ProductCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def get_instance(cls, info, **data):
-        """Prefetch related fields that are needed to process the mutation."""
-        # If we are updating an instance and want to update its attributes,
-        # prefetch them.
-
-        object_id = data.get("id")
-        if object_id and data.get("attributes"):
-            # Prefetches needed by AttributeAssignmentMixin and
-            # associate_attribute_values_to_instance
-            qs = cls.Meta.model.objects.prefetch_related(
-                "product_type__product_attributes__values",
-                "product_type__attributeproduct",
-            )
-            return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
-
-        return super().get_instance(info, **data)
-
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         with traced_atomic_transaction():
             instance.save()
             attributes = cleaned_input.get("attributes")
@@ -200,20 +216,24 @@ class ProductCreate(ModelMutation):
                 AttributeAssignmentMixin.save(instance, attributes)
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, _info: ResolveInfo, instance, cleaned_data):
         collections = cleaned_data.get("collections", None)
         if collections is not None:
             instance.collections.set(collections)
 
     @classmethod
-    def post_save_action(cls, info, instance, _cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         update_product_search_vector(instance)
+<<<<<<< HEAD
+=======
+        update_product_discounted_price_task.delay(instance.id)
+>>>>>>> main
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_created, product)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         response = super().perform_mutation(_root, info, **data)
         product = getattr(response, cls._meta.return_field_name)
 

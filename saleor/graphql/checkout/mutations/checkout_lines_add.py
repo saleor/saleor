@@ -10,13 +10,24 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import add_variants_to_checkout, invalidate_checkout_prices
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
+<<<<<<< HEAD
 from ...app.dataloaders import get_app_promise
+=======
+from ....webhook.event_types import WebhookEventAsyncType
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
+>>>>>>> main
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_variants_available_in_channel
+<<<<<<< HEAD
 from ...discount.dataloaders import load_discounts
+=======
+>>>>>>> main
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
@@ -66,8 +77,15 @@ class CheckoutLinesAdd(BaseMutation):
             "Adds a checkout line to the existing checkout."
             "If line was already in checkout, its quantity will be increased."
         )
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
+                description="A checkout was updated.",
+            )
+        ]
 
     @classmethod
     def validate_checkout_lines(
@@ -105,7 +123,6 @@ class CheckoutLinesAdd(BaseMutation):
         checkout_info,
         lines,
         manager,
-        discounts,
         replace,
     ):
         channel_slug = checkout_info.channel.slug
@@ -134,7 +151,7 @@ class CheckoutLinesAdd(BaseMutation):
             validate_variants_available_in_channel(
                 variants_ids_to_validate,
                 checkout.channel_id,
-                CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
+                CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
             )
             validate_variants_are_published(
                 variants_ids_to_validate, checkout.channel_id
@@ -162,19 +179,28 @@ class CheckoutLinesAdd(BaseMutation):
             checkout_info.checkout.collection_point,
             checkout_info.shipping_address,
             lines,
-            discounts,
             manager,
             shipping_channel_listings,
         )
         return lines
 
     @classmethod
-    def perform_mutation(
-        cls, _root, info, lines, checkout_id=None, token=None, id=None, replace=False
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        lines,
+        checkout_id=None,
+        token=None,
+        id=None,
+        replace=False,
     ):
         app = get_app_promise(info.context).get()
         check_permissions_for_custom_prices(app, lines)
 
+<<<<<<< HEAD
         checkout = get_checkout(
             cls,
             info,
@@ -185,10 +211,14 @@ class CheckoutLinesAdd(BaseMutation):
         )
         manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
+=======
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
+        manager = get_plugin_manager_promise(info.context).get()
+>>>>>>> main
         variants = cls._get_variants_from_lines_input(lines)
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
-            checkout, [], discounts, manager, shipping_channel_listings
+            checkout, [], manager, shipping_channel_listings
         )
 
         existing_lines_info, _ = fetch_checkout_lines(
@@ -204,11 +234,10 @@ class CheckoutLinesAdd(BaseMutation):
             checkout_info,
             existing_lines_info,
             manager,
-            discounts,
             replace,
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        invalidate_checkout_prices(checkout_info, lines, manager, discounts, save=True)
+        invalidate_checkout_prices(checkout_info, lines, manager, save=True)
         cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutLinesAdd(checkout=checkout)

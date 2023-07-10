@@ -1,13 +1,19 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import create_order_discount_for_order, get_order_discounts
+<<<<<<< HEAD
 from ...app.dataloaders import get_app_promise
+=======
+from ....permission.enums import OrderPermissions
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
+>>>>>>> main
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
@@ -26,13 +32,14 @@ class OrderDiscountAdd(OrderDiscountCommon):
 
     class Meta:
         description = "Adds discount to the order."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
     @classmethod
-    def validate_order(cls, info, order):
-        super().validate_order(info, order)
+    def validate_order(cls, info: ResolveInfo, order):
+        order = super().validate_order(info, order)
         # This condition can be removed when we introduce support for multi discounts.
         order_discounts = get_order_discounts(order)
         if len(order_discounts) >= 1:
@@ -44,17 +51,27 @@ class OrderDiscountAdd(OrderDiscountCommon):
                     )
                 }
             )
+        return order
 
     @classmethod
-    def validate(cls, info, order, input):
+    def validate(cls, info: ResolveInfo, order, input):
         cls.validate_order(info, order)
-        cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
+        cls.validate_order_discount_input(order.undiscounted_total.gross, input)
 
     @classmethod
+<<<<<<< HEAD
     def perform_mutation(cls, _root, info, **data):
         manager = get_plugin_manager_promise(info.context).get()
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
         input = data.get("input", {})
+=======
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input, order_id: str
+    ):
+        manager = get_plugin_manager_promise(info.context).get()
+        order = cls.get_node_or_error(info, order_id, only_type=Order)
+        cls.check_channel_permissions(info, [order.channel_id])
+>>>>>>> main
         cls.validate(info, order, input)
 
         reason = input.get("reason")

@@ -3,37 +3,14 @@ from typing import TYPE_CHECKING, Iterable, Optional, Tuple
 
 from prices import TaxedMoney
 
+from ..core.utils.country import get_active_country
+from . import TaxCalculationStrategy
+
 if TYPE_CHECKING:
-    from ..account.models import Address
-    from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..order.models import Order
     from ..tax.models import TaxClass, TaxClassCountryRate
     from .models import TaxConfiguration, TaxConfigurationPerCountry
-
-
-def get_tax_country(
-    channel: "Channel",
-    is_shipping_required: bool,
-    shipping_address: Optional["Address"] = None,
-    billing_address: Optional["Address"] = None,
-):
-    """Get country code for tax calculations.
-
-    For checkouts and orders, there are following rules for determining the country
-    code that should be used for tax calculations:
-    - when shipping is required, use the shipping address's country code,
-    - when shipping is not required (e.g. because of having only digital products), use
-    the billing address's country code,
-    - fallback to channel's default country when addresses are not provided.
-    """
-    if shipping_address and is_shipping_required:
-        return shipping_address.country.code
-
-    if billing_address and not is_shipping_required:
-        return billing_address.country.code
-
-    return channel.default_country.code
 
 
 def get_display_gross_prices(
@@ -73,7 +50,7 @@ def get_charge_taxes(
 def get_tax_calculation_strategy(
     channel_tax_configuration: "TaxConfiguration",
     country_tax_configuration: Optional["TaxConfigurationPerCountry"],
-) -> Optional[str]:
+) -> str:
     """Get tax_calculation_strategy value for tax channel configuration.
 
     :param channel_tax_configuration: Channel-specific tax configuration.
@@ -84,16 +61,15 @@ def get_tax_calculation_strategy(
         country_tax_configuration.tax_calculation_strategy
         if country_tax_configuration
         else channel_tax_configuration.tax_calculation_strategy
-    )
+    ) or TaxCalculationStrategy.FLAT_RATES
 
 
 def get_charge_taxes_for_order(order: "Order") -> bool:
     """Get charge_taxes value for order."""
     channel = order.channel
     tax_configuration = channel.tax_configuration
-    country_code = get_tax_country(
+    country_code = get_active_country(
         channel,
-        order.is_shipping_required(),
         order.shipping_address,
         order.billing_address,
     )
@@ -112,9 +88,8 @@ def get_tax_calculation_strategy_for_order(order: "Order"):
     """Get tax_calculation_strategy value for order."""
     channel = order.channel
     tax_configuration = channel.tax_configuration
-    country_code = get_tax_country(
+    country_code = get_active_country(
         channel,
-        order.is_shipping_required(),
         order.shipping_address,
         order.billing_address,
     )
@@ -132,12 +107,9 @@ def get_tax_calculation_strategy_for_order(order: "Order"):
 def _get_tax_configuration_for_checkout(
     checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
 ) -> Tuple["TaxConfiguration", Optional["TaxConfigurationPerCountry"]]:
-    from ..checkout.utils import is_shipping_required
-
     tax_configuration = checkout_info.tax_configuration
-    country_code = get_tax_country(
+    country_code = get_active_country(
         checkout_info.channel,
-        is_shipping_required(lines),
         checkout_info.shipping_address,
         checkout_info.billing_address,
     )

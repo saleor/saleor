@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0114_alter_order_language_code"),
         ("order", "0114_auto_20210722_1146"),

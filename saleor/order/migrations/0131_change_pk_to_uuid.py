@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0130_save_order_token_in_relation_models"),
         ("account", "0063_save_customerevent_order_token"),

@@ -184,7 +184,7 @@ class UserEmailPlugin(BasePlugin):
             "name": constants.SEND_GIFT_CARD_TEMPLATE_FIELD,
             "value": DEFAULT_EMAIL_VALUE,
         },
-    ] + DEFAULT_EMAIL_CONFIGURATION  # type: ignore
+    ] + DEFAULT_EMAIL_CONFIGURATION
 
     CONFIG_STRUCTURE = {
         constants.ACCOUNT_CONFIRMATION_SUBJECT_FIELD: {
@@ -364,7 +364,6 @@ class UserEmailPlugin(BasePlugin):
         def map_templates_to_configuration(
             email_templates: List["EmailTemplate"],
         ) -> PluginConfigurationType:
-
             email_template_by_name = {
                 email_template.name: email_template
                 for email_template in email_templates
@@ -401,7 +400,7 @@ class UserEmailPlugin(BasePlugin):
             return previous_value
 
         event_func = event_map[event]
-        config = asdict(self.config)  # type: ignore
+        config = asdict(self.config)
         event_func(payload, config, self)
 
     @classmethod

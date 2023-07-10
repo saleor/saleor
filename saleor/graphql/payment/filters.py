@@ -1,6 +1,7 @@
 import django_filters
 
 from ..core.descriptions import ADDED_IN_38
+from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.filters import GlobalIDMultipleChoiceFilter
 from ..core.types import FilterInputObjectType
 from .types import Payment
@@ -19,4 +20,5 @@ class PaymentFilter(django_filters.FilterSet):
 
 class PaymentFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
         filterset_class = PaymentFilter

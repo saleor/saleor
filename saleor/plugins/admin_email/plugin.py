@@ -89,7 +89,7 @@ class AdminEmailPlugin(BasePlugin):
             "name": constants.CSV_EXPORT_FAILED_TEMPLATE_FIELD,
             "value": DEFAULT_EMAIL_VALUE,
         },
-    ] + DEFAULT_EMAIL_CONFIGURATION  # type: ignore
+    ] + DEFAULT_EMAIL_CONFIGURATION
 
     CONFIG_STRUCTURE = {
         constants.STAFF_PASSWORD_RESET_SUBJECT_FIELD: {
@@ -169,7 +169,7 @@ class AdminEmailPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = EmailConfig(
             host=configuration["host"] or settings.EMAIL_HOST,
-            port=configuration["port"] or settings.EMAIL_PORT,
+            port=configuration["port"] or str(settings.EMAIL_PORT),
             username=configuration["username"] or settings.EMAIL_HOST_USER,
             password=configuration["password"] or settings.EMAIL_HOST_PASSWORD,
             sender_name=configuration["sender_name"],
@@ -190,7 +190,6 @@ class AdminEmailPlugin(BasePlugin):
         def map_templates_to_configuration(
             email_templates: List["EmailTemplate"],
         ) -> PluginConfigurationType:
-
             email_template_by_name = {
                 email_template.name: email_template
                 for email_template in email_templates
@@ -227,7 +226,7 @@ class AdminEmailPlugin(BasePlugin):
             return previous_value
 
         event_func = event_map[event]
-        config = asdict(self.config)  # type: ignore
+        config = asdict(self.config)
         event_func(payload, config, self)
 
     @classmethod

@@ -1,12 +1,12 @@
-import graphene
 from django.db.models import CharField, ExpressionWrapper, OuterRef, QuerySet, Subquery
 
 from ...payment.models import Payment
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT
-from ..core.types import SortInputObjectType
+from ..core.doc_category import DOC_CATEGORY_ORDERS
+from ..core.types import BaseEnum, SortInputObjectType
 
 
-class OrderSortField(graphene.Enum):
+class OrderSortField(BaseEnum):
     NUMBER = ["number"]
     RANK = ["search_rank", "id"]
     CREATION_DATE = ["created_at", "status", "pk"]
@@ -16,13 +16,16 @@ class OrderSortField(graphene.Enum):
     PAYMENT = ["last_charge_status", "status", "pk"]
     FULFILLMENT_STATUS = ["status", "user_email", "pk"]
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+
     @property
     def description(self):
         descriptions = {
-            OrderSortField.RANK.name: (
+            OrderSortField.RANK.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 "rank. Note: This option is available only with the `search` filter."
             ),
-            OrderSortField.CREATION_DATE.name: (
+            OrderSortField.CREATION_DATE.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 f"creation date. {DEPRECATED_IN_3X_INPUT}"
             ),
         }
@@ -50,5 +53,6 @@ class OrderSortField(graphene.Enum):
 
 class OrderSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         sort_enum = OrderSortField
         type_name = "orders"

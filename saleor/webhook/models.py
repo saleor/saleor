@@ -2,6 +2,8 @@ from django.db import models
 
 from ..app.models import App
 from ..app.validators import AppURLValidator
+from ..core.utils.json_serializer import CustomJsonEncoder
+from .validators import custom_headers_validator
 
 
 class WebhookURLField(models.URLField):
@@ -17,6 +19,13 @@ class Webhook(models.Model):
     is_active = models.BooleanField(default=True)
     secret_key = models.CharField(max_length=255, null=True, blank=True)
     subscription_query = models.TextField(null=True, blank=True)
+    custom_headers = models.JSONField(
+        blank=True,
+        null=True,
+        default=dict,
+        encoder=CustomJsonEncoder,
+        validators=[custom_headers_validator],
+    )
 
     class Meta:
         ordering = ("pk",)

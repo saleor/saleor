@@ -1,9 +1,9 @@
 *.py[cod]
 .*
+!.devcontainer
 !.dockerignore
 !.github
 !.gitignore
-!.nvmrc
 !.pylintrc
 !.vscode
 *.log

@@ -112,14 +112,18 @@ class CostValidator(ValidationRule):
                     fragment_type = self.context.get_schema().get_type(
                         fragment.type_condition.name.value
                     )
-                    node_cost = self.compute_node_cost(fragment, fragment_type)
+                    node_cost = self.compute_node_cost(
+                        fragment, fragment_type, self.operation_multipliers
+                    )
             if isinstance(child_node, InlineFragment):
                 inline_fragment_type = type_def
                 if child_node.type_condition and child_node.type_condition.name:
                     inline_fragment_type = self.context.get_schema().get_type(
                         child_node.type_condition.name.value
                     )
-                node_cost = self.compute_node_cost(child_node, inline_fragment_type)
+                node_cost = self.compute_node_cost(
+                    child_node, inline_fragment_type, self.operation_multipliers
+                )
             total += node_cost
         return total
 
@@ -184,7 +188,7 @@ class CostValidator(ValidationRule):
             for key in accessor:
                 val = val.get(key)
             try:
-                multipliers.append(int(val))  # type: ignore
+                multipliers.append(int(val))
             except (ValueError, TypeError):
                 pass
         multipliers = [
@@ -295,7 +299,11 @@ def validate_query_cost(
         variables=variables,
         cost_map=cost_map,
     )
-    error = validate(schema, query.document_ast, [validator])
+    error = validate(
+        schema,
+        query.document_ast,
+        [validator],  # type: ignore[list-item] # cost validator is an instance that pretends to be a class # noqa: E501
+    )
     if error:
         return validator.cost, error
     return validator.cost, None

@@ -3,10 +3,20 @@ from django.core.exceptions import ValidationError
 
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ....core.permissions import ProductTypePermissions
+from ....permission.enums import ProductTypePermissions
+from ....webhook.event_types import WebhookEventAsyncType
+from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_INPUT
+from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import MeasurementUnitsEnum
+<<<<<<< HEAD
 from ...core.mutations import ModelMutation
 from ...core.types import AttributeError, NonNullList
+=======
+from ...core.mutations import ModelWithExtRefMutation
+from ...core.types import AttributeError, BaseInputObjectType, NonNullList
+from ...core.utils import WebhookEventInfo
+>>>>>>> main
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..types import Attribute
@@ -17,8 +27,11 @@ from .mixins import AttributeMixin
 class AttributeValueUpdateInput(AttributeValueInput):
     name = graphene.String(required=False, description=AttributeValueDescriptions.NAME)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-class AttributeUpdateInput(graphene.InputObjectType):
+
+class AttributeUpdateInput(BaseInputObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT, required=False)
@@ -41,19 +54,29 @@ class AttributeUpdateInput(graphene.InputObjectType):
     )
     filterable_in_storefront = graphene.Boolean(
         description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT
+        + DEPRECATED_IN_3X_INPUT
     )
     filterable_in_dashboard = graphene.Boolean(
         description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
     )
     storefront_search_position = graphene.Int(
-        required=False, description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
+        required=False,
+        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
+        + DEPRECATED_IN_3X_INPUT,
     )
     available_in_grid = graphene.Boolean(
-        required=False, description=AttributeDescriptions.AVAILABLE_IN_GRID
+        required=False,
+        description=AttributeDescriptions.AVAILABLE_IN_GRID + DEPRECATED_IN_3X_INPUT,
+    )
+    external_reference = graphene.String(
+        description="External ID of this product." + ADDED_IN_310, required=False
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-class AttributeUpdate(AttributeMixin, ModelMutation):
+
+class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
     # Needed by AttributeMixin,
     # represents the input name for the passed list of values
     ATTRIBUTE_VALUES_FIELD = "add_values"
@@ -61,7 +84,11 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an attribute to update.")
+        id = graphene.ID(required=False, description="ID of an attribute to update.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of an attribute to update. {ADDED_IN_310}",
+        )
         input = AttributeUpdateInput(
             required=True, description="Fields required to update an attribute."
         )
@@ -73,6 +100,12 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+                description="An attribute was updated.",
+            ),
+        ]
 
     @classmethod
     def clean_remove_values(cls, cleaned_input, instance):
@@ -84,21 +117,23 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
                 raise ValidationError(
                     {
                         "remove_values": ValidationError(
-                            msg, code=AttributeErrorCode.INVALID
+                            msg, code=AttributeErrorCode.INVALID.value
                         )
                     }
                 )
         return remove_values
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         for attribute_value in cleaned_data.get("remove_values", []):
             attribute_value.delete()
 
     @classmethod
-    def perform_mutation(cls, _root, info, id, input):
-        instance = cls.get_node_or_error(info, id, only_type=Attribute)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None, input
+    ):
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
 
         # Do cleaning and uniqueness checks
         cleaned_input = cls.clean_input(info, instance, input)
@@ -119,6 +154,10 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         return AttributeUpdate(attribute=instance)
 
     @classmethod
+<<<<<<< HEAD
     def post_save_action(cls, info, instance, cleaned_input):
+=======
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+>>>>>>> main
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_updated, instance)

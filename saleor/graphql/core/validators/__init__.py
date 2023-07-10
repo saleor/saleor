@@ -4,6 +4,7 @@ from uuid import UUID
 import graphene
 from django.core.exceptions import ValidationError
 from django_prices.utils.formatting import get_currency_fraction
+from graphene.utils.str_converters import to_camel_case
 from graphql.error import GraphQLError
 
 from ....core.utils import generate_unique_slug
@@ -15,32 +16,49 @@ if TYPE_CHECKING:
     from django.db.models import Model
 
 
-def validate_one_of_args_is_in_mutation(error_class, *args):
+def validate_one_of_args_is_in_mutation(*args, **kwargs):
     try:
-        validate_one_of_args_is_in_query(*args)
+        validate_one_of_args_is_in_query(*args, **kwargs)
     except GraphQLError as e:
-        raise ValidationError(str(e), code=error_class.GRAPHQL_ERROR)
+        raise ValidationError(str(e), code="graphql_error")
 
 
-def validate_one_of_args_is_in_query(*args):
+def validate_one_of_args_is_in_query(*args, **kwargs):
     # split args into a list with 2-element tuples:
     # [(arg1_name, arg1_value), (arg2_name, arg2_value), ...]
     splitted_args = [args[i : i + 2] for i in range(0, len(args), 2)]  # noqa: E203
     # filter trueish values from each tuple
     filter_args = list(filter(lambda item: bool(item[1]) is True, splitted_args))
+    use_camel_case = kwargs.get("use_camel_case")
 
     if len(filter_args) > 1:
-        rest_args = ", ".join([f"'{item[0]}'" for item in filter_args[1:]])
+        if use_camel_case:
+            first_arg = to_camel_case(filter_args[0][0])
+            rest_args = ", ".join(
+                [f"'{to_camel_case(item[0])}'" for item in filter_args[1:]]
+            )
+        else:
+            first_arg = filter_args[0][0]
+            rest_args = ", ".join([f"'{item[0]}'" for item in filter_args[1:]])
         raise GraphQLError(
-            f"Argument '{filter_args[0][0]}' cannot be combined with {rest_args}"
+            f"Argument '{first_arg}' cannot be combined with {rest_args}"
         )
 
     if not filter_args:
-        required_args = ", ".join([f"'{item[0]}'" for item in splitted_args])
+        if use_camel_case:
+            required_args = ", ".join(
+                [f"'{to_camel_case(item[0])}'" for item in splitted_args]
+            )
+        else:
+            required_args = ", ".join([f"'{item[0]}'" for item in splitted_args])
         raise GraphQLError(f"At least one of arguments is required: {required_args}.")
 
 
-def validate_price_precision(value: Optional["Decimal"], currency: str):
+def validate_price_precision(
+    value: Optional["Decimal"],
+    currency: str,
+    currency_fractions=None,
+):
     """Validate if price amount does not have too many decimal places.
 
     Price amount can't have more decimal places than currency allow to.
@@ -50,7 +68,15 @@ def validate_price_precision(value: Optional["Decimal"], currency: str):
     # check no needed when there is no value
     if not value:
         return
-    currency_fraction = get_currency_fraction(currency)
+
+    if currency_fractions:
+        try:
+            currency_fraction = currency_fractions[currency][0]
+        except KeyError:
+            currency_fraction = currency_fractions["DEFAULT"][0]
+    else:
+        currency_fraction = get_currency_fraction(currency)
+
     value = value.normalize()
     if value.as_tuple().exponent < -currency_fraction:
         raise ValidationError(
@@ -68,30 +94,39 @@ def validate_decimal_max_value(value: "Decimal", max_value=10**9):
         raise ValidationError(f"Value must be lower than {max_value}.")
 
 
-def validate_variants_available_in_channel(
-    variants_id,
-    channel_id,
-    error_code,
-):
-    """Validate available variants in specific channel."""
-
+def get_not_available_variants_in_channel(
+    variants_id: set, channel_id: int
+) -> tuple[set[int], set[str]]:
     available_variants = ProductVariantChannelListing.objects.filter(
         variant__id__in=variants_id,
         channel_id=channel_id,
         price_amount__isnull=False,
     ).values_list("variant_id", flat=True)
     not_available_variants = variants_id - set(available_variants)
+    not_available_graphql_ids = {
+        graphene.Node.to_global_id("ProductVariant", pk)
+        for pk in not_available_variants
+    }
+    return not_available_variants, not_available_graphql_ids
+
+
+def validate_variants_available_in_channel(
+    variants_id: set,
+    channel_id: int,
+    error_code: str,
+):
+    """Validate available variants in specific channel."""
+    (
+        not_available_variants,
+        not_available_graphql_ids,
+    ) = get_not_available_variants_in_channel(variants_id, channel_id)
     if not_available_variants:
-        not_available_variants_ids = {
-            graphene.Node.to_global_id("ProductVariant", pk)
-            for pk in not_available_variants
-        }
         raise ValidationError(
             {
                 "lines": ValidationError(
                     "Cannot add lines with unavailable variants.",
                     code=error_code,
-                    params={"variants": not_available_variants_ids},
+                    params={"variants": not_available_graphql_ids},
                 )
             }
         )
@@ -118,7 +153,7 @@ def validate_slug_and_generate_if_needed(
 
     # update mutation - just check if slug value is not empty
     # _state.adding is True only when it's new not saved instance.
-    if not instance._state.adding:  # type: ignore
+    if not instance._state.adding:
         validate_slug_value(cleaned_input)
         return cleaned_input
 

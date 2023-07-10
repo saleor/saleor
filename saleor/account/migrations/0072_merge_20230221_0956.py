@@ -4,7 +4,10 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
     dependencies = [
         ("account", "0064_user_last_password_reset_request"),
         ("account", "0071_merge_0066_merge_20221227_1315_0070_alter_user_uuid"),

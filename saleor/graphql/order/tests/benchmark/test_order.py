@@ -96,6 +96,9 @@ FRAGMENT_ORDER_DETAILS = (
         total {
           ...Price
         }
+        totalCharged {
+          amount
+        }
         totalCaptured {
           amount
         }

@@ -22,7 +22,6 @@ def populate_orders_total_tax(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("order", "0034_auto_20180221_1056")]
 
     operations = [

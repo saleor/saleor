@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ....channel import models
 from ....core.utils.date_time import convert_to_utc_date_time
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.utils import get_duplicated_values, get_duplicates_items
 from ..types import Channel
@@ -57,7 +58,12 @@ class BaseChannelListingMutation(BaseMutation):
 
     @classmethod
     def clean_channels(
-        cls, info, input, errors: ErrorType, error_code, input_source="add_channels"
+        cls,
+        info: ResolveInfo,
+        input,
+        errors: ErrorType,
+        error_code,
+        input_source="add_channels",
     ) -> Dict:
         add_channels = input.get(input_source, [])
         add_channels_ids = [channel["channel_id"] for channel in add_channels]
@@ -76,7 +82,7 @@ class BaseChannelListingMutation(BaseMutation):
             return {}
         channels_to_add: List["models.Channel"] = []
         if add_channels_ids:
-            channels_to_add = cls.get_nodes_or_error(  # type: ignore
+            channels_to_add = cls.get_nodes_or_error(
                 add_channels_ids, "channel_id", Channel
             )
         remove_channels_pks = cls.get_global_ids_or_error(

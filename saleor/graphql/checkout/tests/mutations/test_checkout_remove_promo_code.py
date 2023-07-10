@@ -73,7 +73,6 @@ def test_checkout_remove_voucher_code_with_inactive_channel(
     channel = checkout_with_voucher.channel
     channel.is_active = False
     channel.save()
-    previous_checkout_last_change = checkout_with_voucher.last_change
 
     variables = {
         "id": to_global_id_or_none(checkout_with_voucher),
@@ -86,7 +85,6 @@ def test_checkout_remove_voucher_code_with_inactive_channel(
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_voucher.token)
     assert data["checkout"]["voucherCode"] == checkout_with_voucher.voucher_code
-    assert checkout_with_voucher.last_change == previous_checkout_last_change
 
 
 def test_checkout_remove_gift_card_code(api_client, checkout_with_gift_card):
@@ -278,7 +276,7 @@ def test_checkout_remove_voucher_code_invalidates_price(
     checkout_with_item.save(update_fields=["voucher_code", "price_expiration"])
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     subtotal = base_calculations.base_checkout_subtotal(
         lines,
         checkout_info.channel,
