@@ -75,7 +75,9 @@ class WebhookEventSync(ModelObjectType[models.WebhookEvent]):
 
 
 class EventDeliveryAttempt(ModelObjectType[core_models.EventDeliveryAttempt]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(
+        required=True, description="The ID of Event Delivery Attempt."
+    )
     created_at = graphene.DateTime(
         description="Event delivery creation date and time.", required=True
     )
@@ -107,8 +109,10 @@ class EventDeliveryAttemptCountableConnection(CountableConnection):
 
 
 class EventDelivery(ModelObjectType[core_models.EventDelivery]):
-    id = graphene.GlobalID(required=True)
-    created_at = graphene.DateTime(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of an event delivery.")
+    created_at = graphene.DateTime(
+        required=True, description="Creation time of an event delivery."
+    )
     status = EventDeliveryStatusEnum(
         description="Event delivery status.", required=True
     )
@@ -146,8 +150,8 @@ class EventDeliveryCountableConnection(CountableConnection):
 
 
 class Webhook(ModelObjectType[models.Webhook]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=False)
+    id = graphene.GlobalID(required=True, description="The ID of webhook.")
+    name = graphene.String(required=False, description="The name of webhook.")
     events = NonNullList(
         WebhookEvent,
         description="List of webhook events.",
@@ -166,7 +170,11 @@ class Webhook(ModelObjectType[models.Webhook]):
         description="List of asynchronous webhook events.",
         required=True,
     )
-    app = graphene.Field("saleor.graphql.app.types.App", required=True)
+    app = graphene.Field(
+        "saleor.graphql.app.types.App",
+        required=True,
+        description="The app associated with Webhook.",
+    )
     event_deliveries = FilterConnectionField(
         EventDeliveryCountableConnection,
         sort_by=EventDeliverySortingInput(description="Event delivery sorter."),

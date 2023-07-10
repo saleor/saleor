@@ -103,6 +103,7 @@ def checkout_create(
     assert checkout_response["errors"] == []
 
     data = checkout_response["checkout"]
+
     assert data["id"] is not None
     assert data["channel"]["slug"] == channel_slug
 

@@ -33,7 +33,7 @@ We recommend using at least version `1.0.0b` as it contains many fixes and featu
 
 For compatibility, Saleor also provides `requirements.txt` and `requirements_dev.txt`.
 
-These files should be updated by running `poetry export --without-hashes -f requirements.txt -o requirements.txt` and `poetry export --without-hashes -f requirements.txt -o requirements_dev.txt --dev`, respectively.
+These files should be updated by running `poetry export --without-hashes -f requirements.txt -o requirements.txt` and `poetry export --without-hashes -f requirements.txt -o requirements_dev.txt --with dev`, respectively.
 
 ## Coding style
 

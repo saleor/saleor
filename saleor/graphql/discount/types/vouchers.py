@@ -34,11 +34,21 @@ from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
 class VoucherChannelListing(ModelObjectType[models.VoucherChannelListing]):
-    id = graphene.GlobalID(required=True)
-    channel = graphene.Field(Channel, required=True)
-    discount_value = graphene.Float(required=True)
-    currency = graphene.String(required=True)
-    min_spent = graphene.Field(Money)
+    id = graphene.GlobalID(required=True, description="The ID of channel listing.")
+    channel = graphene.Field(
+        Channel,
+        required=True,
+        description="The channel in which voucher can be applied.",
+    )
+    discount_value = graphene.Float(
+        required=True, description="The value of the discount on voucher in a channel."
+    )
+    currency = graphene.String(
+        required=True, description="Currency code for voucher in a channel."
+    )
+    min_spent = graphene.Field(
+        Money, description="Minimum order value for voucher to apply in channel."
+    )
 
     class Meta:
         description = "Represents voucher channel listing."
@@ -51,17 +61,33 @@ class VoucherChannelListing(ModelObjectType[models.VoucherChannelListing]):
 
 
 class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String()
-    code = graphene.String(required=True)
-    usage_limit = graphene.Int()
-    used = graphene.Int(required=True)
-    start_date = graphene.DateTime(required=True)
-    end_date = graphene.DateTime()
-    apply_once_per_order = graphene.Boolean(required=True)
-    apply_once_per_customer = graphene.Boolean(required=True)
-    only_for_staff = graphene.Boolean(required=True)
-    min_checkout_items_quantity = graphene.Int()
+    id = graphene.GlobalID(required=True, description="The ID of the voucher.")
+    name = graphene.String(description="The name of the voucher.")
+    code = graphene.String(required=True, description="The code of the voucher.")
+    usage_limit = graphene.Int(description="The number of times a voucher can be used.")
+    used = graphene.Int(required=True, description="Usage count of the voucher.")
+    start_date = graphene.DateTime(
+        required=True, description="The start date and time of voucher."
+    )
+    end_date = graphene.DateTime(description="The end date and time of voucher.")
+    apply_once_per_order = graphene.Boolean(
+        required=True,
+        description="Determine if the voucher should be applied once per order. If set "
+        "to True, the voucher is applied to a single cheapest eligible product in "
+        "checkout.",
+    )
+    apply_once_per_customer = graphene.Boolean(
+        required=True,
+        description="Determine if the voucher usage should be limited to one use per "
+        "customer.",
+    )
+    only_for_staff = graphene.Boolean(
+        required=True,
+        description="Determine if the voucher is available only for staff members.",
+    )
+    min_checkout_items_quantity = graphene.Int(
+        description="Determine minimum quantity of items for checkout."
+    )
     categories = ConnectionField(
         CategoryCountableConnection,
         description="List of categories this voucher applies to.",

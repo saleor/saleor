@@ -8,12 +8,14 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from ... import __version__, schema_version
 from ...account import models as account_models
 from ...channel import models as channel_models
+from ...core.models import ModelWithMetadata
 from ...core.utils import build_absolute_uri
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import SitePermissions, get_permissions
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
+from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
@@ -39,6 +41,7 @@ from ..core.types import (
     TimePeriod,
 )
 from ..core.utils import str_to_enum
+from ..meta.types import ObjectWithMetadata
 from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..shipping.types import ShippingMethod
 from ..site.dataloaders import load_site_callback
@@ -103,15 +106,18 @@ class ExternalAuthentication(BaseObjectType):
     name = graphene.String(description="Name of external authentication plugin.")
 
     class Meta:
+        description = "External authentication plugin."
         doc_category = DOC_CATEGORY_AUTH
 
 
 class Limits(graphene.ObjectType):
-    channels = graphene.Int()
-    orders = graphene.Int()
-    product_variants = graphene.Int()
-    staff_users = graphene.Int()
-    warehouses = graphene.Int()
+    channels = graphene.Int(description="Defines the number of channels.")
+    orders = graphene.Int(description="Defines the number of order.")
+    product_variants = graphene.Int(
+        description="Defines the number of product variants."
+    )
+    staff_users = graphene.Int(description="Defines the number of staff users.")
+    warehouses = graphene.Int(description="Defines the number of warehouses.")
 
 
 class LimitInfo(graphene.ObjectType):
@@ -125,6 +131,9 @@ class LimitInfo(graphene.ObjectType):
         required=True,
         description="Defines the allowed maximum resource usage, null means unlimited.",
     )
+
+    class Meta:
+        description = "Store the current and allowed usage."
 
 
 class Shop(graphene.ObjectType):
@@ -349,6 +358,7 @@ class Shop(graphene.ObjectType):
         description = (
             "Represents a shop resource containing general shop data and configuration."
         )
+        interfaces = [ObjectWithMetadata]
 
     @staticmethod
     @traced_resolver
@@ -548,3 +558,37 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_display_gross_prices(_, _info, site):
         return site.settings.display_gross_prices
+
+    @staticmethod
+    @load_site_callback
+    def resolve_metadata(root: ModelWithMetadata, info: ResolveInfo, site):
+        return ObjectWithMetadata.resolve_metadata(site.settings, info)
+
+    @staticmethod
+    @load_site_callback
+    def resolve_metafield(_, info: ResolveInfo, site, *, key: str):
+        return ObjectWithMetadata.resolve_metafield(site.settings, info, key=key)
+
+    @staticmethod
+    @load_site_callback
+    def resolve_metafields(_, info: ResolveInfo, site, *, keys=None):
+        return ObjectWithMetadata.resolve_metafields(site.settings, info, keys=keys)
+
+    @staticmethod
+    @load_site_callback
+    def resolve_private_metadata(_, info: ResolveInfo, site):
+        return ObjectWithMetadata.resolve_private_metadata(site.settings, info)
+
+    @staticmethod
+    @load_site_callback
+    def resolve_private_metafield(_, info: ResolveInfo, site, *, key: str):
+        return ObjectWithMetadata.resolve_private_metafield(
+            site.settings, info, key=key
+        )
+
+    @staticmethod
+    @load_site_callback
+    def resolve_private_metafields(_, info: ResolveInfo, site, *, keys=None):
+        return ObjectWithMetadata.resolve_private_metafields(
+            site.settings, info, keys=keys
+        )
