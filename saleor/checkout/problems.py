@@ -1,11 +1,14 @@
+import datetime
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Iterable, Optional, Tuple, Union
 
+import pytz
+
 from ..graphql.channel import ChannelContext
-from ..product.models import ProductVariant
+from ..product.models import ProductChannelListing, ProductVariant
 from ..warehouse.models import Stock
-from .fetch import CheckoutLineInfo
+from .fetch import CheckoutInfo, CheckoutLineInfo
 from .models import CheckoutLine
 
 
@@ -28,15 +31,34 @@ CHECKOUT_PROBLEM_TYPE = Union[
     CheckoutLineProblemInsufficientStock, CheckoutLineProblemVariantNotAvailable
 ]
 
+VARIANT_ID = int
+PRODUCT_ID = int
+CHANNEL_SLUG = str
+COUNTRY_CODE = str
+
+CHECKOUT_LINE_PK_TYPE = str
+
 
 def get_insufficient_stock_lines(
-    lines_with_stock: Iterable[Tuple["CheckoutLineInfo", list["Stock"]]]
+    lines: Iterable["CheckoutLineInfo"],
+    variant_stock_map: dict[
+        tuple[
+            VARIANT_ID,
+            CHANNEL_SLUG,
+            COUNTRY_CODE,
+        ],
+        Iterable[Stock],
+    ],
+    country_code: str,
 ) -> list[Tuple["CheckoutLineInfo", int]]:
     """Return checkout lines with insufficient stock."""
     variant_to_quantity_map: dict[int, int] = defaultdict(int)
     variant_to_available_quantity_map: dict[int, int] = defaultdict(int)
-    for line_info, variant_stocks in lines_with_stock:
+    for line_info in lines:
         variant_to_quantity_map[line_info.variant.id] += line_info.line.quantity
+        variant_stocks = variant_stock_map.get(
+            (line_info.variant.id, line_info.channel.slug, country_code), []
+        )
         variant_to_available_quantity_map[line_info.variant.id] = sum(
             [
                 stock.available_quantity  # type: ignore[attr-defined]
@@ -44,7 +66,7 @@ def get_insufficient_stock_lines(
             ]
         )
     insufficient_stocks = []
-    for line_info, variant_stocks in lines_with_stock:
+    for line_info in lines:
         if not line_info.variant.track_inventory:
             continue
         quantity = variant_to_quantity_map[line_info.variant.id]
@@ -54,23 +76,83 @@ def get_insufficient_stock_lines(
     return insufficient_stocks
 
 
-CHECKOUT_LINE_PK_TYPE = str
+def get_not_available_lines(
+    lines: Iterable["CheckoutLineInfo"],
+    product_channel_listings_map: dict[
+        tuple[
+            PRODUCT_ID,
+            CHANNEL_SLUG,
+        ],
+        ProductChannelListing,
+    ],
+):
+    lines_not_available = []
+    now = datetime.datetime.now(pytz.UTC)
+    for line in lines:
+        product_channel_listing = product_channel_listings_map.get(
+            (line.product.id, line.channel.slug), None
+        )
+        if not product_channel_listing:
+            lines_not_available.append(line)
+            continue
+
+        available_at = product_channel_listing.available_for_purchase_at
+        if available_at is not None and available_at > now:
+            lines_not_available.append(line)
+            continue
+
+        if product_channel_listing.is_published is False:
+            lines_not_available.append(line)
+            continue
+
+        if not line.channel_listing:
+            lines_not_available.append(line)
+            continue
+
+        if line.channel_listing.price_amount is None:
+            lines_not_available.append(line)
+
+    return lines_not_available
 
 
 def get_checkout_lines_problems(
-    lines_with_stock: Iterable[Tuple["CheckoutLineInfo", list["Stock"]]]
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    variant_stock_map: dict[
+        tuple[
+            VARIANT_ID,
+            CHANNEL_SLUG,
+            COUNTRY_CODE,
+        ],
+        Iterable[Stock],
+    ],
+    product_channel_listings_map: dict[
+        tuple[
+            PRODUCT_ID,
+            CHANNEL_SLUG,
+        ],
+        ProductChannelListing,
+    ],
 ) -> dict[CHECKOUT_LINE_PK_TYPE, list[CHECKOUT_LINE_PROBLEM_TYPE]]:
     """Return a list of all problems with the checkout lines.
-
-    It accepts the checkout lines infos and the list of the stocks available for the
-    lines. It returns a list of the problems with the checkout lines.
 
     The stocks need to have annotated available_quantity field.
     """
     problems: dict[
         CHECKOUT_LINE_PK_TYPE, list[CHECKOUT_LINE_PROBLEM_TYPE]
     ] = defaultdict(list)
-    insufficient_stock = get_insufficient_stock_lines(lines_with_stock)
+
+    not_available_lines = get_not_available_lines(lines, product_channel_listings_map)
+    if not_available_lines:
+        for line in not_available_lines:
+            problems[str(line.line.pk)].append(
+                CheckoutLineProblemVariantNotAvailable(line=line.line)
+            )
+    lines = [line for line in lines if line not in not_available_lines]
+
+    insufficient_stock = get_insufficient_stock_lines(
+        lines, variant_stock_map, checkout_info.checkout.country.code
+    )
     if insufficient_stock:
         for line_info, available_quantity in insufficient_stock:
             problems[str(line_info.line.pk)].append(
