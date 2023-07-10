@@ -11,7 +11,7 @@ from ..product.utils import (
 )
 from ..shipping_zone.utils import create_shipping_zone
 from ..utils import assign_permissions
-from ..warehouse.utils import create_warehouse, update_warehouse
+from ..warehouse.utils import create_warehouse
 from .utils import raw_checkout_create
 
 
@@ -32,11 +32,6 @@ def prepare_product(
     assign_permissions(e2e_staff_api_client, permissions)
     warehouse_data = create_warehouse(e2e_staff_api_client)
     warehouse_id = warehouse_data["id"]
-
-    update_warehouse(
-        e2e_staff_api_client,
-        warehouse_data["id"],
-    )
 
     channel_data = create_channel(e2e_staff_api_client, warehouse_data["id"])
     channel_id = channel_data["id"]
