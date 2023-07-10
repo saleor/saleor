@@ -670,6 +670,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     is_shipping_required = graphene.Boolean(required=True)
     quantity = graphene.Int(required=True)
     quantity_fulfilled = graphene.Int(required=True)
+    # TODO: create reason base on `OrderLineDiscount` objects
     unit_discount_reason = graphene.String()
     tax_rate = graphene.Float(required=True)
     digital_content_url = graphene.Field(DigitalContentUrl)
