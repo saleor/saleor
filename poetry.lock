@@ -2,12 +2,13 @@
 
 [[package]]
 name = "adyen"
-version = "4.0.0"
+version = "9.0.0"
 description = "Adyen Python Api"
 optional = false
 python-versions = "*"
 files = [
-    {file = "Adyen-4.0.0.tar.gz", hash = "sha256:f44007fd542d7634bee69f29572442bf9102043141a7d5822ac98539ac5e4d5b"},
+    {file = "Adyen-9.0.0-py3-none-any.whl", hash = "sha256:2a7ad39948fdd28bf615f0c9238bb1a61d10e5baa9be419079e4664de69689dc"},
+    {file = "Adyen-9.0.0.tar.gz", hash = "sha256:a7f7519905dd3f4d4ba59158e48551738e3f742f3fbe9247542e59e161a68ea0"},
 ]
 
 [[package]]
@@ -4870,4 +4871,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "2942d204210bd8fdce22da15e15b67e798af2d51029ebb0b3e427e993f96ea23"
+content-hash = "5b0d3839a003c19693423380ab6e41856ef5ea007d3fd63991477f83f1306788"
