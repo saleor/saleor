@@ -6,7 +6,9 @@ from .category_translate import CategoryTranslate
 from .collection_translate import CollectionTranslate
 from .menu_item_translate import MenuItemTranslate
 from .page_translate import PageTranslate
+from .product_bulk_translate import ProductBulkTranslate
 from .product_translate import ProductTranslate
+from .product_variant_bulk_translate import ProductVariantBulkTranslate
 from .product_variant_translate import ProductVariantTranslate
 from .sale_translate import SaleTranslate
 from .shipping_price_translate import ShippingPriceTranslate
@@ -23,7 +25,9 @@ __all__ = [
     "MenuItemTranslate",
     "PageTranslate",
     "ProductTranslate",
+    "ProductBulkTranslate",
     "ProductVariantTranslate",
+    "ProductVariantBulkTranslate",
     "SaleTranslate",
     "ShippingPriceTranslate",
     "ShopSettingsTranslate",
