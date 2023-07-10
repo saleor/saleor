@@ -1182,6 +1182,9 @@ def test_checkout_with_voucher_complete_product_on_promotion(
         promotion_rule=rule,
     )
 
+    promotion_without_rules.name = ""
+    promotion_without_rules.save(update_fields=["name"])
+
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
@@ -1234,6 +1237,13 @@ def test_checkout_with_voucher_complete_product_on_promotion(
     assert line_discount.promotion_rule == rule
     assert line_discount.value_type == DiscountValueType.FIXED
     assert line_discount.amount_value == reward_value * order_line.quantity
+    assert order_line.sale_id == graphene.Node.to_global_id(
+        "Promotion", promotion_without_rules.id
+    )
+    unit_discount_reason = "Promotion rules discounts: " + graphene.Node.to_global_id(
+        "PromotionRule", rule.pk
+    )
+    assert order_line.unit_discount_reason == unit_discount_reason
 
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
@@ -1467,6 +1477,12 @@ def test_checkout_complete_product_on_promotion(
     assert line_discount.promotion_rule == rule
     assert line_discount.value_type == DiscountValueType.FIXED
     assert line_discount.amount_value == reward_value * order_line.quantity
+
+    assert order_line.sale_id == graphene.Node.to_global_id(
+        "Promotion", promotion_without_rules.id
+    )
+    unit_discount_reason = "Promotion rules discounts: " + promotion_without_rules.name
+    assert order_line.unit_discount_reason == unit_discount_reason
 
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
@@ -1720,13 +1736,14 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
         discount_amount=reward_value,
         currency=channel.currency_code,
     )
-    CheckoutLineDiscount.objects.create(
+    line_discount = CheckoutLineDiscount.objects.create(
         line=checkout_line,
         type=DiscountType.PROMOTION,
         value_type=DiscountValueType.FIXED,
         amount_value=reward_value,
         currency=channel.currency_code,
         promotion_rule=rule,
+        name=promotion_without_rules.name,
     )
 
     manager = get_plugins_manager()
@@ -1785,8 +1802,15 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
 
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
-    # TODO: the promotion id should be set here
-    # assert order_line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
+    assert order_line.sale_id == graphene.Node.to_global_id(
+        "Promotion", promotion_without_rules.id
+    )
+    unit_discount_reason = (
+        f"Voucher code: {voucher_specific_product_type.code}"
+        + " & Promotion rules discounts: "
+        + promotion_without_rules.name
+    )
+    assert order_line.unit_discount_reason == unit_discount_reason
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
     assert order.payments.exists()
