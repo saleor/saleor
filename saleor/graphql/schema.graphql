@@ -4740,9 +4740,55 @@ type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
 }
 
 """Represents channel."""
-type Channel implements Node @doc(category: "Channels") {
+type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   """The ID of the channel."""
   id: ID!
+
+  """
+  List of private metadata items. Requires staff permissions to access.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """
+  List of public metadata items. Can be accessed without permissions.
+  
+  Added in Saleor 3.15.
+  """
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.15.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.15.
+  """
+  metafields(keys: [String!]): Metadata
 
   """Slug of the channel."""
   slug: String!
@@ -26244,6 +26290,20 @@ input ChannelCreateInput @doc(category: "Channels") {
   """
   orderSettings: OrderSettingsInput
 
+  """
+  Channel public metadata.
+  
+  Added in Saleor 3.15.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Channel private metadata.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetadata: [MetadataInput!]
+
   """Name of the channel."""
   name: String!
 
@@ -26360,6 +26420,20 @@ input ChannelUpdateInput @doc(category: "Channels") {
   Added in Saleor 3.12.
   """
   orderSettings: OrderSettingsInput
+
+  """
+  Channel public metadata.
+  
+  Added in Saleor 3.15.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Channel private metadata.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetadata: [MetadataInput!]
 
   """Name of the channel."""
   name: String
