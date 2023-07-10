@@ -11105,13 +11105,23 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
 
   """Job status."""
   status: JobStatusEnum!
+
+  """Date and time at which invoice was created."""
   createdAt: DateTime!
+
+  """Date and time at which invoice was updated."""
   updatedAt: DateTime!
+
+  """Message associated with an invoice."""
   message: String
 
   """The ID of the object."""
   id: ID!
+
+  """Invoice number."""
   number: String
+
+  """URL to view an invoice."""
   externalUrl: String
 
   """URL to download an invoice."""
