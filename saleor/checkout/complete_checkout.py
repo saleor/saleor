@@ -13,6 +13,7 @@ from typing import (
 )
 from uuid import UUID
 
+import graphene
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -266,15 +267,9 @@ def _create_line_for_order(
     else:
         discount_amount = discount_price.net
 
-    # TODO to fix
-    # unit_discount_reason = None
-    # if sale_id:
-    #     unit_discount_reason = f'Sale: {graphene.Node.to_global_id("Sale", sale_id)}'
-    # if voucher_code:
-    #     if unit_discount_reason:
-    #         unit_discount_reason += f" & Voucher code: {voucher_code}"
-    #     else:
-    #         unit_discount_reason = f"Voucher code: {voucher_code}"
+    unit_discount_reason = None
+    if voucher_code:
+        unit_discount_reason = f"Voucher code: {voucher_code}"
 
     tax_class = None
     if product.tax_class_id:
@@ -298,10 +293,9 @@ def _create_line_for_order(
         undiscounted_total_price=undiscounted_total_price,  # money field not supported by mypy_django_plugin # noqa: E501
         total_price=total_line_price,
         tax_rate=tax_rate,
-        # sale_id=graphene.Node.to_global_id("Sale", sale_id) if sale_id else None,
         voucher_code=voucher_code,
         unit_discount=discount_amount,  # money field not supported by mypy_django_plugin # noqa: E501
-        # unit_discount_reason=unit_discount_reason,
+        unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
         base_unit_price=base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         undiscounted_base_unit_price=undiscounted_base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
@@ -311,6 +305,20 @@ def _create_line_for_order(
     )
 
     line_discounts = _create_order_line_discounts(checkout_line_info, line)
+    if line_discounts:
+        # Currently only one promotion can be applied on the single line.
+        # This is temporary solution until the discount API is implemented.
+        # Ultimately, this info should be taken from the orderLineDiscount instances.
+        line.sale_id = graphene.Node.to_global_id(
+            "Promotion", checkout_line_info.rules_info[0].promotion.pk
+        )
+        promotion_discount_reason = _prepare_promotion_discount_reason(line_discounts)
+        unit_discount_reason = (
+            f"{unit_discount_reason} & {promotion_discount_reason}"
+            if unit_discount_reason
+            else promotion_discount_reason
+        )
+        line.unit_discount_reason = unit_discount_reason
 
     is_digital = line.is_digital
     line_info = OrderLineInfo(
@@ -328,7 +336,7 @@ def _create_line_for_order(
 
 def _create_order_line_discounts(
     checkout_line_info: "CheckoutLineInfo", order_line: "OrderLine"
-):
+) -> List["OrderLineDiscount"]:
     line_discounts = []
     discounts = checkout_line_info.get_promotion_discounts()
     for discount in discounts:
@@ -338,6 +346,17 @@ def _create_order_line_discounts(
         discount_data["line_id"] = order_line.pk
         line_discounts.append(OrderLineDiscount(**discount_data))
     return line_discounts
+
+
+def _prepare_promotion_discount_reason(line_discounts: List["OrderLineDiscount"]):
+    unit_discount_reason = "Promotion rules discounts: " + ", ".join(
+        [
+            discount.name
+            or graphene.Node.to_global_id("PromotionRule", discount.promotion_rule_id)
+            for discount in line_discounts
+        ]
+    )
+    return unit_discount_reason
 
 
 def _create_lines_for_order(
