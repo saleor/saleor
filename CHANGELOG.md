@@ -61,6 +61,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
 - Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
+- Added `metadata` and `privateMetadata` in `ShopSettingsInput`. #13128 by @Smit-Parmar
 - Fix error "Cannot return null for non-nullable field Webhook.name" - #12989 by @Smit-Parmar
 - Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
 - Remove `Preview feature` label from `metafield`, `metafields`, `metadata`,
@@ -88,9 +89,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `ACCOUNT_CONFIRMATION_REQUESTED` async event - #13162 by @SzymJ
 - Add `ACCOUNT_DELETE_REQUESTED` async event - #13170 by @SzymJ
 - Add `ACCOUNT_CHANGE_EMAIL_REQUESTED` async event - #13233 by @SzymJ
+- Add missing descriptions to Webhook module - #13262 by @Smit-Parmar
 - Add missing descriptions to Shop module. - #13295 by @Smit-Parmar
 - Add missing descriptions to Warehouse module. - #13264 by @Smit-Parmar
 - Add missing descriptions to Product module. - #13259 by @FremahA
+- Add missing description for Invoice module - #13265 by @DevilsAutumn
 - Add missing descriptions to Discount module - #13261 by @devilsautumn
 
 # 3.14.0

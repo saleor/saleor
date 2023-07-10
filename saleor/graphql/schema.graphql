@@ -1630,7 +1630,10 @@ type Query {
 
 """Webhook."""
 type Webhook implements Node @doc(category: "Webhooks") {
+  """The ID of webhook."""
   id: ID!
+
+  """The name of webhook."""
   name: String
 
   """List of webhook events."""
@@ -1641,6 +1644,8 @@ type Webhook implements Node @doc(category: "Webhooks") {
 
   """List of asynchronous webhook events."""
   asyncEvents: [WebhookEventAsync!]!
+
+  """The app associated with Webhook."""
   app: App!
 
   """Event deliveries."""
@@ -3205,7 +3210,10 @@ type EventDeliveryCountableEdge {
 
 """Event delivery."""
 type EventDelivery implements Node {
+  """The ID of an event delivery."""
   id: ID!
+
+  """Creation time of an event delivery."""
   createdAt: DateTime!
 
   """Event delivery status."""
@@ -3265,6 +3273,7 @@ type EventDeliveryAttemptCountableEdge {
 
 """Event delivery attempts."""
 type EventDeliveryAttempt implements Node @doc(category: "Webhooks") {
+  """The ID of Event Delivery Attempt."""
   id: ID!
 
   """Event delivery creation date and time."""
@@ -9152,7 +9161,37 @@ input StockFilterInput @doc(category: "Products") {
 """
 Represents a shop resource containing general shop data and configuration.
 """
-type Shop {
+type Shop implements ObjectWithMetadata {
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
   """List of available payment gateways."""
   availablePaymentGateways(
     """
@@ -11120,13 +11159,23 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
 
   """Job status."""
   status: JobStatusEnum!
+
+  """Date and time at which invoice was created."""
   createdAt: DateTime!
+
+  """Date and time at which invoice was updated."""
   updatedAt: DateTime!
+
+  """Message associated with an invoice."""
   message: String
 
   """The ID of the object."""
   id: ID!
+
+  """Invoice number."""
   number: String
+
+  """URL to view an invoice."""
   externalUrl: String
 
   """URL to download an invoice."""
@@ -18953,6 +19002,20 @@ input ShopSettingsInput {
   enableAccountConfirmationByEmail: Boolean
 
   """
+  Shop public metadata.
+  
+  Added in Saleor 3.15.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Shop private metadata.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """
   Include taxes in prices. 
   
   DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
@@ -18972,6 +19035,14 @@ input ShopSettingsInput {
   DEPRECATED: this field will be removed in Saleor 4.0. To enable taxes for a shipping method, assign a tax class to the shipping method with `shippingPriceCreate` or `shippingPriceUpdate` mutations.
   """
   chargeTaxesOnShipping: Boolean
+}
+
+input MetadataInput {
+  """Key of a metadata item."""
+  key: String!
+
+  """Value of a metadata item."""
+  value: String!
 }
 
 """
@@ -19613,14 +19684,6 @@ input SeoInput {
 Variables of this type must be set to null in mutations. They will be replaced with a filename from a following multipart part containing a binary file. See: https://github.com/jaydenseric/graphql-multipart-request-spec.
 """
 scalar Upload
-
-input MetadataInput {
-  """Key of a metadata item."""
-  key: String!
-
-  """Value of a metadata item."""
-  value: String!
-}
 
 """
 Deletes a category. 
