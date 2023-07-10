@@ -54,7 +54,7 @@ class PermissionGroupInput(BaseInputObjectType):
 class PermissionGroupCreateInput(PermissionGroupInput):
     name = graphene.String(description="Group name.", required=True)
     restricted_access_to_channels = graphene.Boolean(
-        description=("Determine if the group has restricted access to channels.")
+        description="Determine if the group has restricted access to channels."
         + ADDED_IN_314
         + PREVIEW_FEATURE,
         required=False,

@@ -586,18 +586,16 @@ def test_permission_group_create_mutation_restricted_access_to_channels(
 
 
 @pytest.mark.parametrize(
-    "field, value, expected_errors",
+    "field, value",
     (
-        ("addChannels", [], False),
-        ("addChannels", True, True),
-        ("restrictedAccessToChannels", False, True),
-        ("restrictedAccessToChannels", True, True),
+        ("addChannels", True),
+        ("restrictedAccessToChannels", False),
+        ("restrictedAccessToChannels", True),
     ),
 )
-def test_permission_group_create_mutation_field_permissions(
+def test_permission_group_create_mutation_field_permissions_no_permission(
     field,
     value,
-    expected_errors,
     staff_api_client,
     permission_manage_staff,
     channel_PLN,
@@ -617,17 +615,31 @@ def test_permission_group_create_mutation_field_permissions(
     response = staff_api_client.post_graphql(
         PERMISSION_GROUP_CREATE_MUTATION,
         variables,
-        permissions=[permission_manage_staff],
+        permissions=(permission_manage_staff,),
     )
 
     # then
-    if expected_errors:
-        data = get_graphql_content(response)["data"]["permissionGroupCreate"]
-        assert data["errors"][0]["message"] == "You can't manage channels."
-    else:
-        assert not get_graphql_content(response)["data"]["permissionGroupCreate"][
-            "errors"
-        ]
+    data = get_graphql_content(response)["data"]["permissionGroupCreate"]
+    assert data["errors"][0]["message"] == "You can't manage channels."
+
+
+def test_permission_group_create_mutation_field_permissions_happy_path(
+    staff_api_client, permission_manage_staff
+):
+    # when
+    response = staff_api_client.post_graphql(
+        PERMISSION_GROUP_CREATE_MUTATION,
+        {
+            "input": {
+                "name": "New permission group",
+                "addChannels": [],
+            }
+        },
+        permissions=(permission_manage_staff,),
+    )
+
+    # then
+    assert not get_graphql_content(response)["data"]["permissionGroupCreate"]["errors"]
 
 
 def test_permission_group_create_mutation_not_restricted_channels(
