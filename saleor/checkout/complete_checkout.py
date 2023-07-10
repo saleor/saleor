@@ -296,7 +296,7 @@ def _create_line_for_order(
         tax_rate=tax_rate,
         voucher_code=voucher_code,
         unit_discount=discount_amount,  # money field not supported by mypy_django_plugin # noqa: E501
-        # unit_discount_reason=unit_discount_reason,
+        unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
         base_unit_price=base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         undiscounted_base_unit_price=undiscounted_base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
@@ -347,6 +347,17 @@ def _create_order_line_discounts(
         discount_data["line_id"] = order_line.pk
         line_discounts.append(OrderLineDiscount(**discount_data))
     return line_discounts
+
+
+def _prepare_promotion_discount_reason(line_discounts: List["OrderLineDiscount"]):
+    unit_discount_reason = "Promotion rules discounts: " + ", ".join(
+        [
+            discount.name
+            or graphene.Node.to_global_id("PromotionRule", discount.promotion_rule_id)
+            for discount in line_discounts
+        ]
+    )
+    return unit_discount_reason
 
 
 def _create_lines_for_order(
