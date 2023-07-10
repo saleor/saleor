@@ -94,6 +94,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing descriptions to Warehouse module. - #13264 by @Smit-Parmar
 - Add missing descriptions to Product module. - #13259 by @FremahA
 - Add missing description for Invoice module - #13265 by @DevilsAutumn
+- Add missing descriptions to Discount module - #13261 by @devilsautumn
 
 # 3.14.0
 
