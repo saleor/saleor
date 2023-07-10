@@ -129,7 +129,11 @@ class BaseMetadataMutation(BaseMutation):
         if type_name in ["ShippingMethodType", "ShippingMethod"]:
             return shipping_models.ShippingMethod
 
-        graphene_type = info.schema.get_type(type_name).graphene_type
+        type_obj = info.schema.get_type(type_name)
+        if not type_obj:
+            raise GraphQLError(f"Invalid type: {type_name}")
+
+        graphene_type = type_obj.graphene_type
 
         if hasattr(graphene_type, "get_model"):
             return graphene_type.get_model()
