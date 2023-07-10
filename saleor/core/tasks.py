@@ -7,7 +7,7 @@ from django.utils import timezone
 from ..celeryconf import app
 from .models import EventDelivery, EventPayload
 
-BATCH_SIZE = 100
+BATCH_SIZE = 1000
 
 
 @app.task
@@ -21,7 +21,7 @@ def delete_event_payloads_task():
     valid_deliveries = EventDelivery.objects.filter(created_at__gt=delete_period)
     payloads_to_delete = EventPayload.objects.filter(
         ~Exists(valid_deliveries.filter(payload_id=OuterRef("id")))
-    ).order_by('-pk')
+    ).order_by("-pk")
     ids = payloads_to_delete.values_list("pk", flat=True)[:BATCH_SIZE]
     qs = EventPayload.objects.filter(pk__in=ids)
     if ids:
