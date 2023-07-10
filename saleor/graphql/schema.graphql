@@ -9129,6 +9129,9 @@ type Shop implements ObjectWithMetadata {
   """
   metafields(keys: [String!]): Metadata
 
+  """ID of the shop."""
+  id: ID!
+
   """List of available payment gateways."""
   availablePaymentGateways(
     """
