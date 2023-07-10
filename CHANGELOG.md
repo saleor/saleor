@@ -41,6 +41,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `voidedAmount` - Use `canceledAmount` instead.
   - `TransactionActionRequest` - Use `TransactionChargeRequested`, `TransactionRefundRequested`, `TransactionCancelationRequested` instead.
 
+- Simplify permissionGroupCreate permissions - #13363 by @8r2y5
 - Remove `OrderBulkCreateInput.trackingClientId` field - #13146 by @SzymJ
 - Drop backend integration with Open Exchange Rates API - #13175 by @maarcingebala
   - Note: this changes doesn't affect Saleor Cloud users, as the integration was never enabled there.
