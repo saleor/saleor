@@ -58,10 +58,12 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 - Add `lines` to `OrderGrantedRefund` - #13014 by @korycins
-
 - Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
 - Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
-- Added `metadata` and `privateMetadata` in `ShopSettingsInput`. #13128 by @Smit-Parmar
+- Add ability to use metadata in the `Shop` type - #13128 by @Smit-Parmar, #13364 by @maarcingebala
+  - Add `metadata` and `privateMetadata` in `ShopSettingsInput`.
+  - Add `Shop.id` field.
+  - Add support for modifying metadata via generic metadata API.
 - Fix error "Cannot return null for non-nullable field Webhook.name" - #12989 by @Smit-Parmar
 - Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
 - Remove `Preview feature` label from `metafield`, `metafields`, `metadata`,
