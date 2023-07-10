@@ -10,9 +10,13 @@ from .....account.models import User
 from .....channel.models import Channel
 from .....core.exceptions import PermissionDenied
 from .....core.tracing import traced_atomic_transaction
-from .....permission.enums import AccountPermissions, get_permissions
+from .....permission.enums import (
+    AccountPermissions,
+    ChannelPermissions,
+    get_permissions,
+)
 from .....webhook.event_types import WebhookEventAsyncType
-from ....account.utils import get_out_of_scope_permissions, get_user_accessible_channels
+from ....account.utils import get_out_of_scope_permissions
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_314, PREVIEW_FEATURE
@@ -50,12 +54,9 @@ class PermissionGroupInput(BaseInputObjectType):
 class PermissionGroupCreateInput(PermissionGroupInput):
     name = graphene.String(description="Group name.", required=True)
     restricted_access_to_channels = graphene.Boolean(
-        description=(
-            "Determine if the group has restricted access to channels.  DEFAULT: False"
-        )
+        description=("Determine if the group has restricted access to channels.")
         + ADDED_IN_314
         + PREVIEW_FEATURE,
-        default_value=False,
         required=False,
     )
 
@@ -113,10 +114,8 @@ class PermissionGroupCreate(ModelMutation):
         user = info.context.user
         user = cast(User, user)
         errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
-        user_accessible_channels = get_user_accessible_channels(info, info.context.user)
-        cls.clean_channels(
-            info, instance, user_accessible_channels, errors, cleaned_input
-        )
+
+        cls.clean_channels(info, instance, [], errors, cleaned_input)
         cls.clean_permissions(user, instance, errors, cleaned_input)
         cls.clean_users(user, errors, cleaned_input, instance)
 
@@ -213,54 +212,32 @@ class PermissionGroupCreate(ModelMutation):
         """Clean adding channels when the group hasn't restricted access to channels."""
         user = info.context.user
         user = cast(User, user)
-        if cleaned_input.get("restricted_access_to_channels") is False:
-            if not user.is_superuser:
-                channel_ids = set(Channel.objects.values_list("id", flat=True))
-                accessible_channel_ids = {
-                    channel.id for channel in user_accessible_channels
-                }
-                not_accessible_channels = set(channel_ids - accessible_channel_ids)
-                error_code = PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.value
-                if not_accessible_channels:
-                    raise ValidationError(
-                        {
-                            "restricted_access_to_channels": ValidationError(
-                                "You can't manage group with channels out of "
-                                "your scope.",
-                                code=error_code,
-                            )
-                        }
-                    )
-            cleaned_input["add_channels"] = []
-        elif add_channels := cleaned_input.get("add_channels"):
+
+        if "restricted_access_to_channels" in cleaned_input:
             cls.ensure_can_manage_channels(
-                user, user_accessible_channels, errors, add_channels
+                user, errors, "restricted_access_to_channels"
             )
+            if cleaned_input.get("restricted_access_to_channels") is False:
+                cleaned_input["add_channels"] = []
+
+        elif cleaned_input.get("add_channels"):
+            cls.ensure_can_manage_channels(user, errors, "add_channels")
 
     @classmethod
-    def ensure_can_manage_channels(
-        cls,
-        user: "User",
-        user_accessible_channels: List["Channel"],
-        errors: dict,
-        channels: List["Channel"],
-    ):
-        # user must have access to all channels from `add_channels` list
+    def ensure_can_manage_channels(cls, user: "User", errors: dict, field: str):
         if user.is_superuser:
             return
-        channel_ids = {str(channel.id) for channel in channels}
-        accessible_channel_ids = {
-            str(channel.id) for channel in user_accessible_channels
-        }
-        invalid_channel_ids = channel_ids - accessible_channel_ids
-        if invalid_channel_ids:
-            ids = [
-                graphene.Node.to_global_id("Channel", pk) for pk in invalid_channel_ids
-            ]
-            error_msg = "You can't add channel that you don't have access to."
-            code = PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.value
-            params = {"channels": ids}
-            cls.update_errors(errors, error_msg, "add_channels", code, params)
+
+        if user.has_perm(ChannelPermissions.MANAGE_CHANNELS):
+            return
+
+        cls.update_errors(
+            errors,
+            "You can't manage channels.",
+            field,
+            PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.value,
+            {},
+        )
 
     @classmethod
     def update_errors(

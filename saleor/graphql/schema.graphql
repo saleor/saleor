@@ -28056,13 +28056,13 @@ input PermissionGroupCreateInput @doc(category: "Users") {
   name: String!
 
   """
-  Determine if the group has restricted access to channels.  DEFAULT: False
+  Determine if the group has restricted access to channels.
   
   Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  restrictedAccessToChannels: Boolean = false
+  restrictedAccessToChannels: Boolean
 }
 
 """

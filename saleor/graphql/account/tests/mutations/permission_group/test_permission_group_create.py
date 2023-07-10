@@ -2,6 +2,7 @@ import json
 from unittest.mock import patch
 
 import graphene
+import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
@@ -51,6 +52,7 @@ PERMISSION_GROUP_CREATE_MUTATION = """
 def test_permission_group_create_mutation(
     staff_users,
     permission_manage_staff,
+    permission_manage_channels,
     staff_api_client,
     permission_group_manage_users,
     permission_group_manage_apps,
@@ -73,7 +75,9 @@ def test_permission_group_create_mutation(
         }
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_staff,)
+        query,
+        variables,
+        permissions=(permission_manage_staff, permission_manage_channels),
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
@@ -113,6 +117,7 @@ def test_permission_group_create_mutation_trigger_webhook(
     any_webhook,
     staff_users,
     permission_manage_staff,
+    permission_manage_channels,
     staff_api_client,
     permission_group_manage_users,
     permission_group_manage_apps,
@@ -141,7 +146,9 @@ def test_permission_group_create_mutation_trigger_webhook(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_staff,)
+        query,
+        variables,
+        permissions=(permission_manage_staff, permission_manage_channels),
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
@@ -198,52 +205,10 @@ def test_permission_group_create_app_no_permission(
     assert_no_permission(response)
 
 
-def test_permission_group_create_no_channel_access(
-    staff_users,
-    staff_api_client,
-    permission_group_all_perms_channel_USD_only,
-    channel_PLN,
-    channel_USD,
-):
-    # given
-    staff_user = staff_users[0]
-    permission_group_all_perms_channel_USD_only.user_set.add(staff_user)
-    query = PERMISSION_GROUP_CREATE_MUTATION
-    channel_PLN_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    channel_USD_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-
-    variables = {
-        "input": {
-            "name": "New permission group",
-            "restrictedAccessToChannels": True,
-            "addPermissions": [
-                AccountPermissions.MANAGE_USERS.name,
-                AppPermission.MANAGE_APPS.name,
-            ],
-            "addUsers": [
-                graphene.Node.to_global_id("User", user.id) for user in staff_users
-            ],
-            "addChannels": [channel_PLN_id, channel_USD_id],
-        }
-    }
-
-    # when
-    response = staff_api_client.post_graphql(query, variables)
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["permissionGroupCreate"]
-    errors = data["errors"]
-
-    assert len(errors) == 1
-    assert errors[0]["field"] == "addChannels"
-    assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.name
-    assert errors[0]["channels"] == [channel_PLN_id]
-
-
 def test_permission_group_create_mutation_only_required_fields(
     staff_users,
     permission_manage_staff,
+    permission_manage_channels,
     staff_api_client,
     permission_group_manage_users,
     permission_group_manage_apps,
@@ -255,7 +220,9 @@ def test_permission_group_create_mutation_only_required_fields(
 
     variables = {"input": {"name": name}}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_staff,)
+        query,
+        variables,
+        permissions=(permission_manage_staff, permission_manage_channels),
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
@@ -368,6 +335,7 @@ def test_permission_group_create_mutation_lack_of_permission(
 def test_permission_group_create_mutation_group_exists(
     staff_user,
     permission_manage_staff,
+    permission_manage_channels,
     staff_api_client,
     permission_group_manage_users,
     permission_group_manage_apps,
@@ -386,7 +354,9 @@ def test_permission_group_create_mutation_group_exists(
         }
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_staff,)
+        query,
+        variables,
+        permissions=(permission_manage_staff, permission_manage_channels),
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
@@ -474,6 +444,7 @@ def test_permission_group_create_mutation_lack_of_permission_and_customer_user(
     staff_user,
     customer_user,
     permission_manage_staff,
+    permission_manage_channels,
     staff_api_client,
     permission_group_manage_users,
 ):
@@ -495,7 +466,9 @@ def test_permission_group_create_mutation_lack_of_permission_and_customer_user(
         }
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_staff,)
+        query,
+        variables,
+        permissions=(permission_manage_staff, permission_manage_channels),
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
@@ -519,6 +492,7 @@ def test_permission_group_create_mutation_requestor_does_not_have_all_users_perm
     staff_users,
     permission_group_manage_users,
     permission_manage_staff,
+    permission_manage_channels,
     staff_api_client,
     permission_group_manage_apps,
 ):
@@ -543,7 +517,9 @@ def test_permission_group_create_mutation_requestor_does_not_have_all_users_perm
 
     # for staff user
     response = staff_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_staff,)
+        query,
+        variables,
+        permissions=(permission_manage_staff, permission_manage_channels),
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
@@ -574,6 +550,7 @@ def test_permission_group_create_mutation_restricted_access_to_channels(
     staff_api_client,
     permission_group_manage_users,
     permission_group_manage_apps,
+    permission_manage_channels,
     channel_PLN,
     channel_USD,
 ):
@@ -592,7 +569,9 @@ def test_permission_group_create_mutation_restricted_access_to_channels(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_staff,)
+        query,
+        variables,
+        permissions=(permission_manage_staff, permission_manage_channels),
     )
 
     # then
@@ -606,14 +585,60 @@ def test_permission_group_create_mutation_restricted_access_to_channels(
     assert data["errors"] == []
 
 
+@pytest.mark.parametrize(
+    "field, value, expected_errors",
+    (
+        ("addChannels", [], False),
+        ("addChannels", True, True),
+        ("restrictedAccessToChannels", False, True),
+        ("restrictedAccessToChannels", True, True),
+    ),
+)
+def test_permission_group_create_mutation_field_permissions(
+    field,
+    value,
+    expected_errors,
+    staff_api_client,
+    permission_manage_staff,
+    channel_PLN,
+):
+    # given
+    if field == "addChannels" and value is True:
+        value = [graphene.Node.to_global_id("Channel", channel_PLN.id)]
+
+    variables = {
+        "input": {
+            "name": "New permission group",
+            field: value,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PERMISSION_GROUP_CREATE_MUTATION,
+        variables,
+        permissions=[permission_manage_staff],
+    )
+
+    # then
+    if expected_errors:
+        data = get_graphql_content(response)["data"]["permissionGroupCreate"]
+        assert data["errors"][0]["message"] == "You can't manage channels."
+    else:
+        assert not get_graphql_content(response)["data"]["permissionGroupCreate"][
+            "errors"
+        ]
+
+
 def test_permission_group_create_mutation_not_restricted_channels(
     permission_manage_staff,
     staff_api_client,
     permission_group_no_perms_all_channels,
+    permission_manage_channels,
     channel_PLN,
     channel_USD,
 ):
-    """Ensure that creating permission group with restrictedAccessToChannels se to
+    """Ensure that creating permission group with restrictedAccessToChannels set to
     False won't assign any channels to the group."""
     # given
     permission_group_no_perms_all_channels.user_set.add(staff_api_client.user)
@@ -630,7 +655,9 @@ def test_permission_group_create_mutation_not_restricted_channels(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_staff,)
+        query,
+        variables,
+        permissions=(permission_manage_staff, permission_manage_channels),
     )
 
     # then
@@ -643,38 +670,3 @@ def test_permission_group_create_mutation_not_restricted_channels(
     assert len(permission_group_data["accessibleChannels"]) == Channel.objects.count()
     group = Group.objects.get(name=name)
     assert group.channels.count() == 0
-
-
-def test_permission_group_create_mutation_not_restricted_channels_no_access(
-    permission_manage_staff,
-    staff_api_client,
-    permission_group_all_perms_channel_USD_only,
-    channel_PLN,
-    channel_USD,
-):
-    """Ensure that user with restricted channel access is not able to create a group
-    with not restricted channel access."""
-    # given
-    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
-    query = PERMISSION_GROUP_CREATE_MUTATION
-    name = "New permission group"
-
-    variables = {
-        "input": {
-            "name": name,
-            "restrictedAccessToChannels": False,
-            "addChannels": [graphene.Node.to_global_id("Channel", channel_PLN.pk)],
-        }
-    }
-
-    # when
-    response = staff_api_client.post_graphql(query, variables)
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["permissionGroupCreate"]
-    errors = data["errors"]
-
-    assert len(errors) == 1
-    assert errors[0]["field"] == "restrictedAccessToChannels"
-    assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.name

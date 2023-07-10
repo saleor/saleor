@@ -116,6 +116,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         user_fields = ("add_users", "remove_users", "users")
         channel_fields = ("add_channels", "remove_channels", "channels")
 
+        cls.clean_channels(info, instance, [], errors, data)
         cls.check_duplicates(errors, data, permission_fields)
         cls.check_duplicates(errors, data, user_fields)
         cls.check_duplicates(errors, data, channel_fields)
@@ -156,22 +157,24 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cleaned_input: dict,
     ):
         """Clean channels when the group hasn't restricted access to channels."""
+        user = cast(User, info.context.user)
         super().clean_channels(
             info, group, user_accessible_channels, errors, cleaned_input
         )
-        if remove_channels := cleaned_input.get("remove_channels"):
-            user = info.context.user
-            user = cast(User, user)
-            cls.ensure_can_manage_channels(
-                user, user_accessible_channels, errors, remove_channels
-            )
+        if cleaned_input.get("remove_channels"):
+            cls.ensure_can_manage_channels(user, errors, "remove_channels")
 
-        restricted_access = cleaned_input.get("restricted_access_to_channels")
-        if restricted_access is False or (
-            restricted_access is None and group.restricted_access_to_channels is False
-        ):
-            cleaned_input["add_channels"] = []
-            cleaned_input["remove_channels"] = []
+        if cleaned_input.get("add_channels") or cleaned_input.get("remove_channels"):
+            restricted_access = cleaned_input.get("restricted_access_to_channels")
+            if restricted_access is False or (
+                restricted_access is None
+                and group.restricted_access_to_channels is False
+            ):
+                cls.ensure_can_manage_channels(
+                    user, errors, "restricted_access_to_channels"
+                )
+                cleaned_input["add_channels"] = []
+                cleaned_input["remove_channels"] = []
 
     @classmethod
     def clean_permissions(
