@@ -8,11 +8,13 @@ from ....core.tracing import traced_atomic_transaction
 from ....menu import models
 from ....menu.error_codes import MenuErrorCode
 from ....permission.enums import MenuPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_MENU
 from ...core.mutations import BaseMutation
 from ...core.types import MenuError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...core.utils.reordering import perform_reordering
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..dataloaders import MenuItemsByParentMenuLoader
@@ -42,6 +44,15 @@ class MenuItemMove(BaseMutation):
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.MENU_ITEM_UPDATED,
+                description=(
+                    "Optionally triggered when sort order or parent changed for "
+                    "menu item."
+                ),
+            ),
+        ]
 
     @classmethod
     def success_response(cls, instance):
