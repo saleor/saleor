@@ -2854,7 +2854,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 }
 
 """Represents app data."""
-type App implements Node & ObjectWithMetadata & ObjectWithEvents @doc(category: "Apps") {
+type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """The ID of the app."""
   id: ID!
 
@@ -3048,11 +3048,6 @@ Example:
 ```
 """
 scalar Metadata
-
-interface ObjectWithEvents {
-  """The list of events associated with the object."""
-  events: [ObjectEvent!]
-}
 
 interface ObjectEvent {
   id: ID!
@@ -13286,7 +13281,7 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type Promotion implements Node & ObjectWithMetadata & ObjectWithEvents @doc(category: "Discounts") {
+type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""

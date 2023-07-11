@@ -494,7 +494,7 @@ class AppToken(BaseObjectType):
 
 
 @federated_entity("id")
-class App(ModelObjectType[models.App]):
+class App(ModelObjectType[models.App], ObjectWithEvents):
     id = graphene.GlobalID(required=True, description="The ID of the app.")
     permissions = NonNullList(Permission, description="List of the app's permissions.")
     created = graphene.DateTime(
@@ -561,7 +561,7 @@ class App(ModelObjectType[models.App]):
 
     class Meta:
         description = "Represents app data."
-        interfaces = [graphene.relay.Node, ObjectWithMetadata, ObjectWithEvents]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.App
 
     @staticmethod

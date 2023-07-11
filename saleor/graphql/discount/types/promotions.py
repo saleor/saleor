@@ -24,7 +24,7 @@ from ..dataloaders import (
 from ..enums import RewardValueTypeEnum
 
 
-class Promotion(ModelObjectType[models.Promotion]):
+class Promotion(ModelObjectType[models.Promotion], ObjectWithEvents):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True, description="Name of the promotion.")
     description = JSON(description="Description of the promotion.")
@@ -50,7 +50,7 @@ class Promotion(ModelObjectType[models.Promotion]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, ObjectWithMetadata, ObjectWithEvents]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Promotion
         doc_category = DOC_CATEGORY_DISCOUNTS
 

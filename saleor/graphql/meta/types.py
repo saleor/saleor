@@ -234,7 +234,7 @@ class ObjectEvent(graphene.Interface):
         return None
 
 
-class ObjectWithEvents(graphene.Interface):
+class ObjectWithEvents(graphene.AbstractType):
     events = NonNullList(
         ObjectEvent,
         description="The list of events associated with the object.",
