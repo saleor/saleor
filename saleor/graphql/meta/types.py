@@ -14,7 +14,7 @@ from ..channel import ChannelContext
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.fields import PermissionsField
-from ..core.types import NonNullList
+from ..core.types import BaseEnum, NonNullList, SortInputObjectType
 from ..utils import get_user_or_app_from_context
 from .resolvers import (
     check_private_metadata_privilege,
@@ -245,3 +245,20 @@ class ObjectWithEvents(graphene.AbstractType):
         ObjectEvent,
         description="The list of events associated with the object.",
     )
+
+
+class ObjectEventSortField(BaseEnum):
+    CREATED_AT = ["date", "pk"]
+
+    @property
+    def description(self):
+        if self.name in ObjectEvent.__enum__._member_names_:
+            sort_name = self.name.lower().replace("_", " ")
+            return f"Sort app events by {sort_name}."
+        raise ValueError(f"Unsupported enum value: {self.value}")
+
+
+class ObjectEventSortingInput(SortInputObjectType):
+    class Meta:
+        sort_enum = ObjectEventSortField
+        type_name = "events"

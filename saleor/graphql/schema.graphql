@@ -2996,7 +2996,7 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
     filter: AppEventFilterInput
 
     """Sort app events."""
-    sortBy: AppEventSortingInput
+    sortBy: ObjectEventSortingInput
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -10623,16 +10623,15 @@ enum AppEventTypeEnum {
   APP_EVENT_DEACTIVATED
 }
 
-input AppEventSortingInput {
+input ObjectEventSortingInput {
   """Specifies the direction in which to sort events."""
   direction: OrderDirection!
 
   """Sort events by the selected field."""
-  field: AppEventSortField!
+  field: ObjectEventSortField!
 }
 
-enum AppEventSortField {
-  """Sort app events by created at."""
+enum ObjectEventSortField {
   CREATED_AT
 }
 

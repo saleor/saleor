@@ -49,7 +49,12 @@ from ..core.types import (
     Permission,
 )
 from ..core.utils import from_global_id_or_error
-from ..meta.types import ObjectEvent, ObjectEventCountableConnection, ObjectWithMetadata
+from ..meta.types import (
+    ObjectEvent,
+    ObjectEventCountableConnection,
+    ObjectEventSortingInput,
+    ObjectWithMetadata,
+)
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.dataloaders import WebhooksByAppIdLoader
 from ..webhook.enums import WebhookEventTypeAsyncEnum, WebhookEventTypeSyncEnum
@@ -75,7 +80,6 @@ from .resolvers import (
     resolve_access_token_for_app_extension,
     resolve_app_extension_url,
 )
-from .sorters import AppEventSortingInput
 
 # Maximal thumbnail size for manifest preview
 MANIFEST_THUMBNAIL_MAX_SIZE = 512
@@ -573,7 +577,7 @@ class App(ModelObjectType[models.App]):
     events = FilterConnectionField(
         ObjectEventCountableConnection,
         filter=AppEventFilterInput(description="Filtering options for app events."),
-        sort_by=AppEventSortingInput(description="Sort app events."),
+        sort_by=ObjectEventSortingInput(description="Sort app events."),
     )
 
     class Meta:
