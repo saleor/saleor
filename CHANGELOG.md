@@ -73,6 +73,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
+- Add `SHOP_METADATA_UPDATED` webhook - #13364 by @maarcingebala
 
 ### Other changes
 - Add POC of Core API tests - #13034 by @fowczarek
