@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import graphene
 
-from .....discount import RewardValueType
+from .....discount import PromotionEvents, RewardValueType
 from .....tests.utils import dummy_editorjs
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -297,6 +297,6 @@ def test_query_promotion_events(
             "type": event.type,
             "createdBy": {"id": graphene.Node.to_global_id("User", event.user.id)},
         }
-        if event.type.upper() == "RULE_CREATED":
+        if event.type == PromotionEvents.RULE_CREATED:
             event_data.update({"ruleId": None})
         assert event_data in events

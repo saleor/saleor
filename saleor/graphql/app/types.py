@@ -2,7 +2,7 @@ import base64
 from typing import List, Optional, Type, Union
 
 import graphene
-from graphene import AbstractType
+from graphene import AbstractType, ObjectType
 
 from ...app import models
 from ...app.types import AppEventType, AppExtensionTarget
@@ -710,7 +710,7 @@ class AppEventDeactivated(ModelObjectType[models.AppEvent], AppEventBase):
         model = models.AppEvent
 
 
-APP_EVENTS_MAP = {
+APP_EVENTS_MAP: dict[str, Type[ObjectType]] = {
     AppEventType.INSTALLED: AppEventInstalled,
     AppEventType.ACTIVATED: AppEventActivated,
     AppEventType.DEACTIVATED: AppEventDeactivated,

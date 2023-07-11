@@ -1,5 +1,7 @@
+from typing import Type
+
 import graphene
-from graphene import relay
+from graphene import ObjectType, relay
 
 from ....discount import PromotionEvents as events
 from ....discount import models
@@ -224,7 +226,7 @@ class PromotionRuleDeletedEvent(ModelObjectType[models.PromotionEvent]):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
 
-PROMOTION_EVENT_MAP = {
+PROMOTION_EVENT_MAP: dict[str, Type[ObjectType]] = {
     events.PROMOTION_CREATED: PromotionCreatedEvent,
     events.PROMOTION_UPDATED: PromotionUpdatedEvent,
     events.PROMOTION_STARTED: PromotionStartedEvent,

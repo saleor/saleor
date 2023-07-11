@@ -1,4 +1,5 @@
 import dataclasses
+from functools import cache
 from operator import itemgetter
 
 from ...account import models as account_models
@@ -123,12 +124,23 @@ def resolve_private_metadata(root: ModelWithMetadata, info: ResolveInfo):
     return resolve_metadata(root.private_metadata)
 
 
-def resolve_event_type(instance):
+@cache
+def _event_type_map():
     # Imports inside resolvers to avoid circular imports.
     from ..app.types import APP_EVENTS_MAP
     from ..discount.types.promotions import PROMOTION_EVENT_MAP
 
+    event_maps = [PROMOTION_EVENT_MAP, APP_EVENTS_MAP]
+    all_event_map = dict()
+    for event_map in event_maps:
+        for key, val in event_map.items():
+            if key in all_event_map:
+                raise ValueError(f"Event type identifier: {key} is not unique.")
+            all_event_map[key] = val
+    return all_event_map
+
+
+def resolve_event_type(instance):
     if isinstance(instance, EventModel):
-        model_to_type_map = {**PROMOTION_EVENT_MAP, **APP_EVENTS_MAP}
-        return model_to_type_map.get(instance.type, None)
+        return _event_type_map().get(instance.type, None)
     raise ValueError(f"Unknown type: {instance.__class__}")

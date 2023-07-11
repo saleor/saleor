@@ -10618,9 +10618,9 @@ input AppEventFilterInput {
 
 """All app event types."""
 enum AppEventTypeEnum {
-  INSTALLED
-  ACTIVATED
-  DEACTIVATED
+  APP_EVENT_INSTALLED
+  APP_EVENT_ACTIVATED
+  APP_EVENT_DEACTIVATED
 }
 
 input AppEventSortingInput {

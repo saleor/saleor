@@ -62,9 +62,9 @@ class AppExtensionTarget:
 class AppEventType:
     """All app event types."""
 
-    INSTALLED = "installed"
-    ACTIVATED = "activated"
-    DEACTIVATED = "deactivated"
+    INSTALLED = "app_event_installed"
+    ACTIVATED = "app_event_activated"
+    DEACTIVATED = "app_event_deactivated"
 
     CHOICES = [
         (INSTALLED, "App was installed"),
