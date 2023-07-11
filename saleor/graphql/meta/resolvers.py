@@ -130,14 +130,7 @@ def _event_type_map():
     from ..app.types import APP_EVENTS_MAP
     from ..discount.types.promotions import PROMOTION_EVENT_MAP
 
-    event_maps = [PROMOTION_EVENT_MAP, APP_EVENTS_MAP]
-    all_event_map = dict()
-    for event_map in event_maps:
-        for key, val in event_map.items():
-            if key in all_event_map:
-                raise ValueError(f"Event type identifier: {key} is not unique.")
-            all_event_map[key] = val
-    return all_event_map
+    return {**APP_EVENTS_MAP, **PROMOTION_EVENT_MAP}
 
 
 def resolve_event_type(instance):

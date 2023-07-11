@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, Dict, List, Set, Union
 
 from django.db.models import QuerySet
 
+from ..core.types import EventTypeBase
+
 if TYPE_CHECKING:
     from .models import PromotionRule, Sale, SaleChannelListing
 
@@ -46,7 +48,7 @@ class RewardValueType:
     ]
 
 
-class PromotionEvents:
+class PromotionEvents(EventTypeBase):
     PROMOTION_CREATED = "promotion_event_created"
     PROMOTION_UPDATED = "promotion_event_updated"
     PROMOTION_STARTED = "promotion_event_started"
