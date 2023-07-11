@@ -2496,6 +2496,14 @@ def product(product_type, category, warehouse, channel_USD, default_tax_class):
 
 
 @pytest.fixture
+def product_with_translations(product):
+    product.translations.create(language_code="pl", name="OldProduct PL")
+    product.translations.create(language_code="de", name="OldProduct DE")
+
+    return product
+
+
+@pytest.fixture
 def shippable_gift_card_product(
     shippable_gift_card_product_type, category, warehouse, channel_USD
 ):
@@ -3051,6 +3059,13 @@ def variant(product, channel_USD) -> ProductVariant:
         currency=channel_USD.currency_code,
     )
     return product_variant
+
+
+@pytest.fixture
+def variant_with_translations(variant):
+    variant.translations.create(language_code="pl", name="OldVariant PL")
+    variant.translations.create(language_code="de", name="OldVariant DE")
+    return variant
 
 
 @pytest.fixture

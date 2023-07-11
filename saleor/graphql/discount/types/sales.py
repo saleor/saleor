@@ -35,10 +35,20 @@ from ..enums import SaleType
 
 
 class SaleChannelListing(ModelObjectType[models.SaleChannelListing]):
-    id = graphene.GlobalID(required=True)
-    channel = graphene.Field(Channel, required=True)
-    discount_value = graphene.Float(required=True)
-    currency = graphene.String(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the channel listing.")
+    channel = graphene.Field(
+        Channel,
+        required=True,
+        description="The channel in which the sale is available.",
+    )
+    discount_value = graphene.Float(
+        required=True,
+        description="The value of the discount applied to the sale in the channel.",
+    )
+    currency = graphene.String(
+        required=True,
+        description="The currency in which the discount value is specified.",
+    )
 
     class Meta:
         description = "Represents sale channel listing."
@@ -51,13 +61,19 @@ class SaleChannelListing(ModelObjectType[models.SaleChannelListing]):
 
 
 class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Sale]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
-    type = SaleType(required=True)
-    start_date = graphene.DateTime(required=True)
-    end_date = graphene.DateTime()
-    created = graphene.DateTime(required=True)
-    updated_at = graphene.DateTime(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the sale.")
+    name = graphene.String(required=True, description="The name of the sale.")
+    type = SaleType(required=True, description="Type of the sale, fixed or percentage.")
+    start_date = graphene.DateTime(
+        required=True, description="The start date and time of the sale."
+    )
+    end_date = graphene.DateTime(description="The end date and time of the sale.")
+    created = graphene.DateTime(
+        required=True, description="The date and time when the sale was created."
+    )
+    updated_at = graphene.DateTime(
+        required=True, description="The date and time when the sale was updated."
+    )
     categories = ConnectionField(
         CategoryCountableConnection,
         description="List of categories this sale applies to.",

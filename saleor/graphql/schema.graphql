@@ -4740,9 +4740,55 @@ type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
 }
 
 """Represents channel."""
-type Channel implements Node @doc(category: "Channels") {
+type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   """The ID of the channel."""
   id: ID!
+
+  """
+  List of private metadata items. Requires staff permissions to access.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """
+  List of public metadata items. Can be accessed without permissions.
+  
+  Added in Saleor 3.15.
+  """
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.15.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.15.
+  """
+  metafields(keys: [String!]): Metadata
 
   """Slug of the channel."""
   slug: String!
@@ -8331,6 +8377,7 @@ type SaleTranslation implements Node @doc(category: "Discounts") {
 Sales allow creating discounts for categories, collections or products and are visible to all the customers.
 """
 type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
+  """The ID of the sale."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8370,11 +8417,23 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """The name of the sale."""
   name: String!
+
+  """Type of the sale, fixed or percentage."""
   type: SaleType!
+
+  """The start date and time of the sale."""
   startDate: DateTime!
+
+  """The end date and time of the sale."""
   endDate: DateTime
+
+  """The date and time when the sale was created."""
   created: DateTime!
+
+  """The date and time when the sale was updated."""
   updatedAt: DateTime!
 
   """List of categories this sale applies to."""
@@ -8529,9 +8588,16 @@ type ProductVariantCountableEdge @doc(category: "Products") {
 
 """Represents sale channel listing."""
 type SaleChannelListing implements Node @doc(category: "Discounts") {
+  """The ID of the channel listing."""
   id: ID!
+
+  """The channel in which the sale is available."""
   channel: Channel!
+
+  """The value of the discount applied to the sale in the channel."""
   discountValue: Float!
+
+  """The currency in which the discount value is specified."""
   currency: String!
 }
 
@@ -8565,6 +8631,7 @@ type VoucherTranslation implements Node @doc(category: "Discounts") {
 Vouchers allow giving discounts to particular customers on categories, collections or specific products. They can be used during checkout by providing valid voucher codes.
 """
 type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
+  """The ID of the voucher."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8604,15 +8671,39 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """The name of the voucher."""
   name: String
+
+  """The code of the voucher."""
   code: String!
+
+  """The number of times a voucher can be used."""
   usageLimit: Int
+
+  """Usage count of the voucher."""
   used: Int!
+
+  """The start date and time of voucher."""
   startDate: DateTime!
+
+  """The end date and time of voucher."""
   endDate: DateTime
+
+  """
+  Determine if the voucher should be applied once per order. If set to True, the voucher is applied to a single cheapest eligible product in checkout.
+  """
   applyOncePerOrder: Boolean!
+
+  """
+  Determine if the voucher usage should be limited to one use per customer.
+  """
   applyOncePerCustomer: Boolean!
+
+  """Determine if the voucher is available only for staff members."""
   onlyForStaff: Boolean!
+
+  """Determine minimum quantity of items for checkout."""
   minCheckoutItemsQuantity: Int
 
   """List of categories this voucher applies to."""
@@ -8750,10 +8841,19 @@ enum VoucherTypeEnum @doc(category: "Discounts") {
 
 """Represents voucher channel listing."""
 type VoucherChannelListing implements Node @doc(category: "Discounts") {
+  """The ID of channel listing."""
   id: ID!
+
+  """The channel in which voucher can be applied."""
   channel: Channel!
+
+  """The value of the discount on voucher in a channel."""
   discountValue: Float!
+
+  """Currency code for voucher in a channel."""
   currency: String!
+
+  """Minimum order value for voucher to apply in channel."""
   minSpent: Money
 }
 
@@ -11105,13 +11205,23 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
 
   """Job status."""
   status: JobStatusEnum!
+
+  """Date and time at which invoice was created."""
   createdAt: DateTime!
+
+  """Date and time at which invoice was updated."""
   updatedAt: DateTime!
+
+  """Message associated with an invoice."""
   message: String
 
   """The ID of the object."""
   id: ID!
+
+  """Invoice number."""
   number: String
+
+  """URL to view an invoice."""
   externalUrl: String
 
   """URL to download an invoice."""
@@ -11550,9 +11660,16 @@ type OrderEventDiscountObject @doc(category: "Orders") {
 
 """Contains all details related to the applied discount to the order."""
 type OrderDiscount implements Node @doc(category: "Discounts") {
+  """The ID of discount applied."""
   id: ID!
+
+  """The type of applied discount: Sale, Voucher or Manual."""
   type: OrderDiscountType!
+
+  """The name of applied discount."""
   name: String
+
+  """Translated name of the applied discount."""
   translatedName: String
 
   """Type of the discount: fixed or percent"""
@@ -14213,6 +14330,27 @@ type Mutation {
   ): ProductUpdate @doc(category: "Products")
 
   """
+  Creates/updates translations for products.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  
+  Triggers the following webhook events:
+  - TRANSLATION_CREATED (async): Called when a translation was created.
+  - TRANSLATION_UPDATED (async): Called when a translation was updated.
+  """
+  productBulkTranslate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+
+    """List of product translations."""
+    translations: [ProductBulkTranslateInput!]!
+  ): ProductBulkTranslate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [TRANSLATION_CREATED, TRANSLATION_UPDATED], syncEvents: [])
+
+  """
   Creates/updates translations for a product. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
@@ -14620,6 +14758,27 @@ type Mutation {
     """Translation language code."""
     languageCode: LanguageCodeEnum!
   ): ProductVariantTranslate @doc(category: "Products")
+
+  """
+  Creates/updates translations for products variants.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  
+  Triggers the following webhook events:
+  - TRANSLATION_CREATED (async): A translation was created.
+  - TRANSLATION_UPDATED (async): A translation was updated.
+  """
+  productVariantBulkTranslate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+
+    """List of products variants translations."""
+    translations: [ProductVariantBulkTranslateInput!]!
+  ): ProductVariantBulkTranslate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [TRANSLATION_CREATED, TRANSLATION_UPDATED], syncEvents: [])
 
   """
   Manage product variant prices in channels. 
@@ -20627,6 +20786,71 @@ input ProductInput @doc(category: "Products") {
 }
 
 """
+Creates/updates translations for products.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+
+Triggers the following webhook events:
+- TRANSLATION_CREATED (async): Called when a translation was created.
+- TRANSLATION_UPDATED (async): Called when a translation was updated.
+"""
+type ProductBulkTranslate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [TRANSLATION_CREATED, TRANSLATION_UPDATED], syncEvents: []) {
+  """Returns how many translations were created/updated."""
+  count: Int!
+
+  """List of the translations."""
+  results: [ProductBulkTranslateResult!]!
+  errors: [ProductBulkTranslateError!]!
+}
+
+type ProductBulkTranslateResult @doc(category: "Products") {
+  """Product translation data."""
+  translation: ProductTranslation
+
+  """List of errors occurred on translation attempt."""
+  errors: [ProductBulkTranslateError!]
+}
+
+type ProductBulkTranslateError {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: ProductTranslateErrorCode!
+}
+
+"""An enumeration."""
+enum ProductTranslateErrorCode @doc(category: "Products") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+input ProductBulkTranslateInput @doc(category: "Products") {
+  """Product ID."""
+  id: ID
+
+  """External reference of an product."""
+  externalReference: String
+
+  """Translation language code."""
+  languageCode: LanguageCodeEnum!
+
+  """Translation fields."""
+  translationFields: TranslationInput!
+}
+
+"""
 Creates/updates translations for a product. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
@@ -21592,6 +21816,71 @@ type ProductVariantTranslate @doc(category: "Products") {
 
 input NameTranslationInput {
   name: String
+}
+
+"""
+Creates/updates translations for products variants.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+
+Triggers the following webhook events:
+- TRANSLATION_CREATED (async): A translation was created.
+- TRANSLATION_UPDATED (async): A translation was updated.
+"""
+type ProductVariantBulkTranslate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [TRANSLATION_CREATED, TRANSLATION_UPDATED], syncEvents: []) {
+  """Returns how many translations were created/updated."""
+  count: Int!
+
+  """List of the translations."""
+  results: [ProductVariantBulkTranslateResult!]!
+  errors: [ProductVariantBulkTranslateError!]!
+}
+
+type ProductVariantBulkTranslateResult @doc(category: "Products") {
+  """Product variant translation data."""
+  translation: ProductVariantTranslation
+
+  """List of errors occurred on translation attempt."""
+  errors: [ProductVariantBulkTranslateError!]
+}
+
+type ProductVariantBulkTranslateError {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: ProductVariantTranslateErrorCode!
+}
+
+"""An enumeration."""
+enum ProductVariantTranslateErrorCode @doc(category: "Products") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+input ProductVariantBulkTranslateInput @doc(category: "Products") {
+  """Product variant ID."""
+  id: ID
+
+  """External reference of a product variant."""
+  externalReference: String
+
+  """Translation language code."""
+  languageCode: LanguageCodeEnum!
+
+  """Translation fields."""
+  translationFields: NameTranslationInput!
 }
 
 """
@@ -26001,6 +26290,20 @@ input ChannelCreateInput @doc(category: "Channels") {
   """
   orderSettings: OrderSettingsInput
 
+  """
+  Channel public metadata.
+  
+  Added in Saleor 3.15.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Channel private metadata.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetadata: [MetadataInput!]
+
   """Name of the channel."""
   name: String!
 
@@ -26117,6 +26420,20 @@ input ChannelUpdateInput @doc(category: "Channels") {
   Added in Saleor 3.12.
   """
   orderSettings: OrderSettingsInput
+
+  """
+  Channel public metadata.
+  
+  Added in Saleor 3.15.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Channel private metadata.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetadata: [MetadataInput!]
 
   """Name of the channel."""
   name: String
