@@ -598,6 +598,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": timedelta(seconds=20),
         "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
     },
+    "update-gift-cards-search-vectors": {
+        "task": "saleor.giftcard.tasks.update_gift_cards_search_vector_task",
+        "schedule": timedelta(seconds=20),
+        "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
+    },
     "expire-orders": {
         "task": "saleor.order.tasks.expire_orders_task",
         "schedule": BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA,

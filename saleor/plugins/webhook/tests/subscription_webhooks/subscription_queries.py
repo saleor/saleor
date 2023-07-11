@@ -28,6 +28,63 @@ ACCOUNT_CONFIRMATION_REQUESTED = (
 )
 
 
+ACCOUNT_CHANGE_EMAIL_REQUESTED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountChangeEmailRequested{
+          user{
+            ...CustomerDetails
+          }
+          token
+          redirectUrl
+          channel{
+            slug
+            id
+          }
+          shop{
+            domain{
+                host
+                url
+            }
+          }
+          newEmail
+        }
+      }
+    }
+"""
+)
+
+
+ACCOUNT_DELETE_REQUESTED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountDeleteRequested{
+          user{
+            ...CustomerDetails
+          }
+          token
+          redirectUrl
+          channel{
+            slug
+            id
+          }
+          shop{
+            domain{
+                host
+                url
+            }
+          }
+        }
+      }
+    }
+"""
+)
+
+
 ADDRESS_CREATED = (
     fragments.ADDRESS_DETAILS
     + """

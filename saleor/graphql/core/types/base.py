@@ -13,9 +13,11 @@ class BaseObjectType(ObjectType):
         default_resolver=None,
         _meta=None,
         doc_category=None,
+        webhook_events_info=None,
         **options,
     ):
         cls.doc_category = doc_category
+        cls.webhook_events_info = webhook_events_info
         super(BaseObjectType, cls).__init_subclass_with_meta__(
             interfaces=interfaces,
             possible_types=possible_types,

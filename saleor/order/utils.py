@@ -11,6 +11,7 @@ from ..account.models import User
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
+from ..core.utils.country import get_active_country
 from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountType
@@ -23,6 +24,7 @@ from ..discount.utils import (
 )
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
+from ..giftcard.search import mark_gift_cards_search_index_as_dirty
 from ..payment.model_helpers import get_total_authorized
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.interface import ShippingMethodData
@@ -31,11 +33,7 @@ from ..shipping.utils import (
     convert_to_shipping_method_data,
     initialize_shipping_method_active_status,
 )
-from ..tax.utils import (
-    get_display_gross_prices,
-    get_tax_class_kwargs_for_order_line,
-    get_tax_country,
-)
+from ..tax.utils import get_display_gross_prices, get_tax_class_kwargs_for_order_line
 from ..warehouse.management import (
     decrease_allocations,
     get_order_lines_with_track_inventory,
@@ -64,12 +62,9 @@ if TYPE_CHECKING:
 
 def get_order_country(order: Order) -> str:
     """Return country to which order will be shipped."""
-    address = order.billing_address
-    if order.is_shipping_required():
-        address = order.shipping_address
-    if address is None:
-        return order.channel.default_country.code
-    return address.country.code
+    return get_active_country(
+        order.channel, order.shipping_address, order.billing_address
+    )
 
 
 def order_line_needs_automatic_fulfillment(line_data: OrderLineInfo) -> bool:
@@ -454,6 +449,7 @@ def set_gift_card_user(
         else User.objects.filter(email=used_by_email).first()
     )
     gift_card.used_by_email = used_by_email
+    mark_gift_cards_search_index_as_dirty([gift_card])
 
 
 def _update_allocations_for_line(
@@ -1050,9 +1046,8 @@ def update_order_display_gross_prices(order: "Order"):
     """
     channel = order.channel
     tax_configuration = channel.tax_configuration
-    country_code = get_tax_country(
+    country_code = get_active_country(
         channel,
-        order.is_shipping_required(),
         order.shipping_address,
         order.billing_address,
     )

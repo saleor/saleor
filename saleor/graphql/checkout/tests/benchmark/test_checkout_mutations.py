@@ -16,6 +16,27 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 from ...mutations.utils import CheckoutLineData
 
+CHECKOUT_GIFT_CARD_QUERY = """
+    query CheckoutGiftCard {
+      checkouts(first: 100) {
+        edges {
+          node {
+            id
+            giftCards {
+              id
+              isActive
+              code
+              last4CodeChars
+              currentBalance {
+                amount
+              }
+            }
+          }
+        }
+      }
+    }
+"""
+
 FRAGMENT_PRICE = """
     fragment Price on TaxedMoney {
       gross {
@@ -391,7 +412,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(67):
+    with django_assert_num_queries(62):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -409,7 +430,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(67):
+    with django_assert_num_queries(62):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -660,7 +681,7 @@ def test_update_checkout_lines_with_reservations(
         reservation_length=5,
     )
 
-    with django_assert_num_queries(75):
+    with django_assert_num_queries(74):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "id": to_global_id_or_none(checkout),
@@ -674,7 +695,7 @@ def test_update_checkout_lines_with_reservations(
         assert not data["errors"]
 
     # Updating multiple lines in checkout has same query count as updating one
-    with django_assert_num_queries(75):
+    with django_assert_num_queries(74):
         variables = {
             "id": to_global_id_or_none(checkout),
             "lines": [],
@@ -919,7 +940,7 @@ def test_add_checkout_lines_with_reservations(
         new_lines.append({"quantity": 2, "variantId": variant_id})
 
     # Adding multiple lines to checkout has same query count as adding one
-    with django_assert_num_queries(74):
+    with django_assert_num_queries(73):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": [new_lines[0]],
@@ -932,7 +953,7 @@ def test_add_checkout_lines_with_reservations(
 
     checkout.lines.exclude(id=line.id).delete()
 
-    with django_assert_num_queries(74):
+    with django_assert_num_queries(73):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": new_lines,
@@ -1400,3 +1421,34 @@ def test_checkout_create_from_order(user_api_client, order_with_lines):
     # then
     content = get_graphql_content(response)
     assert not content["data"]["checkoutCreateFromOrder"]["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_checkout_gift_cards(
+    staff_api_client,
+    checkout_with_gift_card,
+    checkout_with_gift_card_items,
+    gift_card_created_by_staff,
+    gift_card,
+    permission_manage_gift_card,
+    permission_manage_checkouts,
+):
+    # given
+    checkout_with_gift_card.gift_cards.add(gift_card_created_by_staff)
+    checkout_with_gift_card.gift_cards.add(gift_card)
+    checkout_with_gift_card.save()
+    checkout_with_gift_card_items.gift_cards.add(gift_card_created_by_staff)
+    checkout_with_gift_card_items.gift_cards.add(gift_card)
+    checkout_with_gift_card_items.save()
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHECKOUT_GIFT_CARD_QUERY,
+        {},
+        permissions=[permission_manage_gift_card, permission_manage_checkouts],
+        check_no_permissions=False,
+    )
+
+    # then
+    assert response.status_code == 200

@@ -19,7 +19,6 @@ from ..core.descriptions import (
     ADDED_IN_36,
     ADDED_IN_313,
     PREVIEW_FEATURE,
-    PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD,
 )
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import JSONString, PermissionsField
@@ -38,7 +37,6 @@ from .enums import (
     OrderAction,
     PaymentChargeStatusEnum,
     TransactionActionEnum,
-    TransactionEventStatusEnum,
     TransactionEventTypeEnum,
     TransactionKindEnum,
 )
@@ -269,29 +267,8 @@ class PaymentInitialized(BaseObjectType):
 
 class TransactionEvent(ModelObjectType[models.TransactionEvent]):
     created_at = graphene.DateTime(required=True)
-    status = graphene.Field(
-        TransactionEventStatusEnum,
-        description="Status of transaction's event.",
-        required=False,
-        deprecation_reason=(
-            f"{PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD} Use `type` instead."
-        ),
-    )
-    reference = graphene.String(
-        description="Reference of transaction's event.",
-        required=True,
-        deprecation_reason=(
-            f"{PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD}" "Use `pspReference` instead."
-        ),
-    )
     psp_reference = graphene.String(
         description="PSP reference of transaction." + ADDED_IN_313, required=True
-    )
-    name = graphene.String(
-        description="Name of the transaction's event.",
-        deprecation_reason=(
-            f"{PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD} Use `message` instead."
-        ),
     )
     message = graphene.String(
         description="Message related to the transaction's event." + ADDED_IN_313,
@@ -325,20 +302,12 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         model = models.TransactionEvent
 
     @staticmethod
-    def resolve_reference(root: models.TransactionEvent, info):
-        return root.psp_reference or ""
-
-    @staticmethod
     def resolve_psp_reference(root: models.TransactionEvent, info):
         return root.psp_reference or ""
 
     @staticmethod
     def resolve_external_url(root: models.TransactionEvent, info):
         return root.external_url or ""
-
-    @staticmethod
-    def resolve_name(root: models.TransactionEvent, info):
-        return root.message or ""
 
     @staticmethod
     def resolve_message(root: models.TransactionEvent, info):
@@ -405,14 +374,6 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
             + ADDED_IN_313
         ),
     )
-    voided_amount = graphene.Field(
-        Money,
-        required=True,
-        description=("Total amount voided for this payment."),
-        deprecation_reason=(
-            PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD + "Use `canceledAmount` instead."
-        ),
-    )
 
     canceled_amount = graphene.Field(
         Money,
@@ -438,24 +399,6 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
             + ADDED_IN_313
         ),
     )
-    status = graphene.String(
-        description="Status of transaction.",
-        deprecation_reason=(
-            PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD
-            + " The `status` is not needed. The amounts can be used to define "
-            "the current status of transactions."
-        ),
-        required=True,
-    )
-
-    type = graphene.String(
-        description="Type of transaction.",
-        deprecation_reason=(
-            PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD
-            + " Use `name` or `message` instead."
-        ),
-        required=True,
-    )
     name = graphene.String(
         description="Name of the transaction." + ADDED_IN_313, required=True
     )
@@ -463,13 +406,6 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         description="Message related to the transaction." + ADDED_IN_313, required=True
     )
 
-    reference = graphene.String(
-        description="Reference of transaction.",
-        required=True,
-        deprecation_reason=(
-            PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD + "Use `pspReference` instead."
-        ),
-    )
     psp_reference = graphene.String(
         description="PSP reference of transaction." + ADDED_IN_313, required=True
     )
@@ -522,10 +458,6 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     @staticmethod
     def resolve_authorize_pending_amount(root: models.TransactionItem, _info):
         return root.amount_authorize_pending
-
-    @staticmethod
-    def resolve_voided_amount(root: models.TransactionItem, _info):
-        return root.amount_canceled
 
     @staticmethod
     def resolve_canceled_amount(root: models.TransactionItem, _info):
@@ -581,10 +513,6 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         if root.user_id:
             return UserByUserIdLoader(info.context).load(root.user_id)
         return None
-
-    @staticmethod
-    def resolve_reference(root: models.TransactionItem, info):
-        return root.psp_reference or ""
 
     @staticmethod
     def resolve_psp_reference(root: models.TransactionItem, info):

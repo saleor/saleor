@@ -16,13 +16,14 @@ from ....plugins.webhook.utils import APP_ID_PREFIX
 from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
+from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...core.utils import from_global_id_or_error
+from ...core.utils import WebhookEventInfo, from_global_id_or_error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ..types import Checkout
@@ -54,6 +55,19 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                description=(
+                    "Triggered when updating the checkout shipping method with "
+                    "the external one."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
+                description="A checkout was updated.",
+            ),
+        ]
 
     @staticmethod
     def _resolve_delivery_method_type(id_) -> Optional[str]:

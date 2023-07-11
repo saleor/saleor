@@ -9,10 +9,12 @@ from ....invoice import models
 from ....invoice.error_codes import InvoiceErrorCode
 from ....invoice.notifications import send_invoice
 from ....permission.enums import OrderPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import InvoiceError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Invoice
 
@@ -28,6 +30,16 @@ class InvoiceSendNotification(ModelMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.INVOICE_SENT,
+                description="A notification for invoice send",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for invoice send",
+            ),
+        ]
 
     @classmethod
     def clean_instance(cls, _info: ResolveInfo, instance):

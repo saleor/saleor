@@ -5,9 +5,11 @@ from ...attribute import models
 from ...permission.enums import PageTypePermissions
 from ...product import models as product_models
 from ...product.search import update_products_search_vector
+from ...webhook.event_types import WebhookEventAsyncType
 from ..core import ResolveInfo
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types import AttributeError, NonNullList
+from ..core.utils import WebhookEventInfo
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import resolve_global_ids_to_primary_keys
 from .types import Attribute, AttributeValue
@@ -26,6 +28,12 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_DELETED,
+                description="An attribute was deleted.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -90,6 +98,16 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
+                description="An attribute value was deleted.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+                description="An attribute was updated.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

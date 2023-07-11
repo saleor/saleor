@@ -11,12 +11,14 @@ from .....account import models, notifications, search
 from .....account.error_codes import AccountErrorCode
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.url import prepare_url, validate_storefront_url
+from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import LanguageCodeEnum
 from ....core.mutations import ModelMutation
 from ....core.types import AccountError, NonNullList
+from ....core.utils import WebhookEventInfo
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....site.dataloaders import get_site_promise
@@ -74,6 +76,16 @@ class AccountRegister(ModelMutation):
         error_type_class = AccountError
         error_type_field = "account_errors"
         support_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_CREATED,
+                description="A new customer account was created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for account confirmation.",
+            ),
+        ]
 
     @classmethod
     def mutate(cls, root, info: ResolveInfo, **data):

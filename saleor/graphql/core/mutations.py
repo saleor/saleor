@@ -62,8 +62,10 @@ from .types import (
     UploadError,
 )
 from .utils import (
+    WebhookEventInfo,
     ext_ref_to_global_id_or_error,
     from_global_id_or_error,
+    message_webhook_events,
     snake_to_camel_case,
 )
 from .utils.error_codes import get_error_code_from_error
@@ -173,6 +175,8 @@ class BaseMutation(graphene.Mutation):
         errors_mapping=None,
         support_meta_field=False,
         support_private_meta_field=False,
+        auto_webhook_events_message: bool = True,
+        webhook_events_info: Optional[List[WebhookEventInfo]] = None,
         **options,
     ):
         if not _meta:
@@ -197,6 +201,11 @@ class BaseMutation(graphene.Mutation):
         if permissions and auto_permission_message:
             permissions_msg = message_one_of_permissions_required(permissions)
             description = f"{description} {permissions_msg}"
+
+        if webhook_events_info and auto_webhook_events_message:
+            description += message_webhook_events(webhook_events_info)
+
+        cls.webhook_events_info = webhook_events_info
 
         cls.doc_category = doc_category
 

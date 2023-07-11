@@ -5,12 +5,14 @@ from .....account import utils
 from .....account.error_codes import AccountErrorCode
 from .....checkout import AddressType
 from .....permission.enums import AccountPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....account.enums import AddressTypeEnum
 from ....account.types import Address, User
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 
 
@@ -30,6 +32,12 @@ class AddressSetDefault(BaseMutation):
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A customer was updated.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

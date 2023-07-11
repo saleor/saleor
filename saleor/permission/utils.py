@@ -30,7 +30,7 @@ def all_permissions_required(context, permissions: Iterable[BasePermissionEnum])
 
 def one_of_permissions_or_auth_filter_required(
     context, permissions: Iterable[BasePermissionEnum]
-):
+) -> bool:
     """Determine whether user or app has rights to perform an action.
 
     The `context` parameter is the Context instance associated with the request.
@@ -57,8 +57,7 @@ def _get_result_of_permissions_checks(
 
     perm_checks_results = []
     if requestor and permissions:
-        for permission in permissions:
-            perm_checks_results.append(requestor.has_perm(permission))
+        perm_checks_results = [requestor.has_perm(perm) for perm in permissions]
     return perm_checks_results
 
 

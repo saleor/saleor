@@ -46,14 +46,14 @@ from .products import ProductCountableConnection
 
 @federated_entity("id channel")
 class Collection(ChannelContextTypeWithMetadata[models.Collection]):
-    id = graphene.GlobalID(required=True)
-    seo_title = graphene.String()
-    seo_description = graphene.String()
-    name = graphene.String(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the collection.")
+    seo_title = graphene.String(description="SEO title of the collection.")
+    seo_description = graphene.String(description="SEO description of the collection.")
+    name = graphene.String(required=True, description="Name of the collection.")
     description = JSONString(
         description="Description of the collection." + RICH_CONTENT
     )
-    slug = graphene.String(required=True)
+    slug = graphene.String(required=True, description="Slug of the collection.")
     channel = graphene.String(
         description=(
             "Channel given to retrieve this collection. Also used by federation "
@@ -77,7 +77,7 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
     )
-    background_image = ThumbnailField()
+    background_image = ThumbnailField(description="Background image of the collection.")
     translation = TranslationField(
         CollectionTranslation,
         type_name="collection",
@@ -183,3 +183,4 @@ class CollectionCountableConnection(CountableConnection):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         node = Collection
+        description = "Represents a connection to a list of collections."

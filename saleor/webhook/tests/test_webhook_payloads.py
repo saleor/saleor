@@ -2112,7 +2112,7 @@ GROSS_AMOUNT = sentinel.GROSS_AMOUNT
     [
         (TransactionAction.CHARGE, Decimal("5.000")),
         (TransactionAction.REFUND, Decimal("9.000")),
-        (TransactionAction.VOID, None),
+        (TransactionAction.CANCEL, None),
     ],
 )
 @freeze_time("1914-06-28 10:50")
@@ -2126,10 +2126,9 @@ def test_generate_transaction_action_request_payload_for_order(
     requestor = get_user_or_app_from_context(request)
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["capture", "void"],
+        available_actions=["capture", "cancel"],
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
@@ -2163,7 +2162,6 @@ def test_generate_transaction_action_request_payload_for_order(
             "currency": currency,
         },
         "transaction": {
-            "status": transaction.status,
             "type": transaction.name,
             "name": transaction.name,
             "message": transaction.message,
@@ -2176,7 +2174,6 @@ def test_generate_transaction_action_request_payload_for_order(
                 quantize_price(transaction.authorized_value, currency)
             ),
             "refunded_value": str(quantize_price(transaction.refunded_value, currency)),
-            "voided_value": str(quantize_price(transaction.canceled_value, currency)),
             "canceled_value": str(quantize_price(transaction.canceled_value, currency)),
             "order_id": graphene.Node.to_global_id("Order", order.pk),
             "checkout_id": None,
@@ -2206,7 +2203,7 @@ def test_generate_transaction_action_request_payload_for_order(
             TransactionEventType.REFUND_REQUEST,
             Decimal("9.000"),
         ),
-        (TransactionAction.VOID, TransactionEventType.CANCEL_REQUEST, None),
+        (TransactionAction.CANCEL, TransactionEventType.CANCEL_REQUEST, None),
     ],
 )
 @freeze_time("1914-06-28 10:50")
@@ -2220,10 +2217,9 @@ def test_generate_transaction_action_request_payload_for_checkout(
     requestor = get_user_or_app_from_context(request)
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["capture", "void"],
+        available_actions=["capture", "cancel"],
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
@@ -2257,7 +2253,6 @@ def test_generate_transaction_action_request_payload_for_checkout(
             "currency": currency,
         },
         "transaction": {
-            "status": transaction.status,
             "type": transaction.name,
             "name": transaction.name,
             "message": transaction.message,
@@ -2270,7 +2265,6 @@ def test_generate_transaction_action_request_payload_for_checkout(
                 quantize_price(transaction.authorized_value, currency)
             ),
             "refunded_value": str(quantize_price(transaction.refunded_value, currency)),
-            "voided_value": str(quantize_price(transaction.canceled_value, currency)),
             "canceled_value": str(quantize_price(transaction.canceled_value, currency)),
             "order_id": None,
             "checkout_id": graphene.Node.to_global_id("Checkout", checkout.pk),

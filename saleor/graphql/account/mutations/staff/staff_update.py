@@ -6,13 +6,16 @@ from django.core.exceptions import ValidationError
 from .....account import models
 from .....account.error_codes import AccountErrorCode
 from .....core.tracing import traced_atomic_transaction
-from .....giftcard.utils import assign_user_gift_cards
+from .....giftcard.search import mark_gift_cards_search_index_as_dirty
+from .....giftcard.utils import assign_user_gift_cards, get_user_gift_cards
 from .....order.utils import match_orders_with_new_user
 from .....permission.enums import AccountPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import NonNullList, StaffError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils.validators import check_for_duplicates
 from ...utils import (
@@ -57,6 +60,12 @@ class StaffUpdate(StaffCreate):
         error_type_field = "staff_errors"
         support_meta_field = True
         support_private_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_UPDATED,
+                description="A staff account was updated.",
+            ),
+        ]
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
@@ -171,13 +180,20 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
-        instance, _ = cls.get_instance(info, **data)
-        old_email = instance.email
+        original_instance, _ = cls.get_instance(info, **data)
         response = super().perform_mutation(root, info, **data)
         user = response.user
-        if user.email != old_email:
+        has_new_email = user.email != original_instance.email
+        has_new_name = original_instance.get_full_name() != user.get_full_name()
+
+        if has_new_email:
             assign_user_gift_cards(user)
             match_orders_with_new_user(user)
+
+        if has_new_email or has_new_name:
+            if gift_cards := get_user_gift_cards(user):
+                mark_gift_cards_search_index_as_dirty(gift_cards)
+
         return response
 
     @classmethod

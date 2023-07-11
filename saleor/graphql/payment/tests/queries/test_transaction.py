@@ -3,7 +3,7 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from .....payment import TransactionEventStatus, TransactionEventType
+from .....payment import TransactionEventType
 from .....payment.models import TransactionEvent
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -25,10 +25,6 @@ TRANSACTION_QUERY = """
                 amount
             }
             canceledAmount{
-                currency
-                amount
-            }
-            voidedAmount{
                 currency
                 amount
             }
@@ -55,9 +51,7 @@ TRANSACTION_QUERY = """
             events{
                 id
                 createdAt
-                status
                 pspReference
-                name
                 message
                 externalUrl
                 amount{
@@ -74,11 +68,9 @@ TRANSACTION_QUERY = """
                     }
                 }
             }
-            status
-            type
             name
             message
-            reference
+            pspReference
             order {
                 id
             }
@@ -108,14 +100,11 @@ def _assert_transaction_fields(content, transaction_item, event):
         data["authorizedAmount"]["amount"] == transaction_item.amount_authorized.amount
     )
     assert data["refundedAmount"]["amount"] == transaction_item.amount_refunded.amount
-    assert data["voidedAmount"]["amount"] == transaction_item.amount_canceled.amount
     assert data["canceledAmount"]["amount"] == transaction_item.amount_canceled.amount
     assert data["chargedAmount"]["amount"] == transaction_item.amount_charged.amount
     events_data = [e for e in data["events"] if e["type"] == event.type.upper()]
     assert len(events_data) == 1
     assert events_data[0]["id"] == to_global_id_or_none(event)
-    assert data["status"] == transaction_item.status
-    assert data["type"] == transaction_item.name
     assert data["name"] == transaction_item.name
     assert data["message"] == transaction_item.message
     if transaction_item.order_id:
@@ -531,9 +520,7 @@ def test_transaction_event_by_user(
     ]
     assert event_data["id"] == to_global_id_or_none(event)
     assert event_data["createdAt"] == event.created_at.isoformat()
-    assert event_data["status"] == event.status.upper()
     assert event_data["pspReference"] == event.psp_reference
-    assert event_data["name"] == event.message
     assert event_data["message"] == event.message
     assert event_data["externalUrl"] == event.external_url
     assert event_data["amount"]["amount"] == event.amount_value
@@ -552,7 +539,6 @@ def test_transaction_event_by_app(
     psp_reference = "psp-ref-123"
     event = TransactionEvent.objects.create(
         transaction=transaction_item_created_by_app,
-        status=TransactionEventStatus.SUCCESS,
         psp_reference=psp_reference,
         message="Sucesfull charge",
         currency="USD",
@@ -585,9 +571,7 @@ def test_transaction_event_by_app(
     ]
     assert event_data["id"] == to_global_id_or_none(event)
     assert event_data["createdAt"] == event.created_at.isoformat()
-    assert event_data["status"] == event.status.upper()
     assert event_data["pspReference"] == event.psp_reference
-    assert event_data["name"] == event.message
     assert event_data["message"] == event.message
     assert event_data["externalUrl"] == event.external_url
     assert event_data["amount"]["amount"] == event.amount_value
@@ -606,7 +590,6 @@ def test_transaction_event_by_reinstalled_app(
     psp_reference = "psp-ref-123"
     event = TransactionEvent.objects.create(
         transaction=transaction_item_created_by_app,
-        status=TransactionEventStatus.SUCCESS,
         psp_reference=psp_reference,
         message="Sucesfull charge",
         currency="USD",
@@ -639,9 +622,7 @@ def test_transaction_event_by_reinstalled_app(
     ]
     assert event_data["id"] == to_global_id_or_none(event)
     assert event_data["createdAt"] == event.created_at.isoformat()
-    assert event_data["status"] == event.status.upper()
     assert event_data["pspReference"] == event.psp_reference
-    assert event_data["name"] == event.message
     assert event_data["message"] == event.message
     assert event_data["externalUrl"] == event.external_url
     assert event_data["amount"]["amount"] == event.amount_value

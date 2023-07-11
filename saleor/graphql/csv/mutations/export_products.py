@@ -4,12 +4,14 @@ from ....csv import models as csv_models
 from ....csv.events import export_started_event
 from ....csv.tasks import export_products_task
 from ....permission.enums import ProductPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...attribute.types import Attribute
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.types import BaseInputObjectType, ExportError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...product.filters import ProductFilterInput
 from ...product.types import Product
 from ...warehouse.types import Warehouse
@@ -73,6 +75,12 @@ class ExportProducts(BaseExportMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ExportError
         error_type_field = "export_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for the exported file.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

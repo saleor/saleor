@@ -13,12 +13,14 @@ from ....permission.enums import (
 from ....shipping.tasks import (
     drop_invalid_shipping_methods_relations_for_given_channels,
 )
+from ....webhook.event_types import WebhookEventAsyncType
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31, ADDED_IN_35
 from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import ModelMutation
 from ...core.types import ChannelError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types import Channel
@@ -75,6 +77,14 @@ class ChannelUpdate(ModelMutation):
         object_type = Channel
         error_type_class = ChannelError
         error_type_field = "channel_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHANNEL_UPDATED,
+                description="A channel was updated.",
+            ),
+        ]
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

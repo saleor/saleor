@@ -10,6 +10,7 @@ from ....core.utils.validators import is_date_in_future
 from ....giftcard import events, models
 from ....giftcard.error_codes import GiftCardErrorCode
 from ....permission.enums import GiftcardPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
@@ -17,6 +18,7 @@ from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Date
 from ...core.types import BaseInputObjectType, GiftCardError, NonNullList, PriceInput
+from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_price_precision
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations import GiftCardCreate
@@ -65,6 +67,16 @@ class GiftCardBulkCreate(BaseMutation):
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.GIFT_CARD_CREATED,
+                description="A gift card was created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for created gift card.",
+            ),
+        ]
 
     @classmethod
     @traced_atomic_transaction()

@@ -11,6 +11,7 @@ from ..order.events import (
     event_transaction_charge_requested,
     event_transaction_refund_requested,
 )
+from ..order.models import OrderGrantedRefund
 from ..payment.interface import (
     CustomerSource,
     PaymentGateway,
@@ -124,6 +125,7 @@ def request_refund_action(
     channel_slug: str,
     user: Optional[User],
     app: Optional[App],
+    granted_refund: Optional[OrderGrantedRefund] = None,
 ):
     if refund_value is None:
         refund_value = transaction.charged_value
@@ -133,6 +135,7 @@ def request_refund_action(
         action_type=TransactionAction.REFUND,
         action_value=refund_value,
         request_event=request_event,
+        granted_refund=granted_refund,
     )
     _request_payment_action(
         transaction_action_data=transaction_action_data,
@@ -189,9 +192,10 @@ def request_cancelation_action(
 
 def _create_transaction_data(
     transaction: TransactionItem,
-    action_type: "str",
+    action_type: str,
     action_value: Optional[Decimal],
     request_event: TransactionEvent,
+    granted_refund: Optional[OrderGrantedRefund] = None,
 ):
     app_owner = None
     if transaction.app_id:
@@ -205,6 +209,7 @@ def _create_transaction_data(
         action_value=action_value,
         event=request_event,
         transaction_app_owner=app_owner,
+        granted_refund=granted_refund,
     )
 
 
@@ -216,10 +221,6 @@ def _request_payment_action(
     transaction_request_func: Callable[[TransactionActionData, str], None],
     plugin_func_name: str,
 ):
-    transaction_action_request_event_active = manager.is_event_active_for_any_plugin(
-        "transaction_action_request", channel_slug=channel_slug
-    )
-
     transaction_request_event_active = manager.is_event_active_for_any_plugin(
         plugin_func_name, channel_slug=channel_slug
     )
@@ -231,11 +232,7 @@ def _request_payment_action(
             apps_ids=[transaction_action_data.transaction_app_owner.pk],
         )
 
-    if (
-        not transaction_action_request_event_active
-        and not transaction_request_event_active
-        and not webhooks
-    ):
+    if not transaction_request_event_active and not webhooks:
         create_failed_transaction_event(
             transaction_action_data.event,
             cause="No app or plugin is configured to handle payment action requests.",
@@ -244,15 +241,7 @@ def _request_payment_action(
             "No app or plugin is configured to handle payment action requests."
         )
 
-    if transaction_request_event_active or webhooks:
-        # This if can be dropped in future releases as VOID will be dropped.
-        if transaction_action_data.action_type == TransactionAction.VOID:
-            transaction_action_data.action_type = TransactionAction.CANCEL
-        transaction_request_func(transaction_action_data, channel_slug)
-    else:
-        manager.transaction_action_request(
-            transaction_action_data, channel_slug=channel_slug
-        )
+    transaction_request_func(transaction_action_data, channel_slug)
 
 
 @raise_payment_error

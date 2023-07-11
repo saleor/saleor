@@ -129,9 +129,7 @@ class TransactionUpdate(TransactionCreate):
         user: Optional["User"],
         app: Optional["App"],
     ):
-        psp_reference = transaction_data.get(
-            "psp_reference", transaction_data.pop("reference", None)
-        )
+        psp_reference = transaction_data.get("psp_reference")
         if psp_reference and instance.psp_reference != psp_reference:
             if payment_models.TransactionItem.objects.filter(
                 psp_reference=psp_reference
@@ -144,10 +142,6 @@ class TransactionUpdate(TransactionCreate):
                         )
                     }
                 )
-        transaction_data["name"] = transaction_data.get(
-            "name", transaction_data.pop("type", None)
-        )
-        transaction_data["psp_reference"] = psp_reference
         instance = cls.construct_instance(instance, transaction_data)
         instance.save()
         if money_data:
@@ -212,15 +206,12 @@ class TransactionUpdate(TransactionCreate):
         if transaction_event:
             event = cls.create_transaction_event(transaction_event, instance, user, app)
             if instance.order:
-                reference = transaction_event.pop("reference", None)
-                psp_reference = transaction_event.get("psp_reference", reference)
                 order_transaction_event(
                     order=instance.order,
                     user=user,
                     app=app,
-                    reference=psp_reference or "",
-                    status=transaction_event["status"],
-                    message=cls.create_event_message(transaction_event),
+                    reference=transaction_event.get("psp_reference"),
+                    message=transaction_event.get("message", ""),
                 )
         if instance.order_id:
             order = cast(order_models.Order, instance.order)

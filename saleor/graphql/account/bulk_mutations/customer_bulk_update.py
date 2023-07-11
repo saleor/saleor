@@ -12,9 +12,11 @@ from ....account.events import CustomerEvents
 from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
+from ....giftcard.search import mark_gift_cards_search_index_as_dirty_by_users
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
 from ....permission.enums import AccountPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import CustomerBulkUpdateErrorCode, ErrorPolicyEnum
@@ -25,7 +27,7 @@ from ...core.types import (
     CustomerBulkUpdateError,
     NonNullList,
 )
-from ...core.utils import get_duplicated_values
+from ...core.utils import WebhookEventInfo, get_duplicated_values
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...payment.utils import metadata_contains_empty_key
 from ...plugins.dataloaders import get_app_promise, get_plugin_manager_promise
@@ -96,6 +98,16 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         doc_category = DOC_CATEGORY_USERS
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = CustomerBulkUpdateError
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A customer account was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
+                description="Optionally called when customer's metadata was updated.",
+            ),
+        ]
 
     @classmethod
     def format_errors(cls, index, errors, index_error_map, field_prefix=None):
@@ -540,7 +552,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         customer_events = []
         app = get_app_promise(info.context).get()
         staff_user = info.context.user
-
+        users_with_name_or_email_updated = []
         for updated_instance, old_instance in zip(instances, old_instances):
             cls.call_event(manager.customer_updated, updated_instance)
             new_email = updated_instance.email
@@ -566,6 +578,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 )
                 assign_user_gift_cards(updated_instance)
                 match_orders_with_new_user(updated_instance)
+                users_with_name_or_email_updated.append(updated_instance)
 
             if has_new_name:
                 customer_events.append(
@@ -577,6 +590,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                         parameters={"message": new_fullname},
                     )
                 )
+                users_with_name_or_email_updated.append(updated_instance)
+
             if was_activated:
                 customer_events.append(
                     models.CustomerEvent(
@@ -600,6 +615,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 cls.call_event(manager.customer_metadata_updated, updated_instance)
 
         models.CustomerEvent.objects.bulk_create(customer_events)
+        mark_gift_cards_search_index_as_dirty_by_users(users_with_name_or_email_updated)
 
     @classmethod
     def get_results(cls, instances_data_with_errors_list, reject_everything=False):

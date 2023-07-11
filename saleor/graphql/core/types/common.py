@@ -66,7 +66,9 @@ from ..enums import (
     PluginErrorCode,
     ProductBulkCreateErrorCode,
     ProductErrorCode,
+    ProductTranslateErrorCode,
     ProductVariantBulkErrorCode,
+    ProductVariantTranslateErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
     StockBulkUpdateErrorCode,
@@ -78,6 +80,7 @@ from ..enums import (
     TransactionInitializeErrorCode,
     TransactionProcessErrorCode,
     TransactionRequestActionErrorCode,
+    TransactionRequestRefundForGrantedRefundErrorCode,
     TransactionUpdateErrorCode,
     TranslationErrorCode,
     UploadErrorCode,
@@ -574,6 +577,16 @@ class PaymentError(Error):
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
+class ProductBulkTranslateError(BulkError):
+    code = ProductTranslateErrorCode(description="The error code.", required=True)
+
+
+class ProductVariantBulkTranslateError(BulkError):
+    code = ProductVariantTranslateErrorCode(
+        description="The error code.", required=True
+    )
+
+
 class TransactionCreateError(Error):
     code = TransactionCreateErrorCode(description="The error code.", required=True)
 
@@ -590,6 +603,15 @@ class TransactionUpdateError(Error):
 
 class TransactionRequestActionError(Error):
     code = TransactionRequestActionErrorCode(
+        description="The error code.", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class TransactionRequestRefundForGrantedRefundError(Error):
+    code = TransactionRequestRefundForGrantedRefundErrorCode(
         description="The error code.", required=True
     )
 

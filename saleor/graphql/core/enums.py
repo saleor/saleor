@@ -225,6 +225,19 @@ PageErrorCode.doc_category = DOC_CATEGORY_PAGES
 PaymentErrorCode = graphene.Enum.from_enum(payment_error_codes.PaymentErrorCode)
 PaymentErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
+
+ProductTranslateErrorCode = graphene.Enum.from_enum(
+    translatable_error_codes.ProductTranslateErrorCode
+)
+ProductTranslateErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
+
+
+ProductVariantTranslateErrorCode = graphene.Enum.from_enum(
+    translatable_error_codes.ProductVariantTranslateErrorCode
+)
+ProductVariantTranslateErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
+
+
 TransactionCreateErrorCode = graphene.Enum.from_enum(
     payment_error_codes.TransactionCreateErrorCode
 )
@@ -240,6 +253,10 @@ TransactionRequestActionErrorCode = graphene.Enum.from_enum(
 )
 TransactionRequestActionErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
+TransactionRequestRefundForGrantedRefundErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.TransactionRequestRefundForGrantedRefundErrorCode
+)
+TransactionRequestRefundForGrantedRefundErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 TransactionEventReportErrorCode = graphene.Enum.from_enum(
     payment_error_codes.TransactionEventReportErrorCode
 )
