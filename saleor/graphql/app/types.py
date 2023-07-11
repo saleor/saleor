@@ -22,7 +22,11 @@ from ...thumbnail.utils import (
 )
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core import ResolveInfo, SaleorContext
-from ..core.connection import CountableConnection
+from ..core.connection import (
+    CountableConnection,
+    create_connection_slice,
+    filter_connection_queryset,
+)
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
@@ -34,8 +38,10 @@ from ..core.descriptions import (
 )
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
+from ..core.fields import FilterConnectionField
 from ..core.types import (
     BaseObjectType,
+    FilterInputObjectType,
     IconThumbnailField,
     Job,
     ModelObjectType,
@@ -43,14 +49,13 @@ from ..core.types import (
     Permission,
 )
 from ..core.utils import from_global_id_or_error
-from ..meta.types import ObjectEvent, ObjectWithEvents, ObjectWithMetadata
+from ..meta.types import ObjectEvent, ObjectEventCountableConnection, ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.dataloaders import WebhooksByAppIdLoader
 from ..webhook.enums import WebhookEventTypeAsyncEnum, WebhookEventTypeSyncEnum
 from ..webhook.types import Webhook
 from .dataloaders import (
     AppByIdLoader,
-    AppEventsByAppIdLoader,
     AppExtensionByAppIdLoader,
     AppTokensByAppIdLoader,
     DataLoader,
@@ -64,11 +69,13 @@ from .enums import (
     AppExtensionTargetEnum,
     AppTypeEnum,
 )
+from .filters import AppEventFilter
 from .resolvers import (
     resolve_access_token_for_app,
     resolve_access_token_for_app_extension,
     resolve_app_extension_url,
 )
+from .sorters import AppEventSortingInput
 
 # Maximal thumbnail size for manifest preview
 MANIFEST_THUMBNAIL_MAX_SIZE = 512
@@ -493,8 +500,13 @@ class AppToken(BaseObjectType):
         return root.token_last_4
 
 
+class AppEventFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = AppEventFilter
+
+
 @federated_entity("id")
-class App(ModelObjectType[models.App], ObjectWithEvents):
+class App(ModelObjectType[models.App]):
     id = graphene.GlobalID(required=True, description="The ID of the app.")
     permissions = NonNullList(Permission, description="List of the app's permissions.")
     created = graphene.DateTime(
@@ -557,6 +569,11 @@ class App(ModelObjectType[models.App], ObjectWithEvents):
     )
     brand = graphene.Field(
         AppBrand, description="App's brand data." + ADDED_IN_314 + PREVIEW_FEATURE
+    )
+    events = FilterConnectionField(
+        ObjectEventCountableConnection,
+        filter=AppEventFilterInput(description="Filtering options for app events."),
+        sort_by=AppEventSortingInput(description="Sort app events."),
     )
 
     class Meta:
@@ -629,8 +646,10 @@ class App(ModelObjectType[models.App], ObjectWithEvents):
             return root
 
     @staticmethod
-    def resolve_events(root: models.App, info: ResolveInfo):
-        return AppEventsByAppIdLoader(info.context).load(root.id)
+    def resolve_events(root: models.App, info: ResolveInfo, **kwargs):
+        qs = root.events.all()
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, ObjectEventCountableConnection)
 
 
 class AppCountableConnection(CountableConnection):

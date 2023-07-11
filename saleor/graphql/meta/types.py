@@ -12,6 +12,7 @@ from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader
 from ..channel import ChannelContext
 from ..core import ResolveInfo
+from ..core.connection import CountableConnection
 from ..core.fields import PermissionsField
 from ..core.types import NonNullList
 from ..utils import get_user_or_app_from_context
@@ -232,6 +233,11 @@ class ObjectEvent(graphene.Interface):
             return AppByIdLoader(info.context).load(root.app_id).then(_resolve_app)
 
         return None
+
+
+class ObjectEventCountableConnection(CountableConnection):
+    class Meta:
+        node = ObjectEvent
 
 
 class ObjectWithEvents(graphene.AbstractType):

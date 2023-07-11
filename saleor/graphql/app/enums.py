@@ -1,5 +1,6 @@
 from ...app.types import (
     AppEventRequestorType,
+    AppEventType,
     AppExtensionMount,
     AppExtensionTarget,
     AppType,
@@ -38,3 +39,4 @@ AppExtensionTargetEnum = to_enum(
 )
 AppExtensionTargetEnum.doc_category = DOC_CATEGORY_APPS
 AppEventRequestorTypeEnum = to_enum(AppEventRequestorType)
+AppEventTypeEnum = to_enum(AppEventType, description=AppEventType.__doc__)
