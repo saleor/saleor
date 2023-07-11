@@ -1498,7 +1498,7 @@ def test_checkout_complete_product_on_promotion(
     ).exists(), "Checkout should have been deleted"
 
 
-def test_checkout_complete_product_multiple_rules_applied(
+def test_checkout_complete_multiple_rules_applied(
     user_api_client,
     checkout_with_item,
     promotion_without_rules,

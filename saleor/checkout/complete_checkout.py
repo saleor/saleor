@@ -572,13 +572,14 @@ def _create_order(
 
     _handle_checkout_discount(order, checkout)
 
-    order_lines = []
-    order_line_discounts = []
+    order_lines: List[OrderLine] = []
+    order_line_discounts: List[OrderLineDiscount] = []
     for line_info in order_lines_info:
         line = line_info.line
         line.order_id = order.pk
         order_lines.append(line)
-        order_line_discounts.extend(line_info.line_discounts)
+        if discounts := line_info.line_discounts:
+            order_line_discounts.extend(discounts)
 
     OrderLine.objects.bulk_create(order_lines)
     OrderLineDiscount.objects.bulk_create(order_line_discounts)
@@ -974,12 +975,17 @@ def _create_order_lines_from_checkout_lines(
         prices_entered_with_tax,
     )
     order_lines = []
+    order_line_discounts: List["OrderLineDiscount"] = []
     for line_info in order_lines_info:
         line = line_info.line
         line.order_id = order_pk
         order_lines.append(line)
+        if discounts := line_info.line_discounts:
+            order_line_discounts.extend(discounts)
 
     OrderLine.objects.bulk_create(order_lines)
+    OrderLineDiscount.objects.bulk_create(order_line_discounts)
+
     return list(order_lines_info)
 
 
