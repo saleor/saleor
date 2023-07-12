@@ -3,7 +3,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("channel", "0012_channel_delete_expired_orders_after"),
+        ("channel", "0013_auto_20230630_1039"),
     ]
 
     operations = [
