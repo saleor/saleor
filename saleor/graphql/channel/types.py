@@ -222,11 +222,11 @@ class OrderSettings(ObjectType):
             + PREVIEW_FEATURE
         ),
     )
-    allow_to_create_order_without_payment = graphene.Boolean(
+    allow_unpaid_orders = graphene.Boolean(
         required=True,
         description=(
-            "Determine if it is possible to create order before finalizing payment "
-            "in TRANSACTION_FLOW." + ADDED_IN_315 + PREVIEW_FEATURE
+            "Determine if it is possible to place unpdaid order by calling "
+            "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
         ),
     )
 
@@ -475,7 +475,5 @@ class Channel(ModelObjectType):
             mark_as_paid_strategy=root.order_mark_as_paid_strategy,
             default_transaction_flow_strategy=root.default_transaction_flow_strategy,
             delete_expired_orders_after=root.delete_expired_orders_after.days,
-            allow_to_create_order_without_payment=(
-                root.allow_to_create_order_without_payment
-            ),
+            allow_unpaid_orders=(root.allow_unpaid_orders),
         )

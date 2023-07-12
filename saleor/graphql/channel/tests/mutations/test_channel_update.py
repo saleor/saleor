@@ -44,7 +44,7 @@ CHANNEL_UPDATE_MUTATION = """
                     markAsPaidStrategy
                     defaultTransactionFlowStrategy
                     deleteExpiredOrdersAfter
-                    allowToCreateOrderWithoutPayment
+                    allowUnpaidOrders
                 }
             }
             errors{
@@ -79,7 +79,7 @@ def test_channel_update_mutation_as_staff_user(
                 "automaticallyConfirmAllNewOrders": False,
                 "automaticallyFulfillNonShippableGiftCard": False,
                 "expireOrdersAfter": 10,
-                "allowToCreateOrderWithoutPayment": True,
+                "allowUnpaidOrders": True,
             },
         },
     }
@@ -112,7 +112,7 @@ def test_channel_update_mutation_as_staff_user(
         is False
     )
     assert channel_data["orderSettings"]["expireOrdersAfter"] == 10
-    assert channel_data["orderSettings"]["allowToCreateOrderWithoutPayment"] is True
+    assert channel_data["orderSettings"]["allowUnpaidOrders"] is True
 
 
 def test_channel_update_mutation_as_app(
@@ -802,13 +802,15 @@ def test_channel_update_order_settings_manage_orders(
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_USD.allow_unpaid_orders = True
+    channel_USD.save()
     variables = {
         "id": channel_id,
         "input": {
             "orderSettings": {
                 "automaticallyConfirmAllNewOrders": False,
                 "automaticallyFulfillNonShippableGiftCard": False,
-                "allowToCreateOrderWithoutPayment": True,
+                "allowUnpaidOrders": False,
             },
         },
     }
@@ -830,7 +832,7 @@ def test_channel_update_order_settings_manage_orders(
         channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
         is False
     )
-    assert channel_data["orderSettings"]["allowToCreateOrderWithoutPayment"] is True
+    assert channel_data["orderSettings"]["allowUnpaidOrders"] is False
 
 
 def test_channel_update_order_settings_empty_order_settings(

@@ -97,11 +97,11 @@ class OrderSettingsInput(BaseInputObjectType):
             "requested action for the transaction." + ADDED_IN_313 + PREVIEW_FEATURE
         ),
     )
-    allow_to_create_order_without_payment = graphene.Boolean(
+    allow_unpaid_orders = graphene.Boolean(
         required=False,
         description=(
-            "Determine if it is possible to create order before finalizing payment "
-            "in TRANSACTION_FLOW." + ADDED_IN_315 + PREVIEW_FEATURE
+            "Determine if it is possible to place unpdaid order by calling "
+            "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
         ),
     )
 
@@ -229,12 +229,9 @@ class ChannelCreate(ModelMutation):
                     "default_transaction_flow_strategy"
                 ] = default_transaction_strategy
 
-            if allow_to_create_order_without_payment := order_settings.get(
-                "allow_to_create_order_without_payment"
-            ):
-                cleaned_input[
-                    "allow_to_create_order_without_payment"
-                ] = allow_to_create_order_without_payment
+            allow_unpaid_orders = order_settings.get("allow_unpaid_orders")
+            if allow_unpaid_orders is not None:
+                cleaned_input["allow_unpaid_orders"] = allow_unpaid_orders
 
         return cleaned_input
 

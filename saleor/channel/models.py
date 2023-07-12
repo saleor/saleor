@@ -32,7 +32,7 @@ class Channel(models.Model):
     )
 
     automatically_confirm_all_new_orders = models.BooleanField(default=True, null=True)
-    allow_to_create_order_without_payment = models.BooleanField(default=False)
+    allow_unpaid_orders = models.BooleanField(default=False)
     automatically_fulfill_non_shippable_gift_card = models.BooleanField(
         default=True,
         null=True,

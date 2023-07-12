@@ -1,7 +1,5 @@
 from decimal import Decimal
 
-import pytest
-
 from .....channel import MarkAsPaidStrategy
 from .....checkout import calculations
 from .....checkout.error_codes import CheckoutErrorCode
@@ -140,7 +138,7 @@ def test_checkout_without_any_transaction_allow_to_create_order(
 
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
-    channel.allow_to_create_order_without_payment = True
+    channel.allow_unpaid_orders = True
     channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
     channel.save()
 
@@ -482,12 +480,7 @@ def test_checkout_paid_with_multiple_transactions(
     assert order.authorize_status == OrderAuthorizeStatus.FULL
 
 
-@pytest.mark.parametrize(
-    "allow_to_create_order_without_payment",
-    [True, False],
-)
 def test_checkout_partially_paid(
-    allow_to_create_order_without_payment,
     user_api_client,
     checkout_with_gift_card,
     gift_card,
@@ -505,9 +498,6 @@ def test_checkout_partially_paid(
 
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
-    channel.allow_to_create_order_without_payment = (
-        allow_to_create_order_without_payment
-    )
     channel.save()
 
     manager = get_plugins_manager()
@@ -539,6 +529,62 @@ def test_checkout_partially_paid(
     error = data["errors"][0]
     assert error["field"] == "id"
     assert error["code"] == CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.name
+
+
+def test_checkout_partially_paid_allow_unpaid_order(
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    transaction_item_generator,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_gift_card
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.tax_exemption = True
+    checkout.save()
+
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.allow_unpaid_orders = True
+    channel.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal("10")
+    )
+
+    update_checkout_payment_statuses(
+        checkout=checkout_info.checkout,
+        checkout_total_gross=total.gross,
+    )
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    order = Order.objects.get()
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+    assert to_global_id_or_none(order) == data["order"]["id"]
+
+    assert order.total_charged_amount == transaction.charged_value
+    assert order.total_authorized == zero_money(order.currency)
+    assert order.charge_status == OrderChargeStatus.PARTIAL
+    assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
 
 
 def test_checkout_with_pending_charged(

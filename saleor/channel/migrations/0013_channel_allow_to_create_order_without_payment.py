@@ -9,13 +9,13 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="channel",
-            name="allow_to_create_order_without_payment",
+            name="allow_unpaid_orders",
             field=models.BooleanField(default=False),
         ),
         migrations.RunSQL(
             sql="""
             ALTER TABLE channel_channel
-            ALTER COLUMN allow_to_create_order_without_payment
+            ALTER COLUMN allow_unpaid_orders
             SET DEFAULT false;
             """,
             reverse_sql=migrations.RunSQL.noop,

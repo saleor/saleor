@@ -141,12 +141,9 @@ class ChannelUpdate(ModelMutation):
                     "default_transaction_flow_strategy"
                 ] = default_transaction_strategy
 
-            if allow_to_create_order_without_payment := order_settings.get(
-                "allow_to_create_order_without_payment"
-            ):
-                cleaned_input[
-                    "allow_to_create_order_without_payment"
-                ] = allow_to_create_order_without_payment
+            allow_unpaid_orders = order_settings.get("allow_unpaid_orders")
+            if allow_unpaid_orders is not None:
+                cleaned_input["allow_unpaid_orders"] = allow_unpaid_orders
 
         return cleaned_input
 

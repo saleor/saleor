@@ -46,7 +46,7 @@ CHANNEL_CREATE_MUTATION = """
                     markAsPaidStrategy
                     defaultTransactionFlowStrategy
                     deleteExpiredOrdersAfter
-                    allowToCreateOrderWithoutPayment
+                    allowUnpaidOrders
                 }
             }
             errors{
@@ -714,7 +714,9 @@ def test_channel_create_mutation_set_incorrect_delete_expired_orders_after(
     assert error["code"] == ChannelErrorCode.INVALID.name
 
 
-def test_channel_create_set_allow_to_create_order_without_payment(
+@pytest.mark.parametrize("allowUnpaid", [True, False])
+def test_channel_create_set_allow_unpaid_orders(
+    allowUnpaid,
     permission_manage_channels,
     staff_api_client,
 ):
@@ -729,7 +731,7 @@ def test_channel_create_set_allow_to_create_order_without_payment(
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
-            "orderSettings": {"allowToCreateOrderWithoutPayment": True},
+            "orderSettings": {"allowUnpaidOrders": allowUnpaid},
         }
     }
 
@@ -746,5 +748,5 @@ def test_channel_create_set_allow_to_create_order_without_payment(
     assert not data["errors"]
     channel_data = data["channel"]
     channel = Channel.objects.get()
-    assert channel_data["orderSettings"]["allowToCreateOrderWithoutPayment"] is True
-    assert channel.allow_to_create_order_without_payment is True
+    assert channel_data["orderSettings"]["allowUnpaidOrders"] == allowUnpaid
+    assert channel.allow_unpaid_orders == allowUnpaid
