@@ -11,7 +11,11 @@ class Migration(migrations.Migration):
     database_operations = [
         migrations.RunSQL(
             sql="ALTER TABLE product_product DROP COLUMN charge_taxes;",
-            reverse_sql=migrations.RunSQL.noop,
+            reverse_sql="""
+            ALTER TABLE product_product
+            ADD COLUMN charge_taxes
+            BOOLEAN;
+            """,
         )
     ]
 
