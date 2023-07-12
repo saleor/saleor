@@ -330,12 +330,14 @@ class GraphQLView(View):
                             cache.set(key, response)
 
                     if app := getattr(request, "app", None):
+                        span.set_tag("app.id", app.id)
                         span.set_tag("app.name", app.name)
 
                     return set_query_cost_on_result(response, query_cost)
             except Exception as e:
                 span.set_tag(opentracing.tags.ERROR, True)
                 if app := getattr(request, "app", None):
+                    span.set_tag("app.id", app.id)
                     span.set_tag("app.name", app.name)
                 # In the graphql-core version that we are using,
                 # the Exception is raised for too big integers value.
