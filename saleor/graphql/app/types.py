@@ -22,11 +22,7 @@ from ...thumbnail.utils import (
 )
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core import ResolveInfo, SaleorContext
-from ..core.connection import (
-    CountableConnection,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
@@ -38,10 +34,8 @@ from ..core.descriptions import (
 )
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.fields import FilterConnectionField
 from ..core.types import (
     BaseObjectType,
-    FilterInputObjectType,
     IconThumbnailField,
     Job,
     ModelObjectType,
@@ -51,8 +45,7 @@ from ..core.types import (
 from ..core.utils import from_global_id_or_error
 from ..meta.types import (
     ObjectEvent,
-    ObjectEventCountableConnection,
-    ObjectEventSortingInput,
+    ObjectWithEventsConnectionField,
     ObjectWithMetadata,
 )
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
@@ -74,7 +67,6 @@ from .enums import (
     AppExtensionTargetEnum,
     AppTypeEnum,
 )
-from .filters import AppEventFilter
 from .resolvers import (
     resolve_access_token_for_app,
     resolve_access_token_for_app_extension,
@@ -504,13 +496,8 @@ class AppToken(BaseObjectType):
         return root.token_last_4
 
 
-class AppEventFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = AppEventFilter
-
-
 @federated_entity("id")
-class App(ModelObjectType[models.App]):
+class App(ModelObjectType[models.App], ObjectWithEventsConnectionField):
     id = graphene.GlobalID(required=True, description="The ID of the app.")
     permissions = NonNullList(Permission, description="List of the app's permissions.")
     created = graphene.DateTime(
@@ -574,16 +561,12 @@ class App(ModelObjectType[models.App]):
     brand = graphene.Field(
         AppBrand, description="App's brand data." + ADDED_IN_314 + PREVIEW_FEATURE
     )
-    events = FilterConnectionField(
-        ObjectEventCountableConnection,
-        filter=AppEventFilterInput(description="Filtering options for app events."),
-        sort_by=ObjectEventSortingInput(description="Sort app events."),
-    )
 
     class Meta:
         description = "Represents app data."
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.App
+        event_types = AppEventType
 
     @staticmethod
     def resolve_created(root: models.App, _info: ResolveInfo):
@@ -648,12 +631,6 @@ class App(ModelObjectType[models.App]):
     def resolve_brand(root: models.App, _info: ResolveInfo):
         if root.brand_logo_default:
             return root
-
-    @staticmethod
-    def resolve_events(root: models.App, info: ResolveInfo, **kwargs):
-        qs = root.events.all()
-        qs = filter_connection_queryset(qs, kwargs)
-        return create_connection_slice(qs, info, kwargs, ObjectEventCountableConnection)
 
 
 class AppCountableConnection(CountableConnection):

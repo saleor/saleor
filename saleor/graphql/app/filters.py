@@ -3,15 +3,9 @@ import django_filters
 from ...app import models
 from ...app.types import AppExtensionTarget, AppType
 from ..app.types import AppEventType
-from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
-from ..core.types import DateTimeRangeInput
+from ..core.filters import EnumFilter, ListObjectTypeFilter
 from ..utils.filters import filter_range_field
-from .enums import (
-    AppEventTypeEnum,
-    AppExtensionMountEnum,
-    AppExtensionTargetEnum,
-    AppTypeEnum,
-)
+from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 
 
 def filter_app_search(qs, _, value):
@@ -69,14 +63,3 @@ class AppExtensionFilter(django_filters.FilterSet):
     class Meta:
         model = models.AppExtension
         fields = ["mount", "target"]
-
-
-class AppEventFilter(django_filters.FilterSet):
-    type = EnumFilter(input_class=AppEventTypeEnum, method=filter_app_event_type)
-    created_at = ObjectTypeFilter(
-        input_class=DateTimeRangeInput, method=filter_created_at
-    )
-
-    class Meta:
-        model = models.AppEvent
-        fields = ["type", "created_at"]

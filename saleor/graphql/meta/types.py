@@ -12,10 +12,13 @@ from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader
 from ..channel import ChannelContext
 from ..core import ResolveInfo
-from ..core.connection import CountableConnection
-from ..core.fields import PermissionsField
-from ..core.types import BaseEnum, NonNullList, SortInputObjectType
+from ..core.connection import CountableConnection, create_connection_slice
+from ..core.enums import to_enum
+from ..core.fields import ConnectionField, PermissionsField
+from ..core.types import BaseEnum, DateTimeRangeInput, NonNullList, SortInputObjectType
+from ..core.types.base import BaseInputObjectType, BaseObjectType
 from ..utils import get_user_or_app_from_context
+from ..utils.filters import filter_range_field
 from .resolvers import (
     check_private_metadata_privilege,
     resolve_event_type,
@@ -262,3 +265,50 @@ class ObjectEventSortingInput(SortInputObjectType):
     class Meta:
         sort_enum = ObjectEventSortField
         type_name = "events"
+
+
+class EventsInputBaseObjectType(BaseInputObjectType):
+    created_at = DateTimeRangeInput()
+
+    class Meta:
+        abstract = True
+
+
+class EventsConnectionField(ConnectionField):
+    def __init__(self, type_, *args, **kwargs):
+        type_name = kwargs.pop("type_name", "")
+        event_types = kwargs.pop("event_types", None)
+        if event_types:
+            event_types_enum = to_enum(event_types, description=event_types.__doc__)
+            field = type(
+                f"{type_name}EventFilterInput",
+                (EventsInputBaseObjectType,),
+                {"type": event_types_enum()},
+            )
+            kwargs["filter"] = field(description="Filtering options for events.")
+        kwargs["sort_by"] = ObjectEventSortingInput(description="Sort events.")
+        super().__init__(type_, *args, **kwargs)
+
+
+class ObjectWithEventsConnectionField(BaseObjectType):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, **options):
+        super().__init_subclass_with_meta__(**options)
+        field = EventsConnectionField(
+            ObjectEventCountableConnection,
+            type_name=cls.__name__,
+            event_types=options.get("event_types"),
+        )
+        cls._meta.fields.update({"events": field})
+
+    @staticmethod
+    def resolve_events(root, info: ResolveInfo, filter=None, **kwargs):
+        qs = root.events.all()
+        if filter:
+            if type := filter.get("type", None):
+                qs = qs.filter(type=type)
+            qs = filter_range_field(qs, "date", filter.get("created_at", {}))
+        return create_connection_slice(qs, info, kwargs, ObjectEventCountableConnection)

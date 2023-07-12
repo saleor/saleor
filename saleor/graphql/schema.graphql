@@ -2992,10 +2992,10 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """
   brand: AppBrand
   events(
-    """Filtering options for app events."""
+    """Filtering options for events."""
     filter: AppEventFilterInput
 
-    """Sort app events."""
+    """Sort events."""
     sortBy: ObjectEventSortingInput
 
     """Return the elements in the list that come before the specified cursor."""
@@ -10612,8 +10612,8 @@ type PaymentSource @doc(category: "Payments") {
 }
 
 input AppEventFilterInput {
-  type: AppEventTypeEnum
   createdAt: DateTimeRangeInput
+  type: AppEventTypeEnum
 }
 
 """All app event types."""
