@@ -609,8 +609,15 @@ def test_order_lines_create_variant_on_promotion(
     )
 
     line = order.lines.get(product_sku=variant.sku)
+    assert line.sale_id == graphene.Node.to_global_id(
+        "Promotion", promotion_without_rules.id
+    )
     assert line.unit_discount_amount == reward_value
     assert line.unit_discount_value == reward_value
+    assert (
+        line.unit_discount_reason
+        == f"Promotion rules discounts: {promotion_without_rules.name}"
+    )
     assert line.discounts.count() == 1
     discount = line.discounts.first()
     assert discount.promotion_rule == rule

@@ -2,6 +2,7 @@ from decimal import Decimal
 from functools import wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
 
+import graphene
 from django.db.models import QuerySet, Sum
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -278,7 +279,15 @@ def create_order_line(
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
         if rules_info:
-            create_order_line_discounts(line, rules_info)
+            line_discounts = create_order_line_discounts(line, rules_info)
+            line.unit_discount_reason = (
+                prepare_promotion_discount_reason(line_discounts)
+                if line_discounts
+                else None
+            )
+            line.sale_id = graphene.Node.to_global_id(
+                "Promotion", rules_info[0].promotion.pk
+            )
 
         tax_configuration = channel.tax_configuration
         prices_entered_with_tax = tax_configuration.prices_entered_with_tax
@@ -289,16 +298,13 @@ def create_order_line(
             discount_amount = unit_discount.net
         line.unit_discount = discount_amount
         line.unit_discount_value = discount_amount.amount
-        # TODO: Do we still need this?
-        # line.unit_discount_reason = (
-        #     f"Sale: {graphene.Node.to_global_id('Sale', sale_id)}"
-        # )
 
         line.save(
             update_fields=[
                 "unit_discount_amount",
                 "unit_discount_value",
                 "unit_discount_reason",
+                "sale_id",
             ]
         )
 
@@ -321,7 +327,7 @@ def create_order_line(
 
 def create_order_line_discounts(
     line: "OrderLine", rules_info: Iterable["VariantPromotionRuleInfo"]
-):
+) -> Iterable["OrderLineDiscount"]:
     line_discounts_to_create: List[OrderLineDiscount] = []
     for rule_info in rules_info:
         rule = rule_info.rule
@@ -342,7 +348,18 @@ def create_order_line_discounts(
             )
         )
 
-    OrderLineDiscount.objects.bulk_create(line_discounts_to_create)
+    return OrderLineDiscount.objects.bulk_create(line_discounts_to_create)
+
+
+def prepare_promotion_discount_reason(line_discounts: Iterable["OrderLineDiscount"]):
+    unit_discount_reason = "Promotion rules discounts: " + ", ".join(
+        [
+            discount.name
+            or graphene.Node.to_global_id("PromotionRule", discount.promotion_rule_id)
+            for discount in line_discounts
+        ]
+    )
+    return unit_discount_reason
 
 
 @traced_atomic_transaction()
