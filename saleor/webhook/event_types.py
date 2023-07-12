@@ -591,62 +591,89 @@ class WebhookEventSyncType:
     TRANSACTION_INITIALIZE_SESSION = "transaction_initialize_session"
     TRANSACTION_PROCESS_SESSION = "transaction_process_session"
 
-    DISPLAY_LABELS = {
-        PAYMENT_AUTHORIZE: "Authorize payment",
-        PAYMENT_CAPTURE: "Capture payment",
-        PAYMENT_CONFIRM: "Confirm payment",
-        PAYMENT_LIST_GATEWAYS: "List payment gateways",
-        PAYMENT_PROCESS: "Process payment",
-        PAYMENT_REFUND: "Refund payment",
-        PAYMENT_VOID: "Void payment",
-        TRANSACTION_CHARGE_REQUESTED: "Transaction charge requested",
-        TRANSACTION_CANCELATION_REQUESTED: "Transaction cancelation requested",
-        TRANSACTION_REFUND_REQUESTED: "Transaction refund requested",
-        CHECKOUT_CALCULATE_TAXES: "Checkout calculate taxes",
-        ORDER_CALCULATE_TAXES: "Order calculate taxes",
-        SHIPPING_LIST_METHODS_FOR_CHECKOUT: "Shipping list methods for checkout",
-        ORDER_FILTER_SHIPPING_METHODS: "Filter order shipping methods",
-        CHECKOUT_FILTER_SHIPPING_METHODS: "Filter checkout shipping methods",
-        PAYMENT_GATEWAY_INITIALIZE_SESSION: "Initialize payment gateway session",
-        TRANSACTION_INITIALIZE_SESSION: "Initialize transaction session",
-        TRANSACTION_PROCESS_SESSION: "Process transaction session",
+    EVENT_MAP = {
+        PAYMENT_LIST_GATEWAYS: {
+            "description": "List payment gateways",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        PAYMENT_AUTHORIZE: {
+            "description": "Authorize payment",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        PAYMENT_CAPTURE: {
+            "description": "Capture payment",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        PAYMENT_REFUND: {
+            "description": "Refund payment",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        PAYMENT_VOID: {
+            "description": "Void payment",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        PAYMENT_CONFIRM: {
+            "description": "Confirm payment",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        PAYMENT_PROCESS: {
+            "description": "Process payment",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        CHECKOUT_CALCULATE_TAXES: {
+            "description": "Calculate taxes for checkout",
+            "permission": CheckoutPermissions.HANDLE_TAXES,
+        },
+        ORDER_CALCULATE_TAXES: {
+            "description": "Calculate taxes for order",
+            "permission": CheckoutPermissions.HANDLE_TAXES,
+        },
+        TRANSACTION_CHARGE_REQUESTED: {
+            "description": "Transaction charge requested",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        TRANSACTION_REFUND_REQUESTED: {
+            "description": "Transaction refund requested",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        TRANSACTION_CANCELATION_REQUESTED: {
+            "description": "Transaction cancelation requested",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        SHIPPING_LIST_METHODS_FOR_CHECKOUT: {
+            "description": "List shipping methods for checkout",
+            "permission": ShippingPermissions.MANAGE_SHIPPING,
+        },
+        CHECKOUT_FILTER_SHIPPING_METHODS: {
+            "description": "Filter shipping methods for checkout",
+            "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
+        },
+        ORDER_FILTER_SHIPPING_METHODS: {
+            "description": "Filter shipping methods for order",
+            "permission": OrderPermissions.MANAGE_ORDERS,
+        },
+        PAYMENT_GATEWAY_INITIALIZE_SESSION: {
+            "description": "Initialize payment gateway session",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        TRANSACTION_INITIALIZE_SESSION: {
+            "description": "Initialize transaction session",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        TRANSACTION_PROCESS_SESSION: {
+            "description": "Process transaction session",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
     }
 
     CHOICES = [
-        (PAYMENT_AUTHORIZE, DISPLAY_LABELS[PAYMENT_AUTHORIZE]),
-        (PAYMENT_CAPTURE, DISPLAY_LABELS[PAYMENT_CAPTURE]),
-        (PAYMENT_CONFIRM, DISPLAY_LABELS[PAYMENT_CONFIRM]),
-        (PAYMENT_LIST_GATEWAYS, DISPLAY_LABELS[PAYMENT_LIST_GATEWAYS]),
-        (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
-        (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
-        (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
-        (TRANSACTION_CHARGE_REQUESTED, DISPLAY_LABELS[TRANSACTION_CHARGE_REQUESTED]),
-        (TRANSACTION_REFUND_REQUESTED, DISPLAY_LABELS[TRANSACTION_REFUND_REQUESTED]),
-        (
-            TRANSACTION_CANCELATION_REQUESTED,
-            DISPLAY_LABELS[TRANSACTION_CANCELATION_REQUESTED],
-        ),
-        (CHECKOUT_CALCULATE_TAXES, DISPLAY_LABELS[CHECKOUT_CALCULATE_TAXES]),
-        (ORDER_CALCULATE_TAXES, DISPLAY_LABELS[ORDER_CALCULATE_TAXES]),
-        (
-            SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-            DISPLAY_LABELS[SHIPPING_LIST_METHODS_FOR_CHECKOUT],
-        ),
-        (ORDER_FILTER_SHIPPING_METHODS, DISPLAY_LABELS[ORDER_FILTER_SHIPPING_METHODS]),
-        (
-            CHECKOUT_FILTER_SHIPPING_METHODS,
-            DISPLAY_LABELS[CHECKOUT_FILTER_SHIPPING_METHODS],
-        ),
-        (
-            PAYMENT_GATEWAY_INITIALIZE_SESSION,
-            DISPLAY_LABELS[PAYMENT_GATEWAY_INITIALIZE_SESSION],
-        ),
-        (
-            TRANSACTION_INITIALIZE_SESSION,
-            DISPLAY_LABELS[TRANSACTION_INITIALIZE_SESSION],
-        ),
-        (TRANSACTION_PROCESS_SESSION, DISPLAY_LABELS[TRANSACTION_PROCESS_SESSION]),
+        (event_name, event_data["description"])
+        for event_name, event_data in EVENT_MAP.items()
     ]
+    PERMISSIONS = {
+        event_name: event_data["permission"]
+        for event_name, event_data in EVENT_MAP.items()
+    }
 
     ALL = [event[0] for event in CHOICES]
 
@@ -670,24 +697,3 @@ class WebhookEventSyncType:
         TRANSACTION_REFUND_REQUESTED,
         TRANSACTION_CANCELATION_REQUESTED,
     ]
-
-    PERMISSIONS = {
-        PAYMENT_AUTHORIZE: PaymentPermissions.HANDLE_PAYMENTS,
-        PAYMENT_CAPTURE: PaymentPermissions.HANDLE_PAYMENTS,
-        PAYMENT_CONFIRM: PaymentPermissions.HANDLE_PAYMENTS,
-        PAYMENT_LIST_GATEWAYS: PaymentPermissions.HANDLE_PAYMENTS,
-        PAYMENT_PROCESS: PaymentPermissions.HANDLE_PAYMENTS,
-        PAYMENT_REFUND: PaymentPermissions.HANDLE_PAYMENTS,
-        PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
-        TRANSACTION_REFUND_REQUESTED: PaymentPermissions.HANDLE_PAYMENTS,
-        TRANSACTION_CANCELATION_REQUESTED: PaymentPermissions.HANDLE_PAYMENTS,
-        TRANSACTION_CHARGE_REQUESTED: PaymentPermissions.HANDLE_PAYMENTS,
-        CHECKOUT_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
-        ORDER_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
-        SHIPPING_LIST_METHODS_FOR_CHECKOUT: ShippingPermissions.MANAGE_SHIPPING,
-        ORDER_FILTER_SHIPPING_METHODS: OrderPermissions.MANAGE_ORDERS,
-        CHECKOUT_FILTER_SHIPPING_METHODS: CheckoutPermissions.MANAGE_CHECKOUTS,
-        PAYMENT_GATEWAY_INITIALIZE_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
-        TRANSACTION_INITIALIZE_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
-        TRANSACTION_PROCESS_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
-    }

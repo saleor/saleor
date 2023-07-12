@@ -2180,26 +2180,40 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   SHOP_METADATA_UPDATED
 
+  """Listing available payment gateways."""
+  PAYMENT_LIST_GATEWAYS
+
   """Authorize payment."""
   PAYMENT_AUTHORIZE
 
   """Capture payment."""
   PAYMENT_CAPTURE
 
-  """Confirm payment."""
-  PAYMENT_CONFIRM
-
-  """Listing available payment gateways."""
-  PAYMENT_LIST_GATEWAYS
-
-  """Process payment."""
-  PAYMENT_PROCESS
-
   """Refund payment."""
   PAYMENT_REFUND
 
   """Void payment."""
   PAYMENT_VOID
+
+  """Confirm payment."""
+  PAYMENT_CONFIRM
+
+  """Process payment."""
+  PAYMENT_PROCESS
+
+  """
+  Event called for checkout tax calculation.
+  
+  Added in Saleor 3.6.
+  """
+  CHECKOUT_CALCULATE_TAXES
+
+  """
+  Event called for order tax calculation.
+  
+  Added in Saleor 3.6.
+  """
+  ORDER_CALCULATE_TAXES
 
   """
   Event called when charge has been requested for transaction.
@@ -2228,28 +2242,14 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   TRANSACTION_CANCELATION_REQUESTED
 
-  """
-  Event called for checkout tax calculation.
-  
-  Added in Saleor 3.6.
-  """
-  CHECKOUT_CALCULATE_TAXES
-
-  """
-  Event called for order tax calculation.
-  
-  Added in Saleor 3.6.
-  """
-  ORDER_CALCULATE_TAXES
-
   """Fetch external shipping methods for checkout."""
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
 
-  """Filter shipping methods for order."""
-  ORDER_FILTER_SHIPPING_METHODS
-
   """Filter shipping methods for checkout."""
   CHECKOUT_FILTER_SHIPPING_METHODS
+
+  """Filter shipping methods for order."""
+  ORDER_FILTER_SHIPPING_METHODS
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
@@ -2266,26 +2266,40 @@ type WebhookEventSync @doc(category: "Webhooks") {
 
 """Enum determining type of webhook."""
 enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
+  """Listing available payment gateways."""
+  PAYMENT_LIST_GATEWAYS
+
   """Authorize payment."""
   PAYMENT_AUTHORIZE
 
   """Capture payment."""
   PAYMENT_CAPTURE
 
-  """Confirm payment."""
-  PAYMENT_CONFIRM
-
-  """Listing available payment gateways."""
-  PAYMENT_LIST_GATEWAYS
-
-  """Process payment."""
-  PAYMENT_PROCESS
-
   """Refund payment."""
   PAYMENT_REFUND
 
   """Void payment."""
   PAYMENT_VOID
+
+  """Confirm payment."""
+  PAYMENT_CONFIRM
+
+  """Process payment."""
+  PAYMENT_PROCESS
+
+  """
+  Event called for checkout tax calculation.
+  
+  Added in Saleor 3.6.
+  """
+  CHECKOUT_CALCULATE_TAXES
+
+  """
+  Event called for order tax calculation.
+  
+  Added in Saleor 3.6.
+  """
+  ORDER_CALCULATE_TAXES
 
   """
   Event called when charge has been requested for transaction.
@@ -2314,28 +2328,14 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   """
   TRANSACTION_CANCELATION_REQUESTED
 
-  """
-  Event called for checkout tax calculation.
-  
-  Added in Saleor 3.6.
-  """
-  CHECKOUT_CALCULATE_TAXES
-
-  """
-  Event called for order tax calculation.
-  
-  Added in Saleor 3.6.
-  """
-  ORDER_CALCULATE_TAXES
-
   """Fetch external shipping methods for checkout."""
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
 
-  """Filter shipping methods for order."""
-  ORDER_FILTER_SHIPPING_METHODS
-
   """Filter shipping methods for checkout."""
   CHECKOUT_FILTER_SHIPPING_METHODS
+
+  """Filter shipping methods for order."""
+  ORDER_FILTER_SHIPPING_METHODS
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
