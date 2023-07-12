@@ -2173,6 +2173,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   THUMBNAIL_CREATED
 
+  """
+  Shop metadata is updated.
+  
+  Added in Saleor 3.15.
+  """
+  SHOP_METADATA_UPDATED
+
   """Authorize payment."""
   PAYMENT_AUTHORIZE
 
@@ -2805,6 +2812,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.12.
   """
   THUMBNAIL_CREATED
+
+  """
+  Shop metadata is updated.
+  
+  Added in Saleor 3.15.
+  """
+  SHOP_METADATA_UPDATED
 }
 
 """Represents app data."""
@@ -3464,6 +3478,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   VOUCHER_METADATA_UPDATED
   OBSERVABILITY
   THUMBNAIL_CREATED
+  SHOP_METADATA_UPDATED
 }
 
 """Represents warehouse."""
@@ -9237,6 +9252,9 @@ type Shop implements ObjectWithMetadata {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   """
   metafields(keys: [String!]): Metadata
+
+  """ID of the shop."""
+  id: ID!
 
   """List of available payment gateways."""
   availablePaymentGateways(
@@ -31955,6 +31973,28 @@ type TransactionProcessSession implements Event @doc(category: "Payments") {
 
   """Action to proceed for the transaction"""
   action: TransactionProcessAction!
+}
+
+"""
+Event sent when shop metadata is updated.
+
+Added in Saleor 3.15.
+"""
+type ShopMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Shop data."""
+  shop: Shop
 }
 
 """_Any value scalar as defined by Federation spec."""

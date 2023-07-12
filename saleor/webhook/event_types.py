@@ -173,6 +173,8 @@ class WebhookEventAsyncType:
 
     THUMBNAIL_CREATED = "thumbnail_created"
 
+    SHOP_METADATA_UPDATED = "shop_metadata_updated"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
         ACCOUNT_CONFIRMATION_REQUESTED: "Account confirmation requested",
@@ -295,6 +297,7 @@ class WebhookEventAsyncType:
         VOUCHER_METADATA_UPDATED: "Voucher metadata updated",
         OBSERVABILITY: "Observability",
         THUMBNAIL_CREATED: "Thumbnail created",
+        SHOP_METADATA_UPDATED: "Shop metadata updated",
     }
 
     CHOICES = [
@@ -434,6 +437,7 @@ class WebhookEventAsyncType:
         (VOUCHER_METADATA_UPDATED, DISPLAY_LABELS[VOUCHER_METADATA_UPDATED]),
         (OBSERVABILITY, DISPLAY_LABELS[OBSERVABILITY]),
         (THUMBNAIL_CREATED, DISPLAY_LABELS[THUMBNAIL_CREATED]),
+        (SHOP_METADATA_UPDATED, DISPLAY_LABELS[SHOP_METADATA_UPDATED]),
     ]
 
     ALL = [event[0] for event in CHOICES]
@@ -559,6 +563,7 @@ class WebhookEventAsyncType:
         WAREHOUSE_METADATA_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         OBSERVABILITY: AppPermission.MANAGE_OBSERVABILITY,
         THUMBNAIL_CREATED: ProductPermissions.MANAGE_PRODUCTS,
+        SHOP_METADATA_UPDATED: SitePermissions.MANAGE_SETTINGS,
     }
 
 

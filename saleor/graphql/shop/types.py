@@ -53,6 +53,11 @@ from .enums import GiftCardSettingsExpiryTypeEnum
 from .filters import CountryFilterInput
 from .resolvers import resolve_available_shipping_methods, resolve_countries
 
+# The "Shop" type always have the same ID since there is a single instance of it.
+# Some mutations, such as generic metadata API, require an ID. To make it work we
+# assume that Shop's ID is always 1.
+SHOP_ID = "1"
+
 
 class Domain(graphene.ObjectType):
     host = graphene.String(description="The host name of the domain.", required=True)
@@ -137,6 +142,7 @@ class LimitInfo(graphene.ObjectType):
 
 
 class Shop(graphene.ObjectType):
+    id = graphene.ID(description="ID of the shop.", required=True)
     available_payment_gateways = NonNullList(
         PaymentGateway,
         currency=graphene.Argument(
@@ -359,6 +365,18 @@ class Shop(graphene.ObjectType):
             "Represents a shop resource containing general shop data and configuration."
         )
         interfaces = [ObjectWithMetadata]
+
+    @staticmethod
+    def get_model():
+        return site_models.SiteSettings
+
+    @staticmethod
+    def get_node(_info: ResolveInfo, id):
+        return site_models.SiteSettings.objects.first() if id == SHOP_ID else None
+
+    @staticmethod
+    def resolve_id(_, _info):
+        return graphene.Node.to_global_id("Shop", SHOP_ID)
 
     @staticmethod
     @traced_resolver
