@@ -448,7 +448,7 @@ def test_add_shipping_to_checkout(
         FRAGMENT_CHECKOUT
         + """
             mutation updateCheckoutShippingOptions(
-              $id: ID, $shippingMethodId: ID!
+              $id: ID, $shippingMethodId: ID
             ) {
               checkoutShippingMethodUpdate(
                 id: $id, shippingMethodId: $shippingMethodId
