@@ -56,11 +56,17 @@ from .enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 class ShippingMethodChannelListing(
     ModelObjectType[models.ShippingMethodChannelListing]
 ):
-    id = graphene.GlobalID(required=True)
-    channel = graphene.Field(Channel, required=True)
-    maximum_order_price = graphene.Field(Money)
-    minimum_order_price = graphene.Field(Money)
-    price = graphene.Field(Money)
+    id = graphene.GlobalID(
+        required=True, description="The ID of shipping method channel listing."
+    )
+    channel = graphene.Field(
+        Channel,
+        required=True,
+        description="The channel associated with the shipping method channel listing.",
+    )
+    maximum_order_price = graphene.Field(Money, description="Maximum order price.")
+    minimum_order_price = graphene.Field(Money, description="Minimum order price.")
+    price = graphene.Field(Money, description="Order price.")
 
     class Meta:
         description = "Represents shipping method channel listing."
@@ -252,9 +258,11 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
 
 
 class ShippingZone(ChannelContextTypeWithMetadata[models.ShippingZone]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
-    default = graphene.Boolean(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of shipping zone")
+    name = graphene.String(required=True, description="Shipping zone name.")
+    default = graphene.Boolean(
+        required=True, description="The shipping zone by default."
+    )
     price_range = graphene.Field(
         MoneyRange, description="Lowest and highest prices for the shipping."
     )
