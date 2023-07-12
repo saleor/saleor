@@ -162,7 +162,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         cls.check_channel_permissions(info, [order.channel_id])
         cls.validate_order(order)
         existing_lines_info = fetch_order_lines(order)
-        variants_data = cls.get_variant_rule_info_map(input, order.channel_id)
+        variants_data = cls.get_variant_rule_info_map(
+            input, order.channel_id, order.language_code
+        )
 
         lines_to_add = cls.validate_lines(
             info, input, existing_lines_info, variants_data
@@ -207,7 +209,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         return OrderLinesCreate(order=order, order_lines=added_lines)
 
     @classmethod
-    def get_variant_rule_info_map(cls, data, channel_id):
+    def get_variant_rule_info_map(cls, data, channel_id, language_code):
         variant_id_to_variant_and_rules_info_map = {}
         variant_ids = [line["variant_id"] for line in data]
         pks = cls.get_global_ids_or_error(variant_ids, ProductVariant, "variant_id")
@@ -218,7 +220,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         )
         for variant in variants:
             variant_channel_listing = get_variant_channel_listing(variant, channel_id)
-            rules_info = get_variant_rules_info(variant_channel_listing)
+            rules_info = get_variant_rules_info(variant_channel_listing, language_code)
             variant_id_to_variant_and_rules_info_map[
                 graphene.Node.to_global_id("ProductVariant", variant.pk)
             ] = VariantData(variant=variant, rules_info=rules_info)

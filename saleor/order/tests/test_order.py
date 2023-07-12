@@ -166,6 +166,8 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
                 rule=rule,
                 variant_listing_promotion_rule=listing_rule,
                 promotion=promotion_without_rules,
+                promotion_translation=None,
+                rule_translation=None,
             )
         ],
     )
@@ -1417,6 +1419,8 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom
                 rule=rule,
                 variant_listing_promotion_rule=listing_rule,
                 promotion=promotion_without_rules,
+                promotion_translation=None,
+                rule_translation=None,
             )
         ],
     )
