@@ -9,7 +9,7 @@ from .models import EventDelivery, EventPayload
 
 # Batch size was tested on db with 1mln payloads and deliveries, each delivery
 # had multiple attempts. One task took less than 0,5 second, memory usage didn't raise
-# more than 1 percent.
+# more than 100 MB.
 BATCH_SIZE = 1000
 
 
