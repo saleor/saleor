@@ -51,6 +51,7 @@ from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
 from ..order.search import prepare_order_search_vector_value
 from ..order.utils import (
+    prepare_promotion_discount_reason,
     update_order_authorize_data,
     update_order_charge_data,
     update_order_display_gross_prices,
@@ -312,7 +313,7 @@ def _create_line_for_order(
         line.sale_id = graphene.Node.to_global_id(
             "Promotion", checkout_line_info.rules_info[0].promotion.pk
         )
-        promotion_discount_reason = _prepare_promotion_discount_reason(line_discounts)
+        promotion_discount_reason = prepare_promotion_discount_reason(line_discounts)
         unit_discount_reason = (
             f"{unit_discount_reason} & {promotion_discount_reason}"
             if unit_discount_reason
@@ -346,17 +347,6 @@ def _create_order_line_discounts(
         discount_data["line_id"] = order_line.pk
         line_discounts.append(OrderLineDiscount(**discount_data))
     return line_discounts
-
-
-def _prepare_promotion_discount_reason(line_discounts: List["OrderLineDiscount"]):
-    unit_discount_reason = "Promotion rules discounts: " + ", ".join(
-        [
-            discount.name
-            or graphene.Node.to_global_id("PromotionRule", discount.promotion_rule_id)
-            for discount in line_discounts
-        ]
-    )
-    return unit_discount_reason
 
 
 def _create_lines_for_order(
