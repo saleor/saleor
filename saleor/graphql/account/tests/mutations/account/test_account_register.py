@@ -1,6 +1,7 @@
 from unittest.mock import patch
 from urllib.parse import urlencode
 
+from django.contrib.auth.tokens import default_token_generator
 from django.test import override_settings
 
 from ......account import events as account_events
@@ -120,6 +121,43 @@ def test_customer_register(
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_user
+
+
+@override_settings(
+    ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
+)
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_customer_register_generates_valid_token(
+    mocked_notify,
+    api_client,
+    channel_PLN,
+    order,
+    site_settings,
+):
+    # given
+    email = "customer@example.com"
+    redirect_url = "http://localhost:3000"
+    variables = {
+        "email": email,
+        "password": "Password",
+        "redirectUrl": redirect_url,
+        "firstName": "saleor",
+        "lastName": "rocks",
+        "languageCode": "PL",
+        "metadata": [{"key": "meta", "value": "data"}],
+        "channel": channel_PLN.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    new_user = User.objects.get(email=email)
+    content = get_graphql_content(response)
+    data = content["data"]["accountRegister"]
+
+    # then
+    token = mocked_notify.call_args.kwargs["payload"]["token"]
+    assert not data["errors"]
+    assert default_token_generator.check_token(new_user, token)
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")

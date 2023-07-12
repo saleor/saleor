@@ -27,7 +27,9 @@ from ..core.validators import validate_one_of_args_is_in_query
 from ..translations.mutations import (
     CategoryTranslate,
     CollectionTranslate,
+    ProductBulkTranslate,
     ProductTranslate,
+    ProductVariantBulkTranslate,
     ProductVariantTranslate,
 )
 from ..utils import get_user_or_app_from_context
@@ -584,6 +586,7 @@ class ProductMutations(graphene.ObjectType):
     product_bulk_create = ProductBulkCreate.Field()
     product_bulk_delete = ProductBulkDelete.Field()
     product_update = ProductUpdate.Field()
+    product_bulk_translate = ProductBulkTranslate.Field()
     product_translate = ProductTranslate.Field()
 
     product_channel_listing_update = ProductChannelListingUpdate.Field()
@@ -619,6 +622,7 @@ class ProductMutations(graphene.ObjectType):
     product_variant_update = ProductVariantUpdate.Field()
     product_variant_set_default = ProductVariantSetDefault.Field()
     product_variant_translate = ProductVariantTranslate.Field()
+    product_variant_bulk_translate = ProductVariantBulkTranslate.Field()
     product_variant_channel_listing_update = ProductVariantChannelListingUpdate.Field()
     product_variant_reorder_attribute_values = (
         ProductVariantReorderAttributeValues.Field()

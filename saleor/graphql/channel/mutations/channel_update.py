@@ -76,6 +76,8 @@ class ChannelUpdate(ModelMutation):
                 description="A channel was updated.",
             ),
         ]
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

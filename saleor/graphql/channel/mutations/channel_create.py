@@ -26,7 +26,9 @@ from ...core.doc_category import (
 from ...core.mutations import ModelMutation
 from ...core.scalars import Day, Minute
 from ...core.types import BaseInputObjectType, ChannelError, NonNullList
+from ...core.types import common as common_types
 from ...core.utils import WebhookEventInfo
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import (
     AllocationStrategyEnum,
@@ -133,6 +135,16 @@ class ChannelInput(BaseInputObjectType):
         description="The channel order settings" + ADDED_IN_312,
         required=False,
     )
+    metadata = common_types.NonNullList(
+        MetadataInput,
+        description="Channel public metadata." + ADDED_IN_315,
+        required=False,
+    )
+    private_metadata = common_types.NonNullList(
+        MetadataInput,
+        description="Channel private metadata." + ADDED_IN_315,
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_CHANNELS
@@ -176,6 +188,8 @@ class ChannelCreate(ModelMutation):
                 description="A channel was created.",
             ),
         ]
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def get_type_for_model(cls):

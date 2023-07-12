@@ -271,7 +271,7 @@ class BaseBulkTranslateMutation(BaseMutation):
         if not base_object:
             index_error_map[index].append(
                 cls._meta.error_type_class(
-                    message="Couldn't resolve to an attribute.",
+                    message="Couldn't resolve to an object.",
                     code=TranslationErrorCode.NOT_FOUND.value,
                     path="id" if pk else "externalReference",
                 )
