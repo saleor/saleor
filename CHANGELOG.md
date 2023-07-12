@@ -78,7 +78,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 ### Saleor Apps
 
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
-- Add `SHOP_METADATA_UPDATED` webhook - #13364 by @maarcingebala
+- Add `SHOP_METADATA_UPDATED` webhook - #13364, #13388 by @maarcingebala
+  - Called when metadata is changed for the Shop object via the generic metadata API or the `shopSettingsUpdate` mutation.
 
 ### Other changes
 - Add POC of Core API tests - #13034 by @fowczarek
