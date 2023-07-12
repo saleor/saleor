@@ -1,3 +1,6 @@
+from ..core.types import EventTypeBase
+
+
 class AppType:
     LOCAL = "local"
     THIRDPARTY = "thirdparty"
@@ -57,3 +60,29 @@ class AppExtensionTarget:
     APP_PAGE = "app_page"
 
     CHOICES = [(POPUP, "popup"), (APP_PAGE, "app_page")]
+
+
+class AppEventType(EventTypeBase):
+    """All app event types."""
+
+    INSTALLED = "app_event_installed"
+    ACTIVATED = "app_event_activated"
+    DEACTIVATED = "app_event_deactivated"
+
+    CHOICES = [
+        (INSTALLED, "App was installed"),
+        (ACTIVATED, "App was activated"),
+        (DEACTIVATED, "App was deactivated"),
+    ]
+
+
+class AppEventRequestorType:
+    USER = "user"
+    APP = "app"
+    SALEOR = "saleor"
+
+    CHOICES = [
+        (USER, "User"),
+        (APP, "App"),
+        (SALEOR, "Saleor"),
+    ]

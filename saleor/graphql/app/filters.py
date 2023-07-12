@@ -2,7 +2,9 @@ import django_filters
 
 from ...app import models
 from ...app.types import AppExtensionTarget, AppType
+from ..app.types import AppEventType
 from ..core.filters import EnumFilter, ListObjectTypeFilter
+from ..utils.filters import filter_range_field
 from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 
 
@@ -10,6 +12,16 @@ def filter_app_search(qs, _, value):
     if value:
         qs = qs.filter(name__ilike=value)
     return qs
+
+
+def filter_app_event_type(qs, _, value):
+    if value in [type for type, _ in AppEventType.CHOICES]:
+        qs = qs.filter(type=value)
+    return qs
+
+
+def filter_created_at(qs, _, value):
+    return filter_range_field(qs, "date", value)
 
 
 def filter_app_type(qs, _, value):

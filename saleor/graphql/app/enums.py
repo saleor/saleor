@@ -1,4 +1,9 @@
-from ...app.types import AppExtensionMount, AppExtensionTarget, AppType
+from ...app.types import (
+    AppEventRequestorType,
+    AppExtensionMount,
+    AppExtensionTarget,
+    AppType,
+)
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.enums import to_enum
 
@@ -32,3 +37,4 @@ AppExtensionTargetEnum = to_enum(
     AppExtensionTarget, description=AppExtensionTarget.__doc__
 )
 AppExtensionTargetEnum.doc_category = DOC_CATEGORY_APPS
+AppEventRequestorTypeEnum = to_enum(AppEventRequestorType)

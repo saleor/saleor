@@ -15,7 +15,7 @@ def _promotion_base_event(
     type: str,
 ):
     return PromotionEvent.objects.create(
-        promotion=promotion, user=user, app=app, type=type
+        parent=promotion, user=user, app=app, type=type
     )
 
 
@@ -45,7 +45,7 @@ def _rule_base_event(
     for rule in rules:
         events.append(
             PromotionEvent(
-                promotion=rule.promotion,
+                parent=rule.promotion,
                 type=type,
                 user=user,
                 app=app,
