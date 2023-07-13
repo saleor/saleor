@@ -162,6 +162,8 @@ def test_serialize_checkout_lines_with_promotion(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
             promotion=promotion_without_rules,
+            promotion_translation=None,
+            rule_translation=None,
         )
     ]
 
