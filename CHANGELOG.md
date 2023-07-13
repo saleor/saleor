@@ -2,12 +2,11 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+
 # 3.15.0 [Unreleased]
 
 ### Breaking changes
-
 - Remove input and fields related to transaction API and deprecated in 3.13 - #13020 by @korycins
-
   - `WebhookEventTypeEnum.TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
   - `WebhookEventTypeAsyncEnum.TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
   - `WebhookSampleEventTypeEnum.TRANSACTION_ACTION_REQUEST`
@@ -20,10 +19,10 @@ All notable, unreleased changes to this project will be documented in this file.
   - `OrderEvent.status` - Use `TransactionEvent` to track the status of `TransactionItem`.
   - `OrderEventsEnum`:
     - `TRANSACTION_CAPTURE_REQUESTED` - Use `TRANSACTION_CHARGE_REQUESTED` instead.
-    - `TRANSACTION_VOID_REQUESTED` - Use `TRANSACTION_CANCEL_REQUESTED` instead.
+    - `TRANSACTION_VOID_REQUESTED` -  Use `TRANSACTION_CANCEL_REQUESTED` instead.
   - `TransactionStatus`
   - `TransactionEvent`:
-    - `status` - Use `type` instead.
+    - `status` -  Use `type` instead.
     - `reference` - Use `pspReference` instead.
     - `name` - Use `message` instead.
   - `TransactionCreateInput`:
@@ -53,13 +52,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change order of resolving country code in checkout - #13159 by @jakubkuc
   - Until now, checkout mutations were ignoring provided shipping address when shipping was not required. After this change, the shipping address is always set when supplied in the input. It might be breaking, as the shipping address affects the country code used for tax calculation.
   - The order of resolving the checkout country code is always as follows:
-    1. Shipping address
-    2. Billing address
-    3. Channel's default country
+      1. Shipping address
+      2. Billing address
+      3. Channel's default country
 
-### GraphQL API
-
-- Add `lines` to `OrderGrantedRefund` - #13014 by @korycins
 
 ### GraphQL API
 Shipping methods can be removed by the user after it has been assigned to a checkout; `shippingMethodId` is now a nullable input in the `checkoutShippingMethodUpdate` mutation.  - #13068 by @FremahA
@@ -74,7 +70,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
 - Add metadata support for channels. #13230 by @Smit-Parmar
 - Remove `Preview feature` label from `metafield`, `metafields`, `metadata`,
-  `privateMetafield`, `privateMetafields` and `privateMetadata` fields - #13245 by @korycins
+`privateMetafield`, `privateMetafields` and `privateMetadata` fields - #13245 by @korycins
 - [Preview] Add possibility to completeCheckout without payment in transaction flow - #13339 by @kadewu:
   - New field `allowUnpaidOrders` in `OrderSettings` for `Channel`
 - Add `search` to `giftCards` query - #13173 by @zedzior
@@ -87,7 +83,6 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add `SHOP_METADATA_UPDATED` webhook - #13364 by @maarcingebala
 
 ### Other changes
-
 - Add POC of Core API tests - #13034 by @fowczarek
 
 - Expand metric units to support more types of products. - #13043 by @FremahA
