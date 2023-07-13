@@ -33,6 +33,44 @@ mutation UpdateProductChannelListing(
 """
 
 
+def raw_create_product_channel_listing(
+    staff_api_client,
+    product_id,
+    channel_id,
+    publication_date=None,
+    is_published=False,
+    visible_in_listings=False,
+    available_for_purchase_datetime=None,
+    is_available_for_purchase=False,
+):
+    variables = {
+        "productId": product_id,
+        "input": {
+            "updateChannels": [
+                {
+                    "channelId": channel_id,
+                    "isPublished": is_published,
+                    "publicationDate": publication_date,
+                    "visibleInListings": visible_in_listings,
+                    "isAvailableForPurchase": is_available_for_purchase,
+                    "availableForPurchaseAt": available_for_purchase_datetime,
+                }
+            ]
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables,
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["productChannelListingUpdate"]
+
+    return data
+
+
 def create_product_channel_listing(
     staff_api_client,
     product_id,
