@@ -63,8 +63,6 @@ class PermissionGroupErrorCode(Enum):
 
 class SendConfirmationEmailErrorCode(Enum):
     INVALID = "invalid"
-    INVALID_PERMISSION = "invalid_permission"
     ACCOUNT_CONFIRMED = "account_confirmed"
-    CONFIRMATION_DISABLED = "confirmation_disabled"
     CONFIRMATION_ALREADY_REQUESTED = "confirmation_already_requested"
     MISSING_CHANNEL_SLUG = "missing_channel_slug"

@@ -3,6 +3,7 @@ from unittest.mock import patch
 from urllib.parse import urlencode
 
 from django.contrib.auth.tokens import default_token_generator
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -15,7 +16,7 @@ from .....tests.utils import get_graphql_content
 
 SEND_CONFIRMATION_EMAIL_MUTATION = """
     mutation SendConfirmationEmail(
-        $redirectUrl: String!, $channel: String) {
+        $redirectUrl: String!, $channel: String!) {
         sendConfirmationEmail(
             redirectUrl: $redirectUrl, channel: $channel) {
             errors {
@@ -160,8 +161,9 @@ def test_send_confirmation_email_user_already_confirmed(
 
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
+@override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
 def test_send_confirmation_email_confirmation_disabled(
-    mocked_notify, user_api_client, channel_PLN, site_settings
+    mocked_notify, user_api_client, channel_PLN
 ):
     # given
     redirect_url = "https://www.example.com"
@@ -169,8 +171,6 @@ def test_send_confirmation_email_confirmation_disabled(
         "redirectUrl": redirect_url,
         "channel": channel_PLN.slug,
     }
-    site_settings.enable_account_confirmation_by_email = False
-    site_settings.save()
 
     # when
     response = user_api_client.post_graphql(SEND_CONFIRMATION_EMAIL_MUTATION, variables)
@@ -181,8 +181,40 @@ def test_send_confirmation_email_confirmation_disabled(
     assert errors == [
         {
             "field": None,
-            "message": "Email confirmation is disabled",
-            "code": SendConfirmationEmailErrorCode.CONFIRMATION_DISABLED.name,
+            "message": "User is already confirmed",
+            "code": SendConfirmationEmailErrorCode.ACCOUNT_CONFIRMED.name,
         }
     ]
     mocked_notify.assert_not_called()
+
+
+@override_settings(
+    ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True,
+    ALLOWED_CLIENT_HOSTS=["localhost"],
+)
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_confirmation_email_generates_valid_token(
+    mocked_notify,
+    user_api_client,
+    channel_PLN,
+):
+    # given
+    redirect_url = "http://localhost:3000"
+    variables = {
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+    user = user_api_client.user
+    user.is_confirmed = False
+    user.save()
+
+    # when
+    response = user_api_client.post_graphql(SEND_CONFIRMATION_EMAIL_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["sendConfirmationEmail"]["errors"]
+
+    token = mocked_notify.call_args.kwargs["payload"]["token"]
+    user.refresh_from_db()
+    assert default_token_generator.check_token(user, token)

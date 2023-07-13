@@ -3,6 +3,7 @@ from django.db.models import QuerySet
 from ..models import User
 
 
+# Batch size of 5000 is about ~8MB of memory usage
 BATCH_SIZE = 5000
 
 

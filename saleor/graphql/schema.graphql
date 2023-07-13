@@ -17669,21 +17669,21 @@ type Mutation {
   ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
   """
-  Sends an email with confirmation link.
+  Sends a notification confirmation.
   
-  Added in Saleor 3.15. 
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for account confirmation.
-  - ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation request was created
+  - ACCOUNT_CONFIRMATION_REQUESTED (async): An account confirmation was requested. This event is always sent regardless of settings,
   """
   sendConfirmationEmail(
-    """
-    Slug of a channel which will be used for notify user. Optional when only one channel exists.
-    """
-    channel: String
+    """Slug of a channel which will be used for notify user."""
+    channel: String!
 
     """Base of frontend URL that will be needed to create confirmation URL."""
     redirectUrl: String!
@@ -17836,7 +17836,7 @@ type Mutation {
   Triggers the following webhook events:
   - CUSTOMER_CREATED (async): A new customer account was created.
   - NOTIFY_USER (async): A notification for account confirmation.
-  - ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation was requested. This event is always sent regardless of settings,
+  - ACCOUNT_CONFIRMATION_REQUESTED (async): An user confirmation was requested. This event is always sent regardless of settings,
   """
   accountRegister(
     """Fields required to create a user."""
@@ -27735,15 +27735,17 @@ type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents
 }
 
 """
-Sends an email with confirmation link.
+Sends a notification confirmation.
 
-Added in Saleor 3.15. 
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for account confirmation.
-- ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation request was created
+- ACCOUNT_CONFIRMATION_REQUESTED (async): An account confirmation was requested. This event is always sent regardless of settings,
 """
 type SendConfirmationEmail @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
   errors: [SendConfirmationEmailError!]!
@@ -27765,9 +27767,7 @@ type SendConfirmationEmailError @doc(category: "Users") {
 """An enumeration."""
 enum SendConfirmationEmailErrorCode @doc(category: "Users") {
   INVALID
-  INVALID_PERMISSION
   ACCOUNT_CONFIRMED
-  CONFIRMATION_DISABLED
   CONFIRMATION_ALREADY_REQUESTED
   MISSING_CHANNEL_SLUG
 }
@@ -27908,7 +27908,7 @@ Register a new user.
 Triggers the following webhook events:
 - CUSTOMER_CREATED (async): A new customer account was created.
 - NOTIFY_USER (async): A notification for account confirmation.
-- ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation was requested. This event is always sent regardless of settings,
+- ACCOUNT_CONFIRMATION_REQUESTED (async): An user confirmation was requested. This event is always sent regardless of settings,
 """
 type AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
   """Informs whether users need to confirm their email address."""

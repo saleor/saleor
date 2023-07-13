@@ -15,7 +15,7 @@ from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_315
+from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import SendConfirmationEmailError
@@ -34,14 +34,14 @@ class SendConfirmationEmail(BaseMutation):
             ),
         )
         channel = graphene.String(
-            description=(
-                "Slug of a channel which will be used for notify user. Optional when "
-                "only one channel exists."
-            )
+            required=True,
+            description=("Slug of a channel which will be used for notify user."),
         )
 
     class Meta:
-        description = "Sends an email with confirmation link." + ADDED_IN_315
+        description = (
+            "Sends a notification confirmation." + ADDED_IN_315 + PREVIEW_FEATURE
+        )
         doc_category = DOC_CATEGORY_USERS
         error_type_class = SendConfirmationEmailError
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
@@ -52,32 +52,19 @@ class SendConfirmationEmail(BaseMutation):
             ),
             WebhookEventInfo(
                 type=WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
-                description="A email confirmation request was created",
+                description=(
+                    "An account confirmation was requested. "
+                    "This event is always sent regardless of settings,"
+                ),
             ),
         ]
 
     @classmethod
     def clean_user(cls, site, redirect_url, info: ResolveInfo):
-        if not site.settings.enable_account_confirmation_by_email:
-            raise ValidationError(
-                ValidationError(
-                    "Email confirmation is disabled",
-                    code=SendConfirmationEmailErrorCode.CONFIRMATION_DISABLED.value,
-                )
-            )
-
-        try:
-            validate_storefront_url(redirect_url)
-        except ValidationError as error:
-            raise ValidationError(
-                {"redirect_url": error},
-                code=SendConfirmationEmailErrorCode.INVALID.value,
-            )
-
         user = info.context.user
         user = cast(models.User, user)
 
-        if user.is_confirmed:
+        if user.is_confirmed or not site.settings.enable_account_confirmation_by_email:
             raise ValidationError(
                 ValidationError(
                     "User is already confirmed",
@@ -94,6 +81,14 @@ class SendConfirmationEmail(BaseMutation):
                         code=SendConfirmationEmailErrorCode.CONFIRMATION_ALREADY_REQUESTED.value,
                     )
                 )
+
+        try:
+            validate_storefront_url(redirect_url)
+        except ValidationError as error:
+            raise ValidationError(
+                {"redirect_url": error},
+                code=SendConfirmationEmailErrorCode.INVALID.value,
+            )
 
         return user
 
