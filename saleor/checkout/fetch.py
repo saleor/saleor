@@ -339,6 +339,32 @@ def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
     return variant_channel_listing
 
 
+def get_variant_rules_info(
+    variant_channel_listing: "ProductVariantChannelListing",
+    translation_language_code: str,
+):
+    listings_rules = (
+        variant_channel_listing.variantlistingpromotionrule.all()
+        if variant_channel_listing
+        else []
+    )
+    rules_info = [
+        VariantPromotionRuleInfo(
+            rule=listing_promotion_rule.promotion_rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=listing_promotion_rule.promotion_rule.promotion,
+            promotion_translation=listing_promotion_rule.promotion_rule.promotion.translations.filter(
+                language_code=translation_language_code
+            ).first(),
+            rule_translation=listing_promotion_rule.promotion_rule.translations.filter(
+                language_code=translation_language_code
+            ).first(),
+        )
+        for listing_promotion_rule in listings_rules
+    ]
+    return rules_info
+
+
 def _is_variant_valid(
     checkout: "Checkout",
     product: "Product",
