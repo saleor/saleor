@@ -81,32 +81,19 @@ def create_product_channel_listing(
     available_for_purchase_datetime=datetime.datetime(2007, 1, 1, tzinfo=pytz.utc),
     is_available_for_purchase=True,
 ):
-    variables = {
-        "productId": product_id,
-        "input": {
-            "updateChannels": [
-                {
-                    "channelId": channel_id,
-                    "isPublished": is_published,
-                    "publicationDate": publication_date,
-                    "visibleInListings": visible_in_listings,
-                    "isAvailableForPurchase": is_available_for_purchase,
-                    "availableForPurchaseAt": available_for_purchase_datetime,
-                }
-            ]
-        },
-    }
-
-    response = staff_api_client.post_graphql(
-        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
-        variables,
-        check_no_permissions=False,
+    response = raw_create_product_channel_listing(
+        staff_api_client,
+        product_id,
+        channel_id,
+        publication_date,
+        is_published,
+        visible_in_listings,
+        available_for_purchase_datetime,
+        is_available_for_purchase,
     )
-    content = get_graphql_content(response)
 
-    assert content["data"]["productChannelListingUpdate"]["errors"] == []
-
-    data = content["data"]["productChannelListingUpdate"]["product"]
+    assert response["errors"] == []
+    data = response["product"]
     assert data["id"] == product_id
     channel_listing_data = data["channelListings"][0]
     assert channel_listing_data["channel"]["id"] == channel_id
