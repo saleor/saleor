@@ -66,7 +66,9 @@ class ShippingMethodChannelListing(
     )
     maximum_order_price = graphene.Field(Money, description="Maximum order price.")
     minimum_order_price = graphene.Field(Money, description="Minimum order price.")
-    price = graphene.Field(Money, description="Shipping price.")
+    price = graphene.Field(
+        Money, description="Price of the shipping method in the associated channel."
+    )
 
     class Meta:
         description = "Represents shipping method channel listing."

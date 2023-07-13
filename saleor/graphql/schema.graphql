@@ -4764,7 +4764,7 @@ type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
   """Minimum order price."""
   minimumOrderPrice: Money
 
-  """Shipping price."""
+  """Price of the shipping method in the associated channel."""
   price: Money
 }
 
