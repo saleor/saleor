@@ -34,7 +34,8 @@ def token_create(
 
     assert content["data"]["tokenCreate"]["errors"] == []
 
-    assert content["data"]["tokenCreate"]["token"] == "123"
+    assert content["data"]["tokenCreate"]["token"] is not None
+    assert content["data"]["tokenCreate"]["refreshToken"] is not None
 
     data = content["data"]["tokenCreate"]["user"]
     assert data["id"] is not None

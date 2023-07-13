@@ -51,7 +51,9 @@ ACCOUNT_REGISTER_MUTATION = """
 """
 
 
-@override_settings(ALLOWED_CLIENT_HOSTS=["localhost"])
+@override_settings(
+    ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
+)
 @patch("saleor.account.notifications.default_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_customer_register(

@@ -12,6 +12,7 @@ mutation AccountRegister($input: AccountRegisterInput!) {
     user{
       id
       email
+      isActive
     }
   }
 }
@@ -23,14 +24,12 @@ def account_register(
     email,
     password,
     channel_slug,
-    redirectUrl="http://localhost:3000/",
 ):
     variables = {
         "input": {
             "email": email,
             "password": password,
             "channel": channel_slug,
-            "redirectUrl": redirectUrl,
         }
     }
 
