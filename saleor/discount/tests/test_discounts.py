@@ -6,6 +6,7 @@ import pytest
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
+from ...checkout.fetch import VariantPromotionRuleInfo
 from ...product.models import Product, ProductVariant, ProductVariantChannelListing
 from .. import DiscountInfo, DiscountValueType, RewardValueType, VoucherType
 from ..models import (
@@ -20,6 +21,8 @@ from ..utils import (
     add_voucher_usage_by_customer,
     decrease_voucher_usage,
     fetch_catalogue_info,
+    get_discount_name,
+    get_discount_translated_name,
     get_product_discount_on_sale,
     increase_voucher_usage,
     remove_voucher_usage_by_customer,
@@ -557,3 +560,109 @@ def test_fetch_catalogue_info_for_sale_has_one_element_sets(sale):
     assert catalogue_info["collections"] == collection_ids
     assert catalogue_info["products"] == product_ids
     assert catalogue_info["variants"] == variant_ids
+
+
+def test_get_discount_name_only_rule_name(promotion):
+    # given
+    promotion.name = ""
+    promotion.save(update_fields=["name"])
+
+    rule = promotion.rules.first()
+
+    # when
+    name = get_discount_name(rule, promotion)
+
+    # then
+    assert name == rule.name
+
+
+def test_get_discount_name_only_rule_promotion_name(promotion):
+    # given
+    rule = promotion.rules.first()
+    rule.name = ""
+    rule.save(update_fields=["name"])
+
+    # when
+    name = get_discount_name(rule, promotion)
+
+    # then
+    assert name == promotion.name
+
+
+def test_get_discount_name_rule_and_promotion_name(promotion):
+    # given
+    rule = promotion.rules.first()
+
+    # when
+    name = get_discount_name(rule, promotion)
+
+    # then
+    assert name == f"{promotion.name}: {rule.name}"
+
+
+def test_get_discount_name_empty_names(promotion):
+    # given
+    rule = promotion.rules.first()
+
+    rule.name = ""
+    rule.save(update_fields=["name"])
+
+    promotion.name = ""
+    promotion.save(update_fields=["name"])
+
+    # when
+    name = get_discount_name(rule, promotion)
+
+    # then
+    assert name == ""
+
+
+def test_get_discount_translated_name_only_rule_translation(rule_info):
+    # given
+    rule_info_data = rule_info._asdict()
+    rule_info_data["promotion_translation"] = None
+    rule_info = VariantPromotionRuleInfo(**rule_info_data)
+
+    # when
+    translated_name = get_discount_translated_name(rule_info)
+
+    # then
+    assert translated_name == rule_info.rule_translation.name
+
+
+def test_get_discount_translated_name_only_rule_promotion_translation(rule_info):
+    # given
+    rule_info_data = rule_info._asdict()
+    rule_info_data["rule_translation"] = None
+    rule_info = VariantPromotionRuleInfo(**rule_info_data)
+
+    # when
+    translated_name = get_discount_translated_name(rule_info)
+
+    # then
+    assert translated_name == rule_info.promotion_translation.name
+
+
+def test_get_discount_translated_name_rule_and_promotion_translations(rule_info):
+    # when
+    translated_name = get_discount_translated_name(rule_info)
+
+    # then
+    assert (
+        translated_name
+        == f"{rule_info.promotion_translation.name}: {rule_info.rule_translation.name}"
+    )
+
+
+def test_get_discount_translated_name_no_translations(rule_info):
+    # given
+    rule_info_data = rule_info._asdict()
+    rule_info_data["promotion_translation"] = None
+    rule_info_data["rule_translation"] = None
+    rule_info = VariantPromotionRuleInfo(**rule_info_data)
+
+    # when
+    translated_name = get_discount_translated_name(rule_info)
+
+    # then
+    assert translated_name is None
