@@ -4,6 +4,7 @@ from django.db import transaction
 from ....celeryconf import app
 from ...models import User
 
+# Batch size of 5000 is about ~8MB of memory usage
 BATCH_SIZE = 5000
 
 
