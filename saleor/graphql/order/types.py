@@ -1317,6 +1317,10 @@ class Order(ModelObjectType[models.Order]):
         return root.created_at
 
     @staticmethod
+    def resolve_channel(root: models.Order, info):
+        return ChannelByIdLoader(info.context).load(root.channel_id)
+
+    @staticmethod
     def resolve_token(root: models.Order, info):
         return root.id
 
@@ -1456,7 +1460,7 @@ class Order(ModelObjectType[models.Order]):
                 root, manager, lines
             ) or Decimal(0)
 
-        lines = OrderLinesByOrderIdLoader(info.context)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
         manager = get_plugin_manager_promise(info.context)
         return Promise.all([lines, manager]).then(_resolve_shipping_tax_rate)
 

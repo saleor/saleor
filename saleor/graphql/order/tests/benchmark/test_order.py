@@ -42,6 +42,10 @@ FRAGMENT_ORDER_DETAILS = (
         paymentStatus
         paymentStatusDisplay
         status
+        channel {
+          id
+          slug
+        }
         statusDisplay
         canFinalize
         isShippingRequired
