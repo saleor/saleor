@@ -9,6 +9,7 @@ from django.core.validators import MaxLengthValidator, MinValueValidator, RegexV
 from django.db import models
 
 from ..core import TimePeriodType
+from ..core.models import ModelWithMetadata
 from ..core.units import WeightUnits
 from ..core.utils.translations import Translation
 from ..permission.enums import SitePermissions
@@ -33,7 +34,7 @@ def email_sender_name_validators():
     ]
 
 
-class SiteSettings(models.Model):
+class SiteSettings(ModelWithMetadata):
     site = models.OneToOneField(Site, related_name="settings", on_delete=models.CASCADE)
     header_text = models.CharField(max_length=200, blank=True)
     description = models.CharField(max_length=500, blank=True)

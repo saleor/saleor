@@ -29,6 +29,14 @@ def subscription_account_confirmation_requested_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_account_change_email_requested_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_CHANGE_EMAIL_REQUESTED,
+        WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED,
+    )
+
+
+@pytest.fixture
 def subscription_account_delete_requested_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ACCOUNT_DELETE_REQUESTED,
@@ -884,6 +892,14 @@ def subscription_voucher_webhook_with_meta(subscription_webhook):
 def subscription_voucher_metadata_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.VOUCHER_METADATA_UPDATED, WebhookEventAsyncType.VOUCHER_METADATA_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_shop_metadata_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.SHOP_METADATA_UPDATED,
+        WebhookEventAsyncType.SHOP_METADATA_UPDATED,
     )
 
 

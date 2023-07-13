@@ -68,7 +68,7 @@ class TransactionRequestAction(BaseMutation):
         user: Optional["User"],
         app: Optional[App],
     ):
-        if action == TransactionAction.VOID or action == TransactionAction.CANCEL:
+        if action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]
             request_event = cls.create_transaction_event_requested(
                 transaction, 0, action, user=user, app=app
@@ -104,7 +104,7 @@ class TransactionRequestAction(BaseMutation):
     def create_transaction_event_requested(
         cls, transaction, action_value, action, user=None, app=None
     ):
-        if action in (TransactionAction.CANCEL, TransactionAction.VOID):
+        if action == TransactionAction.CANCEL:
             type = TransactionEventType.CANCEL_REQUEST
         elif action == TransactionAction.CHARGE:
             type = TransactionEventType.CHARGE_REQUEST

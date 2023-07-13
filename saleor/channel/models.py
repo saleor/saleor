@@ -4,11 +4,12 @@ from django.conf import settings
 from django.db import models
 from django_countries.fields import CountryField
 
+from ..core.models import ModelWithMetadata
 from ..permission.enums import ChannelPermissions
 from . import AllocationStrategy, MarkAsPaidStrategy, TransactionFlowStrategy
 
 
-class Channel(models.Model):
+class Channel(ModelWithMetadata):
     name = models.CharField(max_length=250)
     is_active = models.BooleanField(default=False)
     slug = models.SlugField(max_length=255, unique=True)
@@ -42,7 +43,7 @@ class Channel(models.Model):
         default=timedelta(days=60),
     )
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         app_label = "channel"
         permissions = (

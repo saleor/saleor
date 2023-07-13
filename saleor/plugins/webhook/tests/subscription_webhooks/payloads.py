@@ -5,26 +5,28 @@ from django.utils import timezone
 
 from ..... import __version__
 from .....graphql.attribute.enums import AttributeInputTypeEnum, AttributeTypeEnum
+from .....graphql.shop.types import SHOP_ID
 from .....product.models import Product
 
 
-def generate_account_events_payload(customer_user, channel):
-    return json.dumps(
-        {
-            **generate_customer_payload(customer_user),
-            **{
-                "token": "token",
-                "redirectUrl": "http://www.mirumee.com?token=token",
-                "channel": {
-                    "slug": channel.slug,
-                    "id": graphene.Node.to_global_id("Channel", channel.id),
-                },
-                "shop": {
-                    "domain": {"host": "mirumee.com", "url": "http://mirumee.com/"}
-                },
+def generate_account_events_payload(customer_user, channel, new_email=None):
+    payload = {
+        **generate_customer_payload(customer_user),
+        **{
+            "token": "token",
+            "redirectUrl": "http://www.mirumee.com?token=token",
+            "channel": {
+                "slug": channel.slug,
+                "id": graphene.Node.to_global_id("Channel", channel.id),
             },
-        }
-    )
+            "shop": {"domain": {"host": "mirumee.com", "url": "http://mirumee.com/"}},
+        },
+    }
+
+    if new_email:
+        payload["newEmail"] = new_email
+
+    return json.dumps(payload)
 
 
 def generate_app_payload(app, app_global_id):
@@ -482,3 +484,13 @@ def generate_payment_payload(payment):
             "isActive": payment.is_active,
         }
     }
+
+
+def generate_shop_payload():
+    return json.dumps(
+        {
+            "shop": {
+                "id": graphene.Node.to_global_id("Shop", SHOP_ID),
+            }
+        }
+    )

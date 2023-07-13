@@ -20,6 +20,7 @@ class WebhookEventAsyncType:
     ANY = "any_events"
 
     ACCOUNT_CONFIRMATION_REQUESTED = "account_confirmation_requested"
+    ACCOUNT_CHANGE_EMAIL_REQUESTED = "account_change_email_requested"
     ACCOUNT_DELETE_REQUESTED = "account_delete_requested"
 
     ADDRESS_CREATED = "address_created"
@@ -153,7 +154,6 @@ class WebhookEventAsyncType:
     STAFF_UPDATED = "staff_updated"
     STAFF_DELETED = "staff_deleted"
 
-    TRANSACTION_ACTION_REQUEST = "transaction_action_request"
     TRANSACTION_ITEM_METADATA_UPDATED = "transaction_item_metadata_updated"
 
     TRANSLATION_CREATED = "translation_created"
@@ -173,9 +173,12 @@ class WebhookEventAsyncType:
 
     THUMBNAIL_CREATED = "thumbnail_created"
 
+    SHOP_METADATA_UPDATED = "shop_metadata_updated"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
         ACCOUNT_CONFIRMATION_REQUESTED: "Account confirmation requested",
+        ACCOUNT_CHANGE_EMAIL_REQUESTED: "Account change email requested",
         ACCOUNT_DELETE_REQUESTED: "Account delete requested",
         ADDRESS_CREATED: "Address created",
         ADDRESS_UPDATED: "Address updated",
@@ -281,7 +284,6 @@ class WebhookEventAsyncType:
         STAFF_CREATED: "Staff created",
         STAFF_UPDATED: "Staff updated",
         STAFF_DELETED: "Staff deleted",
-        TRANSACTION_ACTION_REQUEST: "Payment action request",
         TRANSACTION_ITEM_METADATA_UPDATED: "Transaction item metadata updated",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
@@ -295,6 +297,7 @@ class WebhookEventAsyncType:
         VOUCHER_METADATA_UPDATED: "Voucher metadata updated",
         OBSERVABILITY: "Observability",
         THUMBNAIL_CREATED: "Thumbnail created",
+        SHOP_METADATA_UPDATED: "Shop metadata updated",
     }
 
     CHOICES = [
@@ -302,6 +305,10 @@ class WebhookEventAsyncType:
         (
             ACCOUNT_CONFIRMATION_REQUESTED,
             DISPLAY_LABELS[ACCOUNT_CONFIRMATION_REQUESTED],
+        ),
+        (
+            ACCOUNT_CHANGE_EMAIL_REQUESTED,
+            DISPLAY_LABELS[ACCOUNT_CHANGE_EMAIL_REQUESTED],
         ),
         (ACCOUNT_DELETE_REQUESTED, DISPLAY_LABELS[ACCOUNT_DELETE_REQUESTED]),
         (ADDRESS_CREATED, DISPLAY_LABELS[ADDRESS_CREATED]),
@@ -414,7 +421,6 @@ class WebhookEventAsyncType:
         (STAFF_CREATED, DISPLAY_LABELS[STAFF_CREATED]),
         (STAFF_UPDATED, DISPLAY_LABELS[STAFF_UPDATED]),
         (STAFF_DELETED, DISPLAY_LABELS[STAFF_DELETED]),
-        (TRANSACTION_ACTION_REQUEST, DISPLAY_LABELS[TRANSACTION_ACTION_REQUEST]),
         (
             TRANSACTION_ITEM_METADATA_UPDATED,
             DISPLAY_LABELS[TRANSACTION_ITEM_METADATA_UPDATED],
@@ -431,12 +437,14 @@ class WebhookEventAsyncType:
         (VOUCHER_METADATA_UPDATED, DISPLAY_LABELS[VOUCHER_METADATA_UPDATED]),
         (OBSERVABILITY, DISPLAY_LABELS[OBSERVABILITY]),
         (THUMBNAIL_CREATED, DISPLAY_LABELS[THUMBNAIL_CREATED]),
+        (SHOP_METADATA_UPDATED, DISPLAY_LABELS[SHOP_METADATA_UPDATED]),
     ]
 
     ALL = [event[0] for event in CHOICES]
 
     PERMISSIONS = {
         ACCOUNT_CONFIRMATION_REQUESTED: AccountPermissions.MANAGE_USERS,
+        ACCOUNT_CHANGE_EMAIL_REQUESTED: AccountPermissions.MANAGE_USERS,
         ACCOUNT_DELETE_REQUESTED: AccountPermissions.MANAGE_USERS,
         ADDRESS_CREATED: AccountPermissions.MANAGE_USERS,
         ADDRESS_UPDATED: AccountPermissions.MANAGE_USERS,
@@ -542,7 +550,6 @@ class WebhookEventAsyncType:
         STAFF_CREATED: AccountPermissions.MANAGE_STAFF,
         STAFF_UPDATED: AccountPermissions.MANAGE_STAFF,
         STAFF_DELETED: AccountPermissions.MANAGE_STAFF,
-        TRANSACTION_ACTION_REQUEST: PaymentPermissions.HANDLE_PAYMENTS,
         TRANSACTION_ITEM_METADATA_UPDATED: PaymentPermissions.HANDLE_PAYMENTS,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
@@ -556,6 +563,7 @@ class WebhookEventAsyncType:
         WAREHOUSE_METADATA_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         OBSERVABILITY: AppPermission.MANAGE_OBSERVABILITY,
         THUMBNAIL_CREATED: ProductPermissions.MANAGE_PRODUCTS,
+        SHOP_METADATA_UPDATED: SitePermissions.MANAGE_SETTINGS,
     }
 
 

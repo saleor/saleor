@@ -64,6 +64,7 @@ if TYPE_CHECKING:
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
+    from ..site.models import SiteSettings
     from ..tax.models import TaxClass
     from ..warehouse.models import Warehouse
 
@@ -156,6 +157,12 @@ class BasePlugin:
     account_confirmation_requested: Callable[
         ["User", str, str, Optional[str], None], None
     ]
+
+    # Trigger when account change email is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # change email is requested.
+    account_change_email_requested: Callable[["User", str, str, str, str, None], None]
 
     # Trigger when account delete is requested.
     #
@@ -825,8 +832,6 @@ class BasePlugin:
 
     process_payment: Callable[["PaymentData", Any], Any]
 
-    transaction_action_request: Callable[["TransactionActionData", None], None]
-
     transaction_charge_requested: Callable[["TransactionActionData", None], None]
 
     transaction_cancelation_requested: Callable[["TransactionActionData", None], None]
@@ -1065,6 +1070,12 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic after a voucher
     # metadata is updated.
     voucher_metadata_updated: Callable[["Voucher", None], None]
+
+    # Trigger when shop metadata is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a shop
+    # metadata is updated.
+    shop_metadata_updated: Callable[["SiteSettings", None], None]
 
     # Handle received http request.
     #

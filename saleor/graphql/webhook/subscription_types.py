@@ -187,6 +187,25 @@ class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase)
         )
 
 
+class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
+    new_email = graphene.String(
+        description="The new email address the user wants to change to.",
+    )
+
+    class Meta:
+        root_type = "User"
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when account change email is requested." + ADDED_IN_315
+        )
+
+    @staticmethod
+    def resolve_new_email(root, _info: ResolveInfo):
+        _, data = root
+        return data["new_email"]
+
+
 class AccountDeleteRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = "User"
@@ -1530,21 +1549,6 @@ class TransactionActionBase(AbstractType):
         return transaction_action_data
 
 
-class TransactionActionRequest(TransactionActionBase, SubscriptionObjectType):
-    class Meta:
-        root_type = None
-        enable_dry_run = False
-        interfaces = (Event,)
-        description = (
-            "Event sent when transaction action is requested."
-            + ADDED_IN_34
-            + "\n\nDEPRECATED: this subscription will be removed in Saleor 3.14 "
-            + "(Preview Feature). Use `TransactionChargeRequested`, "
-            + "`TransactionRefundRequested`, `TransactionCancelationRequested` instead."
-        )
-        doc_category = DOC_CATEGORY_PAYMENTS
-
-
 class TransactionChargeRequested(TransactionActionBase, SubscriptionObjectType):
     class Meta:
         interfaces = (Event,)
@@ -1842,6 +1846,20 @@ class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
         description = "Event sent when voucher metadata is updated." + ADDED_IN_38
 
 
+class ShopMetadataUpdated(SubscriptionObjectType, AbstractType):
+    shop = graphene.Field(Shop, description="Shop data.")
+
+    class Meta:
+        root_type = "Shop"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when shop metadata is updated." + ADDED_IN_315
+
+    @staticmethod
+    def resolve_shop(root, _info: ResolveInfo):
+        return Shop()
+
+
 class PaymentBase(AbstractType):
     payment = graphene.Field(
         "saleor.graphql.payment.types.Payment",
@@ -2106,6 +2124,7 @@ class ThumbnailCreated(SubscriptionObjectType):
 
 WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: AccountConfirmationRequested,
+    WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED: AccountChangeEmailRequested,
     WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: AccountDeleteRequested,
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
@@ -2211,7 +2230,6 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.STAFF_CREATED: StaffCreated,
     WebhookEventAsyncType.STAFF_UPDATED: StaffUpdated,
     WebhookEventAsyncType.STAFF_DELETED: StaffDeleted,
-    WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: TransactionActionRequest,
     WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: (
         TransactionItemMetadataUpdated
     ),
@@ -2252,4 +2270,5 @@ WEBHOOK_TYPES_MAP = {
     ),
     WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: TransactionInitializeSession,
     WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
+    WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
 }

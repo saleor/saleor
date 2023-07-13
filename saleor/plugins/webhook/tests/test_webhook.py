@@ -38,6 +38,7 @@ from ....graphql.discount.mutations.utils import convert_catalogue_info_to_globa
 from ....payment import TransactionAction, TransactionEventType
 from ....payment.interface import TransactionActionData
 from ....payment.models import TransactionItem
+from ....site.models import SiteSettings
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....webhook.payloads import (
     generate_checkout_payload,
@@ -53,7 +54,6 @@ from ....webhook.payloads import (
     generate_product_variant_with_stock_payload,
     generate_sale_payload,
     generate_sale_toggle_payload,
-    generate_transaction_action_request_payload,
 )
 from ....webhook.utils import get_webhooks_for_event
 from ...manager import get_plugins_manager
@@ -1254,6 +1254,32 @@ def test_voucher_metadata_updated(
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_shop_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+):
+    site_settings = SiteSettings.objects.first()
+    assert site_settings
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.shop_metadata_updated(site_settings)
+    expected_data = generate_metadata_updated_payload(site_settings)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.SHOP_METADATA_UPDATED,
+        [any_webhook],
+        site_settings,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_shipping_zone_metadata_updated(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
@@ -1605,65 +1631,6 @@ def test_send_webhook_request_async_when_webhook_is_disabled(
 
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_transaction_action_request(
-    mocked_webhook_trigger,
-    mocked_get_webhooks_for_event,
-    any_webhook,
-    settings,
-    order,
-    channel_USD,
-):
-    # given
-    mocked_get_webhooks_for_event.return_value = [any_webhook]
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_plugins_manager()
-    transaction = TransactionItem.objects.create(
-        status="Authorized",
-        name="Credit card",
-        psp_reference="PSP ref",
-        available_actions=["capture", "void"],
-        currency="USD",
-        order_id=order.pk,
-        authorized_value=Decimal("10"),
-    )
-
-    action_value = Decimal("5.00")
-
-    request_event = transaction.events.create(
-        amount_value=action_value,
-        currency=transaction.currency,
-        type=TransactionEventType.CHARGE_REQUEST,
-    )
-
-    transaction_action_data = TransactionActionData(
-        transaction=transaction,
-        action_type=TransactionAction.CHARGE,
-        action_value=action_value,
-        event=request_event,
-        transaction_app_owner=None,
-    )
-
-    # when
-    manager.transaction_action_request(
-        transaction_action_data, channel_slug=channel_USD.slug
-    )
-
-    # then
-    expected_data = generate_transaction_action_request_payload(
-        transaction_action_data,
-    )
-    mocked_webhook_trigger.assert_called_once_with(
-        expected_data,
-        WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST,
-        [any_webhook],
-        subscribable_object=transaction_action_data,
-        requestor=ANY,
-    )
-
-
-@freeze_time("1914-06-28 10:50")
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_transaction_request")
 def test_transaction_charge_requested(
     mocked_webhook_trigger,
@@ -1682,7 +1649,6 @@ def test_transaction_charge_requested(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
@@ -1735,7 +1701,6 @@ def test_transaction_refund_requested(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=[
@@ -1790,7 +1755,6 @@ def test_transaction_cancelation_requested(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=[
@@ -1897,17 +1861,13 @@ def test_send_webhook_request_async_when_max_retries_exceeded(
     mocked_observability.assert_called_once_with(attempt)
 
 
-@pytest.mark.parametrize(
-    "event, expected_is_active",
-    (("invoice_request", False), ("transaction_action_request", True)),
-)
-def test_is_event_active(
-    event, expected_is_active, settings, webhook, permission_manage_payments
-):
+def test_is_event_active(settings, webhook, permission_manage_orders):
     # given
+    event = "invoice_request"
+    expected_is_active = True
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    webhook.app.permissions.add(permission_manage_payments)
-    webhook.events.create(event_type=WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST)
+    webhook.app.permissions.add(permission_manage_orders)
+    webhook.events.create(event_type=WebhookEventAsyncType.INVOICE_REQUESTED)
 
     manager = get_plugins_manager()
 

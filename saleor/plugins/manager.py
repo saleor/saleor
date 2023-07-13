@@ -71,6 +71,7 @@ if TYPE_CHECKING:
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
+    from ..site.models import SiteSettings
     from ..tax.models import TaxClass
     from ..thumbnail.models import Thumbnail
     from ..translation.models import Translation
@@ -971,17 +972,6 @@ class PluginsManager(PaymentInterface):
             "permission_group_deleted", default_value, group
         )
 
-    def transaction_action_request(
-        self, payment_data: "TransactionActionData", channel_slug: str
-    ):
-        default_value = None
-        return self.__run_method_on_plugins(
-            "transaction_action_request",
-            default_value,
-            payment_data,
-            channel_slug=channel_slug,
-        )
-
     def transaction_charge_requested(
         self, payment_data: "TransactionActionData", channel_slug: str
     ):
@@ -1072,6 +1062,25 @@ class PluginsManager(PaymentInterface):
             channel_slug,
             token=token,
             redirect_url=redirect_url,
+        )
+
+    def account_change_email_requested(
+        self,
+        user: "User",
+        channel_slug: str,
+        token: str,
+        redirect_url: str,
+        new_email: str,
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "account_change_email_requested",
+            default_value,
+            user,
+            channel_slug,
+            token=token,
+            redirect_url=redirect_url,
+            new_email=new_email,
         )
 
     def account_delete_requested(
@@ -1354,6 +1363,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "voucher_metadata_updated", default_value, voucher
+        )
+
+    def shop_metadata_updated(self, shop: "SiteSettings"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shop_metadata_updated", default_value, shop
         )
 
     def initialize_payment(

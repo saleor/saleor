@@ -153,7 +153,7 @@ class AccountRegister(ModelMutation):
         )
         manager = get_plugin_manager_promise(info.context).get()
         site = get_site_promise(info.context).get()
-        token = default_token_generator.make_token(user)
+        token = None
         redirect_url = cleaned_input.get("redirect_url")
 
         with traced_atomic_transaction():
@@ -162,6 +162,7 @@ class AccountRegister(ModelMutation):
                 user.save()
 
                 # Notifications will be deprecated in the future
+                token = default_token_generator.make_token(user)
                 notifications.send_account_confirmation(
                     user,
                     redirect_url,
@@ -173,7 +174,12 @@ class AccountRegister(ModelMutation):
                 user.save()
 
             if redirect_url:
-                params = urlencode({"email": user.email, "token": token})
+                params = urlencode(
+                    {
+                        "email": user.email,
+                        "token": token or default_token_generator.make_token(user),
+                    }
+                )
                 redirect_url = prepare_url(params, redirect_url)
 
             cls.call_event(

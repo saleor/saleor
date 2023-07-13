@@ -6,6 +6,8 @@ from .....account import models
 from .....account.error_codes import CustomerBulkUpdateErrorCode
 from .....account.events import CustomerEvents
 from .....account.search import generate_address_search_document_value
+from .....giftcard.models import GiftCard
+from .....giftcard.search import update_gift_cards_search_vector
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
 from ..utils import convert_dict_keys_to_camel_case
@@ -829,3 +831,64 @@ def test_customers_bulk_update_metadata_empty_key_in_one_input(
         == private_metadata_2["value"]
     )
     mocked_customer_metadata_updated.called_once_with(customer_2)
+
+
+def test_customers_bulk_update_trigger_gift_card_search_vector_update(
+    staff_api_client,
+    customer_users,
+    permission_manage_users,
+    gift_card_list,
+):
+    # given
+    customer_1 = customer_users[0]
+    customer_2 = customer_users[1]
+
+    customer_1_id = graphene.Node.to_global_id("User", customer_1.pk)
+    customer_2_id = graphene.Node.to_global_id("User", customer_2.pk)
+
+    customer_1_new_name = "NewName1"
+    customer_2_new_name = "NewName2"
+
+    gift_card_1, gift_card_2, gift_card_3 = gift_card_list
+    gift_card_1.created_by = customer_1
+    gift_card_2.used_by = customer_2
+    gift_card_3.used_by_email = customer_1.email
+    GiftCard.objects.bulk_update(
+        gift_card_list, ["created_by", "used_by", "used_by_email"]
+    )
+
+    update_gift_cards_search_vector(gift_card_list)
+    for card in gift_card_list:
+        card.refresh_from_db()
+        assert card.search_index_dirty is False
+
+    customers_input = [
+        {
+            "id": customer_1_id,
+            "input": {
+                "firstName": customer_1_new_name,
+            },
+        },
+        {
+            "id": customer_2_id,
+            "input": {
+                "firstName": customer_2_new_name,
+            },
+        },
+    ]
+
+    variables = {"customers": customers_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(CUSTOMER_BULK_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerBulkUpdate"]
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+    assert data["count"] == 2
+    for card in gift_card_list:
+        card.refresh_from_db()
+        assert card.search_index_dirty is True

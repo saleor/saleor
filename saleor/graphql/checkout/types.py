@@ -47,6 +47,7 @@ from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo, str_to_enum
 from ..decorators import one_of_permissions_required
+from ..giftcard.dataloaders import GiftCardsByCheckoutIdLoader
 from ..giftcard.types import GiftCard
 from ..meta import resolvers as MetaResolvers
 from ..meta.types import ObjectWithMetadata, _filter_metadata
@@ -842,8 +843,8 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
 
     @staticmethod
-    def resolve_gift_cards(root: models.Checkout, _info):
-        return root.gift_cards.all()
+    def resolve_gift_cards(root: models.Checkout, info):
+        return GiftCardsByCheckoutIdLoader(info.context).load(root.pk)
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Checkout, info: ResolveInfo):

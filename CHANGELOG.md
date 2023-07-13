@@ -6,6 +6,40 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.15.0 [Unreleased]
 
 ### Breaking changes
+- Remove input and fields related to transaction API and deprecated in 3.13 - #13020 by @korycins
+  - `WebhookEventTypeEnum.TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+  - `WebhookEventTypeAsyncEnum.TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+  - `WebhookSampleEventTypeEnum.TRANSACTION_ACTION_REQUEST`
+  - `TransactionItem`:
+    - `voidedAmount` - Use `canceledAmount` instead.
+    - `status` - The amounts can be used to define the current status of transactions.
+    - `type` - Use `name` or `message`.
+    - `reference` - Use `pspReference` instead.
+  - `TransactionActionEnum.VOID` - Use `CANCEL` instead.
+  - `OrderEvent.status` - Use `TransactionEvent` to track the status of `TransactionItem`.
+  - `OrderEventsEnum`:
+    - `TRANSACTION_CAPTURE_REQUESTED` - Use `TRANSACTION_CHARGE_REQUESTED` instead.
+    - `TRANSACTION_VOID_REQUESTED` -  Use `TRANSACTION_CANCEL_REQUESTED` instead.
+  - `TransactionStatus`
+  - `TransactionEvent`:
+    - `status` -  Use `type` instead.
+    - `reference` - Use `pspReference` instead.
+    - `name` - Use `message` instead.
+  - `TransactionCreateInput`:
+    - `status` - The amounts can be used to define the current status of transactions.
+    - `type` - Use `name` or `message`.
+    - `reference` - Use `pspReference` instead.
+    - `voidedAmount` - Use `canceledAmount` instead.
+  - `TransactionEventInput`:
+    - `status` - Status will be calculated by Saleor.
+    - `reference` - Use `pspReference` instead.
+    - `name` - Use `message` instead.
+  - `TransactionUpdateInput`:
+    - `status` - The amounts can be used to define the current status of transactions.
+    - `type` - Use `name` or `message`.
+    - `reference` - Use `pspReference` instead.
+    - `voidedAmount` - Use `canceledAmount` instead.
+  - `TransactionActionRequest` - Use `TransactionChargeRequested`, `TransactionRefundRequested`, `TransactionCancelationRequested` instead.
 
 - Remove `OrderBulkCreateInput.trackingClientId` field - #13146 by @SzymJ
 - Drop backend integration with Open Exchange Rates API - #13175 by @maarcingebala
@@ -22,17 +56,29 @@ All notable, unreleased changes to this project will be documented in this file.
       2. Billing address
       3. Channel's default country
 
-### GraphQL API
-- Add `lines` to `OrderGrantedRefund` - #13014 by @korycins
 
+### GraphQL API
+Shipping methods can be removed by the user after it has been assigned to a checkout; `shippingMethodId` is now a nullable input in the `checkoutShippingMethodUpdate` mutation.  - #13068 by @FremahA
+- Add `lines` to `OrderGrantedRefund` - #13014 by @korycins
 - Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
 - Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
+- Add ability to use metadata in the `Shop` type - #13128 by @Smit-Parmar, #13364 by @maarcingebala
+  - Add `metadata` and `privateMetadata` in `ShopSettingsInput`.
+  - Add `Shop.id` field.
+  - Add support for modifying metadata via generic metadata API.
 - Fix error "Cannot return null for non-nullable field Webhook.name" - #12989 by @Smit-Parmar
 - Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
+- Add metadata support for channels. #13230 by @Smit-Parmar
+- Remove `Preview feature` label from `metafield`, `metafields`, `metadata`,
+`privateMetafield`, `privateMetafields` and `privateMetadata` fields - #13245 by @korycins
+- Add `search` to `giftCards` query - #13173 by @zedzior
+- Add `ProductBulkTranslate` mutation - #13329 by @SzymJ
+- Add `ProductVariantBulkTranslate` mutation - #13329 by @SzymJ
 
 ### Saleor Apps
 
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
+- Add `SHOP_METADATA_UPDATED` webhook - #13364 by @maarcingebala
 
 ### Other changes
 - Add possibility to log without confirming email - #13059 by @kadewu
@@ -40,6 +86,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - New environment variable `CONFIRMATION_EMAIL_LOCK_TIME` to control lock time beetwen new email confirmations
   - Type `User` gets new field `is_confirmed`
   - `CustomerInput` gets new field `is_confirmed`
+- Add POC of Core API tests - #13034 by @fowczarek
 
 - Expand metric units to support more types of products. - #13043 by @FremahA
 - Remove unused `django-versatileimagefield` package - #13148 by @SzymJ
@@ -54,7 +101,15 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing descriptions to Account module. - #13155 by @fowczarek
 - Add `ACCOUNT_CONFIRMATION_REQUESTED` async event - #13162 by @SzymJ
 - Add `ACCOUNT_DELETE_REQUESTED` async event - #13170 by @SzymJ
--
+- Add `ACCOUNT_CHANGE_EMAIL_REQUESTED` async event - #13233 by @SzymJ
+- Add missing descriptions to Webhook module - #13262 by @Smit-Parmar
+- Add missing descriptions to Shop module. - #13295 by @Smit-Parmar
+- Add missing descriptions to Warehouse module. - #13264 by @Smit-Parmar
+- Add missing descriptions to Product module. - #13259 by @FremahA
+- Add missing description for Invoice module - #13265 by @DevilsAutumn
+- Add missing descriptions to Discount module - #13261 by @devilsautumn
+- Fix error handling in the permission check for `Query.webhook` - #13378 by @patrys
+
 # 3.14.0
 
 ### Breaking changes

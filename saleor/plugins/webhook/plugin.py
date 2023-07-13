@@ -52,7 +52,6 @@ from ...webhook.payloads import (
     generate_sale_payload,
     generate_sale_toggle_payload,
     generate_thumbnail_payload,
-    generate_transaction_action_request_payload,
     generate_transaction_session_payload,
     generate_translation_payload,
 )
@@ -104,6 +103,7 @@ if TYPE_CHECKING:
     )
     from ...shipping.interface import ShippingMethodData
     from ...shipping.models import ShippingMethod, ShippingZone
+    from ...site.models import SiteSettings
     from ...tax.models import TaxClass
     from ...translation.models import Translation
     from ...warehouse.models import Stock, Warehouse
@@ -151,26 +151,30 @@ class WebhookPlugin(BasePlugin):
             )
 
     def _trigger_account_event(
-        self, event_type, user, channel_slug, token, redirect_url
+        self, event_type, user, channel_slug, token, redirect_url, new_email=None
     ):
         if webhooks := get_webhooks_for_event(event_type):
-            payload = self._serialize_payload(
-                {
-                    "id": graphene.Node.to_global_id("User", user.id),
-                    "token": token,
-                    "redirect_url": redirect_url,
-                }
-            )
+            raw_payload = {
+                "id": graphene.Node.to_global_id("User", user.id),
+                "token": token,
+                "redirect_url": redirect_url,
+            }
+            data = {
+                "user": user,
+                "channel_slug": channel_slug,
+                "token": token,
+                "redirect_url": redirect_url,
+            }
+
+            if new_email:
+                raw_payload["new_email"] = new_email
+                data["new_email"] = new_email
+
             trigger_webhooks_async(
-                payload,
+                self._serialize_payload(raw_payload),
                 event_type,
                 webhooks,
-                {
-                    "user": user,
-                    "channel_slug": channel_slug,
-                    "token": token,
-                    "redirect_url": redirect_url,
-                },
+                data,
                 self.requestor,
             )
 
@@ -190,6 +194,26 @@ class WebhookPlugin(BasePlugin):
             channel_slug,
             token,
             redirect_url,
+        )
+
+    def account_change_email_requested(
+        self,
+        user: "User",
+        channel_slug: str,
+        token: str,
+        redirect_url: str,
+        new_email: str,
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_event(
+            WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED,
+            user,
+            channel_slug,
+            token,
+            redirect_url,
+            new_email,
         )
 
     def account_delete_requested(
@@ -1508,29 +1532,18 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.VOUCHER_METADATA_UPDATED, voucher
         )
 
+    def shop_metadata_updated(self, shop: "SiteSettings", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.SHOP_METADATA_UPDATED, shop
+        )
+
     def event_delivery_retry(self, delivery: "EventDelivery", previous_value: Any):
         if not self.active:
             return previous_value
         delivery_update(delivery, status=EventDeliveryStatus.PENDING)
         send_webhook_request_async.delay(delivery.pk)
-
-    def transaction_action_request(
-        self, transaction_data: "TransactionActionData", previous_value: None
-    ) -> None:
-        if not self.active:
-            return previous_value
-        event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
-        if webhooks := get_webhooks_for_event(event_type):
-            payload = generate_transaction_action_request_payload(
-                transaction_data, self.requestor
-            )
-            trigger_webhooks_async(
-                payload,
-                event_type,
-                webhooks,
-                subscribable_object=transaction_data,
-                requestor=self.requestor,
-            )
 
     def _request_transaction_action(
         self,
@@ -2071,9 +2084,6 @@ class WebhookPlugin(BasePlugin):
     def is_event_active(self, event: str, channel=Optional[str]):
         map_event = {
             "invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED,
-            "transaction_action_request": (
-                WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
-            ),
         }
 
         if event in map_event:

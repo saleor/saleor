@@ -66,7 +66,9 @@ from ..enums import (
     PluginErrorCode,
     ProductBulkCreateErrorCode,
     ProductErrorCode,
+    ProductTranslateErrorCode,
     ProductVariantBulkErrorCode,
+    ProductVariantTranslateErrorCode,
     SendConfirmationEmailErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
@@ -581,6 +583,16 @@ class PaymentError(Error):
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class ProductBulkTranslateError(BulkError):
+    code = ProductTranslateErrorCode(description="The error code.", required=True)
+
+
+class ProductVariantBulkTranslateError(BulkError):
+    code = ProductVariantTranslateErrorCode(
+        description="The error code.", required=True
+    )
 
 
 class TransactionCreateError(Error):

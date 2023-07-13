@@ -316,7 +316,6 @@ def checkout_with_item(checkout, product):
 @pytest.fixture
 def checkout_with_item_and_transaction_item(checkout_with_item):
     TransactionItem.objects.create(
-        status="Captured",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
@@ -481,6 +480,16 @@ def checkout_with_shipping_required(checkout_with_item, product):
 @pytest.fixture
 def checkout_with_item_and_shipping_method(checkout_with_item, shipping_method):
     checkout = checkout_with_item
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
+def checkout_with_item_and_voucher_and_shipping_method(
+    checkout_with_item_and_voucher, shipping_method
+):
+    checkout = checkout_with_item_and_voucher
     checkout.shipping_method = shipping_method
     checkout.save()
     return checkout
@@ -2487,6 +2496,14 @@ def product(product_type, category, warehouse, channel_USD, default_tax_class):
 
 
 @pytest.fixture
+def product_with_translations(product):
+    product.translations.create(language_code="pl", name="OldProduct PL")
+    product.translations.create(language_code="de", name="OldProduct DE")
+
+    return product
+
+
+@pytest.fixture
 def shippable_gift_card_product(
     shippable_gift_card_product_type, category, warehouse, channel_USD
 ):
@@ -3042,6 +3059,13 @@ def variant(product, channel_USD) -> ProductVariant:
         currency=channel_USD.currency_code,
     )
     return product_variant
+
+
+@pytest.fixture
+def variant_with_translations(variant):
+    variant.translations.create(language_code="pl", name="OldVariant PL")
+    variant.translations.create(language_code="de", name="OldVariant DE")
+    return variant
 
 
 @pytest.fixture

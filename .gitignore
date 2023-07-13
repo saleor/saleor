@@ -4,7 +4,6 @@
 !.dockerignore
 !.github
 !.gitignore
-!.nvmrc
 !.pylintrc
 !.vscode
 *.log

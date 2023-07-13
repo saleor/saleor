@@ -81,7 +81,7 @@ def test_fulfillment_refund_products_by_user_no_channel_access(
 
 
 @patch("saleor.order.actions.gateway.refund")
-def test_fulfillment_refund_products_with_transaction_action_request_by_app(
+def test_fulfillment_refund_products_with_action_requested_by_app(
     mocked_refund,
     app_api_client,
     permission_manage_orders,
