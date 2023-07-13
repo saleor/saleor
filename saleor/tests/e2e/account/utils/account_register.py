@@ -1,4 +1,4 @@
-from ..utils import get_graphql_content
+from ...utils import get_graphql_content
 
 ACCOUNT_REGISTER_MUTATION = """
 mutation AccountRegister($input: AccountRegisterInput!) {
@@ -29,7 +29,7 @@ def account_register(
         "input": {
             "email": email,
             "password": password,
-            "channel_slug": channel_slug,
+            "channel": channel_slug,
             "redirectUrl": redirectUrl,
         }
     }
