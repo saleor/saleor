@@ -854,7 +854,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
                 rule_info.variant_listing_promotion_rule, line.quantity
             )
             discount_name = get_discount_name(rule, rule_info.promotion)
-            translated_name = get_discount_translated_name(rule_info)
+            translated_name = get_translated_name(rule_info)
             if not discount_to_update:
                 line_discount = CheckoutLineDiscount(
                     line=line,
@@ -865,6 +865,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
                     currency=line.currency,
                     name=discount_name,
                     translated_name=translated_name,
+                    translated_name=translated_name,
                     reason=None,
                     promotion_rule=rule,
                 )
@@ -873,6 +874,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
             else:
                 _update_line_discount(
                     rule,
+                    rule_info,
                     rule_info,
                     rule_discount_amount,
                     discount_to_update,
@@ -931,12 +933,13 @@ def _get_rule_discount_amount(
 
 
 def get_discount_name(rule: "PromotionRule", promotion: "Promotion"):
+def get_discount_name(rule: "PromotionRule", promotion: "Promotion"):
     if promotion.name and rule.name:
         return f"{promotion.name}: {rule.name}"
     return rule.name or promotion.name
 
 
-def get_discount_translated_name(rule_info: "VariantPromotionRuleInfo"):
+def get_translated_name(rule_info: "VariantPromotionRuleInfo"):
     promotion_translation = rule_info.promotion_translation
     rule_translation = rule_info.rule_translation
     if promotion_translation and rule_translation:
@@ -950,6 +953,7 @@ def get_discount_translated_name(rule_info: "VariantPromotionRuleInfo"):
 
 def _update_line_discount(
     rule: "PromotionRule",
+    rule_info: "VariantPromotionRuleInfo",
     rule_info: "VariantPromotionRuleInfo",
     rule_discount_amount: Decimal,
     discount_to_update: "CheckoutLineDiscount",
@@ -967,10 +971,11 @@ def _update_line_discount(
         discount_to_update.amount_value = rule_discount_amount
         updated_fields.append("amount_value")
     discount_name = get_discount_name(rule, rule_info.promotion)
+    discount_name = get_discount_name(rule, rule_info.promotion)
     if discount_to_update.name != discount_name:
         discount_to_update.name = discount_name
         updated_fields.append("name")
-    translated_name = get_discount_translated_name(rule_info)
+    translated_name = get_translated_name(rule_info)
     if discount_to_update.translated_name != translated_name:
         discount_to_update.translated_name = translated_name
         updated_fields.append("translated_name")

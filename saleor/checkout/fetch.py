@@ -29,8 +29,15 @@ from ..warehouse.models import Warehouse
 if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..discount.interface import VariantPromotionRuleInfo, VoucherInfo
-    from ..discount.models import CheckoutLineDiscount, Voucher
+    from ..discount.interface import VoucherInfo
+    from ..discount.models import (
+        CheckoutLineDiscount,
+        Promotion,
+        PromotionRule,
+        PromotionRuleTranslation,
+        PromotionTranslation,
+        Voucher,
+    )
     from ..plugins.manager import PluginsManager
     from ..product.models import (
         Collection,
@@ -70,6 +77,14 @@ class CheckoutLineInfo:
             for discount in self.discounts
             if discount.type == DiscountType.PROMOTION
         ]
+
+
+class VariantPromotionRuleInfo(NamedTuple):
+    rule: "PromotionRule"
+    variant_listing_promotion_rule: "VariantChannelListingPromotionRule"
+    promotion: "Promotion"
+    promotion_translation: Optional["PromotionTranslation"]
+    rule_translation: Optional["PromotionRuleTranslation"]
 
 
 @dataclass
@@ -248,6 +263,8 @@ def fetch_checkout_lines(
         "variant__channel_listings__channel",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
         "discounts",
     ]
     if prefetch_variant_attributes:
@@ -276,7 +293,7 @@ def fetch_checkout_lines(
             variant, checkout.channel_id
         )
         translation_language_code = checkout.language_code
-        rules_info = fetch_variant_rules_info(
+        rules_info = get_variant_rules_info(
             variant_channel_listing, translation_language_code
         )
 
@@ -337,6 +354,32 @@ def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
         if channel_listing.channel_id == channel_id:
             variant_channel_listing = channel_listing
     return variant_channel_listing
+
+
+def get_variant_rules_info(
+    variant_channel_listing: "ProductVariantChannelListing",
+    translation_language_code: str,
+):
+    listings_rules = (
+        variant_channel_listing.variantlistingpromotionrule.all()
+        if variant_channel_listing
+        else []
+    )
+    rules_info = [
+        VariantPromotionRuleInfo(
+            rule=listing_promotion_rule.promotion_rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=listing_promotion_rule.promotion_rule.promotion,
+            promotion_translation=listing_promotion_rule.promotion_rule.promotion.translations.filter(
+                language_code=translation_language_code
+            ).first(),
+            rule_translation=listing_promotion_rule.promotion_rule.translations.filter(
+                language_code=translation_language_code
+            ).first(),
+        )
+        for listing_promotion_rule in listings_rules
+    ]
+    return rules_info
 
 
 def _is_variant_valid(
