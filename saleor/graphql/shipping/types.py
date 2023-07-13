@@ -66,7 +66,7 @@ class ShippingMethodChannelListing(
     )
     maximum_order_price = graphene.Field(Money, description="Maximum order price.")
     minimum_order_price = graphene.Field(Money, description="Minimum order price.")
-    price = graphene.Field(Money, description="Order price.")
+    price = graphene.Field(Money, description="Shipping price.")
 
     class Meta:
         description = "Represents shipping method channel listing."
@@ -258,10 +258,10 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
 
 
 class ShippingZone(ChannelContextTypeWithMetadata[models.ShippingZone]):
-    id = graphene.GlobalID(required=True, description="The ID of shipping zone")
+    id = graphene.GlobalID(required=True, description="The ID of shipping zone.")
     name = graphene.String(required=True, description="Shipping zone name.")
     default = graphene.Boolean(
-        required=True, description="The shipping zone by default."
+        required=True, description="Indicates if the shipping zone is default one."
     )
     price_range = graphene.Field(
         MoneyRange, description="Lowest and highest prices for the shipping."

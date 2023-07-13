@@ -3712,7 +3712,7 @@ type ShippingZoneCountableEdge @doc(category: "Shipping") {
 Represents a shipping zone in the shop. Zones are the concept used only for grouping shipping methods in the dashboard, and are never exposed to the customers directly.
 """
 type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping") {
-  """The ID of shipping zone"""
+  """The ID of shipping zone."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -3756,7 +3756,7 @@ type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping"
   """Shipping zone name."""
   name: String!
 
-  """The shipping zone by default."""
+  """Indicates if the shipping zone is default one."""
   default: Boolean!
 
   """Lowest and highest prices for the shipping."""
@@ -4749,7 +4749,7 @@ type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
   """Minimum order price."""
   minimumOrderPrice: Money
 
-  """Order price."""
+  """Shipping price."""
   price: Money
 }
 
