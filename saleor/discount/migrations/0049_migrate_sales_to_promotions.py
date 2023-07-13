@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from typing import List
 from django.db import migrations
 
-BATCH_SIZE = 1
+# The batch of size 100 takes ~1.2 second and consumes ~25MB memory at peak
+BATCH_SIZE = 100
 
 
 def convert_sale_into_promotion(Promotion, sale):
@@ -54,22 +55,13 @@ def migrate_sales_to_promotions(sales_pks, Promotion, Sale, saleid_promotion_map
 
 
 def migrate_sale_listing_to_promotion_rules(
-    sales_pks,
     PromotionRule,
-    SaleChannelListing,
     RuleInfo,
+    sale_listings,
     saleid_promotion_map,
     rules_info,
 ):
-    if sale_listings := SaleChannelListing.objects.filter(
-        sale_id__in=sales_pks
-    ).prefetch_related(
-        "sale",
-        "sale__collections",
-        "sale__categories",
-        "sale__products",
-        "sale__variants",
-    ):
+    if sale_listings:
         for sale_listing in sale_listings:
             promotion = saleid_promotion_map[sale_listing.sale_id]
             rules_info.append(
@@ -156,8 +148,21 @@ def run_migration(apps, _schema_editor):
         def add_rule_to_channel(self):
             self.rule.channels.add(self.channel_id)
 
-    sales = Sale.objects.order_by("pk")
-    for sales_batch_pks in queryset_in_batches(sales):
+    sales_listing = SaleChannelListing.objects.order_by("sale_id")
+    for sale_listing_batch_pks in queryset_in_batches(sales_listing):
+        sales_listing_batch = (
+            SaleChannelListing.objects.filter(pk__in=sale_listing_batch_pks)
+            .order_by("sale_id")
+            .prefetch_related(
+                "sale",
+                "sale__collections",
+                "sale__categories",
+                "sale__products",
+                "sale__variants",
+            )
+        )
+        sales_batch_pks = {listing.sale_id for listing in sales_listing_batch}
+
         saleid_promotion_map = {}
         rules_info: List[RuleInfo] = []
 
@@ -165,10 +170,9 @@ def run_migration(apps, _schema_editor):
             sales_batch_pks, Promotion, Sale, saleid_promotion_map
         )
         migrate_sale_listing_to_promotion_rules(
-            sales_batch_pks,
             PromotionRule,
-            SaleChannelListing,
             RuleInfo,
+            sales_listing_batch,
             saleid_promotion_map,
             rules_info,
         )
@@ -193,13 +197,21 @@ def _get_rule_by_channel_sale(rules_info):
 
 
 def queryset_in_batches(qs):
-    last_pk = 0
+    first_sale_id = 0
     while True:
-        pks = list(qs.filter(pk__gt=last_pk)[:BATCH_SIZE].values_list("pk", flat=True))
+        batch_1 = qs.filter(sale_id__gt=first_sale_id)[:BATCH_SIZE]
+        if len(batch_1) == 0:
+            break
+        last_sale_id = batch_1[len(batch_1) - 1].sale_id
+
+        # `batch_2` extends initial `batch_1` to include all records from
+        # `SaleChannelListing` which refer to `last_sale_id`
+        batch_2 = qs.filter(sale_id__gt=first_sale_id, sale_id__lte=last_sale_id)
+        pks = list(batch_2.values_list("pk", flat=True))
         if not pks:
             break
         yield pks
-        last_pk = pks[-1]
+        first_sale_id = batch_2[len(batch_2) - 1].sale_id
 
 
 class Migration(migrations.Migration):
