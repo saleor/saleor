@@ -974,6 +974,8 @@ def test_checkout_payload_includes_promotions(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
             promotion=promotion_without_rules,
+            promotion_translation=None,
+            rule_translation=None,
         )
     ]
 
