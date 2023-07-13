@@ -103,6 +103,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add missing descriptions to Product module. - #13259 by @FremahA
 - Add missing description for Invoice module - #13265 by @DevilsAutumn
 - Add missing descriptions to Discount module - #13261 by @devilsautumn
+- Add missing descriptions to Shipping module. - #13372 by @Smit-Parmar
 - Fix error handling in the permission check for `Query.webhook` - #13378 by @patrys
 
 # 3.14.0

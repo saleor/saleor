@@ -3727,6 +3727,7 @@ type ShippingZoneCountableEdge @doc(category: "Shipping") {
 Represents a shipping zone in the shop. Zones are the concept used only for grouping shipping methods in the dashboard, and are never exposed to the customers directly.
 """
 type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping") {
+  """The ID of shipping zone."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -3766,7 +3767,11 @@ type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping"
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Shipping zone name."""
   name: String!
+
+  """Indicates if the shipping zone is default one."""
   default: Boolean!
 
   """Lowest and highest prices for the shipping."""
@@ -4747,10 +4752,19 @@ enum LanguageCodeEnum {
 
 """Represents shipping method channel listing."""
 type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
+  """The ID of shipping method channel listing."""
   id: ID!
+
+  """The channel associated with the shipping method channel listing."""
   channel: Channel!
+
+  """Maximum order price."""
   maximumOrderPrice: Money
+
+  """Minimum order price."""
   minimumOrderPrice: Money
+
+  """Price of the shipping method in the associated channel."""
   price: Money
 }
 
