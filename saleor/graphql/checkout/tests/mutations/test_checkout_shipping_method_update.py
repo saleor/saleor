@@ -21,7 +21,7 @@ from ....tests.utils import get_graphql_content
 
 MUTATION_UPDATE_SHIPPING_METHOD = """
     mutation checkoutShippingMethodUpdate(
-            $id: ID, $shippingMethodId: ID!){
+            $id: ID, $shippingMethodId: ID){
         checkoutShippingMethodUpdate(
             id: $id, shippingMethodId: $shippingMethodId) {
             errors {

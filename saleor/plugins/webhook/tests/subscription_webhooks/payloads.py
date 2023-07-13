@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from ..... import __version__
 from .....graphql.attribute.enums import AttributeInputTypeEnum, AttributeTypeEnum
+from .....graphql.shop.types import SHOP_ID
 from .....product.models import Product
 
 
@@ -483,3 +484,13 @@ def generate_payment_payload(payment):
             "isActive": payment.is_active,
         }
     }
+
+
+def generate_shop_payload():
+    return json.dumps(
+        {
+            "shop": {
+                "id": graphene.Node.to_global_id("Shop", SHOP_ID),
+            }
+        }
+    )

@@ -271,7 +271,7 @@ def test_checkout_billing_address_update_invalidate_prices(
 
 
 UPDATE_CHECKOUT_SHIPPING_METHOD = """
-mutation updateCheckoutShippingOptions($token: UUID!, $shippingMethodId: ID!) {
+mutation updateCheckoutShippingOptions($token: UUID!, $shippingMethodId: ID) {
   checkoutShippingMethodUpdate(token: $token, shippingMethodId: $shippingMethodId) {
     errors {
       field

@@ -64,6 +64,7 @@ if TYPE_CHECKING:
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
+    from ..site.models import SiteSettings
     from ..tax.models import TaxClass
     from ..warehouse.models import Warehouse
 
@@ -1069,6 +1070,12 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic after a voucher
     # metadata is updated.
     voucher_metadata_updated: Callable[["Voucher", None], None]
+
+    # Trigger when shop metadata is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a shop
+    # metadata is updated.
+    shop_metadata_updated: Callable[["SiteSettings", None], None]
 
     # Handle received http request.
     #

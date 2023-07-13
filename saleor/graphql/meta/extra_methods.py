@@ -67,6 +67,11 @@ def extra_voucher_actions(instance, info: ResolveInfo, **data):
     manager.voucher_metadata_updated(instance)
 
 
+def extra_shop_actions(instance, info: ResolveInfo, **data):
+    manager = get_plugin_manager_promise(info.context).get()
+    manager.shop_metadata_updated(instance)
+
+
 MODEL_EXTRA_METHODS = {
     "Checkout": extra_checkout_actions,
     "Collection": extra_collection_actions,
@@ -76,6 +81,7 @@ MODEL_EXTRA_METHODS = {
     "Product": extra_product_actions,
     "ProductVariant": extra_variant_actions,
     "ShippingZone": extra_shipping_zone_actions,
+    "Shop": extra_shop_actions,
     "TransactionItem": extra_transaction_item_actions,
     "User": extra_user_actions,
     "Warehouse": extra_warehouse_actions,

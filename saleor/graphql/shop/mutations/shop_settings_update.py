@@ -85,7 +85,7 @@ class ShopSettingsInput(graphene.InputObjectType):
     )
     private_metadata = common_types.NonNullList(
         MetadataInput,
-        description=("Shop private metadata." + ADDED_IN_315),
+        description="Shop private metadata." + ADDED_IN_315,
         required=False,
     )
     # deprecated
