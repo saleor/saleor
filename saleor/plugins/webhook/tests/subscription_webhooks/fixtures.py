@@ -896,6 +896,14 @@ def subscription_voucher_metadata_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_shop_metadata_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.SHOP_METADATA_UPDATED,
+        WebhookEventAsyncType.SHOP_METADATA_UPDATED,
+    )
+
+
+@pytest.fixture
 def subscription_payment_authorize_webhook(subscription_webhook):
     return subscription_webhook(
         queries.PAYMENT_AUTHORIZE, WebhookEventSyncType.PAYMENT_AUTHORIZE

@@ -56,12 +56,16 @@ All notable, unreleased changes to this project will be documented in this file.
       2. Billing address
       3. Channel's default country
 
-### GraphQL API
-- Add `lines` to `OrderGrantedRefund` - #13014 by @korycins
 
+### GraphQL API
+Shipping methods can be removed by the user after it has been assigned to a checkout; `shippingMethodId` is now a nullable input in the `checkoutShippingMethodUpdate` mutation.  - #13068 by @FremahA
+- Add `lines` to `OrderGrantedRefund` - #13014 by @korycins
 - Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
 - Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
-- Added `metadata` and `privateMetadata` in `ShopSettingsInput`. #13128 by @Smit-Parmar
+- Add ability to use metadata in the `Shop` type - #13128 by @Smit-Parmar, #13364 by @maarcingebala
+  - Add `metadata` and `privateMetadata` in `ShopSettingsInput`.
+  - Add `Shop.id` field.
+  - Add support for modifying metadata via generic metadata API.
 - Fix error "Cannot return null for non-nullable field Webhook.name" - #12989 by @Smit-Parmar
 - Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
 - Add metadata support for channels. #13230 by @Smit-Parmar
@@ -74,6 +78,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
+- Add `SHOP_METADATA_UPDATED` webhook - #13364 by @maarcingebala
 
 ### Other changes
 - Add POC of Core API tests - #13034 by @fowczarek
@@ -99,6 +104,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing description for Invoice module - #13265 by @DevilsAutumn
 - Add missing descriptions to Discount module - #13261 by @devilsautumn
 - Fix deleting event payloads by adding batches - #13368 by @jakubkuc
+- Add missing descriptions to Shipping module. - #13372 by @Smit-Parmar
+- Fix error handling in the permission check for `Query.webhook` - #13378 by @patrys
 
 # 3.14.0
 

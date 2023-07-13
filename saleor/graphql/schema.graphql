@@ -2173,6 +2173,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   THUMBNAIL_CREATED
 
+  """
+  Shop metadata is updated.
+  
+  Added in Saleor 3.15.
+  """
+  SHOP_METADATA_UPDATED
+
   """Authorize payment."""
   PAYMENT_AUTHORIZE
 
@@ -2805,6 +2812,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.12.
   """
   THUMBNAIL_CREATED
+
+  """
+  Shop metadata is updated.
+  
+  Added in Saleor 3.15.
+  """
+  SHOP_METADATA_UPDATED
 }
 
 """Represents app data."""
@@ -3464,6 +3478,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   VOUCHER_METADATA_UPDATED
   OBSERVABILITY
   THUMBNAIL_CREATED
+  SHOP_METADATA_UPDATED
 }
 
 """Represents warehouse."""
@@ -3712,6 +3727,7 @@ type ShippingZoneCountableEdge @doc(category: "Shipping") {
 Represents a shipping zone in the shop. Zones are the concept used only for grouping shipping methods in the dashboard, and are never exposed to the customers directly.
 """
 type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping") {
+  """The ID of shipping zone."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -3751,7 +3767,11 @@ type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping"
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Shipping zone name."""
   name: String!
+
+  """Indicates if the shipping zone is default one."""
   default: Boolean!
 
   """Lowest and highest prices for the shipping."""
@@ -4732,10 +4752,19 @@ enum LanguageCodeEnum {
 
 """Represents shipping method channel listing."""
 type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
+  """The ID of shipping method channel listing."""
   id: ID!
+
+  """The channel associated with the shipping method channel listing."""
   channel: Channel!
+
+  """Maximum order price."""
   maximumOrderPrice: Money
+
+  """Minimum order price."""
   minimumOrderPrice: Money
+
+  """Price of the shipping method in the associated channel."""
   price: Money
 }
 
@@ -9237,6 +9266,9 @@ type Shop implements ObjectWithMetadata {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   """
   metafields(keys: [String!]): Metadata
+
+  """ID of the shop."""
+  id: ID!
 
   """List of available payment gateways."""
   availablePaymentGateways(
@@ -15789,36 +15821,48 @@ type Mutation {
   Creates a new Menu. 
   
   Requires one of the following permissions: MANAGE_MENUS.
+  
+  Triggers the following webhook events:
+  - MENU_CREATED (async): A menu was created.
   """
   menuCreate(
     """Fields required to create a menu."""
     input: MenuCreateInput!
-  ): MenuCreate @doc(category: "Menu")
+  ): MenuCreate @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_CREATED], syncEvents: [])
 
   """
   Deletes a menu. 
   
   Requires one of the following permissions: MANAGE_MENUS.
+  
+  Triggers the following webhook events:
+  - MENU_DELETED (async): A menu was deleted.
   """
   menuDelete(
     """ID of a menu to delete."""
     id: ID!
-  ): MenuDelete @doc(category: "Menu")
+  ): MenuDelete @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_DELETED], syncEvents: [])
 
   """
   Deletes menus. 
   
   Requires one of the following permissions: MANAGE_MENUS.
+  
+  Triggers the following webhook events:
+  - MENU_DELETED (async): A menu was deleted.
   """
   menuBulkDelete(
     """List of menu IDs to delete."""
     ids: [ID!]!
-  ): MenuBulkDelete @doc(category: "Menu")
+  ): MenuBulkDelete @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_DELETED], syncEvents: [])
 
   """
   Updates a menu. 
   
   Requires one of the following permissions: MANAGE_MENUS.
+  
+  Triggers the following webhook events:
+  - MENU_UPDATED (async): A menu was updated.
   """
   menuUpdate(
     """ID of a menu to update."""
@@ -15826,44 +15870,56 @@ type Mutation {
 
     """Fields required to update a menu."""
     input: MenuInput!
-  ): MenuUpdate @doc(category: "Menu")
+  ): MenuUpdate @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_UPDATED], syncEvents: [])
 
   """
   Creates a new menu item. 
   
   Requires one of the following permissions: MANAGE_MENUS.
+  
+  Triggers the following webhook events:
+  - MENU_ITEM_CREATED (async): A menu item was created.
   """
   menuItemCreate(
     """
     Fields required to update a menu item. Only one of `url`, `category`, `page`, `collection` is allowed per item.
     """
     input: MenuItemCreateInput!
-  ): MenuItemCreate @doc(category: "Menu")
+  ): MenuItemCreate @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_ITEM_CREATED], syncEvents: [])
 
   """
   Deletes a menu item. 
   
   Requires one of the following permissions: MANAGE_MENUS.
+  
+  Triggers the following webhook events:
+  - MENU_ITEM_DELETED (async): A menu item was deleted.
   """
   menuItemDelete(
     """ID of a menu item to delete."""
     id: ID!
-  ): MenuItemDelete @doc(category: "Menu")
+  ): MenuItemDelete @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_ITEM_DELETED], syncEvents: [])
 
   """
   Deletes menu items. 
   
   Requires one of the following permissions: MANAGE_MENUS.
+  
+  Triggers the following webhook events:
+  - MENU_ITEM_DELETED (async): A menu item was deleted.
   """
   menuItemBulkDelete(
     """List of menu item IDs to delete."""
     ids: [ID!]!
-  ): MenuItemBulkDelete @doc(category: "Menu")
+  ): MenuItemBulkDelete @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_ITEM_DELETED], syncEvents: [])
 
   """
   Updates a menu item. 
   
   Requires one of the following permissions: MANAGE_MENUS.
+  
+  Triggers the following webhook events:
+  - MENU_ITEM_UPDATED (async): A menu item was updated.
   """
   menuItemUpdate(
     """ID of a menu item to update."""
@@ -15873,7 +15929,7 @@ type Mutation {
     Fields required to update a menu item. Only one of `url`, `category`, `page`, `collection` is allowed per item.
     """
     input: MenuItemInput!
-  ): MenuItemUpdate @doc(category: "Menu")
+  ): MenuItemUpdate @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_ITEM_UPDATED], syncEvents: [])
 
   """
   Creates/updates translations for a menu item. 
@@ -15893,6 +15949,9 @@ type Mutation {
   Moves items of menus. 
   
   Requires one of the following permissions: MANAGE_MENUS.
+  
+  Triggers the following webhook events:
+  - MENU_ITEM_UPDATED (async): Optionally triggered when sort order or parent changed for menu item.
   """
   menuItemMove(
     """ID of the menu."""
@@ -15900,7 +15959,7 @@ type Mutation {
 
     """The menu position data."""
     moves: [MenuItemMoveInput!]!
-  ): MenuItemMove @doc(category: "Menu")
+  ): MenuItemMove @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_ITEM_UPDATED], syncEvents: [])
 
   """
   Request an invoice for the order using plugin. 
@@ -16952,7 +17011,7 @@ type Mutation {
     id: ID
 
     """Shipping method."""
-    shippingMethodId: ID!
+    shippingMethodId: ID
 
     """
     Checkout token.
@@ -24297,8 +24356,11 @@ enum NavigationType {
 Creates a new Menu. 
 
 Requires one of the following permissions: MANAGE_MENUS.
+
+Triggers the following webhook events:
+- MENU_CREATED (async): A menu was created.
 """
-type MenuCreate @doc(category: "Menu") {
+type MenuCreate @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_CREATED], syncEvents: []) {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
@@ -24336,8 +24398,11 @@ input MenuItemInput {
 Deletes a menu. 
 
 Requires one of the following permissions: MANAGE_MENUS.
+
+Triggers the following webhook events:
+- MENU_DELETED (async): A menu was deleted.
 """
-type MenuDelete @doc(category: "Menu") {
+type MenuDelete @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_DELETED], syncEvents: []) {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
@@ -24347,8 +24412,11 @@ type MenuDelete @doc(category: "Menu") {
 Deletes menus. 
 
 Requires one of the following permissions: MANAGE_MENUS.
+
+Triggers the following webhook events:
+- MENU_DELETED (async): A menu was deleted.
 """
-type MenuBulkDelete @doc(category: "Menu") {
+type MenuBulkDelete @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_DELETED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24359,8 +24427,11 @@ type MenuBulkDelete @doc(category: "Menu") {
 Updates a menu. 
 
 Requires one of the following permissions: MANAGE_MENUS.
+
+Triggers the following webhook events:
+- MENU_UPDATED (async): A menu was updated.
 """
-type MenuUpdate @doc(category: "Menu") {
+type MenuUpdate @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_UPDATED], syncEvents: []) {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
@@ -24378,8 +24449,11 @@ input MenuInput {
 Creates a new menu item. 
 
 Requires one of the following permissions: MANAGE_MENUS.
+
+Triggers the following webhook events:
+- MENU_ITEM_CREATED (async): A menu item was created.
 """
-type MenuItemCreate @doc(category: "Menu") {
+type MenuItemCreate @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_ITEM_CREATED], syncEvents: []) {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
@@ -24412,8 +24486,11 @@ input MenuItemCreateInput {
 Deletes a menu item. 
 
 Requires one of the following permissions: MANAGE_MENUS.
+
+Triggers the following webhook events:
+- MENU_ITEM_DELETED (async): A menu item was deleted.
 """
-type MenuItemDelete @doc(category: "Menu") {
+type MenuItemDelete @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_ITEM_DELETED], syncEvents: []) {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
@@ -24423,8 +24500,11 @@ type MenuItemDelete @doc(category: "Menu") {
 Deletes menu items. 
 
 Requires one of the following permissions: MANAGE_MENUS.
+
+Triggers the following webhook events:
+- MENU_ITEM_DELETED (async): A menu item was deleted.
 """
-type MenuItemBulkDelete @doc(category: "Menu") {
+type MenuItemBulkDelete @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_ITEM_DELETED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24435,8 +24515,11 @@ type MenuItemBulkDelete @doc(category: "Menu") {
 Updates a menu item. 
 
 Requires one of the following permissions: MANAGE_MENUS.
+
+Triggers the following webhook events:
+- MENU_ITEM_UPDATED (async): A menu item was updated.
 """
-type MenuItemUpdate @doc(category: "Menu") {
+type MenuItemUpdate @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_ITEM_UPDATED], syncEvents: []) {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
@@ -24457,8 +24540,11 @@ type MenuItemTranslate @doc(category: "Menu") {
 Moves items of menus. 
 
 Requires one of the following permissions: MANAGE_MENUS.
+
+Triggers the following webhook events:
+- MENU_ITEM_UPDATED (async): Optionally triggered when sort order or parent changed for menu item.
 """
-type MenuItemMove @doc(category: "Menu") {
+type MenuItemMove @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_ITEM_UPDATED], syncEvents: []) {
   """Assigned menu to move within."""
   menu: Menu
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -31955,6 +32041,28 @@ type TransactionProcessSession implements Event @doc(category: "Payments") {
 
   """Action to proceed for the transaction"""
   action: TransactionProcessAction!
+}
+
+"""
+Event sent when shop metadata is updated.
+
+Added in Saleor 3.15.
+"""
+type ShopMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Shop data."""
+  shop: Shop
 }
 
 """_Any value scalar as defined by Federation spec."""
