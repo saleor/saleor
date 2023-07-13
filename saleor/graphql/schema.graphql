@@ -13834,8 +13834,6 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   ): PromotionTranslation
 }
 
-scalar JSON
-
 """
 Represents the promotion rule that specifies the conditions that must be met to apply the promotion discount.
 
