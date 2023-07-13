@@ -1,6 +1,9 @@
+from typing import Any, Optional
+
 from ..permission.enums import (
     AccountPermissions,
     AppPermission,
+    BasePermissionEnum,
     ChannelPermissions,
     CheckoutPermissions,
     DiscountPermissions,
@@ -591,7 +594,7 @@ class WebhookEventSyncType:
     TRANSACTION_INITIALIZE_SESSION = "transaction_initialize_session"
     TRANSACTION_PROCESS_SESSION = "transaction_process_session"
 
-    EVENT_MAP = {
+    EVENT_MAP: dict[str, dict[str, Any]] = {
         PAYMENT_LIST_GATEWAYS: {
             "description": "List payment gateways",
             "permission": PaymentPermissions.HANDLE_PAYMENTS,
@@ -670,7 +673,7 @@ class WebhookEventSyncType:
         (event_name, event_data["description"])
         for event_name, event_data in EVENT_MAP.items()
     ]
-    PERMISSIONS = {
+    PERMISSIONS: dict[str, Optional[BasePermissionEnum]] = {
         event_name: event_data["permission"]
         for event_name, event_data in EVENT_MAP.items()
     }
