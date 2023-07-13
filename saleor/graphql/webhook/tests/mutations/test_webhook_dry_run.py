@@ -4,6 +4,7 @@ import uuid
 import graphene
 import pytest
 
+from .....graphql.shop.types import SHOP_ID
 from .....graphql.tests.utils import get_graphql_content
 from .....webhook.error_codes import WebhookDryRunErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
@@ -601,7 +602,10 @@ def test_webhook_dry_run_root_type(
     query = WEBHOOK_DRY_RUN_MUTATION
 
     for event_name, event_type in WEBHOOK_TYPES_MAP.items():
-        if not event_type._meta.enable_dry_run:
+        if (
+            not event_type._meta.enable_dry_run
+            or event_name not in async_subscription_webhooks_with_root_objects
+        ):
             continue
 
         webhook = async_subscription_webhooks_with_root_objects[event_name][0]
@@ -619,6 +623,27 @@ def test_webhook_dry_run_root_type(
         payload = content["data"]["webhookDryRun"]["payload"]
         assert payload
         assert not json.loads(payload).get("errors")
+
+
+def test_webhook_dry_run_shop_type(
+    superuser_api_client,
+    subscription_shop_metadata_updated_webhook,
+):
+    # given
+    query = WEBHOOK_DRY_RUN_MUTATION
+    webhook = subscription_shop_metadata_updated_webhook
+    object_id = graphene.Node.to_global_id("Shop", SHOP_ID)
+    variables = {"objectId": object_id, "query": webhook.subscription_query}
+
+    # when
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["webhookDryRun"]["errors"]
+    payload = content["data"]["webhookDryRun"]["payload"]
+    assert payload
+    assert not json.loads(payload).get("errors")
 
 
 def test_webhook_dry_run_root_type_for_transaction_item_metadata_updated(

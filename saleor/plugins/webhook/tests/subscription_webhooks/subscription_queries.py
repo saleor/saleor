@@ -482,6 +482,19 @@ VOUCHER_METADATA_UPDATED = (
 )
 
 
+SHOP_METADATA_UPDATED = """
+    subscription{
+      event {
+        ...on ShopMetadataUpdated{
+          shop {
+            id
+          }
+        }
+      }
+    }
+"""
+
+
 CHANNEL_CREATED = """
     subscription{
       event{
