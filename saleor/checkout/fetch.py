@@ -35,6 +35,8 @@ if TYPE_CHECKING:
         CheckoutLineDiscount,
         Promotion,
         PromotionRule,
+        PromotionRuleTranslation,
+        PromotionTranslation,
         Voucher,
     )
     from ..plugins.manager import PluginsManager
@@ -83,6 +85,8 @@ class VariantPromotionRuleInfo(NamedTuple):
     rule: "PromotionRule"
     variant_listing_promotion_rule: "VariantChannelListingPromotionRule"
     promotion: "Promotion"
+    promotion_translation: Optional["PromotionTranslation"]
+    rule_translation: Optional["PromotionRuleTranslation"]
 
 
 @dataclass
@@ -259,7 +263,8 @@ def fetch_checkout_lines(
         "variant__product__product_type__tax_class__country_rates",
         "variant__product__tax_class__country_rates",
         "variant__channel_listings__channel",
-        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
         "discounts",
     ]
     if prefetch_variant_attributes:
@@ -287,20 +292,10 @@ def fetch_checkout_lines(
         variant_channel_listing = _get_variant_channel_listing(
             variant, checkout.channel_id
         )
-
-        listings_rules = (
-            variant_channel_listing.variantlistingpromotionrule.all()
-            if variant_channel_listing
-            else []
+        translation_language_code = checkout.language_code
+        rules_info = get_variant_rules_info(
+            variant_channel_listing, translation_language_code
         )
-        rules_info = [
-            VariantPromotionRuleInfo(
-                rule=listing_promotion_rule.promotion_rule,
-                variant_listing_promotion_rule=listing_promotion_rule,
-                promotion=listing_promotion_rule.promotion_rule.promotion,
-            )
-            for listing_promotion_rule in listings_rules
-        ]
 
         if not skip_recalculation and not _is_variant_valid(
             checkout, product, variant_channel_listing, product_channel_listing_mapping
@@ -359,6 +354,32 @@ def _get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
         if channel_listing.channel_id == channel_id:
             variant_channel_listing = channel_listing
     return variant_channel_listing
+
+
+def get_variant_rules_info(
+    variant_channel_listing: "ProductVariantChannelListing",
+    translation_language_code: str,
+):
+    listings_rules = (
+        variant_channel_listing.variantlistingpromotionrule.all()
+        if variant_channel_listing
+        else []
+    )
+    rules_info = [
+        VariantPromotionRuleInfo(
+            rule=listing_promotion_rule.promotion_rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=listing_promotion_rule.promotion_rule.promotion,
+            promotion_translation=listing_promotion_rule.promotion_rule.promotion.translations.filter(
+                language_code=translation_language_code
+            ).first(),
+            rule_translation=listing_promotion_rule.promotion_rule.translations.filter(
+                language_code=translation_language_code
+            ).first(),
+        )
+        for listing_promotion_rule in listings_rules
+    ]
+    return rules_info
 
 
 def _is_variant_valid(
