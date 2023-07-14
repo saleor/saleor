@@ -40,9 +40,11 @@ AREA_TYPE = {
 
 CountryAreaValues = namedtuple("CountryAreaValues", ["value", "choices"])
 
-COUNTRY_AREA_MAP = {"CH": [
-    CountryAreaValues("Graubünden", ["Graubünden"]),
-]}
+COUNTRY_AREA_MAP = {
+    "CH": [
+        CountryAreaValues("Graubünden", ["Graubünden"]),
+    ]
+}
 
 
 class PossiblePhoneNumberFormField(forms.CharField):
