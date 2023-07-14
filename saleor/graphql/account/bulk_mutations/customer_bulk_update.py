@@ -568,20 +568,21 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 not old_instance.is_confirmed and updated_instance.is_confirmed
             )
 
-            # Generate the events accordingly
             if has_new_email or being_confirmed:
-                if has_new_email:
-                    customer_events.append(
-                        models.CustomerEvent(
-                            user=staff_user,
-                            app=app,
-                            order=None,
-                            type=CustomerEvents.EMAIL_ASSIGNED,
-                            parameters={"message": new_email},
-                        )
-                    )
                 assign_user_gift_cards(updated_instance)
                 match_orders_with_new_user(updated_instance)
+
+            # Generate the events accordingly
+            if has_new_email:
+                customer_events.append(
+                    models.CustomerEvent(
+                        user=staff_user,
+                        app=app,
+                        order=None,
+                        type=CustomerEvents.EMAIL_ASSIGNED,
+                        parameters={"message": new_email},
+                    )
+                )
                 users_with_name_or_email_updated.append(updated_instance)
 
             if has_new_name:
