@@ -72,7 +72,7 @@ def extra_shop_actions(instance, info: ResolveInfo, **data):
     manager.shop_metadata_updated(instance)
 
 
-MODEL_EXTRA_METHODS = {
+TYPE_EXTRA_METHODS = {
     "Checkout": extra_checkout_actions,
     "Collection": extra_collection_actions,
     "Fulfillment": extra_fulfillment_actions,
@@ -89,7 +89,7 @@ MODEL_EXTRA_METHODS = {
 }
 
 
-MODEL_EXTRA_PREFETCH = {
+TYPE_EXTRA_PREFETCH = {
     "Product": Product.objects.prefetched_for_webhook,
     "ProductVariant": ProductVariant.objects.prefetched_for_webhook,
 }
