@@ -13880,11 +13880,14 @@ type Mutation {
   Updates shop settings. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
+  
+  Triggers the following webhook events:
+  - SHOP_METADATA_UPDATED (async): Optionally triggered when public or private metadata is updated.
   """
   shopSettingsUpdate(
     """Fields required to update shop settings."""
     input: ShopSettingsInput!
-  ): ShopSettingsUpdate @doc(category: "Shop")
+  ): ShopSettingsUpdate @doc(category: "Shop") @webhookEventsInfo(asyncEvents: [SHOP_METADATA_UPDATED], syncEvents: [])
 
   """
   Fetch tax rates. 
@@ -19067,8 +19070,11 @@ input SiteDomainInput {
 Updates shop settings. 
 
 Requires one of the following permissions: MANAGE_SETTINGS.
+
+Triggers the following webhook events:
+- SHOP_METADATA_UPDATED (async): Optionally triggered when public or private metadata is updated.
 """
-type ShopSettingsUpdate @doc(category: "Shop") {
+type ShopSettingsUpdate @doc(category: "Shop") @webhookEventsInfo(asyncEvents: [SHOP_METADATA_UPDATED], syncEvents: []) {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
