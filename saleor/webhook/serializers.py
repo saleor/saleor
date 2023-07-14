@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import Iterable
 from datetime import date, datetime
 from decimal import Decimal
@@ -54,7 +55,7 @@ def serialize_checkout_lines(checkout: "Checkout") -> list[dict]:
                 "full_name": variant.display_product(),
                 "product_name": product.name,
                 "variant_name": variant.name,
-                "attributes": serialize_product_or_variant_attributes(variant),
+                "attributes": serialize_variant_attributes(variant),
             }
         )
     return data
@@ -104,9 +105,7 @@ def serialize_checkout_lines_for_tax_calculation(
     ]
 
 
-def serialize_product_or_variant_attributes(
-    product_or_variant: Union["Product", "ProductVariant"]
-) -> list[dict]:
+def serialize_product_attributes(product: "Product") -> list[dict]:
     data = []
 
     def _prepare_reference(attribute, attr_value):
@@ -122,7 +121,72 @@ def serialize_product_or_variant_attributes(
         reference_id = graphene.Node.to_global_id(attribute.entity_type, reference_pk)
         return reference_id
 
-    for attr in product_or_variant.attributes.all():
+    attribute_products = product.product_type.attributeproduct.all()
+    assigned_values = product.attributevalues.all()
+
+    values_map = defaultdict(list)
+    for av in assigned_values:
+        values_map[av.value.attribute_id].append(av.value)
+
+    for attribute_product in attribute_products:
+        attribute = attribute_product.attribute  # type: ignore[attr-defined]
+
+        attr_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+        attr_data: dict[Any, Any] = {
+            "name": attribute.name,
+            "input_type": attribute.input_type,
+            "slug": attribute.slug,
+            "entity_type": attribute.entity_type,
+            "unit": attribute.unit,
+            "id": attr_id,
+            "values": [],
+        }
+
+        for attr_value in values_map[attribute.pk]:
+            attr_slug = attr_value.slug
+            value: dict[
+                str, Optional[Union[str, datetime, date, bool, dict[str, Any]]]
+            ] = {
+                "name": attr_value.name,
+                "slug": attr_slug,
+                "value": attr_value.value,
+                "rich_text": attr_value.rich_text,
+                "boolean": attr_value.boolean,
+                "date_time": attr_value.date_time,
+                "date": attr_value.date_time,
+                "reference": _prepare_reference(attribute, attr_value),
+                "file": None,
+            }
+
+            if attr_value.file_url:
+                value["file"] = {
+                    "content_type": attr_value.content_type,
+                    "file_url": attr_value.file_url,
+                }
+            attr_data["values"].append(value)
+
+        data.append(attr_data)
+
+    return data
+
+
+def serialize_variant_attributes(variant: "ProductVariant") -> list[dict]:
+    data = []
+
+    def _prepare_reference(attribute, attr_value):
+        if attribute.input_type != AttributeInputType.REFERENCE:
+            return
+        if attribute.entity_type == AttributeEntityType.PAGE:
+            reference_pk = attr_value.reference_page_id
+        elif attribute.entity_type == AttributeEntityType.PRODUCT:
+            reference_pk = attr_value.reference_product_id
+        else:
+            return None
+
+        reference_id = graphene.Node.to_global_id(attribute.entity_type, reference_pk)
+        return reference_id
+
+    for attr in variant.attributes.all():
         attr_id = graphene.Node.to_global_id("Attribute", attr.assignment.attribute_id)
         attribute = attr.assignment.attribute
         attr_data: dict[Any, Any] = {

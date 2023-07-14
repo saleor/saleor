@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Optional, Union
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.db.models.expressions import Exists, OuterRef
 from django.db.utils import IntegrityError
 from django.template.defaultfilters import truncatechars
 from django.utils import timezone
@@ -15,11 +16,10 @@ from django.utils.text import slugify
 from graphql.error import GraphQLError
 from text_unidecode import unidecode
 
-from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
+from ...attribute import AttributeEntityType, AttributeInputType
 from ...attribute import models as attribute_models
 from ...attribute.utils import (
     associate_attribute_values_to_instance,
-    disassociate_attributes_from_instance,
 )
 from ...core.utils import (
     generate_unique_slug,
@@ -120,8 +120,11 @@ class AttributeAssignmentMixin:
     ):
         """Retrieve attributes nodes from given global IDs or external reference."""
 
-        qs = qs.filter(Q(pk__in=pks) | Q(external_reference__in=external_references))
-        nodes: list[attribute_models.Attribute] = list(qs)
+        nodes: list[attribute_models.Attribute] = list(
+            qs.filter(
+                Q(pk__in=pks) | Q(external_reference__in=external_references)
+            ).iterator()
+        )
 
         if not nodes:
             raise ValidationError(
@@ -774,13 +777,15 @@ class PageAttributeAssignmentMixin(AttributeAssignmentMixin):
         lookup_field: str,
         value,
     ):
-        return (
-            attribute.values.filter(
-                pagevalueassignment__page_id=instance.pk,
-                **{lookup_field: value},
-            ).first()
-            or None
+        assigned_values = attribute_models.AssignedPageAttributeValue.objects.filter(
+            page_id=instance.pk
         )
+
+        return attribute_models.AttributeValue.objects.filter(
+            Exists(assigned_values.filter(value_id=OuterRef("id"))),
+            attribute_id=attribute.pk,
+            **{lookup_field: value},
+        ).first()
 
     @classmethod
     def save(
@@ -807,7 +812,6 @@ class PageAttributeAssignmentMixin(AttributeAssignmentMixin):
             AttributeInputType.REFERENCE: cls._pre_save_reference_values,
             AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
         }
-        clean_assignment = []
 
         for attribute, attr_values in cleaned_input:
             is_handled_by_values_field = (
@@ -828,18 +832,76 @@ class PageAttributeAssignmentMixin(AttributeAssignmentMixin):
             associate_attribute_values_to_instance(
                 instance, attribute, *attribute_values
             )
-            if not attribute_values:
-                clean_assignment.append(attribute)
-
-        # drop attribute assignment model when values are unassigned from instance
-        if clean_assignment:
-            disassociate_attributes_from_instance(instance, *clean_assignment)
 
 
-def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
-    return qs.filter(
-        type=AttributeType.PRODUCT_TYPE, attributevariant__variant_selection=True
-    )
+class ProductAttributeAssignmentMixin(AttributeAssignmentMixin):
+    # TODO: merge the code here with the mixin above
+    # when all attribute relations are cleaned up
+
+    @classmethod
+    def _get_assigned_attribute_value_if_exists(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        lookup_field: str,
+        value,
+    ):
+        assigned_values = attribute_models.AssignedProductAttributeValue.objects.filter(
+            product_id=instance.pk
+        )
+
+        return attribute_models.AttributeValue.objects.filter(
+            Exists(assigned_values.filter(value_id=OuterRef("id"))),
+            attribute_id=attribute.pk,
+            **{lookup_field: value},
+        ).first()
+
+    @classmethod
+    def save(
+        cls,
+        instance: T_INSTANCE,
+        cleaned_input: T_INPUT_MAP,
+    ):
+        """Save the cleaned input into the database against the given instance.
+
+        Note: this should always be ran inside a transaction.
+
+        :param instance: the product or variant to associate the attribute against.
+        :param cleaned_input: the cleaned user input (refer to clean_attributes)
+        """
+        pre_save_methods_mapping = {
+            AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
+            AttributeInputType.DATE: cls._pre_save_date_time_values,
+            AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
+            AttributeInputType.DROPDOWN: cls._pre_save_dropdown_value,
+            AttributeInputType.SWATCH: cls._pre_save_swatch_value,
+            AttributeInputType.FILE: cls._pre_save_file_value,
+            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
+            AttributeInputType.MULTISELECT: cls._pre_save_multiselect_values,
+            AttributeInputType.PLAIN_TEXT: cls._pre_save_plain_text_values,
+            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
+            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
+        }
+
+        for attribute, attr_values in cleaned_input:
+            is_handled_by_values_field = (
+                attr_values.values
+                and attribute.input_type
+                in (
+                    AttributeInputType.DROPDOWN,
+                    AttributeInputType.MULTISELECT,
+                    AttributeInputType.SWATCH,
+                )
+            )
+            if is_handled_by_values_field:
+                attribute_values = cls._pre_save_values(attribute, attr_values)
+            else:
+                pre_save_func = pre_save_methods_mapping[attribute.input_type]
+                attribute_values = pre_save_func(instance, attribute, attr_values)
+
+            associate_attribute_values_to_instance(
+                instance, attribute, *attribute_values
+            )
 
 
 def prepare_attribute_values(attribute: attribute_models.Attribute, values: list[str]):

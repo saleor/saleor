@@ -1333,7 +1333,7 @@ def test_complete_checkout_with_digital_line(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_customer_complete_checkout(
-    api_client, checkout_with_charged_payment, count_queries, customer_user
+    api_client, checkout_with_charged_payment, customer_user, count_queries
 ):
     query = COMPLETE_CHECKOUT_MUTATION
     checkout = checkout_with_charged_payment
@@ -1350,7 +1350,7 @@ def test_customer_complete_checkout(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_customer_complete_checkout_for_cc(
-    api_client, checkout_with_charged_payment_for_cc, count_queries, customer_user
+    api_client, checkout_with_charged_payment_for_cc, customer_user, count_queries
 ):
     query = COMPLETE_CHECKOUT_MUTATION_FOR_CC
     checkout = checkout_with_charged_payment_for_cc

@@ -3090,7 +3090,7 @@ def product_with_variant_with_file_attribute(
 
 
 @pytest.fixture
-def product_with_multiple_values_attributes(product, product_type, category) -> Product:
+def product_with_multiple_values_attributes(product, product_type) -> Product:
     attribute = Attribute.objects.create(
         slug="modes",
         name="Available Modes",

@@ -43,6 +43,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added validation for timestamp comparison #14025 by @ritanjandawn
 - Page -> Attributes refactor. The goal is to simplify the attribute models. The current attribute model relations are complex and really hard to understand. - #13621
 - `requirements.txt` and `requirements_dev.txt` were dropped in favor of only supporting `poetry` - #14611 by @patrys
+- Change the Attribute - Product relation to decrease code complexity and make it easier to understand the relations - #13407 by @aniav
 
 # 3.17.0
 
