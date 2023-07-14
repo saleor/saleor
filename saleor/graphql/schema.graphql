@@ -1898,6 +1898,22 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   ORDER_BULK_CREATED
 
+  """A new fulfillment is created."""
+  FULFILLMENT_CREATED
+
+  """A fulfillment is cancelled."""
+  FULFILLMENT_CANCELED
+
+  """A fulfillment is approved."""
+  FULFILLMENT_APPROVED
+
+  """
+  A fulfillment metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  FULFILLMENT_METADATA_UPDATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -1970,6 +1986,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_DELETED
 
   """
+  A product metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  PRODUCT_METADATA_UPDATED
+
+  """
   A new product media is created.
   
   Added in Saleor 3.12.
@@ -1990,13 +2013,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   PRODUCT_MEDIA_DELETED
 
-  """
-  A product metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  PRODUCT_METADATA_UPDATED
-
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
 
@@ -2006,6 +2022,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A product variant is deleted."""
   PRODUCT_VARIANT_DELETED
 
+  """
+  A product variant metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  PRODUCT_VARIANT_METADATA_UPDATED
+
   """A product variant is out of stock."""
   PRODUCT_VARIANT_OUT_OF_STOCK
 
@@ -2014,13 +2037,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
-
-  """
-  A product variant metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  PRODUCT_VARIANT_METADATA_UPDATED
 
   """A new checkout is created."""
   CHECKOUT_CREATED
@@ -2037,22 +2053,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   CHECKOUT_METADATA_UPDATED
-
-  """A new fulfillment is created."""
-  FULFILLMENT_CREATED
-
-  """A fulfillment is cancelled."""
-  FULFILLMENT_CANCELED
-
-  """A fulfillment is approved."""
-  FULFILLMENT_APPROVED
-
-  """
-  A fulfillment metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  FULFILLMENT_METADATA_UPDATED
 
   """User notification triggered."""
   NOTIFY_USER
@@ -2538,6 +2538,22 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   ORDER_BULK_CREATED
 
+  """A new fulfillment is created."""
+  FULFILLMENT_CREATED
+
+  """A fulfillment is cancelled."""
+  FULFILLMENT_CANCELED
+
+  """A fulfillment is approved."""
+  FULFILLMENT_APPROVED
+
+  """
+  A fulfillment metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  FULFILLMENT_METADATA_UPDATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -2610,6 +2626,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   PRODUCT_DELETED
 
   """
+  A product metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  PRODUCT_METADATA_UPDATED
+
+  """
   A new product media is created.
   
   Added in Saleor 3.12.
@@ -2630,13 +2653,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   PRODUCT_MEDIA_DELETED
 
-  """
-  A product metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  PRODUCT_METADATA_UPDATED
-
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
 
@@ -2646,6 +2662,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A product variant is deleted."""
   PRODUCT_VARIANT_DELETED
 
+  """
+  A product variant metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  PRODUCT_VARIANT_METADATA_UPDATED
+
   """A product variant is out of stock."""
   PRODUCT_VARIANT_OUT_OF_STOCK
 
@@ -2654,13 +2677,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
-
-  """
-  A product variant metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  PRODUCT_VARIANT_METADATA_UPDATED
 
   """A new checkout is created."""
   CHECKOUT_CREATED
@@ -2677,22 +2693,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   CHECKOUT_METADATA_UPDATED
-
-  """A new fulfillment is created."""
-  FULFILLMENT_CREATED
-
-  """A fulfillment is cancelled."""
-  FULFILLMENT_CANCELED
-
-  """A fulfillment is approved."""
-  FULFILLMENT_APPROVED
-
-  """
-  A fulfillment metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  FULFILLMENT_METADATA_UPDATED
 
   """User notification triggered."""
   NOTIFY_USER
@@ -3405,6 +3405,10 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ORDER_FULFILLED
   ORDER_METADATA_UPDATED
   ORDER_BULK_CREATED
+  FULFILLMENT_CREATED
+  FULFILLMENT_CANCELED
+  FULFILLMENT_APPROVED
+  FULFILLMENT_METADATA_UPDATED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
   DRAFT_ORDER_DELETED
@@ -3426,25 +3430,21 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  PRODUCT_METADATA_UPDATED
   PRODUCT_MEDIA_CREATED
   PRODUCT_MEDIA_UPDATED
   PRODUCT_MEDIA_DELETED
-  PRODUCT_METADATA_UPDATED
   PRODUCT_VARIANT_CREATED
   PRODUCT_VARIANT_UPDATED
   PRODUCT_VARIANT_DELETED
+  PRODUCT_VARIANT_METADATA_UPDATED
   PRODUCT_VARIANT_OUT_OF_STOCK
   PRODUCT_VARIANT_BACK_IN_STOCK
   PRODUCT_VARIANT_STOCK_UPDATED
-  PRODUCT_VARIANT_METADATA_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   CHECKOUT_FULLY_PAID
   CHECKOUT_METADATA_UPDATED
-  FULFILLMENT_CREATED
-  FULFILLMENT_CANCELED
-  FULFILLMENT_APPROVED
-  FULFILLMENT_METADATA_UPDATED
   NOTIFY_USER
   PAGE_CREATED
   PAGE_UPDATED
