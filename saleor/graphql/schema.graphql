@@ -8953,7 +8953,7 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   
   Added in Saleor 3.3.
   """
-  metafields(keys: [String!]): 
+  metafields(keys: [String!]): Metadata
   
   """The name of the menu item."""
   name: String!
