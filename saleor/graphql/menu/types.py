@@ -102,7 +102,7 @@ class MenuItem(ChannelContextTypeWithMetadata[models.MenuItem]):
     )
     level = graphene.Int(
         required=True,
-        description="Indicates the position of the menu item within the menu"
+        description="Indicates the position of the menu item within the menu "
         "structure.",
     )
     children = NonNullList(
