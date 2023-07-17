@@ -9041,10 +9041,10 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   """The name of the menu."""
   name: String!
 
-  """Internal representation of a menu name."""
+  """Slug of the menu."""
   slug: String!
 
-  """Items associated with a menu."""
+  """Menu items associated with this menu."""
   items: [MenuItem!]
 }
 

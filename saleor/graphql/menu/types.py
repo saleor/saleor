@@ -38,10 +38,10 @@ from .dataloaders import (
 class Menu(ChannelContextTypeWithMetadata[models.Menu]):
     id = graphene.GlobalID(required=True, description="The ID of the menu.")
     name = graphene.String(required=True, description="The name of the menu.")
-    slug = graphene.String(
-        required=True, description="Internal representation of a menu name."
+    slug = graphene.String(required=True, description="Slug of the menu.")
+    items = NonNullList(
+        lambda: MenuItem, description="Menu items associated with this menu."
     )
-    items = NonNullList(lambda: MenuItem, description="Items associated with a menu.")
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
