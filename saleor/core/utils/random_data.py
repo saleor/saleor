@@ -609,7 +609,7 @@ def create_order_lines(order, discounts, how_many=10):
     lines = []
     for _ in range(how_many):
         variant = next(variants_iter)
-        lines.append(_get_new_order_line(order, variant, channel, discounts))
+        lines.append(_get_new_order_line(order, variant, channel))
 
     lines = OrderLine.objects.bulk_create(lines)
     manager = get_plugins_manager()
@@ -666,7 +666,7 @@ def create_order_lines_with_preorder(order, discounts, how_many=1):
     lines = []
     for _ in range(how_many):
         variant = next(variants_iter)
-        lines.append(_get_new_order_line(order, variant, channel, discounts))
+        lines.append(_get_new_order_line(order, variant, channel))
 
     lines = OrderLine.objects.bulk_create(lines)
     manager = get_plugins_manager()
@@ -714,7 +714,7 @@ def create_order_lines_with_preorder(order, discounts, how_many=1):
     return lines
 
 
-def _get_new_order_line(order, variant, channel, discounts):
+def _get_new_order_line(order, variant, channel):
     variant_channel_listing = variant.channel_listings.get(channel=channel)
     product = variant.product
     quantity = random.randrange(
@@ -724,11 +724,7 @@ def _get_new_order_line(order, variant, channel, discounts):
         or 5,
     )
     untaxed_unit_price = variant.get_price(
-        product,
-        product.collections.all(),
-        channel,
         variant_channel_listing,
-        discounts,
     )
     unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
     total_price = unit_price * quantity
