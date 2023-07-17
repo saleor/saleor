@@ -299,7 +299,8 @@ class AttributeBulkCreate(BaseMutation):
         )
 
         for value_index, value_data in enumerate(values):
-            if value_data.external_reference in duplicated_values_external_ref:
+            external_ref = value_data.external_reference
+            if external_ref in duplicated_values_external_ref:
                 index_error_map[attribute_index].append(
                     AttributeBulkCreateError(
                         path=f"values.{value_index}.externalReference",
@@ -309,7 +310,7 @@ class AttributeBulkCreate(BaseMutation):
                 )
                 continue
 
-            if value_data.external_reference in values_existing_external_refs:
+            if external_ref and external_ref in values_existing_external_refs:
                 index_error_map[attribute_index].append(
                     AttributeBulkCreateError(
                         path=f"values.{value_index}.externalReference",
