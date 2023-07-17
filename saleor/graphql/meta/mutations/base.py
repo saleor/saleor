@@ -22,7 +22,7 @@ from ...payment.utils import metadata_contains_empty_key
 from ..extra_methods import TYPE_EXTRA_METHODS, TYPE_EXTRA_PREFETCH
 from ..permissions import AccountPermissions
 from ..types import ObjectWithMetadata
-from ..utils import get_valid_metadata_instance
+from .utils import get_valid_metadata_instance
 
 
 class MetadataPermissionOptions(graphene.types.mutation.MutationOptions):
@@ -182,6 +182,8 @@ class BaseMetadataMutation(BaseMutation):
         try:
             result = super().mutate(root, info, **data)
 
+            has_changed = False
+
             instance = result.item
             if isinstance(instance, ChannelContext):
                 instance = instance.node
@@ -194,8 +196,6 @@ class BaseMetadataMutation(BaseMutation):
                     old_metadata != new_metadata
                     or old_private_metadata != new_private_metadata
                 )
-            else:
-                has_changed = False
 
             if not result.errors and has_changed:
                 cls.perform_model_extra_actions(root, info, type_name, **data)

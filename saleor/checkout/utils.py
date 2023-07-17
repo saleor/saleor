@@ -951,7 +951,7 @@ def delete_external_shipping_id(checkout: Checkout):
     metadata.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
 
 
-def get_or_create_checkout_metadata(checkout: "Checkout"):
+def get_or_create_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata:
     if hasattr(checkout, "metadata_storage"):
         return checkout.metadata_storage
     else:
