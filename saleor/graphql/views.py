@@ -336,6 +336,7 @@ class GraphQLView(View):
             except Exception as e:
                 span.set_tag(opentracing.tags.ERROR, True)
                 if app := getattr(request, "app", None):
+                    span.set_tag("app.id", app.id)
                     span.set_tag("app.name", app.name)
                 # In the graphql-core version that we are using,
                 # the Exception is raised for too big integers value.
