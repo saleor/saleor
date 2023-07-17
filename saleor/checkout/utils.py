@@ -1,4 +1,5 @@
 """Checkout-related utility functions."""
+from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
@@ -41,8 +42,6 @@ from .fetch import (
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
-    from decimal import Decimal
-
     from ..account.models import Address
     from ..order.models import Order
     from .fetch import CheckoutInfo, CheckoutLineInfo
@@ -925,7 +924,7 @@ def get_taxed_undiscounted_price(
     undiscounted_base_price: "Money",
     price: "TaxedMoney",
     tax_rate: "Decimal",
-    prices_entered_with_tax: bool
+    prices_entered_with_tax: bool,
 ):
     """Apply taxes to undiscounted base price.
 

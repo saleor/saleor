@@ -87,21 +87,25 @@ def get_order_prices_entered_with_tax_mapping(
 
 @app.task
 def recalculate_undiscounted_prices():
-    order_lines = OrderLine.objects.filter(
-        (
-            Q(
-                undiscounted_unit_price_net_amount=F(
-                    "undiscounted_unit_price_gross_amount"
+    order_lines = (
+        OrderLine.objects.filter(
+            (
+                Q(
+                    undiscounted_unit_price_net_amount=F(
+                        "undiscounted_unit_price_gross_amount"
+                    )
+                )
+                | Q(
+                    undiscounted_total_price_net_amount=F(
+                        "undiscounted_total_price_gross_amount"
+                    )
                 )
             )
-            | Q(
-                undiscounted_total_price_net_amount=F(
-                    "undiscounted_total_price_gross_amount"
-                )
-            )
+            & Q(tax_rate__gt=0)
         )
-        & Q(tax_rate__gt=0)
-    ).prefetch_related("order_id").order_by("-created_at")[:BATCH_SIZE]
+        .prefetch_related("order_id")
+        .order_by("-created_at")[:BATCH_SIZE]
+    )
 
     if not order_lines:
         task_logger.info("No order lines to update.")

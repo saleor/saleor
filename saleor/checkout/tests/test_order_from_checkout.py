@@ -782,7 +782,7 @@ def test_create_order_from_checkout_update_undiscounted_prices_match(
     manager = get_plugins_manager()
     country_code = checkout.shipping_address.country.code
     line = checkout.lines.first()
-    line.quantity = 2
+    line.quantity = 1
     line.save()
     product = line.variant.product
     channel_listing = line.variant.channel_listings.first()
