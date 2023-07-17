@@ -46,9 +46,8 @@ class ExternalRefresh(BaseMutation):
         access_tokens_response = manager.external_refresh(plugin_id, input, request)
         setattr(info.context, "refresh_token", access_tokens_response.refresh_token)
 
-        if access_tokens_response.user:
-            if access_tokens_response.user.id:
-                info.context._cached_user = access_tokens_response.user
+        if access_tokens_response.user and access_tokens_response.user.id:
+            info.context._cached_user = access_tokens_response.user
             access_tokens_response.user.last_login = timezone.now()
             access_tokens_response.user.save(update_fields=["last_login", "updated_at"])
 

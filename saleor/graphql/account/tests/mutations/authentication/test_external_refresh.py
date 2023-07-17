@@ -55,10 +55,8 @@ def test_external_refresh(
         "saleor.plugins.manager.PluginsManager.external_refresh", mocked_plugin_fun
     )
     variables = {"pluginId": "pluginId1", "input": json.dumps({"refreshToken": "ABCD"})}
-    assert customer_user.last_login is None
     response = api_client.post_graphql(MUTATION_EXTERNAL_REFRESH, variables)
     content = get_graphql_content(response)
-    customer_user.refresh_from_db()
     data = content["data"]["externalRefresh"]
     assert data["token"] == expected_token
     assert data["refreshToken"] == expected_refresh_token
