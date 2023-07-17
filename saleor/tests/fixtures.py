@@ -50,8 +50,15 @@ from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
-from ..discount import DiscountInfo, DiscountValueType, RewardValueType, VoucherType
+from ..discount import (
+    DiscountInfo,
+    DiscountType,
+    DiscountValueType,
+    RewardValueType,
+    VoucherType,
+)
 from ..discount.models import (
+    CheckoutLineDiscount,
     NotApplicable,
     Promotion,
     PromotionRule,
@@ -336,6 +343,52 @@ def checkout_with_item_on_sale(checkout_with_item):
         channel_listing.price_amount - discount_amount
     )
     channel_listing.save(update_fields=["discounted_price_amount"])
+    return checkout_with_item
+
+
+@pytest.fixture
+def checkout_with_item_on_promotion(checkout_with_item):
+    line = checkout_with_item.lines.first()
+    channel = checkout_with_item.channel
+    promotion = Promotion.objects.create(name="Checkout promotion")
+
+    variant = line.variant
+
+    channel = checkout_with_item.channel
+
+    reward_value = Decimal("5")
+    rule = promotion.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel)
+
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel.currency_code,
+    )
+    CheckoutLineDiscount.objects.create(
+        line=line,
+        type=DiscountType.PROMOTION,
+        value_type=DiscountValueType.FIXED,
+        amount_value=reward_value,
+        currency=channel.currency_code,
+        promotion_rule=rule,
+    )
+
     return checkout_with_item
 
 
