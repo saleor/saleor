@@ -1,9 +1,11 @@
 from collections import defaultdict, namedtuple
+from collections import defaultdict, namedtuple
 from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....checkout.fetch import get_variant_channel_listing, get_variant_rules_info
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
@@ -16,6 +18,7 @@ from ....order.utils import (
     recalculate_order_weight,
 )
 from ....permission.enums import OrderPermissions
+from ....product import models as product_models
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
@@ -31,11 +34,7 @@ from ..utils import (
     validate_variant_channel_listings,
 )
 from .draft_order_create import OrderLineCreateInput
-from .utils import (
-    EditableOrderValidationMixin,
-    get_variant_rule_info_map,
-    get_webhook_handler_by_order_status,
-)
+from .utils import EditableOrderValidationMixin, get_webhook_handler_by_order_status
 
 VariantData = namedtuple("VariantData", ["variant", "rules_info"])
 
@@ -66,6 +65,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
     def validate_lines(
         cls, info: ResolveInfo, data, existing_lines_info, variants_data
     ):
+    def validate_lines(
+        cls, info: ResolveInfo, data, existing_lines_info, variants_data
+    ):
         grouped_lines_data: List[OrderLineData] = []
         lines_data_map: Dict[str, OrderLineData] = defaultdict(OrderLineData)
 
@@ -79,6 +81,8 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             force_new_line = input_line["force_new_line"]
             variant_data = variants_data.get(variant_id)
             variant = variant_data.variant
+            variant_data = variants_data.get(variant_id)
+            variant = variant_data.variant
             quantity = input_line["quantity"]
 
             custom_price = input_line.get("price")
@@ -90,6 +94,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                             variant=variant,
                             quantity=quantity,
                             price_override=custom_price,
+                            rules_info=variant_data.rules_info,
                             rules_info=variant_data.rules_info,
                         )
                     )
@@ -108,6 +113,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     line_data.variant = variant
                     line_data.quantity += quantity
                     line_data.price_override = custom_price
+                    line_data.rules_info = variant_data.rules_info
                     line_data.rules_info = variant_data.rules_info
             else:
                 invalid_ids.append(variant_id)
@@ -164,13 +170,13 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         cls.check_channel_permissions(info, [order.channel_id])
         cls.validate_order(order)
         existing_lines_info = fetch_order_lines(order)
-        variant_pks = cls.get_global_ids_or_error(
-            [line["variant_id"] for line in input], ProductVariant, "variant_id"
-        )
-        variants_data = get_variant_rule_info_map(
-            variant_pks, order.channel_id, order.language_code
+        variants_data = cls.get_variant_rule_info_map(
+            input, order.channel_id, order.language_code
         )
 
+        lines_to_add = cls.validate_lines(
+            info, input, existing_lines_info, variants_data
+        )
         lines_to_add = cls.validate_lines(
             info, input, existing_lines_info, variants_data
         )
@@ -212,6 +218,26 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             cls.call_event(func, order)
 
         return OrderLinesCreate(order=order, order_lines=added_lines)
+
+    @classmethod
+    def get_variant_rule_info_map(cls, data, channel_id, language_code):
+        variant_id_to_variant_and_rules_info_map = {}
+        variant_ids = [line["variant_id"] for line in data]
+        pks = cls.get_global_ids_or_error(variant_ids, ProductVariant, "variant_id")
+        variants = product_models.ProductVariant.objects.filter(
+            pk__in=pks
+        ).prefetch_related(
+            "channel_listings__variantlistingpromotionrule__promotion_rule__promotion",
+            "channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
+            "channel_listings__variantlistingpromotionrule__promotion_rule__translations",
+        )
+        for variant in variants:
+            variant_channel_listing = get_variant_channel_listing(variant, channel_id)
+            rules_info = get_variant_rules_info(variant_channel_listing, language_code)
+            variant_id_to_variant_and_rules_info_map[
+                graphene.Node.to_global_id("ProductVariant", variant.pk)
+            ] = VariantData(variant=variant, rules_info=rules_info)
+        return variant_id_to_variant_and_rules_info_map
 
     @classmethod
     def _find_line_id_for_variant_if_exist(cls, variant_id, lines_info):

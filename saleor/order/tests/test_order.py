@@ -5,10 +5,10 @@ import graphene
 import pytest
 from prices import Money, TaxedMoney
 
+from ...checkout.fetch import VariantPromotionRuleInfo
 from ...core.utils.translations import get_translation
 from ...core.weight import zero_weight
 from ...discount import DiscountType, RewardValueType
-from ...discount.interface import VariantPromotionRuleInfo
 from ...discount.models import (
     DiscountValueType,
     NotApplicable,
@@ -123,9 +123,11 @@ def test_add_variant_to_order_adds_line_for_new_variant(
 
 
 def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
+def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
     order_with_lines,
     product,
     anonymous_plugins,
+    promotion_without_rules,
     promotion_without_rules,
 ):
     # given
@@ -144,8 +146,21 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
     )
     rule.channels.add(order.channel)
 
+    reward_value = Decimal("5")
+    rule = promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(order.channel)
+
     channel_listing = variant.channel_listings.get(channel=order.channel)
     channel_listing.discounted_price_amount = (
+        channel_listing.price.amount - reward_value
         channel_listing.price.amount - reward_value
     )
     channel_listing.save(update_fields=["discounted_price_amount"])
@@ -156,7 +171,27 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
         currency=channel_listing.channel.currency_code,
     )
 
+    listing_rule = channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel_listing.channel.currency_code,
+    )
+
     lines_before = order.lines.count()
+    line_data = OrderLineData(
+        variant_id=str(variant.id),
+        variant=variant,
+        quantity=1,
+        rules_info=[
+            VariantPromotionRuleInfo(
+                rule=rule,
+                variant_listing_promotion_rule=listing_rule,
+                promotion=promotion_without_rules,
+                promotion_translation=None,
+                rule_translation=None,
+            )
+        ],
+    )
     line_data = OrderLineData(
         variant_id=str(variant.id),
         variant=variant,
@@ -188,6 +223,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
     assert line.product_sku == variant.sku
     assert line.quantity == 1
     unit_amount = variant_channel_listing.discounted_price_amount
+    unit_amount = variant_channel_listing.discounted_price_amount
     assert line.unit_price == TaxedMoney(
         net=Money(unit_amount, "USD"), gross=Money(unit_amount, "USD")
     )
@@ -196,6 +232,11 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
 
     assert line.unit_discount_amount == reward_value
     assert line.unit_discount_value == reward_value
+    assert line.unit_discount_amount == reward_value
+    assert line.unit_discount_value == reward_value
+
+    assert line.discounts.count() == 1
+    assert line.discounts.first().promotion_rule == rule
 
     assert line.discounts.count() == 1
     assert line.discounts.first().promotion_rule == rule
@@ -1374,9 +1415,11 @@ def test_order_update_charge_data_with_transaction_item_and_payment(
 
 
 def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom_price(
+def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom_price(
     order_with_lines,
     product,
     anonymous_plugins,
+    promotion_without_rules,
     promotion_without_rules,
 ):
     # given
@@ -1395,11 +1438,30 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom
     )
     rule.channels.add(order.channel)
 
+    reward_value = Decimal("5")
+    rule = promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(order.channel)
+
     channel_listing = variant.channel_listings.get(channel=order.channel)
     channel_listing.discounted_price_amount = (
         channel_listing.price.amount - reward_value
+        channel_listing.price.amount - reward_value
     )
     channel_listing.save(update_fields=["discounted_price_amount"])
+
+    listing_rule = channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel_listing.channel.currency_code,
+    )
 
     listing_rule = channel_listing.variantlistingpromotionrule.create(
         promotion_rule=rule,
@@ -1414,6 +1476,15 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom
         variant=variant,
         quantity=1,
         price_override=price_override,
+        rules_info=[
+            VariantPromotionRuleInfo(
+                rule=rule,
+                variant_listing_promotion_rule=listing_rule,
+                promotion=promotion_without_rules,
+                promotion_translation=None,
+                rule_translation=None,
+            )
+        ],
         rules_info=[
             VariantPromotionRuleInfo(
                 rule=rule,
@@ -1442,6 +1513,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom
     assert line.quantity == 1
     assert variant_channel_listing.price_amount != price_override
     unit_amount = price_override - reward_value
+    unit_amount = price_override - reward_value
     assert line.unit_price == TaxedMoney(
         net=Money(unit_amount, "USD"), gross=Money(unit_amount, "USD")
     )
@@ -1450,6 +1522,11 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom
 
     assert line.unit_discount_amount == reward_value
     assert line.unit_discount_value == reward_value
+    assert line.unit_discount_amount == reward_value
+    assert line.unit_discount_value == reward_value
+
+    assert line.discounts.count() == 1
+    assert line.discounts.first().promotion_rule == rule
 
     assert line.discounts.count() == 1
     assert line.discounts.first().promotion_rule == rule

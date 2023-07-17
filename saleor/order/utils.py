@@ -22,10 +22,16 @@ from ..discount.models import (
     Voucher,
     VoucherType,
 )
+from ..discount.models import (
+    NotApplicable,
+    OrderDiscount,
+    OrderLineDiscount,
+    Voucher,
+    VoucherType,
+)
 from ..discount.utils import (
     apply_discount_to_value,
     get_discount_name,
-    get_discount_translated_name,
     get_products_voucher_discount,
     validate_voucher_in_order,
 )
@@ -62,8 +68,7 @@ from .models import Order, OrderGrantedRefund, OrderLine
 if TYPE_CHECKING:
     from ..app.models import App
     from ..channel.models import Channel
-    from ..checkout.fetch import CheckoutInfo
-    from ..discount.interface import VariantPromotionRuleInfo
+    from ..checkout.fetch import CheckoutInfo, VariantPromotionRuleInfo
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
 
@@ -220,6 +225,7 @@ def create_order_line(
     quantity = line_data.quantity
     price_override = line_data.price_override
     rules_info = line_data.rules_info
+    rules_info = line_data.rules_info
 
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel)
@@ -231,6 +237,13 @@ def create_order_line(
         promotion_rules=(
             [rule_info.rule for rule_info in rules_info] if rules_info else None
         ),
+        promotion_rules=(
+            [rule_info.rule for rule_info in rules_info] if rules_info else None
+        ),
+    )
+    untaxed_undiscounted_price = variant.get_base_price(
+        channel_listing,
+        price_override=price_override,
     )
     untaxed_undiscounted_price = variant.get_base_price(
         channel_listing,
@@ -280,6 +293,16 @@ def create_order_line(
 
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
+        if rules_info:
+            line_discounts = create_order_line_discounts(line, rules_info)
+            line.unit_discount_reason = (
+                prepare_promotion_discount_reason(line_discounts)
+                if line_discounts
+                else None
+            )
+            line.sale_id = graphene.Node.to_global_id(
+                "Promotion", rules_info[0].promotion.pk
+            )
         if rules_info:
             line_discounts = create_order_line_discounts(line, rules_info)
             line.unit_discount_reason = (
@@ -343,7 +366,8 @@ def create_order_line_discounts(
                 amount_value=rule_discount_amount,
                 currency=line.currency,
                 name=get_discount_name(rule, rule_info.promotion),
-                translated_name=get_discount_translated_name(rule_info),
+                # TODO: set the promotion translation
+                translated_name="",
                 reason=None,
                 promotion_rule=rule,
             )

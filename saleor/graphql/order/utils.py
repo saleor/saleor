@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...checkout.fetch import VariantPromotionRuleInfo
 from ...core.exceptions import InsufficientStock
 from ...discount.interface import VariantPromotionRuleInfo
 from ...order.error_codes import OrderErrorCode

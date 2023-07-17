@@ -50,8 +50,15 @@ from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
-from ..discount import DiscountInfo, DiscountValueType, RewardValueType, VoucherType
+from ..discount import (
+    DiscountInfo,
+    DiscountType,
+    DiscountValueType,
+    RewardValueType,
+    VoucherType,
+)
 from ..discount.models import (
+    CheckoutLineDiscount,
     CheckoutLineDiscount,
     NotApplicable,
     Promotion,
@@ -376,8 +383,7 @@ def checkout_with_item_on_promotion(checkout_with_item):
         line=line,
         type=DiscountType.PROMOTION,
         value_type=DiscountValueType.FIXED,
-        value=reward_value,
-        amount_value=reward_value * line.quantity,
+        amount_value=reward_value,
         currency=channel.currency_code,
         promotion_rule=rule,
     )
