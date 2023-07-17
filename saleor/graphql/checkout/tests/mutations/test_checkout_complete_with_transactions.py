@@ -17,8 +17,8 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
 from .....checkout.payment_utils import update_checkout_payment_statuses
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
-from .....discount import DiscountType, DiscountValueType
-from .....discount.models import Sale, SaleChannelListing, Voucher
+from .....discount import DiscountType, DiscountValueType, RewardValueType
+from .....discount.models import CheckoutLineDiscount, PromotionRule, Voucher
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderOrigin, OrderStatus
@@ -26,6 +26,7 @@ from .....order.models import Fulfillment, Order
 from .....payment import TransactionEventType
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....plugins.manager import PluginsManager, get_plugins_manager
+from .....product.models import VariantChannelListingPromotionRule
 from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
@@ -1698,8 +1699,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
     user_api_client,
     checkout_with_voucher_percentage,
     voucher_percentage,
-    discount_info,
-    sale,
+    promotion_without_rules,
     address,
     shipping_method,
     transaction_events_generator,
@@ -1721,8 +1721,48 @@ def test_checkout_with_voucher_complete_product_on_sale(
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
 
-    discount_info.variants_ids.add(checkout_line_variant.id)
-    sale.variants.add(checkout_line_variant)
+    channel = checkout.channel
+    reward_value = Decimal("5")
+    rule = promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [
+                    graphene.Node.to_global_id(
+                        "Product", checkout_line_variant.product.id
+                    )
+                ]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel)
+
+    variant_channel_listing = checkout_line_variant.channel_listings.get(
+        channel=channel
+    )
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel.currency_code,
+    )
+    CheckoutLineDiscount.objects.create(
+        line=checkout_line,
+        type=DiscountType.PROMOTION,
+        value_type=DiscountValueType.FIXED,
+        amount_value=reward_value,
+        currency=channel.currency_code,
+        promotion_rule=rule,
+    )
+
+    promotion_without_rules.name = ""
+    promotion_without_rules.save(update_fields=["name"])
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
@@ -1760,7 +1800,9 @@ def test_checkout_with_voucher_complete_product_on_sale(
     assert order.undiscounted_total == total + (
         order_line.undiscounted_total_price - order_line.total_price
     )
-    assert order_line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
+    assert order_line.sale_id == graphene.Node.to_global_id(
+        "Promotion", promotion_without_rules.id
+    )
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == voucher_used_count + 1
@@ -1843,10 +1885,10 @@ def test_checkout_with_voucher_on_specific_product_complete(
     ).exists(), "Checkout should have been deleted"
 
 
-def test_checkout_complete_product_on_sale(
+def test_checkout_complete_product_on_promotion(
     user_api_client,
     checkout_with_item,
-    sale,
+    promotion_without_rules,
     address,
     shipping_method,
     transaction_events_generator,
@@ -1865,7 +1907,46 @@ def test_checkout_complete_product_on_sale(
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
 
-    sale.variants.add(checkout_line_variant)
+    channel = checkout.channel
+
+    reward_value = Decimal("5")
+    rule = promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [
+                    graphene.Node.to_global_id(
+                        "Product", checkout_line_variant.product.id
+                    )
+                ]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel)
+
+    variant_channel_listing = checkout_line_variant.channel_listings.get(
+        channel=channel
+    )
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel.currency_code,
+    )
+    CheckoutLineDiscount.objects.create(
+        line=checkout_line,
+        type=DiscountType.PROMOTION,
+        value_type=DiscountValueType.FIXED,
+        amount_value=reward_value,
+        currency=channel.currency_code,
+        promotion_rule=rule,
+    )
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
@@ -1903,18 +1984,20 @@ def test_checkout_complete_product_on_sale(
     assert order.undiscounted_total == total + (
         order_line.undiscounted_total_price - order_line.total_price
     )
-    assert order_line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
+    assert order_line.sale_id == graphene.Node.to_global_id(
+        "Promotion", promotion_without_rules.id
+    )
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
 
 
-def test_checkout_complete_product_on_many_sales(
+def test_checkout_complete_multiple_rules_applied(
     user_api_client,
     checkout_with_item,
-    sale,
     address,
     shipping_method,
+    promotion_without_rules,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -1931,16 +2014,95 @@ def test_checkout_complete_product_on_many_sales(
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
 
-    small_sale = Sale.objects.create(type=DiscountValueType.FIXED)
-    SaleChannelListing.objects.create(
-        sale=small_sale,
-        discount_value=1,
-        currency=checkout.channel.currency_code,
-        channel=checkout.channel,
+    channel = checkout.channel
+
+    reward_value_1 = Decimal("2")
+    reward_value_2 = Decimal("10")
+    rule_1, rule_2 = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                name="Percentage promotion rule 1",
+                promotion=promotion_without_rules,
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=reward_value_1,
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [
+                            graphene.Node.to_global_id(
+                                "Product", checkout_line_variant.product_id
+                            )
+                        ]
+                    }
+                },
+            ),
+            PromotionRule(
+                name="Percentage promotion rule 2",
+                promotion=promotion_without_rules,
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=reward_value_2,
+                catalogue_predicate={
+                    "variantPredicate": {
+                        "ids": [
+                            graphene.Node.to_global_id(
+                                "ProductVariant", checkout_line_variant.id
+                            )
+                        ]
+                    }
+                },
+            ),
+        ]
     )
 
-    small_sale.variants.add(checkout_line_variant)
-    sale.variants.add(checkout_line_variant)
+    rule_1.channels.add(channel)
+    rule_2.channels.add(channel)
+
+    variant_channel_listing = checkout_line_variant.channel_listings.get(
+        channel=channel
+    )
+    discount_amount_2 = reward_value_2 / 100 * variant_channel_listing.price.amount
+    discounted_price = (
+        variant_channel_listing.price.amount - reward_value_1 - discount_amount_2
+    )
+    variant_channel_listing.discounted_price_amount = discounted_price
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    VariantChannelListingPromotionRule.objects.bulk_create(
+        [
+            VariantChannelListingPromotionRule(
+                variant_channel_listing=variant_channel_listing,
+                promotion_rule=rule_1,
+                discount_amount=reward_value_1,
+                currency=channel.currency_code,
+            ),
+            VariantChannelListingPromotionRule(
+                variant_channel_listing=variant_channel_listing,
+                promotion_rule=rule_2,
+                discount_amount=discount_amount_2,
+                currency=channel.currency_code,
+            ),
+        ]
+    )
+
+    CheckoutLineDiscount.objects.bulk_create(
+        [
+            CheckoutLineDiscount(
+                line=checkout_line,
+                type=DiscountType.PROMOTION,
+                value_type=DiscountValueType.FIXED,
+                amount_value=reward_value_1,
+                currency=channel.currency_code,
+                promotion_rule=rule_1,
+            ),
+            CheckoutLineDiscount(
+                line=checkout_line,
+                type=DiscountType.PROMOTION,
+                value_type=DiscountValueType.FIXED,
+                amount_value=discount_amount_2,
+                currency=channel.currency_code,
+                promotion_rule=rule_2,
+            ),
+        ]
+    )
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
@@ -1966,14 +2128,6 @@ def test_checkout_complete_product_on_many_sales(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
-    assert Sale.objects.count() > 1
-    assert (
-        Sale.variants.through.objects.filter(
-            productvariant_id=checkout_line_variant.id
-        ).count()
-        > 1
-    )
-
     order_token = data["order"]["token"]
     order_id = data["order"]["id"]
     assert Order.objects.count() == 1
@@ -1987,7 +2141,9 @@ def test_checkout_complete_product_on_many_sales(
         order_line.undiscounted_total_price - order_line.total_price
     )
 
-    assert order_line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
+    assert order_line.sale_id == graphene.Node.to_global_id(
+        "Promotion", promotion_without_rules.id
+    )
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
