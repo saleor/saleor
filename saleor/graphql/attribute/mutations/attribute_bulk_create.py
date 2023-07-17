@@ -164,7 +164,8 @@ class AttributeBulkCreate(BaseMutation):
         )
 
         for attribute_index, attribute_data in enumerate(attributes_data):
-            if attribute_data.external_reference in duplicated_external_ref:
+            external_ref = attribute_data.external_reference
+            if external_ref in duplicated_external_ref:
                 index_error_map[attribute_index].append(
                     AttributeBulkCreateError(
                         path="externalReference",
@@ -175,7 +176,7 @@ class AttributeBulkCreate(BaseMutation):
                 cleaned_inputs_map[attribute_index] = None
                 continue
 
-            if attribute_data.external_reference in attrs_existing_external_refs:
+            if external_ref and external_ref in attrs_existing_external_refs:
                 index_error_map[attribute_index].append(
                     AttributeBulkCreateError(
                         path="externalReference",
@@ -381,14 +382,18 @@ class AttributeBulkCreate(BaseMutation):
                     code=AttributeBulkCreateErrorCode.INVALID.value,
                 )
             )
-        elif any([value_data.get(field) for field in ONLY_SWATCH_FIELDS]):
+
+        if not is_swatch_attr and any(
+            [value_data.get(field) for field in ONLY_SWATCH_FIELDS]
+        ):
+            message = (
+                "Cannot define value, file and contentType fields for not "
+                "swatch attribute."
+            )
             index_error_map[attribute_index].append(
                 AttributeBulkCreateError(
                     path=f"values.{value_index}",
-                    message=(
-                        "Cannot define value, file and contentType fields "
-                        "for not swatch attribute.",
-                    ),
+                    message=message,
                     code=AttributeBulkCreateErrorCode.INVALID.value,
                 )
             )
