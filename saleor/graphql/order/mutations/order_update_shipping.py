@@ -2,10 +2,8 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.permissions import OrderPermissions
-from ....core.taxes import zero_money, zero_taxed_money
-from ....order import models
+from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
-from ....order.utils import invalidate_order_prices
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
 from ...core.mutations import BaseMutation
@@ -13,7 +11,12 @@ from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ..types import Order
-from .utils import EditableOrderValidationMixin, clean_order_update_shipping
+from .utils import (
+    SHIPPING_METHOD_UPDATE_FIELDS,
+    EditableOrderValidationMixin,
+    ShippingMethodUpdateMixin,
+    clean_order_update_shipping,
+)
 
 
 class OrderUpdateShippingInput(graphene.InputObjectType):
@@ -24,7 +27,9 @@ class OrderUpdateShippingInput(graphene.InputObjectType):
     )
 
 
-class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
+class OrderUpdateShipping(
+    EditableOrderValidationMixin, ShippingMethodUpdateMixin, BaseMutation
+):
     order = graphene.Field(Order, description="Order with updated shipping method.")
 
     class Arguments:
@@ -94,32 +99,8 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                     }
                 )
 
-            order.shipping_method = None
-            order.base_shipping_price = zero_money(order.currency)
-            order.shipping_price = zero_taxed_money(order.currency)
-            order.shipping_method_name = None
-            order.shipping_tax_class = None
-            order.shipping_tax_class_name = None
-            order.shipping_tax_class_private_metadata = {}
-            order.shipping_tax_class_metadata = {}
-            invalidate_order_prices(order)
-            order.save(
-                update_fields=[
-                    "currency",
-                    "shipping_method",
-                    "shipping_price_net_amount",
-                    "shipping_price_gross_amount",
-                    "base_shipping_price_amount",
-                    "shipping_method_name",
-                    "shipping_tax_class",
-                    "shipping_tax_class_name",
-                    "shipping_tax_class_private_metadata",
-                    "shipping_tax_class_metadata",
-                    "shipping_tax_rate",
-                    "should_refresh_prices",
-                    "updated_at",
-                ]
-            )
+            cls.clear_shipping_method_from_order(order)
+            order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
             return OrderUpdateShipping(order=order)
 
         method = cls.get_node_or_error(
@@ -131,54 +112,18 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "postal_code_rules"
             ),
         )
-        shipping_channel_listing = (
-            shipping_models.ShippingMethodChannelListing.objects.filter(
-                shipping_method=method, channel=order.channel
-            ).first()
-        )
-        if not shipping_channel_listing:
-            raise ValidationError(
-                {
-                    "shipping_method": ValidationError(
-                        "Shipping method not available in the given channel.",
-                        code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
-                    )
-                }
-            )
+        shipping_channel_listing = cls.validate_shipping_channel_listing(method, order)
 
         shipping_method_data = convert_to_shipping_method_data(
             method,
             shipping_channel_listing,
         )
         manager = get_plugin_manager_promise(info.context).get()
-        clean_order_update_shipping(order, shipping_method_data, manager)
+        if order.status != OrderStatus.DRAFT:
+            clean_order_update_shipping(order, shipping_method_data, manager)
+        cls.update_shipping_method(order, method, shipping_channel_listing)
 
-        order.shipping_method = method
-        order.shipping_method_name = method.name
-
-        tax_class = method.tax_class
-        if tax_class:
-            order.shipping_tax_class = tax_class
-            order.shipping_tax_class_name = tax_class.name
-            order.shipping_tax_class_private_metadata = tax_class.private_metadata
-            order.shipping_tax_class_metadata = tax_class.metadata
-
-        order.base_shipping_price = shipping_method_data.price
-        invalidate_order_prices(order)
-        order.save(
-            update_fields=[
-                "currency",
-                "shipping_method",
-                "shipping_method_name",
-                "shipping_tax_class",
-                "shipping_tax_class_name",
-                "shipping_tax_class_private_metadata",
-                "shipping_tax_class_metadata",
-                "base_shipping_price_amount",
-                "should_refresh_prices",
-                "updated_at",
-            ]
-        )
+        order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
         # Post-process the results
         cls.call_event(manager.order_updated, order)
         return OrderUpdateShipping(order=order)

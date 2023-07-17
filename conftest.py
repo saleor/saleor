@@ -11,9 +11,11 @@ from django.test.testcases import TransactionTestCase
 pytest_plugins = [
     "saleor.tests.fixtures",
     "saleor.plugins.tests.fixtures",
+    "saleor.graphql.csv.tests.benchmark.fixtures",
     "saleor.graphql.tests.fixtures",
     "saleor.graphql.channel.tests.fixtures",
     "saleor.graphql.channel.tests.benchmark.fixtures",
+    "saleor.graphql.checkout.tests.benchmark.fixtures",
     "saleor.graphql.account.tests.benchmark.fixtures",
     "saleor.graphql.order.tests.benchmark.fixtures",
     "saleor.graphql.giftcard.tests.benchmark.fixtures",

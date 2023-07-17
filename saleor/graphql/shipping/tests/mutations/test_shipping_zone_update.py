@@ -2,6 +2,7 @@ import json
 from unittest import mock
 
 import graphene
+import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
@@ -54,6 +55,25 @@ UPDATE_SHIPPING_ZONE_MUTATION = """
                 code
                 warehouses
                 channels
+            }
+        }
+    }
+"""
+
+SHIPPING_ZONE_UPDATE_DEFAULT_TRUE_MUTATION = """
+    mutation ShippingZoneUpdate($id: ID!, $input: ShippingZoneUpdateInput!) {
+        shippingZoneUpdate(id: $id, input: $input) {
+            errors {
+                code
+                field
+                message
+            }
+            shippingZone {
+                id
+                default
+                countries {
+                    code
+                }
             }
         }
     }
@@ -218,8 +238,10 @@ def test_update_shipping_zone_add_second_warehouses(
     data = content["data"]["shippingZoneUpdate"]
     assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
-    assert data["warehouses"][1]["slug"] == warehouse.slug
-    assert data["warehouses"][0]["slug"] == warehouse_no_shipping_zone.slug
+    response_warehouses_slugs = set([wh["slug"] for wh in data["warehouses"]])
+    assert response_warehouses_slugs == set(
+        [warehouse.slug, warehouse_no_shipping_zone.slug]
+    )
 
 
 def test_update_shipping_zone_remove_warehouses(
@@ -641,3 +663,39 @@ def test_update_shipping_zone_remove_channels_remove_common_warehouse_channel(
     )
     assert len(shipping_zone_data["warehouses"]) == 1
     assert shipping_zone_data["warehouses"][0]["slug"] == warehouses[1].slug
+
+
+@pytest.mark.parametrize(
+    "input, expected_countries",
+    (
+        ({"default": True, "countries": ["PL"]}, [{"code": "PL"}]),
+        ({"default": True, "countries": []}, []),
+        ({"default": True, "countries": None}, []),
+        ({"default": True}, []),
+    ),
+)
+def test_shipping_method_update_countries(
+    staff_api_client,
+    shipping_zone,
+    permission_manage_shipping,
+    input,
+    expected_countries,
+):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id),
+        "input": input,
+    }
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+    response = staff_api_client.post_graphql(
+        SHIPPING_ZONE_UPDATE_DEFAULT_TRUE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneUpdate"]
+    assert data["errors"] == []
+    assert data["shippingZone"]["default"] is True
+    assert data["shippingZone"]["countries"] == expected_countries

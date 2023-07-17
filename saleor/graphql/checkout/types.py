@@ -22,7 +22,7 @@ from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
-from ..channel.dataloaders import ChannelByCheckoutLineIDLoader
+from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
@@ -39,6 +39,7 @@ from ..core.types import ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required
 from ..discount.dataloaders import DiscountsByDateTimeLoader
+from ..giftcard.dataloaders import GiftCardsByCheckoutIdLoader
 from ..giftcard.types import GiftCard
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import TransactionItem
@@ -470,6 +471,10 @@ class Checkout(ModelObjectType):
         return root.created_at
 
     @staticmethod
+    def resolve_channel(root: models.Checkout, info):
+        return ChannelByIdLoader(info.context).load(root.channel_id)
+
+    @staticmethod
     def resolve_id(root: models.Checkout, _):
         return graphene.Node.to_global_id("Checkout", root.pk)
 
@@ -669,8 +674,8 @@ class Checkout(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_gift_cards(root: models.Checkout, _info):
-        return root.gift_cards.all()
+    def resolve_gift_cards(root: models.Checkout, info):
+        return GiftCardsByCheckoutIdLoader(info.context).load(root.pk)
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Checkout, info):
