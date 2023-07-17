@@ -1685,13 +1685,13 @@ grpc = ["grpcio (>=1.38.0,<2.0dev)"]
 
 [[package]]
 name = "google-cloud-pubsub"
-version = "2.17.1"
+version = "2.18.0"
 description = "Google Cloud Pub/Sub API client library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-cloud-pubsub-2.17.1.tar.gz", hash = "sha256:0593428ecbb0249cb5e741b403e95c3d421b4697c83eb7ed4c1684dff176c753"},
-    {file = "google_cloud_pubsub-2.17.1-py2.py3-none-any.whl", hash = "sha256:bc07475496735378736b50cddd87be94bb7e44d60d76a5c6ab19bc306a0340e5"},
+    {file = "google-cloud-pubsub-2.18.0.tar.gz", hash = "sha256:7a70df4111d9cb694a25cecdd2328827159c5213ae1e6304cb3abb38f379dd29"},
+    {file = "google_cloud_pubsub-2.18.0-py2.py3-none-any.whl", hash = "sha256:c2aeec5cc80d55c94689cd72db74273cf5a5fba5f00771a623271086dfde161c"},
 ]
 
 [package.dependencies]
