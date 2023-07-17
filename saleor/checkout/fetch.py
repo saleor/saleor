@@ -365,20 +365,34 @@ def get_variant_rules_info(
         if variant_channel_listing
         else []
     )
-    rules_info = [
-        VariantPromotionRuleInfo(
-            rule=listing_promotion_rule.promotion_rule,
-            variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=listing_promotion_rule.promotion_rule.promotion,
-            promotion_translation=listing_promotion_rule.promotion_rule.promotion.translations.filter(
-                language_code=translation_language_code
-            ).first(),
-            rule_translation=listing_promotion_rule.promotion_rule.translations.filter(
-                language_code=translation_language_code
-            ).first(),
+    rules_info = []
+    for listing_promotion_rule in listings_rules:
+        promotion = listing_promotion_rule.promotion_rule.promotion
+        promotion_translations = [
+            translation
+            for translation in promotion.translations.all()
+            if translation.language_code == translation_language_code
+        ]
+        promotion_translation = (
+            promotion_translations[0] if promotion_translations else None
         )
-        for listing_promotion_rule in listings_rules
-    ]
+
+        rule_translations = [
+            translation
+            for translation in listing_promotion_rule.promotion_rule.translations.all()
+            if translation.language_code == translation_language_code
+        ]
+        rule_translation = rule_translations[0] if rule_translations else None
+
+        rules_info.append(
+            VariantPromotionRuleInfo(
+                rule=listing_promotion_rule.promotion_rule,
+                variant_listing_promotion_rule=listing_promotion_rule,
+                promotion=promotion,
+                promotion_translation=promotion_translation,
+                rule_translation=rule_translation,
+            )
+        )
     return rules_info
 
 

@@ -760,6 +760,7 @@ def test_create_order_product_on_promotion(
     assert line.discounts.count() == 1
     assert line.sale_id
     assert line.unit_discount_amount
+    assert line.unit_discount_reason
     assert line.discounts.count() == 1
     discount = line.discounts.first()
     assert discount.promotion_rule
