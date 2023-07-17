@@ -7,9 +7,8 @@ from ...core import ResolveInfo
 from ...core.types import MetadataError, NonNullList
 from ..inputs import MetadataInput
 from ..permissions import PUBLIC_META_PERMISSION_MAP
-from ..types import get_valid_metadata_instance
 from .base import BaseMetadataMutation
-from .utils import save_instance
+from .utils import get_valid_metadata_instance, save_instance
 
 
 class UpdateMetadata(BaseMetadataMutation):
