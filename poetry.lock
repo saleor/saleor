@@ -1401,27 +1401,27 @@ sftp = ["paramiko (>=1.10.0)"]
 
 [[package]]
 name = "django-stubs"
-version = "4.2.3"
+version = "1.16.0"
 description = "Mypy stubs for Django"
 category = "dev"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.7"
 files = [
-    {file = "django-stubs-4.2.3.tar.gz", hash = "sha256:dadab39b46d9ae8f37a8e879c590f39a9e042b565c03fa0c5a8f754b441b1f23"},
-    {file = "django_stubs-4.2.3-py3-none-any.whl", hash = "sha256:e30e2e4927ba14bec587ed2c686404b6b8e473cabe9baca445e7d2e1e0d7b14f"},
+    {file = "django-stubs-1.16.0.tar.gz", hash = "sha256:1bd96207576cd220221a0e615f0259f13d453d515a80f576c1246e0fb547f561"},
+    {file = "django_stubs-1.16.0-py3-none-any.whl", hash = "sha256:c95f948e2bfc565f3147e969ff361ef033841a0b8a51cac974a6cc6d0486732c"},
 ]
 
 [package.dependencies]
 django = "*"
-django-stubs-ext = ">=4.2.2"
-mypy = ">=1.0.0"
-tomli = {version = "*", markers = "python_version < \"3.11\""}
+django-stubs-ext = ">=0.8.0"
+mypy = ">=0.980"
+tomli = "*"
 types-pytz = "*"
 types-PyYAML = "*"
 typing-extensions = "*"
 
 [package.extras]
-compatible-mypy = ["mypy (>=1.4.0,<1.5.0)"]
+compatible-mypy = ["mypy (>=1.1.1,<1.2)"]
 
 [[package]]
 name = "django-stubs-ext"
@@ -5089,4 +5089,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
   python-versions = "~3.9"
-content-hash = "92ad1ad525bc81c000b494d728fad38c3e6e623249f3be02642eab49400cbd71"
+content-hash = "aec999744929e70f2785322f506cc9ea4d65f5444afc31c947e2e6952c316343"
