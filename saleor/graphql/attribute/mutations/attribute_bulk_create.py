@@ -33,18 +33,11 @@ ONLY_SWATCH_FIELDS = ["file_url", "content_type", "value"]
 
 
 def get_results(instances_data_with_errors_list, reject_everything=False):
-    if reject_everything:
-        return [
-            AttributeBulkResult(attribute=None, errors=data.get("errors"))
-            for data in instances_data_with_errors_list
-        ]
     return [
         AttributeBulkResult(
-            attribute=data.get("instance"),
+            attribute=None if reject_everything else data.get("instance"),
             errors=data.get("errors"),
         )
-        if data.get("instance")
-        else AttributeBulkResult(attribute=None, errors=data.get("errors"))
         for data in instances_data_with_errors_list
     ]
 
@@ -344,7 +337,7 @@ class AttributeBulkCreate(BaseMutation):
                     AttributeBulkCreateError(
                         path="values",
                         message=(
-                            "Values cannot be used with " f"input type {input_type}.",
+                            f"Values cannot be used with input type {input_type}.",
                         ),
                         code=AttributeBulkCreateErrorCode.INVALID.value,
                     )
@@ -387,18 +380,17 @@ class AttributeBulkCreate(BaseMutation):
                     code=AttributeBulkCreateErrorCode.INVALID.value,
                 )
             )
-        else:
-            if any([value_data.get(field) for field in ONLY_SWATCH_FIELDS]):
-                index_error_map[attribute_index].append(
-                    AttributeBulkCreateError(
-                        path=f"values.{value_index}",
-                        message=(
-                            "Cannot define value, file and contentType fields "
-                            "for not swatch attribute.",
-                        ),
-                        code=AttributeBulkCreateErrorCode.INVALID.value,
-                    )
+        elif any([value_data.get(field) for field in ONLY_SWATCH_FIELDS]):
+            index_error_map[attribute_index].append(
+                AttributeBulkCreateError(
+                    path=f"values.{value_index}",
+                    message=(
+                        "Cannot define value, file and contentType fields "
+                        "for not swatch attribute.",
+                    ),
+                    code=AttributeBulkCreateErrorCode.INVALID.value,
                 )
+            )
 
         slug_value = prepare_unique_slug(slugify(unidecode(name)), slugs_list)
         value_data["slug"] = slug_value
@@ -417,7 +409,7 @@ class AttributeBulkCreate(BaseMutation):
         return unique_slug
 
     @classmethod
-    def create_attributes(cls, info, cleaned_inputs_map, index_error_map):
+    def create_attributes(cls, info, cleaned_inputs_map, error_policy, index_error_map):
         instances_data_and_errors_list = []
 
         for index, cleaned_input in cleaned_inputs_map.items():
@@ -426,21 +418,14 @@ class AttributeBulkCreate(BaseMutation):
                     {"instance": None, "errors": index_error_map[index]}
                 )
                 continue
-            try:
-                values = []
-                values_data = cleaned_input.pop("values", None)
 
-                instance = models.Attribute()
+            values: list = []
+            values_data = cleaned_input.pop("values", None)
+            instance = models.Attribute()
+
+            try:
                 instance = cls.construct_instance(instance, cleaned_input)
                 cls.clean_instance(info, instance)
-
-                if values_data:
-                    values = [
-                        models.AttributeValue(attribute=instance, **data)
-                        for data in values_data
-                    ]
-                for value in values:
-                    value.full_clean(exclude=["attribute"])
 
                 instances_data_and_errors_list.append(
                     {
@@ -462,7 +447,38 @@ class AttributeBulkCreate(BaseMutation):
                 instances_data_and_errors_list.append(
                     {"instance": None, "errors": index_error_map[index]}
                 )
+                continue
+
+            if values_data:
+                cls.create_values(instance, values_data, values, index, index_error_map)
+
+        if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS.value:
+            for instance_data in instances_data_and_errors_list:
+                if instance_data["errors"]:
+                    instance_data["instance"] = None
+
         return instances_data_and_errors_list
+
+    @classmethod
+    def create_values(cls, attribute, values_data, values, attr_index, index_error_map):
+        for value_index, value_data in enumerate(values_data):
+            value = models.AttributeValue(attribute=attribute)
+
+            try:
+                value = cls.construct_instance(value, value_data)
+                value.full_clean(exclude=["attribute", "slug"])
+                values.append(value)
+            except ValidationError as exc:
+                for key, errors in exc.error_dict.items():
+                    for e in errors:
+                        path = f"values.{value_index}.{to_camel_case(key)}"
+                        index_error_map[attr_index].append(
+                            AttributeBulkCreateError(
+                                path=path,
+                                message=e.messages[0],
+                                code=e.code,
+                            )
+                        )
 
     @classmethod
     def save(cls, info, instances_data_with_errors_list):
@@ -501,19 +517,20 @@ class AttributeBulkCreate(BaseMutation):
             info, data["attributes"], index_error_map
         )
         instances_data_with_errors_list = cls.create_attributes(
-            info, cleaned_inputs_map, index_error_map
+            info, cleaned_inputs_map, error_policy, index_error_map
         )
 
-        # check error policy
-        if any([True if error else False for error in index_error_map.values()]):
-            if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
-                results = get_results(instances_data_with_errors_list, True)
-                return AttributeBulkCreate(count=0, results=results)
+        # check if errors occurred
+        inputs_have_errors = next(
+            (True for errors in index_error_map.values() if errors), False
+        )
 
-            if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS.value:
-                for data in instances_data_with_errors_list:
-                    if data["errors"] and data["instance"]:
-                        data["instance"] = None
+        if (
+            inputs_have_errors
+            and error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value
+        ):
+            results = get_results(instances_data_with_errors_list, True)
+            return AttributeBulkCreate(count=0, results=results)
 
         # save all objects
         attributes = cls.save(info, instances_data_with_errors_list)

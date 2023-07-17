@@ -26915,12 +26915,14 @@ type AttributeBulkCreateError @doc(category: "Attributes") {
 """An enumeration."""
 enum AttributeBulkCreateErrorCode @doc(category: "Attributes") {
   ALREADY_EXISTS
+  BLANK
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
   REQUIRED
   UNIQUE
   DUPLICATED_INPUT_ITEM
+  MAX_LENGTH
 }
 
 input AttributeBulkCreateInput @doc(category: "Attributes") {

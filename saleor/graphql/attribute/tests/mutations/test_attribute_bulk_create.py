@@ -2,14 +2,16 @@ from unittest.mock import patch
 
 from .....attribute.error_codes import AttributeBulkCreateErrorCode
 from .....attribute.models import Attribute, AttributeValue
+from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
 from ...enums import AttributeInputTypeEnum, AttributeTypeEnum
 
 ATTRIBUTE_BULK_CREATE_MUTATION = """
     mutation AttributeBulkCreate(
-        $attributes: [AttributeBulkCreateInput!]!
+        $attributes: [AttributeBulkCreateInput!]!,
+        $errorPolicy: ErrorPolicyEnum
     ) {
-        attributeBulkCreate(attributes: $attributes) {
+        attributeBulkCreate(attributes: $attributes, errorPolicy: $errorPolicy) {
             results {
                 errors {
                     path
@@ -276,6 +278,45 @@ def test_attribute_bulk_create_with_duplicated_external_ref(
     assert data["count"] == 0
 
 
+def test_attribute_bulk_create_with_to_long_name(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    attribute_name = 30 * "1234567890"
+
+    attributes = [
+        {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_CREATE_MUTATION, {"attributes": attributes}
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkCreate"]
+
+    # then
+    attributes = Attribute.objects.all()
+
+    errors = data["results"][0]["errors"]
+
+    assert len(attributes) == 0
+    assert data["count"] == 0
+
+    assert errors
+    assert errors[0]["path"] == "slug"
+    assert errors[0]["code"] == AttributeBulkCreateErrorCode.MAX_LENGTH.name
+    assert errors[1]["path"] == "name"
+    assert errors[1]["code"] == AttributeBulkCreateErrorCode.MAX_LENGTH.name
+
+
 def test_attribute_bulk_create_with_existing_external_ref(
     staff_api_client,
     color_attribute,
@@ -423,3 +464,108 @@ def test_attribute_bulk_create_with_duplicated_external_reference_in_values(
     assert (
         errors_2[0]["code"] == AttributeBulkCreateErrorCode.DUPLICATED_INPUT_ITEM.name
     )
+
+
+def test_attribute_bulk_create_dropdown_with_one_invalid_value_and_ignore_failed(
+    staff_api_client, permission_manage_product_types_and_attributes
+):
+    # given
+    attribute_name = "Example name 1"
+    value_1 = "RED"
+    invalid_value_2 = 30 * "1234567890"
+
+    attributes = [
+        {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.DROPDOWN.name,
+            "values": [
+                {"name": value_1},
+                {"name": invalid_value_2},
+            ],
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_CREATE_MUTATION,
+        {"attributes": attributes, "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkCreate"]
+
+    # then
+    attributes = Attribute.objects.all()
+    values = AttributeValue.objects.all()
+
+    errors = data["results"][0]["errors"]
+    assert len(attributes) == 1
+    assert len(values) == 1
+    assert errors
+    assert data["count"] == 1
+    choices = data["results"][0]["attribute"]["choices"]["edges"]
+    assert choices[0]["node"]["name"] == value_1
+    assert choices[0]["node"]["value"] == ""
+    assert len(errors) == 1
+    assert errors[0]["path"] == "values.1.name"
+    assert errors[0]["code"] == AttributeBulkCreateErrorCode.MAX_LENGTH.name
+
+
+def test_attribute_bulk_create_dropdown_with_invalid_row_and_reject_failed_rows(
+    staff_api_client, permission_manage_product_types_and_attributes
+):
+    # given
+    attribute_1_name = "Example name 1"
+    attribute_2_name = "Example name 2"
+    value_1 = "RED"
+    invalid_value_2 = 30 * "1234567890"
+
+    attributes = [
+        {
+            "name": attribute_1_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.DROPDOWN.name,
+            "values": [
+                {"name": value_1},
+            ],
+        },
+        {
+            "name": attribute_2_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.DROPDOWN.name,
+            "values": [
+                {"name": invalid_value_2},
+            ],
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_CREATE_MUTATION,
+        {
+            "attributes": attributes,
+            "errorPolicy": ErrorPolicyEnum.REJECT_FAILED_ROWS.name,
+        },
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkCreate"]
+
+    # then
+    attributes = Attribute.objects.all()
+    values = AttributeValue.objects.all()
+
+    assert len(attributes) == 1
+    assert len(values) == 1
+    assert not data["results"][0]["errors"]
+    assert data["results"][1]["errors"]
+    assert data["results"][1]["errors"][0]["path"] == "values.0.name"
+    assert data["count"] == 1
+    choices = data["results"][0]["attribute"]["choices"]["edges"]
+    assert choices[0]["node"]["name"] == value_1
+    assert choices[0]["node"]["value"] == ""
