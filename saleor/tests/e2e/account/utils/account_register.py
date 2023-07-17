@@ -9,7 +9,7 @@ mutation AccountRegister($input: AccountRegisterInput!) {
       code
     }
     requiresConfirmation
-    user{
+    user {
       id
       email
       isActive

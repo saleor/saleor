@@ -15,7 +15,6 @@ def test_should_create_account_without_email_confirmation_core_1502(
 ):
     # Before
     permissions = [permission_manage_channels, permission_manage_settings]
-
     assign_permissions(e2e_staff_api_client, permissions)
 
     chanel_data = create_channel(e2e_staff_api_client)
