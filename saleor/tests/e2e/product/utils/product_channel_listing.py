@@ -41,7 +41,7 @@ def raw_create_product_channel_listing(
     is_published=False,
     visible_in_listings=False,
     available_for_purchase_datetime=None,
-    is_available_for_purchase=False,
+    is_available_for_purchase=None,
 ):
     variables = {
         "productId": product_id,
@@ -92,8 +92,8 @@ def create_product_channel_listing(
         is_available_for_purchase,
     )
 
-    assert response["errors"] == []
     data = response["product"]
+    assert response["errors"] == []
     assert data["id"] == product_id
     channel_listing_data = data["channelListings"][0]
     assert channel_listing_data["channel"]["id"] == channel_id

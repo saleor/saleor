@@ -12,6 +12,7 @@ from .product_variant_channel_listing import create_product_variant_channel_list
 __all__ = [
     "create_category",
     "create_digital_content",
+    "raw_create_product_channel_listing",
     "create_product_type",
     "create_product_channel_listing",
     "create_product_variant_channel_listing",
