@@ -7,76 +7,84 @@ from ....tax import TaxCalculationStrategy
 from ....tax.models import TaxConfiguration
 
 
-def _create_channel_tax_configuration(channel):
-    # Use TAX_APP strategy, to enable calculations with plugins by default.
-    tax_configuration = TaxConfiguration.objects.create(
-        channel=channel,
-        metadata={"key": "value"},
-        private_metadata={"key": "value"},
-        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
-    )
-    tax_configuration.country_exceptions.create(
-        country="PL",
-        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
-    )
-    tax_configuration.country_exceptions.create(
-        country="DE",
-        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
-    )
-
-
 @pytest.fixture
-def channel_USD(db):
-    slug = settings.DEFAULT_CHANNEL_SLUG
-    channel = Channel.objects.create(
-        name="Main Channel",
-        slug=slug,
-        currency_code="USD",
-        default_country="US",
+def channel_generator(db):
+    def _create_channel_tax_configuration(channel):
+        # Use TAX_APP strategy, to enable calculations with plugins by default.
+        tax_configuration = TaxConfiguration.objects.create(
+            channel=channel,
+            metadata={"key": "value"},
+            private_metadata={"key": "value"},
+            tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
+        )
+        tax_configuration.country_exceptions.create(
+            country="PL",
+            tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
+        )
+        tax_configuration.country_exceptions.create(
+            country="DE",
+            tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
+        )
+
+    def create_channel(
+        name=None,
+        slug=None,
+        currency_code=None,
+        default_country=None,
         is_active=True,
         allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
-    )
-    _create_channel_tax_configuration(channel)
-    return channel
+        create_tax_config=True,
+    ):
+        channel = Channel.objects.create(
+            name=name,
+            slug=slug,
+            currency_code=currency_code,
+            default_country=default_country,
+            is_active=is_active,
+            allocation_strategy=allocation_strategy,
+        )
+        if create_tax_config:
+            _create_channel_tax_configuration(channel)
+        return channel
+
+    return create_channel
 
 
 @pytest.fixture
-def other_channel_USD(db):
-    channel = Channel.objects.create(
+def channel_USD(channel_generator):
+    return channel_generator(
+        name="Main Channel",
+        slug=settings.DEFAULT_CHANNEL_SLUG,
+        currency_code="USD",
+        default_country="US",
+    )
+
+
+@pytest.fixture
+def other_channel_USD(channel_generator):
+    return channel_generator(
         name="Other Channel USD",
         slug="other-usd",
         currency_code="USD",
         default_country="US",
-        is_active=True,
-        allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
-    _create_channel_tax_configuration(channel)
-    return channel
 
 
 @pytest.fixture
-def channel_PLN(db):
-    channel = Channel.objects.create(
+def channel_PLN(channel_generator):
+    return channel_generator(
         name="Channel PLN",
         slug="c-pln",
         currency_code="PLN",
         default_country="PL",
-        is_active=True,
-        allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
-    _create_channel_tax_configuration(channel)
-    return channel
 
 
 @pytest.fixture
-def channel_JPY(db):
-    channel = Channel.objects.create(
+def channel_JPY(channel_generator):
+    return channel_generator(
         name="Channel=JPY",
         slug="c-jpy",
         currency_code="JPY",
         default_country="JP",
-        is_active=True,
-        allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
-    _create_channel_tax_configuration(channel)
-    return channel
