@@ -9438,6 +9438,15 @@ type Shop implements ObjectWithMetadata {
   enableAccountConfirmationByEmail: Boolean
 
   """
+  Determines if user can login without confirmation when `enableAccountConfrimation` is enabled.
+  
+  Added in Saleor 3.15.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  allowLoginWithoutConfirmation: Boolean
+
+  """
   Resource limitations and current usage if any set for a shop
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
@@ -17679,7 +17688,7 @@ type Mutation {
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for account confirmation.
-  - ACCOUNT_CONFIRMATION_REQUESTED (async): An account confirmation was requested. This event is always sent regardless of settings,
+  - ACCOUNT_CONFIRMATION_REQUESTED (async): An account confirmation was requested. This event is always sent regardless of settings.
   """
   sendConfirmationEmail(
     """Slug of a channel which will be used for notify user."""
@@ -17836,7 +17845,7 @@ type Mutation {
   Triggers the following webhook events:
   - CUSTOMER_CREATED (async): A new customer account was created.
   - NOTIFY_USER (async): A notification for account confirmation.
-  - ACCOUNT_CONFIRMATION_REQUESTED (async): An user confirmation was requested. This event is always sent regardless of settings,
+  - ACCOUNT_CONFIRMATION_REQUESTED (async): An user confirmation was requested. This event is always sent regardless of settings.
   """
   accountRegister(
     """Fields required to create a user."""
@@ -19162,6 +19171,13 @@ input ShopSettingsInput {
   Added in Saleor 3.14.
   """
   enableAccountConfirmationByEmail: Boolean
+
+  """
+  Enable possibility to login without account confirmation.
+  
+  Added in Saleor 3.15.
+  """
+  allowLoginWithoutConfirmation: Boolean
 
   """
   Shop public metadata.
@@ -27745,7 +27761,7 @@ Requires one of the following permissions: AUTHENTICATED_USER.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for account confirmation.
-- ACCOUNT_CONFIRMATION_REQUESTED (async): An account confirmation was requested. This event is always sent regardless of settings,
+- ACCOUNT_CONFIRMATION_REQUESTED (async): An account confirmation was requested. This event is always sent regardless of settings.
 """
 type SendConfirmationEmail @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
   errors: [SendConfirmationEmailError!]!
@@ -27908,7 +27924,7 @@ Register a new user.
 Triggers the following webhook events:
 - CUSTOMER_CREATED (async): A new customer account was created.
 - NOTIFY_USER (async): A notification for account confirmation.
-- ACCOUNT_CONFIRMATION_REQUESTED (async): An user confirmation was requested. This event is always sent regardless of settings,
+- ACCOUNT_CONFIRMATION_REQUESTED (async): An user confirmation was requested. This event is always sent regardless of settings.
 """
 type AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
   """Informs whether users need to confirm their email address."""

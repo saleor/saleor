@@ -54,7 +54,7 @@ class SendConfirmationEmail(BaseMutation):
                 type=WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
                 description=(
                     "An account confirmation was requested. "
-                    "This event is always sent regardless of settings,"
+                    "This event is always sent regardless of settings."
                 ),
             ),
         ]

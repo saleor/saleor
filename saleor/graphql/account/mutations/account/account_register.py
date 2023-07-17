@@ -89,7 +89,7 @@ class AccountRegister(ModelMutation):
                 type=WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
                 description=(
                     "An user confirmation was requested. "
-                    "This event is always sent regardless of settings,"
+                    "This event is always sent regardless of settings."
                 ),
             ),
         ]

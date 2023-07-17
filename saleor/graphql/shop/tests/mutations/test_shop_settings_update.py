@@ -22,6 +22,7 @@ SHOP_SETTINGS_UPDATE_MUTATION = """
                 reserveStockDurationAnonymousUser
                 reserveStockDurationAuthenticatedUser
                 limitQuantityPerCheckout
+                allowLoginWithoutConfirmation
             }
             errors {
                 field
@@ -83,6 +84,7 @@ def test_shop_settings_mutation(
             "chargeTaxesOnShipping": new_charge_taxes_on_shipping,
             "fulfillmentAllowUnpaid": False,
             "enableAccountConfirmationByEmail": False,
+            "allowLoginWithoutConfirmation": True,
         }
     }
 
@@ -100,11 +102,13 @@ def test_shop_settings_mutation(
     assert data["fulfillmentAutoApprove"] is True
     assert data["fulfillmentAllowUnpaid"] is False
     assert data["enableAccountConfirmationByEmail"] is False
+    assert data["allowLoginWithoutConfirmation"] is True
 
     site_settings.refresh_from_db()
     assert not site_settings.include_taxes_in_prices
     assert site_settings.charge_taxes_on_shipping == new_charge_taxes_on_shipping
     assert site_settings.enable_account_confirmation_by_email is False
+    assert site_settings.allow_login_without_confirmation is True
 
 
 def test_shop_reservation_settings_mutation(
