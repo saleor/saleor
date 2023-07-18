@@ -6,7 +6,6 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.15.0 [Unreleased]
 
 ### Breaking changes
-- Use public key thumbprint as KID in JWKS.json #13442 by @cmiacz
 - Remove input and fields related to transaction API and deprecated in 3.13 - #13020 by @korycins
   - `WebhookEventTypeEnum.TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
   - `WebhookEventTypeAsyncEnum.TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
@@ -83,6 +82,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Called when metadata is changed for the Shop object via the generic metadata API or the `shopSettingsUpdate` mutation.
 
 ### Other changes
+- Use public key thumbprint as KID in JWKS.json #13442 by @cmiacz
 - Add POC of Core API tests - #13034 by @fowczarek
 
 - Expand metric units to support more types of products. - #13043 by @FremahA

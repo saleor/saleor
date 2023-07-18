@@ -148,7 +148,7 @@ class JWTManager(JWTManagerBase):
     @classmethod
     def get_key_id(cls) -> str:
         """Generate JWT key ID for the public key.
-        
+
         This generates a "thumbprint" as 'kid' field using RFC 7638 implementation
         based on the RSA public key.
         """
