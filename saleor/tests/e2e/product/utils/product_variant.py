@@ -21,7 +21,7 @@ mutation createVariant($input: ProductVariantCreateInput!) {
 """
 
 
-def create_product_variant(
+def raw_create_product_variant(
     staff_api_client,
     product_id,
     variant_name="Test product variant",
@@ -48,6 +48,31 @@ def create_product_variant(
     )
     content = get_graphql_content(response)
 
-    data = content["data"]["productVariantCreate"]["productVariant"]
+    data = content["data"]["productVariantCreate"]
+
+    return data
+
+
+def create_product_variant(
+    staff_api_client,
+    product_id,
+    variant_name="Test product variant",
+    stocks=None,
+    quantity_limit_per_customer=10,
+):
+    response = raw_create_product_variant(
+        staff_api_client,
+        product_id,
+        variant_name,
+        stocks,
+        quantity_limit_per_customer,
+    )
+
+    assert response["errors"] == []
+
+    data = response["productVariant"]
+    assert data["id"] is not None
+    assert data["name"] == variant_name
+    assert data["product"]["id"] == product_id
 
     return data

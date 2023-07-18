@@ -83,7 +83,6 @@ def prepare_product(
     product_variant_data = create_product_variant(
         e2e_staff_api_client, product_id, stocks=stocks, quantity_limit_per_customer=3
     )
-    print(product_variant_data)
     product_variant_id = product_variant_data["id"]
     product_variant_name = product_variant_data["name"]
     product_variant_quantity_limit_per_customer = product_variant_data[
