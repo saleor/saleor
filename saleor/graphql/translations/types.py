@@ -77,12 +77,12 @@ class AttributeValueTranslation(
         required=True, description="The ID of the attribute value translation."
     )
     name = graphene.String(
-        required=True, description="The name of the attribute value translation."
+        required=True, description="Translated attribute value name."
     )
     rich_text = JSONString(
-        description="Attribute value with rich content." + RICH_CONTENT
+        description="Translated rich-text attribute value." + RICH_CONTENT
     )
-    plain_text = graphene.String(description="Attribute value as plain text.")
+    plain_text = graphene.String(description="Translated plain text attribute value .")
 
     class Meta:
         model = attribute_models.AttributeValueTranslation
@@ -93,9 +93,7 @@ class AttributeTranslation(BaseTranslationType[attribute_models.AttributeTransla
     id = graphene.GlobalID(
         required=True, description="The ID of the attribute translation."
     )
-    name = graphene.String(
-        required=True, description="The name of the attribute translation."
-    )
+    name = graphene.String(required=True, description="Translated attribute name.")
 
     class Meta:
         model = attribute_models.AttributeTranslation
@@ -104,7 +102,9 @@ class AttributeTranslation(BaseTranslationType[attribute_models.AttributeTransla
 
 class AttributeTranslatableContent(ModelObjectType[attribute_models.Attribute]):
     id = graphene.GlobalID(required=True, description="The ID of the attribute.")
-    name = graphene.String(required=True, description="The name of the attribute.")
+    name = graphene.String(
+        required=True, description="Name of the attribute to translate."
+    )
     translation = TranslationField(AttributeTranslation, type_name="attribute")
     attribute = graphene.Field(
         "saleor.graphql.attribute.types.Attribute",
@@ -131,7 +131,7 @@ class AttributeValueTranslatableContent(
     )
     name = graphene.String(
         required=True,
-        description="The name of the attribute value translatable content.",
+        description="Name of the attribute value to translate.",
     )
     rich_text = JSONString(description="Attribute value." + RICH_CONTENT)
     plain_text = graphene.String(description="Attribute plain text value.")
@@ -170,7 +170,7 @@ class ProductVariantTranslation(
         required=True, description="The ID of the product variant translation."
     )
     name = graphene.String(
-        required=True, description="The name of the product variant translation."
+        required=True, description="Translated product variant name."
     )
 
     class Meta:
@@ -184,7 +184,7 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
     )
     name = graphene.String(
         required=True,
-        description="The name of the product variant translatable content.",
+        description="Name of the product variant to translate.",
     )
     translation = TranslationField(
         ProductVariantTranslation, type_name="product variant"
@@ -225,11 +225,9 @@ class ProductTranslation(BaseTranslationType[product_models.ProductTranslation])
     id = graphene.GlobalID(
         required=True, description="The ID of the product translation."
     )
-    seo_title = graphene.String(description="SEO title of the product.")
-    seo_description = graphene.String(
-        description="SEO description of the product translation."
-    )
-    name = graphene.String(description="Name of the product translation.")
+    seo_title = graphene.String(description="Translated SEO title.")
+    seo_description = graphene.String(description="Translated SEO description.")
+    name = graphene.String(description="Translated product name.")
     description = JSONString(
         description="Translated description of the product." + RICH_CONTENT
     )
@@ -254,16 +252,12 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
     id = graphene.GlobalID(
         required=True, description="The ID of the product translatable content."
     )
-    seo_title = graphene.String(
-        description="SEO title of the product translatable content."
+    seo_title = graphene.String(description="SEO title to translate.")
+    seo_description = graphene.String(description="SEO description to translate.")
+    name = graphene.String(required=True, description="Product's name to translate.")
+    description = JSONString(
+        description="Product's description to translate." + RICH_CONTENT
     )
-    seo_description = graphene.String(
-        description="SEO description of the product translatable content."
-    )
-    name = graphene.String(
-        required=True, description="Name of the product translatable content."
-    )
-    description = JSONString(description="Description of the product." + RICH_CONTENT)
     description_json = JSONString(
         description="Description of the product." + RICH_CONTENT,
         deprecation_reason=(
@@ -310,11 +304,9 @@ class CollectionTranslation(BaseTranslationType[product_models.CollectionTransla
     id = graphene.GlobalID(
         required=True, description="The ID of the collection translation."
     )
-    seo_title = graphene.String(description="SEO title of the collection.")
-    seo_description = graphene.String(
-        description="SEO description of the collection translation."
-    )
-    name = graphene.String(description="Name of the collection translation.")
+    seo_title = graphene.String(description="Translated SEO title.")
+    seo_description = graphene.String(description="Translated SEO description.")
+    name = graphene.String(description="Translated colletion name.")
     description = JSONString(
         description="Translated description of the collection." + RICH_CONTENT
     )
@@ -339,17 +331,11 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
     id = graphene.GlobalID(
         required=True, description="The ID of the collection translatable content."
     )
-    seo_title = graphene.String(
-        description="SEO title of the collection translatable content."
-    )
-    seo_description = graphene.String(
-        description="SEO description of the collection translatable content."
-    )
-    name = graphene.String(
-        required=True, description="Name of the collection translatable content."
-    )
+    seo_title = graphene.String(description="SEO title to translate.")
+    seo_description = graphene.String(description="SEO description to translate.")
+    name = graphene.String(required=True, description="Collection's name to translate.")
     description = JSONString(
-        description="Description of the collection." + RICH_CONTENT
+        description="Collection's description to translate." + RICH_CONTENT
     )
     description_json = JSONString(
         description="Description of the collection." + RICH_CONTENT,
@@ -387,11 +373,9 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
     id = graphene.GlobalID(
         required=True, description="The ID of the category translation."
     )
-    seo_title = graphene.String(description="SEO title of the category.")
-    seo_description = graphene.String(
-        description="SEO description of the category translation."
-    )
-    name = graphene.String(description="Name of the category translation.")
+    seo_title = graphene.String(description="Translated SEO title.")
+    seo_description = graphene.String(description="Translated SEO description.")
+    name = graphene.String(description="Translated category name.")
     description = JSONString(
         description="Translated description of the category." + RICH_CONTENT
     )
@@ -416,16 +400,14 @@ class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
     id = graphene.GlobalID(
         required=True, description="The ID of the category translatable content."
     )
-    seo_title = graphene.String(
-        description="SEO title of the category translatable content."
-    )
-    seo_description = graphene.String(
-        description="SEO description of the category translatable content."
-    )
+    seo_title = graphene.String(description="SEO title to translate.")
+    seo_description = graphene.String(description="SEO description to translate.")
     name = graphene.String(
         required=True, description="Name of the category translatable content."
     )
-    description = JSONString(description="Description of the category." + RICH_CONTENT)
+    description = JSONString(
+        description="Category description to translate." + RICH_CONTENT
+    )
     description_json = JSONString(
         description="Description of the category." + RICH_CONTENT,
         deprecation_reason=(
@@ -457,11 +439,9 @@ class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
 
 class PageTranslation(BaseTranslationType[page_models.PageTranslation]):
     id = graphene.GlobalID(required=True, description="The ID of the page translation.")
-    seo_title = graphene.String(description="SEO title of the page translation.")
-    seo_description = graphene.String(
-        description="SEO description of the page translation."
-    )
-    title = graphene.String(description="Title of the page translation.")
+    seo_title = graphene.String(description="Translated SEO title.")
+    seo_description = graphene.String(description="Translated SEO description.")
+    title = graphene.String(description="Translated page title.")
     content = JSONString(description="Translated content of the page." + RICH_CONTENT)
     content_json = JSONString(
         description="Translated description of the page." + RICH_CONTENT,
@@ -482,16 +462,10 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
     id = graphene.GlobalID(
         required=True, description="The ID of the page translatable content."
     )
-    seo_title = graphene.String(
-        description="SEO title of the page translatable content."
-    )
-    seo_description = graphene.String(
-        description="SEO description of the page translatable content."
-    )
-    title = graphene.String(
-        required=True, description="Title of the page translatable content."
-    )
-    content = JSONString(description="Content of the page." + RICH_CONTENT)
+    seo_title = graphene.String(description="SEO title to translate.")
+    seo_description = graphene.String(description="SEO description to translate.")
+    title = graphene.String(required=True, description="Page title to translate.")
+    content = JSONString(description="Content of the page to translate." + RICH_CONTENT)
     content_json = JSONString(
         description="Content of the page." + RICH_CONTENT,
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
@@ -543,7 +517,7 @@ class VoucherTranslation(BaseTranslationType[discount_models.VoucherTranslation]
     id = graphene.GlobalID(
         required=True, description="The ID of the voucher translation."
     )
-    name = graphene.String(description="Name of the voucher translation.")
+    name = graphene.String(description="Translated voucher name.")
 
     class Meta:
         model = discount_models.VoucherTranslation
@@ -554,7 +528,7 @@ class VoucherTranslatableContent(ModelObjectType[discount_models.Voucher]):
     id = graphene.GlobalID(
         required=True, description="The ID of the voucher translatable content."
     )
-    name = graphene.String(description="Name of the voucher translatable content.")
+    name = graphene.String(description="Voucher name to translate.")
     translation = TranslationField(VoucherTranslation, type_name="voucher")
     voucher = PermissionsField(
         "saleor.graphql.discount.types.Voucher",
@@ -580,7 +554,7 @@ class VoucherTranslatableContent(ModelObjectType[discount_models.Voucher]):
 
 class SaleTranslation(BaseTranslationType[discount_models.SaleTranslation]):
     id = graphene.GlobalID(required=True, description="The ID of the sale translation.")
-    name = graphene.String(description="Name of the sale translation.")
+    name = graphene.String(description="Translated name of sale.")
 
     class Meta:
         model = discount_models.SaleTranslation
@@ -591,9 +565,7 @@ class SaleTranslatableContent(ModelObjectType[discount_models.Sale]):
     id = graphene.GlobalID(
         required=True, description="The ID of the sale translatable content."
     )
-    name = graphene.String(
-        required=True, description="Name of the sale translatable content."
-    )
+    name = graphene.String(required=True, description="Name of the sale to translate.")
     translation = TranslationField(SaleTranslation, type_name="sale")
     sale = PermissionsField(
         "saleor.graphql.discount.types.Sale",
@@ -619,10 +591,10 @@ class SaleTranslatableContent(ModelObjectType[discount_models.Sale]):
 class ShopTranslation(BaseTranslationType[site_models.SiteSettingsTranslation]):
     id = graphene.GlobalID(required=True, description="The ID of the shop translation.")
     header_text = graphene.String(
-        required=True, description="Header text of the shop translation."
+        required=True, description="Translated header text of sale."
     )
     description = graphene.String(
-        required=True, description="Description of the shop translation."
+        required=True, description="Translated description of sale."
     )
 
     class Meta:
@@ -634,9 +606,7 @@ class MenuItemTranslation(BaseTranslationType[menu_models.MenuItemTranslation]):
     id = graphene.GlobalID(
         required=True, description="The ID of the menu item translation."
     )
-    name = graphene.String(
-        required=True, description="Name of the menu item translation."
-    )
+    name = graphene.String(required=True, description="Translated menu item name.")
 
     class Meta:
         model = menu_models.MenuItemTranslation
@@ -647,9 +617,7 @@ class MenuItemTranslatableContent(ModelObjectType[menu_models.MenuItem]):
     id = graphene.GlobalID(
         required=True, description="The ID of the menu item translatable content."
     )
-    name = graphene.String(
-        required=True, description="Name of the menu item translatable content."
-    )
+    name = graphene.String(required=True, description="Name of the menu to translate.")
     translation = TranslationField(MenuItemTranslation, type_name="menu item")
     menu_item = graphene.Field(
         "saleor.graphql.menu.types.MenuItem",
@@ -678,7 +646,7 @@ class ShippingMethodTranslation(
         required=True, description="The ID of the shipping method translation."
     )
     name = graphene.String(
-        required=True, description="Name of the shipping method translation."
+        required=True, description="Translated shipping method name."
     )
     description = JSONString(
         description="Translated description of the shipping method." + RICH_CONTENT
@@ -696,10 +664,10 @@ class ShippingMethodTranslatableContent(
         required=True, description="The ID of the shipping method translatable content."
     )
     name = graphene.String(
-        required=True, description="Name of the shipping method translatable content."
+        required=True, description="Shipping method name to translate."
     )
     description = JSONString(
-        description="Description of the shipping method." + RICH_CONTENT
+        description="Shipping method description to translate." + RICH_CONTENT
     )
     translation = TranslationField(
         ShippingMethodTranslation, type_name="shipping method"
