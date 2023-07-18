@@ -17,9 +17,9 @@ def set_description_plaintext(qs: QuerySet[Product]):
 
 
 @app.task
-def set_description_plaintext_task():
+def set_description_plaintext_task(last_pk: int = 0):
     products = Product.objects.filter(
-        Q(description_plaintext="") & ~Q(description=None)
+        Q(description_plaintext="", pk__gt=last_pk) & ~Q(description=None)
     ).order_by("-pk")
 
     ids = products.values_list("pk", flat=True)[:2000]
@@ -27,4 +27,4 @@ def set_description_plaintext_task():
 
     if ids:
         set_description_plaintext(qs)
-        set_description_plaintext_task.delay()
+        set_description_plaintext_task.delay(qs.last().pk)
