@@ -376,9 +376,10 @@ PromotionManager = models.Manager.from_queryset(PromotionQueryset)
 
 
 class Promotion(ModelWithMetadata):
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     name = models.CharField(max_length=255)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
-    old_sale = models.BooleanField(default=False)
+    old_sale_id = models.IntegerField(blank=True, null=True, unique=True)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -413,6 +414,7 @@ class PromotionTranslation(Translation):
 
 
 class PromotionRule(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     name = models.CharField(max_length=255)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     promotion = models.ForeignKey(
