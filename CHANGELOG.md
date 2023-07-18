@@ -82,6 +82,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Called when metadata is changed for the Shop object via the generic metadata API or the `shopSettingsUpdate` mutation.
 
 ### Other changes
+- Use public key thumbprint as KID in JWKS.json #13442 by @cmiacz
 - Add POC of Core API tests - #13034 by @fowczarek
 
 - Expand metric units to support more types of products. - #13043 by @FremahA
