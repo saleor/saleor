@@ -16,6 +16,7 @@ from ....checkout.utils import (
     is_shipping_required,
 )
 from ....core.tracing import traced_atomic_transaction
+from ....graphql.account.mixins import AddressMetadataMixin
 from ....warehouse.reservations import is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
@@ -41,7 +42,7 @@ if TYPE_CHECKING:
     from ....checkout.fetch import DeliveryMethodBase
 
 
-class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
+class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:

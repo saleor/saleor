@@ -21,6 +21,7 @@ from ....order.utils import (
 from ....permission.enums import OrderPermissions
 from ....shipping.utils import convert_to_shipping_method_data
 from ...account.i18n import I18nMixin
+from ...account.mixins import AddressMetadataMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...channel.types import Channel
@@ -130,7 +131,10 @@ class DraftOrderCreateInput(DraftOrderInput):
 
 
 class DraftOrderCreate(
-    ModelWithRestrictedChannelAccessMutation, ShippingMethodUpdateMixin, I18nMixin
+    AddressMetadataMixin,
+    ModelWithRestrictedChannelAccessMutation,
+    ShippingMethodUpdateMixin,
+    I18nMixin,
 ):
     class Arguments:
         input = DraftOrderCreateInput(

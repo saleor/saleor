@@ -283,9 +283,22 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
-
+        shipping_address_metadata = (
+            data.get("shipping_address", {}).pop("metadata", list())
+            if data.get("shipping_address")
+            else None
+        )
+        billing_address_metadata = (
+            data.get("billing_address", {}).pop("metadata", list())
+            if data.get("billing_address")
+            else None
+        )
         shipping_address = cls.retrieve_shipping_address(user, data)
         billing_address = cls.retrieve_billing_address(user, data)
+        if shipping_address:
+            cls.update_metadata(shipping_address, shipping_address_metadata)
+        if billing_address:
+            cls.update_metadata(billing_address, billing_address_metadata)
 
         country = get_active_country(
             channel,

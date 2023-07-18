@@ -36,9 +36,17 @@ ACCOUNT_UPDATE_QUERY = """
                 email
                 defaultBillingAddress {
                     id
+                    metadata {
+                        key
+                        value
+                    }
                 }
                 defaultShippingAddress {
                     id
+                    metadata {
+                        key
+                        value
+                    }
                 }
                 languageCode
                 metadata {
@@ -91,6 +99,7 @@ def test_logged_customer_update_addresses(user_api_client, graphql_address_data)
     # instances weren't created, but the existing ones got updated
     user = user_api_client.user
     new_first_name = graphql_address_data["firstName"]
+    metadata = graphql_address_data["metadata"]
     assert user.default_billing_address
     assert user.default_shipping_address
     assert user.default_billing_address.first_name != new_first_name
@@ -104,6 +113,9 @@ def test_logged_customer_update_addresses(user_api_client, graphql_address_data)
     data = content["data"][mutation_name]
     assert not data["errors"]
 
+    assert data["user"]["defaultShippingAddress"]["metadata"] == metadata
+    assert data["user"]["defaultBillingAddress"]["metadata"] == metadata
+
     # check that existing instances are updated
     billing_address_pk = user.default_billing_address.pk
     shipping_address_pk = user.default_shipping_address.pk
@@ -114,6 +126,9 @@ def test_logged_customer_update_addresses(user_api_client, graphql_address_data)
     assert user.default_billing_address.first_name == new_first_name
     assert user.default_shipping_address.first_name == new_first_name
     assert user.search_document
+
+    assert user.default_billing_address.metadata == {"public": "public_value"}
+    assert user.default_shipping_address.metadata == {"public": "public_value"}
 
 
 def test_logged_customer_update_addresses_invalid_shipping_address(

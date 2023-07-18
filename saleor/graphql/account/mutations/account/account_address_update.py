@@ -3,11 +3,12 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
+from ...mixins import AddressMetadataMixin
 from ...types import Address
 from ..base import BaseAddressUpdate
 
 
-class AccountAddressUpdate(BaseAddressUpdate):
+class AccountAddressUpdate(AddressMetadataMixin, BaseAddressUpdate):
     class Meta:
         auto_permission_message = False
         description = (

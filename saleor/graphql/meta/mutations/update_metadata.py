@@ -42,6 +42,6 @@ class UpdateMetadata(BaseMetadataMutation):
             cls.validate_metadata_keys(input)
             items = {data.key: data.value for data in input}
             meta_instance.store_value_in_metadata(items=items)
-            save_instance(meta_instance, "metadata")
+            save_instance(meta_instance, ["metadata"])
 
         return cls.success_response(instance)

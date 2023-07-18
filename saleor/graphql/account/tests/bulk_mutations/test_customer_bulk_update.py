@@ -27,6 +27,18 @@ CUSTOMER_BULK_UPDATE_MUTATION = """
                 customer{
                     id
                     firstName
+                    defaultShippingAddress {
+                        metadata {
+                            key
+                            value
+                        }
+                    }
+                    defaultBillingAddress {
+                        metadata {
+                            key
+                            value
+                        }
+                    }
                 }
             }
             count
@@ -39,6 +51,7 @@ def test_customers_bulk_update_using_ids(
     staff_api_client,
     customer_users,
     permission_manage_users,
+    graphql_address_data,
 ):
     # given
     customer_1 = customer_users[0]
@@ -55,12 +68,16 @@ def test_customers_bulk_update_using_ids(
             "id": customer_1_id,
             "input": {
                 "firstName": customer_1_new_name,
+                "defaultShippingAddress": graphql_address_data,
+                "defaultBillingAddress": graphql_address_data,
             },
         },
         {
             "id": customer_2_id,
             "input": {
                 "firstName": customer_2_new_name,
+                "defaultShippingAddress": graphql_address_data,
+                "defaultBillingAddress": graphql_address_data,
             },
         },
     ]
@@ -76,11 +93,16 @@ def test_customers_bulk_update_using_ids(
     # then
     customer_1.refresh_from_db()
     customer_2.refresh_from_db()
+    stored_metadata = {"public": "public_value"}
     assert not data["results"][0]["errors"]
     assert not data["results"][1]["errors"]
     assert data["count"] == 2
     assert customer_1.first_name == customer_1_new_name
+    assert customer_1.default_billing_address.metadata == stored_metadata
+    assert customer_1.default_shipping_address.metadata == stored_metadata
     assert customer_2.first_name == customer_2_new_name
+    assert customer_2.default_billing_address.metadata == stored_metadata
+    assert customer_2.default_shipping_address.metadata == stored_metadata
 
 
 @patch("saleor.plugins.manager.PluginsManager.customer_updated")

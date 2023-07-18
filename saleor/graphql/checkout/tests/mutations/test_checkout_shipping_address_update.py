@@ -45,7 +45,43 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
                 code
             }
         }
-    }"""
+    }
+"""
+
+
+MUTATION_CHECKOUT_SHIPPING_ADDRESS_WITH_METADATA_UPDATE = """
+    mutation checkoutShippingAddressUpdate(
+            $id: ID,
+            $shippingAddress: AddressInput!,
+            $validationRules: CheckoutAddressValidationRules
+        ) {
+        checkoutShippingAddressUpdate(
+                id: $id,
+                shippingAddress: $shippingAddress,
+                validationRules: $validationRules
+        ) {
+            checkout {
+                token
+                id
+                shippingMethods{
+                    id
+                    name
+                }
+                shippingAddress {
+                    metadata {
+                        key
+                        value
+                    }
+                }
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
 
 
 @mock.patch(
@@ -58,7 +94,7 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     "invalidate_checkout_prices",
     wraps=invalidate_checkout_prices,
 )
-def test_checkout_shipping_address_update(
+def test_checkout_shipping_address_with_metadata_update(
     mocked_invalidate_checkout_prices,
     mocked_update_shipping_method,
     user_api_client,
@@ -76,12 +112,14 @@ def test_checkout_shipping_address_update(
     }
 
     response = user_api_client.post_graphql(
-        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_WITH_METADATA_UPDATE, variables
     )
     content = get_graphql_content(response)
     data = content["data"]["checkoutShippingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
+    assert checkout.shipping_address.metadata == {"public": "public_value"}
+
     assert checkout.shipping_address is not None
     assert checkout.shipping_address.first_name == shipping_address["firstName"]
     assert checkout.shipping_address.last_name == shipping_address["lastName"]
