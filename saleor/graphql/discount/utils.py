@@ -2,6 +2,7 @@ from copy import deepcopy
 from enum import Enum
 from typing import Dict, List, Optional, Union, cast
 
+import graphene
 from django.db.models import Exists, OuterRef
 from graphene.utils.str_converters import to_camel_case
 
@@ -188,3 +189,33 @@ def _handle_catalogue_predicate(
             else:
                 queryset |= handle_method(field_data)
     return queryset
+
+
+def convert_migrated_sale_catalogue_predicate(
+    catalogue_predicate,
+) -> Optional[Dict[str, List[int]]]:
+    """Convert catalogue predicate of Promotion created from old sale.
+
+    All migrated sales have related PromotionRule with "OR" catalogue predicate. This
+    function converts:
+        {
+            "OR": [
+                {"collectionPredicate": {"ids": ["UHJvZHV3","UHJvZHV2","UHJvZHV1]}},
+                {"productPredicate": {"ids": ["UHJvZHV9","UHJvZHV8","UHJvZHV7]}},
+            ]
+        }
+    into:
+        {
+            "collectionPredicate": [1,2,3],
+            "productPredicate": [9,8,7],
+        }
+    """
+    if catalogue_predicate.get("OR"):
+        predicates = {
+            list(item.keys())[0]: list(item.values())[0]["ids"]
+            for item in catalogue_predicate["OR"]
+        }
+        for key, ids in predicates.items():
+            predicates[key] = [graphene.Node.from_global_id(id)[1] for id in ids]
+        return predicates
+    return None
