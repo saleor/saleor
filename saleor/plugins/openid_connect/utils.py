@@ -392,6 +392,7 @@ def get_or_create_user_from_payload(
 
     defaults_create = {
         "is_active": True,
+        "is_confirmed": True,
         "email": user_email,
         "first_name": payload.get("given_name", ""),
         "last_name": payload.get("family_name", ""),
