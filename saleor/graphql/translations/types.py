@@ -306,7 +306,7 @@ class CollectionTranslation(BaseTranslationType[product_models.CollectionTransla
     )
     seo_title = graphene.String(description="Translated SEO title.")
     seo_description = graphene.String(description="Translated SEO description.")
-    name = graphene.String(description="Translated colletion name.")
+    name = graphene.String(description="Translated collection name.")
     description = JSONString(
         description="Translated description of the collection." + RICH_CONTENT
     )
@@ -617,7 +617,9 @@ class MenuItemTranslatableContent(ModelObjectType[menu_models.MenuItem]):
     id = graphene.GlobalID(
         required=True, description="The ID of the menu item translatable content."
     )
-    name = graphene.String(required=True, description="Name of the menu to translate.")
+    name = graphene.String(
+        required=True, description="Name of the menu item to translate."
+    )
     translation = TranslationField(MenuItemTranslation, type_name="menu item")
     menu_item = graphene.Field(
         "saleor.graphql.menu.types.MenuItem",

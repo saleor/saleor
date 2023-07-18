@@ -7877,7 +7877,7 @@ type CollectionTranslation implements Node @doc(category: "Products") {
   """Translated SEO description."""
   seoDescription: String
 
-  """Translated colletion name."""
+  """Translated collection name."""
   name: String
 
   """
@@ -8982,7 +8982,7 @@ type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
   """The ID of the menu item translatable content."""
   id: ID!
 
-  """Name of the menu to translate."""
+  """Name of the menu item to translate."""
   name: String!
 
   """Returns translated menu item fields for the given language code."""
