@@ -558,7 +558,7 @@ def test_checkout_billing_address_update_with_disabled_fields_normalization(
     assert billing_address.street_address_1 == address_data["streetAddress1"]
 
 
-def test_new_error_flow(
+def test_with_active_problems_flow(
     api_client,
     checkout_with_problems,
     graphql_address_data,

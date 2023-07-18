@@ -88,7 +88,7 @@ def test_checkout_customer_detach_by_app_without_permissions(
     assert checkout.last_change == previous_last_change
 
 
-def test_new_error_flow(user_api_client, checkout_with_problems):
+def test_with_active_problems_flow(user_api_client, checkout_with_problems):
     # given
     checkout_with_problems.user = user_api_client.user
     checkout_with_problems.save(update_fields=["user"])

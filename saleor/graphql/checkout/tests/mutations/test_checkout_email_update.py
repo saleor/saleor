@@ -58,7 +58,7 @@ def test_checkout_email_update_validation(user_api_client, checkout_with_item):
     assert checkout_with_item.last_change == previous_last_change
 
 
-def test_new_error_flow(api_client, checkout_with_problems):
+def test_with_active_problems_flow(api_client, checkout_with_problems):
     # given
     channel = checkout_with_problems.channel
     channel.use_legacy_error_flow_for_checkout = False

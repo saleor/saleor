@@ -1183,7 +1183,7 @@ def test_checkout_add_voucher_code_invalidates_price(
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total
 
 
-def test_new_error_flow(
+def test_with_active_problems_flow(
     api_client,
     checkout_with_problems,
     voucher,

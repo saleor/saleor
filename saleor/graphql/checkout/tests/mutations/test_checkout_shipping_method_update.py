@@ -458,7 +458,7 @@ def test_checkout_update_shipping_method_with_digital(
     assert checkout.shipping_method is None
 
 
-def test_new_error_flow(
+def test_with_active_problems_flow(
     api_client,
     checkout_with_problems,
     shipping_method,

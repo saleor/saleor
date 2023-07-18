@@ -916,7 +916,7 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     assert checkout_with_item.voucher_code is None
 
 
-def test_new_error_flow(
+def test_with_active_problems_flow(
     api_client,
     checkout_with_problems,
     graphql_address_data,

@@ -210,7 +210,7 @@ def test_checkout_customer_attach_user_to_checkout_with_user(
     assert_no_permission(response)
 
 
-def test_new_error_flow(user_api_client, checkout_with_problems):
+def test_with_active_problems_flow(user_api_client, checkout_with_problems):
     # given
     channel = checkout_with_problems.channel
     channel.use_legacy_error_flow_for_checkout = False

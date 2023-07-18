@@ -1040,7 +1040,7 @@ def test_checkout_lines_invalid_variant_id(user_api_client, checkout, stock):
     assert data["errors"][0]["field"] == "variantId"
 
 
-def test_new_error_flow(
+def test_with_active_problems_flow(
     api_client, checkout_with_problems, product_with_single_variant
 ):
     # given

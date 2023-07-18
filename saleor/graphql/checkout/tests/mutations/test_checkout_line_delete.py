@@ -140,7 +140,7 @@ def test_checkout_line_delete_remove_shipping_if_removed_product_with_shipping(
     assert not checkout.shipping_method
 
 
-def test_new_error_flow(
+def test_with_active_problems_flow(
     api_client, checkout_with_problems, product_with_single_variant
 ):
     # given

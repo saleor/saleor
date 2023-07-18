@@ -778,7 +778,7 @@ def test_checkout_add_payment_run_multiple_times(
     assert payments.filter(is_active=True).count() == 1
 
 
-def test_new_error_flow(
+def test_with_active_problems_flow(
     api_client,
     checkout_with_problems,
     shipping_method,

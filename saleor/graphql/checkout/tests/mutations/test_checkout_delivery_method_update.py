@@ -591,7 +591,7 @@ def test_checkout_delivery_method_update_with_not_valid_address_data(
         assert checkout.collection_point is None
 
 
-def test_new_error_flow(
+def test_with_active_problems_flow(
     api_client,
     checkout_with_problems,
     shipping_method,
