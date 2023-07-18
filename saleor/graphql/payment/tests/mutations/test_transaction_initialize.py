@@ -13,6 +13,7 @@ from .....payment.interface import (
     PaymentGatewayData,
     TransactionProcessActionData,
     TransactionSessionData,
+    TransactionSessionResult,
 )
 from ....channel.enums import TransactionFlowStrategyEnum
 from ....core.enums import TransactionInitializeErrorCode
@@ -166,7 +167,7 @@ def _assert_fields(
                 amount=expected_amount,
                 currency=source_object.currency,
             ),
-            payment_gateway=PaymentGatewayData(
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=app_identifier, data=None, error=None
             ),
         )
@@ -192,8 +193,8 @@ def test_for_checkout_without_payment_gateway_data(
     expected_response = transaction_session_response.copy()
     expected_response["result"] = "CHARGE_SUCCESS"
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -243,8 +244,8 @@ def test_for_order_without_payment_gateway_data(
     expected_response = transaction_session_response.copy()
     expected_response["result"] = "CHARGE_SUCCESS"
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -294,8 +295,8 @@ def test_checkout_with_pending_amount(
     expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_REQUEST.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -346,8 +347,8 @@ def test_order_with_pending_amount(
     expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_REQUEST.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -399,8 +400,8 @@ def test_checkout_with_action_required_response(
     expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -449,8 +450,8 @@ def test_order_with_action_required_response(
     expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -499,8 +500,8 @@ def test_checkout_with_action_required_response_and_missing_psp_reference(
     expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
     del expected_response["pspReference"]
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -548,8 +549,8 @@ def test_order_with_action_required_response_and_missing_psp_reference(
     expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
     del expected_response["pspReference"]
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -603,8 +604,8 @@ def test_checkout_when_amount_is_not_provided(
     expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -654,8 +655,8 @@ def test_order_when_amount_is_not_provided(
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["amount"] = str(order.total_gross_amount)
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -716,8 +717,8 @@ def test_order_with_transaction_when_amount_is_not_provided(
         order.total_gross_amount - expected_charged_amount
     )
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -784,8 +785,8 @@ def test_checkout_with_transaction_when_amount_is_not_provided(
         checkout.total_gross_amount - expected_charged_amount
     )
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -844,8 +845,8 @@ def test_app_with_action_field_and_handle_payments(
     expected_response["amount"] = str(checkout.total_gross_amount)
     expected_response["pspReference"] = expected_psp_reference
     del expected_response["data"]
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -901,8 +902,8 @@ def test_uses_default_channel_action(
     expected_response = transaction_session_response.copy()
     expected_response["result"] = "CHARGE_SUCCESS"
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -962,8 +963,8 @@ def test_app_with_action_field(
         checkout.total_gross_amount - expected_charged_amount
     )
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -1155,8 +1156,8 @@ def test_checkout_fully_paid(
     expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
     expected_response["result"] = result.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {

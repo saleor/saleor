@@ -1422,7 +1422,7 @@ def create_transaction_for_order(
 
 def handle_transaction_initialize_session(
     source_object: Union[Checkout, Order],
-    payment_gateway: PaymentGatewayData,
+    payment_gateway_data: PaymentGatewayData,
     amount: Decimal,
     action: str,
     app: App,
@@ -1434,7 +1434,7 @@ def handle_transaction_initialize_session(
     session_data = TransactionSessionData(
         transaction=transaction_item,
         source_object=source_object,
-        payment_gateway=payment_gateway,
+        payment_gateway_data=payment_gateway_data,
         action=TransactionProcessActionData(
             action_type=action, currency=source_object.currency, amount=amount
         ),
@@ -1448,9 +1448,9 @@ def handle_transaction_initialize_session(
         currency=transaction_item.currency,
         amount_value=amount,
     )
-    response = manager.transaction_initialize_session(session_data)
+    result = manager.transaction_initialize_session(session_data)
 
-    response_data = response.data if response else None
+    response_data = result.response if result else None
 
     created_event = create_transaction_event_for_transaction_session(
         request_event,
@@ -1465,7 +1465,7 @@ def handle_transaction_initialize_session(
 def handle_transaction_process_session(
     transaction_item: TransactionItem,
     source_object: Union[Checkout, Order],
-    payment_gateway: PaymentGatewayData,
+    payment_gateway_data: PaymentGatewayData,
     action: str,
     app: App,
     manager: PluginsManager,
@@ -1474,7 +1474,7 @@ def handle_transaction_process_session(
     session_data = TransactionSessionData(
         transaction=transaction_item,
         source_object=source_object,
-        payment_gateway=payment_gateway,
+        payment_gateway_data=payment_gateway_data,
         action=TransactionProcessActionData(
             action_type=action,
             currency=source_object.currency,
@@ -1482,9 +1482,9 @@ def handle_transaction_process_session(
         ),
     )
 
-    response = manager.transaction_process_session(session_data)
+    result = manager.transaction_process_session(session_data)
 
-    response_data = response.data if response else None
+    response_data = result.response if result else None
 
     created_event = create_transaction_event_for_transaction_session(
         request_event,
