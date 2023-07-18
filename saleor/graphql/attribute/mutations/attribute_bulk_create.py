@@ -139,28 +139,41 @@ class AttributeBulkCreate(BaseMutation):
     def clean_attributes(cls, info, attributes_data, index_error_map):
         cleaned_inputs_map: dict = {}
 
+        attr_input_external_refs = [
+            attribute_data.external_reference
+            for attribute_data in attributes_data
+            if attribute_data.external_reference
+        ]
         attrs_existing_external_refs = set(
-            models.Attribute.objects.values_list("external_reference", flat=True)
+            models.Attribute.objects.filter(
+                external_reference__in=attr_input_external_refs
+            ).values_list("external_reference", flat=True)
         )
-        existing_slugs = set(models.Attribute.objects.values_list("slug", flat=True))
+        duplicated_external_ref = get_duplicated_values(attr_input_external_refs)
+
+        existing_slugs = set(
+            models.Attribute.objects.filter(
+                slug__in=[
+                    slugify(unidecode(attribute_data.name))
+                    for attribute_data in attributes_data
+                ]
+            ).values_list("slug", flat=True)
+        )
+
+        values_input_external_refs = [
+            value.external_reference
+            for attribute_data in attributes_data
+            if attribute_data.values
+            for value in attribute_data.values
+            if value.external_reference
+        ]
         values_existing_external_refs = set(
-            models.AttributeValue.objects.values_list("external_reference", flat=True)
-        )
-        duplicated_external_ref = get_duplicated_values(
-            [
-                attribute_data.external_reference
-                for attribute_data in attributes_data
-                if attribute_data.external_reference
-            ]
+            models.AttributeValue.objects.filter(
+                external_reference__in=values_input_external_refs
+            ).values_list("external_reference", flat=True)
         )
         duplicated_values_external_ref = get_duplicated_values(
-            [
-                value.external_reference
-                for attribute_data in attributes_data
-                if attribute_data.values
-                for value in attribute_data.values
-                if value.external_reference
-            ]
+            values_input_external_refs
         )
 
         for attribute_index, attribute_data in enumerate(attributes_data):
