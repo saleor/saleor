@@ -28,4 +28,4 @@ def set_description_plaintext_task(last_pk: int = 0):
 
     if ids:
         set_description_plaintext(qs)
-        set_description_plaintext_task.delay(tuple(ids)[0])
+        set_description_plaintext_task.delay(min(ids))
