@@ -23,6 +23,10 @@ ADDRESS_CREATE_MUTATION = """
                 country {
                     code
                 }
+                metadata {
+                    key
+                    value
+                }
             }
             user {
                 id
@@ -50,7 +54,10 @@ def test_create_address_mutation(
     data = content["data"]["addressCreate"]
     assert data["address"]["city"] == "DUMMY"
     assert data["address"]["country"]["code"] == "PL"
+    assert data["address"]["metadata"] == [{"key": "public", "value": "public_value"}]
     address_obj = Address.objects.get(city="DUMMY")
+
+    assert address_obj.metadata == {"public": "public_value"}
     assert address_obj.user_addresses.first() == customer_user
     assert data["user"]["id"] == user_id
 

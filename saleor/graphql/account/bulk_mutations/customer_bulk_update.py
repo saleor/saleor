@@ -358,6 +358,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
     @classmethod
     def update_address(cls, info, instance, data, field):
         address = getattr(instance, field) or models.Address()
+        address_metadata = data.pop("metadata", list())
+        cls.update_metadata(address, address_metadata)
         address = cls.construct_instance(address, data)
         cls.clean_instance(info, address)
         return address
@@ -507,6 +509,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 "country",
                 "country_area",
                 "phone",
+                "metadata",
             ],
         )
 

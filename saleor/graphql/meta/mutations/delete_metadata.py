@@ -40,5 +40,5 @@ class DeleteMetadata(BaseMetadataMutation):
             meta_instance = get_valid_metadata_instance(instance)
             for key in keys:
                 meta_instance.delete_value_from_metadata(key)
-            save_instance(meta_instance, "metadata")
+            save_instance(meta_instance, ["metadata"])
         return cls.success_response(instance)

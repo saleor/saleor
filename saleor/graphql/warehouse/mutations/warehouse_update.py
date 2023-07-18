@@ -29,10 +29,15 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
     @classmethod
     def prepare_address(cls, cleaned_data, instance):
         address_data = cleaned_data.get("address")
+        address_metadata = list()
+        if address_data:
+            address_metadata = address_data.pop("metadata", list())
         address = instance.address
         if address_data is None:
             return address
         address_form = cls.validate_address_form(address_data, instance=address)
+        if address_metadata:
+            cls.update_metadata(address, address_metadata)
         return address_form.save()
 
     @classmethod
