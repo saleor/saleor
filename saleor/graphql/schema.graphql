@@ -8954,7 +8954,7 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
-  
+
   """The name of the menu item."""
   name: String!
 
@@ -11515,10 +11515,10 @@ type CreditCard @doc(category: "Payments") {
   """Last 4 digits of the card number."""
   lastDigits: String!
 
-  """Two-digit number representing the cardâ€™s expiration month."""
+  """Two-digit number representing the card’s expiration month."""
   expMonth: Int
 
-  """Four-digit number representing the cardâ€™s expiration year."""
+  """Four-digit number representing the card’s expiration year."""
   expYear: Int
 }
 
