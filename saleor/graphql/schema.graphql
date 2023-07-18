@@ -1712,7 +1712,11 @@ type WebhookEvent @doc(category: "Webhooks") {
 
 """Enum determining type of webhook."""
 enum WebhookEventTypeEnum @doc(category: "Webhooks") {
-  """All the events."""
+  """
+  All the events.
+  
+  DEPRECATED: this value will be removed in Saleor 4.0.
+  """
   ANY_EVENTS
 
   """An account confirmation is requested."""
@@ -2352,7 +2356,11 @@ type WebhookEventAsync @doc(category: "Webhooks") {
 
 """Enum determining type of webhook."""
 enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
-  """All the events."""
+  """
+  All the events.
+  
+  DEPRECATED: this value will be removed in Saleor 4.0.
+  """
   ANY_EVENTS
 
   """An account confirmation is requested."""
