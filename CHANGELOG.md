@@ -75,6 +75,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add `ProductBulkTranslate` mutation - #13329 by @SzymJ
 - Add `ProductVariantBulkTranslate` mutation - #13329 by @SzymJ
 - Add `AttributeBulkCreate` mutation - #13398 by @SzymJ
+- Deprecate `WebhookEventTypeAsyncEnum.ANY_EVENTS` and `WebhookEventTypeEnum.ANY_EVENTS`; instead listeners should subscribe to specific webhook events -  #13452 by @maarcingebala
 
 ### Saleor Apps
 
