@@ -441,7 +441,7 @@ class AttributeBulkCreate(BaseMutation):
         cleaned_inputs_map: dict[int, dict],
         error_policy: str,
         index_error_map: dict[int, List[AttributeBulkCreateError]],
-    ) -> list[dict]:
+    ) -> List[dict]:
         instances_data_and_errors_list: List[dict] = []
 
         for index, cleaned_input in cleaned_inputs_map.items():
