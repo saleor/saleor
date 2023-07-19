@@ -213,6 +213,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     ):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
+        use_legacy_error_flow_for_checkout = (
+            checkout.channel.use_legacy_error_flow_for_checkout
+        )
+
         cls.validate_checkout_email(checkout)
 
         gateway = input["gateway"]
@@ -222,7 +226,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         cls.validate_return_url(input)
 
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-        if unavailable_variant_pks:
+        if use_legacy_error_flow_for_checkout and unavailable_variant_pks:
             not_available_variants_ids = {
                 graphene.Node.to_global_id("ProductVariant", pk)
                 for pk in unavailable_variant_pks

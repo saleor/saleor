@@ -56,3 +56,25 @@ def test_checkout_email_update_validation(user_api_client, checkout_with_item):
     checkout_errors = content["data"]["checkoutEmailUpdate"]["errors"]
     assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
     assert checkout_with_item.last_change == previous_last_change
+
+
+def test_with_active_problems_flow(api_client, checkout_with_problems):
+    # given
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_problems),
+        "email": "admin@example.com",
+    }
+
+    # when
+    response = api_client.post_graphql(
+        CHECKOUT_EMAIL_UPDATE_MUTATION,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutEmailUpdate"]["errors"]

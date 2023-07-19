@@ -157,7 +157,7 @@ def get_checkout_lines_problems(
         for line_info, available_quantity in insufficient_stock:
             problems[str(line_info.line.pk)].append(
                 CheckoutLineProblemInsufficientStock(
-                    available_quantity=available_quantity,
+                    available_quantity=max(available_quantity, 0),
                     line=line_info.line,
                     variant=ChannelContext(
                         node=line_info.variant, channel_slug=line_info.channel.slug

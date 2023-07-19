@@ -754,6 +754,45 @@ def checkout_with_item_and_preorder_item(
 
 
 @pytest.fixture
+def checkout_with_problems(
+    checkout_with_items,
+    product_type,
+    address,
+    shipping_method,
+    category,
+    default_tax_class,
+    channel_USD,
+    warehouse,
+):
+    checkout_with_items.shipping_address = address
+    checkout_with_items.billing_address = address
+    checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.save(
+        update_fields=["shipping_address", "shipping_method", "billing_address"]
+    )
+
+    first_line = checkout_with_items.lines.first()
+    first_line.variant.track_inventory = True
+    first_line.variant.save(update_fields=["track_inventory"])
+
+    product_type = first_line.variant.product.product_type
+    product_type.is_shipping_required = True
+    product_type.save(update_fields=["is_shipping_required"])
+
+    first_line.variant.stocks.all().delete()
+
+    second_line = checkout_with_items.lines.last()
+
+    available_at = datetime.datetime.now(pytz.UTC) + datetime.timedelta(days=5)
+    product = second_line.variant.product
+    product.channel_listings.update(
+        available_for_purchase_at=available_at, is_published=False
+    )
+
+    return checkout_with_items
+
+
+@pytest.fixture
 def address(db):  # pylint: disable=W0613
     return Address.objects.create(
         first_name="John",
