@@ -12,7 +12,7 @@ BATCH_SIZE = 100
 def convert_sale_into_promotion(Promotion, sale):
     return Promotion(
         name=sale.name,
-        old_sale=True,
+        old_sale_id=sale.id,
         start_date=sale.start_date,
         end_date=sale.end_date,
         created_at=sale.created_at,
