@@ -74,6 +74,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add `search` to `giftCards` query - #13173 by @zedzior
 - Add `ProductBulkTranslate` mutation - #13329 by @SzymJ
 - Add `ProductVariantBulkTranslate` mutation - #13329 by @SzymJ
+- Add `AttributeBulkCreate` mutation - #13398 by @SzymJ
 
 ### Saleor Apps
 

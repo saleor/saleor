@@ -17267,6 +17267,24 @@ type Mutation {
   ): AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
+  Creates attributes.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_CREATED (async): An attribute was created.
+  """
+  attributeBulkCreate(
+    """Input list of products to create."""
+    attributes: [AttributeBulkCreateInput!]!
+
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+  ): AttributeBulkCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: [])
+
+  """
   Creates/updates translations for an attribute. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
@@ -26872,6 +26890,116 @@ input AttributeValueUpdateInput @doc(category: "Attributes") {
 
   """Name of a value displayed in the interface."""
   name: String
+}
+
+"""
+Creates attributes.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+
+Triggers the following webhook events:
+- ATTRIBUTE_CREATED (async): An attribute was created.
+"""
+type AttributeBulkCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: []) {
+  """Returns how many objects were created."""
+  count: Int!
+
+  """List of the created attributes."""
+  results: [AttributeBulkCreateResult!]!
+  errors: [AttributeBulkCreateError!]!
+}
+
+type AttributeBulkCreateResult @doc(category: "Attributes") {
+  """Attribute data."""
+  attribute: Attribute
+
+  """List of errors occurred on create attempt."""
+  errors: [AttributeBulkCreateError!]
+}
+
+type AttributeBulkCreateError @doc(category: "Attributes") {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AttributeBulkCreateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeBulkCreateErrorCode @doc(category: "Attributes") {
+  ALREADY_EXISTS
+  BLANK
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  DUPLICATED_INPUT_ITEM
+  MAX_LENGTH
+}
+
+input AttributeBulkCreateInput @doc(category: "Attributes") {
+  """External ID of this attribute."""
+  externalReference: String
+
+  """The input type to use for entering attribute values in the dashboard."""
+  inputType: AttributeInputTypeEnum
+
+  """The entity type which can be used as a reference."""
+  entityType: AttributeEntityTypeEnum
+
+  """Name of an attribute displayed in the interface."""
+  name: String!
+
+  """Internal representation of an attribute name."""
+  slug: String
+
+  """The attribute type."""
+  type: AttributeTypeEnum!
+
+  """The unit of attribute values."""
+  unit: MeasurementUnitsEnum
+
+  """List of attribute's values."""
+  values: [AttributeBulkCreateValueInput!]
+
+  """Whether the attribute requires values to be passed or not."""
+  valueRequired: Boolean
+
+  """Whether the attribute is for variants only."""
+  isVariantOnly: Boolean
+
+  """Whether the attribute should be visible or not in storefront."""
+  visibleInStorefront: Boolean
+
+  """Whether the attribute can be filtered in dashboard."""
+  filterableInDashboard: Boolean
+}
+
+input AttributeBulkCreateValueInput @doc(category: "Attributes") {
+  """Name of a value displayed in the interface."""
+  name: String!
+
+  """
+  Represent value of the attribute value (e.g. color values for swatch attributes).
+  """
+  value: String
+
+  """External ID of this attribute value."""
+  externalReference: String
+
+  """URL of the file attribute. Every time, a new value is created."""
+  fileUrl: String
+
+  """File content type."""
+  contentType: String
 }
 
 """

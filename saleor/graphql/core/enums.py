@@ -162,6 +162,13 @@ AppErrorCode.doc_category = DOC_CATEGORY_APPS
 AttributeErrorCode = graphene.Enum.from_enum(attribute_error_codes.AttributeErrorCode)
 AttributeErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
 
+
+AttributeBulkCreateErrorCode = graphene.Enum.from_enum(
+    attribute_error_codes.AttributeBulkCreateErrorCode
+)
+AttributeBulkCreateErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
+
+
 AttributeTranslateErrorCode = graphene.Enum.from_enum(
     translatable_error_codes.AttributeTranslateErrorCode
 )
