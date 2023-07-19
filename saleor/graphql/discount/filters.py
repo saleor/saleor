@@ -154,7 +154,7 @@ class PromotionWhere(MetadataFilterBase):
 
     @staticmethod
     def filter_is_old_sale(qs, _, value):
-        return qs.filter(old_sale=value)
+        return qs.exclude(old_sale_id__isnull=value)
 
 
 class PromotionWhereInput(WhereInputObjectType):

@@ -182,8 +182,8 @@ def test_query_promotions_filter_by_is_old_sale(
     value, indexes, promotion_list, staff_api_client, permission_manage_discounts
 ):
     # given
-    promotion_list[0].old_sale = True
-    promotion_list[0].save(update_fields=["old_sale"])
+    promotion_list[0].old_sale_id = 1
+    promotion_list[0].save(update_fields=["old_sale_id"])
     variables = {"where": {"isOldSale": value}}
 
     # when

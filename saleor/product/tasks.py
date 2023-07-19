@@ -1,5 +1,6 @@
 import logging
 from typing import Iterable, List, Optional
+from uuid import UUID
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -112,7 +113,7 @@ def update_products_discounted_prices_of_sale_task(discount_pk: int):
 
 
 @app.task
-def update_products_discounted_prices_of_promotion_task(promotion_pk: int):
+def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
     from ..graphql.discount.utils import get_products_for_promotion
 
     try:

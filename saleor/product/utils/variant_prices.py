@@ -1,6 +1,7 @@
 from collections import defaultdict
 from decimal import Decimal
 from typing import Dict, Iterable, List, Optional, Set, Tuple
+from uuid import UUID
 
 from django.db.models import Exists, OuterRef
 from django.db.models.query_utils import Q
@@ -240,7 +241,7 @@ def _get_variant_listings_to_listing_rule_per_rule_id_map(
     }
     """
     variant_listing_rule_data: Dict[
-        int, Dict[int, VariantChannelListingPromotionRule]
+        int, Dict[UUID, VariantChannelListingPromotionRule]
     ] = defaultdict(dict)
     variant_channel_listings = ProductVariantChannelListing.objects.filter(
         Exists(variants.filter(id=OuterRef("variant_id"))), price_amount__isnull=False
@@ -292,7 +293,7 @@ def _get_discounted_variants_prices(
 
 def _get_discounted_variants_prices_for_promotions(
     variant_listings: List[ProductVariantChannelListing],
-    rules_info_per_promotion_id: Dict[int, List[PromotionRuleInfo]],
+    rules_info_per_promotion_id: Dict[UUID, List[PromotionRuleInfo]],
     channel: Channel,
     variant_listing_to_listing_rule_per_rule_map: dict,
 ) -> Tuple[
@@ -359,7 +360,7 @@ def _get_discounted_variants_prices_for_promotions(
 
 def _handle_discount_rule_id(
     variant_listing: ProductVariantChannelListing,
-    rule_id: int,
+    rule_id: UUID,
     variant_listing_to_listing_rule_per_rule_map: dict,
     discount_amount: Decimal,
     currency: str,
