@@ -3945,11 +3945,14 @@ enum ShippingMethodTypeEnum @doc(category: "Shipping") {
 }
 
 type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
+  """The ID of the shipping method translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
-  name: String
+
+  """Translated shipping method name."""
+  name: String!
 
   """
   Translated description of the shipping method.
@@ -6199,20 +6202,23 @@ type AttributeValue implements Node @doc(category: "Attributes") {
 }
 
 type AttributeValueTranslation implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated attribute value name."""
   name: String!
 
   """
-  Attribute value.
+  Translated rich-text attribute value.
   
   Rich text format. For reference see https://editorjs.io/
   """
   richText: JSONString
 
-  """Attribute plain text value."""
+  """Translated plain text attribute value ."""
   plainText: String
 }
 
@@ -6253,10 +6259,13 @@ input AttributeValueFilterInput @doc(category: "Attributes") {
 }
 
 type AttributeTranslation implements Node @doc(category: "Attributes") {
+  """The ID of the attribute translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated attribute name."""
   name: String!
 }
 
@@ -6980,12 +6989,19 @@ enum ThumbnailFormatEnum {
 }
 
 type CategoryTranslation implements Node @doc(category: "Products") {
+  """The ID of the category translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated SEO title."""
   seoTitle: String
+
+  """Translated SEO description."""
   seoDescription: String
+
+  """Translated category name."""
   name: String
 
   """
@@ -7436,10 +7452,13 @@ enum ProductMediaType @doc(category: "Products") {
 }
 
 type ProductVariantTranslation implements Node @doc(category: "Products") {
+  """The ID of the product variant translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated product variant name."""
   name: String!
 }
 
@@ -7846,12 +7865,19 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
 }
 
 type CollectionTranslation implements Node @doc(category: "Products") {
+  """The ID of the collection translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated SEO title."""
   seoTitle: String
+
+  """Translated SEO description."""
   seoDescription: String
+
+  """Translated collection name."""
   name: String
 
   """
@@ -7890,12 +7916,19 @@ type CollectionChannelListing implements Node @doc(category: "Products") {
 }
 
 type ProductTranslation implements Node @doc(category: "Products") {
+  """The ID of the product translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated SEO title."""
   seoTitle: String
+
+  """Translated SEO description."""
   seoDescription: String
+
+  """Translated product name."""
   name: String
 
   """
@@ -7972,13 +8005,20 @@ type TranslatableItemEdge {
 union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent
 
 type ProductTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the product translatable content."""
   id: ID!
+
+  """SEO title to translate."""
   seoTitle: String
+
+  """SEO description to translate."""
   seoDescription: String
+
+  """Product's name to translate."""
   name: String!
 
   """
-  Description of the product.
+  Product's description to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8005,7 +8045,10 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
 }
 
 type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value translatable content."""
   id: ID!
+
+  """Name of the attribute value to translate."""
   name: String!
 
   """
@@ -8036,7 +8079,10 @@ type AttributeValueTranslatableContent implements Node @doc(category: "Attribute
 }
 
 type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
+  """The ID of the attribute."""
   id: ID!
+
+  """Name of the attribute to translate."""
   name: String!
 
   """Returns translated attribute fields for the given language code."""
@@ -8050,13 +8096,20 @@ type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
 }
 
 type CollectionTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the collection translatable content."""
   id: ID!
+
+  """SEO title to translate."""
   seoTitle: String
+
+  """SEO description to translate."""
   seoDescription: String
+
+  """Collection's name to translate."""
   name: String!
 
   """
-  Description of the collection.
+  Collection's description to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8080,13 +8133,20 @@ type CollectionTranslatableContent implements Node @doc(category: "Products") {
 }
 
 type CategoryTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the category translatable content."""
   id: ID!
+
+  """SEO title to translate."""
   seoTitle: String
+
+  """SEO description to translate."""
   seoDescription: String
+
+  """Name of the category translatable content."""
   name: String!
 
   """
-  Description of the category.
+  Category description to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8110,7 +8170,10 @@ type CategoryTranslatableContent implements Node @doc(category: "Products") {
 }
 
 type ProductVariantTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the product variant translatable content."""
   id: ID!
+
+  """Name of the product variant to translate."""
   name: String!
 
   """Returns translated product variant fields for the given language code."""
@@ -8127,13 +8190,20 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
 }
 
 type PageTranslatableContent implements Node @doc(category: "Pages") {
+  """The ID of the page translatable content."""
   id: ID!
+
+  """SEO title to translate."""
   seoTitle: String
+
+  """SEO description to translate."""
   seoDescription: String
+
+  """Page title to translate."""
   title: String!
 
   """
-  Content of the page.
+  Content of the page to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8162,12 +8232,19 @@ type PageTranslatableContent implements Node @doc(category: "Pages") {
 }
 
 type PageTranslation implements Node @doc(category: "Pages") {
+  """The ID of the page translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated SEO title."""
   seoTitle: String
+
+  """Translated SEO description."""
   seoDescription: String
+
+  """Translated page title."""
   title: String
 
   """
@@ -8352,11 +8429,14 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
 }
 
 type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
+  """The ID of the shipping method translatable content."""
   id: ID!
+
+  """Shipping method name to translate."""
   name: String!
 
   """
-  Description of the shipping method.
+  Shipping method description to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8377,7 +8457,10 @@ type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping"
 }
 
 type SaleTranslatableContent implements Node @doc(category: "Discounts") {
+  """The ID of the sale translatable content."""
   id: ID!
+
+  """Name of the sale to translate."""
   name: String!
 
   """Returns translated sale fields for the given language code."""
@@ -8395,10 +8478,13 @@ type SaleTranslatableContent implements Node @doc(category: "Discounts") {
 }
 
 type SaleTranslation implements Node @doc(category: "Discounts") {
+  """The ID of the sale translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated name of sale."""
   name: String
 }
 
@@ -8631,7 +8717,10 @@ type SaleChannelListing implements Node @doc(category: "Discounts") {
 }
 
 type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
+  """The ID of the voucher translatable content."""
   id: ID!
+
+  """Voucher name to translate."""
   name: String
 
   """Returns translated voucher fields for the given language code."""
@@ -8649,10 +8738,13 @@ type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
 }
 
 type VoucherTranslation implements Node @doc(category: "Discounts") {
+  """The ID of the voucher translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated voucher name."""
   name: String
 }
 
@@ -8887,7 +8979,10 @@ type VoucherChannelListing implements Node @doc(category: "Discounts") {
 }
 
 type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
+  """The ID of the menu item translatable content."""
   id: ID!
+
+  """Name of the menu item to translate."""
   name: String!
 
   """Returns translated menu item fields for the given language code."""
@@ -8903,10 +8998,13 @@ type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
 }
 
 type MenuItemTranslation implements Node @doc(category: "Menu") {
+  """The ID of the menu item translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated menu item name."""
   name: String!
 }
 
@@ -9557,11 +9655,16 @@ type Domain {
 }
 
 type ShopTranslation implements Node @doc(category: "Shop") {
+  """The ID of the shop translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated header text of sale."""
   headerText: String!
+
+  """Translated description of sale."""
   description: String!
 }
 
