@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Tuple, Union
+from typing import List, Tuple, Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -13,6 +13,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
 from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import ErrorPolicyEnum, MeasurementUnitsEnum
@@ -32,16 +33,6 @@ from ..types import Attribute
 ONLY_SWATCH_FIELDS = ["file_url", "content_type", "value"]
 
 
-def get_results(instances_data_with_errors_list, reject_everything=False):
-    return [
-        AttributeBulkResult(
-            attribute=None if reject_everything else data.get("instance"),
-            errors=data.get("errors"),
-        )
-        for data in instances_data_with_errors_list
-    ]
-
-
 class AttributeBulkResult(BaseObjectType):
     attribute = graphene.Field(Attribute, description="Attribute data.")
     errors = NonNullList(
@@ -52,6 +43,18 @@ class AttributeBulkResult(BaseObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
+
+
+def get_results(
+    instances_data_with_errors_list: list[dict], reject_everything: bool = False
+) -> list[AttributeBulkResult]:
+    return [
+        AttributeBulkResult(
+            attribute=None if reject_everything else data.get("instance"),
+            errors=data.get("errors"),
+        )
+        for data in instances_data_with_errors_list
+    ]
 
 
 class AttributeBulkCreateValueInput(BaseInputObjectType):
@@ -135,7 +138,12 @@ class AttributeBulkCreate(BaseMutation):
         ]
 
     @classmethod
-    def clean_attributes(cls, info, attributes_data, index_error_map):
+    def clean_attributes(
+        cls,
+        info: ResolveInfo,
+        attributes_data: List[AttributeBulkCreateInput],
+        index_error_map: dict[int, List[AttributeBulkCreateError]],
+    ):
         cleaned_inputs_map: dict = {}
 
         attr_input_external_refs = [
@@ -214,13 +222,13 @@ class AttributeBulkCreate(BaseMutation):
     @classmethod
     def clean_attribute_input(
         cls,
-        info,
-        attribute_data,
-        attribute_index,
-        existing_slugs,
-        values_existing_external_refs,
-        duplicated_values_external_ref,
-        index_error_map,
+        info: ResolveInfo,
+        attribute_data: AttributeBulkCreateInput,
+        attribute_index: int,
+        existing_slugs: set,
+        values_existing_external_refs: set,
+        duplicated_values_external_ref: set,
+        index_error_map: dict[int, List[AttributeBulkCreateError]],
     ):
         values = attribute_data.pop("values", None)
         cleaned_input = ModelMutation.clean_input(
@@ -297,13 +305,13 @@ class AttributeBulkCreate(BaseMutation):
     @classmethod
     def clean_values(
         cls,
-        values,
-        input_type,
-        values_existing_external_refs,
-        duplicated_values_external_ref,
-        attribute_index,
-        index_error_map,
-    ):
+        values: list[AttributeBulkCreateValueInput],
+        input_type: AttributeInputType,
+        values_existing_external_refs: set,
+        duplicated_values_external_ref: set,
+        attribute_index: int,
+        index_error_map: dict[int, List[AttributeBulkCreateError]],
+    ) -> list[AttributeBulkCreateValueInput]:
         slugs_list: list = []
         cleand_values: list = []
 
@@ -374,12 +382,12 @@ class AttributeBulkCreate(BaseMutation):
     @classmethod
     def _validate_value(
         cls,
-        value_data,
-        input_type,
-        slugs_list,
-        value_index,
-        attribute_index,
-        index_error_map,
+        value_data: AttributeBulkCreateValueInput,
+        input_type: AttributeInputType,
+        slugs_list: list[str],
+        value_index: int,
+        attribute_index: int,
+        index_error_map: dict[int, List[AttributeBulkCreateError]],
     ):
         name = value_data.get("name")
         is_swatch_attr = input_type == AttributeInputType.SWATCH
@@ -427,8 +435,14 @@ class AttributeBulkCreate(BaseMutation):
         return unique_slug
 
     @classmethod
-    def create_attributes(cls, info, cleaned_inputs_map, error_policy, index_error_map):
-        instances_data_and_errors_list = []
+    def create_attributes(
+        cls,
+        info: ResolveInfo,
+        cleaned_inputs_map: dict[int, dict],
+        error_policy: str,
+        index_error_map: dict[int, List[AttributeBulkCreateError]],
+    ) -> list[dict]:
+        instances_data_and_errors_list: List[dict] = []
 
         for index, cleaned_input in cleaned_inputs_map.items():
             if not cleaned_input:
@@ -478,7 +492,14 @@ class AttributeBulkCreate(BaseMutation):
         return instances_data_and_errors_list
 
     @classmethod
-    def create_values(cls, attribute, values_data, values, attr_index, index_error_map):
+    def create_values(
+        cls,
+        attribute: models.Attribute,
+        values_data: list[AttributeBulkCreateValueInput],
+        values: list[models.AttributeValue],
+        attr_index: int,
+        index_error_map: dict[int, List[AttributeBulkCreateError]],
+    ):
         for value_index, value_data in enumerate(values_data):
             value = models.AttributeValue(attribute=attribute)
 
@@ -499,7 +520,9 @@ class AttributeBulkCreate(BaseMutation):
                         )
 
     @classmethod
-    def save(cls, info, instances_data_with_errors_list):
+    def save(
+        cls, instances_data_with_errors_list: list[dict]
+    ) -> list[models.Attribute]:
         attributes_to_create: list = []
         values_to_create: list = []
         for attribute_data in instances_data_with_errors_list:
@@ -519,7 +542,7 @@ class AttributeBulkCreate(BaseMutation):
         return attributes_to_create
 
     @classmethod
-    def post_save_actions(cls, info, attributes):
+    def post_save_actions(cls, info: ResolveInfo, attributes: list[models.Attribute]):
         manager = get_plugin_manager_promise(info.context).get()
         for attribute in attributes:
             cls.call_event(manager.attribute_created, attribute)
@@ -551,7 +574,7 @@ class AttributeBulkCreate(BaseMutation):
             return AttributeBulkCreate(count=0, results=results)
 
         # save all objects
-        attributes = cls.save(info, instances_data_with_errors_list)
+        attributes = cls.save(instances_data_with_errors_list)
 
         # prepare and return data
         results = get_results(instances_data_with_errors_list)
