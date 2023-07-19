@@ -51,6 +51,7 @@ class WebhookEventAsyncType:
     CHANNEL_UPDATED = "channel_updated"
     CHANNEL_DELETED = "channel_deleted"
     CHANNEL_STATUS_CHANGED = "channel_status_changed"
+    CHANNEL_METADATA_UPDATED = "channel_metadata_updated"
 
     GIFT_CARD_CREATED = "gift_card_created"
     GIFT_CARD_UPDATED = "gift_card_updated"
@@ -269,6 +270,10 @@ class WebhookEventAsyncType:
         },
         CHANNEL_STATUS_CHANGED: {
             "name": "Channel status changed",
+            "permission": ChannelPermissions.MANAGE_CHANNELS,
+        },
+        CHANNEL_METADATA_UPDATED: {
+            "name": "Channel metadata updated",
             "permission": ChannelPermissions.MANAGE_CHANNELS,
         },
         GIFT_CARD_CREATED: {

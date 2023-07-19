@@ -1788,6 +1788,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A channel status is changed."""
   CHANNEL_STATUS_CHANGED
 
+  """
+  A channel metadata is updated.
+  
+  Added in Saleor 3.15.
+  """
+  CHANNEL_METADATA_UPDATED
+
   """A new gift card created."""
   GIFT_CARD_CREATED
 
@@ -2431,6 +2438,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A channel status is changed."""
   CHANNEL_STATUS_CHANGED
+
+  """
+  A channel metadata is updated.
+  
+  Added in Saleor 3.15.
+  """
+  CHANNEL_METADATA_UPDATED
 
   """A new gift card created."""
   GIFT_CARD_CREATED
@@ -3389,6 +3403,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   CHANNEL_UPDATED
   CHANNEL_DELETED
   CHANNEL_STATUS_CHANGED
+  CHANNEL_METADATA_UPDATED
   GIFT_CARD_CREATED
   GIFT_CARD_UPDATED
   GIFT_CARD_DELETED
@@ -17302,6 +17317,7 @@ type Mutation {
   
   Triggers the following webhook events:
   - CHANNEL_UPDATED (async): A channel was updated.
+  - CHANNEL_METADATA_UPDATED (async): Optionally triggered when public or private metadata is updated.
   """
   channelUpdate(
     """ID of a channel to update."""
@@ -17309,7 +17325,7 @@ type Mutation {
 
     """Fields required to update a channel."""
     input: ChannelUpdateInput!
-  ): ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_UPDATED], syncEvents: [])
+  ): ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_UPDATED, CHANNEL_METADATA_UPDATED], syncEvents: [])
 
   """
   Delete a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed. 
@@ -26690,8 +26706,9 @@ Requires one of the following permissions when updating only orderSettings field
 
 Triggers the following webhook events:
 - CHANNEL_UPDATED (async): A channel was updated.
+- CHANNEL_METADATA_UPDATED (async): Optionally triggered when public or private metadata is updated.
 """
-type ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_UPDATED], syncEvents: []) {
+type ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_UPDATED, CHANNEL_METADATA_UPDATED], syncEvents: []) {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ChannelError!]!
   channel: Channel
@@ -29573,6 +29590,28 @@ Event sent when channel status has changed.
 Added in Saleor 3.2.
 """
 type ChannelStatusChanged implements Event @doc(category: "Channels") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The channel the event relates to."""
+  channel: Channel
+}
+
+"""
+Event sent when channel metadata is updated.
+
+Added in Saleor 3.15.
+"""
+type ChannelMetadataUpdated implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
 

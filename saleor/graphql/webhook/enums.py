@@ -62,6 +62,8 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.CHANNEL_UPDATED: "A channel is updated.",
     WebhookEventAsyncType.CHANNEL_DELETED: "A channel is deleted.",
     WebhookEventAsyncType.CHANNEL_STATUS_CHANGED: "A channel status is changed.",
+    WebhookEventAsyncType.CHANNEL_METADATA_UPDATED: "A channel metadata is updated."
+    + ADDED_IN_315,
     WebhookEventAsyncType.CHECKOUT_CREATED: "A new checkout is created.",
     WebhookEventAsyncType.CHECKOUT_UPDATED: checkout_updated_event_enum_description,
     WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: (

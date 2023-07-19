@@ -1190,6 +1190,12 @@ class PluginsManager(PaymentInterface):
             "channel_status_changed", default_value, channel
         )
 
+    def channel_metadata_updated(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "channel_metadata_updated", default_value, channel
+        )
+
     def gift_card_created(self, gift_card: "GiftCard"):
         default_value = None
         return self.__run_method_on_plugins(
