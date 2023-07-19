@@ -4,6 +4,7 @@ import django.utils.timezone
 import saleor.core.db.fields
 import saleor.core.utils.editorjs
 import saleor.core.utils.json_serializer
+import uuid
 
 
 class Migration(migrations.Migration):
@@ -18,11 +19,12 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.AutoField(
-                        auto_created=True,
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        unique=True,
                     ),
                 ),
                 (
@@ -52,7 +54,10 @@ class Migration(migrations.Migration):
                         sanitizer=saleor.core.utils.editorjs.clean_editor_js,
                     ),
                 ),
-                ("old_sale", models.BooleanField(default=False)),
+                (
+                    "old_sale_id",
+                    models.IntegerField(blank=True, null=True, unique=True),
+                ),
                 ("start_date", models.DateTimeField(default=django.utils.timezone.now)),
                 ("end_date", models.DateTimeField(blank=True, null=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
@@ -71,11 +76,12 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.AutoField(
-                        auto_created=True,
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        unique=True,
                     ),
                 ),
                 ("name", models.CharField(max_length=255)),
