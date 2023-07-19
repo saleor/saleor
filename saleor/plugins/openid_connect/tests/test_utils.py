@@ -401,7 +401,7 @@ def test_get_or_create_user_from_payload_with_last_login(customer_user, settings
 
 
 @freeze_time("2019-03-18 12:00:00")
-def test_get_or_create_user_from_payload_update_last_login(customer_user, settings):
+def test_get_or_create_user_from_payload_update_last_login(customer_user):
     assert customer_user.last_login is None
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
@@ -416,8 +416,8 @@ def test_get_or_create_user_from_payload_update_last_login(customer_user, settin
     assert last_login == "2019-03-18 12:00:00"
 
 
-def test_get_or_create_user_from_payload_last_login_stays_same(customer_user, settings):
-    last_login = timezone.now() - timedelta(hours=11)
+def test_get_or_create_user_from_payload_last_login_stays_same(customer_user):
+    last_login = timezone.now() - timedelta(minutes=14)
     customer_user.last_login = last_login
     customer_user.save()
     oauth_url = "https://saleor.io/oauth"
@@ -431,8 +431,8 @@ def test_get_or_create_user_from_payload_last_login_stays_same(customer_user, se
     assert customer_user.last_login == last_login
 
 
-def test_get_or_create_user_from_payload_last_login_modifies(customer_user, settings):
-    last_login = timezone.now() - timedelta(days=2)
+def test_get_or_create_user_from_payload_last_login_modifies(customer_user):
+    last_login = timezone.now() - timedelta(minutes=16)
     customer_user.last_login = last_login
     customer_user.save()
     oauth_url = "https://saleor.io/oauth"

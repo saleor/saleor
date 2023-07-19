@@ -7,6 +7,7 @@ import requests
 from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import DecodeError, JoseError
 from authlib.oidc.core import CodeIDToken
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -461,7 +462,11 @@ def _update_user_details(
             user.last_login = login_time
             fields_to_save.append("last_login")
     else:
-        if not user.last_login or (timezone.now() - user.last_login).days > 1:
+        if (
+            not user.last_login
+            or (timezone.now() - user.last_login).seconds
+            > settings.OAUTH_UPDATE_LAST_LOGIN_THRESHOLD
+        ):
             user.last_login = timezone.now()
             fields_to_save.append("last_login")
 
