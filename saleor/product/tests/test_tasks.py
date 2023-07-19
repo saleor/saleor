@@ -1,4 +1,5 @@
 import logging
+import uuid
 from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
@@ -107,7 +108,7 @@ def test_update_products_discounted_prices_of_promotion_task_discount_does_not_e
 ):
     # given
     caplog.set_level(logging.WARNING)
-    promotion_id = -1
+    promotion_id = uuid.uuid4()
 
     # when
     update_products_discounted_prices_of_promotion_task(promotion_id)
