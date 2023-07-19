@@ -8914,6 +8914,7 @@ type MenuItemTranslation implements Node @doc(category: "Menu") {
 Represents a single item of the related menu. Can store categories, collection or pages.
 """
 type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
+  """The ID of the menu item."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8953,9 +8954,17 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """The name of the menu item."""
   name: String!
+
+  """Represents the menu to which the menu item belongs."""
   menu: Menu!
+
+  """ID of parent menu item. If empty, menu will be top level menu."""
   parent: MenuItem
+
+  """Category associated with the menu item."""
   category: Category
 
   """
@@ -8967,7 +8976,11 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   A page associated with this menu item. Requires one of the following permissions to include unpublished items: MANAGE_PAGES.
   """
   page: Page
+
+  """Indicates the position of the menu item within the menu structure."""
   level: Int!
+
+  """Represents the child items of the current menu item."""
   children: [MenuItem!]
 
   """URL to the menu item."""
@@ -8984,6 +8997,7 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
 Represents a single menu - an object that is used to help navigate through the store.
 """
 type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
+  """The ID of the menu."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -9023,8 +9037,14 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """The name of the menu."""
   name: String!
+
+  """Slug of the menu."""
   slug: String!
+
+  """Menu items associated with this menu."""
   items: [MenuItem!]
 }
 
