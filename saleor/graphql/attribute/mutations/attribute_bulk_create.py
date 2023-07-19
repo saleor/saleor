@@ -33,7 +33,7 @@ from ..types import Attribute
 ONLY_SWATCH_FIELDS = ["file_url", "content_type", "value"]
 
 
-class AttributeBulkResult(BaseObjectType):
+class AttributeBulkCreateResult(BaseObjectType):
     attribute = graphene.Field(Attribute, description="Attribute data.")
     errors = NonNullList(
         AttributeBulkCreateError,
@@ -47,9 +47,9 @@ class AttributeBulkResult(BaseObjectType):
 
 def get_results(
     instances_data_with_errors_list: list[dict], reject_everything: bool = False
-) -> list[AttributeBulkResult]:
+) -> list[AttributeBulkCreateResult]:
     return [
-        AttributeBulkResult(
+        AttributeBulkCreateResult(
             attribute=None if reject_everything else data.get("instance"),
             errors=data.get("errors"),
         )
@@ -108,7 +108,7 @@ class AttributeBulkCreate(BaseMutation):
         description="Returns how many objects were created.",
     )
     results = NonNullList(
-        AttributeBulkResult,
+        AttributeBulkCreateResult,
         required=True,
         default_value=[],
         description="List of the created attributes.",

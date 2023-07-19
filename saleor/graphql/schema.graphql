@@ -26887,11 +26887,11 @@ type AttributeBulkCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEv
   count: Int!
 
   """List of the created attributes."""
-  results: [AttributeBulkResult!]!
+  results: [AttributeBulkCreateResult!]!
   errors: [AttributeBulkCreateError!]!
 }
 
-type AttributeBulkResult @doc(category: "Attributes") {
+type AttributeBulkCreateResult @doc(category: "Attributes") {
   """Attribute data."""
   attribute: Attribute
 
