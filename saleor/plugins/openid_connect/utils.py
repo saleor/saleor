@@ -12,7 +12,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import QuerySet
-from django.utils.timezone import make_aware
+from django.utils import timezone
 from jwt import PyJWTError
 
 from ...account.models import Group, User
@@ -457,8 +457,12 @@ def _update_user_details(
         fields_to_save.append("email")
     if last_login:
         if not user.last_login or user.last_login.timestamp() < last_login:
-            login_time = make_aware(datetime.fromtimestamp(last_login))
+            login_time = timezone.make_aware(datetime.fromtimestamp(last_login))
             user.last_login = login_time
+            fields_to_save.append("last_login")
+    else:
+        if not user.last_login or (timezone.now() - user.last_login).days > 1:
+            user.last_login = timezone.now()
             fields_to_save.append("last_login")
 
     if fields_to_save:
