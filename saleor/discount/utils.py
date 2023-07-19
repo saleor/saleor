@@ -231,10 +231,10 @@ def get_sale_id_applied_as_a_discount(
 def calculate_discounted_price_for_promotions(
     *,
     price: Money,
-    rules_info_per_promotion_id: Dict[int, List[PromotionRuleInfo]],
+    rules_info_per_promotion_id: Dict[UUID, List[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> List[Tuple[int, Money]]:
+) -> List[Tuple[UUID, Money]]:
     """Return minimum product's price of all prices with promotions applied."""
     applied_discounts = []
     if rules_info_per_promotion_id:
@@ -246,10 +246,10 @@ def calculate_discounted_price_for_promotions(
 
 def get_best_promotion_discount(
     price: Money,
-    rules_info_per_promotion_id: Dict[int, List[PromotionRuleInfo]],
+    rules_info_per_promotion_id: Dict[UUID, List[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> List[Tuple[int, Money]]:
+) -> List[Tuple[UUID, Money]]:
     """Return the rules with the discount amounts for the best promotion.
 
     The data for the promotion that gives the best saving are returned in the following
@@ -286,7 +286,7 @@ def get_product_promotion_discounts(
     rules_info: List[PromotionRuleInfo],
     channel: "Channel",
     variant_id: Optional[int],
-) -> Iterator[Tuple[int, Callable]]:
+) -> Iterator[Tuple[UUID, Callable]]:
     """Return promotion rule id, discount value for all rules applicable on product."""
     for rule_info in rules_info:
         try:
@@ -299,7 +299,7 @@ def get_product_discount_on_promotion(
     rule_info: PromotionRuleInfo,
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> Tuple[int, Callable]:
+) -> Tuple[UUID, Callable]:
     """Return rule id, discount value if rule applied or raise NotApplicable."""
     if variant_id in rule_info.variant_ids and channel.id in rule_info.channel_ids:
         return rule_info.rule.id, rule_info.rule.get_discount(channel.currency_code)
@@ -992,7 +992,7 @@ def generate_sale_discount_objects_for_checkout(
 def fetch_active_promotion_rules(
     variant_qs: "ProductVariantQueryset",
     date: Optional[datetime.date] = None,
-) -> Dict[int, List[PromotionRuleInfo]]:
+) -> Dict[UUID, List[PromotionRuleInfo]]:
     from ..graphql.discount.utils import get_variants_for_predicate
 
     rules_info_per_promotion_id = defaultdict(list)
