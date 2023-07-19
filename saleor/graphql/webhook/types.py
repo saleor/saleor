@@ -52,9 +52,9 @@ class WebhookEventAsync(ModelObjectType[models.WebhookEvent]):
 
     @staticmethod
     def resolve_name(root: models.WebhookEvent, _info):
-        return (
-            WebhookEventAsyncType.DISPLAY_LABELS.get(root.event_type) or root.event_type
-        )
+        if root.event_type in WebhookEventAsyncType.EVENT_MAP:
+            return WebhookEventAsyncType.EVENT_MAP[root.event_type]["name"]
+        return root.event_type
 
 
 class WebhookEventSync(ModelObjectType[models.WebhookEvent]):
@@ -69,9 +69,9 @@ class WebhookEventSync(ModelObjectType[models.WebhookEvent]):
 
     @staticmethod
     def resolve_name(root: models.WebhookEvent, _info):
-        return (
-            WebhookEventSyncType.DISPLAY_LABELS.get(root.event_type) or root.event_type
-        )
+        if root.event_type in WebhookEventSyncType.EVENT_MAP:
+            return WebhookEventSyncType.EVENT_MAP[root.event_type]["name"]
+        return root.event_type
 
 
 class EventDeliveryAttempt(ModelObjectType[core_models.EventDeliveryAttempt]):

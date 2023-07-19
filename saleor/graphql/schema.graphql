@@ -1898,6 +1898,22 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   ORDER_BULK_CREATED
 
+  """A new fulfillment is created."""
+  FULFILLMENT_CREATED
+
+  """A fulfillment is cancelled."""
+  FULFILLMENT_CANCELED
+
+  """A fulfillment is approved."""
+  FULFILLMENT_APPROVED
+
+  """
+  A fulfillment metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  FULFILLMENT_METADATA_UPDATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -1970,6 +1986,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_DELETED
 
   """
+  A product metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  PRODUCT_METADATA_UPDATED
+
+  """
   A new product media is created.
   
   Added in Saleor 3.12.
@@ -1990,13 +2013,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   PRODUCT_MEDIA_DELETED
 
-  """
-  A product metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  PRODUCT_METADATA_UPDATED
-
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
 
@@ -2006,6 +2022,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A product variant is deleted."""
   PRODUCT_VARIANT_DELETED
 
+  """
+  A product variant metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  PRODUCT_VARIANT_METADATA_UPDATED
+
   """A product variant is out of stock."""
   PRODUCT_VARIANT_OUT_OF_STOCK
 
@@ -2014,13 +2037,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
-
-  """
-  A product variant metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  PRODUCT_VARIANT_METADATA_UPDATED
 
   """A new checkout is created."""
   CHECKOUT_CREATED
@@ -2037,22 +2053,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   CHECKOUT_METADATA_UPDATED
-
-  """A new fulfillment is created."""
-  FULFILLMENT_CREATED
-
-  """A fulfillment is cancelled."""
-  FULFILLMENT_CANCELED
-
-  """A fulfillment is approved."""
-  FULFILLMENT_APPROVED
-
-  """
-  A fulfillment metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  FULFILLMENT_METADATA_UPDATED
 
   """User notification triggered."""
   NOTIFY_USER
@@ -2180,26 +2180,40 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   SHOP_METADATA_UPDATED
 
+  """Listing available payment gateways."""
+  PAYMENT_LIST_GATEWAYS
+
   """Authorize payment."""
   PAYMENT_AUTHORIZE
 
   """Capture payment."""
   PAYMENT_CAPTURE
 
-  """Confirm payment."""
-  PAYMENT_CONFIRM
-
-  """Listing available payment gateways."""
-  PAYMENT_LIST_GATEWAYS
-
-  """Process payment."""
-  PAYMENT_PROCESS
-
   """Refund payment."""
   PAYMENT_REFUND
 
   """Void payment."""
   PAYMENT_VOID
+
+  """Confirm payment."""
+  PAYMENT_CONFIRM
+
+  """Process payment."""
+  PAYMENT_PROCESS
+
+  """
+  Event called for checkout tax calculation.
+  
+  Added in Saleor 3.6.
+  """
+  CHECKOUT_CALCULATE_TAXES
+
+  """
+  Event called for order tax calculation.
+  
+  Added in Saleor 3.6.
+  """
+  ORDER_CALCULATE_TAXES
 
   """
   Event called when charge has been requested for transaction.
@@ -2228,28 +2242,14 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   TRANSACTION_CANCELATION_REQUESTED
 
-  """
-  Event called for checkout tax calculation.
-  
-  Added in Saleor 3.6.
-  """
-  CHECKOUT_CALCULATE_TAXES
-
-  """
-  Event called for order tax calculation.
-  
-  Added in Saleor 3.6.
-  """
-  ORDER_CALCULATE_TAXES
-
   """Fetch external shipping methods for checkout."""
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
 
-  """Filter shipping methods for order."""
-  ORDER_FILTER_SHIPPING_METHODS
-
   """Filter shipping methods for checkout."""
   CHECKOUT_FILTER_SHIPPING_METHODS
+
+  """Filter shipping methods for order."""
+  ORDER_FILTER_SHIPPING_METHODS
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
@@ -2266,26 +2266,40 @@ type WebhookEventSync @doc(category: "Webhooks") {
 
 """Enum determining type of webhook."""
 enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
+  """Listing available payment gateways."""
+  PAYMENT_LIST_GATEWAYS
+
   """Authorize payment."""
   PAYMENT_AUTHORIZE
 
   """Capture payment."""
   PAYMENT_CAPTURE
 
-  """Confirm payment."""
-  PAYMENT_CONFIRM
-
-  """Listing available payment gateways."""
-  PAYMENT_LIST_GATEWAYS
-
-  """Process payment."""
-  PAYMENT_PROCESS
-
   """Refund payment."""
   PAYMENT_REFUND
 
   """Void payment."""
   PAYMENT_VOID
+
+  """Confirm payment."""
+  PAYMENT_CONFIRM
+
+  """Process payment."""
+  PAYMENT_PROCESS
+
+  """
+  Event called for checkout tax calculation.
+  
+  Added in Saleor 3.6.
+  """
+  CHECKOUT_CALCULATE_TAXES
+
+  """
+  Event called for order tax calculation.
+  
+  Added in Saleor 3.6.
+  """
+  ORDER_CALCULATE_TAXES
 
   """
   Event called when charge has been requested for transaction.
@@ -2314,28 +2328,14 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   """
   TRANSACTION_CANCELATION_REQUESTED
 
-  """
-  Event called for checkout tax calculation.
-  
-  Added in Saleor 3.6.
-  """
-  CHECKOUT_CALCULATE_TAXES
-
-  """
-  Event called for order tax calculation.
-  
-  Added in Saleor 3.6.
-  """
-  ORDER_CALCULATE_TAXES
-
   """Fetch external shipping methods for checkout."""
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
 
-  """Filter shipping methods for order."""
-  ORDER_FILTER_SHIPPING_METHODS
-
   """Filter shipping methods for checkout."""
   CHECKOUT_FILTER_SHIPPING_METHODS
+
+  """Filter shipping methods for order."""
+  ORDER_FILTER_SHIPPING_METHODS
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
@@ -2538,6 +2538,22 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   ORDER_BULK_CREATED
 
+  """A new fulfillment is created."""
+  FULFILLMENT_CREATED
+
+  """A fulfillment is cancelled."""
+  FULFILLMENT_CANCELED
+
+  """A fulfillment is approved."""
+  FULFILLMENT_APPROVED
+
+  """
+  A fulfillment metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  FULFILLMENT_METADATA_UPDATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -2610,6 +2626,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   PRODUCT_DELETED
 
   """
+  A product metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  PRODUCT_METADATA_UPDATED
+
+  """
   A new product media is created.
   
   Added in Saleor 3.12.
@@ -2630,13 +2653,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   PRODUCT_MEDIA_DELETED
 
-  """
-  A product metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  PRODUCT_METADATA_UPDATED
-
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
 
@@ -2646,6 +2662,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A product variant is deleted."""
   PRODUCT_VARIANT_DELETED
 
+  """
+  A product variant metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  PRODUCT_VARIANT_METADATA_UPDATED
+
   """A product variant is out of stock."""
   PRODUCT_VARIANT_OUT_OF_STOCK
 
@@ -2654,13 +2677,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
-
-  """
-  A product variant metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  PRODUCT_VARIANT_METADATA_UPDATED
 
   """A new checkout is created."""
   CHECKOUT_CREATED
@@ -2677,22 +2693,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   CHECKOUT_METADATA_UPDATED
-
-  """A new fulfillment is created."""
-  FULFILLMENT_CREATED
-
-  """A fulfillment is cancelled."""
-  FULFILLMENT_CANCELED
-
-  """A fulfillment is approved."""
-  FULFILLMENT_APPROVED
-
-  """
-  A fulfillment metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  FULFILLMENT_METADATA_UPDATED
 
   """User notification triggered."""
   NOTIFY_USER
@@ -3405,6 +3405,10 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ORDER_FULFILLED
   ORDER_METADATA_UPDATED
   ORDER_BULK_CREATED
+  FULFILLMENT_CREATED
+  FULFILLMENT_CANCELED
+  FULFILLMENT_APPROVED
+  FULFILLMENT_METADATA_UPDATED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
   DRAFT_ORDER_DELETED
@@ -3426,25 +3430,21 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  PRODUCT_METADATA_UPDATED
   PRODUCT_MEDIA_CREATED
   PRODUCT_MEDIA_UPDATED
   PRODUCT_MEDIA_DELETED
-  PRODUCT_METADATA_UPDATED
   PRODUCT_VARIANT_CREATED
   PRODUCT_VARIANT_UPDATED
   PRODUCT_VARIANT_DELETED
+  PRODUCT_VARIANT_METADATA_UPDATED
   PRODUCT_VARIANT_OUT_OF_STOCK
   PRODUCT_VARIANT_BACK_IN_STOCK
   PRODUCT_VARIANT_STOCK_UPDATED
-  PRODUCT_VARIANT_METADATA_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   CHECKOUT_FULLY_PAID
   CHECKOUT_METADATA_UPDATED
-  FULFILLMENT_CREATED
-  FULFILLMENT_CANCELED
-  FULFILLMENT_APPROVED
-  FULFILLMENT_METADATA_UPDATED
   NOTIFY_USER
   PAGE_CREATED
   PAGE_UPDATED
@@ -8923,6 +8923,7 @@ type MenuItemTranslation implements Node @doc(category: "Menu") {
 Represents a single item of the related menu. Can store categories, collection or pages.
 """
 type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
+  """The ID of the menu item."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8962,9 +8963,17 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """The name of the menu item."""
   name: String!
+
+  """Represents the menu to which the menu item belongs."""
   menu: Menu!
+
+  """ID of parent menu item. If empty, menu will be top level menu."""
   parent: MenuItem
+
+  """Category associated with the menu item."""
   category: Category
 
   """
@@ -8976,7 +8985,11 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   A page associated with this menu item. Requires one of the following permissions to include unpublished items: MANAGE_PAGES.
   """
   page: Page
+
+  """Indicates the position of the menu item within the menu structure."""
   level: Int!
+
+  """Represents the child items of the current menu item."""
   children: [MenuItem!]
 
   """URL to the menu item."""
@@ -8993,6 +9006,7 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
 Represents a single menu - an object that is used to help navigate through the store.
 """
 type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
+  """The ID of the menu."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -9032,8 +9046,14 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """The name of the menu."""
   name: String!
+
+  """Slug of the menu."""
   slug: String!
+
+  """Menu items associated with this menu."""
   items: [MenuItem!]
 }
 
@@ -13889,11 +13909,14 @@ type Mutation {
   Updates shop settings. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
+  
+  Triggers the following webhook events:
+  - SHOP_METADATA_UPDATED (async): Optionally triggered when public or private metadata is updated.
   """
   shopSettingsUpdate(
     """Fields required to update shop settings."""
     input: ShopSettingsInput!
-  ): ShopSettingsUpdate @doc(category: "Shop")
+  ): ShopSettingsUpdate @doc(category: "Shop") @webhookEventsInfo(asyncEvents: [SHOP_METADATA_UPDATED], syncEvents: [])
 
   """
   Fetch tax rates. 
@@ -17273,6 +17296,24 @@ type Mutation {
   ): AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
+  Creates attributes.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_CREATED (async): An attribute was created.
+  """
+  attributeBulkCreate(
+    """Input list of products to create."""
+    attributes: [AttributeBulkCreateInput!]!
+
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+  ): AttributeBulkCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: [])
+
+  """
   Creates/updates translations for an attribute. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
@@ -19076,8 +19117,11 @@ input SiteDomainInput {
 Updates shop settings. 
 
 Requires one of the following permissions: MANAGE_SETTINGS.
+
+Triggers the following webhook events:
+- SHOP_METADATA_UPDATED (async): Optionally triggered when public or private metadata is updated.
 """
-type ShopSettingsUpdate @doc(category: "Shop") {
+type ShopSettingsUpdate @doc(category: "Shop") @webhookEventsInfo(asyncEvents: [SHOP_METADATA_UPDATED], syncEvents: []) {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26884,6 +26928,116 @@ input AttributeValueUpdateInput @doc(category: "Attributes") {
 
   """Name of a value displayed in the interface."""
   name: String
+}
+
+"""
+Creates attributes.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+
+Triggers the following webhook events:
+- ATTRIBUTE_CREATED (async): An attribute was created.
+"""
+type AttributeBulkCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: []) {
+  """Returns how many objects were created."""
+  count: Int!
+
+  """List of the created attributes."""
+  results: [AttributeBulkCreateResult!]!
+  errors: [AttributeBulkCreateError!]!
+}
+
+type AttributeBulkCreateResult @doc(category: "Attributes") {
+  """Attribute data."""
+  attribute: Attribute
+
+  """List of errors occurred on create attempt."""
+  errors: [AttributeBulkCreateError!]
+}
+
+type AttributeBulkCreateError @doc(category: "Attributes") {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AttributeBulkCreateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeBulkCreateErrorCode @doc(category: "Attributes") {
+  ALREADY_EXISTS
+  BLANK
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  DUPLICATED_INPUT_ITEM
+  MAX_LENGTH
+}
+
+input AttributeBulkCreateInput @doc(category: "Attributes") {
+  """External ID of this attribute."""
+  externalReference: String
+
+  """The input type to use for entering attribute values in the dashboard."""
+  inputType: AttributeInputTypeEnum
+
+  """The entity type which can be used as a reference."""
+  entityType: AttributeEntityTypeEnum
+
+  """Name of an attribute displayed in the interface."""
+  name: String!
+
+  """Internal representation of an attribute name."""
+  slug: String
+
+  """The attribute type."""
+  type: AttributeTypeEnum!
+
+  """The unit of attribute values."""
+  unit: MeasurementUnitsEnum
+
+  """List of attribute's values."""
+  values: [AttributeBulkCreateValueInput!]
+
+  """Whether the attribute requires values to be passed or not."""
+  valueRequired: Boolean
+
+  """Whether the attribute is for variants only."""
+  isVariantOnly: Boolean
+
+  """Whether the attribute should be visible or not in storefront."""
+  visibleInStorefront: Boolean
+
+  """Whether the attribute can be filtered in dashboard."""
+  filterableInDashboard: Boolean
+}
+
+input AttributeBulkCreateValueInput @doc(category: "Attributes") {
+  """Name of a value displayed in the interface."""
+  name: String!
+
+  """
+  Represent value of the attribute value (e.g. color values for swatch attributes).
+  """
+  value: String
+
+  """External ID of this attribute value."""
+  externalReference: String
+
+  """URL of the file attribute. Every time, a new value is created."""
+  fileUrl: String
+
+  """File content type."""
+  contentType: String
 }
 
 """

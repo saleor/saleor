@@ -1,6 +1,8 @@
-import graphene
+from unittest import mock
 
-from .....site.models import SiteSettings
+import graphene
+from django.contrib.sites.models import Site
+
 from ....shop.types import SHOP_ID
 from ....tests.utils import get_graphql_content
 from . import PRIVATE_KEY, PRIVATE_VALUE, PUBLIC_KEY, PUBLIC_VALUE
@@ -39,7 +41,10 @@ SHOP_SETTINGS_UPDATE_METADATA_MUTATION = """
 """
 
 
-def test_shop_settings_update_metadata(staff_api_client, permission_manage_settings):
+@mock.patch("saleor.plugins.manager.PluginsManager.shop_metadata_updated")
+def test_shop_settings_update_metadata(
+    mock_shop_metadata_updated, staff_api_client, permission_manage_settings
+):
     # given
     query = SHOP_SETTINGS_UPDATE_METADATA_MUTATION
     metadata = [{"key": PUBLIC_KEY, "value": PUBLIC_VALUE}]
@@ -61,11 +66,37 @@ def test_shop_settings_update_metadata(staff_api_client, permission_manage_setti
     data = content["data"]["shopSettingsUpdate"]["shop"]
     assert data["metadata"] == metadata
     assert data["privateMetadata"] == private_metadata
+    mock_shop_metadata_updated.assert_called_once()
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.shop_metadata_updated")
+def test_shop_settings_update_metadata_does_not_trigger_webhook_when_metadata_unchanged(
+    mock_shop_metadata_updated, staff_api_client, permission_manage_settings
+):
+    # given
+    site_settings = Site.objects.get_current().settings
+    site_settings.metadata = {PUBLIC_KEY: PUBLIC_VALUE}
+    site_settings.save(update_fields=["metadata"])
+
+    query = SHOP_SETTINGS_UPDATE_METADATA_MUTATION
+    metadata = [{"key": PUBLIC_KEY, "value": PUBLIC_VALUE}]
+    variables = {"input": {"metadata": metadata}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shopSettingsUpdate"]["shop"]
+    assert data["metadata"] == metadata
+    mock_shop_metadata_updated.assert_not_called()
 
 
 def test_delete_private_metadata_for_shop(staff_api_client, permission_manage_settings):
     # given
-    site_settings = SiteSettings.objects.first()
+    site_settings = Site.objects.get_current().settings
     shop_id = graphene.Node.to_global_id("Shop", SHOP_ID)
 
     # when
@@ -86,7 +117,7 @@ def test_delete_private_metadata_for_shop(staff_api_client, permission_manage_se
 
 def test_delete_public_metadata_for_shop(staff_api_client, permission_manage_settings):
     # given
-    site_settings = SiteSettings.objects.first()
+    site_settings = Site.objects.get_current().settings
     shop_id = graphene.Node.to_global_id("Shop", SHOP_ID)
 
     # when
@@ -107,7 +138,7 @@ def test_delete_public_metadata_for_shop(staff_api_client, permission_manage_set
 
 def test_add_public_metadata_for_shop(staff_api_client, permission_manage_settings):
     # given
-    site_settings = SiteSettings.objects.first()
+    site_settings = Site.objects.get_current().settings
     shop_id = graphene.Node.to_global_id("Shop", SHOP_ID)
 
     # when
@@ -126,7 +157,7 @@ def test_add_public_metadata_for_shop(staff_api_client, permission_manage_settin
 
 def test_add_private_metadata_for_shop(staff_api_client, permission_manage_settings):
     # given
-    site_settings = SiteSettings.objects.first()
+    site_settings = Site.objects.get_current().settings
     shop_id = graphene.Node.to_global_id("Shop", SHOP_ID)
 
     # when

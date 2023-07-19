@@ -76,13 +76,16 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add `search` to `giftCards` query - #13173 by @zedzior
 - Add `ProductBulkTranslate` mutation - #13329 by @SzymJ
 - Add `ProductVariantBulkTranslate` mutation - #13329 by @SzymJ
+- Add `AttributeBulkCreate` mutation - #13398 by @SzymJ
 
 ### Saleor Apps
 
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
-- Add `SHOP_METADATA_UPDATED` webhook - #13364 by @maarcingebala
+- Add `SHOP_METADATA_UPDATED` webhook - #13364, #13388 by @maarcingebala
+  - Called when metadata is changed for the Shop object via the generic metadata API or the `shopSettingsUpdate` mutation.
 
 ### Other changes
+- Use public key thumbprint as KID in JWKS.json #13442 by @cmiacz
 - Add POC of Core API tests - #13034 by @fowczarek
 
 - Expand metric units to support more types of products. - #13043 by @FremahA
@@ -105,8 +108,10 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add missing descriptions to Product module. - #13259 by @FremahA
 - Add missing description for Invoice module - #13265 by @DevilsAutumn
 - Add missing descriptions to Discount module - #13261 by @devilsautumn
+- Fix deleting event payloads by adding batches - #13368 by @jakubkuc
 - Add missing descriptions to Shipping module. - #13372 by @Smit-Parmar
 - Fix error handling in the permission check for `Query.webhook` - #13378 by @patrys
+- Add missing descriptions to menu module - #13409 by @devilsautumn
 
 # 3.14.0
 
