@@ -81,7 +81,10 @@ def prepare_product(
         }
     ]
     product_variant_data = create_product_variant(
-        e2e_staff_api_client, product_id, stocks=stocks, quantity_limit_per_customer=3
+        e2e_staff_api_client,
+        product_id,
+        stocks=stocks,
+        quantity_limit_per_customer=3,
     )
     product_variant_id = product_variant_data["id"]
     product_variant_name = product_variant_data["name"]
@@ -103,7 +106,7 @@ def prepare_product(
 
 
 @pytest.mark.e2e
-def test_process_checkout_with_physical_product_core_0110(
+def test_checkout_with_product_quantity_exceeding_the_limit_per_customer_core_0110(
     e2e_staff_api_client,
     e2e_logged_api_client,
     permission_manage_products,

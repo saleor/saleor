@@ -84,7 +84,7 @@ def prepare_product(
 
 
 @pytest.mark.e2e
-def test_logged_customer_cannot_buy_product_in_quantity_grater_than_stock(
+def test_unlogged_customer_cannot_buy_product_in_quantity_grater_than_stock_core_0107(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     permission_manage_products,
