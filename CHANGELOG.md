@@ -74,6 +74,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add `search` to `giftCards` query - #13173 by @zedzior
 - Add `ProductBulkTranslate` mutation - #13329 by @SzymJ
 - Add `ProductVariantBulkTranslate` mutation - #13329 by @SzymJ
+- Add `AttributeBulkCreate` mutation - #13398 by @SzymJ
 
 ### Saleor Apps
 
@@ -82,6 +83,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Called when metadata is changed for the Shop object via the generic metadata API or the `shopSettingsUpdate` mutation.
 
 ### Other changes
+- Use public key thumbprint as KID in JWKS.json #13442 by @cmiacz
 - Add POC of Core API tests - #13034 by @fowczarek
 
 - Expand metric units to support more types of products. - #13043 by @FremahA
@@ -108,6 +110,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add missing descriptions to Shipping module. - #13372 by @Smit-Parmar
 - Fix error handling in the permission check for `Query.webhook` - #13378 by @patrys
 - Add missing descriptions to Translation module. - #13410 by @Smit-Parmar
+- Add missing descriptions to menu module - #13409 by @devilsautumn
+
 # 3.14.0
 
 ### Breaking changes

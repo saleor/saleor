@@ -36,10 +36,12 @@ from .dataloaders import (
 
 
 class Menu(ChannelContextTypeWithMetadata[models.Menu]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
-    slug = graphene.String(required=True)
-    items = NonNullList(lambda: MenuItem)
+    id = graphene.GlobalID(required=True, description="The ID of the menu.")
+    name = graphene.String(required=True, description="The name of the menu.")
+    slug = graphene.String(required=True, description="Slug of the menu.")
+    items = NonNullList(
+        lambda: MenuItem, description="Menu items associated with this menu."
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -68,11 +70,20 @@ class MenuCountableConnection(CountableConnection):
 
 
 class MenuItem(ChannelContextTypeWithMetadata[models.MenuItem]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
-    menu = graphene.Field(Menu, required=True)
-    parent = graphene.Field(lambda: MenuItem)
-    category = graphene.Field(Category)
+    id = graphene.GlobalID(required=True, description="The ID of the menu item.")
+    name = graphene.String(required=True, description="The name of the menu item.")
+    menu = graphene.Field(
+        Menu,
+        required=True,
+        description="Represents the menu to which the menu item belongs.",
+    )
+    parent = graphene.Field(
+        lambda: MenuItem,
+        description="ID of parent menu item. If empty, menu will be top level menu.",
+    )
+    category = graphene.Field(
+        Category, description="Category associated with the menu item."
+    )
     collection = graphene.Field(
         Collection,
         description=(
@@ -89,8 +100,15 @@ class MenuItem(ChannelContextTypeWithMetadata[models.MenuItem]):
             f"{PagePermissions.MANAGE_PAGES.name}."
         ),
     )
-    level = graphene.Int(required=True)
-    children = NonNullList(lambda: MenuItem)
+    level = graphene.Int(
+        required=True,
+        description="Indicates the position of the menu item within the menu "
+        "structure.",
+    )
+    children = NonNullList(
+        lambda: MenuItem,
+        description="Represents the child items of the current menu item.",
+    )
     url = graphene.String(description="URL to the menu item.")
     translation = TranslationField(
         MenuItemTranslation,
