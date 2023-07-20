@@ -7,12 +7,13 @@ import requests
 from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import DecodeError, JoseError
 from authlib.oidc.core import CodeIDToken
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import QuerySet
-from django.utils.timezone import make_aware
+from django.utils import timezone
 from jwt import PyJWTError
 
 from ...account.models import Group, User
@@ -457,8 +458,16 @@ def _update_user_details(
         fields_to_save.append("email")
     if last_login:
         if not user.last_login or user.last_login.timestamp() < last_login:
-            login_time = make_aware(datetime.fromtimestamp(last_login))
+            login_time = timezone.make_aware(datetime.fromtimestamp(last_login))
             user.last_login = login_time
+            fields_to_save.append("last_login")
+    else:
+        if (
+            not user.last_login
+            or (timezone.now() - user.last_login).seconds
+            > settings.OAUTH_UPDATE_LAST_LOGIN_THRESHOLD
+        ):
+            user.last_login = timezone.now()
             fields_to_save.append("last_login")
 
     if fields_to_save:

@@ -299,6 +299,9 @@ class RefreshToken(BaseMutation):
         if audience := payload.get("aud"):
             additional_payload["aud"] = audience
         token = create_access_token(user, additional_payload=additional_payload)
+        if user and not user.is_anonymous:
+            user.last_login = timezone.now()
+            user.save(update_fields=["last_login", "updated_at"])
         return cls(errors=[], user=user, token=token)
 
 
@@ -490,6 +493,8 @@ class ExternalRefresh(BaseMutation):
 
         if access_tokens_response.user and access_tokens_response.user.id:
             info.context._cached_user = access_tokens_response.user
+            access_tokens_response.user.last_login = timezone.now()
+            access_tokens_response.user.save(update_fields=["last_login", "updated_at"])
 
         return cls(
             token=access_tokens_response.token,
