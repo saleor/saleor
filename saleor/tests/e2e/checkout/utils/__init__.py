@@ -1,3 +1,4 @@
+from ...product.utils.product_channel_listing import raw_create_product_channel_listing
 from .checkout_billing_address_update import checkout_billing_address_update
 from .checkout_complete import checkout_complete
 from .checkout_create import checkout_create, raw_checkout_create
@@ -10,6 +11,7 @@ from .checkout_shipping_address_update import checkout_shipping_address_update
 
 __all__ = [
     "checkout_billing_address_update",
+    "raw_create_product_channel_listing",
     "checkout_complete",
     "checkout_create",
     "raw_checkout_create",

@@ -80,7 +80,7 @@ def test_trigger_transaction_request(
     assert generated_delivery.webhook == webhook
     assert generated_delivery.payload == generated_payload
 
-    mocked_task.assert_called_once_with(generated_delivery.id, app.name, event.id)
+    mocked_task.assert_called_once_with(generated_delivery.id, app, event.id)
 
 
 @freeze_time("2022-06-11 12:50")
@@ -158,7 +158,7 @@ def test_trigger_transaction_request_with_webhook_subscription(
 
     assert generated_delivery.payload == generated_payload
 
-    mocked_task.assert_called_once_with(generated_delivery.id, app.name, event.id)
+    mocked_task.assert_called_once_with(generated_delivery.id, app, event.id)
 
 
 @freeze_time("2022-06-11 12:50")
@@ -210,7 +210,7 @@ def test_handle_transaction_request_task_with_only_psp_reference(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, app, transaction_data.event.id)
 
     # then
     assert TransactionEvent.objects.count() == 1
@@ -277,7 +277,7 @@ def test_handle_transaction_request_task_with_server_error(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, app, transaction_data.event.id)
 
     # then
     assert mocked_webhook_retry.called
@@ -330,7 +330,7 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, app, transaction_data.event.id)
 
     # then
     assert (
@@ -413,7 +413,7 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, app, transaction_data.event.id)
 
     # then
     assert (
@@ -505,7 +505,7 @@ def test_handle_transaction_request_task_with_result_event(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, app, transaction_data.event.id)
 
     # then
     assert TransactionEvent.objects.all().count() == 2
@@ -596,7 +596,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, app, transaction_data.event.id)
 
     # then
     assert TransactionEvent.objects.all().count() == 2
@@ -700,7 +700,7 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, app, transaction_data.event.id)
 
     # then
     mocked_recalculation.assert_called_once_with(transaction, save=False)
@@ -764,7 +764,7 @@ def test_handle_transaction_request_task_with_available_actions(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, app, transaction_data.event.id)
 
     # then
     assert TransactionEvent.objects.all().count() == 2

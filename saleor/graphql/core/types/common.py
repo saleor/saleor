@@ -36,6 +36,7 @@ from ..descriptions import (
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
+    AttributeBulkCreateErrorCode,
     AttributeErrorCode,
     AttributeTranslateErrorCode,
     AttributeValueTranslateErrorCode,
@@ -440,6 +441,13 @@ class CollectionChannelListingError(ProductError):
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class AttributeBulkCreateError(BulkError):
+    code = AttributeBulkCreateErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
 class BulkProductError(ProductError):

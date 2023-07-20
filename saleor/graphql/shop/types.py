@@ -45,7 +45,7 @@ from ..core.utils import str_to_enum
 from ..meta.types import ObjectWithMetadata
 from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..shipping.types import ShippingMethod
-from ..site.dataloaders import load_site_callback
+from ..site.dataloaders import get_site_promise, load_site_callback
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
@@ -380,8 +380,12 @@ class Shop(graphene.ObjectType):
         return site_models.SiteSettings
 
     @staticmethod
-    def get_node(_info: ResolveInfo, id):
-        return site_models.SiteSettings.objects.first() if id == SHOP_ID else None
+    def get_node(info: ResolveInfo, id):
+        if id == SHOP_ID:
+            site = get_site_promise(info.context).get()
+            return site.settings
+
+        return None
 
     @staticmethod
     def resolve_id(_, _info):

@@ -1712,7 +1712,11 @@ type WebhookEvent @doc(category: "Webhooks") {
 
 """Enum determining type of webhook."""
 enum WebhookEventTypeEnum @doc(category: "Webhooks") {
-  """All the events."""
+  """
+  All the events.
+  
+  DEPRECATED: this value will be removed in Saleor 4.0.
+  """
   ANY_EVENTS
 
   """An account confirmation is requested."""
@@ -1898,6 +1902,22 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   ORDER_BULK_CREATED
 
+  """A new fulfillment is created."""
+  FULFILLMENT_CREATED
+
+  """A fulfillment is cancelled."""
+  FULFILLMENT_CANCELED
+
+  """A fulfillment is approved."""
+  FULFILLMENT_APPROVED
+
+  """
+  A fulfillment metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  FULFILLMENT_METADATA_UPDATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -1970,6 +1990,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_DELETED
 
   """
+  A product metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  PRODUCT_METADATA_UPDATED
+
+  """
   A new product media is created.
   
   Added in Saleor 3.12.
@@ -1990,13 +2017,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   PRODUCT_MEDIA_DELETED
 
-  """
-  A product metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  PRODUCT_METADATA_UPDATED
-
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
 
@@ -2006,6 +2026,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A product variant is deleted."""
   PRODUCT_VARIANT_DELETED
 
+  """
+  A product variant metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  PRODUCT_VARIANT_METADATA_UPDATED
+
   """A product variant is out of stock."""
   PRODUCT_VARIANT_OUT_OF_STOCK
 
@@ -2014,13 +2041,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
-
-  """
-  A product variant metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  PRODUCT_VARIANT_METADATA_UPDATED
 
   """A new checkout is created."""
   CHECKOUT_CREATED
@@ -2037,22 +2057,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   CHECKOUT_METADATA_UPDATED
-
-  """A new fulfillment is created."""
-  FULFILLMENT_CREATED
-
-  """A fulfillment is cancelled."""
-  FULFILLMENT_CANCELED
-
-  """A fulfillment is approved."""
-  FULFILLMENT_APPROVED
-
-  """
-  A fulfillment metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  FULFILLMENT_METADATA_UPDATED
 
   """User notification triggered."""
   NOTIFY_USER
@@ -2180,26 +2184,40 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   SHOP_METADATA_UPDATED
 
+  """Listing available payment gateways."""
+  PAYMENT_LIST_GATEWAYS
+
   """Authorize payment."""
   PAYMENT_AUTHORIZE
 
   """Capture payment."""
   PAYMENT_CAPTURE
 
-  """Confirm payment."""
-  PAYMENT_CONFIRM
-
-  """Listing available payment gateways."""
-  PAYMENT_LIST_GATEWAYS
-
-  """Process payment."""
-  PAYMENT_PROCESS
-
   """Refund payment."""
   PAYMENT_REFUND
 
   """Void payment."""
   PAYMENT_VOID
+
+  """Confirm payment."""
+  PAYMENT_CONFIRM
+
+  """Process payment."""
+  PAYMENT_PROCESS
+
+  """
+  Event called for checkout tax calculation.
+  
+  Added in Saleor 3.6.
+  """
+  CHECKOUT_CALCULATE_TAXES
+
+  """
+  Event called for order tax calculation.
+  
+  Added in Saleor 3.6.
+  """
+  ORDER_CALCULATE_TAXES
 
   """
   Event called when charge has been requested for transaction.
@@ -2228,28 +2246,14 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   TRANSACTION_CANCELATION_REQUESTED
 
-  """
-  Event called for checkout tax calculation.
-  
-  Added in Saleor 3.6.
-  """
-  CHECKOUT_CALCULATE_TAXES
-
-  """
-  Event called for order tax calculation.
-  
-  Added in Saleor 3.6.
-  """
-  ORDER_CALCULATE_TAXES
-
   """Fetch external shipping methods for checkout."""
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
 
-  """Filter shipping methods for order."""
-  ORDER_FILTER_SHIPPING_METHODS
-
   """Filter shipping methods for checkout."""
   CHECKOUT_FILTER_SHIPPING_METHODS
+
+  """Filter shipping methods for order."""
+  ORDER_FILTER_SHIPPING_METHODS
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
@@ -2266,26 +2270,40 @@ type WebhookEventSync @doc(category: "Webhooks") {
 
 """Enum determining type of webhook."""
 enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
+  """Listing available payment gateways."""
+  PAYMENT_LIST_GATEWAYS
+
   """Authorize payment."""
   PAYMENT_AUTHORIZE
 
   """Capture payment."""
   PAYMENT_CAPTURE
 
-  """Confirm payment."""
-  PAYMENT_CONFIRM
-
-  """Listing available payment gateways."""
-  PAYMENT_LIST_GATEWAYS
-
-  """Process payment."""
-  PAYMENT_PROCESS
-
   """Refund payment."""
   PAYMENT_REFUND
 
   """Void payment."""
   PAYMENT_VOID
+
+  """Confirm payment."""
+  PAYMENT_CONFIRM
+
+  """Process payment."""
+  PAYMENT_PROCESS
+
+  """
+  Event called for checkout tax calculation.
+  
+  Added in Saleor 3.6.
+  """
+  CHECKOUT_CALCULATE_TAXES
+
+  """
+  Event called for order tax calculation.
+  
+  Added in Saleor 3.6.
+  """
+  ORDER_CALCULATE_TAXES
 
   """
   Event called when charge has been requested for transaction.
@@ -2314,28 +2332,14 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   """
   TRANSACTION_CANCELATION_REQUESTED
 
-  """
-  Event called for checkout tax calculation.
-  
-  Added in Saleor 3.6.
-  """
-  CHECKOUT_CALCULATE_TAXES
-
-  """
-  Event called for order tax calculation.
-  
-  Added in Saleor 3.6.
-  """
-  ORDER_CALCULATE_TAXES
-
   """Fetch external shipping methods for checkout."""
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
 
-  """Filter shipping methods for order."""
-  ORDER_FILTER_SHIPPING_METHODS
-
   """Filter shipping methods for checkout."""
   CHECKOUT_FILTER_SHIPPING_METHODS
+
+  """Filter shipping methods for order."""
+  ORDER_FILTER_SHIPPING_METHODS
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
@@ -2352,7 +2356,11 @@ type WebhookEventAsync @doc(category: "Webhooks") {
 
 """Enum determining type of webhook."""
 enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
-  """All the events."""
+  """
+  All the events.
+  
+  DEPRECATED: this value will be removed in Saleor 4.0.
+  """
   ANY_EVENTS
 
   """An account confirmation is requested."""
@@ -2538,6 +2546,22 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   ORDER_BULK_CREATED
 
+  """A new fulfillment is created."""
+  FULFILLMENT_CREATED
+
+  """A fulfillment is cancelled."""
+  FULFILLMENT_CANCELED
+
+  """A fulfillment is approved."""
+  FULFILLMENT_APPROVED
+
+  """
+  A fulfillment metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  FULFILLMENT_METADATA_UPDATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -2610,6 +2634,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   PRODUCT_DELETED
 
   """
+  A product metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  PRODUCT_METADATA_UPDATED
+
+  """
   A new product media is created.
   
   Added in Saleor 3.12.
@@ -2630,13 +2661,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   PRODUCT_MEDIA_DELETED
 
-  """
-  A product metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  PRODUCT_METADATA_UPDATED
-
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
 
@@ -2646,6 +2670,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A product variant is deleted."""
   PRODUCT_VARIANT_DELETED
 
+  """
+  A product variant metadata is updated.
+  
+  Added in Saleor 3.8.
+  """
+  PRODUCT_VARIANT_METADATA_UPDATED
+
   """A product variant is out of stock."""
   PRODUCT_VARIANT_OUT_OF_STOCK
 
@@ -2654,13 +2685,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
-
-  """
-  A product variant metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  PRODUCT_VARIANT_METADATA_UPDATED
 
   """A new checkout is created."""
   CHECKOUT_CREATED
@@ -2677,22 +2701,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   CHECKOUT_METADATA_UPDATED
-
-  """A new fulfillment is created."""
-  FULFILLMENT_CREATED
-
-  """A fulfillment is cancelled."""
-  FULFILLMENT_CANCELED
-
-  """A fulfillment is approved."""
-  FULFILLMENT_APPROVED
-
-  """
-  A fulfillment metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
-  FULFILLMENT_METADATA_UPDATED
 
   """User notification triggered."""
   NOTIFY_USER
@@ -3405,6 +3413,10 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ORDER_FULFILLED
   ORDER_METADATA_UPDATED
   ORDER_BULK_CREATED
+  FULFILLMENT_CREATED
+  FULFILLMENT_CANCELED
+  FULFILLMENT_APPROVED
+  FULFILLMENT_METADATA_UPDATED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
   DRAFT_ORDER_DELETED
@@ -3426,25 +3438,21 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  PRODUCT_METADATA_UPDATED
   PRODUCT_MEDIA_CREATED
   PRODUCT_MEDIA_UPDATED
   PRODUCT_MEDIA_DELETED
-  PRODUCT_METADATA_UPDATED
   PRODUCT_VARIANT_CREATED
   PRODUCT_VARIANT_UPDATED
   PRODUCT_VARIANT_DELETED
+  PRODUCT_VARIANT_METADATA_UPDATED
   PRODUCT_VARIANT_OUT_OF_STOCK
   PRODUCT_VARIANT_BACK_IN_STOCK
   PRODUCT_VARIANT_STOCK_UPDATED
-  PRODUCT_VARIANT_METADATA_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   CHECKOUT_FULLY_PAID
   CHECKOUT_METADATA_UPDATED
-  FULFILLMENT_CREATED
-  FULFILLMENT_CANCELED
-  FULFILLMENT_APPROVED
-  FULFILLMENT_METADATA_UPDATED
   NOTIFY_USER
   PAGE_CREATED
   PAGE_UPDATED
@@ -3727,6 +3735,7 @@ type ShippingZoneCountableEdge @doc(category: "Shipping") {
 Represents a shipping zone in the shop. Zones are the concept used only for grouping shipping methods in the dashboard, and are never exposed to the customers directly.
 """
 type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping") {
+  """The ID of shipping zone."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -3766,7 +3775,11 @@ type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping"
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Shipping zone name."""
   name: String!
+
+  """Indicates if the shipping zone is default one."""
   default: Boolean!
 
   """Lowest and highest prices for the shipping."""
@@ -3940,11 +3953,14 @@ enum ShippingMethodTypeEnum @doc(category: "Shipping") {
 }
 
 type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
+  """The ID of the shipping method translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
-  name: String
+
+  """Translated shipping method name."""
+  name: String!
 
   """
   Translated description of the shipping method.
@@ -4747,10 +4763,19 @@ enum LanguageCodeEnum {
 
 """Represents shipping method channel listing."""
 type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
+  """The ID of shipping method channel listing."""
   id: ID!
+
+  """The channel associated with the shipping method channel listing."""
   channel: Channel!
+
+  """Maximum order price."""
   maximumOrderPrice: Money
+
+  """Minimum order price."""
   minimumOrderPrice: Money
+
+  """Price of the shipping method in the associated channel."""
   price: Money
 }
 
@@ -6185,20 +6210,23 @@ type AttributeValue implements Node @doc(category: "Attributes") {
 }
 
 type AttributeValueTranslation implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated attribute value name."""
   name: String!
 
   """
-  Attribute value.
+  Translated rich-text attribute value.
   
   Rich text format. For reference see https://editorjs.io/
   """
   richText: JSONString
 
-  """Attribute plain text value."""
+  """Translated plain text attribute value ."""
   plainText: String
 }
 
@@ -6239,10 +6267,13 @@ input AttributeValueFilterInput @doc(category: "Attributes") {
 }
 
 type AttributeTranslation implements Node @doc(category: "Attributes") {
+  """The ID of the attribute translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated attribute name."""
   name: String!
 }
 
@@ -6966,12 +6997,19 @@ enum ThumbnailFormatEnum {
 }
 
 type CategoryTranslation implements Node @doc(category: "Products") {
+  """The ID of the category translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated SEO title."""
   seoTitle: String
+
+  """Translated SEO description."""
   seoDescription: String
+
+  """Translated category name."""
   name: String
 
   """
@@ -7422,10 +7460,13 @@ enum ProductMediaType @doc(category: "Products") {
 }
 
 type ProductVariantTranslation implements Node @doc(category: "Products") {
+  """The ID of the product variant translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated product variant name."""
   name: String!
 }
 
@@ -7832,12 +7873,19 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
 }
 
 type CollectionTranslation implements Node @doc(category: "Products") {
+  """The ID of the collection translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated SEO title."""
   seoTitle: String
+
+  """Translated SEO description."""
   seoDescription: String
+
+  """Translated collection name."""
   name: String
 
   """
@@ -7876,12 +7924,19 @@ type CollectionChannelListing implements Node @doc(category: "Products") {
 }
 
 type ProductTranslation implements Node @doc(category: "Products") {
+  """The ID of the product translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated SEO title."""
   seoTitle: String
+
+  """Translated SEO description."""
   seoDescription: String
+
+  """Translated product name."""
   name: String
 
   """
@@ -7958,13 +8013,20 @@ type TranslatableItemEdge {
 union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent
 
 type ProductTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the product translatable content."""
   id: ID!
+
+  """SEO title to translate."""
   seoTitle: String
+
+  """SEO description to translate."""
   seoDescription: String
+
+  """Product's name to translate."""
   name: String!
 
   """
-  Description of the product.
+  Product's description to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -7991,7 +8053,10 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
 }
 
 type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value translatable content."""
   id: ID!
+
+  """Name of the attribute value to translate."""
   name: String!
 
   """
@@ -8022,7 +8087,10 @@ type AttributeValueTranslatableContent implements Node @doc(category: "Attribute
 }
 
 type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
+  """The ID of the attribute."""
   id: ID!
+
+  """Name of the attribute to translate."""
   name: String!
 
   """Returns translated attribute fields for the given language code."""
@@ -8036,13 +8104,20 @@ type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
 }
 
 type CollectionTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the collection translatable content."""
   id: ID!
+
+  """SEO title to translate."""
   seoTitle: String
+
+  """SEO description to translate."""
   seoDescription: String
+
+  """Collection's name to translate."""
   name: String!
 
   """
-  Description of the collection.
+  Collection's description to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8066,13 +8141,20 @@ type CollectionTranslatableContent implements Node @doc(category: "Products") {
 }
 
 type CategoryTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the category translatable content."""
   id: ID!
+
+  """SEO title to translate."""
   seoTitle: String
+
+  """SEO description to translate."""
   seoDescription: String
+
+  """Name of the category translatable content."""
   name: String!
 
   """
-  Description of the category.
+  Category description to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8096,7 +8178,10 @@ type CategoryTranslatableContent implements Node @doc(category: "Products") {
 }
 
 type ProductVariantTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the product variant translatable content."""
   id: ID!
+
+  """Name of the product variant to translate."""
   name: String!
 
   """Returns translated product variant fields for the given language code."""
@@ -8113,13 +8198,20 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
 }
 
 type PageTranslatableContent implements Node @doc(category: "Pages") {
+  """The ID of the page translatable content."""
   id: ID!
+
+  """SEO title to translate."""
   seoTitle: String
+
+  """SEO description to translate."""
   seoDescription: String
+
+  """Page title to translate."""
   title: String!
 
   """
-  Content of the page.
+  Content of the page to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8148,12 +8240,19 @@ type PageTranslatableContent implements Node @doc(category: "Pages") {
 }
 
 type PageTranslation implements Node @doc(category: "Pages") {
+  """The ID of the page translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated SEO title."""
   seoTitle: String
+
+  """Translated SEO description."""
   seoDescription: String
+
+  """Translated page title."""
   title: String
 
   """
@@ -8338,11 +8437,14 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
 }
 
 type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
+  """The ID of the shipping method translatable content."""
   id: ID!
+
+  """Shipping method name to translate."""
   name: String!
 
   """
-  Description of the shipping method.
+  Shipping method description to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8363,7 +8465,10 @@ type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping"
 }
 
 type SaleTranslatableContent implements Node @doc(category: "Discounts") {
+  """The ID of the sale translatable content."""
   id: ID!
+
+  """Name of the sale to translate."""
   name: String!
 
   """Returns translated sale fields for the given language code."""
@@ -8381,10 +8486,13 @@ type SaleTranslatableContent implements Node @doc(category: "Discounts") {
 }
 
 type SaleTranslation implements Node @doc(category: "Discounts") {
+  """The ID of the sale translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated name of sale."""
   name: String
 }
 
@@ -8617,7 +8725,10 @@ type SaleChannelListing implements Node @doc(category: "Discounts") {
 }
 
 type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
+  """The ID of the voucher translatable content."""
   id: ID!
+
+  """Voucher name to translate."""
   name: String
 
   """Returns translated voucher fields for the given language code."""
@@ -8635,10 +8746,13 @@ type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
 }
 
 type VoucherTranslation implements Node @doc(category: "Discounts") {
+  """The ID of the voucher translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated voucher name."""
   name: String
 }
 
@@ -8873,7 +8987,10 @@ type VoucherChannelListing implements Node @doc(category: "Discounts") {
 }
 
 type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
+  """The ID of the menu item translatable content."""
   id: ID!
+
+  """Name of the menu item to translate."""
   name: String!
 
   """Returns translated menu item fields for the given language code."""
@@ -8889,10 +9006,13 @@ type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
 }
 
 type MenuItemTranslation implements Node @doc(category: "Menu") {
+  """The ID of the menu item translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated menu item name."""
   name: String!
 }
 
@@ -8900,6 +9020,7 @@ type MenuItemTranslation implements Node @doc(category: "Menu") {
 Represents a single item of the related menu. Can store categories, collection or pages.
 """
 type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
+  """The ID of the menu item."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8939,9 +9060,17 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """The name of the menu item."""
   name: String!
+
+  """Represents the menu to which the menu item belongs."""
   menu: Menu!
+
+  """ID of parent menu item. If empty, menu will be top level menu."""
   parent: MenuItem
+
+  """Category associated with the menu item."""
   category: Category
 
   """
@@ -8953,7 +9082,11 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   A page associated with this menu item. Requires one of the following permissions to include unpublished items: MANAGE_PAGES.
   """
   page: Page
+
+  """Indicates the position of the menu item within the menu structure."""
   level: Int!
+
+  """Represents the child items of the current menu item."""
   children: [MenuItem!]
 
   """URL to the menu item."""
@@ -8970,6 +9103,7 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
 Represents a single menu - an object that is used to help navigate through the store.
 """
 type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
+  """The ID of the menu."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -9009,8 +9143,14 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """The name of the menu."""
   name: String!
+
+  """Slug of the menu."""
   slug: String!
+
+  """Menu items associated with this menu."""
   items: [MenuItem!]
 }
 
@@ -9532,11 +9672,16 @@ type Domain {
 }
 
 type ShopTranslation implements Node @doc(category: "Shop") {
+  """The ID of the shop translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated header text of sale."""
   headerText: String!
+
+  """Translated description of sale."""
   description: String!
 }
 
@@ -13882,11 +14027,14 @@ type Mutation {
   Updates shop settings. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
+  
+  Triggers the following webhook events:
+  - SHOP_METADATA_UPDATED (async): Optionally triggered when public or private metadata is updated.
   """
   shopSettingsUpdate(
     """Fields required to update shop settings."""
     input: ShopSettingsInput!
-  ): ShopSettingsUpdate @doc(category: "Shop")
+  ): ShopSettingsUpdate @doc(category: "Shop") @webhookEventsInfo(asyncEvents: [SHOP_METADATA_UPDATED], syncEvents: [])
 
   """
   Fetch tax rates. 
@@ -17266,6 +17414,24 @@ type Mutation {
   ): AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
+  Creates attributes.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_CREATED (async): An attribute was created.
+  """
+  attributeBulkCreate(
+    """Input list of products to create."""
+    attributes: [AttributeBulkCreateInput!]!
+
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+  ): AttributeBulkCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: [])
+
+  """
   Creates/updates translations for an attribute. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
@@ -19091,8 +19257,11 @@ input SiteDomainInput {
 Updates shop settings. 
 
 Requires one of the following permissions: MANAGE_SETTINGS.
+
+Triggers the following webhook events:
+- SHOP_METADATA_UPDATED (async): Optionally triggered when public or private metadata is updated.
 """
-type ShopSettingsUpdate @doc(category: "Shop") {
+type ShopSettingsUpdate @doc(category: "Shop") @webhookEventsInfo(asyncEvents: [SHOP_METADATA_UPDATED], syncEvents: []) {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26897,6 +27066,116 @@ input AttributeValueUpdateInput @doc(category: "Attributes") {
 
   """Name of a value displayed in the interface."""
   name: String
+}
+
+"""
+Creates attributes.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+
+Triggers the following webhook events:
+- ATTRIBUTE_CREATED (async): An attribute was created.
+"""
+type AttributeBulkCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: []) {
+  """Returns how many objects were created."""
+  count: Int!
+
+  """List of the created attributes."""
+  results: [AttributeBulkCreateResult!]!
+  errors: [AttributeBulkCreateError!]!
+}
+
+type AttributeBulkCreateResult @doc(category: "Attributes") {
+  """Attribute data."""
+  attribute: Attribute
+
+  """List of errors occurred on create attempt."""
+  errors: [AttributeBulkCreateError!]
+}
+
+type AttributeBulkCreateError @doc(category: "Attributes") {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AttributeBulkCreateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeBulkCreateErrorCode @doc(category: "Attributes") {
+  ALREADY_EXISTS
+  BLANK
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  DUPLICATED_INPUT_ITEM
+  MAX_LENGTH
+}
+
+input AttributeBulkCreateInput @doc(category: "Attributes") {
+  """External ID of this attribute."""
+  externalReference: String
+
+  """The input type to use for entering attribute values in the dashboard."""
+  inputType: AttributeInputTypeEnum
+
+  """The entity type which can be used as a reference."""
+  entityType: AttributeEntityTypeEnum
+
+  """Name of an attribute displayed in the interface."""
+  name: String!
+
+  """Internal representation of an attribute name."""
+  slug: String
+
+  """The attribute type."""
+  type: AttributeTypeEnum!
+
+  """The unit of attribute values."""
+  unit: MeasurementUnitsEnum
+
+  """List of attribute's values."""
+  values: [AttributeBulkCreateValueInput!]
+
+  """Whether the attribute requires values to be passed or not."""
+  valueRequired: Boolean
+
+  """Whether the attribute is for variants only."""
+  isVariantOnly: Boolean
+
+  """Whether the attribute should be visible or not in storefront."""
+  visibleInStorefront: Boolean
+
+  """Whether the attribute can be filtered in dashboard."""
+  filterableInDashboard: Boolean
+}
+
+input AttributeBulkCreateValueInput @doc(category: "Attributes") {
+  """Name of a value displayed in the interface."""
+  name: String!
+
+  """
+  Represent value of the attribute value (e.g. color values for swatch attributes).
+  """
+  value: String
+
+  """External ID of this attribute value."""
+  externalReference: String
+
+  """URL of the file attribute. Every time, a new value is created."""
+  fileUrl: String
+
+  """File content type."""
+  contentType: String
 }
 
 """

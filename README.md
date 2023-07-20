@@ -24,6 +24,8 @@
   <a href="https://twitter.com/getsaleor">Twitter</a>
   <span> | </span>
   <a href="https://github.com/saleor/saleor/discussions">GitHub Discussions</a>
+  <span> | </span>
+  <a href="https://discord.gg/H52JTZAtSH">Discord</a>
 </div>
 
 <div align="center">
