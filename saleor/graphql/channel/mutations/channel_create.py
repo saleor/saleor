@@ -99,6 +99,13 @@ class OrderSettingsInput(BaseInputObjectType):
             "requested action for the transaction." + ADDED_IN_313 + PREVIEW_FEATURE
         ),
     )
+    allow_unpaid_orders = graphene.Boolean(
+        required=False,
+        description=(
+            "Determine if it is possible to place unpdaid order by calling "
+            "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
+        ),
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -235,6 +242,10 @@ class ChannelCreate(ModelMutation):
                 cleaned_input[
                     "default_transaction_flow_strategy"
                 ] = default_transaction_strategy
+
+            allow_unpaid_orders = order_settings.get("allow_unpaid_orders")
+            if allow_unpaid_orders is not None:
+                cleaned_input["allow_unpaid_orders"] = allow_unpaid_orders
 
         return cleaned_input
 

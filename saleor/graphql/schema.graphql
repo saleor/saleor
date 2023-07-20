@@ -1712,7 +1712,11 @@ type WebhookEvent @doc(category: "Webhooks") {
 
 """Enum determining type of webhook."""
 enum WebhookEventTypeEnum @doc(category: "Webhooks") {
-  """All the events."""
+  """
+  All the events.
+  
+  DEPRECATED: this value will be removed in Saleor 4.0.
+  """
   ANY_EVENTS
 
   """An account confirmation is requested."""
@@ -2352,7 +2356,11 @@ type WebhookEventAsync @doc(category: "Webhooks") {
 
 """Enum determining type of webhook."""
 enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
-  """All the events."""
+  """
+  All the events.
+  
+  DEPRECATED: this value will be removed in Saleor 4.0.
+  """
   ANY_EVENTS
 
   """An account confirmation is requested."""
@@ -3945,11 +3953,14 @@ enum ShippingMethodTypeEnum @doc(category: "Shipping") {
 }
 
 type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
+  """The ID of the shipping method translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
-  name: String
+
+  """Translated shipping method name."""
+  name: String!
 
   """
   Translated description of the shipping method.
@@ -5344,6 +5355,15 @@ type OrderSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   deleteExpiredOrdersAfter: Day!
+
+  """
+  Determine if it is possible to place unpdaid order by calling `checkoutComplete` mutation.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  allowUnpaidOrders: Boolean!
 }
 
 """
@@ -6199,20 +6219,23 @@ type AttributeValue implements Node @doc(category: "Attributes") {
 }
 
 type AttributeValueTranslation implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated attribute value name."""
   name: String!
 
   """
-  Attribute value.
+  Translated rich-text attribute value.
   
   Rich text format. For reference see https://editorjs.io/
   """
   richText: JSONString
 
-  """Attribute plain text value."""
+  """Translated plain text attribute value ."""
   plainText: String
 }
 
@@ -6253,10 +6276,13 @@ input AttributeValueFilterInput @doc(category: "Attributes") {
 }
 
 type AttributeTranslation implements Node @doc(category: "Attributes") {
+  """The ID of the attribute translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated attribute name."""
   name: String!
 }
 
@@ -6980,12 +7006,19 @@ enum ThumbnailFormatEnum {
 }
 
 type CategoryTranslation implements Node @doc(category: "Products") {
+  """The ID of the category translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated SEO title."""
   seoTitle: String
+
+  """Translated SEO description."""
   seoDescription: String
+
+  """Translated category name."""
   name: String
 
   """
@@ -7436,10 +7469,13 @@ enum ProductMediaType @doc(category: "Products") {
 }
 
 type ProductVariantTranslation implements Node @doc(category: "Products") {
+  """The ID of the product variant translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated product variant name."""
   name: String!
 }
 
@@ -7846,12 +7882,19 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
 }
 
 type CollectionTranslation implements Node @doc(category: "Products") {
+  """The ID of the collection translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated SEO title."""
   seoTitle: String
+
+  """Translated SEO description."""
   seoDescription: String
+
+  """Translated collection name."""
   name: String
 
   """
@@ -7890,12 +7933,19 @@ type CollectionChannelListing implements Node @doc(category: "Products") {
 }
 
 type ProductTranslation implements Node @doc(category: "Products") {
+  """The ID of the product translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated SEO title."""
   seoTitle: String
+
+  """Translated SEO description."""
   seoDescription: String
+
+  """Translated product name."""
   name: String
 
   """
@@ -7972,13 +8022,20 @@ type TranslatableItemEdge {
 union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent
 
 type ProductTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the product translatable content."""
   id: ID!
+
+  """SEO title to translate."""
   seoTitle: String
+
+  """SEO description to translate."""
   seoDescription: String
+
+  """Product's name to translate."""
   name: String!
 
   """
-  Description of the product.
+  Product's description to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8005,7 +8062,10 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
 }
 
 type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value translatable content."""
   id: ID!
+
+  """Name of the attribute value to translate."""
   name: String!
 
   """
@@ -8036,7 +8096,10 @@ type AttributeValueTranslatableContent implements Node @doc(category: "Attribute
 }
 
 type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
+  """The ID of the attribute."""
   id: ID!
+
+  """Name of the attribute to translate."""
   name: String!
 
   """Returns translated attribute fields for the given language code."""
@@ -8050,13 +8113,20 @@ type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
 }
 
 type CollectionTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the collection translatable content."""
   id: ID!
+
+  """SEO title to translate."""
   seoTitle: String
+
+  """SEO description to translate."""
   seoDescription: String
+
+  """Collection's name to translate."""
   name: String!
 
   """
-  Description of the collection.
+  Collection's description to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8080,13 +8150,20 @@ type CollectionTranslatableContent implements Node @doc(category: "Products") {
 }
 
 type CategoryTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the category translatable content."""
   id: ID!
+
+  """SEO title to translate."""
   seoTitle: String
+
+  """SEO description to translate."""
   seoDescription: String
+
+  """Name of the category translatable content."""
   name: String!
 
   """
-  Description of the category.
+  Category description to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8110,7 +8187,10 @@ type CategoryTranslatableContent implements Node @doc(category: "Products") {
 }
 
 type ProductVariantTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the product variant translatable content."""
   id: ID!
+
+  """Name of the product variant to translate."""
   name: String!
 
   """Returns translated product variant fields for the given language code."""
@@ -8127,13 +8207,20 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
 }
 
 type PageTranslatableContent implements Node @doc(category: "Pages") {
+  """The ID of the page translatable content."""
   id: ID!
+
+  """SEO title to translate."""
   seoTitle: String
+
+  """SEO description to translate."""
   seoDescription: String
+
+  """Page title to translate."""
   title: String!
 
   """
-  Content of the page.
+  Content of the page to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8162,12 +8249,19 @@ type PageTranslatableContent implements Node @doc(category: "Pages") {
 }
 
 type PageTranslation implements Node @doc(category: "Pages") {
+  """The ID of the page translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated SEO title."""
   seoTitle: String
+
+  """Translated SEO description."""
   seoDescription: String
+
+  """Translated page title."""
   title: String
 
   """
@@ -8352,11 +8446,14 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
 }
 
 type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
+  """The ID of the shipping method translatable content."""
   id: ID!
+
+  """Shipping method name to translate."""
   name: String!
 
   """
-  Description of the shipping method.
+  Shipping method description to translate.
   
   Rich text format. For reference see https://editorjs.io/
   """
@@ -8377,7 +8474,10 @@ type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping"
 }
 
 type SaleTranslatableContent implements Node @doc(category: "Discounts") {
+  """The ID of the sale translatable content."""
   id: ID!
+
+  """Name of the sale to translate."""
   name: String!
 
   """Returns translated sale fields for the given language code."""
@@ -8395,10 +8495,13 @@ type SaleTranslatableContent implements Node @doc(category: "Discounts") {
 }
 
 type SaleTranslation implements Node @doc(category: "Discounts") {
+  """The ID of the sale translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated name of sale."""
   name: String
 }
 
@@ -8631,7 +8734,10 @@ type SaleChannelListing implements Node @doc(category: "Discounts") {
 }
 
 type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
+  """The ID of the voucher translatable content."""
   id: ID!
+
+  """Voucher name to translate."""
   name: String
 
   """Returns translated voucher fields for the given language code."""
@@ -8649,10 +8755,13 @@ type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
 }
 
 type VoucherTranslation implements Node @doc(category: "Discounts") {
+  """The ID of the voucher translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated voucher name."""
   name: String
 }
 
@@ -8887,7 +8996,10 @@ type VoucherChannelListing implements Node @doc(category: "Discounts") {
 }
 
 type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
+  """The ID of the menu item translatable content."""
   id: ID!
+
+  """Name of the menu item to translate."""
   name: String!
 
   """Returns translated menu item fields for the given language code."""
@@ -8903,10 +9015,13 @@ type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
 }
 
 type MenuItemTranslation implements Node @doc(category: "Menu") {
+  """The ID of the menu item translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated menu item name."""
   name: String!
 }
 
@@ -8914,6 +9029,7 @@ type MenuItemTranslation implements Node @doc(category: "Menu") {
 Represents a single item of the related menu. Can store categories, collection or pages.
 """
 type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
+  """The ID of the menu item."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8953,9 +9069,17 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """The name of the menu item."""
   name: String!
+
+  """Represents the menu to which the menu item belongs."""
   menu: Menu!
+
+  """ID of parent menu item. If empty, menu will be top level menu."""
   parent: MenuItem
+
+  """Category associated with the menu item."""
   category: Category
 
   """
@@ -8967,7 +9091,11 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   A page associated with this menu item. Requires one of the following permissions to include unpublished items: MANAGE_PAGES.
   """
   page: Page
+
+  """Indicates the position of the menu item within the menu structure."""
   level: Int!
+
+  """Represents the child items of the current menu item."""
   children: [MenuItem!]
 
   """URL to the menu item."""
@@ -8984,6 +9112,7 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
 Represents a single menu - an object that is used to help navigate through the store.
 """
 type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
+  """The ID of the menu."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -9023,8 +9152,14 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """The name of the menu."""
   name: String!
+
+  """Slug of the menu."""
   slug: String!
+
+  """Menu items associated with this menu."""
   items: [MenuItem!]
 }
 
@@ -9452,6 +9587,15 @@ type Shop implements ObjectWithMetadata {
   enableAccountConfirmationByEmail: Boolean
 
   """
+  Determines if user can login without confirmation when `enableAccountConfrimation` is enabled.
+  
+  Added in Saleor 3.15.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  allowLoginWithoutConfirmation: Boolean
+
+  """
   Resource limitations and current usage if any set for a shop
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
@@ -9537,11 +9681,16 @@ type Domain {
 }
 
 type ShopTranslation implements Node @doc(category: "Shop") {
+  """The ID of the shop translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
+
+  """Translated header text of sale."""
   headerText: String!
+
+  """Translated description of sale."""
   description: String!
 }
 
@@ -9619,6 +9768,13 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
 
   """Determine if the user is active."""
   isActive: Boolean!
+
+  """
+  Determines if user has confirmed email.
+  
+  Added in Saleor 3.15.
+  """
+  isConfirmed: Boolean!
 
   """List of all user's addresses."""
   addresses: [Address!]!
@@ -17267,6 +17423,24 @@ type Mutation {
   ): AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
+  Creates attributes.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_CREATED (async): An attribute was created.
+  """
+  attributeBulkCreate(
+    """Input list of products to create."""
+    attributes: [AttributeBulkCreateInput!]!
+
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+  ): AttributeBulkCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: [])
+
+  """
   Creates/updates translations for an attribute. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
@@ -17678,6 +17852,27 @@ type Mutation {
     redirectUrl: String!
   ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
+  """
+  Sends a notification confirmation.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - NOTIFY_USER (async): A notification for account confirmation.
+  - ACCOUNT_CONFIRMATION_REQUESTED (async): An account confirmation was requested. This event is always sent regardless of settings.
+  """
+  sendConfirmationEmail(
+    """Slug of a channel which will be used for notify user."""
+    channel: String!
+
+    """Base of frontend URL that will be needed to create confirmation URL."""
+    redirectUrl: String!
+  ): SendConfirmationEmail @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: [])
+
   """Confirm user account with token sent by email during registration."""
   confirmAccount(
     """E-mail of the user performing account confirmation."""
@@ -17825,11 +18020,12 @@ type Mutation {
   Triggers the following webhook events:
   - CUSTOMER_CREATED (async): A new customer account was created.
   - NOTIFY_USER (async): A notification for account confirmation.
+  - ACCOUNT_CONFIRMATION_REQUESTED (async): An user confirmation was requested. This event is always sent regardless of settings.
   """
   accountRegister(
     """Fields required to create a user."""
     input: AccountRegisterInput!
-  ): AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER], syncEvents: [])
+  ): AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: [])
 
   """
   Updates the account of the logged-in user. 
@@ -19153,6 +19349,13 @@ input ShopSettingsInput {
   Added in Saleor 3.14.
   """
   enableAccountConfirmationByEmail: Boolean
+
+  """
+  Enable possibility to login without account confirmation.
+  
+  Added in Saleor 3.15.
+  """
+  allowLoginWithoutConfirmation: Boolean
 
   """
   Shop public metadata.
@@ -26468,6 +26671,15 @@ input OrderSettingsInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
+
+  """
+  Determine if it is possible to place unpdaid order by calling `checkoutComplete` mutation.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  allowUnpaidOrders: Boolean
 }
 
 """
@@ -26872,6 +27084,116 @@ input AttributeValueUpdateInput @doc(category: "Attributes") {
 
   """Name of a value displayed in the interface."""
   name: String
+}
+
+"""
+Creates attributes.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+
+Triggers the following webhook events:
+- ATTRIBUTE_CREATED (async): An attribute was created.
+"""
+type AttributeBulkCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: []) {
+  """Returns how many objects were created."""
+  count: Int!
+
+  """List of the created attributes."""
+  results: [AttributeBulkCreateResult!]!
+  errors: [AttributeBulkCreateError!]!
+}
+
+type AttributeBulkCreateResult @doc(category: "Attributes") {
+  """Attribute data."""
+  attribute: Attribute
+
+  """List of errors occurred on create attempt."""
+  errors: [AttributeBulkCreateError!]
+}
+
+type AttributeBulkCreateError @doc(category: "Attributes") {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AttributeBulkCreateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeBulkCreateErrorCode @doc(category: "Attributes") {
+  ALREADY_EXISTS
+  BLANK
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  DUPLICATED_INPUT_ITEM
+  MAX_LENGTH
+}
+
+input AttributeBulkCreateInput @doc(category: "Attributes") {
+  """External ID of this attribute."""
+  externalReference: String
+
+  """The input type to use for entering attribute values in the dashboard."""
+  inputType: AttributeInputTypeEnum
+
+  """The entity type which can be used as a reference."""
+  entityType: AttributeEntityTypeEnum
+
+  """Name of an attribute displayed in the interface."""
+  name: String!
+
+  """Internal representation of an attribute name."""
+  slug: String
+
+  """The attribute type."""
+  type: AttributeTypeEnum!
+
+  """The unit of attribute values."""
+  unit: MeasurementUnitsEnum
+
+  """List of attribute's values."""
+  values: [AttributeBulkCreateValueInput!]
+
+  """Whether the attribute requires values to be passed or not."""
+  valueRequired: Boolean
+
+  """Whether the attribute is for variants only."""
+  isVariantOnly: Boolean
+
+  """Whether the attribute should be visible or not in storefront."""
+  visibleInStorefront: Boolean
+
+  """Whether the attribute can be filtered in dashboard."""
+  filterableInDashboard: Boolean
+}
+
+input AttributeBulkCreateValueInput @doc(category: "Attributes") {
+  """Name of a value displayed in the interface."""
+  name: String!
+
+  """
+  Represent value of the attribute value (e.g. color values for swatch attributes).
+  """
+  value: String
+
+  """External ID of this attribute value."""
+  externalReference: String
+
+  """URL of the file attribute. Every time, a new value is created."""
+  fileUrl: String
+
+  """File content type."""
+  contentType: String
 }
 
 """
@@ -27725,6 +28047,44 @@ type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents
   errors: [AccountError!]!
 }
 
+"""
+Sends a notification confirmation.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- NOTIFY_USER (async): A notification for account confirmation.
+- ACCOUNT_CONFIRMATION_REQUESTED (async): An account confirmation was requested. This event is always sent regardless of settings.
+"""
+type SendConfirmationEmail @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
+  errors: [SendConfirmationEmailError!]!
+}
+
+type SendConfirmationEmailError @doc(category: "Users") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: SendConfirmationEmailErrorCode!
+}
+
+"""An enumeration."""
+enum SendConfirmationEmailErrorCode @doc(category: "Users") {
+  INVALID
+  ACCOUNT_CONFIRMED
+  CONFIRMATION_ALREADY_REQUESTED
+  MISSING_CHANNEL_SLUG
+}
+
 """Confirm user account with token sent by email during registration."""
 type ConfirmAccount @doc(category: "Users") {
   """An activated user account."""
@@ -27861,8 +28221,9 @@ Register a new user.
 Triggers the following webhook events:
 - CUSTOMER_CREATED (async): A new customer account was created.
 - NOTIFY_USER (async): A notification for account confirmation.
+- ACCOUNT_CONFIRMATION_REQUESTED (async): An user confirmation was requested. This event is always sent regardless of settings.
 """
-type AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER], syncEvents: []) {
+type AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
   """Informs whether users need to confirm their email address."""
   requiresConfirmation: Boolean
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -28089,6 +28450,13 @@ input UserCreateInput @doc(category: "Users") {
   externalReference: String
 
   """
+  User account is confirmed.
+  
+  Added in Saleor 3.15.
+  """
+  isConfirmed: Boolean
+
+  """
   URL of a view where users should be redirected to set the password. URL in RFC 1808 format.
   """
   redirectUrl: String
@@ -28159,6 +28527,13 @@ input CustomerInput @doc(category: "Users") {
   Added in Saleor 3.10.
   """
   externalReference: String
+
+  """
+  User account is confirmed.
+  
+  Added in Saleor 3.15.
+  """
+  isConfirmed: Boolean
 }
 
 """

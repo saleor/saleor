@@ -34,6 +34,7 @@ from ...graphql.account.mutations.authentication.utils import (
 from ...order.utils import match_orders_with_new_user
 from ...permission.enums import get_permission_names, get_permissions_from_codenames
 from ...permission.models import Permission
+from ...site.models import Site
 from ..error_codes import PluginErrorCode
 from ..models import PluginConfiguration
 from . import PLUGIN_ID
@@ -392,6 +393,7 @@ def get_or_create_user_from_payload(
 
     defaults_create = {
         "is_active": True,
+        "is_confirmed": True,
         "email": user_email,
         "first_name": payload.get("given_name", ""),
         "last_name": payload.get("family_name", ""),
@@ -413,7 +415,8 @@ def get_or_create_user_from_payload(
             defaults=defaults_create,
         )
 
-    if not user.is_active:  # it is true only if we fetch disabled user.
+    site_settings = Site.objects.get_current().settings
+    if not user.can_login(site_settings):  # it is true only if we fetch disabled user.
         raise AuthenticationError("Unable to log in.")
 
     _update_user_details(
@@ -490,8 +493,10 @@ def get_user_from_token(claims: CodeIDToken) -> User:
     user_email = claims.get("email")
     if not user_email:
         raise AuthenticationError("Missing user's email.")
-    user = User.objects.filter(email=user_email, is_active=True).first()
-    if not user:
+
+    site_settings = Site.objects.get_current().settings
+    user = User.objects.filter(email=user_email).first()
+    if not user or not user.can_login(site_settings):
         raise AuthenticationError("User does not exist.")
     return user
 

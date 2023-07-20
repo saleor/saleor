@@ -6,16 +6,18 @@ from .product_channel_listing import (
     raw_create_product_channel_listing,
 )
 from .product_type import create_product_type
-from .product_variant import create_product_variant
+from .product_variant import create_product_variant, raw_create_product_variant
 from .product_variant_channel_listing import create_product_variant_channel_listing
 
 __all__ = [
     "create_category",
     "create_digital_content",
+    "raw_create_product_channel_listing",
     "create_product_type",
     "create_product_channel_listing",
     "create_product_variant_channel_listing",
     "create_product_variant",
+    "raw_create_product_variant",
     "create_product",
     "raw_create_product_channel_listing",
 ]

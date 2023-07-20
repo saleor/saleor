@@ -142,6 +142,11 @@ class ChannelUpdate(ModelMutation):
                 cleaned_input[
                     "default_transaction_flow_strategy"
                 ] = default_transaction_strategy
+
+            allow_unpaid_orders = order_settings.get("allow_unpaid_orders")
+            if allow_unpaid_orders is not None:
+                cleaned_input["allow_unpaid_orders"] = allow_unpaid_orders
+
         return cleaned_input
 
     @classmethod

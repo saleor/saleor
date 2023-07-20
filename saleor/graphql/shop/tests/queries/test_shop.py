@@ -850,3 +850,27 @@ def test_query_countries_filter_shiping_zones_attached_none(
 
     # then
     assert len(data) == len(countries)
+
+
+def test_query_allow_login_without_confirmation(
+    staff_api_client, permission_manage_settings, site_settings
+):
+    # given
+    query = """
+    query {
+        shop {
+            allowLoginWithoutConfirmation
+        }
+    }
+    """
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["shop"]["allowLoginWithoutConfirmation"] == (
+        site_settings.allow_login_without_confirmation
+    )

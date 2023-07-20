@@ -22,7 +22,7 @@ from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel, validate_channel
 from ...core import ResolveInfo, SaleorContext
-from ...core.descriptions import ADDED_IN_310, ADDED_IN_314
+from ...core.descriptions import ADDED_IN_310, ADDED_IN_314, ADDED_IN_315
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
@@ -208,6 +208,9 @@ class CustomerInput(UserInput, UserAddressInput):
     )
     external_reference = graphene.String(
         description="External ID of the customer." + ADDED_IN_310, required=False
+    )
+    is_confirmed = graphene.Boolean(
+        required=False, description="User account is confirmed." + ADDED_IN_315
     )
 
     class Meta:

@@ -30,6 +30,7 @@ from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_310,
     ADDED_IN_314,
+    ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -300,6 +301,10 @@ class User(ModelObjectType[models.User]):
     )
     is_active = graphene.Boolean(
         required=True, description="Determine if the user is active."
+    )
+    is_confirmed = graphene.Boolean(
+        required=True,
+        description="Determines if user has confirmed email." + ADDED_IN_315,
     )
     addresses = NonNullList(
         Address, description="List of all user's addresses.", required=True

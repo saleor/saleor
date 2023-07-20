@@ -281,6 +281,56 @@ def test_customers_bulk_update_generate_events_when_email_change(
     assert order.user == customer_user
 
 
+def test_customers_bulk_update_match_orders_and_gift_card_when_confirmed(
+    staff_api_client,
+    staff_user,
+    gift_card,
+    order,
+    customer_user,
+    permission_manage_users,
+):
+    # given
+    customer_user.is_confirmed = False
+    customer_user.save()
+
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+
+    gift_card.created_by = None
+    gift_card.created_by_email = customer_user.email
+    gift_card.save(update_fields=["created_by", "created_by_email"])
+
+    order.user = None
+    order.user_email = customer_user.email
+    order.save(update_fields=["user_email", "user"])
+
+    customers_input = [
+        {
+            "id": customer_id,
+            "input": {
+                "isConfirmed": True,
+            },
+        }
+    ]
+
+    variables = {"customers": customers_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(CUSTOMER_BULK_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["customerBulkUpdate"]
+
+    # then
+    gift_card.refresh_from_db()
+    order.refresh_from_db()
+    customer_user.refresh_from_db()
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    assert gift_card.created_by == customer_user
+    assert gift_card.created_by_email == customer_user.email
+    assert order.user == customer_user
+
+
 def test_customers_bulk_update_using_external_refs(
     staff_api_client,
     customer_users,
