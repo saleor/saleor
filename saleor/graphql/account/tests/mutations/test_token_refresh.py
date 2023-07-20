@@ -58,6 +58,10 @@ def test_refresh_token_with_audience(api_client, customer_user, settings):
     assert payload["type"] == JWT_ACCESS_TYPE
     assert payload["token"] == customer_user.jwt_token_key
     assert payload["aud"] == token_audience
+    customer_user.refresh_from_db()
+    assert customer_user.last_login
+    last_login = customer_user.last_login.strftime("%Y-%m-%d %H:%M:%S")
+    assert last_login == "2020-03-18 12:00:00"
 
 
 @freeze_time("2020-03-18 12:00:00")
