@@ -166,6 +166,7 @@ class User(
     )
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    is_confirmed = models.BooleanField(default=True)
     note = models.TextField(null=True, blank=True)
     date_joined = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
