@@ -71,6 +71,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add metadata support for channels. #13230 by @Smit-Parmar
 - Remove `Preview feature` label from `metafield`, `metafields`, `metadata`,
 `privateMetafield`, `privateMetafields` and `privateMetadata` fields - #13245 by @korycins
+- [Preview] Add possibility to completeCheckout without payment in transaction flow - #13339 by @kadewu:
+  - New field `allowUnpaidOrders` in `OrderSettings` for `Channel`
 - Add `search` to `giftCards` query - #13173 by @zedzior
 - Add `ProductBulkTranslate` mutation - #13329 by @SzymJ
 - Add `ProductVariantBulkTranslate` mutation - #13329 by @SzymJ
