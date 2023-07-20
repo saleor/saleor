@@ -112,7 +112,7 @@ def test_checkout_change_invalidates_cache_key(checkout_with_item, shipping_app)
     payload = generate_checkout_payload(checkout_with_item)
     target_url = shipping_app.webhooks.first().target_url
     cache_key = generate_cache_key_for_shipping_list_methods_for_checkout(
-        payload, target_url
+        payload, target_url, shipping_app.id
     )
 
     # when
@@ -120,7 +120,7 @@ def test_checkout_change_invalidates_cache_key(checkout_with_item, shipping_app)
     checkout_with_item.save(update_fields=["email"])
     new_payload = generate_checkout_payload(checkout_with_item)
     new_cache_key = generate_cache_key_for_shipping_list_methods_for_checkout(
-        new_payload, target_url
+        new_payload, target_url, shipping_app.id
     )
 
     # then
@@ -135,7 +135,7 @@ def test_ignore_selected_fields_on_generating_cache_key(
 
     payload = generate_checkout_payload(checkout_with_item)
     cache_key = generate_cache_key_for_shipping_list_methods_for_checkout(
-        payload, target_url
+        payload, target_url, shipping_app.id
     )
 
     # when
@@ -147,7 +147,7 @@ def test_ignore_selected_fields_on_generating_cache_key(
     new_payload_data[0]["meta"]["issued_at"] = timezone.now().isoformat()
     new_payload = json.dumps(new_payload_data)
     new_cache_key = generate_cache_key_for_shipping_list_methods_for_checkout(
-        new_payload, target_url
+        new_payload, target_url, shipping_app.id
     )
 
     # then
@@ -163,10 +163,10 @@ def test_different_target_urls_produce_different_cache_key(checkout_with_item):
 
     # when
     cache_key_1 = generate_cache_key_for_shipping_list_methods_for_checkout(
-        payload, target_url_1
+        payload, target_url_1, 1
     )
     cache_key_2 = generate_cache_key_for_shipping_list_methods_for_checkout(
-        payload, target_url_2
+        payload, target_url_2, 2
     )
 
     # then

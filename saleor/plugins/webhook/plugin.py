@@ -2072,13 +2072,8 @@ class WebhookPlugin(BasePlugin):
         if webhooks:
             payload = generate_checkout_payload(checkout, self.requestor)
             for webhook in webhooks:
-                if not webhook:
-                    raise PaymentError(
-                        f"No payment webhook found for event: {event_type}."
-                    )
-
                 cache_key = generate_cache_key_for_shipping_list_methods_for_checkout(
-                    payload, webhook.target_url
+                    payload, webhook.target_url, webhook.app_id
                 )
                 response_data = cache.get(cache_key)
 
