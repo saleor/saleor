@@ -20,7 +20,8 @@ mutation checkoutLinesUpdate($checkoutId: ID!, $lines: [CheckoutLineUpdateInput!
       code
     }
   }
-}"""
+}
+"""
 
 
 def checkout_lines_update(
