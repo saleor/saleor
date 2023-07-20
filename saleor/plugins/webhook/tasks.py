@@ -233,8 +233,6 @@ def trigger_webhook_sync(
     request=None,
 ) -> Optional[Dict[Any, Any]]:
     """Send a synchronous webhook request."""
-    if not webhook:
-        raise PaymentError(f"No payment webhook found for event: {event_type}.")
 
     if webhook.subscription_query:
         delivery = create_delivery_for_subscription_sync_event(

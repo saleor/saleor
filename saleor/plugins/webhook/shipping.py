@@ -1,5 +1,4 @@
 import base64
-import hashlib
 import json
 import logging
 from collections import defaultdict
@@ -16,11 +15,13 @@ from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
 from ...order.models import Order
 from ...shipping.interface import ShippingMethodData
+from ...webhook.event_types import WebhookEventSyncType
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import ExcludedShippingMethod
 from ..const import APP_ID_PREFIX
 from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
 from .tasks import trigger_webhook_sync
+from .utils import generate_cache_key_for_webhook_url_and_event
 
 logger = logging.getLogger(__name__)
 
@@ -207,7 +208,7 @@ def parse_excluded_shipping_methods(
 
 
 def generate_cache_key_for_shipping_list_methods_for_checkout(
-    payload: str, target_url: str
+    payload: str, target_url: str, app_id: int
 ) -> str:
     key_data = json.loads(payload)
 
@@ -216,6 +217,9 @@ def generate_cache_key_for_shipping_list_methods_for_checkout(
     key_data[0]["meta"].pop("issued_at")
 
     # make cache key
-    key = json.dumps(key_data)
-    key = f"{target_url}-{hashlib.sha256(key.encode('utf-8')).hexdigest()}"
-    return key
+    return generate_cache_key_for_webhook_url_and_event(
+        key_data,
+        target_url,
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+        app_id,
+    )
