@@ -9587,6 +9587,15 @@ type Shop implements ObjectWithMetadata {
   enableAccountConfirmationByEmail: Boolean
 
   """
+  Determines if user can login without confirmation when `enableAccountConfrimation` is enabled.
+  
+  Added in Saleor 3.15.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  allowLoginWithoutConfirmation: Boolean
+
+  """
   Resource limitations and current usage if any set for a shop
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
@@ -9759,6 +9768,13 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
 
   """Determine if the user is active."""
   isActive: Boolean!
+
+  """
+  Determines if user has confirmed email.
+  
+  Added in Saleor 3.15.
+  """
+  isConfirmed: Boolean!
 
   """List of all user's addresses."""
   addresses: [Address!]!
@@ -17836,6 +17852,27 @@ type Mutation {
     redirectUrl: String!
   ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
+  """
+  Sends a notification confirmation.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - NOTIFY_USER (async): A notification for account confirmation.
+  - ACCOUNT_CONFIRMATION_REQUESTED (async): An account confirmation was requested. This event is always sent regardless of settings.
+  """
+  sendConfirmationEmail(
+    """Slug of a channel which will be used for notify user."""
+    channel: String!
+
+    """Base of frontend URL that will be needed to create confirmation URL."""
+    redirectUrl: String!
+  ): SendConfirmationEmail @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: [])
+
   """Confirm user account with token sent by email during registration."""
   confirmAccount(
     """E-mail of the user performing account confirmation."""
@@ -17983,11 +18020,12 @@ type Mutation {
   Triggers the following webhook events:
   - CUSTOMER_CREATED (async): A new customer account was created.
   - NOTIFY_USER (async): A notification for account confirmation.
+  - ACCOUNT_CONFIRMATION_REQUESTED (async): An user confirmation was requested. This event is always sent regardless of settings.
   """
   accountRegister(
     """Fields required to create a user."""
     input: AccountRegisterInput!
-  ): AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER], syncEvents: [])
+  ): AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: [])
 
   """
   Updates the account of the logged-in user. 
@@ -19311,6 +19349,13 @@ input ShopSettingsInput {
   Added in Saleor 3.14.
   """
   enableAccountConfirmationByEmail: Boolean
+
+  """
+  Enable possibility to login without account confirmation.
+  
+  Added in Saleor 3.15.
+  """
+  allowLoginWithoutConfirmation: Boolean
 
   """
   Shop public metadata.
@@ -28002,6 +28047,44 @@ type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents
   errors: [AccountError!]!
 }
 
+"""
+Sends a notification confirmation.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- NOTIFY_USER (async): A notification for account confirmation.
+- ACCOUNT_CONFIRMATION_REQUESTED (async): An account confirmation was requested. This event is always sent regardless of settings.
+"""
+type SendConfirmationEmail @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
+  errors: [SendConfirmationEmailError!]!
+}
+
+type SendConfirmationEmailError @doc(category: "Users") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: SendConfirmationEmailErrorCode!
+}
+
+"""An enumeration."""
+enum SendConfirmationEmailErrorCode @doc(category: "Users") {
+  INVALID
+  ACCOUNT_CONFIRMED
+  CONFIRMATION_ALREADY_REQUESTED
+  MISSING_CHANNEL_SLUG
+}
+
 """Confirm user account with token sent by email during registration."""
 type ConfirmAccount @doc(category: "Users") {
   """An activated user account."""
@@ -28138,8 +28221,9 @@ Register a new user.
 Triggers the following webhook events:
 - CUSTOMER_CREATED (async): A new customer account was created.
 - NOTIFY_USER (async): A notification for account confirmation.
+- ACCOUNT_CONFIRMATION_REQUESTED (async): An user confirmation was requested. This event is always sent regardless of settings.
 """
-type AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER], syncEvents: []) {
+type AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
   """Informs whether users need to confirm their email address."""
   requiresConfirmation: Boolean
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -28366,6 +28450,13 @@ input UserCreateInput @doc(category: "Users") {
   externalReference: String
 
   """
+  User account is confirmed.
+  
+  Added in Saleor 3.15.
+  """
+  isConfirmed: Boolean
+
+  """
   URL of a view where users should be redirected to set the password. URL in RFC 1808 format.
   """
   redirectUrl: String
@@ -28436,6 +28527,13 @@ input CustomerInput @doc(category: "Users") {
   Added in Saleor 3.10.
   """
   externalReference: String
+
+  """
+  User account is confirmed.
+  
+  Added in Saleor 3.15.
+  """
+  isConfirmed: Boolean
 }
 
 """

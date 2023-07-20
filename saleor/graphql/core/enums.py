@@ -311,6 +311,11 @@ ProductVariantBulkErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 CollectionErrorCode = graphene.Enum.from_enum(product_error_codes.CollectionErrorCode)
 CollectionErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
+SendConfirmationEmailErrorCode = graphene.Enum.from_enum(
+    account_error_codes.SendConfirmationEmailErrorCode
+)
+SendConfirmationEmailErrorCode.doc_category = DOC_CATEGORY_USERS
+
 ShopErrorCode = graphene.Enum.from_enum(core_error_codes.ShopErrorCode)
 
 ShippingErrorCode = graphene.Enum.from_enum(shipping_error_codes.ShippingErrorCode)

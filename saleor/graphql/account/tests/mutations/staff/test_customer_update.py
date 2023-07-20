@@ -574,3 +574,63 @@ def test_customer_update_trigger_gift_card_search_vector_update(
     for card in gift_card_list:
         card.refresh_from_db()
         assert card.search_index_dirty is True
+
+
+UPDATE_CUSTOMER_IS_CONFIRMED_MUTATION = """
+    mutation UpdateCustomer(
+        $id: ID!, $isConfirmed: Boolean) {
+            customerUpdate(id: $id, input: {
+            isConfirmed: $isConfirmed,
+        }) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_customer_confirm_assign_gift_cards_and_orders(
+    staff_api_client,
+    staff_user,
+    customer_user,
+    address,
+    gift_card,
+    order,
+    permission_manage_users,
+):
+    # given
+    query = UPDATE_CUSTOMER_IS_CONFIRMED_MUTATION
+
+    customer_user.is_confirmed = False
+    customer_user.save()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    gift_card.created_by = None
+    gift_card.created_by_email = customer_user.email
+    gift_card.save(update_fields=["created_by", "created_by_email"])
+
+    order.user = None
+    order.user_email = customer_user.email
+    order.save(update_fields=["user_email", "user"])
+
+    variables = {
+        "id": user_id,
+        "isConfirmed": True,
+    }
+
+    # when
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    gift_card.refresh_from_db()
+    customer_user.refresh_from_db()
+    assert gift_card.created_by == customer_user
+    assert gift_card.created_by_email == customer_user.email
+
+    order.refresh_from_db()
+    assert order.user == customer_user

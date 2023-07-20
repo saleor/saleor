@@ -70,6 +70,7 @@ from ..enums import (
     ProductTranslateErrorCode,
     ProductVariantBulkErrorCode,
     ProductVariantTranslateErrorCode,
+    SendConfirmationEmailErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
     StockBulkUpdateErrorCode,
@@ -180,6 +181,13 @@ class AccountError(Error):
 
     class Meta:
         description = "Represents errors in account mutations."
+        doc_category = DOC_CATEGORY_USERS
+
+
+class SendConfirmationEmailError(Error):
+    code = SendConfirmationEmailErrorCode(description="The error code.", required=True)
+
+    class Meta:
         doc_category = DOC_CATEGORY_USERS
 
 

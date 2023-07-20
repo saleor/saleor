@@ -86,6 +86,11 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Called when metadata is changed for the Shop object via the generic metadata API or the `shopSettingsUpdate` mutation.
 
 ### Other changes
+- Add possibility to log without confirming email - #13059 by @kadewu
+  - New mutation `sendConfirmationEmail` to send an email with confirmation link
+  - New environment variable `CONFIRMATION_EMAIL_LOCK_TIME` to control lock time beetwen new email confirmations
+  - Type `User` gets new field `is_confirmed`
+  - `CustomerInput` gets new field `is_confirmed`
 - Use public key thumbprint as KID in JWKS.json #13442 by @cmiacz
 - Add POC of Core API tests - #13034 by @fowczarek
 

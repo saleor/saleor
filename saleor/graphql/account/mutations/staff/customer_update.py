@@ -71,14 +71,17 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
         has_new_email = old_instance.email != new_email
         was_activated = not old_instance.is_active and new_instance.is_active
         was_deactivated = old_instance.is_active and not new_instance.is_active
+        being_confirmed = not old_instance.is_confirmed and new_instance.is_confirmed
+
+        if has_new_email or being_confirmed:
+            assign_user_gift_cards(new_instance)
+            match_orders_with_new_user(new_instance)
 
         # Generate the events accordingly
         if has_new_email:
             account_events.assigned_email_to_a_customer_event(
                 staff_user=staff_user, app=app, new_email=new_email
             )
-            assign_user_gift_cards(new_instance)
-            match_orders_with_new_user(new_instance)
         if has_new_name:
             account_events.assigned_name_to_a_customer_event(
                 staff_user=staff_user, app=app, new_name=new_fullname

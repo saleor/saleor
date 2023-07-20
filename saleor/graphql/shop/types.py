@@ -20,6 +20,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
     ADDED_IN_314,
+    ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -312,6 +313,14 @@ class Shop(graphene.ObjectType):
         ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
+    allow_login_without_confirmation = PermissionsField(
+        graphene.Boolean,
+        description=(
+            "Determines if user can login without confirmation when "
+            "`enableAccountConfrimation` is enabled." + ADDED_IN_315
+        ),
+        permissions=[SitePermissions.MANAGE_SETTINGS],
+    )
     limits = PermissionsField(
         LimitInfo,
         required=True,
@@ -556,6 +565,11 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_enable_account_confirmation_by_email(_, _info, site):
         return site.settings.enable_account_confirmation_by_email
+
+    @staticmethod
+    @load_site_callback
+    def resolve_allow_login_without_confirmation(_, _info, site):
+        return site.settings.allow_login_without_confirmation
 
     @staticmethod
     def resolve_limits(_, _info):

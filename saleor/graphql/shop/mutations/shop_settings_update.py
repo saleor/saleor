@@ -81,6 +81,11 @@ class ShopSettingsInput(graphene.InputObjectType):
     enable_account_confirmation_by_email = graphene.Boolean(
         description="Enable automatic account confirmation by email." + ADDED_IN_314
     )
+    allow_login_without_confirmation = graphene.Boolean(
+        description=(
+            "Enable possibility to login without account confirmation." + ADDED_IN_315
+        )
+    )
     metadata = common_types.NonNullList(
         MetadataInput,
         description="Shop public metadata." + ADDED_IN_315,

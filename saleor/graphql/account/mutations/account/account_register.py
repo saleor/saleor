@@ -85,6 +85,13 @@ class AccountRegister(ModelMutation):
                 type=WebhookEventAsyncType.NOTIFY_USER,
                 description="A notification for account confirmation.",
             ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
+                description=(
+                    "An user confirmation was requested. "
+                    "This event is always sent regardless of settings."
+                ),
+            ),
         ]
 
     @classmethod
@@ -150,8 +157,8 @@ class AccountRegister(ModelMutation):
         redirect_url = cleaned_input.get("redirect_url")
 
         with traced_atomic_transaction():
+            user.is_confirmed = False
             if site.settings.enable_account_confirmation_by_email:
-                user.is_active = False
                 user.save()
 
                 # Notifications will be deprecated in the future

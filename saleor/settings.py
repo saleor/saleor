@@ -821,3 +821,8 @@ WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
 RESET_PASSWORD_LOCK_TIME = parse(
     os.environ.get("RESET_PASSWORD_LOCK_TIME", "15 minutes")
 )
+
+# Lock time for request confirmation email mutation per user
+CONFIRMATION_EMAIL_LOCK_TIME = parse(
+    os.environ.get("CONFIRMATION_EMAIL_LOCK_TIME", "15 minutes")
+)
