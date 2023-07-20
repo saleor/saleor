@@ -342,3 +342,58 @@ def test_tracing_query_identifier_undefined(
     staff_api_client.post_graphql(query)
     span = _get_graphql_span(tracer.finished_spans())
     assert span.tags["graphql.query_identifier"] == "undefined"
+
+
+@patch("saleor.graphql.views.opentracing.global_tracer")
+def test_tracing_dont_have_app_data_staff_as_requestor(
+    tracing_mock,
+    staff_api_client,
+    permission_manage_products,
+):
+    tracer = MockTracer()
+    tracing_mock.return_value = tracer
+    query = """
+        query test {
+          products(first:5) {
+            edges{
+              node{
+                id
+                name
+              }
+            }
+          }
+        }
+    """
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    staff_api_client.post_graphql(query)
+    span = _get_graphql_span(tracer.finished_spans())
+    assert "app.name" not in span.tags
+    assert "app.id" not in span.tags
+
+
+@patch("saleor.graphql.views.opentracing.global_tracer")
+def test_tracing_have_app_data_app_as_requestor(
+    tracing_mock,
+    app_api_client,
+    permission_manage_products,
+):
+    tracer = MockTracer()
+    tracing_mock.return_value = tracer
+    query = """
+        query test {
+          products(first:5) {
+            edges{
+              node{
+                id
+                name
+              }
+            }
+          }
+        }
+    """
+    app = app_api_client.app
+    app.permissions.add(permission_manage_products)
+    app_api_client.post_graphql(query)
+    span = _get_graphql_span(tracer.finished_spans())
+    assert span.tags["app.name"] == app.name
+    assert span.tags["app.id"] == app.id
