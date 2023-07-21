@@ -1695,7 +1695,7 @@ class TransactionSessionBase(SubscriptionObjectType, AbstractType):
     @classmethod
     def resolve_data(cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo):
         _, transaction_session_data = root
-        return transaction_session_data.payment_gateway.data
+        return transaction_session_data.payment_gateway_data.data
 
     @classmethod
     def resolve_merchant_reference(

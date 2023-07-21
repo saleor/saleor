@@ -59,6 +59,7 @@ if TYPE_CHECKING:
         TokenConfig,
         TransactionActionData,
         TransactionSessionData,
+        TransactionSessionResult,
     )
     from ..payment.models import TransactionItem
     from ..product.models import (
@@ -1024,7 +1025,7 @@ class PluginsManager(PaymentInterface):
     def transaction_initialize_session(
         self,
         transaction_session_data: "TransactionSessionData",
-    ) -> "PaymentGatewayData":
+    ) -> "TransactionSessionResult":
         default_value = None
         return self.__run_method_on_plugins(
             "transaction_initialize_session",
@@ -1036,7 +1037,7 @@ class PluginsManager(PaymentInterface):
     def transaction_process_session(
         self,
         transaction_session_data: "TransactionSessionData",
-    ) -> "PaymentGatewayData":
+    ) -> "TransactionSessionResult":
         default_value = None
         return self.__run_method_on_plugins(
             "transaction_process_session",

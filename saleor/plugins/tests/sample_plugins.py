@@ -20,7 +20,11 @@ from prices import Money, TaxedMoney
 from ...account.models import User
 from ...core.taxes import TaxData, TaxLineData, TaxType
 from ...order.interface import OrderTaxedPricesData
-from ...payment.interface import PaymentGatewayData, TransactionSessionData
+from ...payment.interface import (
+    PaymentGatewayData,
+    TransactionSessionData,
+    TransactionSessionResult,
+)
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
@@ -317,14 +321,18 @@ class PluginSample(BasePlugin):
         transaction_session_data: "TransactionSessionData",
         previous_value: Any,
     ):
-        return PaymentGatewayData(app_identifier="123", data=None, error="Some error")
+        return TransactionSessionResult(
+            app_identifier="123", response=None, error="Some error"
+        )
 
     def transaction_process_session(
         self,
         transaction_session_data: "TransactionSessionData",
         previous_value: Any,
     ):
-        return PaymentGatewayData(app_identifier="321", data=None, error="Some error")
+        return TransactionSessionResult(
+            app_identifier="321", response=None, error="Some error"
+        )
 
     def checkout_fully_paid(self, checkout):
         return None

@@ -75,7 +75,7 @@ def test_transaction_process_session_checkout_with_data(
             currency=transaction.currency,
             action_type=action_type,
         ),
-        payment_gateway=PaymentGatewayData(
+        payment_gateway_data=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=payload_data, error=None
         ),
     )
@@ -140,7 +140,7 @@ def test_transaction_process_session_checkout_without_data(
             currency=transaction.currency,
             action_type=action_type,
         ),
-        payment_gateway=PaymentGatewayData(
+        payment_gateway_data=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=payload_data, error=None
         ),
     )
@@ -204,7 +204,7 @@ def test_transaction_process_session_order_with_data(
             currency=transaction.currency,
             action_type=action_type,
         ),
-        payment_gateway=PaymentGatewayData(
+        payment_gateway_data=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=payload_data, error=None
         ),
     )
@@ -268,7 +268,7 @@ def test_transaction_process_session_order_without_data(
             currency=transaction.currency,
             action_type=action_type,
         ),
-        payment_gateway=PaymentGatewayData(
+        payment_gateway_data=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=payload_data, error=None
         ),
     )

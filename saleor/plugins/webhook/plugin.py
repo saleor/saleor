@@ -23,6 +23,7 @@ from ...payment.interface import (
     PaymentGatewayData,
     TransactionActionData,
     TransactionSessionData,
+    TransactionSessionResult,
 )
 from ...payment.models import Payment, TransactionItem
 from ...thumbnail.models import Thumbnail
@@ -1756,23 +1757,25 @@ class WebhookPlugin(BasePlugin):
     def _transaction_session_base(
         self, transaction_session_data: TransactionSessionData, webhook_event: str
     ):
-        if not transaction_session_data.payment_gateway.app_identifier:
+        if not transaction_session_data.payment_gateway_data.app_identifier:
             error = "Missing app identifier"
-            return PaymentGatewayData(
-                app_identifier=transaction_session_data.payment_gateway.app_identifier,
+            return TransactionSessionResult(
+                app_identifier=transaction_session_data.payment_gateway_data.app_identifier,
                 error=error,
             )
         webhook = get_webhooks_for_event(
             webhook_event,
-            apps_identifier=[transaction_session_data.payment_gateway.app_identifier],
+            apps_identifier=[
+                transaction_session_data.payment_gateway_data.app_identifier
+            ],
         ).first()
         if not webhook:
             error = (
                 "Unable to find an active webhook for "
                 f"`{webhook_event.upper()}` event."
             )
-            return PaymentGatewayData(
-                app_identifier=transaction_session_data.payment_gateway.app_identifier,
+            return TransactionSessionResult(
+                app_identifier=transaction_session_data.payment_gateway_data.app_identifier,
                 error=error,
             )
 
@@ -1780,7 +1783,7 @@ class WebhookPlugin(BasePlugin):
             transaction_session_data.action,
             transaction_session_data.transaction,
             transaction_session_data.source_object,
-            transaction_session_data.payment_gateway,
+            transaction_session_data.payment_gateway_data,
         )
 
         response_data = trigger_webhook_sync(
@@ -1792,15 +1795,15 @@ class WebhookPlugin(BasePlugin):
         error_msg = None
         if response_data is None:
             error_msg = "Unable to parse a transaction initialize response."
-        return PaymentGatewayData(
-            app_identifier=transaction_session_data.payment_gateway.app_identifier,
-            data=response_data,
+        return TransactionSessionResult(
+            app_identifier=transaction_session_data.payment_gateway_data.app_identifier,
+            response=response_data,
             error=error_msg,
         )
 
     def transaction_initialize_session(
         self, transaction_session_data: TransactionSessionData, previous_value
-    ) -> PaymentGatewayData:
+    ) -> TransactionSessionResult:
         if not self.active:
             return previous_value
         return self._transaction_session_base(
@@ -1810,7 +1813,7 @@ class WebhookPlugin(BasePlugin):
 
     def transaction_process_session(
         self, transaction_session_data: TransactionSessionData, previous_value
-    ) -> PaymentGatewayData:
+    ) -> TransactionSessionResult:
         if not self.active:
             return previous_value
         return self._transaction_session_base(
