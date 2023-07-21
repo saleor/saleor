@@ -361,17 +361,17 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.28.3"
+version = "1.28.7"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.28.3-py3-none-any.whl", hash = "sha256:34f07b3fc2503240c0f58114cf3afea91295c7996d084991b78a278a56157c48"},
-    {file = "boto3-1.28.3.tar.gz", hash = "sha256:610369a7f984b58973c097ea649ec81976c04565d39a2d6d3edc280d23b0cb87"},
+    {file = "boto3-1.28.7-py3-none-any.whl", hash = "sha256:46803b8ae114ff139f2a87fcb5d2f5a5728f6c96fe3a2b9416a8fcbe761423ae"},
+    {file = "boto3-1.28.7.tar.gz", hash = "sha256:ef6a465d3b25b89bcd00ff69675b33917166145e544735dcb9978091f5b0b752"},
 ]
 
 [package.dependencies]
-botocore = ">=1.31.3,<1.32.0"
+botocore = ">=1.31.7,<1.32.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -380,13 +380,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.31.3"
+version = "1.31.7"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.31.3-py3-none-any.whl", hash = "sha256:2aa27c75e62bfcf7900cb85283228fcb7df0fa1bdc2ae76dcee90788dd444934"},
-    {file = "botocore-1.31.3.tar.gz", hash = "sha256:744ce853cadc7ae87ba42ef6828194ddec97d606dd4d08b4dfe3d96d5001eb0c"},
+    {file = "botocore-1.31.7-py3-none-any.whl", hash = "sha256:f211ef5714bec8ae24b3fe737b8689611ef4d0dbea0ab46ef8328e112dd10ada"},
+    {file = "botocore-1.31.7.tar.gz", hash = "sha256:f4473f66c153c262b8262404d737f4249366daf00fb068b495577a24b830ebcb"},
 ]
 
 [package.dependencies]
@@ -395,7 +395,7 @@ python-dateutil = ">=2.1,<3.0.0"
 urllib3 = ">=1.25.4,<1.27"
 
 [package.extras]
-crt = ["awscrt (==0.16.9)"]
+crt = ["awscrt (==0.16.26)"]
 
 [[package]]
 name = "braintree"
@@ -4873,4 +4873,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "267b99ff2a19dfab5486f09dfb7275035537ab3dbf778300905e285e034a99ac"
+content-hash = "6e2922fd395bb4319e0c051798ba8f8e84dcff4000e5e6ed6d52c817c65ab811"
