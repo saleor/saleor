@@ -33,15 +33,15 @@ mutation UpdateProductChannelListing(
 """
 
 
-def create_product_channel_listing(
+def raw_create_product_channel_listing(
     staff_api_client,
     product_id,
     channel_id,
-    publication_date=datetime.date(2007, 1, 1),
-    is_published=True,
-    visible_in_listings=True,
-    available_for_purchase_datetime=datetime.datetime(2007, 1, 1, tzinfo=pytz.utc),
-    is_available_for_purchase=True,
+    publication_date=None,
+    is_published=False,
+    visible_in_listings=False,
+    available_for_purchase_datetime=None,
+    is_available_for_purchase=None,
 ):
     variables = {
         "productId": product_id,
@@ -66,9 +66,34 @@ def create_product_channel_listing(
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["productChannelListingUpdate"]["errors"] == []
+    data = content["data"]["productChannelListingUpdate"]
 
-    data = content["data"]["productChannelListingUpdate"]["product"]
+    return data
+
+
+def create_product_channel_listing(
+    staff_api_client,
+    product_id,
+    channel_id,
+    publication_date=datetime.date(2007, 1, 1),
+    is_published=True,
+    visible_in_listings=True,
+    available_for_purchase_datetime=datetime.datetime(2007, 1, 1, tzinfo=pytz.utc),
+    is_available_for_purchase=True,
+):
+    response = raw_create_product_channel_listing(
+        staff_api_client,
+        product_id,
+        channel_id,
+        publication_date,
+        is_published,
+        visible_in_listings,
+        available_for_purchase_datetime,
+        is_available_for_purchase,
+    )
+
+    data = response["product"]
+    assert response["errors"] == []
     assert data["id"] == product_id
     channel_listing_data = data["channelListings"][0]
     assert channel_listing_data["channel"]["id"] == channel_id

@@ -105,6 +105,21 @@ def test_query_webhook_by_app_without_permission(app_api_client):
     assert webhook_response is None
 
 
+def test_query_webhook_by_anonymnous_client(api_client):
+    second_app = App.objects.create(name="Sample app account", is_active=True)
+    webhook = Webhook.objects.create(
+        app=second_app, target_url="http://www.example.com/test"
+    )
+    webhook.events.create(event_type="order_created")
+
+    query = QUERY_WEBHOOK
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id}
+    response = api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response, ignore_errors=True)
+    assert content["data"]["webhook"] is None
+
+
 def test_query_webhook_sync_and_async_events(
     staff_api_client, webhook, permission_manage_apps
 ):

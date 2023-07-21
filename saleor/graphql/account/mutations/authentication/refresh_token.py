@@ -2,6 +2,7 @@ from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from .....account.error_codes import AccountErrorCode
 from .....core.jwt import (
@@ -133,4 +134,7 @@ class RefreshToken(BaseMutation):
         if audience := payload.get("aud"):
             additional_payload["aud"] = audience
         token = create_access_token(user, additional_payload=additional_payload)
+        if user and not user.is_anonymous:
+            user.last_login = timezone.now()
+            user.save(update_fields=["last_login", "updated_at"])
         return cls(errors=[], user=user, token=token)

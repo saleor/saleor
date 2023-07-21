@@ -6,6 +6,7 @@ from decimal import Decimal
 from typing import Any, Dict, Optional, Union, cast, overload
 
 import graphene
+from aniso8601 import parse_datetime
 from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
@@ -794,8 +795,17 @@ def parse_transaction_event_data(
                 datetime.fromisoformat(event_time_data) if event_time_data else None
             )
         except ValueError:
-            logger.warning(invalid_msg, "time", event_time_data)
-            error_field_msg.append(invalid_msg % ("time", event_time_data))
+            try:
+                # datetime.fromisoformat supports only formats of the objects that were
+                # created by date.isoformat() or datetime.isoformat(). It is fixed in
+                # 3.11
+                # This try except block can be removed after moving to python 3.11
+                # ref: https://docs.python.org/3/library/datetime.html#datetime.
+                # datetime.fromisoformat
+                parsed_event_data["time"] = parse_datetime(event_time_data)
+            except ValueError:
+                logger.warning(invalid_msg, "time", event_time_data)
+                error_field_msg.append(invalid_msg % ("time", event_time_data))
     else:
         parsed_event_data["time"] = timezone.now()
 

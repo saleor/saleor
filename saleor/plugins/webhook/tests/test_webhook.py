@@ -38,6 +38,7 @@ from ....graphql.discount.mutations.utils import convert_catalogue_info_to_globa
 from ....payment import TransactionAction, TransactionEventType
 from ....payment.interface import TransactionActionData
 from ....payment.models import TransactionItem
+from ....site.models import SiteSettings
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....webhook.payloads import (
     generate_checkout_payload,
@@ -1246,6 +1247,32 @@ def test_voucher_metadata_updated(
         WebhookEventAsyncType.VOUCHER_METADATA_UPDATED,
         [any_webhook],
         voucher,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_shop_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+):
+    site_settings = SiteSettings.objects.first()
+    assert site_settings
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.shop_metadata_updated(site_settings)
+    expected_data = generate_metadata_updated_payload(site_settings)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.SHOP_METADATA_UPDATED,
+        [any_webhook],
+        site_settings,
         None,
     )
 

@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("channel", "0013_auto_20230630_1039"),
+        ("channel", "0014_channel_allow_to_create_order_without_payment"),
     ]
 
     operations = [

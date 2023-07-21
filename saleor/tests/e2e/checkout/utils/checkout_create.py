@@ -51,7 +51,7 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
 """
 
 
-def checkout_create(
+def raw_checkout_create(
     api_client,
     lines,
     channel_slug,
@@ -79,9 +79,30 @@ def checkout_create(
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["checkoutCreate"]["errors"] == []
+    checkout_data = content["data"]["checkoutCreate"]
 
-    data = content["data"]["checkoutCreate"]["checkout"]
+    return checkout_data
+
+
+def checkout_create(
+    api_client,
+    lines,
+    channel_slug,
+    email=None,
+    set_default_billing_address=False,
+    set_default_shipping_address=False,
+):
+    checkout_response = raw_checkout_create(
+        api_client,
+        lines,
+        channel_slug,
+        email,
+        set_default_billing_address,
+        set_default_shipping_address,
+    )
+    assert checkout_response["errors"] == []
+
+    data = checkout_response["checkout"]
     assert data["id"] is not None
     assert data["channel"]["slug"] == channel_slug
 

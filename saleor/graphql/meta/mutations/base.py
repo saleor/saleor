@@ -19,9 +19,10 @@ from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.utils import from_global_id_or_error
 from ...payment.utils import metadata_contains_empty_key
-from ..extra_methods import MODEL_EXTRA_METHODS, MODEL_EXTRA_PREFETCH
+from ..extra_methods import TYPE_EXTRA_METHODS, TYPE_EXTRA_PREFETCH
 from ..permissions import AccountPermissions
 from ..types import ObjectWithMetadata
+from .utils import get_valid_metadata_instance
 
 
 class MetadataPermissionOptions(graphene.types.mutation.MutationOptions):
@@ -129,7 +130,11 @@ class BaseMetadataMutation(BaseMutation):
         if type_name in ["ShippingMethodType", "ShippingMethod"]:
             return shipping_models.ShippingMethod
 
-        graphene_type = info.schema.get_type(type_name).graphene_type
+        type_obj = info.schema.get_type(type_name)
+        if not type_obj:
+            raise GraphQLError(f"Invalid type: {type_name}")
+
+        graphene_type = type_obj.graphene_type
 
         if hasattr(graphene_type, "get_model"):
             return graphene_type.get_model()
@@ -162,9 +167,39 @@ class BaseMetadataMutation(BaseMutation):
             raise PermissionDenied(permissions=permissions)
 
         try:
+            instance = cls.get_instance(info, id=data["id"])
+        except ValidationError as e:
+            return cls.handle_errors(e)
+
+        if instance:
+            metadata_instance = get_valid_metadata_instance(instance)
+            old_metadata = dict(metadata_instance.metadata)
+            old_private_metadata = dict(metadata_instance.private_metadata)
+        else:
+            old_metadata = {}
+            old_private_metadata = {}
+
+        try:
             result = super().mutate(root, info, **data)
-            if not result.errors:
+
+            has_changed = False
+
+            instance = result.item
+            if isinstance(instance, ChannelContext):
+                instance = instance.node
+
+            if instance:
+                metadata_instance = get_valid_metadata_instance(instance)
+                new_metadata = metadata_instance.metadata
+                new_private_metadata = metadata_instance.private_metadata
+                has_changed = (
+                    old_metadata != new_metadata
+                    or old_private_metadata != new_private_metadata
+                )
+
+            if not result.errors and has_changed:
                 cls.perform_model_extra_actions(root, info, type_name, **data)
+
         except ValidationError as e:
             return cls.handle_errors(e)
         return result
@@ -194,12 +229,12 @@ class BaseMetadataMutation(BaseMutation):
     @classmethod
     def perform_model_extra_actions(cls, root, info: ResolveInfo, type_name, **data):
         """Run extra metadata method based on mutating model."""
-        if MODEL_EXTRA_METHODS.get(type_name):
-            prefetch_method = MODEL_EXTRA_PREFETCH.get(type_name)
+        if TYPE_EXTRA_METHODS.get(type_name):
+            prefetch_method = TYPE_EXTRA_PREFETCH.get(type_name)
             if prefetch_method:
                 data["qs"] = prefetch_method()
             instance = cls.get_instance(info, **data)
-            MODEL_EXTRA_METHODS[type_name](instance, info, **data)
+            TYPE_EXTRA_METHODS[type_name](instance, info, **data)
 
     @classmethod
     def success_response(cls, instance):

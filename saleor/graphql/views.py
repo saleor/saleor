@@ -307,6 +307,12 @@ class GraphQLView(View):
                 # We only include it optionally since
                 # executor is not a valid argument in all backends
                 extra_options["executor"] = self.executor
+
+            context = get_context_value(request)
+            if app := getattr(request, "app", None):
+                span.set_tag("app.id", app.id)
+                span.set_tag("app.name", app.name)
+
             try:
                 with connection.execute_wrapper(tracing_wrapper):
                     response = None
@@ -322,21 +328,17 @@ class GraphQLView(View):
                             root=self.get_root_value(),
                             variables=variables,
                             operation_name=operation_name,
-                            context=get_context_value(request),
+                            context=context,
                             middleware=self.middleware,
                             **extra_options,
                         )
                         if should_use_cache_for_scheme:
                             cache.set(key, response)
 
-                    if app := getattr(request, "app", None):
-                        span.set_tag("app.name", app.name)
-
                     return set_query_cost_on_result(response, query_cost)
             except Exception as e:
                 span.set_tag(opentracing.tags.ERROR, True)
-                if app := getattr(request, "app", None):
-                    span.set_tag("app.name", app.name)
+
                 # In the graphql-core version that we are using,
                 # the Exception is raised for too big integers value.
                 # As it's a validation error we want to raise GraphQLError instead.

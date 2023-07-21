@@ -5,6 +5,7 @@ from ....core.error_codes import ShopErrorCode
 from ....core.utils.url import validate_storefront_url
 from ....permission.enums import SitePermissions
 from ....site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_31,
@@ -17,7 +18,9 @@ from ...core.enums import WeightUnitsEnum
 from ...core.mutations import BaseMutation
 from ...core.types import ShopError
 from ...core.types import common as common_types
+from ...core.utils import WebhookEventInfo
 from ...meta.inputs import MetadataInput
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Shop
 
@@ -78,6 +81,11 @@ class ShopSettingsInput(graphene.InputObjectType):
     enable_account_confirmation_by_email = graphene.Boolean(
         description="Enable automatic account confirmation by email." + ADDED_IN_314
     )
+    allow_login_without_confirmation = graphene.Boolean(
+        description=(
+            "Enable possibility to login without account confirmation." + ADDED_IN_315
+        )
+    )
     metadata = common_types.NonNullList(
         MetadataInput,
         description="Shop public metadata." + ADDED_IN_315,
@@ -85,7 +93,7 @@ class ShopSettingsInput(graphene.InputObjectType):
     )
     private_metadata = common_types.NonNullList(
         MetadataInput,
-        description=("Shop private metadata." + ADDED_IN_315),
+        description="Shop private metadata." + ADDED_IN_315,
         required=False,
     )
     # deprecated
@@ -128,6 +136,14 @@ class ShopSettingsUpdate(BaseMutation):
         error_type_field = "shop_errors"
         support_meta_field = True
         support_private_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.SHOP_METADATA_UPDATED,
+                description=(
+                    "Optionally triggered when public or private metadata is updated."
+                ),
+            ),
+        ]
 
     @classmethod
     def clean_input(cls, _info, _instance, data):
@@ -178,10 +194,22 @@ class ShopSettingsUpdate(BaseMutation):
         instance = site.settings
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
+
         metadata_list = cleaned_input.pop("metadata", None)
         private_metadata_list = cleaned_input.pop("private_metadata", None)
+        old_metadata = dict(instance.metadata)
+        old_private_metadata = dict(instance.private_metadata)
+
         instance = cls.construct_instance(instance, cleaned_input)
         cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
         instance.save()
+
+        if (
+            instance.metadata != old_metadata
+            or instance.private_metadata != old_private_metadata
+        ):
+            manager = get_plugin_manager_promise(info.context).get()
+            manager.shop_metadata_updated(instance)
+
         return ShopSettingsUpdate(shop=Shop())

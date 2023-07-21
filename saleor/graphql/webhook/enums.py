@@ -7,6 +7,8 @@ from ..core.descriptions import (
     ADDED_IN_312,
     ADDED_IN_313,
     ADDED_IN_314,
+    ADDED_IN_315,
+    DEPRECATED_IN_3X_ENUM_VALUE,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
@@ -203,9 +205,11 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: (
         "A voucher metadata is updated." + ADDED_IN_38
     ),
-    WebhookEventAsyncType.ANY: "All the events.",
+    WebhookEventAsyncType.ANY: "All the events." + DEPRECATED_IN_3X_ENUM_VALUE,
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
     WebhookEventAsyncType.THUMBNAIL_CREATED: "A thumbnail is created." + ADDED_IN_312,
+    WebhookEventAsyncType.SHOP_METADATA_UPDATED: "Shop metadata is updated."
+    + ADDED_IN_315,
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
         "Fetch external shipping methods for checkout."
     ),

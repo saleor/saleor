@@ -1846,6 +1846,20 @@ class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
         description = "Event sent when voucher metadata is updated." + ADDED_IN_38
 
 
+class ShopMetadataUpdated(SubscriptionObjectType, AbstractType):
+    shop = graphene.Field(Shop, description="Shop data.")
+
+    class Meta:
+        root_type = "Shop"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when shop metadata is updated." + ADDED_IN_315
+
+    @staticmethod
+    def resolve_shop(root, _info: ResolveInfo):
+        return Shop()
+
+
 class PaymentBase(AbstractType):
     payment = graphene.Field(
         "saleor.graphql.payment.types.Payment",
@@ -2256,4 +2270,5 @@ WEBHOOK_TYPES_MAP = {
     ),
     WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: TransactionInitializeSession,
     WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
+    WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
 }

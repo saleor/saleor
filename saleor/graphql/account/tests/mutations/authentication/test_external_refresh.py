@@ -1,6 +1,8 @@
 import json
 from unittest.mock import Mock, patch
 
+from freezegun import freeze_time
+
 from ......plugins.base_plugin import ExternalAccessTokens
 from .....tests.utils import get_graphql_content
 
@@ -33,6 +35,7 @@ def test_external_refresh_plugin_not_active(api_client, customer_user):
     assert data["user"] is None
 
 
+@freeze_time("2018-05-31 12:00:00")
 @patch("saleor.core.middleware.jwt_decode_with_exception_handler")
 def test_external_refresh(
     mock_refresh_token_middleware, api_client, customer_user, monkeypatch, rf
@@ -59,5 +62,8 @@ def test_external_refresh(
     assert data["refreshToken"] == expected_refresh_token
     assert data["csrfToken"] == expected_csrf_token
     assert data["user"]["email"] == customer_user.email
+    assert customer_user.last_login
+    last_login = customer_user.last_login.strftime("%Y-%m-%d %H:%M:%S")
+    assert last_login == "2018-05-31 12:00:00"
     assert mocked_plugin_fun.called
     assert mock_refresh_token_middleware.called

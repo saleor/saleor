@@ -11,6 +11,7 @@ from .....graphql.webhook.subscription_query import SubscriptionQuery
 from .....menu.models import Menu, MenuItem
 from .....product.models import Category
 from .....shipping.models import ShippingMethod, ShippingZone
+from .....site.models import SiteSettings
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...tasks import create_deliveries_for_subscriptions, logger
 from . import subscription_queries
@@ -33,6 +34,7 @@ from .payloads import (
     generate_permission_group_payload,
     generate_sale_payload,
     generate_shipping_method_payload,
+    generate_shop_payload,
     generate_staff_payload,
     generate_voucher_created_payload_with_meta,
     generate_voucher_payload,
@@ -2099,6 +2101,24 @@ def test_voucher_metadata_updated(
 
     # then
     expected_payload = generate_voucher_payload(voucher, voucher_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_shop_metadata_updated(subscription_shop_metadata_updated_webhook):
+    # given
+    webhooks = [subscription_shop_metadata_updated_webhook]
+    event_type = WebhookEventAsyncType.SHOP_METADATA_UPDATED
+    site_settings = SiteSettings.objects.first()
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, site_settings, webhooks
+    )
+
+    # then
+    expected_payload = generate_shop_payload()
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

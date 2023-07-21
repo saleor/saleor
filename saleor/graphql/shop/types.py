@@ -20,6 +20,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
     ADDED_IN_314,
+    ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -44,7 +45,7 @@ from ..core.utils import str_to_enum
 from ..meta.types import ObjectWithMetadata
 from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..shipping.types import ShippingMethod
-from ..site.dataloaders import load_site_callback
+from ..site.dataloaders import get_site_promise, load_site_callback
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
@@ -52,6 +53,11 @@ from ..utils import format_permissions_for_display
 from .enums import GiftCardSettingsExpiryTypeEnum
 from .filters import CountryFilterInput
 from .resolvers import resolve_available_shipping_methods, resolve_countries
+
+# The "Shop" type always have the same ID since there is a single instance of it.
+# Some mutations, such as generic metadata API, require an ID. To make it work we
+# assume that Shop's ID is always 1.
+SHOP_ID = "1"
 
 
 class Domain(graphene.ObjectType):
@@ -137,6 +143,7 @@ class LimitInfo(graphene.ObjectType):
 
 
 class Shop(graphene.ObjectType):
+    id = graphene.ID(description="ID of the shop.", required=True)
     available_payment_gateways = NonNullList(
         PaymentGateway,
         currency=graphene.Argument(
@@ -306,6 +313,14 @@ class Shop(graphene.ObjectType):
         ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
+    allow_login_without_confirmation = PermissionsField(
+        graphene.Boolean,
+        description=(
+            "Determines if user can login without confirmation when "
+            "`enableAccountConfrimation` is enabled." + ADDED_IN_315
+        ),
+        permissions=[SitePermissions.MANAGE_SETTINGS],
+    )
     limits = PermissionsField(
         LimitInfo,
         required=True,
@@ -359,6 +374,22 @@ class Shop(graphene.ObjectType):
             "Represents a shop resource containing general shop data and configuration."
         )
         interfaces = [ObjectWithMetadata]
+
+    @staticmethod
+    def get_model():
+        return site_models.SiteSettings
+
+    @staticmethod
+    def get_node(info: ResolveInfo, id):
+        if id == SHOP_ID:
+            site = get_site_promise(info.context).get()
+            return site.settings
+
+        return None
+
+    @staticmethod
+    def resolve_id(_, _info):
+        return graphene.Node.to_global_id("Shop", SHOP_ID)
 
     @staticmethod
     @traced_resolver
@@ -534,6 +565,11 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_enable_account_confirmation_by_email(_, _info, site):
         return site.settings.enable_account_confirmation_by_email
+
+    @staticmethod
+    @load_site_callback
+    def resolve_allow_login_without_confirmation(_, _info, site):
+        return site.settings.allow_login_without_confirmation
 
     @staticmethod
     def resolve_limits(_, _info):

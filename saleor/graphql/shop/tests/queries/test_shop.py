@@ -11,6 +11,26 @@ from .....shipping.models import ShippingMethod
 from ....account.enums import CountryCodeEnum
 from ....core.utils import str_to_enum
 from ....tests.utils import assert_no_permission, get_graphql_content
+from ...types import SHOP_ID
+
+SHOP_ID_QUERY = """
+    query {
+        shop {
+            id
+        }
+    }
+"""
+
+
+def test_shop_id_query(api_client):
+    # when
+    response = api_client.post_graphql(SHOP_ID_QUERY)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]
+    assert data["id"] == graphene.Node.to_global_id("Shop", SHOP_ID)
+
 
 COUNTRIES_QUERY = """
     query {
@@ -830,3 +850,27 @@ def test_query_countries_filter_shiping_zones_attached_none(
 
     # then
     assert len(data) == len(countries)
+
+
+def test_query_allow_login_without_confirmation(
+    staff_api_client, permission_manage_settings, site_settings
+):
+    # given
+    query = """
+    query {
+        shop {
+            allowLoginWithoutConfirmation
+        }
+    }
+    """
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["shop"]["allowLoginWithoutConfirmation"] == (
+        site_settings.allow_login_without_confirmation
+    )

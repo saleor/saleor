@@ -13,6 +13,7 @@ from ....core.descriptions import ADDED_IN_38
 from ....core.doc_category import DOC_CATEGORY_AUTH
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....site.dataloaders import get_site_promise
 from ...types import User
 from .utils import _get_new_csrf_token
 
@@ -55,7 +56,8 @@ class CreateToken(BaseMutation):
         return None
 
     @classmethod
-    def get_user(cls, _info: ResolveInfo, email, password):
+    def get_user(cls, info: ResolveInfo, email, password):
+        site_settings = get_site_promise(info.context).get().settings
         user = cls._retrieve_user_from_credentials(email, password)
         if not user:
             raise ValidationError(
@@ -66,7 +68,11 @@ class CreateToken(BaseMutation):
                     )
                 }
             )
-        if not user.is_active and not user.last_login:
+        if (
+            not user.is_confirmed
+            and not site_settings.allow_login_without_confirmation
+            and site_settings.enable_account_confirmation_by_email
+        ):
             raise ValidationError(
                 {
                     "email": ValidationError(
@@ -76,7 +82,7 @@ class CreateToken(BaseMutation):
                 }
             )
 
-        if not user.is_active and user.last_login:
+        if not user.is_active:
             raise ValidationError(
                 {
                     "email": ValidationError(

@@ -46,6 +46,7 @@ CHANNEL_CREATE_MUTATION = """
                     markAsPaidStrategy
                     defaultTransactionFlowStrategy
                     deleteExpiredOrdersAfter
+                    allowUnpaidOrders
                 }
                 checkoutSettings {
                     useLegacyErrorFlow
@@ -754,3 +755,41 @@ def test_channel_create_set_checkout_use_legacy_error_flow(
     channel = Channel.objects.get()
     assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
     assert channel.use_legacy_error_flow_for_checkout is False
+
+
+@pytest.mark.parametrize("allowUnpaid", [True, False])
+def test_channel_create_set_allow_unpaid_orders(
+    allowUnpaid,
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "orderSettings": {"allowUnpaidOrders": allowUnpaid},
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get()
+    assert channel_data["orderSettings"]["allowUnpaidOrders"] == allowUnpaid
+    assert channel.allow_unpaid_orders == allowUnpaid

@@ -2,8 +2,10 @@ import graphene
 
 from ....menu import models
 from ....permission.enums import MenuPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.types import MenuError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import MenuItem
 from .menu_item_create import MenuItemCreate, MenuItemInput
@@ -27,6 +29,12 @@ class MenuItemUpdate(MenuItemCreate):
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.MENU_ITEM_UPDATED,
+                description="A menu item was updated.",
+            ),
+        ]
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):

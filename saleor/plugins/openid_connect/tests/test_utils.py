@@ -1,7 +1,7 @@
 import json
 import time
 import warnings
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest import mock
 from unittest.mock import MagicMock, Mock
 
@@ -10,7 +10,7 @@ import pytz
 import requests
 from authlib.jose import JWTClaims
 from django.core.exceptions import ValidationError
-from django.utils.timezone import make_aware
+from django.utils import timezone
 from freezegun import freeze_time
 from requests import Response
 
@@ -381,7 +381,7 @@ def test_get_or_create_user_from_payload_with_last_login(customer_user, settings
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
 
-    customer_user.last_login = make_aware(
+    customer_user.last_login = timezone.make_aware(
         datetime.fromtimestamp(current_ts - 10), timezone=pytz.timezone("UTC")
     )
     customer_user.save()
@@ -393,11 +393,58 @@ def test_get_or_create_user_from_payload_with_last_login(customer_user, settings
     )
 
     customer_user.refresh_from_db()
-    assert customer_user.last_login == make_aware(
+    assert customer_user.last_login == timezone.make_aware(
         datetime.fromtimestamp(current_ts), timezone=pytz.timezone("UTC")
     )
     assert user_from_payload.email == customer_user.email
     assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_get_or_create_user_from_payload_update_last_login(customer_user):
+    assert customer_user.last_login is None
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+    get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+    )
+
+    customer_user.refresh_from_db()
+    assert customer_user.last_login
+    last_login = customer_user.last_login.strftime("%Y-%m-%d %H:%M:%S")
+    assert last_login == "2019-03-18 12:00:00"
+
+
+def test_get_or_create_user_from_payload_last_login_stays_same(customer_user):
+    last_login = timezone.now() - timedelta(minutes=14)
+    customer_user.last_login = last_login
+    customer_user.save()
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+    get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+    )
+
+    customer_user.refresh_from_db()
+    assert customer_user.last_login == last_login
+
+
+def test_get_or_create_user_from_payload_last_login_modifies(customer_user):
+    last_login = timezone.now() - timedelta(minutes=16)
+    customer_user.last_login = last_login
+    customer_user.save()
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+    get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+    )
+
+    customer_user.refresh_from_db()
+    assert customer_user.last_login
+    assert customer_user.last_login != last_login
 
 
 def test_jwt_token_without_expiration_claim(monkeypatch, decoded_access_token):

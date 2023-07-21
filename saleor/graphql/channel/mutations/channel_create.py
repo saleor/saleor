@@ -121,6 +121,13 @@ class OrderSettingsInput(BaseInputObjectType):
             "requested action for the transaction." + ADDED_IN_313 + PREVIEW_FEATURE
         ),
     )
+    allow_unpaid_orders = graphene.Boolean(
+        required=False,
+        description=(
+            "Determine if it is possible to place unpdaid order by calling "
+            "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
+        ),
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS

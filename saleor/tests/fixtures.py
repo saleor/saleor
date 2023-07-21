@@ -486,6 +486,16 @@ def checkout_with_item_and_shipping_method(checkout_with_item, shipping_method):
 
 
 @pytest.fixture
+def checkout_with_item_and_voucher_and_shipping_method(
+    checkout_with_item_and_voucher, shipping_method
+):
+    checkout = checkout_with_item_and_voucher
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def other_shipping_method(shipping_zone, channel_USD):
     method = ShippingMethod.objects.create(
         name="DPD",

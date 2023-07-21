@@ -2,10 +2,12 @@ import graphene
 
 from ....menu import models
 from ....permission.enums import MenuPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import MenuError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Menu
 
@@ -29,6 +31,12 @@ class MenuUpdate(ModelMutation):
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.MENU_UPDATED,
+                description="A menu was updated.",
+            ),
+        ]
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

@@ -257,6 +257,13 @@ class OrderSettings(ObjectType):
             + PREVIEW_FEATURE
         ),
     )
+    allow_unpaid_orders = graphene.Boolean(
+        required=True,
+        description=(
+            "Determine if it is possible to place unpdaid order by calling "
+            "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
+        ),
+    )
 
     class Meta:
         description = "Represents the channel-specific order settings."
@@ -516,6 +523,7 @@ class Channel(ModelObjectType):
             mark_as_paid_strategy=root.order_mark_as_paid_strategy,
             default_transaction_flow_strategy=root.default_transaction_flow_strategy,
             delete_expired_orders_after=root.delete_expired_orders_after.days,
+            allow_unpaid_orders=(root.allow_unpaid_orders),
         )
 
     @staticmethod

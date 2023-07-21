@@ -103,6 +103,7 @@ if TYPE_CHECKING:
     )
     from ...shipping.interface import ShippingMethodData
     from ...shipping.models import ShippingMethod, ShippingZone
+    from ...site.models import SiteSettings
     from ...tax.models import TaxClass
     from ...translation.models import Translation
     from ...warehouse.models import Stock, Warehouse
@@ -1529,6 +1530,13 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_metadata_updated_event(
             WebhookEventAsyncType.VOUCHER_METADATA_UPDATED, voucher
+        )
+
+    def shop_metadata_updated(self, shop: "SiteSettings", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.SHOP_METADATA_UPDATED, shop
         )
 
     def event_delivery_retry(self, delivery: "EventDelivery", previous_value: Any):

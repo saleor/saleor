@@ -71,6 +71,7 @@ if TYPE_CHECKING:
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
+    from ..site.models import SiteSettings
     from ..tax.models import TaxClass
     from ..thumbnail.models import Thumbnail
     from ..translation.models import Translation
@@ -1362,6 +1363,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "voucher_metadata_updated", default_value, voucher
+        )
+
+    def shop_metadata_updated(self, shop: "SiteSettings"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shop_metadata_updated", default_value, shop
         )
 
     def initialize_payment(

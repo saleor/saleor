@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 import graphene
+from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 
 from ...order import models
@@ -161,7 +162,10 @@ class OrderQueries(graphene.ObjectType):
             "id", id, "external_reference", external_reference
         )
         if not id:
-            id = ext_ref_to_global_id_or_error(models.Order, external_reference)
+            try:
+                id = ext_ref_to_global_id_or_error(models.Order, external_reference)
+            except ValidationError:
+                return None
         _, id = from_global_id_or_error(id, Order)
         return resolve_order(info, id)
 
