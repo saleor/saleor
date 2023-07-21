@@ -389,3 +389,26 @@ def test_create_attribute_value_capitalized_name(
     data = content["data"]["attributeValueCreate"]
     assert not data["errors"]
     assert data["attributeValue"]["slug"] == "red-2"
+
+
+def test_create_attribute_value_for_attribute_type_pages_without_permission(
+    staff_api_client, page_attribute, permission_manage_products
+):
+    # given
+    query = CREATE_ATTRIBUTE_VALUE_MUTATION
+    attribute_id = graphene.Node.to_global_id("Attribute", page_attribute.id)
+    variables = {"name": "test name", "attributeId": attribute_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"]
+        == "You need one of the following permissions: MANAGE_PAGES"
+    )

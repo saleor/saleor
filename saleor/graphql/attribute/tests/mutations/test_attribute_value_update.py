@@ -51,6 +51,7 @@ def test_update_attribute_value(
     staff_api_client,
     pink_attribute_value,
     permission_manage_product_types_and_attributes,
+    permission_manage_products,
 ):
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
@@ -61,7 +62,12 @@ def test_update_attribute_value(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -79,6 +85,7 @@ def test_update_attribute_value_update_search_index_dirty_in_product(
     staff_api_client,
     product,
     permission_manage_product_types_and_attributes,
+    permission_manage_products,
 ):
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
@@ -89,7 +96,12 @@ def test_update_attribute_value_update_search_index_dirty_in_product(
 
     # when
     staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
     product.refresh_from_db(fields=["search_index_dirty"])
 
@@ -108,6 +120,7 @@ def test_update_attribute_value_trigger_webhooks(
     pink_attribute_value,
     permission_manage_product_types_and_attributes,
     settings,
+    permission_manage_products,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -122,7 +135,10 @@ def test_update_attribute_value_trigger_webhooks(
     response = staff_api_client.post_graphql(
         UPDATE_ATTRIBUTE_VALUE_MUTATION,
         variables,
-        permissions=[permission_manage_product_types_and_attributes],
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeValueUpdate"]
@@ -179,6 +195,7 @@ def test_update_attribute_value_name_not_unique(
     staff_api_client,
     pink_attribute_value,
     permission_manage_product_types_and_attributes,
+    permission_manage_products,
 ):
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
@@ -190,7 +207,12 @@ def test_update_attribute_value_name_not_unique(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -205,6 +227,7 @@ def test_update_attribute_value_the_same_name_as_different_attribute_value(
     size_attribute,
     color_attribute,
     permission_manage_product_types_and_attributes,
+    permission_manage_products,
 ):
     """Ensure the attribute value with the same slug as value of different attribute
     can be set."""
@@ -220,7 +243,12 @@ def test_update_attribute_value_the_same_name_as_different_attribute_value(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -239,6 +267,7 @@ def test_update_attribute_value_product_search_document_updated(
     pink_attribute_value,
     permission_manage_product_types_and_attributes,
     product,
+    permission_manage_products,
 ):
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
@@ -256,7 +285,12 @@ def test_update_attribute_value_product_search_document_updated(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -275,6 +309,7 @@ def test_update_attribute_value_product_search_document_updated_variant_attribut
     pink_attribute_value,
     permission_manage_product_types_and_attributes,
     variant,
+    permission_manage_products,
 ):
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
@@ -293,7 +328,12 @@ def test_update_attribute_value_product_search_document_updated_variant_attribut
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -311,6 +351,7 @@ def test_update_swatch_attribute_value(
     staff_api_client,
     swatch_attribute,
     permission_manage_product_types_and_attributes,
+    permission_manage_products,
 ):
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
@@ -321,7 +362,12 @@ def test_update_swatch_attribute_value(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -343,6 +389,7 @@ def test_update_swatch_attribute_value_clear_value(
     staff_api_client,
     swatch_attribute,
     permission_manage_product_types_and_attributes,
+    permission_manage_products,
 ):
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
@@ -353,7 +400,12 @@ def test_update_swatch_attribute_value_clear_value(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -375,6 +427,7 @@ def test_update_swatch_attribute_value_clear_file_value(
     staff_api_client,
     swatch_attribute,
     permission_manage_product_types_and_attributes,
+    permission_manage_products,
 ):
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
@@ -385,7 +438,12 @@ def test_update_swatch_attribute_value_clear_file_value(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -414,6 +472,7 @@ def test_update_attribute_value_invalid_input_data(
     staff_api_client,
     pink_attribute_value,
     permission_manage_product_types_and_attributes,
+    permission_manage_products,
 ):
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
@@ -424,7 +483,12 @@ def test_update_attribute_value_invalid_input_data(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -441,6 +505,7 @@ def test_update_attribute_value_swatch_attr_value(
     staff_api_client,
     swatch_attribute,
     permission_manage_product_types_and_attributes,
+    permission_manage_products,
 ):
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
@@ -451,7 +516,12 @@ def test_update_attribute_value_swatch_attr_value(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -461,3 +531,28 @@ def test_update_attribute_value_swatch_attr_value(
     assert data["attributeValue"]["name"] == value.name
     assert data["attributeValue"]["slug"] == value.slug
     assert data["attributeValue"]["value"] == new_value
+
+
+def test_update_attribute_value_for_attribute_type_pages_without_permission(
+    staff_api_client,
+    page_attribute_value,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_MUTATION
+    attribute_id = graphene.Node.to_global_id("AttributeValue", page_attribute_value.id)
+    variables = {"input": {"value": "test new value"}, "id": attribute_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"]
+        == "You need one of the following permissions: MANAGE_PAGES"
+    )

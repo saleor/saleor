@@ -11,11 +11,13 @@ from ...core.types import AttributeError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 from .attribute_create import AttributeValueCreateInput
-from .mixins import AttributeMixin
+from .mixins import AttributeMixin, AttributePermissionValidationMixin
 from .validators import validate_value_is_unique
 
 
-class AttributeValueCreate(AttributeMixin, ModelMutation):
+class AttributeValueCreate(
+    AttributeMixin, ModelMutation, AttributePermissionValidationMixin
+):
     ATTRIBUTE_VALUES_FIELD = "input"
 
     attribute = graphene.Field(Attribute, description="The updated attribute.")
@@ -78,6 +80,7 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, attribute_id, input):
         attribute = cls.get_node_or_error(info, attribute_id, only_type=Attribute)
+        cls.check_permissions_for_attribute(attribute, info)
         instance = models.AttributeValue(attribute=attribute)
         cleaned_input = cls.clean_input(info, instance, input)
         instance = cls.construct_instance(instance, cleaned_input)

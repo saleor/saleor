@@ -8,9 +8,10 @@ from ...core.mutations import ModelDeleteMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
+from .mixins import AttributePermissionValidationMixin
 
 
-class AttributeValueDelete(ModelDeleteMutation):
+class AttributeValueDelete(ModelDeleteMutation, AttributePermissionValidationMixin):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
@@ -28,6 +29,7 @@ class AttributeValueDelete(ModelDeleteMutation):
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=AttributeValue)
+        cls.check_permissions_for_attribute(instance.attribute, info)
         product_ids = cls.get_product_ids_to_update(instance)
         response = super().perform_mutation(_root, info, **data)
         product_models.Product.objects.filter(id__in=product_ids).update(

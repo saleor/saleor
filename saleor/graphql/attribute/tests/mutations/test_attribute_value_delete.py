@@ -10,6 +10,7 @@ from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
+from ....tests.utils import get_graphql_content
 
 ATTRIBUTE_VALUE_DELETE_MUTATION = """
     mutation AttributeValueDelete($id: ID!) {
@@ -28,6 +29,7 @@ def test_delete_attribute_value(
     color_attribute,
     pink_attribute_value,
     permission_manage_product_types_and_attributes,
+    permission_manage_products,
 ):
     # given
     value = color_attribute.values.get(name="Red")
@@ -37,7 +39,12 @@ def test_delete_attribute_value(
 
     # when
     staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -49,6 +56,7 @@ def test_delete_attribute_value_update_search_index_dirty_in_product(
     staff_api_client,
     product,
     permission_manage_product_types_and_attributes,
+    permission_manage_products,
 ):
     # given
     value = product.attributes.all()[0].values.first()
@@ -58,7 +66,12 @@ def test_delete_attribute_value_update_search_index_dirty_in_product(
 
     # when
     staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
     product.refresh_from_db(fields=["search_index_dirty"])
 
@@ -80,6 +93,7 @@ def test_delete_attribute_value_trigger_webhooks(
     pink_attribute_value,
     permission_manage_product_types_and_attributes,
     settings,
+    permission_manage_products,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -93,7 +107,10 @@ def test_delete_attribute_value_trigger_webhooks(
     staff_api_client.post_graphql(
         ATTRIBUTE_VALUE_DELETE_MUTATION,
         variables,
-        permissions=[permission_manage_product_types_and_attributes],
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     meta = generate_meta(
@@ -145,6 +162,7 @@ def test_delete_file_attribute_value(
     staff_api_client,
     file_attribute,
     permission_manage_product_types_and_attributes,
+    permission_manage_products,
 ):
     # given
     value = file_attribute.values.first()
@@ -154,7 +172,12 @@ def test_delete_file_attribute_value(
 
     # when
     staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -167,6 +190,7 @@ def test_delete_attribute_value_product_search_document_updated(
     color_attribute,
     permission_manage_product_types_and_attributes,
     product,
+    permission_manage_products,
 ):
     # given
     attribute = color_attribute
@@ -184,7 +208,12 @@ def test_delete_attribute_value_product_search_document_updated(
 
     # when
     staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
@@ -197,6 +226,7 @@ def test_delete_attribute_value_product_search_document_updated_variant_attribut
     color_attribute,
     permission_manage_product_types_and_attributes,
     variant,
+    permission_manage_products,
 ):
     # given
     name = "Red"
@@ -215,9 +245,37 @@ def test_delete_attribute_value_product_search_document_updated_variant_attribut
 
     # when
     staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
     )
 
     # then
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()
+
+
+def test_delete_attribute_value_for_attribute_type_page_without_permission(
+    staff_api_client,
+    page_attribute_value,
+    permission_manage_product_types_and_attributes,
+    permission_manage_pages,
+):
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_DELETE_MUTATION,
+        {"id": graphene.Node.to_global_id("AttributeValue", page_attribute_value.id)},
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"]
+        == "You need one of the following permissions: MANAGE_PAGES"
+    )

@@ -64,6 +64,10 @@ class AttributeValueUpdate(AttributeValueCreate):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
+        attribute_value = cls.get_node_or_error(
+            info, data.get("id"), only_type=AttributeValue
+        )
+        cls.check_permissions_for_attribute(attribute_value.attribute, info)
         return super(AttributeValueCreate, cls).perform_mutation(_root, info, **data)
 
     @classmethod

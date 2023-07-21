@@ -5,8 +5,11 @@ from text_unidecode import unidecode
 from ....attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
+from ....core.exceptions import PermissionDenied
+from ....core.permissions import PagePermissions, ProductPermissions
 from ....core.utils import prepare_unique_slug
 from ...core.validators import validate_slug_and_generate_if_needed
+from ..enums import AttributeTypeEnum
 
 
 class AttributeMixin:
@@ -187,3 +190,14 @@ class AttributeMixin:
         values = cleaned_data.get(cls.ATTRIBUTE_VALUES_FIELD) or []
         for value in values:
             attribute.values.create(**value)
+
+
+class AttributePermissionValidationMixin:
+    @classmethod
+    def check_permissions_for_attribute(cls, attribute, info):
+        if attribute.type == AttributeTypeEnum.PRODUCT_TYPE.value:
+            permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        else:
+            permissions = (PagePermissions.MANAGE_PAGES,)
+        if not cls.check_permissions(info.context, permissions):
+            raise PermissionDenied(permissions=permissions)
