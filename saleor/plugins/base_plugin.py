@@ -32,6 +32,7 @@ from ..payment.interface import (
     PaymentData,
     PaymentGateway,
     TransactionActionData,
+    TransactionSessionResult,
 )
 from ..thumbnail.models import Thumbnail
 from .models import PluginConfiguration
@@ -849,11 +850,11 @@ class BasePlugin:
     ]
 
     transaction_initialize_session: Callable[
-        ["TransactionSessionData", None], "PaymentGatewayData"
+        ["TransactionSessionData", None], "TransactionSessionResult"
     ]
 
     transaction_process_session: Callable[
-        ["TransactionSessionData", None], "PaymentGatewayData"
+        ["TransactionSessionData", None], "TransactionSessionResult"
     ]
 
     # Trigger when transaction item metadata is updated.
