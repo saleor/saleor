@@ -5,7 +5,7 @@ from graphene import relay
 
 from ....permission.utils import has_one_of_permissions
 from ....product import models
-from ....product.models import ALL_PRODUCTS_PERMISSIONS
+from ....product.constants import ALL_PRODUCTS_PERMISSIONS
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,

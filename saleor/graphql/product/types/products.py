@@ -16,7 +16,7 @@ from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import OrderPermissions, ProductPermissions
 from ....permission.utils import has_one_of_permissions
 from ....product import models
-from ....product.models import ALL_PRODUCTS_PERMISSIONS
+from ....product.constants import ALL_PRODUCTS_PERMISSIONS
 from ....product.utils import calculate_revenue_for_variant
 from ....product.utils.availability import (
     get_product_availability,

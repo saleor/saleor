@@ -5,7 +5,7 @@ from graphql import GraphQLError
 
 from ...permission.enums import ProductPermissions
 from ...permission.utils import has_one_of_permissions
-from ...product.models import ALL_PRODUCTS_PERMISSIONS
+from ...product.constants import ALL_PRODUCTS_PERMISSIONS
 from ...product.search import search_products
 from ..channel import ChannelContext, ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
