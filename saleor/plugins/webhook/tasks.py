@@ -13,6 +13,7 @@ from celery import group
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.core.cache import cache
 from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
@@ -43,6 +44,7 @@ from ...webhook.observability import WebhookData
 from ...webhook.payloads import generate_transaction_action_request_payload
 from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
+from .const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from .utils import (
     attempt_update,
     catch_duration_time,
@@ -50,6 +52,7 @@ from .utils import (
     create_attempt,
     create_event_delivery_list_for_webhooks,
     delivery_update,
+    generate_cache_key_for_webhook,
     get_delivery_for_webhook,
 )
 
@@ -224,6 +227,44 @@ def group_webhooks_by_subscription(webhooks):
     return regular, subscription
 
 
+def trigger_webhook_sync_if_not_cached(
+    event_type: str,
+    payload: str,
+    webhook: "Webhook",
+    cache_data: dict,
+    subscribable_object=None,
+    request_timeout=None,
+    cache_timeout=None,
+    request=None,
+) -> Optional[dict]:
+    """Get response for synchronous webhook.
+
+    - Send a synchronous webhook request if cache is expired.
+    - Fetch response from cache if it is still valid.
+    """
+
+    cache_key = generate_cache_key_for_webhook(
+        cache_data, webhook.target_url, event_type, webhook.app_id
+    )
+    response_data = cache.get(cache_key)
+    if response_data is None:
+        response_data = trigger_webhook_sync(
+            event_type,
+            payload,
+            webhook,
+            subscribable_object=subscribable_object,
+            timeout=request_timeout,
+            request=request,
+        )
+        if response_data is not None:
+            cache.set(
+                cache_key,
+                response_data,
+                timeout=cache_timeout or WEBHOOK_CACHE_DEFAULT_TIMEOUT,
+            )
+    return response_data
+
+
 def trigger_webhook_sync(
     event_type: str,
     payload: str,
@@ -233,7 +274,6 @@ def trigger_webhook_sync(
     request=None,
 ) -> Optional[Dict[Any, Any]]:
     """Send a synchronous webhook request."""
-
     if webhook.subscription_query:
         delivery = create_delivery_for_subscription_sync_event(
             event_type=event_type,

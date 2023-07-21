@@ -6440,6 +6440,23 @@ def shipping_app(db, permission_manage_shipping):
 
 
 @pytest.fixture
+def list_payment_methods_app(db, permission_manage_payments):
+    app = App.objects.create(name="List payment methods app", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="list_payment_methods",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.LIST_PAYMENT_METHODS,
+    )
+    return app
+
+
+@pytest.fixture
 def tax_app(db, permission_handle_taxes):
     app = App.objects.create(name="Tax App", is_active=True)
     app.permissions.add(permission_handle_taxes)
@@ -7182,6 +7199,28 @@ def event_attempt(event_delivery):
         response_headers=None,
         request_headers=None,
     )
+
+
+@pytest.fixture
+def webhook_list_payment_methods_response():
+    return {
+        "paymentMethods": [
+            {
+                "id": "method-1",
+                "supportedPaymentFlows": ["INTERACTIVE"],
+                "type": "Credit Card",
+                "creditCardInfo": {
+                    "brand": "visa",
+                    "lastDigits": "1234",
+                    "expMonth": 1,
+                    "expYear": 2023,
+                    "firstDigits": "123456",
+                },
+                "name": "***1234",
+                "data": {"some": "data"},
+            }
+        ]
+    }
 
 
 @pytest.fixture

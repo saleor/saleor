@@ -29,8 +29,10 @@ from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
     InitializedPaymentResponse,
+    ListPaymentMethodsData,
     PaymentData,
     PaymentGateway,
+    PaymentMethodData,
     TransactionActionData,
 )
 from ..thumbnail.models import Thumbnail
@@ -649,6 +651,10 @@ class BasePlugin:
     invoice_sent: Callable[["Invoice", str, Any], Any]
 
     list_payment_sources: Callable[[str, Any], List["CustomerSource"]]
+
+    list_payment_methods: Callable[
+        ["ListPaymentMethodsData", list["PaymentMethodData"]], list["PaymentMethodData"]
+    ]
 
     # Trigger when menu is created.
     #
