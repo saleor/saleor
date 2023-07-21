@@ -173,7 +173,6 @@ def test_checkout_billing_address_update(
     }
     """
     billing_address = graphql_address_data
-
     variables = {
         "id": to_global_id_or_none(checkout_with_item),
         "billingAddress": billing_address,
@@ -184,6 +183,7 @@ def test_checkout_billing_address_update(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
+    assert checkout.billing_address.metadata == {"public": "public_value"}
     assert checkout.billing_address is not None
     assert checkout.billing_address.first_name == billing_address["firstName"]
     assert checkout.billing_address.last_name == billing_address["lastName"]

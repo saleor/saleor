@@ -28,6 +28,24 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                     channel {
                         id
                     }
+                    billingAddress{
+                        city
+                        streetAddress1
+                        postalCode
+                        metadata {
+                            key
+                            value
+                        }
+                    }
+                    shippingAddress{
+                        city
+                        streetAddress1
+                        postalCode
+                        metadata {
+                            key
+                            value
+                        }
+                    }
                 }
             }
         }
@@ -87,7 +105,11 @@ def test_draft_order_update_voucher_not_available(
 
 
 def test_draft_order_update(
-    staff_api_client, permission_group_manage_orders, draft_order, voucher
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+    graphql_address_data,
 ):
     order = draft_order
     assert not order.voucher
@@ -104,14 +126,27 @@ def test_draft_order_update(
             "voucher": voucher_id,
             "customerNote": customer_note,
             "externalReference": external_reference,
+            "shippingAddress": graphql_address_data,
+            "billingAddress": graphql_address_data,
         },
     }
 
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
+    stored_metadata = {"public": "public_value"}
+
+    assert (
+        data["order"]["billingAddress"]["metadata"] == graphql_address_data["metadata"]
+    )
+    assert (
+        data["order"]["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
+    )
+
     assert not data["errors"]
     order.refresh_from_db()
+    assert order.billing_address.metadata == stored_metadata
+    assert order.shipping_address.metadata == stored_metadata
     assert order.voucher
     assert order.customer_note == customer_note
     assert order.search_vector

@@ -833,6 +833,7 @@ def graphql_address_data():
         "city": "Wrocław",
         "countryArea": "",
         "phone": "+48321321888",
+        "metadata": [{"key": "public", "value": "public_value"}],
     }
 
 

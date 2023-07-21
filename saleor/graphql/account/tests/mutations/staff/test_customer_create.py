@@ -45,9 +45,17 @@ CUSTOMER_CREATE_MUTATION = """
                 id
                 defaultBillingAddress {
                     id
+                    metadata {
+                        key
+                        value
+                    }
                 }
                 defaultShippingAddress {
                     id
+                    metadata {
+                        key
+                        value
+                    }
                 }
                 languageCode
                 email
@@ -91,12 +99,13 @@ def test_customer_create(
     last_name = "api_last_name"
     note = "Test user"
     address_data = convert_dict_keys_to_camel_case(address.as_data())
-    address_data.pop("metadata")
+    metadata = [{"key": "test key", "value": "test value"}]
+    stored_metadata = {"test key": "test value"}
+    address_data["metadata"] = metadata
     address_data.pop("privateMetadata")
 
     redirect_url = "https://www.example.com"
     external_reference = "test-ext-ref"
-    metadata = [{"key": "test key", "value": "test value"}]
     private_metadata = [{"key": "private test key", "value": "private test value"}]
     variables = {
         "email": email,
@@ -127,8 +136,9 @@ def test_customer_create(
         new_customer.default_shipping_address,
         new_customer.default_billing_address,
     )
-    assert shipping_address == address
-    assert billing_address == address
+    assert shipping_address == billing_address
+    assert billing_address.metadata == stored_metadata
+    assert shipping_address.metadata == stored_metadata
     assert shipping_address.pk != billing_address.pk
 
     data = content["data"]["customerCreate"]
@@ -143,6 +153,8 @@ def test_customer_create(
     assert data["user"]["isActive"]
     assert data["user"]["metadata"] == metadata
     assert data["user"]["privateMetadata"] == private_metadata
+    assert data["user"]["defaultShippingAddress"]["metadata"] == metadata
+    assert data["user"]["defaultBillingAddress"]["metadata"] == metadata
 
     new_user = User.objects.get(email=email)
     assert (

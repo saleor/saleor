@@ -13,6 +13,10 @@ ADDRESS_UPDATE_MUTATION = """
         addressUpdate(id: $addressId, input: $address) {
             address {
                 city
+                metadata {
+                    key
+                    value
+                }
             }
             user {
                 id
@@ -37,6 +41,7 @@ def test_address_update_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["addressUpdate"]
+    assert data["address"]["metadata"] == [{"key": "public", "value": "public_value"}]
     assert data["address"]["city"] == graphql_address_data["city"].upper()
     address_obj.refresh_from_db()
     assert address_obj.city == graphql_address_data["city"].upper()
