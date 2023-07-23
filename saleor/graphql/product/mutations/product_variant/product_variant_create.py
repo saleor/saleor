@@ -60,6 +60,7 @@ class ProductVariantInput(BaseInputObjectType):
         description=(
             "Determines if the inventory of this variant should be tracked. If false, "
             "the quantity won't change when customers buy this item."
+            "If the field is not provided, Shop.trackInventoryByDefault will be used."
         )
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
@@ -296,7 +297,15 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
+        from saleor.graphql.shop.utils import get_track_inventory_by_default
+
         new_variant = instance.pk is None
+        instance.track_inventory = (
+            get_track_inventory_by_default()
+            if cleaned_input.get("track_inventory") is None
+            else cleaned_input.get("track_inventory")
+        )
+        instance.save()
         with traced_atomic_transaction():
             instance.save()
             if not instance.product.default_variant:
@@ -307,7 +316,6 @@ class ProductVariantCreate(ModelMutation):
             stocks = cleaned_input.get("stocks")
             if stocks:
                 cls.create_variant_stocks(instance, stocks)
-
             attributes = cleaned_input.get("attributes")
             if attributes:
                 AttributeAssignmentMixin.save(instance, attributes)

@@ -2,6 +2,8 @@ from typing import Optional
 
 from django_countries import countries
 
+from saleor.site.models import SiteSettings
+
 from ...shipping.models import ShippingZone
 
 
@@ -26,3 +28,11 @@ def get_countries_codes_list(attached_to_shipping_zones: Optional[bool] = None):
             return all_countries_codes - covered_countries_codes
 
     return all_countries_codes
+
+
+def get_track_inventory_by_default():
+    track_inventory_by_default = (
+        SiteSettings.objects.all().values("track_inventory_by_default").first()
+    )
+    if track_inventory_by_default is not None:
+        return track_inventory_by_default["track_inventory_by_default"]
