@@ -123,7 +123,7 @@ def test_checkout_create_from_order_core_0104(
         permission_manage_checkouts,
         channel_slug="test",
     )
-    # Step 1 - Create draft order
+    # Step 1 - Create draft order and add order lines
     data = draft_order_create(
         e2e_staff_api_client,
         channel_id,
