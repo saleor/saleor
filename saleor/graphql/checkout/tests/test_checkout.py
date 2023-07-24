@@ -1670,6 +1670,75 @@ def test_checkout_prices_with_sales(
     assert line_total_price.gross.amount < undiscounted_total_price
 
 
+def test_checkout_prices_with_promotion(
+    user_api_client, checkout_with_item_on_promotion
+):
+    # given
+    query = QUERY_CHECKOUT_PRICES
+    checkout = checkout_with_item_on_promotion
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+
+    checkout.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == round(
+        line_total_price.gross.amount / line_info.line.quantity, 2
+    )
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.variant.get_base_price(
+        line_info.channel_listing,
+        line_info.line.price_override,
+    )
+    undiscounted_total_price = undiscounted_unit_price.amount * line_info.line.quantity
+    assert (
+        data["lines"][0]["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        data["lines"][0]["undiscountedTotalPrice"]["amount"] == undiscounted_total_price
+    )
+    assert line_total_price.gross.amount < undiscounted_total_price
+
+
 def test_checkout_display_gross_prices_use_default(user_api_client, checkout_with_item):
     # given
     variables = {"id": to_global_id_or_none(checkout_with_item)}
