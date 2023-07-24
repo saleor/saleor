@@ -887,7 +887,6 @@ class ProductVariantBulkCreate(BaseMutation):
 
             if not variant.name:
                 cls.set_variant_name(variant, cleaned_input)
-        print(variants_to_create)
         models.ProductVariant.objects.bulk_create(variants_to_create)
 
         for variant, attributes in attributes_to_save:
