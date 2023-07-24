@@ -310,3 +310,27 @@ class ChannelsByPromotionRuleIdLoader(DataLoader):
         ):
             rule_to_channels_map[rule_id].append(channels.get(channel_id))
         return [rule_to_channels_map.get(rule_id, []) for rule_id in keys]
+
+
+class PromotionRuleByIdLoader(DataLoader):
+    context_key = "promotion_rule_by_id"
+
+    def batch_load(self, keys):
+        rules = PromotionRule.objects.using(self.database_connection_name).in_bulk(keys)
+        return [rules.get(id) for id in keys]
+
+
+class PromotionByRuleIdLoader(DataLoader):
+    context_key = "promotion_by_rule_id"
+
+    def batch_load(self, keys):
+        rules = PromotionRule.objects.using(self.database_connection_name).filter(
+            id__in=keys
+        )
+        promotions = (
+            Promotion.objects.using(self.database_connection_name)
+            .filter(Exists(rules.filter(promotion_id=OuterRef("id"))))
+            .in_bulk()
+        )
+        promotion_map = {rule.id: promotions.get(rule.promotion_id) for rule in rules}
+        return [promotion_map.get(rule_id) for rule_id in keys]

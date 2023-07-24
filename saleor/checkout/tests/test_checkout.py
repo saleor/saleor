@@ -13,7 +13,6 @@ from prices import Money, TaxedMoney
 from ...account.models import Address
 from ...core.taxes import zero_money
 from ...discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
-from ...discount.interface import VariantPromotionRuleInfo
 from ...discount.models import (
     CheckoutLineDiscount,
     NotApplicable,
@@ -27,6 +26,10 @@ from ...product.models import (
     ProductVariantChannelListing,
     VariantChannelListingPromotionRule,
 )
+from ...product.models import (
+    ProductVariantChannelListing,
+    VariantChannelListingPromotionRule,
+)
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingZone
 from .. import base_calculations, calculations
@@ -34,6 +37,7 @@ from ..fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
     DeliveryMethodBase,
+    VariantPromotionRuleInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
     get_delivery_method_info,
@@ -1235,6 +1239,91 @@ def test_recalculate_checkout_discount_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     ).gross == Money("13.50", "USD")
+
+
+def test_recalculate_checkout_discount_with_promotion(
+    checkout_with_voucher_percentage,
+    voucher_percentage,
+    promotion_without_rules,
+):
+    # given
+    checkout = checkout_with_voucher_percentage
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    voucher_discount = (
+        voucher_percentage.channel_listings.filter(channel=checkout.channel)
+        .first()
+        .discount_value
+    )
+
+    line_info = lines[0]
+    reward_value = Decimal("1")
+    rule = promotion_without_rules.rules.create(
+        name="Percentage promotion rule",
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [
+                    graphene.Node.to_global_id("Product", line_info.variant.product.id)
+                ]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(line_info.channel)
+
+    listing = line_info.channel_listing
+    discounted_price = listing.price.amount - reward_value
+    listing.discounted_price_amount = discounted_price
+    listing.save(update_fields=["discounted_price_amount"])
+
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=listing,
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=line_info.channel.currency_code,
+    )
+
+    line_discount = CheckoutLineDiscount.objects.create(
+        line=line_info.line,
+        type=DiscountType.PROMOTION,
+        value_type=DiscountValueType.FIXED,
+        amount_value=reward_value * line_info.line.quantity,
+        currency=line_info.channel.currency_code,
+        promotion_rule=rule,
+    )
+    line_info.discounts = [line_discount]
+    line_info.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=promotion_without_rules,
+            promotion_translation=None,
+            rule_translation=None,
+        )
+    ]
+
+    # when
+    recalculate_checkout_discount(manager, checkout_info, lines)
+
+    # then
+    discounted_subtotal = listing.discounted_price_amount * line_info.line.quantity
+    voucher_discount = voucher_discount / 100 * discounted_subtotal
+    assert checkout.discount.amount == voucher_discount
+
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+    assert (
+        calculations.checkout_total(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            address=checkout.shipping_address,
+        ).gross.amount
+        == discounted_subtotal - voucher_discount
+    )
 
 
 def test_recalculate_checkout_discount_with_promotion(
