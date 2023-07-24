@@ -1052,6 +1052,10 @@ class PluginsManager(PaymentInterface):
             "transaction_item_metadata_updated", default_value, transaction_item
         )
 
+    def account_confirmed(self, user: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("account_confirmed", default_value, user)
+
     def account_confirmation_requested(
         self, user: "User", channel_slug: str, token: str, redirect_url: Optional[str]
     ):

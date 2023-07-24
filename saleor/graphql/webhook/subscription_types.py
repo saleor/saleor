@@ -175,6 +175,14 @@ class AccountOperationBase(AbstractType):
         return Shop()
 
 
+class AccountConfirmed(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = "User"
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when account is confirmed." + ADDED_IN_315
+
+
 class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = "User"
@@ -2133,6 +2141,7 @@ class ThumbnailCreated(SubscriptionObjectType):
 WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: AccountConfirmationRequested,
     WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED: AccountChangeEmailRequested,
+    WebhookEventAsyncType.ACCOUNT_CONFIRMED: AccountConfirmed,
     WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: AccountDeleteRequested,
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,

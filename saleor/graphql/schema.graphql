@@ -1725,6 +1725,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """Account email change is requested."""
   ACCOUNT_CHANGE_EMAIL_REQUESTED
 
+  """
+  An account is confirmed.
+  
+  Added in Saleor 3.15.
+  """
+  ACCOUNT_CONFIRMED
+
   """An account delete is requested."""
   ACCOUNT_DELETE_REQUESTED
 
@@ -2375,6 +2382,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """Account email change is requested."""
   ACCOUNT_CHANGE_EMAIL_REQUESTED
+
+  """
+  An account is confirmed.
+  
+  Added in Saleor 3.15.
+  """
+  ACCOUNT_CONFIRMED
 
   """An account delete is requested."""
   ACCOUNT_DELETE_REQUESTED
@@ -3382,6 +3396,7 @@ scalar JSONString
 enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ACCOUNT_CONFIRMATION_REQUESTED
   ACCOUNT_CHANGE_EMAIL_REQUESTED
+  ACCOUNT_CONFIRMED
   ACCOUNT_DELETE_REQUESTED
   ADDRESS_CREATED
   ADDRESS_UPDATED
@@ -17904,14 +17919,19 @@ type Mutation {
     redirectUrl: String!
   ): SendConfirmationEmail @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: [])
 
-  """Confirm user account with token sent by email during registration."""
+  """
+  Confirm user account with token sent by email during registration.
+  
+  Triggers the following webhook events:
+  - ACCOUNT_CONFIRMED (async): Account was confirmed.
+  """
   confirmAccount(
     """E-mail of the user performing account confirmation."""
     email: String!
 
     """A one-time token required to confirm the account."""
     token: String!
-  ): ConfirmAccount @doc(category: "Users")
+  ): ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED], syncEvents: [])
 
   """
   Sets the user's password from the token sent by email using the RequestPasswordReset mutation.
@@ -28109,8 +28129,13 @@ enum SendConfirmationEmailErrorCode @doc(category: "Users") {
   MISSING_CHANNEL_SLUG
 }
 
-"""Confirm user account with token sent by email during registration."""
-type ConfirmAccount @doc(category: "Users") {
+"""
+Confirm user account with token sent by email during registration.
+
+Triggers the following webhook events:
+- ACCOUNT_CONFIRMED (async): Account was confirmed.
+"""
+type ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED], syncEvents: []) {
   """An activated user account."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -29137,6 +29162,40 @@ type AccountChangeEmailRequested implements Event @doc(category: "Users") {
 
   """The new email address the user wants to change to."""
   newEmail: String
+}
+
+"""
+Event sent when account is confirmed.
+
+Added in Saleor 3.15.
+"""
+type AccountConfirmed implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
 }
 
 """

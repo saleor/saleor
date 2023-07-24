@@ -9,7 +9,15 @@ from .....graphql.shop.types import SHOP_ID
 from .....product.models import Product
 
 
-def generate_account_events_payload(customer_user, channel, new_email=None):
+def generate_account_events_payload(customer_user):
+    payload = {
+        **generate_customer_payload(customer_user),
+    }
+
+    return json.dumps(payload)
+
+
+def generate_account_requested_events_payload(customer_user, channel, new_email=None):
     payload = {
         **generate_customer_payload(customer_user),
         **{
@@ -22,7 +30,6 @@ def generate_account_events_payload(customer_user, channel, new_email=None):
             "shop": {"domain": {"host": "mirumee.com", "url": "http://mirumee.com/"}},
         },
     }
-
     if new_email:
         payload["newEmail"] = new_email
 
