@@ -1121,6 +1121,7 @@ def test_checkout_with_voucher_complete_product_on_promotion(
     address,
     shipping_method,
     promotion_without_rules,
+    promotion_rule_translation_fr,
 ):
     # given
     voucher_used_count = voucher_percentage.used
@@ -1158,6 +1159,11 @@ def test_checkout_with_voucher_complete_product_on_promotion(
         reward_value=reward_value,
     )
     rule.channels.add(channel)
+    promotion_rule_translation_fr.promotion_rule = rule
+    promotion_rule_translation_fr.language_code = checkout.language_code
+    promotion_rule_translation_fr.save(
+        update_fields=["promotion_rule", "language_code"]
+    )
 
     variant_channel_listing = checkout_line_variant.channel_listings.get(
         channel=channel
@@ -1173,13 +1179,14 @@ def test_checkout_with_voucher_complete_product_on_promotion(
         discount_amount=reward_value,
         currency=channel.currency_code,
     )
-    CheckoutLineDiscount.objects.create(
+    checkout_line_discount = CheckoutLineDiscount.objects.create(
         line=checkout_line,
         type=DiscountType.PROMOTION,
         value_type=DiscountValueType.FIXED,
         amount_value=reward_value,
         currency=channel.currency_code,
         promotion_rule=rule,
+        translated_name=promotion_rule_translation_fr.name,
     )
 
     promotion_without_rules.name = ""
@@ -1237,6 +1244,7 @@ def test_checkout_with_voucher_complete_product_on_promotion(
     assert line_discount.promotion_rule == rule
     assert line_discount.value_type == DiscountValueType.FIXED
     assert line_discount.amount_value == reward_value * order_line.quantity
+    assert line_discount.translated_name == checkout_line_discount.translated_name
     assert order_line.sale_id == graphene.Node.to_global_id(
         "Promotion", promotion_without_rules.id
     )
@@ -1260,6 +1268,9 @@ def test_checkout_with_voucher_complete_product_on_promotion(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+
+    with pytest.raises(checkout_line_discount._meta.model.DoesNotExist):
+        checkout_line_discount.refresh_from_db()
 
 
 def test_checkout_with_voucher_on_specific_product_complete(
@@ -1366,6 +1377,8 @@ def test_checkout_complete_product_on_promotion(
     payment_dummy,
     address,
     shipping_method,
+    promotion_rule_translation_fr,
+    promotion_translation_fr,
 ):
     # given
     checkout = checkout_with_item
@@ -1400,6 +1413,16 @@ def test_checkout_complete_product_on_promotion(
         reward_value=reward_value,
     )
     rule.channels.add(channel)
+
+    promotion_translation_fr.promotion = promotion_without_rules
+    promotion_translation_fr.language_code = checkout.language_code
+    promotion_translation_fr.save(update_fields=["promotion", "language_code"])
+
+    promotion_rule_translation_fr.promotion_rule = rule
+    promotion_rule_translation_fr.language_code = checkout.language_code
+    promotion_rule_translation_fr.save(
+        update_fields=["promotion_rule", "language_code"]
+    )
 
     variant_channel_listing = checkout_line_variant.channel_listings.get(
         channel=channel
@@ -1477,6 +1500,10 @@ def test_checkout_complete_product_on_promotion(
     assert line_discount.promotion_rule == rule
     assert line_discount.value_type == DiscountValueType.FIXED
     assert line_discount.amount_value == reward_value * order_line.quantity
+    assert (
+        line_discount.translated_name
+        == f"{promotion_translation_fr.name}: {promotion_rule_translation_fr.name}"
+    )
 
     assert order_line.sale_id == graphene.Node.to_global_id(
         "Promotion", promotion_without_rules.id

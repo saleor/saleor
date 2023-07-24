@@ -857,7 +857,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
                 rule_info.variant_listing_promotion_rule, line.quantity
             )
             discount_name = get_discount_name(rule, rule_info.promotion)
-            translated_name = get_translated_name(rule_info)
+            translated_name = get_discount_translated_name(rule_info)
             if not discount_to_update:
                 line_discount = CheckoutLineDiscount(
                     line=line,
@@ -939,7 +939,7 @@ def get_discount_name(rule: "PromotionRule", promotion: "Promotion"):
     return rule.name or promotion.name
 
 
-def get_translated_name(rule_info: "VariantPromotionRuleInfo"):
+def get_discount_translated_name(rule_info: "VariantPromotionRuleInfo"):
     promotion_translation = rule_info.promotion_translation
     rule_translation = rule_info.rule_translation
     if promotion_translation and rule_translation:
@@ -973,7 +973,7 @@ def _update_line_discount(
     if discount_to_update.name != discount_name:
         discount_to_update.name = discount_name
         updated_fields.append("name")
-    translated_name = get_translated_name(rule_info)
+    translated_name = get_discount_translated_name(rule_info)
     if discount_to_update.translated_name != translated_name:
         discount_to_update.translated_name = translated_name
         updated_fields.append("translated_name")
