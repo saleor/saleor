@@ -4212,13 +4212,13 @@ cryptography = ">=35.0.0"
 
 [[package]]
 name = "types-python-dateutil"
-version = "2.8.19.13"
+version = "2.8.19.14"
 description = "Typing stubs for python-dateutil"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-python-dateutil-2.8.19.13.tar.gz", hash = "sha256:09a0275f95ee31ce68196710ed2c3d1b9dc42e0b61cc43acc369a42cb939134f"},
-    {file = "types_python_dateutil-2.8.19.13-py3-none-any.whl", hash = "sha256:0b0e7c68e7043b0354b26a1e0225cb1baea7abb1b324d02b50e2d08f1221043f"},
+    {file = "types-python-dateutil-2.8.19.14.tar.gz", hash = "sha256:1f4f10ac98bb8b16ade9dbee3518d9ace017821d94b057a425b069f834737f4b"},
+    {file = "types_python_dateutil-2.8.19.14-py3-none-any.whl", hash = "sha256:f977b8de27787639986b4e28963263fd0e5158942b3ecef91b9335c130cb1ce9"},
 ]
 
 [[package]]
