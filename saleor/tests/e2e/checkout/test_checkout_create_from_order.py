@@ -98,8 +98,22 @@ def prepare_product(
         product_variant_id,
         channel_id,
     )
+    data = draft_order_create(
+        e2e_staff_api_client,
+        channel_id,
+    )
 
-    return channel_id, product_variant_id
+    order_id = data["order"]["id"]
+    order_lines = [{"variantId": product_variant_id, "quantity": 1, "price": 100}]
+    order_data = order_lines_create(e2e_staff_api_client, order_id, order_lines)
+    order_product_variant_id = order_data["order"]["lines"][0]["variant"]
+    order_product_quantity = order_data["order"]["lines"][0]["quantity"]
+
+    return (
+        order_id,
+        order_product_variant_id,
+        order_product_quantity,
+    )
 
 
 @pytest.mark.e2e
@@ -113,7 +127,11 @@ def test_checkout_create_from_order_core_0104(
     permission_manage_checkouts,
 ):
     # Before
-    channel_id, variant_id = prepare_product(
+    (
+        order_id,
+        order_product_variant_id,
+        order_product_quantity,
+    ) = prepare_product(
         e2e_staff_api_client,
         permission_manage_products,
         permission_manage_channels,
@@ -123,27 +141,9 @@ def test_checkout_create_from_order_core_0104(
         permission_manage_checkouts,
         channel_slug="test",
     )
-    # Step 1 - Create draft order and add order lines
-    data = draft_order_create(
-        e2e_staff_api_client,
-        channel_id,
-    )
 
-    order_id = data["order"]["id"]
-    errors = data["errors"]
+    # Step 1 - Create checkout from order
 
-    assert errors == []
-    assert order_id is not None
-
-    order_lines = [{"variantId": variant_id, "quantity": 1, "price": 100}]
-    order_data = order_lines_create(e2e_staff_api_client, order_id, order_lines)
-    assert order_data is not None
-    order_product_variant_id = order_data["order"]["lines"][0]["variant"]
-    order_product_quantity = order_data["order"]["lines"][0]["quantity"]
-    assert order_product_quantity is not None
-    assert order_product_variant_id is not None
-
-    # # Step 2 - Create checkout from order
     checkout_data = checkout_create_from_order(e2e_staff_api_client, order_id)
     checkout_id = checkout_data["checkout"]["id"]
     assert checkout_id is not None
@@ -154,8 +154,6 @@ def test_checkout_create_from_order_core_0104(
 
     checkout_product_variant_id = checkout_lines[0]["variant"]["id"]
     checkout_product_quantity = checkout_lines[0]["quantity"]
-    assert checkout_product_variant_id is not None
-    assert checkout_product_quantity is not None
     order_product_variant_id_value = order_product_variant_id["id"]
 
     assert checkout_product_variant_id == order_product_variant_id_value
