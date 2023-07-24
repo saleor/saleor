@@ -38,7 +38,11 @@ from ..attribute.models import (
 )
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout import base_calculations
-from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ..checkout.fetch import (
+    VariantPromotionRuleInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ..checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ..core import EventDeliveryStatus, JobStatus
@@ -5528,6 +5532,29 @@ def promotion_rule(channel_USD, promotion, product):
     )
     rule.channels.add(channel_USD)
     return rule
+
+
+@pytest.fixture
+def rule_info(
+    promotion_rule,
+    promotion_translation_fr,
+    promotion_rule_translation_fr,
+    variant,
+    channel_USD,
+):
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    listing_promotion_rule = variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=promotion_rule,
+        discount_amount=Decimal("10"),
+        currency=channel_USD.currency_code,
+    )
+    return VariantPromotionRuleInfo(
+        rule=promotion_rule,
+        promotion=promotion_rule.promotion,
+        variant_listing_promotion_rule=listing_promotion_rule,
+        promotion_translation=promotion_translation_fr,
+        rule_translation=promotion_rule_translation_fr,
+    )
 
 
 @pytest.fixture
