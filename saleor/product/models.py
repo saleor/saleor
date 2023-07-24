@@ -34,13 +34,27 @@ from ..core.utils.translations import Translation, get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
-from ..permission.enums import ProductPermissions, ProductTypePermissions
+from ..permission.enums import (
+    DiscountPermissions,
+    OrderPermissions,
+    ProductPermissions,
+    ProductTypePermissions,
+)
 from ..seo.models import SeoModel, SeoModelTranslation
 from ..tax.models import TaxClass
 from . import ProductMediaTypes, ProductTypeKind, managers
 
 if TYPE_CHECKING:
     from decimal import Decimal
+
+
+ALL_PRODUCTS_PERMISSIONS = [
+    # List of permissions, where each of them allows viewing all products
+    # (including unpublished).
+    OrderPermissions.MANAGE_ORDERS,
+    DiscountPermissions.MANAGE_DISCOUNTS,
+    ProductPermissions.MANAGE_PRODUCTS,
+]
 
 
 class Category(ModelWithMetadata, MPTTModel, SeoModel):

@@ -5,7 +5,7 @@ from ...order import OrderStatus
 from ...order.models import Order
 from ...permission.utils import has_one_of_permissions
 from ...product import models
-from ...product.constants import ALL_PRODUCTS_PERMISSIONS
+from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel import ChannelQsContext
 from ..core import ResolveInfo
 from ..core.context import get_database_connection_name

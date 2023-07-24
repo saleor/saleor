@@ -26,7 +26,6 @@ from ..account.models import User
 from ..app.models import App
 from ..channel.models import Channel
 from ..permission.utils import has_one_of_permissions
-from .constants import ALL_PRODUCTS_PERMISSIONS
 
 
 class ProductsQueryset(models.QuerySet):
@@ -69,9 +68,9 @@ class ProductsQueryset(models.QuerySet):
         return published.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
     def visible_to_user(self, requestor: Union["User", "App", None], channel_slug: str):
-        if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
-            from .models import ProductChannelListing
+        from .models import ALL_PRODUCTS_PERMISSIONS, ProductChannelListing
 
+        if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
                 channels = Channel.objects.filter(slug=str(channel_slug)).values("id")
                 channel_listings = ProductChannelListing.objects.filter(
@@ -292,6 +291,8 @@ class CollectionsQueryset(models.QuerySet):
         )
 
     def visible_to_user(self, requestor: Union["User", "App", None], channel_slug: str):
+        from .models import ALL_PRODUCTS_PERMISSIONS
+
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
