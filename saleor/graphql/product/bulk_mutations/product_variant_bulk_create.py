@@ -7,6 +7,8 @@ from django.core.exceptions import ValidationError
 from django.db.models import F
 from graphene.utils.str_converters import to_camel_case
 
+from saleor.graphql.shop.utils import get_track_inventory_by_default
+
 from ....attribute import AttributeType
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
@@ -864,7 +866,11 @@ class ProductVariantBulkCreate(BaseMutation):
 
             if not variant:
                 continue
-
+            variant.track_inventory = (
+                get_track_inventory_by_default()
+                if variant_data.get("track_inventory") is None
+                else variant_data.get("track_inventory")
+            )
             variants_to_create.append(variant)
             cleaned_input = variant_data["cleaned_input"]
 
@@ -881,7 +887,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
             if not variant.name:
                 cls.set_variant_name(variant, cleaned_input)
-
+        print(variants_to_create)
         models.ProductVariant.objects.bulk_create(variants_to_create)
 
         for variant, attributes in attributes_to_save:

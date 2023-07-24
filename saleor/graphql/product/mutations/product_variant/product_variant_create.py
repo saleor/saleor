@@ -5,6 +5,8 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
+from saleor.graphql.shop.utils import get_track_inventory_by_default
+
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
@@ -297,8 +299,6 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
-        from saleor.graphql.shop.utils import get_track_inventory_by_default
-
         new_variant = instance.pk is None
         instance.track_inventory = (
             get_track_inventory_by_default()

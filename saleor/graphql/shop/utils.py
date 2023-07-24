@@ -36,3 +36,4 @@ def get_track_inventory_by_default():
     )
     if track_inventory_by_default is not None:
         return track_inventory_by_default["track_inventory_by_default"]
+    raise NotImplementedError("Site settings not found.")
