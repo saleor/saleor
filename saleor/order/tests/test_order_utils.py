@@ -3,7 +3,11 @@ from decimal import Decimal
 import pytest
 from prices import Money, TaxedMoney
 
-from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...checkout.fetch import (
+    VariantPromotionRuleInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ...discount import DiscountType, DiscountValueType
 from ...discount.interface import VariantPromotionRuleInfo
 from ...giftcard import GiftCardEvents

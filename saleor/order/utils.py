@@ -32,6 +32,7 @@ from ..discount.models import (
 from ..discount.utils import (
     apply_discount_to_value,
     get_discount_name,
+    get_discount_translated_name,
     get_products_voucher_discount,
     validate_voucher_in_order,
 )
@@ -366,8 +367,7 @@ def create_order_line_discounts(
                 amount_value=rule_discount_amount,
                 currency=line.currency,
                 name=get_discount_name(rule, rule_info.promotion),
-                # TODO: set the promotion translation
-                translated_name="",
+                translated_name=get_discount_translated_name(rule_info),
                 reason=None,
                 promotion_rule=rule,
             )
