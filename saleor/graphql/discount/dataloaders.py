@@ -328,7 +328,5 @@ class PromotionByRuleIdLoader(DataLoader):
             .filter(Exists(rules.filter(promotion_id=OuterRef("id"))))
             .in_bulk()
         )
-        promotion_map = defaultdict(list)
-        for rule in rules:
-            promotion_map[rule.id].append(promotions.get(rule.promotion_id))
-        return [promotion_map.get(rule_id, []) for rule_id in keys]
+        promotion_map = {rule.id: promotions.get(rule.promotion_id) for rule in rules}
+        return [promotion_map.get(rule_id) for rule_id in keys]
