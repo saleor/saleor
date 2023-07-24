@@ -535,12 +535,14 @@ def test_update_attribute_value_swatch_attr_value(
 
 def test_update_attribute_value_for_attribute_type_pages_without_permission(
     staff_api_client,
-    page_attribute_value,
+    size_page_attribute,
     permission_manage_product_types_and_attributes,
 ):
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
-    attribute_id = graphene.Node.to_global_id("AttributeValue", page_attribute_value.id)
+    attribute_id = graphene.Node.to_global_id(
+        "AttributeValue", size_page_attribute.values.first().id
+    )
     variables = {"input": {"value": "test new value"}, "id": attribute_id}
 
     # when

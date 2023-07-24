@@ -1292,27 +1292,6 @@ def shipping_method_channel_PLN(shipping_zone, channel_PLN):
 
 
 @pytest.fixture
-def page_attribute(db):
-    attribute = Attribute.objects.create(
-        slug="page",
-        name="Page",
-        type=AttributeType.PAGE_TYPE,
-        input_type=AttributeInputType.SWATCH,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
-    )
-    return attribute
-
-
-@pytest.fixture
-def page_attribute_value(page_attribute):
-    return AttributeValue.objects.create(
-        attribute=page_attribute, name="Value", slug="value", value="test value"
-    )
-
-
-@pytest.fixture
 def color_attribute(db):
     attribute = Attribute.objects.create(
         slug="color",

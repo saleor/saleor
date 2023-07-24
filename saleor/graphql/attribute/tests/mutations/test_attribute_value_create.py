@@ -392,11 +392,11 @@ def test_create_attribute_value_capitalized_name(
 
 
 def test_create_attribute_value_for_attribute_type_pages_without_permission(
-    staff_api_client, page_attribute, permission_manage_products
+    staff_api_client, size_page_attribute, permission_manage_products
 ):
     # given
     query = CREATE_ATTRIBUTE_VALUE_MUTATION
-    attribute_id = graphene.Node.to_global_id("Attribute", page_attribute.id)
+    attribute_id = graphene.Node.to_global_id("Attribute", size_page_attribute.id)
     variables = {"name": "test name", "attributeId": attribute_id}
 
     # when

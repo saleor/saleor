@@ -260,14 +260,18 @@ def test_delete_attribute_value_product_search_document_updated_variant_attribut
 
 def test_delete_attribute_value_for_attribute_type_page_without_permission(
     staff_api_client,
-    page_attribute_value,
+    size_page_attribute,
     permission_manage_product_types_and_attributes,
     permission_manage_pages,
 ):
     # when
     response = staff_api_client.post_graphql(
         ATTRIBUTE_VALUE_DELETE_MUTATION,
-        {"id": graphene.Node.to_global_id("AttributeValue", page_attribute_value.id)},
+        {
+            "id": graphene.Node.to_global_id(
+                "AttributeValue", size_page_attribute.values.first().id
+            )
+        },
         permissions=[permission_manage_product_types_and_attributes],
     )
 
