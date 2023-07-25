@@ -2,9 +2,8 @@ from typing import Optional
 
 from django_countries import countries
 
-from saleor.site.models import SiteSettings
-
 from ...shipping.models import ShippingZone
+from ...site.models import SiteSettings
 
 
 def get_countries_codes_list(attached_to_shipping_zones: Optional[bool] = None):
