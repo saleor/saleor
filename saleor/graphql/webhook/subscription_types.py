@@ -14,7 +14,7 @@ from ...menu.models import MenuItemTranslation
 from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
 from ...payment.interface import (
-    ListPaymentMethodsData,
+    ListStoredPaymentMethodsRequestData,
     TransactionActionData,
     TransactionSessionData,
 )
@@ -1799,7 +1799,7 @@ class TransactionProcessSession(TransactionSessionBase):
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
-class ListPaymentMethods(SubscriptionObjectType):
+class ListStoredPaymentMethods(SubscriptionObjectType):
     user = graphene.Field(
         UserType,
         description=(
@@ -1834,20 +1834,22 @@ class ListPaymentMethods(SubscriptionObjectType):
         doc_category = DOC_CATEGORY_PAYMENTS
 
     @classmethod
-    def resolve_user(cls, root: tuple[str, ListPaymentMethodsData], _info: ResolveInfo):
+    def resolve_user(
+        cls, root: tuple[str, ListStoredPaymentMethodsRequestData], _info: ResolveInfo
+    ):
         _, payment_method_data = root
         return payment_method_data.user
 
     @classmethod
     def resolve_channel(
-        cls, root: tuple[str, ListPaymentMethodsData], _info: ResolveInfo
+        cls, root: tuple[str, ListStoredPaymentMethodsRequestData], _info: ResolveInfo
     ):
         _, payment_method_data = root
         return payment_method_data.channel
 
     @classmethod
     def resolve_value(
-        cls, root: tuple[str, ListPaymentMethodsData], _info: ResolveInfo
+        cls, root: tuple[str, ListStoredPaymentMethodsRequestData], _info: ResolveInfo
     ):
         _, payment_method_data = root
         return payment_method_data.amount
@@ -2392,5 +2394,5 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: TransactionInitializeSession,
     WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
     WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
-    WebhookEventSyncType.LIST_PAYMENT_METHODS: ListPaymentMethods,
+    WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS: ListStoredPaymentMethods,
 }

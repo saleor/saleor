@@ -732,7 +732,7 @@ class WebhookEventSyncType:
     TRANSACTION_INITIALIZE_SESSION = "transaction_initialize_session"
     TRANSACTION_PROCESS_SESSION = "transaction_process_session"
 
-    LIST_PAYMENT_METHODS = "list_payment_methods"
+    LIST_STORED_PAYMENT_METHODS = "list_stored_payment_methods"
 
     EVENT_MAP: dict[str, dict[str, Any]] = {
         PAYMENT_LIST_GATEWAYS: {
@@ -807,7 +807,7 @@ class WebhookEventSyncType:
             "name": "Process transaction session",
             "permission": PaymentPermissions.HANDLE_PAYMENTS,
         },
-        LIST_PAYMENT_METHODS: {
+        LIST_STORED_PAYMENT_METHODS: {
             "name": "List tokenized payment methods that can be used by the customer.",
             "permission": PaymentPermissions.HANDLE_PAYMENTS,
         },

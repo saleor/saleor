@@ -17,7 +17,7 @@ from ...graphql.webhook.subscription_payload import initialize_request
 from ...payment import PaymentError, TransactionKind
 from ...payment.interface import (
     GatewayResponse,
-    ListPaymentMethodsData,
+    ListStoredPaymentMethodsRequestData,
     PaymentData,
     PaymentGateway,
     PaymentGatewayData,
@@ -80,7 +80,7 @@ from .utils import (
     delivery_update,
     from_payment_app_id,
     get_current_tax_app,
-    get_list_payment_methods_from_response,
+    get_list_stored_payment_methods_from_response,
     get_meta_code_key,
     get_meta_description_key,
     parse_list_payment_gateways_response,
@@ -1637,15 +1637,15 @@ class WebhookPlugin(BasePlugin):
         delivery_update(delivery, status=EventDeliveryStatus.PENDING)
         send_webhook_request_async.delay(delivery.pk)
 
-    def list_payment_methods(
+    def list_stored_payment_methods(
         self,
-        list_payment_method_data: "ListPaymentMethodsData",
+        list_payment_method_data: "ListStoredPaymentMethodsRequestData",
         previous_value: list["PaymentMethodData"],
     ) -> list["PaymentMethodData"]:
         if not self.active:
             return previous_value
 
-        event_type = WebhookEventSyncType.LIST_PAYMENT_METHODS
+        event_type = WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS
         if webhooks := get_webhooks_for_event(event_type):
             payload_dict = {
                 "user_id": graphene.Node.to_global_id(
@@ -1668,7 +1668,7 @@ class WebhookPlugin(BasePlugin):
                 )
                 if response_data:
                     previous_value.extend(
-                        get_list_payment_methods_from_response(
+                        get_list_stored_payment_methods_from_response(
                             webhook.app, response_data
                         )
                     )

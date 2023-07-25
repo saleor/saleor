@@ -6,7 +6,7 @@ from ....webhook.event_types import WebhookEventSyncType
 from ..utils import (
     generate_cache_key_for_webhook,
     get_credit_card_info,
-    get_list_payment_methods_from_response,
+    get_list_stored_payment_methods_from_response,
     get_payment_method_from_response,
     to_payment_app_id,
 )
@@ -91,7 +91,7 @@ def test_different_event_produce_different_cache_key(checkout_with_item):
         payload, target_url, WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, 1
     )
     cache_key_2 = generate_cache_key_for_webhook(
-        payload, target_url, WebhookEventSyncType.LIST_PAYMENT_METHODS, 1
+        payload, target_url, WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS, 1
     )
 
     # then
@@ -366,17 +366,17 @@ def test_get_payment_method_from_response_incorrect_payment_flow_choices(
     assert payment_method is None
 
 
-def test_get_list_payment_methods_from_response(payment_method_response, app):
+def test_get_list_stored_payment_methods_from_response(payment_method_response, app):
     # given
     second_payment_method = copy.deepcopy(payment_method_response)
     del second_payment_method["id"]
-    list_payment_methods_response = {
+    list_stored_payment_methods_response = {
         "paymentMethods": [payment_method_response, second_payment_method]
     }
 
     # when
-    response = get_list_payment_methods_from_response(
-        app, list_payment_methods_response
+    response = get_list_stored_payment_methods_from_response(
+        app, list_stored_payment_methods_response
     )
 
     # then

@@ -2275,7 +2275,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
-  LIST_PAYMENT_METHODS
+  LIST_STORED_PAYMENT_METHODS
 }
 
 """Synchronous webhook event."""
@@ -2362,7 +2362,7 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
-  LIST_PAYMENT_METHODS
+  LIST_STORED_PAYMENT_METHODS
 }
 
 """Asynchronous webhook event."""
@@ -32793,7 +32793,7 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ListPaymentMethods implements Event @doc(category: "Payments") {
+type ListStoredPaymentMethods implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 

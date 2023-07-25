@@ -23,7 +23,7 @@ JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
 
 @dataclass
-class ListPaymentMethodsData:
+class ListStoredPaymentMethodsRequestData:
     channel: "Channel"
     user: "User"
     amount: Money
