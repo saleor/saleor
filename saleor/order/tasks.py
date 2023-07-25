@@ -12,7 +12,10 @@ from ..core.utils.events import call_event
 from ..discount.models import Voucher, VoucherCustomer
 from ..payment.models import Payment, TransactionItem
 from ..plugins.manager import get_plugins_manager
-from ..warehouse.management import deallocate_stock_for_orders
+from ..warehouse.management import (
+    deallocate_preorders_for_orders,
+    deallocate_stock_for_orders,
+)
 from . import OrderEvents, OrderStatus
 from .models import Order, OrderEvent
 from .utils import invalidate_order_prices
@@ -115,6 +118,7 @@ def _expire_orders(manager, now):
         _bulk_release_voucher_usage(ids_batch)
         _order_expired_events(ids_batch)
         deallocate_stock_for_orders(ids_batch, manager)
+        deallocate_preorders_for_orders(ids_batch)
         _call_expired_order_events(ids_batch, manager)
 
 

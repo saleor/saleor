@@ -901,3 +901,12 @@ def _get_stock_for_preorder_allocation(
     return (stock[0] if stock else None) or Stock(
         warehouse=warehouse, product_variant=product_variant, quantity=0
     )
+
+
+def deallocate_preorders_for_orders(orders_id):
+    lines = OrderLine.objects.filter(order_id__in=orders_id)
+    preorder_allocations = PreorderAllocation.objects.filter(
+        Exists(lines.filter(id=OuterRef("order_line_id")))
+    )
+    if preorder_allocations:
+        preorder_allocations.delete()
