@@ -404,6 +404,12 @@ class BasePlugin:
     # status is changed.
     channel_status_changed: Callable[["Channel", None], None]
 
+    # Trigger when channel metadata is changed.
+    #
+    # Overwrite this method if you need to trigger specific logic after a channel
+    # metadata is changed.
+    channel_metadata_updated: Callable[["Channel", None], None]
+
     change_user_address: Callable[
         ["Address", Union[str, None], Union["User", None], bool, "Address"], "Address"
     ]

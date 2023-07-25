@@ -441,6 +441,15 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.CHANNEL_STATUS_CHANGED, channel
         )
 
+    def channel_metadata_updated(
+        self, channel: "Channel", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self.__trigger_channel_event(
+            WebhookEventAsyncType.CHANNEL_METADATA_UPDATED, channel
+        )
+
     def _trigger_gift_card_event(self, event_type, gift_card: "GiftCard"):
         if webhooks := get_webhooks_for_event(event_type):
             payload = self._serialize_payload(

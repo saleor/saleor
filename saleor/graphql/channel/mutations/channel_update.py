@@ -75,6 +75,12 @@ class ChannelUpdate(ModelMutation):
                 type=WebhookEventAsyncType.CHANNEL_UPDATED,
                 description="A channel was updated.",
             ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHANNEL_METADATA_UPDATED,
+                description=(
+                    "Optionally triggered when public or private metadata is updated."
+                ),
+            ),
         ]
         support_meta_field = True
         support_private_meta_field = True
@@ -217,3 +223,5 @@ class ChannelUpdate(ModelMutation):
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.channel_updated, instance)
+        if cleaned_input.get("metadata"):
+            cls.call_event(manager.channel_metadata_updated, instance)

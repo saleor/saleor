@@ -446,6 +446,14 @@ class ChannelStatusChanged(SubscriptionObjectType, ChannelBase):
         description = "Event sent when channel status has changed." + ADDED_IN_32
 
 
+class ChannelMetadataUpdated(SubscriptionObjectType, ChannelBase):
+    class Meta:
+        root_type = "Channel"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when channel metadata is updated." + ADDED_IN_315
+
+
 class OrderBase(AbstractType):
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
@@ -2146,6 +2154,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.CHANNEL_UPDATED: ChannelUpdated,
     WebhookEventAsyncType.CHANNEL_DELETED: ChannelDeleted,
     WebhookEventAsyncType.CHANNEL_STATUS_CHANGED: ChannelStatusChanged,
+    WebhookEventAsyncType.CHANNEL_METADATA_UPDATED: ChannelMetadataUpdated,
     WebhookEventAsyncType.GIFT_CARD_CREATED: GiftCardCreated,
     WebhookEventAsyncType.GIFT_CARD_UPDATED: GiftCardUpdated,
     WebhookEventAsyncType.GIFT_CARD_DELETED: GiftCardDeleted,

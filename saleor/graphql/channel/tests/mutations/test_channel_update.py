@@ -1,6 +1,6 @@
 import json
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import graphene
 import pytest
@@ -495,7 +495,12 @@ def test_channel_update_mutation_trigger_webhook(
     default_country = "FR"
     variables = {
         "id": channel_id,
-        "input": {"name": name, "slug": slug, "defaultCountry": default_country},
+        "input": {
+            "name": name,
+            "slug": slug,
+            "defaultCountry": default_country,
+            "metadata": [{"key": "key", "value": "value"}],
+        },
     }
 
     # when
@@ -510,8 +515,7 @@ def test_channel_update_mutation_trigger_webhook(
     data = content["data"]["channelUpdate"]
     assert not data["errors"]
     assert data["channel"]
-
-    mocked_webhook_trigger.assert_called_once_with(
+    update_webhook_args = [
         json.dumps(
             {
                 "id": channel_id,
@@ -528,6 +532,11 @@ def test_channel_update_mutation_trigger_webhook(
         [any_webhook],
         channel_USD,
         SimpleLazyObject(lambda: staff_api_client.user),
+    ]
+    metadata_webhook_args = update_webhook_args.copy()
+    metadata_webhook_args[1] = WebhookEventAsyncType.CHANNEL_METADATA_UPDATED
+    mocked_webhook_trigger.assert_has_calls(
+        [call(*update_webhook_args), call(*metadata_webhook_args)]
     )
 
 
