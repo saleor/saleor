@@ -1746,14 +1746,14 @@ class ListStoredPaymentMethods(SubscriptionObjectType):
     user = graphene.Field(
         UserType,
         description=(
-            "The user for which the app should return a list of payment " "methods"
+            "The user for which the app should return a list of payment methods."
         ),
         required=True,
     )
     channel = graphene.Field(
         "saleor.graphql.channel.types.Channel",
         description=(
-            "Channel in context which was used to fetch the list of payment methods"
+            "Channel in context which was used to fetch the list of payment methods."
         ),
         required=True,
     )
@@ -1761,7 +1761,7 @@ class ListStoredPaymentMethods(SubscriptionObjectType):
         Money,
         description=(
             "Amount that the payment method must support. If not provided by the user, "
-            "0 will be used as default value"
+            "0 will be used as default value."
         ),
     )
 
