@@ -11,6 +11,7 @@ from functools import lru_cache
 from typing import Any, Dict, Type, Union, cast
 from unittest.mock import patch
 
+import graphene
 from django.conf import settings
 from django.core.files import File
 from django.db import connection
@@ -46,8 +47,8 @@ from ...checkout.fetch import fetch_checkout_info
 from ...checkout.models import Checkout
 from ...checkout.utils import add_variant_to_checkout
 from ...core.weight import zero_weight
-from ...discount import DiscountValueType, VoucherType
-from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
+from ...discount import DiscountValueType, RewardValueType, VoucherType
+from ...discount.models import Promotion, PromotionRule, Voucher, VoucherChannelListing
 from ...discount.utils import fetch_discounts
 from ...giftcard import events as gift_card_events
 from ...giftcard.models import GiftCard, GiftCardTag
@@ -82,7 +83,7 @@ from ...product.models import (
     VariantMedia,
 )
 from ...product.search import update_products_search_vector
-from ...product.tasks import update_products_discounted_prices_of_sale_task
+from ...product.tasks import update_products_discounted_prices_of_promotion_task
 from ...product.utils.variant_prices import update_products_discounted_prices
 from ...shipping.models import (
     ShippingMethod,
@@ -849,24 +850,47 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     return order
 
 
-def create_fake_sale():
-    sale = Sale.objects.create(
+def create_fake_promotion():
+    promotion = Promotion.objects.create(
         name=f"Happy {fake.word()} day!",
-        type=DiscountValueType.PERCENTAGE,
     )
-    for channel in Channel.objects.all():
-        SaleChannelListing.objects.create(
-            channel=channel,
-            currency=channel.currency_code,
-            sale=sale,
-            discount_value=random.choice([10, 20, 30, 40, 50]),
-        )
-    for product in Product.objects.all().order_by("?")[:2]:
-        sale.products.add(product)
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                promotion=promotion,
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=random.choice([10, 20, 30, 40, 50]),
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [
+                            graphene.Node.to_global_id("Product", product.id)
+                            for product in Product.objects.all().order_by("?")[:2]
+                        ]
+                    }
+                },
+            ),
+            PromotionRule(
+                promotion=promotion,
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=random.choice([10, 20, 30, 40, 50]),
+                catalogue_predicate={
+                    "variantPredicate": {
+                        "ids": [
+                            graphene.Node.to_global_id("ProductVariant", variant.id)
+                            for variant in ProductVariant.objects.all().order_by("?")[
+                                :2
+                            ]
+                        ]
+                    }
+                },
+            ),
+        ]
+    )
+    channels = Channel.objects.all()
+    for rule in rules:
+        rule.channels.add(*channels)
 
-    for variant in ProductVariant.objects.all().order_by("?")[:2]:
-        sale.variants.add(variant)
-    return sale
+    return promotion
 
 
 def create_users(user_password, how_many=10):
@@ -972,11 +996,11 @@ def create_orders(how_many=10):
         yield f"Order: {order}"
 
 
-def create_product_sales(how_many=5):
+def create_product_promotions(how_many=5):
     for _ in range(how_many):
-        sale = create_fake_sale()
-        update_products_discounted_prices_of_sale_task.delay(sale.pk)
-        yield f"Sale: {sale}"
+        promotion = create_fake_promotion()
+        update_products_discounted_prices_of_promotion_task.delay(promotion.pk)
+        yield f"Promotion: {promotion}"
 
 
 def create_channel(channel_name, currency_code, slug=None, country=None):
