@@ -338,7 +338,7 @@ class PluginSample(BasePlugin):
     def order_refunded(self, order, previous_value):
         return None
 
-    def list_payment_methods(
+    def list_stored_payment_methods(
         self,
         list_payment_method_data,
         previous_value,

@@ -29,7 +29,7 @@ from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
     InitializedPaymentResponse,
-    ListPaymentMethodsData,
+    ListStoredPaymentMethodsRequestData,
     PaymentData,
     PaymentGateway,
     PaymentMethodData,
@@ -652,8 +652,9 @@ class BasePlugin:
 
     list_payment_sources: Callable[[str, Any], List["CustomerSource"]]
 
-    list_payment_methods: Callable[
-        ["ListPaymentMethodsData", list["PaymentMethodData"]], list["PaymentMethodData"]
+    list_stored_payment_methods: Callable[
+        ["ListStoredPaymentMethodsRequestData", list["PaymentMethodData"]],
+        list["PaymentMethodData"],
     ]
 
     # Trigger when menu is created.

@@ -53,7 +53,7 @@ if TYPE_CHECKING:
         CustomerSource,
         GatewayResponse,
         InitializedPaymentResponse,
-        ListPaymentMethodsData,
+        ListStoredPaymentMethodsRequestData,
         PaymentData,
         PaymentGateway,
         PaymentGatewayData,
@@ -1472,12 +1472,14 @@ class PluginsManager(PaymentInterface):
             )
         raise Exception(f"Payment plugin {gateway} is inaccessible!")
 
-    def list_payment_methods(
-        self, list_payment_methods_data: "ListPaymentMethodsData"
+    def list_stored_payment_methods(
+        self, list_stored_payment_methods_data: "ListStoredPaymentMethodsRequestData"
     ) -> list["PaymentMethodData"]:
         default_value: list = []
         return self.__run_method_on_plugins(
-            "list_payment_methods", default_value, list_payment_methods_data
+            "list_stored_payment_methods",
+            default_value,
+            list_stored_payment_methods_data,
         )
 
     def translation_created(self, translation: "Translation"):

@@ -422,7 +422,7 @@ def get_payment_method_from_response(
     )
 
 
-def get_list_payment_methods_from_response(
+def get_list_stored_payment_methods_from_response(
     app: "App", response_data: dict
 ) -> list["PaymentMethodData"]:
     payment_methods_response = response_data.get("paymentMethods", [])

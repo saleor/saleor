@@ -6440,18 +6440,18 @@ def shipping_app(db, permission_manage_shipping):
 
 
 @pytest.fixture
-def list_payment_methods_app(db, permission_manage_payments):
+def list_stored_payment_methods_app(db, permission_manage_payments):
     app = App.objects.create(name="List payment methods app", is_active=True)
     app.tokens.create(name="Default")
     app.permissions.add(permission_manage_payments)
 
     webhook = Webhook.objects.create(
-        name="list_payment_methods",
+        name="list_stored_payment_methods",
         app=app,
         target_url="http://localhost:8000/endpoint/",
     )
     webhook.events.create(
-        event_type=WebhookEventSyncType.LIST_PAYMENT_METHODS,
+        event_type=WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
     )
     return app
 
@@ -7202,7 +7202,7 @@ def event_attempt(event_delivery):
 
 
 @pytest.fixture
-def webhook_list_payment_methods_response():
+def webhook_list_stored_payment_methods_response():
     return {
         "paymentMethods": [
             {

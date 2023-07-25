@@ -4,14 +4,14 @@ from decimal import Decimal
 import graphene
 from prices import Money
 
-from .....payment.interface import ListPaymentMethodsData
+from .....payment.interface import ListStoredPaymentMethodsRequestData
 from .....webhook.event_types import WebhookEventSyncType
 from ...tasks import create_deliveries_for_subscriptions
 
-LIST_PAYMENT_METHODS = """
+LIST_STORED_PAYMENT_METHODS = """
 subscription {
   event {
-    ... on ListPaymentMethods{
+    ... on ListStoredPaymentMethods{
       user{
         id
       }
@@ -28,26 +28,26 @@ subscription {
 """
 
 
-def test_list_payment_methods(
-    list_payment_methods_app,
-    webhook_list_payment_methods_response,
+def test_list_stored_payment_methods(
+    list_stored_payment_methods_app,
+    webhook_list_stored_payment_methods_response,
     channel_USD,
     customer_user,
 ):
     # given
-    webhook = list_payment_methods_app.webhooks.first()
-    webhook.subscription_query = LIST_PAYMENT_METHODS
+    webhook = list_stored_payment_methods_app.webhooks.first()
+    webhook.subscription_query = LIST_STORED_PAYMENT_METHODS
     webhook.save()
 
     amount = 100.0
     currency = "USD"
-    data = ListPaymentMethodsData(
+    data = ListStoredPaymentMethodsRequestData(
         channel=channel_USD,
         user=customer_user,
         amount=Money(Decimal(amount), currency),
     )
 
-    event_type = WebhookEventSyncType.LIST_PAYMENT_METHODS
+    event_type = WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS
 
     # when
     delivery = create_deliveries_for_subscriptions(event_type, data, [webhook])[0]
