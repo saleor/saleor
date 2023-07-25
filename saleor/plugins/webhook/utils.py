@@ -411,6 +411,7 @@ def get_payment_method_from_response(
     name = payment_method.get("name")
     return PaymentMethodData(
         id=to_payment_app_id(app, payment_method_external_id),
+        external_id=payment_method_external_id,
         supported_payment_flows=supported_payment_flows,
         type=payment_method_type,
         credit_card_info=get_credit_card_info(app, credit_card_info)
