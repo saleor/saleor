@@ -260,13 +260,6 @@ def _get_variant_listings_to_listing_rule_per_rule_id_map(
     return variant_listing_rule_data
 
 
-def _get_variants_for_product_ids(product_ids: Iterable[int]):
-    products = Product.objects.filter(id__in=product_ids)
-    return ProductVariant.objects.filter(
-        Exists(products.filter(id=OuterRef("product_id")))
-    )
-
-
 def _get_discounted_variants_prices(
     variant_listings: List[ProductVariantChannelListing],
     product: Product,
