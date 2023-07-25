@@ -47,7 +47,7 @@ class PaymentMethodData:
 
     id - ID of stored payment method used to make payment actions
     type - Type of the payment method
-    gateway_id - ID of the app that owns the payment method
+    gateway - The app that owns the payment method
     supported_payment_flows - List of supported flows that can be performed with this
     payment method
     credit_card_info - Credit card information if the payment method is a credit card
@@ -58,7 +58,7 @@ class PaymentMethodData:
 
     id: str
     type: str
-    gateway_id: str
+    gateway: "App"
     supported_payment_flows: List[str] = field(default_factory=list)
     credit_card_info: Optional[PaymentMethodCreditCardInfo] = None
     name: Optional[str] = None
