@@ -7089,7 +7089,7 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   product: Product!
 
   """
-  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.If the field is not provided, Shop.trackInventoryByDefault will be used.
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.If the field is not provided, `Shop.trackInventoryByDefault` will be used.
   """
   trackInventory: Boolean!
 
@@ -9522,7 +9522,7 @@ type Shop implements ObjectWithMetadata {
   fulfillmentAllowUnpaid: Boolean!
 
   """
-  This field is used as a default value for ProductVariant.trackInventory.
+  This field is used as a default value for `ProductVariant.trackInventory`.
   """
   trackInventoryByDefault: Boolean
 
@@ -19304,7 +19304,7 @@ input ShopSettingsInput {
   description: String
 
   """
-  This field is used as a default value for ProductVariant.trackInventory.
+  This field is used as a default value for `ProductVariant.trackInventory`.
   """
   trackInventoryByDefault: Boolean
 
@@ -20788,7 +20788,7 @@ input ProductVariantBulkCreateInput @doc(category: "Products") {
   name: String
 
   """
-  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.If the field is not provided, Shop.trackInventoryByDefault will be used.
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.If the field is not provided, `Shop.trackInventoryByDefault` will be used.
   """
   trackInventory: Boolean
 
@@ -21593,7 +21593,7 @@ input ProductVariantCreateInput @doc(category: "Products") {
   name: String
 
   """
-  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.If the field is not provided, Shop.trackInventoryByDefault will be used.
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.If the field is not provided, `Shop.trackInventoryByDefault` will be used.
   """
   trackInventory: Boolean
 
@@ -21807,7 +21807,7 @@ input ProductVariantBulkUpdateInput @doc(category: "Products") {
   name: String
 
   """
-  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.If the field is not provided, Shop.trackInventoryByDefault will be used.
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.If the field is not provided, `Shop.trackInventoryByDefault` will be used.
   """
   trackInventory: Boolean
 
@@ -22030,7 +22030,7 @@ input ProductVariantInput @doc(category: "Products") {
   name: String
 
   """
-  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.If the field is not provided, Shop.trackInventoryByDefault will be used.
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.If the field is not provided, `Shop.trackInventoryByDefault` will be used.
   """
   trackInventory: Boolean
 

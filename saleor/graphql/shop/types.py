@@ -250,7 +250,7 @@ class Shop(graphene.ObjectType):
     track_inventory_by_default = graphene.Boolean(
         description=(
             "This field is used as a default value for "
-            "ProductVariant.trackInventory."
+            "`ProductVariant.trackInventory`."
         )
     )
     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")

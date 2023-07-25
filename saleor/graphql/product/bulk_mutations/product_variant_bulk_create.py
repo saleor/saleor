@@ -7,8 +7,6 @@ from django.core.exceptions import ValidationError
 from django.db.models import F
 from graphene.utils.str_converters import to_camel_case
 
-from saleor.graphql.shop.utils import get_track_inventory_by_default
-
 from ....attribute import AttributeType
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
@@ -49,6 +47,7 @@ from ...core.types import (
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...shop.utils import get_track_inventory_by_default
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.product.product_create import StockInput
 from ..mutations.product_variant.product_variant_create import ProductVariantInput

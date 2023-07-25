@@ -84,7 +84,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - `accountUpdate`, `accountAddressCreate`, `accountAddressUpdate`, `addressCreate`, `AccountAddressUpdate`,
   - `checkoutShippingAddressUpdate`, `checkoutBillingAddressUpdate`, `shopAddressUpdate`, `warehouseUpdate`
   - Add `metadata` to `AddressInput` field
-- Add suport for unhandled field `trackInventoryByDefault` for `productVariantCreate` and `productVariantBulkCreate` - #13492 by @Smit-Parmar
+- Add support for unhandled field `Shop.trackInventoryByDefault` for `productVariantCreate` and `productVariantBulkCreate` - #13492 by @Smit-Parmar
 ### Saleor Apps
 
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
