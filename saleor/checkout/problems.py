@@ -76,6 +76,39 @@ def get_insufficient_stock_lines(
     return insufficient_stocks
 
 
+def line_is_not_available(
+    line: "CheckoutLineInfo",
+    now: datetime.datetime,
+    product_channel_listings_map: dict[
+        tuple[
+            PRODUCT_ID,
+            CHANNEL_SLUG,
+        ],
+        ProductChannelListing,
+    ],
+) -> bool:
+    product_channel_listing = product_channel_listings_map.get(
+        (line.product.id, line.channel.slug), None
+    )
+    if not product_channel_listing:
+        return True
+
+    available_at = product_channel_listing.available_for_purchase_at
+    if available_at is not None and available_at > now:
+        return True
+
+    if product_channel_listing.is_published is False:
+        return True
+
+    if not line.channel_listing:
+        return True
+
+    if line.channel_listing.price_amount is None:
+        return True
+
+    return False
+
+
 def get_not_available_lines(
     lines: Iterable["CheckoutLineInfo"],
     product_channel_listings_map: dict[
@@ -89,27 +122,7 @@ def get_not_available_lines(
     lines_not_available = []
     now = datetime.datetime.now(pytz.UTC)
     for line in lines:
-        product_channel_listing = product_channel_listings_map.get(
-            (line.product.id, line.channel.slug), None
-        )
-        if not product_channel_listing:
-            lines_not_available.append(line)
-            continue
-
-        available_at = product_channel_listing.available_for_purchase_at
-        if available_at is not None and available_at > now:
-            lines_not_available.append(line)
-            continue
-
-        if product_channel_listing.is_published is False:
-            lines_not_available.append(line)
-            continue
-
-        if not line.channel_listing:
-            lines_not_available.append(line)
-            continue
-
-        if line.channel_listing.price_amount is None:
+        if line_is_not_available(line, now, product_channel_listings_map):
             lines_not_available.append(line)
 
     return lines_not_available
