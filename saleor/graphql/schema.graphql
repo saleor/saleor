@@ -32806,14 +32806,16 @@ type ListStoredPaymentMethods implements Event @doc(category: "Payments") {
   """The application receiving the webhook."""
   recipient: App
 
-  """The user for which the app should return a list of payment methods"""
+  """The user for which the app should return a list of payment methods."""
   user: User!
 
-  """Channel in context which was used to fetch the list of payment methods"""
+  """
+  Channel in context which was used to fetch the list of payment methods.
+  """
   channel: Channel!
 
   """
-  Amount that the payment method must support. If not provided by the user, 0 will be used as default value
+  Amount that the payment method must support. If not provided by the user, 0 will be used as default value.
   """
   value: Money
 }
