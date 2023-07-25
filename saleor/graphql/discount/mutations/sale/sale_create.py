@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
+from .....discount.sale_converter import create_catalogue_predicate
 from .....discount.utils import fetch_catalogue_info
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_of_sale_task
@@ -15,14 +16,16 @@ from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ....core.mutations import ModelMutation
+from ....core.mutations import BaseMutation, ModelMutation
 from ....core.scalars import PositiveDecimal
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ....product import types as product_types
+from ....utils import get_nodes
 from ...enums import DiscountValueTypeEnum
-from ...types import Sale
+from ...types import Promotion, Sale
 from ..utils import convert_catalogue_info_to_global_ids
 
 
@@ -71,17 +74,34 @@ class SaleCreate(ModelMutation):
             + DEPRECATED_IN_3X_MUTATION
             + " Use `promotionCreate` mutation instead."
         )
-        model = models.Sale
-        object_type = Sale
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
+        model = models.Promotion
+        object_type = Sale
+        return_field_name = "sale"
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+        doc_category = DOC_CATEGORY_DISCOUNTS
         webhook_events_info = [
             WebhookEventInfo(
                 type=WebhookEventAsyncType.SALE_CREATED,
                 description="A sale was created.",
             ),
         ]
+
+    @classmethod
+    def create_predicate(cls, input):
+        products = input.get("products")
+        variants = input.get("variants")
+        collections = input.get("collections")
+        categories = input.get("categories")
+
+        return create_catalogue_predicate(products, variants, collections, categories)
+
+    @classmethod
+    def success_response(cls, instance):
+        return super().success_response(
+            ChannelContext(node=instance, channel_slug=None)
+        )
 
     @classmethod
     def clean_instance(cls, info: ResolveInfo, instance):
@@ -95,19 +115,21 @@ class SaleCreate(ModelMutation):
             raise ValidationError({"end_date": error})
 
     @classmethod
-    def success_response(cls, instance):
-        return super().success_response(
-            ChannelContext(node=instance, channel_slug=None)
-        )
-
-    @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         with traced_atomic_transaction():
             response = super().perform_mutation(_root, info, **data)
-            instance = getattr(response, cls._meta.return_field_name).node
-            manager = get_plugin_manager_promise(info.context).get()
-            cls.send_sale_notifications(manager, instance)
-            update_products_discounted_prices_of_sale_task.delay(instance.pk)
+            promotion = response.sale.node
+            input = data["input"]
+            predicate = cls.create_predicate(input)
+            models.PromotionRule.objects.create(
+                name="",
+                promotion=promotion,
+                catalogue_predicate=predicate,
+                reward_value_type=input.get("type"),
+            )
+            # manager = get_plugin_manager_promise(info.context).get()
+            # cls.send_sale_notifications(manager, promotion)
+            # update_products_discounted_prices_of_sale_task.delay(instance.pk)
         return response
 
     @classmethod

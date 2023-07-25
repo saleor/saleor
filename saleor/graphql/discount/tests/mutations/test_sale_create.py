@@ -8,7 +8,7 @@ from freezegun import freeze_time
 
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.models import Sale
+from .....discount.models import Promotion, Sale
 from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...enums import DiscountValueTypeEnum
@@ -18,6 +18,7 @@ SALE_CREATE_MUTATION = """
     mutation saleCreate($input: SaleInput!) {
         saleCreate(input: $input) {
             sale {
+                id
                 type
                 name
                 startDate
@@ -33,8 +34,6 @@ SALE_CREATE_MUTATION = """
 """
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @freeze_time("2020-03-18 12:00:00")
 @patch("saleor.product.tasks.update_products_discounted_prices_of_sale_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
@@ -77,9 +76,11 @@ def test_create_sale(
     assert data["name"] == "test sale"
     assert data["startDate"] == start_date.isoformat()
     assert data["endDate"] == end_date.isoformat()
+    type, _id = graphene.Node.from_global_id(data["id"])
+    assert type == "Sale"
 
-    sale = Sale.objects.filter(name="test sale").get()
-    assert sale.notification_sent_datetime == timezone.now()
+    promotion = Promotion.objects.filter(name="test sale").get()
+    assert promotion.notification_sent_datetime == timezone.now()
 
     current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
     created_webhook_mock.assert_called_once_with(sale, current_catalogue)
