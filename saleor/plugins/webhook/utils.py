@@ -418,7 +418,7 @@ def get_payment_method_from_response(
         else None,
         name=name if name else None,
         data=payment_method.get("data"),
-        gateway_id=app.identifier or str(app.id),
+        gateway=app,
     )
 
 

@@ -294,7 +294,7 @@ def test_get_payment_method_from_response(payment_method_response, app):
     # then
     assert payment_method.id == to_payment_app_id(app, payment_method_response["id"])
     assert payment_method.type == payment_method_response["type"]
-    assert payment_method.gateway_id == app.identifier or app.id
+    assert payment_method.gateway == app
     assert (
         payment_method.supported_payment_flows
         == payment_method_response["supportedPaymentFlows"]
@@ -332,7 +332,7 @@ def test_get_payment_method_from_response_optional_field(
     # then
     assert payment_method.id == to_payment_app_id(app, payment_method_response["id"])
     assert payment_method.type == payment_method_response["type"]
-    assert payment_method.gateway_id == app.identifier or app.id
+    assert payment_method.gateway == app
     assert (
         payment_method.supported_payment_flows
         == payment_method_response["supportedPaymentFlows"]
