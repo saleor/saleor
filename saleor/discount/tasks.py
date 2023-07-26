@@ -1,96 +1,115 @@
-from collections import defaultdict
 from datetime import datetime
-from typing import Dict
 
-import graphene
 import pytz
 from celery.utils.log import get_task_logger
-from django.db.models import F, Q
+from django.db.models import Exists, F, OuterRef, Q, QuerySet
 
 from ..celeryconf import app
-from ..graphql.discount.mutations.utils import CATALOGUE_FIELD_TO_TYPE_NAME
+from ..graphql.discount.utils import get_variants_for_predicate
 from ..plugins.manager import get_plugins_manager
-from ..product.tasks import update_products_discounted_prices_of_catalogues_task
-from .models import Sale
-from .utils import CATALOGUE_FIELDS, CatalogueInfo
+from ..product.models import Product, ProductVariant
+from ..product.tasks import update_products_discounted_prices_for_promotion_task
+from .models import Promotion, PromotionRule
 
 task_logger = get_task_logger(__name__)
 
 
 @app.task
-def handle_sale_toggle():
-    """Send the notification about sales toggle and recalculate discounted prcies.
+def handle_promotion_toggle():
+    """Send the notification about promotion toggle and recalculate discounted prices.
 
-    Send the notifications about starting or ending sales and call recalculation
+    Send the notifications about starting or ending promotions and call recalculation
     of product discounted prices.
     """
     manager = get_plugins_manager()
 
-    sales = get_sales_to_notify_about()
+    staring_promotions = get_starting_promotions()
+    ending_promotions = get_ending_promotions()
 
-    sale_id_to_catalogue_infos, catalogue_infos = fetch_catalogue_infos(sales)
-
-    if not sales:
+    if not staring_promotions or not ending_promotions:
         return
 
-    for sale in sales:
-        catalogues = sale_id_to_catalogue_infos.get(sale.id)
-        manager.sale_toggle(sale, catalogues)
+    promotions = staring_promotions | ending_promotions
+    product_ids = fetch_promotion_product_ids(promotions)
 
-    if catalogue_infos:
+    for staring_promo in staring_promotions:
+        manager.promotion_started(staring_promo)
+
+    for ending_promo in ending_promotions:
+        manager.promotion_ended(ending_promo)
+
+    if product_ids:
         # Recalculate discounts of affected products
-        update_products_discounted_prices_of_catalogues_task.delay(
-            product_ids=list(catalogue_infos["products"]),
-            category_ids=list(catalogue_infos["categories"]),
-            collection_ids=list(catalogue_infos["collections"]),
-            variant_ids=list(catalogue_infos["variants"]),
-        )
+        update_products_discounted_prices_for_promotion_task.delay(product_ids)
 
-    sale_ids = ", ".join([str(sale.id) for sale in sales])
-    sales.update(notification_sent_datetime=datetime.now(pytz.UTC))
-
-    task_logger.info("The sale_toggle webhook sent for sales with ids: %s", sale_ids)
-
-
-def fetch_catalogue_infos(sales):
-    catalogue_info = defaultdict(set)
-    sale_id_to_catalogue_info: Dict[int, CatalogueInfo] = defaultdict(
-        lambda: defaultdict(set)
+    starting_promotion_ids = ", ".join(
+        [str(staring_promo.id) for staring_promo in staring_promotions]
     )
-    for sale_data in sales.values("id", *CATALOGUE_FIELDS):
-        sale_id = sale_data["id"]
-        for field in CATALOGUE_FIELDS:
-            if id := sale_data.get(field):
-                type_name = CATALOGUE_FIELD_TO_TYPE_NAME[field]
-                global_id = graphene.Node.to_global_id(type_name, id)
-                sale_id_to_catalogue_info[sale_id][field].add(global_id)
-                catalogue_info[field].add(id)
+    ending_promotions_ids = ", ".join(
+        [str(ending_promo.id) for ending_promo in ending_promotions]
+    )
 
-    return sale_id_to_catalogue_info, catalogue_info
+    promotions.update(last_notification_scheduled_at=datetime.now(pytz.UTC))
+
+    task_logger.info(
+        "The promotion_started webhook sent for Promotions with ids: %s",
+        starting_promotion_ids,
+    )
+    task_logger.info(
+        "The promotion_ended webhook sent for Promotions with ids: %s",
+        ending_promotions_ids,
+    )
 
 
-def get_sales_to_notify_about():
-    """Return sales for which the notify should be sent.
+def get_starting_promotions():
+    """Return promotions for which the notify about starting should be sent.
 
-    The notification should be sent for sales for which the start date or end date
-    has passed and the notification date is null or the last notification was sent
-    before the start or end date.
+    The notification should be sent for promotions for which the start date has passed
+    and the notification date is null or the last notification was sent
+    before the start date.
     """
     now = datetime.now(pytz.UTC)
-    sales = Sale.objects.filter(
+    promotions = Promotion.objects.filter(
         (
             (
-                Q(notification_sent_datetime__isnull=True)
-                | Q(notification_sent_datetime__lt=F("start_date"))
+                Q(last_notification_scheduled_at__isnull=True)
+                | Q(last_notification_scheduled_at__lt=F("start_date"))
             )
             & Q(start_date__lte=now)
         )
-        | (
+    )
+    return promotions
+
+
+def get_ending_promotions():
+    """Return promotions for which the notify about ending should be sent.
+
+    The notification should be sent for promotions for which the end date has passed
+    and the notification date is null or the last notification was sent
+    before the end date.
+    """
+    now = datetime.now(pytz.UTC)
+    promotions = Promotion.objects.filter(
+        (
             (
-                Q(notification_sent_datetime__isnull=True)
-                | Q(notification_sent_datetime__lt=F("end_date"))
+                Q(last_notification_scheduled_at__isnull=True)
+                | Q(last_notification_scheduled_at__lt=F("end_date"))
             )
             & Q(end_date__lte=now)
         )
-    ).distinct()
-    return sales
+    )
+    return promotions
+
+
+def fetch_promotion_product_ids(promotions: "QuerySet[Promotion]"):
+    """Fetch products that are included in the given promotions."""
+    variants = ProductVariant.objects.none()
+    rules = PromotionRule.objects.filter(
+        Exists(promotions.filter(id=OuterRef("promotion_id")))
+    )
+    for rule in rules:
+        variants |= get_variants_for_predicate(rule.catalogue_predicate)
+    products = Product.objects.filter(
+        Exists(variants.filter(product_id=OuterRef("id")))
+    )
+    return products.values_list("id", flat=True)

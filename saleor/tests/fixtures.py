@@ -5430,7 +5430,11 @@ def promotion_list(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for promotion 1 percentage rule."
                 ),
-                catalogue_predicate={"productPredicate": {"ids": [product.id]}},
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [graphene.Node.to_global_id("Product", product.id)]
+                    }
+                },
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=Decimal("10"),
             ),
@@ -5440,7 +5444,11 @@ def promotion_list(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for promotion 1 fixed rule."
                 ),
-                catalogue_predicate={"collectionPredicate": {"ids": [collection.id]}},
+                catalogue_predicate={
+                    "collectionPredicate": {
+                        "ids": [graphene.Node.to_global_id("Collection", collection.id)]
+                    }
+                },
                 reward_value_type=RewardValueType.FIXED,
                 reward_value=Decimal("5"),
             ),
@@ -5450,7 +5458,11 @@ def promotion_list(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for promotion 2 percentage rule."
                 ),
-                catalogue_predicate={"productPredicate": {"ids": [product.id]}},
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [graphene.Node.to_global_id("Product", product.id)]
+                    }
+                },
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=Decimal("10"),
             ),
@@ -5460,7 +5472,11 @@ def promotion_list(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for promotion 3 fixed rule."
                 ),
-                catalogue_predicate={"collectionPredicate": {"ids": [collection.id]}},
+                catalogue_predicate={
+                    "collectionPredicate": {
+                        "ids": [graphene.Node.to_global_id("Collection", collection.id)]
+                    }
+                },
                 reward_value_type=RewardValueType.FIXED,
                 reward_value=Decimal("5"),
             ),
