@@ -19,7 +19,6 @@ from ..warehouse.utils import create_warehouse
 from .utils import (
     checkout_create,
     checkout_delivery_method_update,
-    checkout_shipping_address_update,
     raw_checkout_complete,
 )
 
@@ -143,7 +142,7 @@ def test_should_not_be_able_to_make_purchase_with_no_payment(
     assert checkout_data["shippingMethod"] is None
     shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
-    # Step 2 - Set shipping address and DeliveryMethod for checkout    
+    # Step 2 - Set shipping address and DeliveryMethod for checkout
 
     checkout_data = checkout_delivery_method_update(
         e2e_not_logged_api_client,

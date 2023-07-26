@@ -193,6 +193,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 PASSWORD_HASHERS = [
     *global_settings.PASSWORD_HASHERS,
     "django.contrib.auth.hashers.BCryptPasswordHasher",
+    "saleor.core.hashers.SHA512Base64PBKDF2PasswordHasher",
 ]
 
 if not SECRET_KEY and DEBUG:
