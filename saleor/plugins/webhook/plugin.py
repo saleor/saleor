@@ -1646,17 +1646,20 @@ class WebhookPlugin(BasePlugin):
             return previous_value
 
         event_type = WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS
+        currency = list_payment_method_data.amount.currency
         if webhooks := get_webhooks_for_event(event_type):
             payload_dict = {
                 "user_id": graphene.Node.to_global_id(
                     "User", list_payment_method_data.user.id
                 ),
                 "channel_slug": list_payment_method_data.channel.slug,
-                "currency": list_payment_method_data.amount.currency,
+                "currency": currency,
                 "amount": str(list_payment_method_data.amount.amount),
             }
             payload = self._serialize_payload(payload_dict)
             for webhook in webhooks:
+                if not webhook.app.identifier:
+                    continue
                 response_data = trigger_webhook_sync_if_not_cached(
                     event_type,
                     payload,
@@ -1669,7 +1672,7 @@ class WebhookPlugin(BasePlugin):
                 if response_data:
                     previous_value.extend(
                         get_list_stored_payment_methods_from_response(
-                            webhook.app, response_data
+                            webhook.app, response_data, currency
                         )
                     )
         return previous_value

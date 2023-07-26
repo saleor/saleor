@@ -23,6 +23,16 @@ JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
 
 @dataclass
+class PaymentGateway:
+    """Dataclass for storing information about a payment gateway."""
+
+    id: str
+    name: str
+    currencies: List[str]
+    config: List[Dict[str, Any]]
+
+
+@dataclass
 class ListStoredPaymentMethodsRequestData:
     channel: "Channel"
     user: "User"
@@ -60,7 +70,7 @@ class PaymentMethodData:
     id: str
     type: str
     external_id: str
-    gateway: "App"
+    gateway: PaymentGateway
     supported_payment_flows: List[str] = field(default_factory=list)
     credit_card_info: Optional[PaymentMethodCreditCardInfo] = None
     name: Optional[str] = None
@@ -294,16 +304,6 @@ class CustomerSource:
     gateway: str
     credit_card_info: Optional[PaymentMethodInfo] = None
     metadata: Optional[Dict[str, str]] = None
-
-
-@dataclass
-class PaymentGateway:
-    """Dataclass for storing information about a payment gateway."""
-
-    id: str
-    name: str
-    currencies: List[str]
-    config: List[Dict[str, Any]]
 
 
 @dataclass

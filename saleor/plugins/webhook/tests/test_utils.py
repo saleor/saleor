@@ -2,6 +2,7 @@ import copy
 
 import pytest
 
+from ....payment.interface import PaymentGateway
 from ....webhook.event_types import WebhookEventSyncType
 from ..utils import (
     generate_cache_key_for_webhook,
@@ -289,13 +290,17 @@ def test_get_credit_card_info_incorrect_exp_month(exp_month, app):
 
 def test_get_payment_method_from_response(payment_method_response, app):
     # when
-    payment_method = get_payment_method_from_response(app, payment_method_response)
+    payment_method = get_payment_method_from_response(
+        app, payment_method_response, "usd"
+    )
 
     # then
     assert payment_method.id == to_payment_app_id(app, payment_method_response["id"])
     assert payment_method.external_id == payment_method_response["id"]
     assert payment_method.type == payment_method_response["type"]
-    assert payment_method.gateway == app
+    assert payment_method.gateway == PaymentGateway(
+        id=app.identifier, name=app.name, currencies=["usd"], config=[]
+    )
     assert (
         payment_method.supported_payment_flows
         == payment_method_response["supportedPaymentFlows"]
@@ -315,7 +320,9 @@ def test_get_payment_method_from_response_missing_required_field(
     del payment_method_response[field]
 
     # when
-    payment_method = get_payment_method_from_response(app, payment_method_response)
+    payment_method = get_payment_method_from_response(
+        app, payment_method_response, "usd"
+    )
 
     # then
     assert payment_method is None
@@ -328,13 +335,17 @@ def test_get_payment_method_from_response_optional_field(
     del payment_method_response[field]
 
     # when
-    payment_method = get_payment_method_from_response(app, payment_method_response)
+    payment_method = get_payment_method_from_response(
+        app, payment_method_response, "usd"
+    )
 
     # then
     assert payment_method.id == to_payment_app_id(app, payment_method_response["id"])
     assert payment_method.external_id == payment_method_response["id"]
     assert payment_method.type == payment_method_response["type"]
-    assert payment_method.gateway == app
+    assert payment_method.gateway == PaymentGateway(
+        id=app.identifier, name=app.name, currencies=["usd"], config=[]
+    )
     assert (
         payment_method.supported_payment_flows
         == payment_method_response["supportedPaymentFlows"]
@@ -349,7 +360,9 @@ def test_get_payment_method_from_response_required_field_is_none(
     payment_method_response[field] = None
 
     # when
-    payment_method = get_payment_method_from_response(app, payment_method_response)
+    payment_method = get_payment_method_from_response(
+        app, payment_method_response, "usd"
+    )
 
     # then
     assert payment_method is None
@@ -362,7 +375,9 @@ def test_get_payment_method_from_response_incorrect_payment_flow_choices(
     payment_method_response["supportedPaymentFlows"] = ["incorrect", "INTERACTIVE"]
 
     # when
-    payment_method = get_payment_method_from_response(app, payment_method_response)
+    payment_method = get_payment_method_from_response(
+        app, payment_method_response, "usd"
+    )
 
     # then
     assert payment_method is None
@@ -378,9 +393,11 @@ def test_get_list_stored_payment_methods_from_response(payment_method_response, 
 
     # when
     response = get_list_stored_payment_methods_from_response(
-        app, list_stored_payment_methods_response
+        app, list_stored_payment_methods_response, "usd"
     )
 
     # then
     assert len(response) == 1
-    assert response == [get_payment_method_from_response(app, payment_method_response)]
+    assert response == [
+        get_payment_method_from_response(app, payment_method_response, "usd")
+    ]

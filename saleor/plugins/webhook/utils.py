@@ -5,7 +5,7 @@ import logging
 from contextlib import contextmanager
 from dataclasses import dataclass
 from time import time
-from typing import TYPE_CHECKING, Any, List, Optional, Sequence
+from typing import TYPE_CHECKING, Any, List, Optional, Sequence, cast
 
 from ...app.models import App
 from ...core.models import (
@@ -374,7 +374,7 @@ def get_credit_card_info(
 
 
 def get_payment_method_from_response(
-    app: "App", payment_method: dict
+    app: "App", payment_method: dict, currency: str
 ) -> Optional[PaymentMethodData]:
     payment_method_external_id = payment_method.get("id")
     if not payment_method_external_id:
@@ -406,7 +406,7 @@ def get_payment_method_from_response(
             app.id,
         )
         return None
-
+    app_identifier = cast(str, app.identifier)
     credit_card_info = payment_method.get("creditCardInfo")
     name = payment_method.get("name")
     return PaymentMethodData(
@@ -419,18 +419,20 @@ def get_payment_method_from_response(
         else None,
         name=name if name else None,
         data=payment_method.get("data"),
-        gateway=app,
+        gateway=PaymentGateway(
+            id=app_identifier, name=app.name, currencies=[currency], config=[]
+        ),
     )
 
 
 def get_list_stored_payment_methods_from_response(
-    app: "App", response_data: dict
+    app: "App", response_data: dict, currency: str
 ) -> list["PaymentMethodData"]:
     payment_methods_response = response_data.get("paymentMethods", [])
     payment_methods = []
     for payment_method in payment_methods_response:
         if parsed_payment_method := get_payment_method_from_response(
-            app, payment_method
+            app, payment_method, currency
         ):
             payment_methods.append(parsed_payment_method)
     return payment_methods
