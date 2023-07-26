@@ -125,7 +125,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Fix error handling in the permission check for `Query.webhook` - #13378 by @patrys
 - Add missing descriptions to Translation module. - #13410 by @Smit-Parmar
 - Add missing descriptions to menu module - #13409 by @devilsautumn
-- Add missing descriptions to page module - #13534 by @devilsautumn
+- Add missing descriptions to page module - #13536 by @devilsautumn
 
 # 3.14.0
 
