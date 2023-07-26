@@ -53,11 +53,10 @@ class CollectionAddProducts(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             collection.products.add(*products)
-            if collection.sale_set.exists():
-                # Updated the db entries, recalculating discounts of affected products
-                update_products_discounted_prices_for_promotion_task.delay(
-                    [pq.pk for pq in products]
-                )
+            # Updated the db entries, recalculating discounts of affected products
+            update_products_discounted_prices_for_promotion_task.delay(
+                [pq.pk for pq in products]
+            )
             for product in products:
                 cls.call_event(manager.product_updated, product)
 
