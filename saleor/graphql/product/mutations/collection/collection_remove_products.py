@@ -49,11 +49,10 @@ class CollectionRemoveProducts(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
         for product in products:
             cls.call_event(manager.product_updated, product)
-        if collection.sale_set.exists():
-            # Updated the db entries, recalculating discounts of affected products
-            update_products_discounted_prices_for_promotion_task.delay(
-                [p.pk for p in products]
-            )
+        # Updated the db entries, recalculating discounts of affected products
+        update_products_discounted_prices_for_promotion_task.delay(
+            [p.pk for p in products]
+        )
         return CollectionRemoveProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
         )
