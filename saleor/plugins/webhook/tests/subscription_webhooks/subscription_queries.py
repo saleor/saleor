@@ -27,6 +27,21 @@ ACCOUNT_CONFIRMATION_REQUESTED = (
 """
 )
 
+ACCOUNT_CONFIRMED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountConfirmed{
+          user{
+            ...CustomerDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 
 ACCOUNT_CHANGE_EMAIL_REQUESTED = (
     fragments.CUSTOMER_DETAILS

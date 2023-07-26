@@ -93,6 +93,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add `CHANNEL_METADATA_UPDATED` webhook - #13448, by @Air-t
   - Called when metadata is changed for the Channel object via the generic metadata API or the `channelUpdate` mutation.
 
+- Add `ACCOUNT_CONFIRMED` webhook - #13471, by @Air-t
+  - Called when user confirm an account with `confirmAccount` mutation.
 
 ### Other changes
 - Add possibility to log without confirming email - #13059 by @kadewu

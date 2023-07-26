@@ -17,6 +17,7 @@ from ...tasks import create_deliveries_for_subscriptions, logger
 from . import subscription_queries
 from .payloads import (
     generate_account_events_payload,
+    generate_account_requested_events_payload,
     generate_address_payload,
     generate_app_payload,
     generate_attribute_payload,
@@ -101,7 +102,27 @@ def test_account_confirmation_requested(
     )
 
     # then
-    expected_payload = generate_account_events_payload(customer_user, channel_USD)
+    expected_payload = generate_account_requested_events_payload(
+        customer_user, channel_USD
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_confirmed(customer_user, subscription_account_confirmed_webhook):
+    # given
+    webhooks = [subscription_account_confirmed_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_CONFIRMED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, {"user": customer_user}, webhooks
+    )
+
+    # then
+    expected_payload = generate_account_events_payload(customer_user)
 
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
@@ -130,7 +151,7 @@ def test_account_change_email_requested(
     )
 
     # then
-    expected_payload = generate_account_events_payload(
+    expected_payload = generate_account_requested_events_payload(
         customer_user, channel_USD, new_email=new_email
     )
     assert deliveries[0].payload.payload == expected_payload
@@ -158,7 +179,9 @@ def test_account_delete_requested(
     )
 
     # then
-    expected_payload = generate_account_events_payload(customer_user, channel_USD)
+    expected_payload = generate_account_requested_events_payload(
+        customer_user, channel_USD
+    )
 
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)

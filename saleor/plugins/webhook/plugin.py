@@ -151,7 +151,7 @@ class WebhookPlugin(BasePlugin):
                 metadata_updated_data, event_type, webhooks, instance, self.requestor
             )
 
-    def _trigger_account_event(
+    def _trigger_account_request_event(
         self, event_type, user, channel_slug, token, redirect_url, new_email=None
     ):
         if webhooks := get_webhooks_for_event(event_type):
@@ -179,6 +179,28 @@ class WebhookPlugin(BasePlugin):
                 self.requestor,
             )
 
+    def _trigger_account_event(self, event_type, user):
+        if webhooks := get_webhooks_for_event(event_type):
+            raw_payload = {
+                "id": graphene.Node.to_global_id("User", user.id),
+            }
+            data = {"user": user}
+            trigger_webhooks_async(
+                self._serialize_payload(raw_payload),
+                event_type,
+                webhooks,
+                data,
+                self.requestor,
+            )
+
+    def account_confirmed(self, user: "User", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_event(
+            WebhookEventAsyncType.ACCOUNT_CONFIRMED,
+            user,
+        )
+
     def account_confirmation_requested(
         self,
         user: "User",
@@ -189,7 +211,7 @@ class WebhookPlugin(BasePlugin):
     ) -> None:
         if not self.active:
             return previous_value
-        self._trigger_account_event(
+        self._trigger_account_request_event(
             WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
             user,
             channel_slug,
@@ -208,7 +230,7 @@ class WebhookPlugin(BasePlugin):
     ) -> None:
         if not self.active:
             return previous_value
-        self._trigger_account_event(
+        self._trigger_account_request_event(
             WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED,
             user,
             channel_slug,
@@ -227,7 +249,7 @@ class WebhookPlugin(BasePlugin):
     ) -> None:
         if not self.active:
             return previous_value
-        self._trigger_account_event(
+        self._trigger_account_request_event(
             WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED,
             user,
             channel_slug,
