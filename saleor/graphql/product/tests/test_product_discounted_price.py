@@ -19,6 +19,7 @@ def test_product_variant_delete_updates_discounted_price(
     product,
     permission_manage_products,
 ):
+    # given
     query = """
         mutation ProductVariantDelete($id: ID!) {
             productVariantDelete(id: $id) {
@@ -35,9 +36,13 @@ def test_product_variant_delete_updates_discounted_price(
     variant = product.variants.first()
     variant_id = to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["productVariantDelete"]
     assert data["errors"] == []
@@ -55,6 +60,7 @@ def test_category_delete_updates_discounted_price(
     categories_tree_with_published_products,
     permission_manage_products,
 ):
+    # given
     parent = categories_tree_with_published_products
     product_list = [parent.children.first().products.first(), parent.products.first()]
 
@@ -72,9 +78,13 @@ def test_category_delete_updates_discounted_price(
         }
     """
     variables = {"id": to_global_id("Category", parent.pk)}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     assert response.status_code == 200
 
     content = get_graphql_content(response)
@@ -100,12 +110,11 @@ def test_category_delete_updates_discounted_price(
 def test_collection_add_products_updates_discounted_price(
     mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
-    sale,
     collection,
     product_list,
     permission_manage_products,
 ):
-    sale.collections.add(collection)
+    # given
     assert collection.products.count() == 0
     query = """
         mutation CollectionAddProducts($id: ID!, $products: [ID!]!) {
@@ -125,9 +134,13 @@ def test_collection_add_products_updates_discounted_price(
     collection_id = to_global_id("Collection", collection.id)
     product_ids = [to_global_id("Product", product.pk) for product in product_list]
     variables = {"id": collection_id, "products": product_ids}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["collectionAddProducts"]
     assert data["errors"] == []
@@ -146,12 +159,11 @@ def test_collection_add_products_updates_discounted_price(
 def test_collection_remove_products_updates_discounted_price(
     mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
-    sale,
     collection,
     product_list,
     permission_manage_products,
 ):
-    sale.collections.add(collection)
+    # given
     assert collection.products.count() == 0
     query = """
         mutation CollectionRemoveProducts($id: ID!, $products: [ID!]!) {
@@ -171,9 +183,13 @@ def test_collection_remove_products_updates_discounted_price(
     collection_id = to_global_id("Collection", collection.id)
     product_ids = [to_global_id("Product", product.pk) for product in product_list]
     variables = {"id": collection_id, "products": product_ids}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["collectionRemoveProducts"]
     assert data["errors"] == []
@@ -195,6 +211,7 @@ def test_sale_create_updates_products_discounted_prices(
     staff_api_client,
     permission_manage_discounts,
 ):
+    # given
     query = """
     mutation SaleCreate(
             $name: String,
@@ -223,9 +240,13 @@ def test_sale_create_updates_products_discounted_prices(
         "type": DiscountValueTypeEnum.PERCENTAGE.name,
         "value": "50",
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     assert response.status_code == 200
 
     content = get_graphql_content(response)
@@ -299,6 +320,7 @@ def test_sale_delete_updates_products_discounted_prices(
     sale,
     permission_manage_discounts,
 ):
+    # given
     query = """
     mutation SaleDelete($id: ID!) {
         saleDelete(id: $id) {
@@ -318,9 +340,12 @@ def test_sale_delete_updates_products_discounted_prices(
     product_ids = set(sale.products.values_list("id", flat=True))
     variant_ids = set(sale.variants.values_list("id", flat=True))
 
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     assert response.status_code == 200
 
     content = get_graphql_content(response)
@@ -348,6 +373,7 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
     product_variant_list,
     permission_manage_discounts,
 ):
+    # given
     query = """
         mutation SaleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
             saleCataloguesAdd(id: $id, input: $input) {
@@ -378,9 +404,12 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
         },
     }
 
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     assert response.status_code == 200
 
     content = get_graphql_content(response)
@@ -408,6 +437,7 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
     product_variant_list,
     permission_manage_discounts,
 ):
+    # given
     assert product in sale.products.all()
     assert category in sale.categories.all()
     assert collection in sale.collections.all()
@@ -445,9 +475,12 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
         },
     }
 
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     assert response.status_code == 200
 
     content = get_graphql_content(response)
