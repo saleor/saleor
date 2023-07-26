@@ -146,6 +146,43 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_custom_price(
     assert unit_price == expected_price
 
 
+def test_calculate_base_line_unit_price_with_variant_on_promotion(
+    checkout_with_item_on_promotion, discount_info, category
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_line_info = checkout_lines_info[0]
+
+    # when
+    unit_price = calculate_base_line_unit_price(checkout_line_info, checkout.channel)
+
+    # then
+    assert unit_price == checkout_line_info.channel_listing.discounted_price
+
+
+def test_calculate_base_line_unit_price_with_variant_on_promotion_custom_price(
+    checkout_with_item_on_promotion, discount_info, category
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+    line = checkout.lines.first()
+    price_override = Decimal("20.00")
+    line.price_override = price_override
+    line.save(update_fields=["price_override"])
+
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_line_info = checkout_lines_info[0]
+
+    # when
+    unit_price = calculate_base_line_unit_price(checkout_line_info, checkout.channel)
+
+    # then
+    discount = line.discounts.first()
+    expected_price = price_override - discount.value
+    assert unit_price.amount == expected_price
+
+
 def test_calculate_base_line_unit_price_with_fixed_voucher(
     checkout_with_single_item, voucher, channel_USD
 ):
@@ -412,6 +449,38 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_and_voucher(
     assert unit_price == expected_price - voucher_amount
 
 
+def test_calculate_base_line_unit_price_with_variant_on_promotion_and_voucher(
+    checkout_with_item_on_promotion, voucher, channel_USD
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+    checkout_line = checkout.lines.first()
+
+    voucher.products.add(checkout_line.variant.product)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save()
+
+    voucher_amount = Money(Decimal(3), checkout.currency)
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_channel_listing.discount = voucher_amount
+    voucher_channel_listing.save()
+
+    checkout.voucher_code = voucher.code
+
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_line_info = checkout_lines_info[0]
+
+    assert checkout_line_info.voucher
+
+    # when
+    unit_price = calculate_base_line_unit_price(checkout_line_info, checkout.channel)
+
+    # then
+    expected_price = checkout_line_info.channel_listing.discounted_price
+
+    assert unit_price == expected_price - voucher_amount
+
+
 def test_calculate_base_line_total_price(checkout_with_single_item):
     # given
     quantity = 3
@@ -482,6 +551,27 @@ def test_calculate_base_line_total_price_with_variant_on_sale(
     expected_price = expected_undiscounted_unit_price - sale_discount_amount
 
     assert total_price == expected_price * quantity
+
+
+def test_calculate_base_line_total_price_with_variant_on_promotion(
+    checkout_with_item_on_promotion,
+):
+    # given
+    quantity = 3
+    checkout = checkout_with_item_on_promotion
+    checkout_line = checkout.lines.first()
+    checkout_line.quantity = quantity
+    checkout_line.save()
+
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_line_info = checkout_lines_info[0]
+    assert not checkout_line_info.voucher
+
+    # when
+    total_price = calculate_base_line_total_price(checkout_line_info, checkout.channel)
+
+    # then
+    assert total_price == checkout_line_info.channel_listing.discounted_price * quantity
 
 
 def test_calculate_base_line_total_price_with_1_cent_variant_on_10_percentage_sale(
@@ -775,6 +865,83 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher_applie
     )
     sale_discount_amount = sale_discount(expected_undiscounted_unit_price)
     expected_unit_price = expected_undiscounted_unit_price - sale_discount_amount
+
+    assert total_price == (expected_unit_price * quantity) - voucher_amount
+
+
+def test_calculate_base_line_total_price_with_variant_on_promotion_and_voucher(
+    checkout_with_item_on_promotion, voucher, channel_USD
+):
+    # given
+    quantity = 3
+    checkout = checkout_with_item_on_promotion
+    checkout_line = checkout.lines.first()
+    checkout_line.quantity = quantity
+    checkout_line.save()
+
+    checkout_line = checkout.lines.first()
+
+    voucher.products.add(checkout_line.variant.product)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save()
+
+    voucher_amount = Money(Decimal(3), checkout.currency)
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_channel_listing.discount = voucher_amount
+    voucher_channel_listing.save()
+
+    checkout.voucher_code = voucher.code
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_line_info = checkout_lines_info[0]
+    assert checkout_line_info.voucher
+
+    # when
+    total_price = calculate_base_line_total_price(checkout_line_info, checkout.channel)
+
+    # then
+    expected_unit_price = checkout_line_info.channel_listing.discounted_price
+
+    assert total_price == (expected_unit_price - voucher_amount) * quantity
+
+
+def test_calculate_base_line_total_price_variant_on_promotion_and_voucher_applied_once(
+    checkout_with_item_on_promotion, discount_info, category, voucher, channel_USD
+):
+    # given
+    quantity = 3
+    checkout = checkout_with_item_on_promotion
+    checkout_line = checkout.lines.first()
+    checkout_line.quantity = quantity
+    checkout_line.save()
+
+    checkout_line = checkout.lines.first()
+
+    voucher.products.add(checkout_line.variant.product)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.apply_once_per_order = True
+    voucher.save()
+
+    voucher_amount = Money(Decimal(3), checkout.currency)
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_channel_listing.discount = voucher_amount
+    voucher_channel_listing.save()
+
+    checkout.voucher_code = voucher.code
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_line_info = checkout_lines_info[0]
+    assert checkout_line_info.voucher
+    variant = checkout_line_info.variant
+
+    # set category on sale
+    variant.product.category = category
+    variant.product.save()
+    checkout_line_info.product = variant.product
+
+    # when
+    total_price = calculate_base_line_total_price(checkout_line_info, checkout.channel)
+
+    # then
+    expected_unit_price = checkout_line_info.channel_listing.discounted_price
 
     assert total_price == (expected_unit_price * quantity) - voucher_amount
 

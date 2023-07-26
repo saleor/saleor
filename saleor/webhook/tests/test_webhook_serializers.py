@@ -1,4 +1,3 @@
-from decimal import Decimal
 from operator import itemgetter
 from unittest.mock import ANY, sentinel
 
@@ -6,13 +5,9 @@ import graphene
 import pytest
 
 from ...checkout import base_calculations
-from ...checkout.fetch import (
-    VariantPromotionRuleInfo,
-    fetch_checkout_info,
-    fetch_checkout_lines,
-)
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
-from ...discount import DiscountType, RewardValueType
+from ...discount import DiscountType
 from ...discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
     create_or_update_discount_objects_from_sale_for_checkout,
@@ -123,49 +118,13 @@ def test_serialize_checkout_lines(
     assert len(checkout_lines_data) == len(list(checkout_lines))
 
 
-def test_serialize_checkout_lines_with_promotion(
-    checkout_with_item_on_sale, promotion_without_rules
-):
+def test_serialize_checkout_lines_with_promotion(checkout_with_item_on_promotion):
     # given
-    checkout = checkout_with_item_on_sale
+    checkout = checkout_with_item_on_promotion
     channel = checkout.channel
     checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
 
     variant = checkout_lines[0].variant
-    channel_listing = variant.channel_listings.first()
-
-    reward_value = Decimal("5")
-    rule = promotion_without_rules.rules.create(
-        name="Percentage promotion rule",
-        catalogue_predicate={
-            "productPredicate": {
-                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
-            }
-        },
-        reward_value_type=RewardValueType.FIXED,
-        reward_value=reward_value,
-    )
-    rule.channels.add(channel_listing.channel)
-
-    channel_listing.discounted_price_amount = (
-        channel_listing.price_amount - reward_value
-    )
-    channel_listing.save(update_fields=["discounted_price_amount"])
-
-    listing_promotion_rule = channel_listing.variantlistingpromotionrule.create(
-        promotion_rule=rule,
-        discount_amount=reward_value,
-        currency=channel_listing.channel.currency_code,
-    )
-    checkout_lines[0].rules_info = [
-        VariantPromotionRuleInfo(
-            rule=rule,
-            variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
-            promotion_translation=None,
-            rule_translation=None,
-        )
-    ]
 
     create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines)
 
