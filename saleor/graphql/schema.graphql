@@ -17553,12 +17553,32 @@ type Mutation {
   - ATTRIBUTE_CREATED (async): An attribute was created.
   """
   attributeBulkCreate(
-    """Input list of products to create."""
-    attributes: [AttributeBulkCreateInput!]!
+    """Input list of attributes to create."""
+    attributes: [AttributeCreateInput!]!
 
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum
   ): AttributeBulkCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: [])
+
+  """
+  Updates attributes.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_UPDATED (async): An attribute was updated.
+  - ATTRIBUTE_VALUE_CREATED (async): An attribute value was created.
+  - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
+  """
+  attributeBulkUpdate(
+    """Input list of attributes to update."""
+    attributes: [AttributeBulkUpdateInput!]!
+
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+  ): AttributeBulkUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED, ATTRIBUTE_VALUE_CREATED, ATTRIBUTE_VALUE_DELETED], syncEvents: [])
 
   """
   Creates/updates translations for an attribute. 
@@ -26990,6 +27010,11 @@ enum AttributeErrorCode @doc(category: "Attributes") {
   UNIQUE
 }
 
+"""
+Represents an input for create of attribute.
+
+NOTE: Deprecated fields 'filterableInStorefront', 'storefrontSearchPosition' and 'availableInGrid` are not supported in bulk mutation.
+"""
 input AttributeCreateInput @doc(category: "Attributes") {
   """The input type to use for entering attribute values in the dashboard."""
   inputType: AttributeInputTypeEnum
@@ -27120,6 +27145,11 @@ type AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents
   errors: [AttributeError!]!
 }
 
+"""
+Represents an input for update of attribute.
+
+NOTE: Deprecated fields 'filterableInStorefront', 'storefrontSearchPosition' and 'availableInGrid` are not supported in bulk mutation.
+"""
 input AttributeUpdateInput @doc(category: "Attributes") {
   """Name of an attribute displayed in the interface."""
   name: String
@@ -27269,61 +27299,70 @@ enum AttributeBulkCreateErrorCode @doc(category: "Attributes") {
   MAX_LENGTH
 }
 
-input AttributeBulkCreateInput @doc(category: "Attributes") {
+"""
+Updates attributes.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+
+Triggers the following webhook events:
+- ATTRIBUTE_UPDATED (async): An attribute was updated.
+- ATTRIBUTE_VALUE_CREATED (async): An attribute value was created.
+- ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
+"""
+type AttributeBulkUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED, ATTRIBUTE_VALUE_CREATED, ATTRIBUTE_VALUE_DELETED], syncEvents: []) {
+  """Returns how many objects were updated."""
+  count: Int!
+
+  """List of the updated attributes."""
+  results: [AttributeBulkUpdateResult!]!
+  errors: [AttributeBulkUpdateError!]!
+}
+
+type AttributeBulkUpdateResult @doc(category: "Attributes") {
+  """Attribute data."""
+  attribute: Attribute
+
+  """List of errors occurred on update attempt."""
+  errors: [AttributeBulkUpdateError!]
+}
+
+type AttributeBulkUpdateError @doc(category: "Attributes") {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AttributeBulkUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeBulkUpdateErrorCode {
+  ALREADY_EXISTS
+  BLANK
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  DUPLICATED_INPUT_ITEM
+  MAX_LENGTH
+}
+
+input AttributeBulkUpdateInput @doc(category: "Attributes") {
+  """ID of an attribute to update."""
+  id: ID
+
   """External ID of this attribute."""
   externalReference: String
 
-  """The input type to use for entering attribute values in the dashboard."""
-  inputType: AttributeInputTypeEnum
-
-  """The entity type which can be used as a reference."""
-  entityType: AttributeEntityTypeEnum
-
-  """Name of an attribute displayed in the interface."""
-  name: String!
-
-  """Internal representation of an attribute name."""
-  slug: String
-
-  """The attribute type."""
-  type: AttributeTypeEnum!
-
-  """The unit of attribute values."""
-  unit: MeasurementUnitsEnum
-
-  """List of attribute's values."""
-  values: [AttributeBulkCreateValueInput!]
-
-  """Whether the attribute requires values to be passed or not."""
-  valueRequired: Boolean
-
-  """Whether the attribute is for variants only."""
-  isVariantOnly: Boolean
-
-  """Whether the attribute should be visible or not in storefront."""
-  visibleInStorefront: Boolean
-
-  """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean
-}
-
-input AttributeBulkCreateValueInput @doc(category: "Attributes") {
-  """Name of a value displayed in the interface."""
-  name: String!
-
-  """
-  Represent value of the attribute value (e.g. color values for swatch attributes).
-  """
-  value: String
-
-  """External ID of this attribute value."""
-  externalReference: String
-
-  """URL of the file attribute. Every time, a new value is created."""
-  fileUrl: String
-
-  """File content type."""
-  contentType: String
+  """Fields to update."""
+  fields: AttributeUpdateInput!
 }
 
 """

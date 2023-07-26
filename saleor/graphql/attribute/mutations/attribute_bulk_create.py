@@ -16,7 +16,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
-from ...core.enums import ErrorPolicyEnum, MeasurementUnitsEnum
+from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import (
     AttributeBulkCreateError,
@@ -26,8 +26,9 @@ from ...core.types import (
 )
 from ...core.utils import WebhookEventInfo, get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
-from ..enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
+from ..descriptions import AttributeValueDescriptions
+from ..enums import AttributeTypeEnum
+from ..mutations.attribute_create import AttributeCreateInput
 from ..types import Attribute
 
 ONLY_SWATCH_FIELDS = ["file_url", "content_type", "value"]
@@ -74,34 +75,6 @@ class AttributeBulkCreateValueInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
-class AttributeBulkCreateInput(BaseInputObjectType):
-    external_reference = graphene.String(
-        description="External ID of this attribute.", required=False
-    )
-    input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
-    entity_type = AttributeEntityTypeEnum(description=AttributeDescriptions.ENTITY_TYPE)
-    name = graphene.String(required=True, description=AttributeDescriptions.NAME)
-    slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
-    type = AttributeTypeEnum(description=AttributeDescriptions.TYPE, required=True)
-    unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT, required=False)
-    values = NonNullList(
-        AttributeBulkCreateValueInput, description=AttributeDescriptions.VALUES
-    )
-    value_required = graphene.Boolean(description=AttributeDescriptions.VALUE_REQUIRED)
-    is_variant_only = graphene.Boolean(
-        required=False, description=AttributeDescriptions.IS_VARIANT_ONLY
-    )
-    visible_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
-    )
-    filterable_in_dashboard = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
-
-
 class AttributeBulkCreate(BaseMutation):
     count = graphene.Int(
         required=True,
@@ -116,9 +89,9 @@ class AttributeBulkCreate(BaseMutation):
 
     class Arguments:
         attributes = NonNullList(
-            AttributeBulkCreateInput,
+            AttributeCreateInput,
             required=True,
-            description="Input list of products to create.",
+            description="Input list of attributes to create.",
         )
         error_policy = ErrorPolicyEnum(
             required=False,
@@ -141,7 +114,7 @@ class AttributeBulkCreate(BaseMutation):
     def clean_attributes(
         cls,
         info: ResolveInfo,
-        attributes_data: List[AttributeBulkCreateInput],
+        attributes_data: List[AttributeCreateInput],
         index_error_map: dict[int, List[AttributeBulkCreateError]],
     ):
         cleaned_inputs_map: dict = {}
@@ -223,7 +196,7 @@ class AttributeBulkCreate(BaseMutation):
     def clean_attribute_input(
         cls,
         info: ResolveInfo,
-        attribute_data: AttributeBulkCreateInput,
+        attribute_data: AttributeCreateInput,
         attribute_index: int,
         existing_slugs: set,
         values_existing_external_refs: set,
@@ -232,7 +205,7 @@ class AttributeBulkCreate(BaseMutation):
     ):
         values = attribute_data.pop("values", None)
         cleaned_input = ModelMutation.clean_input(
-            info, None, attribute_data, input_cls=AttributeBulkCreateInput
+            info, None, attribute_data, input_cls=AttributeCreateInput
         )
 
         # check permissions based on attribute type

@@ -8,7 +8,7 @@ from ...enums import AttributeInputTypeEnum, AttributeTypeEnum
 
 ATTRIBUTE_BULK_CREATE_MUTATION = """
     mutation AttributeBulkCreate(
-        $attributes: [AttributeBulkCreateInput!]!,
+        $attributes: [AttributeCreateInput!]!,
         $errorPolicy: ErrorPolicyEnum
     ) {
         attributeBulkCreate(attributes: $attributes, errorPolicy: $errorPolicy) {
