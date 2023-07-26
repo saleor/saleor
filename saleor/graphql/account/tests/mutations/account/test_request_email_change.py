@@ -158,3 +158,35 @@ def test_request_email_change_with_invalid_password(user_api_client, customer_us
     assert not data["user"]
     assert data["errors"][0]["code"] == AccountErrorCode.INVALID_CREDENTIALS.name
     assert data["errors"][0]["field"] == "password"
+
+
+@patch("saleor.graphql.account.mutations.account.request_email_change.create_token")
+@patch("saleor.plugins.manager.PluginsManager.account_change_email_requested")
+def test_request_email_change_send_event(
+    account_change_email_requested_mock,
+    create_token_mock,
+    user_api_client,
+    customer_user,
+    channel_PLN,
+):
+    create_token_mock.return_value = "token"
+    redirect_url = "http://www.example.com"
+    new_email = "new_email@example.com"
+    variables = {
+        "password": "password",
+        "new_email": new_email,
+        "redirect_url": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+
+    response = user_api_client.post_graphql(REQUEST_EMAIL_CHANGE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["requestEmailChange"]
+    assert data["user"]["email"] == customer_user.email
+
+    params = urlencode({"token": "token"})
+    change_email_url = prepare_url(params, redirect_url)
+
+    account_change_email_requested_mock.assert_called_once_with(
+        customer_user, channel_PLN.slug, "token", change_email_url, new_email
+    )

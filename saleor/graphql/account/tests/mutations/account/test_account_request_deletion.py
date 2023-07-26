@@ -58,6 +58,36 @@ def test_account_request_deletion(
     )
 
 
+@patch("saleor.account.notifications.account_delete_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.account_delete_requested")
+def test_account_request_deletion_send_account_delete_requested_event(
+    account_delete_requested_mock,
+    mocked_token,
+    user_api_client,
+    channel_PLN,
+    site_settings,
+):
+    mocked_token.return_value = "token"
+    user = user_api_client.user
+    redirect_url = "https://www.example.com"
+    variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["accountRequestDeletion"]
+    assert not data["errors"]
+    params = urlencode({"token": "token"})
+    delete_url = prepare_url(params, redirect_url)
+
+    account_delete_requested_mock.assert_called_once_with(
+        user,
+        channel_PLN.slug,
+        "token",
+        delete_url,
+    )
+
+
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_token_validation(
