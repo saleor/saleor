@@ -388,7 +388,8 @@ def checkout_with_item_on_promotion(checkout_with_item):
         line=line,
         type=DiscountType.PROMOTION,
         value_type=DiscountValueType.FIXED,
-        amount_value=reward_value,
+        value=reward_value,
+        amount_value=reward_value * line.quantity,
         currency=channel.currency_code,
         promotion_rule=rule,
     )
