@@ -152,7 +152,9 @@ def test_is_due_promotion_started_to_notify_and_upcoming_promotion(promotion_lis
 
 
 @freeze_time("2020-10-10 12:00:00")
-def test_is_due_no_promotion_to_notify_about_and_upcoming_promotion_exists(promotion_list):
+def test_is_due_no_promotion_to_notify_about_and_upcoming_promotion_exists(
+    promotion_list,
+):
     # given
     now = timezone.now()
     schedule = promotion_webhook_schedule()
@@ -182,8 +184,8 @@ def test_is_due_no_promotion_to_notify_about_and_upcoming_promotion_exists(promo
 
 
 @freeze_time("2020-10-10 12:00:00")
-def test_is_due_no_promotion_to_notify_about_and_upcoming_promotion_exists_initial_time_returned(
-    promotion_list
+def test_is_due_no_promo_to_notify_about_upcoming_promo_exists_initial_time_returned(
+    promotion_list,
 ):
     # given
     now = timezone.now()

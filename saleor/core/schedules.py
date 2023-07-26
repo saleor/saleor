@@ -6,7 +6,6 @@ import pytz
 from celery.utils.time import maybe_timedelta, remaining
 from django.db.models import F, Q
 
-from ..discount.models import Promotion
 from ..schedulers.customschedule import CustomSchedule
 
 schedstate = namedtuple("schedstate", ("is_due", "next"))
@@ -58,9 +57,9 @@ class promotion_webhook_schedule(CustomSchedule):
             Next time to run is in seconds.
 
         """
-        from ..discount.tasks import get_starting_promotions, get_ending_promotions
+        from ..discount.models import Promotion
+        from ..discount.tasks import get_ending_promotions, get_starting_promotions
 
-        import ipdb; ipdb.set_trace()
         now = datetime.now(pytz.UTC)
 
         # remaining time must be calculated as the next call is overridden with 0
@@ -73,13 +72,15 @@ class promotion_webhook_schedule(CustomSchedule):
         staring_promotions = get_starting_promotions().order_by("start_date")
         ending_promotions = get_ending_promotions().order_by("end_date")
 
-        is_due = remaining == 0 and (staring_promotions.exists() or ending_promotions.exists())
+        is_due = remaining == 0 and (
+            staring_promotions.exists() or ending_promotions.exists()
+        )
 
         upcoming_start_dates = Promotion.objects.filter(
             (
                 (
-                    Q(notification_sent_datetime__isnull=True)
-                    | Q(notification_sent_datetime__lt=F("start_date"))
+                    Q(last_notification_scheduled_at__isnull=True)
+                    | Q(last_notification_scheduled_at__lt=F("start_date"))
                 )
                 & Q(start_date__gt=now)
             )
@@ -87,16 +88,15 @@ class promotion_webhook_schedule(CustomSchedule):
         upcoming_end_dates = Promotion.objects.filter(
             (
                 (
-                    Q(notification_sent_datetime__isnull=True)
-                    | Q(notification_sent_datetime__lt=F("end_date"))
+                    Q(last_notification_scheduled_at__isnull=True)
+                    | Q(last_notification_scheduled_at__lt=F("end_date"))
                 )
                 & Q(end_date__gt=now)
             )
         ).order_by("end_date")
 
-
-        nearest_start_date = staring_promotions.first()
-        nearest_end_date = ending_promotions.first()
+        nearest_start_date = upcoming_start_dates.first()
+        nearest_end_date = upcoming_end_dates.first()
 
         # calculate the earliest incoming date of starting or ending sale
         next_upcoming_date: datetime
