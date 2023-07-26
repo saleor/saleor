@@ -898,7 +898,7 @@ def test_calculate_base_line_total_price_with_variant_on_promotion_and_voucher(
     # when
     total_price = calculate_base_line_total_price(checkout_line_info, checkout.channel)
 
-    # the
+    # then
     expected_unit_price = checkout_line_info.channel_listing.discounted_price
 
     assert total_price == (expected_unit_price - voucher_amount) * quantity
