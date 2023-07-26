@@ -6,13 +6,14 @@ import pytz
 from celery.utils.time import maybe_timedelta, remaining
 from django.db.models import F, Q
 
+from ..discount.models import Promotion
 from ..schedulers.customschedule import CustomSchedule
 
 schedstate = namedtuple("schedstate", ("is_due", "next"))
 
 
-class sale_webhook_schedule(CustomSchedule):
-    """Schedule for sale webhook periodic task.
+class promotion_webhook_schedule(CustomSchedule):
+    """Schedule for promotion webhook periodic task.
 
     The lowercase with an underscore is used for the name as all celery schedules
     are written this way. According to PEP it's allowed behavior:
@@ -36,7 +37,7 @@ class sale_webhook_schedule(CustomSchedule):
             schedule=self,
             nowfun=nowfun,
             app=app,
-            import_path="saleor.core.schedules.initiated_sale_webhook_schedule",
+            import_path="saleor.core.schedules.promotion_webhook_schedule",
         )
 
     def remaining_estimate(self, last_run_at):
@@ -57,9 +58,9 @@ class sale_webhook_schedule(CustomSchedule):
             Next time to run is in seconds.
 
         """
-        from ..discount.models import Sale
-        from ..discount.tasks import get_sales_to_notify_about
+        from ..discount.tasks import get_starting_promotions, get_ending_promotions
 
+        import ipdb; ipdb.set_trace()
         now = datetime.now(pytz.UTC)
 
         # remaining time must be calculated as the next call is overridden with 0
@@ -69,9 +70,12 @@ class sale_webhook_schedule(CustomSchedule):
 
         # is_due is True when there is at least one sale to notify about
         # and the remaining time from previous call is 0
-        is_due = remaining == 0 and get_sales_to_notify_about().exists()
+        staring_promotions = get_starting_promotions().order_by("start_date")
+        ending_promotions = get_ending_promotions().order_by("end_date")
 
-        upcoming_start_dates = Sale.objects.filter(
+        is_due = remaining == 0 and (staring_promotions.exists() or ending_promotions.exists())
+
+        upcoming_start_dates = Promotion.objects.filter(
             (
                 (
                     Q(notification_sent_datetime__isnull=True)
@@ -80,7 +84,7 @@ class sale_webhook_schedule(CustomSchedule):
                 & Q(start_date__gt=now)
             )
         ).order_by("start_date")
-        upcoming_end_dates = Sale.objects.filter(
+        upcoming_end_dates = Promotion.objects.filter(
             (
                 (
                     Q(notification_sent_datetime__isnull=True)
@@ -90,8 +94,9 @@ class sale_webhook_schedule(CustomSchedule):
             )
         ).order_by("end_date")
 
-        nearest_start_date = upcoming_start_dates.first()
-        nearest_end_date = upcoming_end_dates.first()
+
+        nearest_start_date = staring_promotions.first()
+        nearest_end_date = ending_promotions.first()
 
         # calculate the earliest incoming date of starting or ending sale
         next_upcoming_date: datetime
@@ -111,4 +116,4 @@ class sale_webhook_schedule(CustomSchedule):
         return schedstate(is_due, self.next_run.total_seconds())
 
 
-initiated_sale_webhook_schedule = sale_webhook_schedule()
+initiated_promotion_webhook_schedule = promotion_webhook_schedule()
