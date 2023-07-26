@@ -91,7 +91,9 @@ def test_list_stored_payment_methods_with_static_payload(
 
     assert response
     assert response == get_list_stored_payment_methods_from_response(
-        list_stored_payment_methods_app, webhook_list_stored_payment_methods_response
+        list_stored_payment_methods_app,
+        webhook_list_stored_payment_methods_response,
+        currency,
     )
 
 
@@ -155,7 +157,9 @@ def test_list_stored_payment_methods_with_subscription_payload(
 
     assert response
     assert response == get_list_stored_payment_methods_from_response(
-        list_stored_payment_methods_app, webhook_list_stored_payment_methods_response
+        list_stored_payment_methods_app,
+        webhook_list_stored_payment_methods_response,
+        currency,
     )
 
 
@@ -211,7 +215,9 @@ def test_list_stored_payment_methods_uses_cache_if_available(
 
     assert response
     assert response == get_list_stored_payment_methods_from_response(
-        list_stored_payment_methods_app, webhook_list_stored_payment_methods_response
+        list_stored_payment_methods_app,
+        webhook_list_stored_payment_methods_response,
+        currency,
     )
 
 

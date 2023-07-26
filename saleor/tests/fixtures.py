@@ -6441,7 +6441,11 @@ def shipping_app(db, permission_manage_shipping):
 
 @pytest.fixture
 def list_stored_payment_methods_app(db, permission_manage_payments):
-    app = App.objects.create(name="List payment methods app", is_active=True)
+    app = App.objects.create(
+        name="List payment methods app",
+        is_active=True,
+        identifier="saleor.payment.app.list.stored.method",
+    )
     app.tokens.create(name="Default")
     app.permissions.add(permission_manage_payments)
 
