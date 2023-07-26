@@ -398,8 +398,10 @@ def get_payment_method_from_response(
             app.id,
         )
         return None
-    payment_flow_choices = [flow[0].upper() for flow in TokenizedPaymentFlow.CHOICES]
-    if set(supported_payment_flows).difference(payment_flow_choices):
+    payment_flow_choices = {
+        flow[0].upper(): flow[0] for flow in TokenizedPaymentFlow.CHOICES
+    }
+    if set(supported_payment_flows).difference(payment_flow_choices.keys()):
         logger.warning(
             "Skipping stored payment method with unsupported payment flows, "
             "received from app %s",
@@ -412,7 +414,9 @@ def get_payment_method_from_response(
     return PaymentMethodData(
         id=to_payment_app_id(app, payment_method_external_id),
         external_id=payment_method_external_id,
-        supported_payment_flows=supported_payment_flows,
+        supported_payment_flows=[
+            payment_flow_choices[flow] for flow in supported_payment_flows
+        ],
         type=payment_method_type,
         credit_card_info=get_credit_card_info(app, credit_card_info)
         if credit_card_info

@@ -301,10 +301,9 @@ def test_get_payment_method_from_response(payment_method_response, app):
     assert payment_method.gateway == PaymentGateway(
         id=app.identifier, name=app.name, currencies=["usd"], config=[]
     )
-    assert (
-        payment_method.supported_payment_flows
-        == payment_method_response["supportedPaymentFlows"]
-    )
+    assert payment_method.supported_payment_flows == [
+        flow.lower() for flow in payment_method_response["supportedPaymentFlows"]
+    ]
     assert payment_method.credit_card_info == get_credit_card_info(
         app, payment_method_response["creditCardInfo"]
     )
@@ -346,10 +345,9 @@ def test_get_payment_method_from_response_optional_field(
     assert payment_method.gateway == PaymentGateway(
         id=app.identifier, name=app.name, currencies=["usd"], config=[]
     )
-    assert (
-        payment_method.supported_payment_flows
-        == payment_method_response["supportedPaymentFlows"]
-    )
+    assert payment_method.supported_payment_flows == [
+        flow.lower() for flow in payment_method_response["supportedPaymentFlows"]
+    ]
 
 
 @pytest.mark.parametrize("field", ["id", "type", "supportedPaymentFlows"])
