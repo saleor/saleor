@@ -310,7 +310,7 @@ def test_app_fetch_manifest_missing_fields(
     # given
     del app_manifest[missing_field]
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -358,7 +358,7 @@ def test_app_fetch_manifest_missing_extension_fields(
     ]
     del app_manifest["extensions"][0][missing_field]
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -403,7 +403,7 @@ def test_app_fetch_manifest_extensions_incorrect_enum_values(
     app_manifest["extensions"][0][incorrect_field] = "INCORRECT_VALUE"
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -456,7 +456,7 @@ def test_app_fetch_manifest_extensions_correct_url(
     ]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -503,7 +503,7 @@ def test_app_fetch_manifest_extensions_incorrect_url(
     ]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -554,7 +554,7 @@ def test_app_fetch_manifest_extensions_permission_out_of_scope(
     ]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -595,7 +595,7 @@ def test_app_fetch_manifest_extensions_invalid_permission(
     ]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -637,7 +637,7 @@ def test_app_fetch_manifest_with_extensions(
     ]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
 
@@ -677,7 +677,7 @@ def test_app_fetch_manifest_with_required_saleor_version(
     required_saleor_version = "<3.11"
     app_manifest["requiredSaleorVersion"] = required_saleor_version
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
 
     # when
@@ -704,7 +704,7 @@ def test_app_fetch_manifest_with_invalid_required_saleor_version(
     required_saleor_version = "3.wrong.1"
     app_manifest["requiredSaleorVersion"] = required_saleor_version
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
 
     # when
@@ -728,7 +728,7 @@ def test_app_fetch_manifest_with_author(
     # given
     app_manifest["author"] = "Acme Ltd"
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
 
     # when
@@ -751,7 +751,7 @@ def test_app_fetch_manifest_with_empty_author(
     # given
     app_manifest["author"] = " "
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
 
     # when

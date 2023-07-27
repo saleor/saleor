@@ -1,3 +1,4 @@
+import json
 from unittest.mock import ANY, Mock, call
 
 import pytest
@@ -49,6 +50,7 @@ def test_creates_app_from_manifest_app_has_all_required_permissions():
 def test_creates_app_from_manifest_sends_token(monkeypatch, app_manifest):
     mocked_get = Mock(return_value=Mock())
     mocked_get.return_value.json = Mock(return_value=app_manifest)
+    mocked_get.return_value.content = json.dumps(app_manifest)
 
     mocked_post = Mock(return_value=Mock())
     mocked_post.return_value.status_code = 200

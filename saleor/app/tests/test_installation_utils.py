@@ -55,7 +55,7 @@ def test_install_app_created_app(
     # given
     app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
     mocked_get = Mock(return_value=Mock())
-    mocked_get.return_value.json = Mock(return_value=app_manifest)
+    mocked_get.return_value.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", mocked_get)
     mocked_post = Mock()
@@ -99,7 +99,7 @@ def test_install_app_created_app_with_audience(
     audience = f"https://{site_settings.site.domain}.com/app-123"
     app_manifest["audience"] = audience
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
@@ -117,7 +117,7 @@ def test_install_app_with_required_saleor_version(
     # given
     app_manifest["requiredSaleorVersion"] = f"^{__version__}"
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
@@ -134,7 +134,7 @@ def test_install_app_when_saleor_version_unsupported(
     # given
     app_manifest["requiredSaleorVersion"] = "<3.11"
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
@@ -152,7 +152,7 @@ def test_install_app_with_author(app_manifest, app_installation, monkeypatch):
     # given
     app_manifest["author"] = "Acme Ltd"
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
@@ -168,7 +168,7 @@ def test_install_app_with_empty_author(app_manifest, app_installation, monkeypat
     # given
     app_manifest["author"] = " "
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
@@ -224,7 +224,7 @@ def test_install_app_created_app_trigger_webhook(
 
     app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
@@ -272,7 +272,7 @@ def test_install_app_with_extension(
         }
     ]
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
@@ -359,7 +359,7 @@ def test_install_app_extension_incorrect_url(
         }
     ]
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
@@ -449,7 +449,7 @@ def test_install_app_with_webhook(
     app_manifest["webhooks"] = [app_manifest_webhook]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
@@ -478,7 +478,7 @@ def test_install_app_webhook_incorrect_url(
     app_manifest["webhooks"] = [app_manifest_webhook]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
 
     # when & then
@@ -499,7 +499,7 @@ def test_install_app_with_webhook_is_active(
     app_manifest["webhooks"] = [app_manifest_webhook]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
@@ -519,7 +519,7 @@ def test_install_app_with_webhook_incorrect_is_active_value(
     app_manifest["webhooks"] = [app_manifest_webhook]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
 
     # when & then
@@ -557,7 +557,7 @@ def test_install_app_webhook_incorrect_query(
     app_manifest["webhooks"] = [app_manifest_webhook]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
 
     # when & then
@@ -578,7 +578,7 @@ def test_install_app_webhook_incorrect_custom_headers(
     app_manifest["webhooks"] = [app_manifest_webhook]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
 
     # when & then
@@ -600,7 +600,7 @@ def test_install_app_lack_of_token_target_url_in_manifest_data(
 
     app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     mocked_post = Mock()

@@ -36,9 +36,9 @@ class AppFetchManifest(BaseMutation):
     @classmethod
     def fetch_manifest(cls, manifest_url) -> ManifestSchema:
         try:
-            manifest_data = fetch_manifest(manifest_url)
-            manifest = ManifestSchema.parse_obj(
-                manifest_data, root_error_field="manifest_url"
+            response = fetch_manifest(manifest_url)
+            manifest = ManifestSchema.parse_raw(
+                response.content, field_name="manifest_url"
             )
             return manifest
         except ValidationError as error:

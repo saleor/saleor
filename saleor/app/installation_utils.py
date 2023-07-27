@@ -192,19 +192,19 @@ def fetch_brand_data_async(
         )
 
 
-def fetch_manifest(manifest_url: str, timeout=REQUEST_TIMEOUT):
+def fetch_manifest(manifest_url: str, timeout=REQUEST_TIMEOUT) -> Response:
     headers = {AppHeaders.SCHEMA_VERSION: schema_version}
     response = requests.get(
         manifest_url, headers=headers, timeout=timeout, allow_redirects=False
     )
     response.raise_for_status()
-    return response.json()
+    return response
 
 
 def install_app(app_installation: AppInstallation, activate: bool = False):
-    manifest_data = fetch_manifest(app_installation.manifest_url)
+    response = fetch_manifest(app_installation.manifest_url)
     assigned_permissions = app_installation.permissions.all()
-    manifest = StrictManifest.parse_obj(manifest_data)
+    manifest = StrictManifest.parse_raw(response.content)
 
     app = App.objects.create(
         name=app_installation.app_name,
