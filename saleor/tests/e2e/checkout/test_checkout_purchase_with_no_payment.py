@@ -43,14 +43,12 @@ def prepare_product(
     warehouse_data = create_warehouse(e2e_staff_api_client)
     warehouse_id = warehouse_data["id"]
 
-    allowUnpaidOrders = False
-
     warehouse_ids = [warehouse_id]
     channel_data = create_channel(
         e2e_staff_api_client,
         slug=channel_slug,
         warehouse_ids=warehouse_ids,
-        allowUnpaidOrders=allowUnpaidOrders,
+        allowUnpaidOrders=False,
     )
     channel_id = channel_data["id"]
 
