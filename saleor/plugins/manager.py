@@ -1101,6 +1101,10 @@ class PluginsManager(PaymentInterface):
             redirect_url=redirect_url,
         )
 
+    def account_deleted(self, user: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("account_deleted", default_value, user)
+
     def address_created(self, address: "Address"):
         default_value = None
         return self.__run_method_on_plugins("address_created", default_value, address)

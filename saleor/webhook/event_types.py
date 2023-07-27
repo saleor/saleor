@@ -26,6 +26,7 @@ class WebhookEventAsyncType:
     ACCOUNT_CHANGE_EMAIL_REQUESTED = "account_change_email_requested"
     ACCOUNT_CONFIRMED = "account_confirmed"
     ACCOUNT_DELETE_REQUESTED = "account_delete_requested"
+    ACCOUNT_DELETED = "account_deleted"
 
     ADDRESS_CREATED = "address_created"
     ADDRESS_UPDATED = "address_updated"
@@ -195,6 +196,10 @@ class WebhookEventAsyncType:
         },
         ACCOUNT_DELETE_REQUESTED: {
             "name": "Account delete requested",
+            "permission": AccountPermissions.MANAGE_USERS,
+        },
+        ACCOUNT_DELETED: {
+            "name": "Account delete confirmed",
             "permission": AccountPermissions.MANAGE_USERS,
         },
         ADDRESS_CREATED: {
