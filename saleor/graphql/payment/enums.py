@@ -1,6 +1,7 @@
 from ...payment import (
     ChargeStatus,
     StorePaymentMethod,
+    TokenizedPaymentFlow,
     TransactionAction,
     TransactionEventType,
     TransactionKind,
@@ -73,3 +74,9 @@ StorePaymentMethodEnum = to_enum(
     StorePaymentMethod, type_name="StorePaymentMethodEnum", description=description
 )
 StorePaymentMethodEnum.doc_category = DOC_CATEGORY_PAYMENTS
+
+TokenizedPaymentFlowEnum = to_enum(
+    TokenizedPaymentFlow,
+    type_name="TokenizedPaymentFlowEnum",
+    description=TokenizedPaymentFlow.__doc__,
+)
