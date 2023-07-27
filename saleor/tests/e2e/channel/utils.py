@@ -34,7 +34,6 @@ def create_channel(
     currency="USD",
     country="US",
     is_active=True,
-    allowUnpaidOrders=False,
 ):
     if not warehouse_ids:
         warehouse_ids = []
