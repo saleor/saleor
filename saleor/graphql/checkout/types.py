@@ -1,6 +1,8 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
 import graphene
+import prices
 from promise import Promise
 
 from ...checkout import calculations, models
@@ -12,6 +14,7 @@ from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.taxes import zero_money, zero_taxed_money
 from ...core.utils.lazyobjects import unwrap_lazy
+from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.enums import (
     AccountPermissions,
     CheckoutPermissions,
@@ -36,22 +39,23 @@ from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_39,
     ADDED_IN_313,
+    ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
-from ..core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
+from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import BaseField
-from ..core.scalars import UUID
+from ..core.scalars import UUID, PositiveDecimal
 from ..core.tracing import traced_resolver
-from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
+from ..core.types import ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo, str_to_enum
 from ..decorators import one_of_permissions_required
 from ..giftcard.dataloaders import GiftCardsByCheckoutIdLoader
 from ..giftcard.types import GiftCard
 from ..meta import resolvers as MetaResolvers
 from ..meta.types import ObjectWithMetadata, _filter_metadata
-from ..payment.types import TransactionItem
+from ..payment.types import PaymentGateway, StoredPaymentMethod, TransactionItem
 from ..plugins.dataloaders import (
     get_plugin_manager_promise,
     plugin_manager_promise_callback,
@@ -101,37 +105,6 @@ def get_dataloaders_for_fetching_checkout_data(
     checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
     manager = get_plugin_manager_promise(info.context)
     return address, lines, checkout_info, manager
-
-
-class GatewayConfigLine(BaseObjectType):
-    field = graphene.String(required=True, description="Gateway config key.")
-    value = graphene.String(description="Gateway config value for key.")
-
-    class Meta:
-        description = "Payment gateway client configuration key and value pair."
-        doc_category = DOC_CATEGORY_PAYMENTS
-
-
-class PaymentGateway(BaseObjectType):
-    name = graphene.String(required=True, description="Payment gateway name.")
-    id = graphene.ID(required=True, description="Payment gateway ID.")
-    config = NonNullList(
-        GatewayConfigLine,
-        required=True,
-        description="Payment gateway client configuration.",
-    )
-    currencies = NonNullList(
-        graphene.String,
-        required=True,
-        description="Payment gateway supported currencies.",
-    )
-
-    class Meta:
-        description = (
-            "Available payment gateway backend with configuration "
-            "necessary to setup client."
-        )
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class CheckoutLine(ModelObjectType[models.CheckoutLine]):
@@ -666,6 +639,18 @@ class Checkout(ModelObjectType[models.Checkout]):
             ),
         ],
     )
+    stored_payment_methods = NonNullList(
+        StoredPaymentMethod,
+        description=(
+            "List of user's stored payment methods that can be used in this checkout "
+            "session. It uses the channel that the checkout was created in. "
+            "When `amount` is not provided, `checkout.total` will be used as a default "
+            "value." + ADDED_IN_315 + PREVIEW_FEATURE
+        ),
+        amount=PositiveDecimal(
+            description="Amount that will be used to fetch stored payment methods."
+        ),
+    )
 
     class Meta:
         description = "Checkout object."
@@ -1086,6 +1071,38 @@ class Checkout(ModelObjectType[models.Checkout]):
             TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
         )
         return Promise.all(dataloaders).then(_calculate_total_balance_for_transactions)
+
+    @staticmethod
+    def resolve_stored_payment_methods(
+        root: models.Checkout, info: ResolveInfo, amount: Optional[Decimal] = None
+    ):
+        if root.user_id is None:
+            return []
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor or requestor.id != root.user_id:
+            return []
+
+        def _resolve_stored_payment_methods(data):
+            address, lines, checkout_info, manager = data
+            if amount is None:
+                taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+                    manager=manager,
+                    checkout_info=checkout_info,
+                    lines=lines,
+                    address=address,
+                )
+                amount_to_request = taxed_total.gross
+            else:
+                amount_to_request = prices.Money(amount, root.currency)
+            request_data = ListStoredPaymentMethodsRequestData(
+                user=checkout_info.user,
+                channel=checkout_info.channel,
+                amount=amount_to_request,
+            )
+            return manager.list_stored_payment_methods(request_data)
+
+        dataloaders = get_dataloaders_for_fetching_checkout_data(root, info)
+        return Promise.all(dataloaders).then(_resolve_stored_payment_methods)
 
 
 class CheckoutCountableConnection(CountableConnection):

@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 import graphene
+import mock
 import pytest
 from django.core.files import File
 
@@ -1279,3 +1280,63 @@ def test_unauthenticated_query_user_by_email_for_federation(api_client, customer
     )
     content = get_graphql_content(response)
     assert content["data"]["_entities"] == [None]
+
+
+USER_QUERY_WITH_STORED_PAYMENT_METHODS = """
+query User($id: ID, $channel: String!) {
+  user(id: $id) {
+    storedPaymentMethods(channel: $channel){
+      id
+      gateway{
+        name
+        id
+        config{
+          field
+          value
+        }
+        currencies
+      }
+      paymentMethodId
+      creditCardInfo{
+        brand
+        firstDigits
+        lastDigits
+        expMonth
+        expYear
+      }
+      supportedPaymentFlows
+      type
+      name
+      data
+    }
+  }
+}
+"""
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.list_stored_payment_methods")
+def test_query_customer_stored_payment_methods(
+    mocked_list_stored_payment_methods,
+    staff_api_client,
+    permission_manage_users,
+    customer_user,
+    channel_USD,
+):
+    query = USER_QUERY_WITH_STORED_PAYMENT_METHODS
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables={
+            "channel": channel_USD.slug,
+            "id": graphene.Node.to_global_id("User", customer_user.pk),
+        },
+    )
+
+    # then
+    assert not mocked_list_stored_payment_methods.called
+
+    content = get_graphql_content(response)
+
+    assert content["data"]["user"]["storedPaymentMethods"] == []
