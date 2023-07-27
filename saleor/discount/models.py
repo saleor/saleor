@@ -390,9 +390,6 @@ class Promotion(ModelWithMetadata):
     class Meta:
         ordering = ("name", "pk")
 
-    def __str__(self):
-        return self.name
-
     def is_active(self, date=None):
         if date is None:
             date = datetime.now(pytz.utc)
@@ -433,6 +430,7 @@ class PromotionRule(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         null=True,
     )
+    old_channel_listing_id = models.IntegerField(blank=True, null=True, unique=True)
 
     class Meta:
         ordering = ("name", "pk")
