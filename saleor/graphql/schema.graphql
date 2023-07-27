@@ -1722,10 +1722,10 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
-  """Account email change is requested."""
+  """An account email change is requested."""
   ACCOUNT_CHANGE_EMAIL_REQUESTED
 
-  """Account email is changed."""
+  """An account email was changed"""
   ACCOUNT_EMAIL_CHANGED
 
   """An account is confirmed."""
@@ -2378,10 +2378,10 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
-  """Account email change is requested."""
+  """An account email change is requested."""
   ACCOUNT_CHANGE_EMAIL_REQUESTED
 
-  """Account email is changed."""
+  """An account email was changed"""
   ACCOUNT_EMAIL_CHANGED
 
   """An account is confirmed."""
@@ -18012,6 +18012,7 @@ type Mutation {
   Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A customer account was updated.
   - NOTIFY_USER (async): A notification that account email change was confirmed.
+  - ACCOUNT_EMAIL_CHANGED (async): An account email was changed.
   """
   confirmEmailChange(
     """
@@ -18021,7 +18022,7 @@ type Mutation {
 
     """A one-time token required to change the email."""
     token: String!
-  ): ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER], syncEvents: [])
+  ): ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER, ACCOUNT_EMAIL_CHANGED], syncEvents: [])
 
   """
   Create a new address for the customer. 
@@ -28217,8 +28218,9 @@ Requires one of the following permissions: AUTHENTICATED_USER.
 Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A customer account was updated.
 - NOTIFY_USER (async): A notification that account email change was confirmed.
+- ACCOUNT_EMAIL_CHANGED (async): An account email was changed.
 """
-type ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER], syncEvents: []) {
+type ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER, ACCOUNT_EMAIL_CHANGED], syncEvents: []) {
   """A user instance with a new email."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -29221,7 +29223,7 @@ type AccountEmailChanged implements Event {
   """Shop data."""
   shop: Shop
 
-  """The new email address the user wants to change to."""
+  """The new email address."""
   newEmail: String
 }
 

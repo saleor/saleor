@@ -216,7 +216,7 @@ class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
 
 class AccountEmailChanged(SubscriptionObjectType, AccountOperationBase):
     new_email = graphene.String(
-        description="The new email address the user wants to change to.",
+        description="The new email address.",
     )
 
     class Meta:

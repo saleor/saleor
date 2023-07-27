@@ -142,3 +142,30 @@ def test_account_delete_other_customer_token(user_api_client):
     assert data["errors"][0]["message"] == "Invalid or expired token."
     assert User.objects.filter(pk=user.id).exists()
     assert User.objects.filter(pk=other_user.id).exists()
+
+
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@freeze_time("2018-05-31 12:00:01")
+def test_account_delete_webhook_event_triggered(
+    mocked_trigger_webhooks_async,
+    settings,
+    user_api_client,
+    subscription_account_deleted_webhook,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    user = user_api_client.user
+    user.last_login = timezone.now()
+    user.save(update_fields=["last_login"])
+
+    token = account_delete_token_generator.make_token(user)
+    variables = {"token": token}
+
+    # when
+    user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+
+    # then
+    assert not User.objects.filter(pk=user.id).exists()
+
+    mocked_trigger_webhooks_async.assert_called()

@@ -50,6 +50,10 @@ class ConfirmEmailChange(BaseMutation):
                 type=WebhookEventAsyncType.NOTIFY_USER,
                 description="A notification that account email change was confirmed.",
             ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED,
+                description="An account email was changed.",
+            ),
         ]
 
     @classmethod

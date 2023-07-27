@@ -76,3 +76,36 @@ def test_email_update_to_existing_email(user_api_client, customer_user, staff_us
             "field": "newEmail",
         }
     ]
+
+
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_account_email_changed_webhook_event_triggered(
+    mocked_trigger_webhooks_async,
+    settings,
+    customer_user,
+    user_api_client,
+    subscription_account_email_changed_webhook,
+    channel_PLN,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    new_email = "new_email@example.com"
+    payload = {
+        "old_email": customer_user.email,
+        "new_email": new_email,
+        "user_pk": customer_user.pk,
+    }
+    user = user_api_client.user
+
+    token = create_token(payload, timedelta(hours=1))
+    variables = {"token": token, "channel": channel_PLN.slug}
+
+    # when
+    user_api_client.post_graphql(EMAIL_UPDATE_QUERY, variables)
+
+    # then
+    user.refresh_from_db()
+    assert new_email in user.search_document
+
+    mocked_trigger_webhooks_async.assert_called()
