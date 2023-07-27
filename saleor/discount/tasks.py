@@ -26,7 +26,7 @@ def handle_promotion_toggle():
     staring_promotions = get_starting_promotions()
     ending_promotions = get_ending_promotions()
 
-    if not staring_promotions or not ending_promotions:
+    if not staring_promotions and not ending_promotions:
         return
 
     promotions = staring_promotions | ending_promotions
@@ -51,14 +51,16 @@ def handle_promotion_toggle():
 
     promotions.update(last_notification_scheduled_at=datetime.now(pytz.UTC))
 
-    task_logger.info(
-        "The promotion_started webhook sent for Promotions with ids: %s",
-        starting_promotion_ids,
-    )
-    task_logger.info(
-        "The promotion_ended webhook sent for Promotions with ids: %s",
-        ending_promotions_ids,
-    )
+    if starting_promotion_ids:
+        task_logger.info(
+            "The promotion_started webhook sent for Promotions with ids: %s",
+            starting_promotion_ids,
+        )
+    if ending_promotions_ids:
+        task_logger.info(
+            "The promotion_ended webhook sent for Promotions with ids: %s",
+            ending_promotions_ids,
+        )
 
 
 def get_starting_promotions():
@@ -112,4 +114,4 @@ def fetch_promotion_product_ids(promotions: "QuerySet[Promotion]"):
     products = Product.objects.filter(
         Exists(variants.filter(product_id=OuterRef("id")))
     )
-    return products.values_list("id", flat=True)
+    return list(products.values_list("id", flat=True))
