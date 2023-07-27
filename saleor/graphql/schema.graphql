@@ -8328,6 +8328,7 @@ type PageTranslation implements Node @doc(category: "Pages") {
 A static page that can be manually added by a shop operator through the dashboard.
 """
 type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  """ID of the page."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8367,8 +8368,14 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Title of the page for SEO."""
   seoTitle: String
+
+  """Description of the page for SEO."""
   seoDescription: String
+
+  """Title of the page."""
   title: String!
 
   """
@@ -8385,9 +8392,17 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Added in Saleor 3.3.
   """
   publishedAt: DateTime
+
+  """Determines if the page is published."""
   isPublished: Boolean!
+
+  """Slug of the page."""
   slug: String!
+
+  """Determines the type of page"""
   pageType: PageType!
+
+  """Date and time at which page was created."""
   created: DateTime!
 
   """
@@ -8411,6 +8426,7 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
 Represents a type of page. It defines what attributes are available to pages of this type.
 """
 type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  """ID of the page type."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8450,7 +8466,11 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Name of the page type."""
   name: String!
+
+  """Slug of the page type."""
   slug: String!
 
   """Page attributes of that page type."""
