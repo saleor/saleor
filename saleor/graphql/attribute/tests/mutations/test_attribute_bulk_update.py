@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import graphene
 
-from .....attribute.error_codes import AttributeBulkCreateErrorCode
+from .....attribute.error_codes import AttributeBulkUpdateErrorCode
 from .....attribute.models import Attribute
 from ....tests.utils import get_graphql_content
 
@@ -153,6 +153,88 @@ def test_attribute_bulk_update_without_permission(
     assert errors
 
 
+def test_attribute_bulk_update_with_deprecated_fields(
+    staff_api_client,
+    color_attribute,
+):
+    # given
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+            "fields": {"filterableInStorefront": True},
+        }
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    errors = data["results"][0]["errors"]
+    message = (
+        "Deprecated fields 'storefront_search_position', "
+        "'filterable_in_storefront', 'available_in_grid' and are not "
+        "allowed in bulk mutation."
+    )
+
+    assert data["count"] == 0
+    assert errors
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.INVALID.name
+    assert errors[0]["message"] == message
+
+
+def test_attribute_bulk_update_with_duplicated_external_ref(
+    staff_api_client,
+    color_attribute,
+    size_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    duplicated_external_ref = "duplicated_external_ref"
+
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+            "fields": {"externalReference": duplicated_external_ref},
+        },
+        {
+            "id": graphene.Node.to_global_id("Attribute", size_attribute.id),
+            "fields": {"externalReference": duplicated_external_ref},
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    errors_1 = data["results"][0]["errors"]
+    errors_2 = data["results"][1]["errors"]
+
+    assert data["count"] == 0
+    assert errors_1
+    assert errors_2
+    assert errors_1[0]["path"] == "fields.externalReference"
+    assert (
+        errors_1[0]["code"] == AttributeBulkUpdateErrorCode.DUPLICATED_INPUT_ITEM.name
+    )
+    assert errors_2[0]["path"] == "fields.externalReference"
+    assert (
+        errors_2[0]["code"] == AttributeBulkUpdateErrorCode.DUPLICATED_INPUT_ITEM.name
+    )
+
+
 def test_attribute_bulk_update_with_invalid_type_id(
     staff_api_client, permission_manage_product_types_and_attributes
 ):
@@ -176,7 +258,7 @@ def test_attribute_bulk_update_with_invalid_type_id(
     assert data["count"] == 0
     errors = data["results"][0]["errors"]
     assert errors
-    assert errors[0]["code"] == AttributeBulkCreateErrorCode.INVALID.name
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.INVALID.name
     assert errors[0]["message"] == "Must receive a Attribute id."
 
 
@@ -201,7 +283,7 @@ def test_attribute_bulk_update_without_id_and_external_ref(
     assert data["count"] == 0
     errors = data["results"][0]["errors"]
     assert errors
-    assert errors[0]["code"] == AttributeBulkCreateErrorCode.INVALID.name
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.INVALID.name
     assert (
         errors[0]["message"]
         == "At least one of arguments is required: 'id', 'externalReference'."
@@ -240,7 +322,7 @@ def test_attribute_bulk_update_with_id_and_external_ref(
     assert data["count"] == 0
     errors = data["results"][0]["errors"]
     assert errors
-    assert errors[0]["code"] == AttributeBulkCreateErrorCode.INVALID.name
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.INVALID.name
     assert (
         errors[0]["message"]
         == "Argument 'id' cannot be combined with 'externalReference'"
@@ -364,8 +446,133 @@ def test_attribute_bulk_update_removes_invalid_value(
     errors = data["results"][0]["errors"]
     assert errors
     assert errors[0]["path"] == "removeValues.0"
-    assert errors[0]["code"] == AttributeBulkCreateErrorCode.INVALID.name
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.INVALID.name
     assert (
         errors[0]["message"]
         == f"Value {invalid_value_global_id} does not belong to this attribute."
+    )
+
+
+def test_attribute_bulk_update_add_new_value(
+    staff_api_client,
+    color_attribute,
+    size_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    assert color_attribute.values.count() == 2
+    assert size_attribute.values.count() == 2
+
+    color_new_value_name = "BLACK"
+    size_new_value_name = "MINI"
+
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+            "fields": {
+                "addValues": [
+                    {
+                        "name": color_new_value_name,
+                    }
+                ]
+            },
+        },
+        {
+            "id": graphene.Node.to_global_id("Attribute", size_attribute.id),
+            "fields": {
+                "addValues": [
+                    {
+                        "name": size_new_value_name,
+                    }
+                ]
+            },
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    color_attribute.refresh_from_db()
+    size_attribute.refresh_from_db()
+
+    assert data["count"] == 2
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+    assert color_attribute.values.count() == 3
+    assert size_attribute.values.count() == 3
+
+
+def test_attribute_bulk_update_with_duplicated_external_reference_in_values(
+    staff_api_client,
+    color_attribute,
+    size_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    assert color_attribute.values.count() == 2
+    assert size_attribute.values.count() == 2
+
+    color_new_value_name = "BLACK"
+    size_new_value_name = "MINI"
+    value_external_reference = "test-value-ext-ref"
+
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+            "fields": {
+                "addValues": [
+                    {
+                        "name": color_new_value_name,
+                        "externalReference": value_external_reference,
+                    }
+                ]
+            },
+        },
+        {
+            "id": graphene.Node.to_global_id("Attribute", size_attribute.id),
+            "fields": {
+                "addValues": [
+                    {
+                        "name": size_new_value_name,
+                        "externalReference": value_external_reference,
+                    }
+                ]
+            },
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    assert data["count"] == 0
+    errors_1 = data["results"][0]["errors"]
+    errors_2 = data["results"][1]["errors"]
+    assert errors_1
+    assert errors_2
+    assert errors_1[0]["path"] == "addValues.0.externalReference"
+    assert (
+        errors_1[0]["code"] == AttributeBulkUpdateErrorCode.DUPLICATED_INPUT_ITEM.name
+    )
+
+    assert errors_2[0]["path"] == "addValues.0.externalReference"
+    assert (
+        errors_2[0]["code"] == AttributeBulkUpdateErrorCode.DUPLICATED_INPUT_ITEM.name
     )

@@ -169,6 +169,44 @@ def test_attribute_bulk_create_without_permission(staff_api_client):
     assert data["count"] == 0
 
 
+def test_attribute_bulk_create_with_deprecated_field(staff_api_client):
+    # given
+    attribute_1_name = "Example name 1"
+    external_reference_1 = "test-ext-ref-1"
+
+    attributes = [
+        {
+            "name": attribute_1_name,
+            "externalReference": external_reference_1,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "filterableInStorefront": True,
+        }
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_CREATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkCreate"]
+
+    # then
+    attributes = Attribute.objects.all()
+    errors = data["results"][0]["errors"]
+    message = (
+        "Deprecated fields 'storefront_search_position', "
+        "'filterable_in_storefront', 'available_in_grid' and are not "
+        "allowed in bulk mutation."
+    )
+
+    assert len(attributes) == 0
+    assert data["count"] == 0
+    assert errors
+    assert errors[0]["code"] == AttributeBulkCreateErrorCode.INVALID.name
+    assert errors[0]["message"] == message
+
+
 def test_attribute_bulk_create_with_file_input_type_and_invalid_settings(
     staff_api_client,
     permission_manage_product_types_and_attributes,

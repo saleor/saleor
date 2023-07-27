@@ -24,18 +24,18 @@ from ...core.types import (
     BaseObjectType,
     NonNullList,
 )
-from ...core.utils import (  # get_duplicated_values,
+from ...core.utils import (
     WebhookEventAsyncType,
     WebhookEventInfo,
     from_global_id_or_error,
+    get_duplicated_values,
 )
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import AttributeTypeEnum
 from ..types import Attribute
+from .attribute_bulk_create import DEPRECATED_ATTR_FIELDS, clean_values
 from .attribute_update import AttributeUpdateInput
-
-ONLY_SWATCH_FIELDS = ["file_url", "content_type", "value"]
 
 
 class AttributeBulkUpdateResult(BaseObjectType):
@@ -125,17 +125,17 @@ class AttributeBulkUpdate(BaseMutation):
     ):
         cleaned_inputs_map: dict = {}
 
-        # attr_input_external_refs = [
-        #     attribute_data.external_reference
-        #     for attribute_data in attributes_data
-        #     if attribute_data.external_reference
-        # ]
-        # attrs_existing_external_refs = set(
-        #     models.Attribute.objects.filter(
-        #         external_reference__in=attr_input_external_refs
-        #     ).values_list("external_reference", flat=True)
-        # )
-        # duplicated_external_ref = get_duplicated_values(attr_input_external_refs)
+        attr_input_external_refs = [
+            attribute_data.fields.external_reference
+            for attribute_data in attributes_data
+            if attribute_data.fields.external_reference
+        ]
+        attrs_existing_external_refs = set(
+            models.Attribute.objects.filter(
+                external_reference__in=attr_input_external_refs
+            ).values_list("external_reference", flat=True)
+        )
+        duplicated_external_ref = get_duplicated_values(attr_input_external_refs)
 
         existing_slugs = set(
             models.Attribute.objects.filter(
@@ -147,10 +147,26 @@ class AttributeBulkUpdate(BaseMutation):
             ).values_list("slug", flat=True)
         )
 
-        attributes = cls.get_attributes(attributes_data)
+        values_input_external_refs = [
+            value.external_reference
+            for attribute_data in attributes_data
+            if attribute_data.fields.add_values
+            for value in attribute_data.fields.add_values
+            if value.external_reference
+        ]
+        values_existing_external_refs = set(
+            models.AttributeValue.objects.filter(
+                external_reference__in=values_input_external_refs
+            ).values_list("external_reference", flat=True)
+        )
+        duplicated_values_external_ref = get_duplicated_values(
+            values_input_external_refs
+        )
 
+        attributes = cls.get_attributes(attributes_data)
         for attribute_index, attribute_data in enumerate(attributes_data):
             external_ref = attribute_data.external_reference
+            new_external_ref = attribute_data.fields.external_reference
 
             try:
                 validate_one_of_args_is_in_mutation(
@@ -164,6 +180,23 @@ class AttributeBulkUpdate(BaseMutation):
                 index_error_map[attribute_index].append(
                     AttributeBulkUpdateError(
                         message=exc.message,
+                        code=AttributeBulkUpdateErrorCode.INVALID.value,
+                    )
+                )
+                cleaned_inputs_map[attribute_index] = None
+                continue
+
+            if any(
+                key in DEPRECATED_ATTR_FIELDS for key in attribute_data.fields.keys()
+            ):
+                message = (
+                    "Deprecated fields 'storefront_search_position', "
+                    "'filterable_in_storefront', 'available_in_grid' and are not "
+                    "allowed in bulk mutation."
+                )
+                index_error_map[attribute_index].append(
+                    AttributeBulkUpdateError(
+                        message=message,
                         code=AttributeBulkUpdateErrorCode.INVALID.value,
                     )
                 )
@@ -188,33 +221,35 @@ class AttributeBulkUpdate(BaseMutation):
 
                 attribute_data["db_id"] = db_id
 
-            # if external_ref in duplicated_external_ref:
-            #     index_error_map[attribute_index].append(
-            #         AttributeBulkUpdateError(
-            #             path="externalReference",
-            #             message="Duplicated external reference.",
-            #             code=AttributeBulkUpdateErrorCode.DUPLICATED_INPUT_ITEM.value,
-            #         )
-            #     )
-            #     cleaned_inputs_map[attribute_index] = None
-            #     continue
-            #
-            # if external_ref and external_ref in attrs_existing_external_refs:
-            #     index_error_map[attribute_index].append(
-            #         AttributeBulkUpdateError(
-            #             path="externalReference",
-            #             message="External reference already exists.",
-            #             code=AttributeBulkUpdateErrorCode.UNIQUE.value,
-            #         )
-            #     )
-            #     cleaned_inputs_map[attribute_index] = None
-            #     continue
+            if new_external_ref in duplicated_external_ref:
+                index_error_map[attribute_index].append(
+                    AttributeBulkUpdateError(
+                        path="fields.externalReference",
+                        message="Duplicated external reference.",
+                        code=AttributeBulkUpdateErrorCode.DUPLICATED_INPUT_ITEM.value,
+                    )
+                )
+                cleaned_inputs_map[attribute_index] = None
+                continue
+
+            if new_external_ref and new_external_ref in attrs_existing_external_refs:
+                index_error_map[attribute_index].append(
+                    AttributeBulkUpdateError(
+                        path="fields.externalReference",
+                        message="External reference already exists.",
+                        code=AttributeBulkUpdateErrorCode.UNIQUE.value,
+                    )
+                )
+                cleaned_inputs_map[attribute_index] = None
+                continue
 
             cleaned_input = cls.clean_attribute_input(
                 info,
                 attribute_data,
                 attribute_index,
                 existing_slugs,
+                values_existing_external_refs,
+                duplicated_values_external_ref,
                 attributes,
                 index_error_map,
             )
@@ -228,11 +263,13 @@ class AttributeBulkUpdate(BaseMutation):
         attribute_data: AttributeBulkUpdateInput,
         attribute_index: int,
         existing_slugs: set,
+        values_existing_external_refs,
+        duplicated_values_external_ref,
         attributes,
         index_error_map: dict[int, List[AttributeBulkUpdateError]],
     ):
         remove_values = attribute_data.fields.pop("remove_values", [])
-        attribute_data.fields.pop("add_values", [])
+        add_values = attribute_data.fields.pop("add_values", [])
 
         attr = cls.find_attribute(
             attribute_data.get("db_id"),
@@ -275,6 +312,19 @@ class AttributeBulkUpdate(BaseMutation):
                 remove_values, attr, attribute_index, index_error_map
             )
             attribute_data["fields"]["remove_values"] = cleaned_remove_values
+
+        if add_values:
+            cleaned_add_values = clean_values(
+                add_values,
+                attr.input_type,
+                values_existing_external_refs,
+                duplicated_values_external_ref,
+                attribute_index,
+                index_error_map,
+                "addValues",
+                AttributeBulkUpdateError,
+            )
+            attribute_data["fields"]["add_values"] = cleaned_add_values
 
         return attribute_data
 
@@ -333,7 +383,7 @@ class AttributeBulkUpdate(BaseMutation):
                 )
                 continue
 
-            attr = cleaned_input.get("instance")
+            attr = cleaned_input["instance"]
             fields = cleaned_input["fields"]
             remove_values = fields.pop("remove_values", [])
             add_values = fields.pop("add_values", [])
@@ -343,15 +393,13 @@ class AttributeBulkUpdate(BaseMutation):
                     attr = cls.construct_instance(attr, fields)
                     cls.clean_instance(info, attr)
 
-                instances_data_and_errors_list.append(
-                    {
-                        "instance": attr,
-                        "errors": index_error_map[index],
-                        "remove_values": remove_values,
-                        "add_values": add_values,
-                        "attribute_updated": True if fields else False,
-                    }
-                )
+                data = {
+                    "instance": attr,
+                    "errors": index_error_map[index],
+                    "remove_values": remove_values,
+                    "add_values": [],
+                    "attribute_updated": True if fields else False,
+                }
             except ValidationError as exc:
                 for key, errors in exc.error_dict.items():
                     for e in errors:
@@ -367,6 +415,12 @@ class AttributeBulkUpdate(BaseMutation):
                 )
                 continue
 
+            if add_values:
+                values = cls.create_values(attr, add_values, index, index_error_map)
+                data["add_values"] = values
+
+            instances_data_and_errors_list.append(data)
+
         if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS.value:
             for instance_data in instances_data_and_errors_list:
                 if instance_data["errors"]:
@@ -375,7 +429,38 @@ class AttributeBulkUpdate(BaseMutation):
         return instances_data_and_errors_list
 
     @classmethod
-    def get_attributes(cls, attributes_data: dict) -> list[models.Attribute]:
+    def create_values(
+        cls,
+        attribute: models.Attribute,
+        values_data: list,
+        attr_index: int,
+        index_error_map: dict[int, list],
+    ):
+        values = []
+        for value_index, value_data in enumerate(values_data):
+            value = models.AttributeValue(attribute=attribute)
+
+            try:
+                value = cls.construct_instance(value, value_data)
+                value.full_clean(exclude=["attribute", "slug"])
+                values.append(value)
+            except ValidationError as exc:
+                for key, errors in exc.error_dict.items():
+                    for e in errors:
+                        path = f"addValues.{value_index}.{to_camel_case(key)}"
+                        index_error_map[attr_index].append(
+                            AttributeBulkUpdateError(
+                                path=path,
+                                message=e.messages[0],
+                                code=e.code,
+                            )
+                        )
+        return values
+
+    @classmethod
+    def get_attributes(
+        cls, attributes_data: List[AttributeBulkUpdateInput]
+    ) -> list[models.Attribute]:
         lookup = Q()
 
         for attribute_input in attributes_data:
@@ -425,9 +510,7 @@ class AttributeBulkUpdate(BaseMutation):
         return attr
 
     @classmethod
-    def save(
-        cls, instances_data_with_errors_list: list[dict]
-    ) -> list[models.Attribute]:
+    def save(cls, instances_data_with_errors_list: list[dict]):
         attributes_to_update: list = []
         values_to_create: list = []
         values_to_remove: list = []
@@ -442,7 +525,7 @@ class AttributeBulkUpdate(BaseMutation):
                 updated_attributes.append(attribute)
 
             values_to_remove.extend(attribute_data["remove_values"])
-            values_to_remove.extend(attribute_data["add_values"])
+            values_to_create.extend(attribute_data["add_values"])
 
         models.Attribute.objects.bulk_update(
             attributes_to_update,
