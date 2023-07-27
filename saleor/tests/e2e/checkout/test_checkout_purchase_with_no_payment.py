@@ -136,20 +136,16 @@ def test_should_not_be_able_to_make_purchase_with_no_payment(
         channel_slug,
         email="testEmail@example.com",
         set_default_billing_address=True,
+        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
 
     assert checkout_data["isShippingRequired"] is True
-    assert checkout_data["shippingMethods"] == []
     assert checkout_data["deliveryMethod"] is None
     assert checkout_data["shippingMethod"] is None
-
-    # Step 2 - Set shipping address and DeliveryMethod for checkout
-    checkout_data = checkout_shipping_address_update(
-        e2e_not_logged_api_client, checkout_id
-    )
-    assert len(checkout_data["shippingMethods"]) == 1
     shipping_method_id = checkout_data["shippingMethods"][0]["id"]
+
+    # Step 2 - Set shipping address and DeliveryMethod for checkout    
 
     checkout_data = checkout_delivery_method_update(
         e2e_not_logged_api_client,
