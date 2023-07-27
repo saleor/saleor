@@ -26,7 +26,9 @@ mutation emailUpdate($token: String!, $channel: String) {
 @patch(
     "saleor.graphql.account.mutations.account.confirm_email_change.assign_user_gift_cards"
 )
+@patch("saleor.plugins.manager.PluginsManager.account_email_changed")
 def test_email_update(
+    mocked_account_email_changed,
     assign_gift_cards_mock,
     assign_orders_mock,
     user_api_client,
@@ -43,7 +45,6 @@ def test_email_update(
 
     token = create_token(payload, timedelta(hours=1))
     variables = {"token": token, "channel": channel_PLN.slug}
-
     response = user_api_client.post_graphql(EMAIL_UPDATE_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["confirmEmailChange"]
@@ -52,6 +53,7 @@ def test_email_update(
     assert new_email in user.search_document
     assign_gift_cards_mock.assert_called_once_with(customer_user)
     assign_orders_mock.assert_called_once_with(customer_user)
+    mocked_account_email_changed.assert_called_once_with(user)
 
 
 def test_email_update_to_existing_email(user_api_client, customer_user, staff_user):

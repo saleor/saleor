@@ -92,16 +92,17 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Called when metadata is changed for the Shop object via the generic metadata API or the `shopSettingsUpdate` mutation.
 - Add `CHANNEL_METADATA_UPDATED` webhook - #13448, by @Air-t
   - Called when metadata is changed for the Channel object via the generic metadata API or the `channelUpdate` mutation.
-
 - Add `ACCOUNT_CONFIRMED` webhook - #13471, by @Air-t
   - Called when user confirm an account with `confirmAccount` mutation.
 - Add `ACCOUNT_DELETED` webhook - #13471, by @Air-t
   - Called after account deletion is confirmed with `accountDelete` mutation.
+- Add `ACCOUNT_EMAIL_CHANGED` webhook - #13537, by @Air-t
+  - Called when `confirmEmailChange` mutation is triggered.
 
 ### Other changes
 - Add possibility to log without confirming email - #13059 by @kadewu
   - New mutation `sendConfirmationEmail` to send an email with confirmation link
-  - New environment variable `CONFIRMATION_EMAIL_LOCK_TIME` to control lock time beetwen new email confirmations
+  - New environment variable `CONFIRMATION_EMAIL_LOCK_TIME` to control lock time between new email confirmations
   - Type `User` gets new field `is_confirmed`
   - `CustomerInput` gets new field `is_confirmed`
 - Use public key thumbprint as KID in JWKS.json #13442 by @cmiacz

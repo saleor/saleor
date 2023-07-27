@@ -177,6 +177,12 @@ class BasePlugin:
     # delete is confirmed.
     account_deleted: Callable[["User", None], None]
 
+    # Trigger when account email is changed.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # email is changed.
+    account_email_changed: Callable[["User", None], None]
+
     # Trigger when account delete is requested.
     #
     # Overwrite this method if you need to trigger specific logic after an account

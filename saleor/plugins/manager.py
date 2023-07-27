@@ -1088,6 +1088,17 @@ class PluginsManager(PaymentInterface):
             new_email=new_email,
         )
 
+    def account_email_changed(
+        self,
+        user: "User",
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "account_email_changed",
+            default_value,
+            user,
+        )
+
     def account_delete_requested(
         self, user: "User", channel_slug: str, token: str, redirect_url: str
     ):

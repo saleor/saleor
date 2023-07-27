@@ -72,6 +72,22 @@ ACCOUNT_CHANGE_EMAIL_REQUESTED = (
 )
 
 
+ACCOUNT_EMAIL_CHANGED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountEmailChanged{
+          user{
+            ...CustomerDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 ACCOUNT_DELETE_REQUESTED = (
     fragments.CUSTOMER_DETAILS
     + """
