@@ -188,6 +188,24 @@ def test_account_delete_requested(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_account_deleted_confirmed(customer_user, subscription_account_deleted_webhook):
+    # given
+    webhooks = [subscription_account_deleted_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_DELETED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, {"user": customer_user}, webhooks
+    )
+
+    # then
+    expected_payload = generate_account_events_payload(customer_user)
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_address_created(address, subscription_address_created_webhook):
     # given
     webhooks = [subscription_address_created_webhook]

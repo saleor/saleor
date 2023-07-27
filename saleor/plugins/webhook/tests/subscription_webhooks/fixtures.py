@@ -53,6 +53,14 @@ def subscription_account_delete_requested_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_account_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_DELETED,
+        WebhookEventAsyncType.ACCOUNT_DELETED,
+    )
+
+
+@pytest.fixture
 def subscription_address_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ADDRESS_CREATED, WebhookEventAsyncType.ADDRESS_CREATED

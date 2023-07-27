@@ -99,6 +99,21 @@ ACCOUNT_DELETE_REQUESTED = (
 """
 )
 
+ACCOUNT_DELETED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountDeleted{
+          user{
+            ...CustomerDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 
 ADDRESS_CREATED = (
     fragments.ADDRESS_DETAILS

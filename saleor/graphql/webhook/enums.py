@@ -41,8 +41,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED: (
         "Account email change is requested."
     ),
-    WebhookEventAsyncType.ACCOUNT_CONFIRMED: "An account is confirmed." + ADDED_IN_315,
+    WebhookEventAsyncType.ACCOUNT_CONFIRMED: "An account is confirmed.",
     WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: "An account delete is requested.",
+    WebhookEventAsyncType.ACCOUNT_DELETED: "An account is deleted.",
     WebhookEventAsyncType.ADDRESS_CREATED: "A new address created.",
     WebhookEventAsyncType.ADDRESS_UPDATED: "An address updated.",
     WebhookEventAsyncType.ADDRESS_DELETED: "An address deleted.",
@@ -63,8 +64,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.CHANNEL_UPDATED: "A channel is updated.",
     WebhookEventAsyncType.CHANNEL_DELETED: "A channel is deleted.",
     WebhookEventAsyncType.CHANNEL_STATUS_CHANGED: "A channel status is changed.",
-    WebhookEventAsyncType.CHANNEL_METADATA_UPDATED: "A channel metadata is updated."
-    + ADDED_IN_315,
+    WebhookEventAsyncType.CHANNEL_METADATA_UPDATED: "A channel metadata is updated.",
     WebhookEventAsyncType.CHECKOUT_CREATED: "A new checkout is created.",
     WebhookEventAsyncType.CHECKOUT_UPDATED: checkout_updated_event_enum_description,
     WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: (
