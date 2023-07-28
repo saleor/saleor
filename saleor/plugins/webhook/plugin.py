@@ -61,6 +61,7 @@ from ...webhook.payloads import (
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import BasePlugin, ExcludedShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_KEY, WEBHOOK_CACHE_DEFAULT_TIMEOUT
+from .list_stored_payment_methods import get_list_stored_payment_methods_from_response
 from .shipping import (
     get_cache_data_for_shipping_list_methods_for_checkout,
     get_excluded_shipping_data,
@@ -80,7 +81,6 @@ from .utils import (
     delivery_update,
     from_payment_app_id,
     get_current_tax_app,
-    get_list_stored_payment_methods_from_response,
     get_meta_code_key,
     get_meta_description_key,
     parse_list_payment_gateways_response,
