@@ -201,7 +201,7 @@ def channel_listing_in_batches(qs):
         batch_2 = qs.values("pk", "sale_id").filter(
             sale_id__gt=first_sale_id, sale_id__lte=last_sale_id
         )
-        pks = list(batch_2.values_list("pk", flat=True))
+        pks = [v["pk"] for v in batch_2]
         if not pks:
             break
         yield pks
@@ -212,7 +212,7 @@ def queryset_in_batches(queryset):
     start_pk = 0
     while True:
         qs = queryset.values("pk").filter(pk__gt=start_pk)[:BATCH_SIZE]
-        pks = list(qs.values_list("pk", flat=True))
+        pks = [v["pk"] for v in qs]
         if not pks:
             break
         yield pks
