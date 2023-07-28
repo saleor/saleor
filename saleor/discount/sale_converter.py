@@ -25,9 +25,6 @@ class RuleInfo:
     sale_id: int
     channel_id: int
 
-    def add_rule_to_channel(self):
-        self.rule.channels.add(self.channel_id)
-
 
 def _convert_sale_into_promotion(sale):
     return Promotion(
@@ -121,8 +118,15 @@ def _migrate_sale_listing_to_promotion_rules(
 
         promotion_rules = [rules_info.rule for rules_info in rules_info]
         PromotionRule.objects.bulk_create(promotion_rules)
-        for rule_info in rules_info:
-            rule_info.add_rule_to_channel()
+
+        PromotionRuleChannel = PromotionRule.channels.through
+        rules_channels = [
+            PromotionRuleChannel(
+                promotionrule_id=rule_info.rule.id, channel_id=rule_info.channel_id
+            )
+            for rule_info in rules_info
+        ]
+        PromotionRuleChannel.objects.bulk_create(rules_channels)
 
 
 def _migrate_sales_to_promotion_rules(sales_pks, saleid_promotion_map):
