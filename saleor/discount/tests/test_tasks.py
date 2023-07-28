@@ -1,6 +1,6 @@
 from datetime import timedelta
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 from django.utils import timezone
@@ -8,32 +8,55 @@ from freezegun import freeze_time
 
 from .. import RewardValueType
 from ..models import Promotion, PromotionRule
-from ..tasks import fetch_promotion_product_ids, handle_promotion_toggle
+from ..tasks import fetch_promotion_variants_and_product_ids, handle_promotion_toggle
 
 
-def test_fetch_catalogue_infos(promotion_list, product, collection, product_list):
+def test_fetch_promotion_variants_and_product_ids(
+    promotion_list, product, collection, product_list
+):
     # given
     promotions = Promotion.objects.all()
 
-    collection.products.add(*product_list[:2])
+    collection.products.set(product_list[:2])
+
+    product_variants = set(product.variants.values_list("id", flat=True))
+    collection_variants = {
+        id
+        for product in product_list[:2]
+        for id in product.variants.values_list("id", flat=True)
+    }
 
     # when
-    product_ids = fetch_promotion_product_ids(promotions)
+    promotion_id_to_variants, product_ids = fetch_promotion_variants_and_product_ids(
+        promotions
+    )
 
     # then
     expected_product_ids = {product.id, product_list[0].id, product_list[1].id}
     assert set(product_ids) == expected_product_ids
+
+    variants_promo_1 = promotion_id_to_variants[promotion_list[0].id]
+    variants_promo_2 = promotion_id_to_variants[promotion_list[1].id]
+    variants_promo_3 = promotion_id_to_variants[promotion_list[2].id]
+
+    assert {variant.id for variant in variants_promo_1} == product_variants.union(
+        collection_variants
+    )
+    assert {variant.id for variant in variants_promo_2} == product_variants
+    assert {variant.id for variant in variants_promo_3} == collection_variants
 
 
 @freeze_time("2020-03-18 12:00:00")
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
+@patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.promotion_ended")
 @patch("saleor.plugins.manager.PluginsManager.promotion_started")
 def test_handle_promotion_toggle(
     promotion_started_mock,
     promotion_ended_mock,
+    sale_toggle_mock,
     mock_update_products_discounted_prices_for_promotion_task,
     product_list,
 ):
@@ -119,6 +142,9 @@ def test_handle_promotion_toggle(
     )
     indexes_of_started_promotions = {0, 2, 5}
     indexes_of_ended_promotions = {5, 7}
+    indexes_of_toggle_sales = indexes_of_started_promotions.union(
+        indexes_of_ended_promotions
+    )
 
     # when
     handle_promotion_toggle()
@@ -126,6 +152,7 @@ def test_handle_promotion_toggle(
     # then
     assert promotion_started_mock.call_count == len(indexes_of_started_promotions)
     assert promotion_ended_mock.call_count == len(indexes_of_ended_promotions)
+    assert sale_toggle_mock.call_count == len(indexes_of_toggle_sales)
 
     started_args_list = [args.args for args in promotion_started_mock.call_args_list]
     for index in indexes_of_started_promotions:
@@ -134,6 +161,10 @@ def test_handle_promotion_toggle(
     ended_args_list = [args.args for args in promotion_ended_mock.call_args_list]
     for index in indexes_of_ended_promotions:
         assert (promotions[index],) in ended_args_list
+
+    toggle_args_list = [args.args for args in sale_toggle_mock.call_args_list]
+    for index in indexes_of_toggle_sales:
+        assert (promotions[index], ANY) in toggle_args_list
 
     for index in indexes_of_started_promotions | indexes_of_ended_promotions:
         promotions[index].refresh_from_db()
