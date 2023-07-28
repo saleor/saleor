@@ -37,7 +37,7 @@ class PaymentGatewayToInitialize(BaseInputObjectType):
 
 class PaymentGatewayInitialize(TransactionSessionBase):
     gateway_configs = common_types.NonNullList(
-        PaymentGatewayConfig, description="The configuration of the payment gateway."
+        PaymentGatewayConfig, description="List of payment gateway configurations."
     )
 
     class Arguments:

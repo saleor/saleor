@@ -11585,7 +11585,7 @@ enum OrderChargeStatusEnum @doc(category: "Orders") {
 
 """Represents a payment of a given type."""
 type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
-  """ID associated with a payment."""
+  """ID of the payment."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -11700,7 +11700,7 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
 
 """An object representing a single payment."""
 type Transaction implements Node @doc(category: "Payments") {
-  """ID associated with a transaction."""
+  """ID of the transaction."""
   id: ID!
 
   """Date and time which transaction was created."""
@@ -22774,7 +22774,7 @@ Added in Saleor 3.13.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PaymentGatewayInitialize @doc(category: "Payments") {
-  """The configuration of the payment gateway."""
+  """List of payment gateway configurations."""
   gatewayConfigs: [PaymentGatewayConfig!]
   errors: [PaymentGatewayInitializeError!]!
 }

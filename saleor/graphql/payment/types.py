@@ -44,7 +44,7 @@ from .enums import (
 
 class Transaction(ModelObjectType[models.Transaction]):
     id = graphene.GlobalID(
-        required=True, description="ID associated with a transaction."
+        required=True, description="ID of the transaction."
     )
     created = graphene.DateTime(
         required=True, description="Date and time which transaction was created."
@@ -129,7 +129,7 @@ class PaymentSource(BaseObjectType):
 
 
 class Payment(ModelObjectType[models.Payment]):
-    id = graphene.GlobalID(required=True, description="ID associated with a payment.")
+    id = graphene.GlobalID(required=True, description="ID of the payment.")
     gateway = graphene.String(
         required=True, description="Payment gateway used for payment."
     )
