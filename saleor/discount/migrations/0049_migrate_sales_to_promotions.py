@@ -7,7 +7,7 @@ import graphene
 from django.db.models import Exists, OuterRef
 
 
-# The batch of size 100 takes ~1.2 second and consumes ~25MB memory at peak
+# The batch of size 100 takes ~0.9 second and consumes ~30MB memory at peak
 BATCH_SIZE = 100
 
 
@@ -191,25 +191,27 @@ def get_rule_by_channel_sale(rules_info):
 def channel_listing_in_batches(qs):
     first_sale_id = 0
     while True:
-        batch_1 = qs.filter(sale_id__gt=first_sale_id)[:BATCH_SIZE]
+        batch_1 = qs.values("sale_id").filter(sale_id__gt=first_sale_id)[:BATCH_SIZE]
         if len(batch_1) == 0:
             break
-        last_sale_id = batch_1[len(batch_1) - 1].sale_id
+        last_sale_id = batch_1[len(batch_1) - 1]["sale_id"]
 
         # `batch_2` extends initial `batch_1` to include all records from
         # `SaleChannelListing` which refer to `last_sale_id`
-        batch_2 = qs.filter(sale_id__gt=first_sale_id, sale_id__lte=last_sale_id)
+        batch_2 = qs.values("pk", "sale_id").filter(
+            sale_id__gt=first_sale_id, sale_id__lte=last_sale_id
+        )
         pks = list(batch_2.values_list("pk", flat=True))
         if not pks:
             break
         yield pks
-        first_sale_id = batch_2[len(batch_2) - 1].sale_id
+        first_sale_id = batch_2[len(batch_2) - 1]["sale_id"]
 
 
 def queryset_in_batches(queryset):
     start_pk = 0
     while True:
-        qs = queryset.filter(pk__gt=start_pk)[:BATCH_SIZE]
+        qs = queryset.values("pk").filter(pk__gt=start_pk)[:BATCH_SIZE]
         pks = list(qs.values_list("pk", flat=True))
         if not pks:
             break
