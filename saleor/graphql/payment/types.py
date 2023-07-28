@@ -61,7 +61,7 @@ class Transaction(ModelObjectType[models.Transaction]):
         required=True, description="Determines the type of transaction."
     )
     is_success = graphene.Boolean(
-        required=True, description="Determines if the payment was successful."
+        required=True, description="Determines if the transaction was successful."
     )
     error = graphene.String(description="Error associated with transaction, if any.")
     gateway_response = JSONString(
