@@ -298,7 +298,7 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def set_track_inventory(cls, _info, instance, cleaned_input):
-        track_inventory_by_default = get_track_inventory_by_default()
+        track_inventory_by_default = get_track_inventory_by_default(_info)
         if track_inventory_by_default is not None:
             instance.track_inventory = (
                 track_inventory_by_default

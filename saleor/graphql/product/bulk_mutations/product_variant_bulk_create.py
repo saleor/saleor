@@ -854,7 +854,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def save_variants(cls, variants_data_with_errors_list, product):
+    def save_variants(cls, info, variants_data_with_errors_list, product):
         variants_to_create: list = []
         stocks_to_create: list = []
         listings_to_create: list = []
@@ -865,12 +865,12 @@ class ProductVariantBulkCreate(BaseMutation):
 
             if not variant:
                 continue
-            track_inventory_by_default = get_track_inventory_by_default()
+            track_inventory_by_default = get_track_inventory_by_default(info)
             if track_inventory_by_default is not None:
                 variant.track_inventory = (
                     track_inventory_by_default
-                    if variant_data.get("track_inventory") is None
-                    else variant_data.get("track_inventory")
+                    if variant_data["cleaned_input"].get("track_inventory") is None
+                    else variant_data["cleaned_input"].get("track_inventory")
                 )
             variants_to_create.append(variant)
             cleaned_input = variant_data["cleaned_input"]
@@ -958,7 +958,7 @@ class ProductVariantBulkCreate(BaseMutation):
                     if data["errors"] and data["instance"]:
                         data["instance"] = None
 
-        cls.save_variants(instances_data_with_errors_list, product)
+        cls.save_variants(info, instances_data_with_errors_list, product)
 
         # prepare and return data
         results = get_results(instances_data_with_errors_list)
