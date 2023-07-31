@@ -233,3 +233,18 @@ class TransactionEventType:
         (CANCEL_REQUEST, "Represents cancel request"),
         (INFO, "Represents an info event"),
     ]
+
+
+class TokenizedPaymentFlow:
+    """Represents possible tokenized payment flows that can be used to process payment.
+
+    The following flows are possible:
+    INTERACTIVE - Payment method can be used for 1 click checkout - it's prefilled in
+    checkout form (might require additional authentication from user)
+    """
+
+    INTERACTIVE = "interactive"
+
+    CHOICES = [
+        (INTERACTIVE, "Interactive"),
+    ]

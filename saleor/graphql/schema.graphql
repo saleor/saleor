@@ -2253,6 +2253,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
+  LIST_STORED_PAYMENT_METHODS
 }
 
 """Synchronous webhook event."""
@@ -2339,6 +2340,7 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
+  LIST_STORED_PAYMENT_METHODS
 }
 
 """Asynchronous webhook event."""
@@ -32069,6 +32071,40 @@ type ShopMetadataUpdated implements Event {
 
   """Shop data."""
   shop: Shop
+}
+
+"""
+List payment methods stored for the user by payment gateway.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ListStoredPaymentMethods implements Event @doc(category: "Payments") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The user for which the app should return a list of payment methods."""
+  user: User!
+
+  """
+  Channel in context which was used to fetch the list of payment methods.
+  """
+  channel: Channel!
+
+  """
+  Amount that the payment method must support. If not provided by the user, 0 will be used as default value.
+  """
+  value: Money
 }
 
 """_Any value scalar as defined by Federation spec."""
