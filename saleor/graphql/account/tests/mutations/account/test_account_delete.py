@@ -23,8 +23,14 @@ ACCOUNT_DELETE_MUTATION = """
 
 
 @patch("saleor.core.tasks.delete_from_storage_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.account_deleted")
 @freeze_time("2018-05-31 12:00:01")
-def test_account_delete(delete_from_storage_task_mock, user_api_client, media_root):
+def test_account_delete(
+    mocked_account_deleted,
+    delete_from_storage_task_mock,
+    user_api_client,
+    media_root,
+):
     # given
     thumbnail_mock = MagicMock(spec=File)
     thumbnail_mock.name = "image.jpg"
@@ -54,6 +60,7 @@ def test_account_delete(delete_from_storage_task_mock, user_api_client, media_ro
     # ensure all related thumbnails have been deleted
     assert not Thumbnail.objects.filter(user_id=user_id).exists()
     delete_from_storage_task_mock.assert_called_once_with(img_path)
+    mocked_account_deleted.assert_called_once_with(user)
 
 
 @freeze_time("2018-05-31 12:00:01")

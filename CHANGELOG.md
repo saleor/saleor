@@ -95,6 +95,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 
 - Add `ACCOUNT_CONFIRMED` webhook - #13471, by @Air-t
   - Called when user confirm an account with `confirmAccount` mutation.
+- Add `ACCOUNT_DELETED` webhook - #13471, by @Air-t
+  - Called after account deletion is confirmed with `accountDelete` mutation.
 
 ### Other changes
 - Add possibility to log without confirming email - #13059 by @kadewu
@@ -130,7 +132,9 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Fix error handling in the permission check for `Query.webhook` - #13378 by @patrys
 - Add missing descriptions to Translation module. - #13410 by @Smit-Parmar
 - Add missing descriptions to menu module - #13409 by @devilsautumn
+- Add missing descriptions to page module - #13536 by @devilsautumn
 - Fix seo field to accept null value - #13512 by @ssuraliya
+
 
 # 3.14.0
 

@@ -1725,15 +1725,14 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """Account email change is requested."""
   ACCOUNT_CHANGE_EMAIL_REQUESTED
 
-  """
-  An account is confirmed.
-  
-  Added in Saleor 3.15.
-  """
+  """An account is confirmed."""
   ACCOUNT_CONFIRMED
 
   """An account delete is requested."""
   ACCOUNT_DELETE_REQUESTED
+
+  """An account is deleted."""
+  ACCOUNT_DELETED
 
   """A new address created."""
   ADDRESS_CREATED
@@ -1795,11 +1794,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A channel status is changed."""
   CHANNEL_STATUS_CHANGED
 
-  """
-  A channel metadata is updated.
-  
-  Added in Saleor 3.15.
-  """
+  """A channel metadata is updated."""
   CHANNEL_METADATA_UPDATED
 
   """A new gift card created."""
@@ -2383,15 +2378,14 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """Account email change is requested."""
   ACCOUNT_CHANGE_EMAIL_REQUESTED
 
-  """
-  An account is confirmed.
-  
-  Added in Saleor 3.15.
-  """
+  """An account is confirmed."""
   ACCOUNT_CONFIRMED
 
   """An account delete is requested."""
   ACCOUNT_DELETE_REQUESTED
+
+  """An account is deleted."""
+  ACCOUNT_DELETED
 
   """A new address created."""
   ADDRESS_CREATED
@@ -2453,11 +2447,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A channel status is changed."""
   CHANNEL_STATUS_CHANGED
 
-  """
-  A channel metadata is updated.
-  
-  Added in Saleor 3.15.
-  """
+  """A channel metadata is updated."""
   CHANNEL_METADATA_UPDATED
 
   """A new gift card created."""
@@ -3398,6 +3388,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ACCOUNT_CHANGE_EMAIL_REQUESTED
   ACCOUNT_CONFIRMED
   ACCOUNT_DELETE_REQUESTED
+  ACCOUNT_DELETED
   ADDRESS_CREATED
   ADDRESS_UPDATED
   ADDRESS_DELETED
@@ -8328,6 +8319,7 @@ type PageTranslation implements Node @doc(category: "Pages") {
 A static page that can be manually added by a shop operator through the dashboard.
 """
 type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  """ID of the page."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8367,8 +8359,14 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Title of the page for SEO."""
   seoTitle: String
+
+  """Description of the page for SEO."""
   seoDescription: String
+
+  """Title of the page."""
   title: String!
 
   """
@@ -8385,9 +8383,17 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Added in Saleor 3.3.
   """
   publishedAt: DateTime
+
+  """Determines if the page is published."""
   isPublished: Boolean!
+
+  """Slug of the page."""
   slug: String!
+
+  """Determines the type of page"""
   pageType: PageType!
+
+  """Date and time at which page was created."""
   created: DateTime!
 
   """
@@ -8411,6 +8417,7 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
 Represents a type of page. It defines what attributes are available to pages of this type.
 """
 type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  """ID of the page type."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8450,7 +8457,11 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Name of the page type."""
   name: String!
+
+  """Slug of the page type."""
   slug: String!
 
   """Page attributes of that page type."""
@@ -18116,13 +18127,16 @@ type Mutation {
   Remove user account. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - ACCOUNT_DELETED (async): Account was deleted.
   """
   accountDelete(
     """
     A one-time token required to remove account. Sent by email using AccountRequestDeletion mutation.
     """
     token: String!
-  ): AccountDelete @doc(category: "Users")
+  ): AccountDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_DELETED], syncEvents: [])
 
   """
   Creates user address. 
@@ -28366,8 +28380,11 @@ type AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEven
 Remove user account. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- ACCOUNT_DELETED (async): Account was deleted.
 """
-type AccountDelete @doc(category: "Users") {
+type AccountDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_DELETED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
@@ -29169,7 +29186,7 @@ Event sent when account is confirmed.
 
 Added in Saleor 3.15.
 """
-type AccountConfirmed implements Event @doc(category: "Users") {
+type AccountConfirmed implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29204,6 +29221,40 @@ Event sent when account delete is requested.
 Added in Saleor 3.15.
 """
 type AccountDeleteRequested implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
+}
+
+"""
+Event sent when account is deleted.
+
+Added in Saleor 3.15.
+"""
+type AccountDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
 

@@ -177,7 +177,7 @@ class AccountOperationBase(AbstractType):
 
 class AccountConfirmed(SubscriptionObjectType, AccountOperationBase):
     class Meta:
-        root_type = "User"
+        root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account is confirmed." + ADDED_IN_315
@@ -220,6 +220,14 @@ class AccountDeleteRequested(SubscriptionObjectType, AccountOperationBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account delete is requested." + ADDED_IN_315
+
+
+class AccountDeleted(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when account is deleted." + ADDED_IN_315
 
 
 class AddressBase(AbstractType):
@@ -2143,6 +2151,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED: AccountChangeEmailRequested,
     WebhookEventAsyncType.ACCOUNT_CONFIRMED: AccountConfirmed,
     WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: AccountDeleteRequested,
+    WebhookEventAsyncType.ACCOUNT_DELETED: AccountDeleted,
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
     WebhookEventAsyncType.ADDRESS_DELETED: AddressDeleted,

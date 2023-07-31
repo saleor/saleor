@@ -399,13 +399,13 @@ crt = ["awscrt (==0.16.26)"]
 
 [[package]]
 name = "braintree"
-version = "4.20.0"
+version = "4.21.0"
 description = "Braintree Python Library"
 optional = false
 python-versions = "*"
 files = [
-    {file = "braintree-4.20.0-py2.py3-none-any.whl", hash = "sha256:7c3766bc089b3439e1e3f899a91501fab40cc174e775ae334d06ced1694ebaf0"},
-    {file = "braintree-4.20.0.tar.gz", hash = "sha256:f5560c2dc6f7092a84fefbaadd611b6121809888680a9ddab3ab1ab8963848c6"},
+    {file = "braintree-4.21.0-py2.py3-none-any.whl", hash = "sha256:93d28a24b463830537d08e05e20b3d73c2c4b5b0c1fa302038d0c2743a29f0e6"},
+    {file = "braintree-4.21.0.tar.gz", hash = "sha256:27513132eec4b72f0be10d029c43206a3bf5b00571e9907f497962cd16ac59ab"},
 ]
 
 [package.dependencies]
@@ -4334,13 +4334,13 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "uvicorn"
-version = "0.22.0"
+version = "0.23.1"
 description = "The lightning-fast ASGI server."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "uvicorn-0.22.0-py3-none-any.whl", hash = "sha256:e9434d3bbf05f310e762147f769c9f21235ee118ba2d2bf1155a7196448bd996"},
-    {file = "uvicorn-0.22.0.tar.gz", hash = "sha256:79277ae03db57ce7d9aa0567830bbb51d7a612f54d6e1e3e92da3ef24c2c8ed8"},
+    {file = "uvicorn-0.23.1-py3-none-any.whl", hash = "sha256:1d55d46b83ee4ce82b4e82f621f2050adb3eb7b5481c13f9af1744951cae2f1f"},
+    {file = "uvicorn-0.23.1.tar.gz", hash = "sha256:da9b0c8443b2d7ee9db00a345f1eee6db7317432c9d4400f5049cc8d358383be"},
 ]
 
 [package.dependencies]
@@ -4350,6 +4350,7 @@ h11 = ">=0.8"
 httptools = {version = ">=0.5.0", optional = true, markers = "extra == \"standard\""}
 python-dotenv = {version = ">=0.13", optional = true, markers = "extra == \"standard\""}
 pyyaml = {version = ">=5.1", optional = true, markers = "extra == \"standard\""}
+typing-extensions = {version = ">=4.0", markers = "python_version < \"3.11\""}
 uvloop = {version = ">=0.14.0,<0.15.0 || >0.15.0,<0.15.1 || >0.15.1", optional = true, markers = "(sys_platform != \"win32\" and sys_platform != \"cygwin\") and platform_python_implementation != \"PyPy\" and extra == \"standard\""}
 watchfiles = {version = ">=0.13", optional = true, markers = "extra == \"standard\""}
 websockets = {version = ">=10.4", optional = true, markers = "extra == \"standard\""}
@@ -4873,4 +4874,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "6e2922fd395bb4319e0c051798ba8f8e84dcff4000e5e6ed6d52c817c65ab811"
+content-hash = "4543d128df1e7df907779b2c98bfde8d82605780f6d4bd774e4bb8e42e3d14ab"
