@@ -116,6 +116,10 @@ class Migration(migrations.Migration):
                         to="discount.promotion",
                     ),
                 ),
+                (
+                    "old_channel_listing_id",
+                    models.IntegerField(blank=True, null=True, unique=True),
+                ),
             ],
             options={
                 "ordering": ("name", "pk"),
