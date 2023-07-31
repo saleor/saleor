@@ -20,6 +20,10 @@ mutation CheckoutComplete($checkoutId: ID!) {
           amount
         }
       }
+      paymentStatus
+      statusDisplay
+      status
+      isPaid
       checkoutId
       deliveryMethod {
         ... on ShippingMethod {
