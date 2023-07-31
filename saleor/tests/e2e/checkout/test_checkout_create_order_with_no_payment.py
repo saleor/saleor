@@ -48,7 +48,7 @@ def prepare_product(
         slug=channel_slug,
         warehouse_ids=warehouse_ids,
         allow_unpaid_orders=True,
-        automatically_fulfill_non_shippable_giftcard=True,
+        automatically_confirm_all_new_orders=True,
     )
     channel_id = channel_data["id"]
 
@@ -143,7 +143,6 @@ def test_should_be_able_to_create_order_with_no_payment(
     shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     # Step 2 - Set shipping address and DeliveryMethod for checkout
-
     checkout_data = checkout_delivery_method_update(
         e2e_staff_api_client,
         checkout_id,
