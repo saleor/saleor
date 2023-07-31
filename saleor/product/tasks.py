@@ -128,7 +128,7 @@ def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
 
 
 @app.task
-def update_products_discounted_prices_for_promotion_task(product_ids):
+def update_products_discounted_prices_for_promotion_task(product_ids: Iterable[int]):
     """Update the product discounted prices for given product ids."""
     ids = sorted(product_ids)[:DISCOUNTED_PRODUCT_BATCH]
     qs = Product.objects.filter(pk__in=ids)
