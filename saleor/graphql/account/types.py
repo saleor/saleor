@@ -393,7 +393,10 @@ class User(ModelObjectType[models.User]):
     )
     stored_payment_sources = NonNullList(
         "saleor.graphql.payment.types.PaymentSource",
-        description="List of stored payment sources.",
+        description=(
+            "List of stored payment sources. The field returns a list of payment "
+            "sources stored for payment plugins."
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -425,15 +428,21 @@ class User(ModelObjectType[models.User]):
         StoredPaymentMethod,
         description=(
             "Returns a list of user's stored payment methods that can be used in "
-            "provided channel. When `amount` is not provided, 0 will be used as "
-            "default value." + ADDED_IN_315 + PREVIEW_FEATURE
+            "provided channel. The field returns a list of stored payment methods by "
+            "payment apps. When `amount` is not provided, 0 will be used as default "
+            "value." + ADDED_IN_315 + PREVIEW_FEATURE
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned.",
             required=True,
         ),
         amount=PositiveDecimal(
-            description="Amount that will be used to fetch stored payment methods."
+            description=(
+                "Amount that will be used to fetch stored payment methods."
+                "The provided amount will be sent to the payment app. The payment app "
+                "will use the amount to fetch all available stored payment methods for "
+                "the requested amount."
+            )
         ),
     )
 

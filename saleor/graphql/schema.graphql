@@ -9762,7 +9762,9 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   """
   events: [CustomerEvent!]
 
-  """List of stored payment sources."""
+  """
+  List of stored payment sources. The field returns a list of payment sources stored for payment plugins.
+  """
   storedPaymentSources(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -9794,7 +9796,7 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   updatedAt: DateTime!
 
   """
-  Returns a list of user's stored payment methods that can be used in provided channel. When `amount` is not provided, 0 will be used as default value.
+  Returns a list of user's stored payment methods that can be used in provided channel. The field returns a list of stored payment methods by payment apps. When `amount` is not provided, 0 will be used as default value.
   
   Added in Saleor 3.15.
   
@@ -9804,7 +9806,9 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
     """Slug of a channel for which the data should be returned."""
     channel: String!
 
-    """Amount that will be used to fetch stored payment methods."""
+    """
+    Amount that will be used to fetch stored payment methods.The provided amount will be sent to the payment app. The payment app will use the amount to fetch all available stored payment methods for the requested amount.
+    """
     amount: PositiveDecimal
   ): [StoredPaymentMethod!]
 }
