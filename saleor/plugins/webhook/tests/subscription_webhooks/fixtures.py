@@ -45,6 +45,14 @@ def subscription_account_change_email_requested_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_account_email_changed_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_EMAIL_CHANGED,
+        WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED,
+    )
+
+
+@pytest.fixture
 def subscription_account_delete_requested_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ACCOUNT_DELETE_REQUESTED,

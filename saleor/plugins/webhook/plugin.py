@@ -239,6 +239,18 @@ class WebhookPlugin(BasePlugin):
             new_email,
         )
 
+    def account_email_changed(
+        self,
+        user: "User",
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_event(
+            WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED,
+            user,
+        )
+
     def account_delete_requested(
         self,
         user: "User",
