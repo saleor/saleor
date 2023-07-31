@@ -115,6 +115,33 @@ ACCOUNT_DELETE_REQUESTED = (
 """
 )
 
+ACCOUNT_SET_PASSWORD_REQUESTED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountSetPasswordRequested{
+          user{
+            ...CustomerDetails
+          }
+          token
+          redirectUrl
+          channel{
+            slug
+            id
+          }
+          shop{
+            domain{
+                host
+                url
+            }
+          }
+        }
+      }
+    }
+"""
+)
+
 ACCOUNT_DELETED = (
     fragments.CUSTOMER_DETAILS
     + """

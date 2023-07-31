@@ -30,7 +30,9 @@ REQUEST_PASSWORD_RESET_MUTATION = """
 
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
+@patch("saleor.plugins.manager.PluginsManager.account_set_password_requested")
 def test_account_reset_password(
+    mocked_account_set_password_requested,
     mocked_notify,
     user_api_client,
     customer_user,
@@ -68,6 +70,10 @@ def test_account_reset_password(
     user = user_api_client.user
     user.refresh_from_db()
     assert user.last_password_reset_request == timezone.now()
+
+    mocked_account_set_password_requested.assert_called_once_with(
+        user, channel_PLN.slug, token, reset_url
+    )
 
 
 @freeze_time("2018-05-31 12:00:01")

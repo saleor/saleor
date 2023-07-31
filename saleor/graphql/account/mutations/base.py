@@ -1,7 +1,9 @@
 from collections import defaultdict
 from typing import List
+from urllib.parse import urlencode
 
 import graphene
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
 from ....account import events as account_events
@@ -11,7 +13,7 @@ from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
-from ....core.utils.url import validate_storefront_url
+from ....core.utils.url import prepare_url, validate_storefront_url
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty
 from ....giftcard.utils import get_user_gift_cards
 from ....graphql.utils import get_user_or_app_from_context
@@ -325,7 +327,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         else:
             manager.customer_updated(instance)
 
-        if cleaned_input.get("redirect_url"):
+        if redirect_url := cleaned_input.get("redirect_url"):
             channel_slug = cleaned_input.get("channel")
             if not instance.is_staff:
                 channel_slug = clean_channel(
@@ -335,12 +337,20 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                 channel_slug = validate_channel(
                     channel_slug, error_class=AccountErrorCode
                 ).slug
-
             send_set_password_notification(
-                cleaned_input.get("redirect_url"),
+                redirect_url,
                 instance,
                 manager,
                 channel_slug,
+            )
+            token = default_token_generator.make_token(instance)
+            params = urlencode({"email": instance.email, "token": token})
+            cls.call_event(
+                manager.account_set_password_requested,
+                instance,
+                channel_slug,
+                token,
+                prepare_url(params, redirect_url),
             )
 
     @classmethod

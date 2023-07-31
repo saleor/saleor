@@ -42,6 +42,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED: (
         "An account email change is requested."
     ),
+    WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED: (
+        "Setting a new password for the account is requested."
+    ),
     WebhookEventAsyncType.ACCOUNT_CONFIRMED: "An account is confirmed.",
     WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: "An account delete is requested.",
     WebhookEventAsyncType.ACCOUNT_DELETED: "An account is deleted.",

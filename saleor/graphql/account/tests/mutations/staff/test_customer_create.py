@@ -82,7 +82,9 @@ CUSTOMER_CREATE_MUTATION = """
 @patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
 @patch("saleor.account.notifications.default_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
+@patch("saleor.plugins.manager.PluginsManager.account_set_password_requested")
 def test_customer_create(
+    mocked_account_set_password_requested,
     mocked_notify,
     mocked_generator,
     mocked_customer_metadata_updated,
@@ -182,6 +184,10 @@ def test_customer_create(
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_customer
+
+    mocked_account_set_password_requested.assert_called_once_with(
+        new_user, channel_PLN.slug, "token", password_set_url
+    )
 
 
 @patch("saleor.account.notifications.default_token_generator.make_token")
@@ -365,3 +371,46 @@ def test_customer_create_with_non_unique_external_reference(
     assert error["field"] == "externalReference"
     assert error["code"] == AccountErrorCode.UNIQUE.name
     assert error["message"] == "User with this External reference already exists."
+
+
+@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_customer_create_webhook_event_triggered(
+    mocked_trigger_webhooks_async,
+    mocked_generator,
+    settings,
+    user_api_client,
+    subscription_account_set_password_requested_webhook,
+    staff_api_client,
+    address,
+    channel_PLN,
+    permission_manage_users,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    mocked_generator.return_value = "token"
+    email = "api_user@example.com"
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
+    address_data.pop("privateMetadata")
+
+    variables = {
+        "email": email,
+        "firstName": "api_first_name",
+        "lastName": "api_last_name",
+        "note": "Test user",
+        "shipping": address_data,
+        "billing": address_data,
+        "redirect_url": "https://www.example.com",
+        "languageCode": "PL",
+        "channel": channel_PLN.slug,
+        "externalReference": "test-ext-ref",
+    }
+
+    # when
+    staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    User.objects.get(email=email)
+    mocked_trigger_webhooks_async.assert_called()

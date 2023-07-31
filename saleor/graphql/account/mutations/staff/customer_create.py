@@ -33,4 +33,8 @@ class CustomerCreate(BaseCustomerCreate):
                 type=WebhookEventAsyncType.NOTIFY_USER,
                 description="A notification for setting the password.",
             ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED,
+                description="Setting a new password for the account is requested.",
+            ),
         ]
