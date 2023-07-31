@@ -2137,6 +2137,9 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A staff user is deleted."""
   STAFF_DELETED
 
+  """Setting a new password for the staff account is requested."""
+  STAFF_SET_PASSWORD_REQUESTED
+
   """
   Transaction item metadata is updated.
   
@@ -2795,6 +2798,9 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A staff user is deleted."""
   STAFF_DELETED
+
+  """Setting a new password for the staff account is requested."""
+  STAFF_SET_PASSWORD_REQUESTED
 
   """
   Transaction item metadata is updated.
@@ -3508,6 +3514,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   STAFF_CREATED
   STAFF_UPDATED
   STAFF_DELETED
+  STAFF_SET_PASSWORD_REQUESTED
   TRANSACTION_ITEM_METADATA_UPDATED
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
@@ -17908,6 +17915,7 @@ type Mutation {
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for password reset.
   - ACCOUNT_SET_PASSWORD_REQUESTED (async): Setting a new password for the account is requested.
+  - STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
   """
   requestPasswordReset(
     """
@@ -17922,7 +17930,7 @@ type Mutation {
     URL of a view where users should be redirected to reset the password. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED], syncEvents: [])
+  ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED, STAFF_SET_PASSWORD_REQUESTED], syncEvents: [])
 
   """
   Sends a notification confirmation.
@@ -18320,11 +18328,12 @@ type Mutation {
   Triggers the following webhook events:
   - STAFF_CREATED (async): A new staff account was created.
   - NOTIFY_USER (async): A notification for setting the password.
+  - STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
   """
   staffCreate(
     """Fields required to create a staff user."""
     input: StaffCreateInput!
-  ): StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER], syncEvents: [])
+  ): StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER, STAFF_SET_PASSWORD_REQUESTED], syncEvents: [])
 
   """
   Updates an existing staff user. Apps are not allowed to perform this mutation. 
@@ -28117,8 +28126,9 @@ Sends an email with the account password modification link.
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for password reset.
 - ACCOUNT_SET_PASSWORD_REQUESTED (async): Setting a new password for the account is requested.
+- STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
 """
-type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED], syncEvents: []) {
+type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED, STAFF_SET_PASSWORD_REQUESTED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
 }
@@ -28725,8 +28735,9 @@ Requires one of the following permissions: MANAGE_STAFF.
 Triggers the following webhook events:
 - STAFF_CREATED (async): A new staff account was created.
 - NOTIFY_USER (async): A notification for setting the password.
+- STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
 """
-type StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER], syncEvents: []) {
+type StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER, STAFF_SET_PASSWORD_REQUESTED], syncEvents: []) {
   staffErrors: [StaffError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [StaffError!]!
   user: User
@@ -31832,6 +31843,40 @@ type StaffDeleted implements Event @doc(category: "Users") {
 
   """The user the event relates to."""
   user: User
+}
+
+"""
+Event sent when setting a new password for staff is requested.
+
+Added in Saleor 3.15.
+"""
+type StaffSetPasswordRequested implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
 }
 
 """

@@ -1123,6 +1123,35 @@ def test_staff_deleted(staff_user, subscription_staff_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_staff_set_password_requested(
+    staff_user, channel_USD, subscription_staff_set_password_requested_webhook
+):
+    # given
+    webhooks = [subscription_staff_set_password_requested_webhook]
+    event_type = WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": staff_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    expected_payload = generate_account_requested_events_payload(
+        staff_user, channel_USD
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_product_created(product, subscription_product_created_webhook):
     webhooks = [subscription_product_created_webhook]
     event_type = WebhookEventAsyncType.PRODUCT_CREATED
