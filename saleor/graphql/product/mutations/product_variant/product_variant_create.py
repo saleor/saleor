@@ -60,7 +60,7 @@ class ProductVariantInput(BaseInputObjectType):
     track_inventory = graphene.Boolean(
         description=(
             "Determines if the inventory of this variant should be tracked. If false, "
-            "the quantity won't change when customers buy this item."
+            "the quantity won't change when customers buy this item. "
             "If the field is not provided, `Shop.trackInventoryByDefault` will be used."
         )
     )
