@@ -119,6 +119,24 @@ class TransactionCreate(BaseMutation):
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
     @classmethod
+    def validate_psp_reference(
+        cls,
+        psp_reference: Optional[str],
+        field_name: str,
+        error_code: str,
+    ):
+        if psp_reference is None:
+            return
+        if len(psp_reference) > 512:
+            raise ValidationError(
+                {
+                    field_name: ValidationError(
+                        "Maximum length for `pspReference` is 512.", code=error_code,
+                    )
+                }
+            )
+
+    @classmethod
     def validate_external_url(cls, external_url: Optional[str], error_code: str):
         if external_url is None:
             return
@@ -216,10 +234,24 @@ class TransactionCreate(BaseMutation):
 
     @classmethod
     def validate_input(
-        cls, instance: Union[checkout_models.Checkout, order_models.Order], transaction
+        cls,
+        instance: Union[checkout_models.Checkout, order_models.Order],
+        transaction,
+        transaction_event,
     ) -> Union[checkout_models.Checkout, order_models.Order]:
         currency = instance.currency
 
+        cls.validate_psp_reference(
+            transaction.get("psp_reference"),
+            field_name="transaction",
+            error_code=TransactionCreateErrorCode.INVALID.value,
+        )
+        if transaction_event is not None:
+            cls.validate_psp_reference(
+                transaction_event.get("psp_reference"),
+                field_name="transactionEvent",
+                error_code=TransactionCreateErrorCode.INVALID.value,
+            )
         cls.validate_money_input(
             transaction,
             currency,
@@ -337,7 +369,9 @@ class TransactionCreate(BaseMutation):
             order_or_checkout_instance, id
         )
         order_or_checkout_instance = cls.validate_input(
-            order_or_checkout_instance, transaction=transaction
+            order_or_checkout_instance,
+            transaction=transaction,
+            transaction_event=transaction_event,
         )
         transaction_data = {**transaction}
         transaction_data["currency"] = order_or_checkout_instance.currency
