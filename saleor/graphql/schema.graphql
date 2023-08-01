@@ -1095,7 +1095,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): Sale @doc(category: "Discounts")
+  ): Sale @doc(category: "Discounts") @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `promotion` query instead.")
 
   """
   List of the shop's sales.
@@ -1134,7 +1134,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): SaleCountableConnection @doc(category: "Discounts")
+  ): SaleCountableConnection @doc(category: "Discounts") @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `promotions` query instead.")
 
   """
   Look up a voucher by ID.
