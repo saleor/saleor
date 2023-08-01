@@ -18549,6 +18549,7 @@ enum WebhookErrorCode @doc(category: "Webhooks") {
   UNABLE_TO_PARSE
   MISSING_EVENT
   INVALID_CUSTOM_HEADERS
+  INVALID_NOTIFY_WITH_SUBSCRIPTION
 }
 
 input WebhookCreateInput @doc(category: "Webhooks") {

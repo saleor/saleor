@@ -322,3 +322,29 @@ def test_webhook_create_invalid_custom_headers(app_api_client):
         '"X-*" or "Authorization*".'
     )
     assert error["code"] == WebhookErrorCode.INVALID_CUSTOM_HEADERS.name
+
+
+def test_webhook_create_notify_user_with_another_event(app_api_client):
+    # given
+    query = WEBHOOK_CREATE
+    variables = {
+        "input": {
+            "name": "NOTIFY_USER with another event fails to save",
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [
+                WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
+                WebhookEventTypeAsyncEnum.NOTIFY_USER.name,
+            ],
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["webhookCreate"]
+    assert not data["webhook"]
+    error = data["errors"][0]
+    assert error["field"] == "asyncEvents"
+    assert error["code"] == WebhookErrorCode.INVALID_NOTIFY_WITH_SUBSCRIPTION.name
