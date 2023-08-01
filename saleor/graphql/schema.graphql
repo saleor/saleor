@@ -9762,7 +9762,9 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   """
   events: [CustomerEvent!]
 
-  """List of stored payment sources."""
+  """
+  List of stored payment sources. The field returns a list of payment sources stored for payment plugins.
+  """
   storedPaymentSources(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -9792,6 +9794,23 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
 
   """The data when the user last update the account information."""
   updatedAt: DateTime!
+
+  """
+  Returns a list of user's stored payment methods that can be used in provided channel. The field returns a list of stored payment methods by payment apps. When `amount` is not provided, 0 will be used as default value.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  storedPaymentMethods(
+    """Slug of a channel for which the data should be returned."""
+    channel: String!
+
+    """
+    Amount that will be used to fetch stored payment methods.The provided amount will be sent to the payment app. The payment app will use the amount to fetch all available stored payment methods for the requested amount.
+    """
+    amount: PositiveDecimal
+  ): [StoredPaymentMethod!]
 }
 
 """Checkout object."""
@@ -10044,6 +10063,18 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
   chargeStatus: CheckoutChargeStatusEnum! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
+
+  """
+  List of user's stored payment methods that can be used in this checkout session. It uses the channel that the checkout was created in. When `amount` is not provided, `checkout.total` will be used as a default value.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  storedPaymentMethods(
+    """Amount that will be used to fetch stored payment methods."""
+    amount: PositiveDecimal
+  ): [StoredPaymentMethod!]
 }
 
 """
@@ -12007,6 +12038,54 @@ enum CheckoutChargeStatusEnum @doc(category: "Checkout") {
   FULL
   OVERCHARGED
 }
+
+"""
+Represents a payment method stored for user (tokenized) in payment gateway.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type StoredPaymentMethod @doc(category: "Payments") {
+  """Stored payment method ID."""
+  id: ID!
+
+  """Payment gateway that stores this payment method."""
+  gateway: PaymentGateway!
+
+  """
+  ID of stored payment method used to make payment actions. Note: method ID is unique only within the payment gateway.
+  """
+  paymentMethodId: String!
+
+  """Stored credit card details if available."""
+  creditCardInfo: CreditCard
+  supportedPaymentFlows: [TokenizedPaymentFlowEnum!]
+
+  """Type of the payment method. Example: credit card, wallet, etc."""
+  type: String!
+
+  """
+  Payment method name. Example: last 4 digits of credit card, obfuscated email, etc.
+  """
+  name: String
+
+  """JSON data returned by Payment Provider app for this payment method."""
+  data: JSON
+}
+
+"""
+Represents possible tokenized payment flows that can be used to process payment.
+
+    The following flows are possible:
+    INTERACTIVE - Payment method can be used for 1 click checkout - it's prefilled in
+    checkout form (might require additional authentication from user)
+"""
+enum TokenizedPaymentFlowEnum {
+  INTERACTIVE
+}
+
+scalar JSON
 
 type CheckoutCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""
@@ -22483,8 +22562,6 @@ type PaymentGatewayConfig @doc(category: "Payments") {
   data: JSON
   errors: [PaymentGatewayConfigError!]
 }
-
-scalar JSON
 
 type PaymentGatewayConfigError @doc(category: "Payments") {
   """
