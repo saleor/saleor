@@ -17018,7 +17018,9 @@ type Mutation {
   ): PromotionRuleTranslate
 
   """
-  Creates a new sale. 
+  Creates a new sale.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionCreate` mutation instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -17031,7 +17033,9 @@ type Mutation {
   ): SaleCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_CREATED], syncEvents: [])
 
   """
-  Deletes a sale. 
+  Deletes a sale.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionDelete` mutation instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -17057,7 +17061,9 @@ type Mutation {
   ): SaleBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: [])
 
   """
-  Updates a sale. 
+  Updates a sale.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionUpdate` mutation instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -17074,7 +17080,9 @@ type Mutation {
   ): SaleUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED, SALE_TOGGLE], syncEvents: [])
 
   """
-  Adds products, categories, collections to a voucher. 
+  Adds products, categories, collections to a sale.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionRuleCreate` mutation instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -17090,7 +17098,9 @@ type Mutation {
   ): SaleAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: [])
 
   """
-  Removes products, categories, collections from a sale. 
+  Removes products, categories, collections from a sale.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionRuleUpdate` or `promotionRuleDelete` mutations instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -17122,7 +17132,9 @@ type Mutation {
   ): SaleTranslate @doc(category: "Discounts")
 
   """
-  Manage sale's availability in channels. 
+  Manage sale's availability in channels.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `PromotionRuleCreate` or `promotionRuleUpdate` mutations instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
@@ -26393,7 +26405,9 @@ input PromotionRuleTranslationInput {
 }
 
 """
-Creates a new sale. 
+Creates a new sale.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionCreate` mutation instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -26465,7 +26479,9 @@ input SaleInput @doc(category: "Discounts") {
 }
 
 """
-Deletes a sale. 
+Deletes a sale.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionDelete` mutation instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -26494,7 +26510,9 @@ type SaleBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: 
 }
 
 """
-Updates a sale. 
+Updates a sale.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionUpdate` mutation instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -26509,7 +26527,9 @@ type SaleUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SAL
 }
 
 """
-Adds products, categories, collections to a voucher. 
+Adds products, categories, collections to a sale.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionRuleCreate` mutation instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -26542,7 +26562,9 @@ input CatalogueInput @doc(category: "Discounts") {
 }
 
 """
-Removes products, categories, collections from a sale. 
+Removes products, categories, collections from a sale.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionRuleUpdate` or `promotionRuleDelete` mutations instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -26568,7 +26590,9 @@ type SaleTranslate @doc(category: "Discounts") {
 }
 
 """
-Manage sale's availability in channels. 
+Manage sale's availability in channels.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `PromotionRuleCreate` or `promotionRuleUpdate` mutations instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
