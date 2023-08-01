@@ -84,7 +84,7 @@ from ...product.models import (
 )
 from ...product.search import update_products_search_vector
 from ...product.tasks import update_products_discounted_prices_of_promotion_task
-from ...product.utils.variant_prices import update_products_discounted_prices
+from ...product.utils.variant_prices import update_discounted_prices_for_promotion
 from ...shipping.models import (
     ShippingMethod,
     ShippingMethodChannelListing,
@@ -477,7 +477,7 @@ def create_products_by_schema(placeholder_dir, create_images):
 
     all_products_qs = Product.objects.all()
     update_products_search_vector(all_products_qs)
-    update_products_discounted_prices(all_products_qs)
+    update_discounted_prices_for_promotion(all_products_qs)
 
 
 class SaleorProvider(BaseProvider):

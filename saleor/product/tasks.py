@@ -16,7 +16,6 @@ from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
 from .utils.variant_prices import (
     update_discounted_prices_for_promotion,
-    update_products_discounted_price,
     update_products_discounted_prices,
     update_products_discounted_prices_of_catalogues,
     update_products_discounted_prices_of_sale,
@@ -78,16 +77,6 @@ def update_variants_names(product_type_pk: int, saved_attributes_ids: List[int])
         return
     saved_attributes = Attribute.objects.filter(pk__in=saved_attributes_ids)
     _update_variants_names(instance, saved_attributes)
-
-
-@app.task
-def update_product_discounted_price_task(product_pk: int):
-    try:
-        product = Product.objects.get(pk=product_pk)
-    except ObjectDoesNotExist:
-        logging.warning(f"Cannot find product with id: {product_pk}.")
-        return
-    update_products_discounted_price([product])
 
 
 @app.task

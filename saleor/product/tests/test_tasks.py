@@ -11,7 +11,6 @@ from ...discount import RewardValueType
 from ...discount.models import Promotion
 from ..tasks import (
     _get_preorder_variants_to_clean,
-    update_product_discounted_price_task,
     update_products_discounted_prices_for_promotion_task,
     update_products_discounted_prices_of_promotion_task,
     update_products_discounted_prices_of_sale_task,
@@ -132,31 +131,6 @@ def test_update_products_discounted_prices_for_promotion_task(
 
     # then
     update_products_discounted_prices_mock.call_count == len(ids)
-
-
-@patch("saleor.product.tasks.update_products_discounted_price")
-def test_update_product_discounted_price_task(update_product_price_mock, product):
-    # when
-    update_product_discounted_price_task(product.id)
-
-    # then
-    update_product_price_mock.assert_called_once_with([product])
-
-
-@patch("saleor.product.tasks.update_products_discounted_price")
-def test_update_product_discounted_price_task_product_does_not_exist(
-    update_product_price_mock, caplog
-):
-    # given
-    caplog.set_level(logging.WARNING)
-    product_id = -1
-
-    # when
-    update_product_discounted_price_task(product_id)
-
-    # then
-    update_product_price_mock.assert_not_called()
-    assert f"Cannot find product with id: {product_id}" in caplog.text
 
 
 @patch("saleor.product.tasks._update_variants_names")
