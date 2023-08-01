@@ -17134,7 +17134,7 @@ type Mutation {
   """
   Manage sale's availability in channels.
   
-  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `PromotionRuleCreate` or `promotionRuleUpdate` mutations instead. 
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionRuleCreate` or `promotionRuleUpdate` mutations instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
@@ -26592,7 +26592,7 @@ type SaleTranslate @doc(category: "Discounts") {
 """
 Manage sale's availability in channels.
 
-DEPRECATED: this mutation will be removed in Saleor 4.0. Use `PromotionRuleCreate` or `promotionRuleUpdate` mutations instead. 
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionRuleCreate` or `promotionRuleUpdate` mutations instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """

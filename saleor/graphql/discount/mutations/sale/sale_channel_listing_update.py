@@ -65,7 +65,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         description = (
             "Manage sale's availability in channels."
             + DEPRECATED_IN_3X_MUTATION
-            + " Use `PromotionRuleCreate` or `promotionRuleUpdate` mutations instead."
+            + " Use `promotionRuleCreate` or `promotionRuleUpdate` mutations instead."
         )
         doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
