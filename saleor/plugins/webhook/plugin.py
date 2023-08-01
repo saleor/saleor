@@ -22,6 +22,8 @@ from ...payment.interface import (
     PaymentGateway,
     PaymentGatewayData,
     PaymentMethodData,
+    PaymentMethodRequestDeleteData,
+    PaymentMethodRequestDeleteResponseData,
     TransactionActionData,
     TransactionSessionData,
 )
@@ -60,11 +62,14 @@ from ...webhook.payloads import (
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import BasePlugin, ExcludedShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_KEY, WEBHOOK_CACHE_DEFAULT_TIMEOUT
-from .list_stored_payment_methods import get_list_stored_payment_methods_from_response
 from .shipping import (
     get_cache_data_for_shipping_list_methods_for_checkout,
     get_excluded_shipping_data,
     parse_list_shipping_methods_response,
+)
+from .stored_payment_methods import (
+    get_list_stored_payment_methods_from_response,
+    get_response_for_payment_method_request_delete,
 )
 from .tasks import (
     send_webhook_request_async,
@@ -1549,6 +1554,49 @@ class WebhookPlugin(BasePlugin):
         delivery_update(delivery, status=EventDeliveryStatus.PENDING)
         send_webhook_request_async.delay(delivery.pk)
 
+    def payment_method_request_delete(
+        self,
+        request_delete_data: "PaymentMethodRequestDeleteData",
+        previous_value: "PaymentMethodRequestDeleteResponseData",
+    ) -> "PaymentMethodRequestDeleteResponseData":
+        if not self.active:
+            return previous_value
+
+        app_data = from_payment_app_id(request_delete_data.payment_method_id)
+        if not app_data or not app_data.app_identifier:
+            return previous_value
+
+        event_type = WebhookEventSyncType.PAYMENT_METHOD_REQUEST_DELETE
+        webhook = get_webhooks_for_event(
+            event_type, apps_identifier=[app_data.app_identifier]
+        ).first()
+
+        if not webhook:
+            return previous_value
+
+        payload = self._serialize_payload(
+            {
+                "payment_method_id": app_data.name,
+                "user_id": graphene.Node.to_global_id(
+                    "User", request_delete_data.user.id
+                ),
+            }
+        )
+
+        response_data = trigger_webhook_sync(
+            event_type,
+            payload,
+            webhook,
+            subscribable_object=PaymentMethodRequestDeleteData(
+                payment_method_id=app_data.name,
+                user=request_delete_data.user,
+            ),
+            timeout=WEBHOOK_SYNC_TIMEOUT,
+        )
+
+        # FIXME: Need to figure out how to handle cached stored payment methods
+        return get_response_for_payment_method_request_delete(response_data)
+
     def list_stored_payment_methods(
         self,
         list_payment_method_data: "ListStoredPaymentMethodsRequestData",
@@ -2115,6 +2163,9 @@ class WebhookPlugin(BasePlugin):
     def is_event_active(self, event: str, channel=Optional[str]):
         map_event = {
             "invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED,
+            "payment_method_request_delete": (
+                WebhookEventSyncType.PAYMENT_METHOD_REQUEST_DELETE
+            ),
         }
 
         if event in map_event:

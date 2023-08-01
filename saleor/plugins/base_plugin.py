@@ -33,6 +33,8 @@ from ..payment.interface import (
     PaymentData,
     PaymentGateway,
     PaymentMethodData,
+    PaymentMethodRequestDeleteData,
+    PaymentMethodRequestDeleteResponseData,
     TransactionActionData,
 )
 from ..thumbnail.models import Thumbnail
@@ -655,6 +657,14 @@ class BasePlugin:
     list_stored_payment_methods: Callable[
         ["ListStoredPaymentMethodsRequestData", list["PaymentMethodData"]],
         list["PaymentMethodData"],
+    ]
+
+    payment_method_request_delete: Callable[
+        [
+            "PaymentMethodRequestDeleteData",
+            "PaymentMethodRequestDeleteResponseData",
+        ],
+        "PaymentMethodRequestDeleteResponseData",
     ]
 
     # Trigger when menu is created.

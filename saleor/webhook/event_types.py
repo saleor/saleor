@@ -703,6 +703,7 @@ class WebhookEventSyncType:
     TRANSACTION_PROCESS_SESSION = "transaction_process_session"
 
     LIST_STORED_PAYMENT_METHODS = "list_stored_payment_methods"
+    PAYMENT_METHOD_REQUEST_DELETE = "payment_method_request_delete"
 
     EVENT_MAP: dict[str, dict[str, Any]] = {
         PAYMENT_LIST_GATEWAYS: {
@@ -779,6 +780,10 @@ class WebhookEventSyncType:
         },
         LIST_STORED_PAYMENT_METHODS: {
             "name": "List tokenized payment methods that can be used by the customer.",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        PAYMENT_METHOD_REQUEST_DELETE: {
+            "name": "Request deletion of a tokenized payment method.",
             "permission": PaymentPermissions.HANDLE_PAYMENTS,
         },
     }

@@ -2254,6 +2254,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
   LIST_STORED_PAYMENT_METHODS
+  PAYMENT_METHOD_REQUEST_DELETE
 }
 
 """Synchronous webhook event."""
@@ -2341,6 +2342,7 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
   LIST_STORED_PAYMENT_METHODS
+  PAYMENT_METHOD_REQUEST_DELETE
 }
 
 """Asynchronous webhook event."""
@@ -32172,6 +32174,37 @@ type ListStoredPaymentMethods implements Event @doc(category: "Payments") {
   Channel in context which was used to fetch the list of payment methods.
   """
   channel: Channel!
+}
+
+"""
+Event sent when user requests to delete a payment method.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PaymentMethodRequestDelete implements Event @doc(category: "Payments") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The user for which the app should proceed with payment method delete request.
+  """
+  user: User!
+
+  """
+  The ID of the payment method that should be deleted by the payment gateway.
+  """
+  paymentMethodId: String!
 }
 
 """_Any value scalar as defined by Federation spec."""

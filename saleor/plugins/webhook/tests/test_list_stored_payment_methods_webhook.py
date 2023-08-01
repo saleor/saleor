@@ -1,12 +1,13 @@
 import graphene
 import mock
+import pytest
 
 from ....core.models import EventDelivery
 from ....payment.interface import ListStoredPaymentMethodsRequestData
 from ....settings import WEBHOOK_SYNC_TIMEOUT
 from ....webhook.event_types import WebhookEventSyncType
 from ..const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
-from ..list_stored_payment_methods import get_list_stored_payment_methods_from_response
+from ..stored_payment_methods import get_list_stored_payment_methods_from_response
 from ..utils import generate_cache_key_for_webhook
 
 LIST_STORED_PAYMENT_METHODS = """
@@ -23,6 +24,28 @@ subscription {
   }
 }
 """
+
+
+@pytest.fixture
+def webhook_list_stored_payment_methods_response():
+    return {
+        "paymentMethods": [
+            {
+                "id": "method-1",
+                "supportedPaymentFlows": ["INTERACTIVE"],
+                "type": "Credit Card",
+                "creditCardInfo": {
+                    "brand": "visa",
+                    "lastDigits": "1234",
+                    "expMonth": 1,
+                    "expYear": 2023,
+                    "firstDigits": "123456",
+                },
+                "name": "***1234",
+                "data": {"some": "data"},
+            }
+        ]
+    }
 
 
 @mock.patch("saleor.plugins.webhook.tasks.cache.set")

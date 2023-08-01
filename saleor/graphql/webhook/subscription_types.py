@@ -15,6 +15,7 @@ from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
 from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
+    PaymentMethodRequestDeleteData,
     TransactionActionData,
     TransactionSessionData,
 )
@@ -1805,6 +1806,50 @@ class TransactionItemMetadataUpdated(SubscriptionObjectType):
         return transaction_item
 
 
+class PaymentMethodRequestDelete(SubscriptionObjectType):
+    user = graphene.Field(
+        UserType,
+        description=(
+            "The user for which the app should proceed with payment method delete "
+            "request."
+        ),
+        required=True,
+    )
+    payment_method_id = graphene.Field(
+        graphene.String,
+        description=(
+            "The ID of the payment method that should be deleted by the payment "
+            "gateway."
+        ),
+        required=True,
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user requests to delete a payment method."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+    @classmethod
+    def resolve_user(
+        cls, root: tuple[str, PaymentMethodRequestDeleteData], _info: ResolveInfo
+    ):
+        _, payment_method_data = root
+        return payment_method_data.user
+
+    @classmethod
+    def resolve_payment_method_id(
+        cls, root: tuple[str, PaymentMethodRequestDeleteData], _info: ResolveInfo
+    ):
+        _, payment_method_data = root
+        return payment_method_data.payment_method_id
+
+
 class TranslationTypes(Union):
     class Meta:
         types = tuple(TRANSLATIONS_TYPES_MAP.values())
@@ -2318,4 +2363,5 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
     WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
     WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS: ListStoredPaymentMethods,
+    WebhookEventSyncType.PAYMENT_METHOD_REQUEST_DELETE: PaymentMethodRequestDelete,
 }

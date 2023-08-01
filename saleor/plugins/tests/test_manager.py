@@ -21,6 +21,8 @@ from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentGateway,
     PaymentGatewayData,
+    PaymentMethodRequestDeleteData,
+    PaymentMethodRequestDeleteResponseData,
     TransactionProcessActionData,
     TransactionSessionData,
 )
@@ -1355,3 +1357,30 @@ def test_list_stored_payment_methods(
 
     # then
     mocked_list_stored_payment_methods.assert_called_once()
+
+
+@patch("saleor.plugins.tests.sample_plugins.PluginSample.payment_method_request_delete")
+def test_payment_method_request_delete(
+    mocked_payment_method_request_delete, customer_user
+):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    request_delete_data = PaymentMethodRequestDeleteData(
+        user=customer_user,
+        payment_method_id="123",
+    )
+    previous_response = PaymentMethodRequestDeleteResponseData(
+        success=False, message="Payment method request delete failed to deliver."
+    )
+
+    # when
+    manager.payment_method_request_delete(request_delete_data=request_delete_data)
+
+    # then
+    mocked_payment_method_request_delete.assert_called_once_with(
+        request_delete_data, previous_value=previous_response
+    )
