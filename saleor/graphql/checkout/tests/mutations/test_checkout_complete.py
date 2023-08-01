@@ -982,7 +982,6 @@ def test_checkout_with_voucher_complete(
     assert order_id == graphene.Node.to_global_id("Order", order.id)
     assert order.metadata == checkout.metadata_storage.metadata
     assert order.private_metadata == checkout.metadata_storage.private_metadata
-
     assert order.total == total
     assert order.undiscounted_total == total + discount_amount
 

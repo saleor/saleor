@@ -11,6 +11,7 @@ from ..order import base_calculations
 from ..payment.model_helpers import get_subtotal
 from ..plugins.manager import PluginsManager
 from ..tax import TaxCalculationStrategy
+from ..tax.calculations import calculate_flat_rate_tax
 from ..tax.calculations.order import update_order_prices_with_flat_rates
 from ..tax.utils import (
     calculate_tax_rate,
@@ -25,7 +26,10 @@ from .models import Order, OrderLine
 
 
 def _recalculate_order_prices(
-    manager: PluginsManager, order: Order, lines: Iterable[OrderLine]
+    manager: PluginsManager,
+    order: Order,
+    lines: Iterable[OrderLine],
+    prices_entered_with_tax: bool,
 ) -> None:
     """Fetch taxes from plugins and recalculate order/lines prices.
 
@@ -44,18 +48,32 @@ def _recalculate_order_prices(
                 line_unit = manager.calculate_order_line_unit(
                     order, line, variant, product
                 )
-                line.undiscounted_unit_price = line_unit.undiscounted_price
                 line.unit_price = line_unit.price_with_discounts
 
                 line_total = manager.calculate_order_line_total(
                     order, line, variant, product
                 )
-                line.undiscounted_total_price = line_total.undiscounted_price
                 undiscounted_subtotal += line_total.undiscounted_price
                 line.total_price = line_total.price_with_discounts
 
                 line.tax_rate = manager.get_order_line_tax_rate(
                     order, product, variant, None, line_unit.undiscounted_price
+                )
+                line.undiscounted_unit_price = quantize_price(
+                    calculate_flat_rate_tax(
+                        money=line.undiscounted_base_unit_price,
+                        tax_rate=line.tax_rate * 100,
+                        prices_entered_with_tax=prices_entered_with_tax,
+                    ),
+                    line.currency,
+                )
+                line.undiscounted_total_price = quantize_price(
+                    calculate_flat_rate_tax(
+                        money=line_total.undiscounted_price.net,
+                        tax_rate=line.tax_rate * 100,
+                        prices_entered_with_tax=prices_entered_with_tax,
+                    ),
+                    line.currency,
                 )
             except TaxError:
                 pass
@@ -271,7 +289,7 @@ def _calculate_and_add_tax(
     prices_entered_with_tax: bool,
 ):
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
-        _recalculate_order_prices(manager, order, lines)
+        _recalculate_order_prices(manager, order, lines, prices_entered_with_tax)
         tax_data = manager.get_taxes_for_order(order)
         _apply_tax_data(order, lines, tax_data)
     else:
