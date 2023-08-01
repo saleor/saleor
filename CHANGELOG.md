@@ -98,6 +98,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Called after account deletion is confirmed with `accountDelete` mutation.
 - Add `ACCOUNT_EMAIL_CHANGED` webhook - #13537, by @Air-t
   - Called when `confirmEmailChange` mutation is triggered.
+- Add `ACCOUNT_SET_PASSWORD_REQUESTED` webhook - #13486, by @Air-t
+  - Called after `requestPasswordReset` or `customerCreate` mutation.
 
 ### Other changes
 - Add possibility to log without confirming email - #13059 by @kadewu

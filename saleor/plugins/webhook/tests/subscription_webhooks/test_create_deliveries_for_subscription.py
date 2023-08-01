@@ -207,6 +207,35 @@ def test_account_delete_requested(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_account_set_password_requested(
+    customer_user, channel_USD, subscription_account_set_password_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_set_password_requested_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    expected_payload = generate_account_requested_events_payload(
+        customer_user, channel_USD
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_account_deleted_confirmed(customer_user, subscription_account_deleted_webhook):
     # given
     webhooks = [subscription_account_deleted_webhook]

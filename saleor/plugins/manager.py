@@ -1099,6 +1099,23 @@ class PluginsManager(PaymentInterface):
             user,
         )
 
+    def account_set_password_requested(
+        self,
+        user: "User",
+        channel_slug: str,
+        token: str,
+        redirect_url: str,
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "account_set_password_requested",
+            default_value,
+            user,
+            channel_slug,
+            token=token,
+            redirect_url=redirect_url,
+        )
+
     def account_delete_requested(
         self, user: "User", channel_slug: str, token: str, redirect_url: str
     ):
