@@ -35,7 +35,7 @@ DEPRECATED_VALUE_FIELDS = ["rich_text", "plain_text"]
 
 
 def validate_value(
-    value_data,
+    value_data: AttributeCreateInput,
     input_type: AttributeInputType,
     slugs_list: list[str],
     value_index: int,

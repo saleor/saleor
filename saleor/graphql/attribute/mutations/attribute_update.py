@@ -71,9 +71,9 @@ class AttributeUpdateInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_ATTRIBUTES
         description = (
             "Represents an input for update of attribute.\n\n"
-            "NOTE: Deprecated fields 'filterableInStorefront', "
-            "'storefrontSearchPosition' and 'availableInGrid` are not supported in "
-            "bulk mutation."
+            "NOTE: Deprecated fields `filterableInStorefront`, "
+            "`storefrontSearchPosition` and `availableInGrid` are not supported in "
+            "bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`."
         )
 
 

@@ -100,9 +100,9 @@ class AttributeCreateInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_ATTRIBUTES
         description = (
             "Represents an input for create of attribute.\n\n"
-            "NOTE: Deprecated fields 'filterableInStorefront', "
-            "'storefrontSearchPosition' and 'availableInGrid` are not supported in "
-            "bulk mutation."
+            "NOTE: Deprecated fields `filterableInStorefront`, "
+            "`storefrontSearchPosition` and `availableInGrid` are not supported in "
+            "bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`."
         )
 
 

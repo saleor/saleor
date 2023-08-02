@@ -104,7 +104,11 @@ class AttributeBulkUpdate(BaseMutation):
         webhook_events_info = [
             WebhookEventInfo(
                 type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
-                description="An attribute was updated.",
+                description=(
+                    "An attribute was updated. "
+                    "Optionally called when  new attribute value was created or "
+                    "deleted."
+                ),
             ),
             WebhookEventInfo(
                 type=WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED,

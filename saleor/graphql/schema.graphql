@@ -17568,7 +17568,7 @@ type Mutation {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Triggers the following webhook events:
-  - ATTRIBUTE_UPDATED (async): An attribute was updated.
+  - ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when  new attribute value was created or deleted.
   - ATTRIBUTE_VALUE_CREATED (async): An attribute value was created.
   - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
   """
@@ -27013,7 +27013,7 @@ enum AttributeErrorCode @doc(category: "Attributes") {
 """
 Represents an input for create of attribute.
 
-NOTE: Deprecated fields 'filterableInStorefront', 'storefrontSearchPosition' and 'availableInGrid` are not supported in bulk mutation.
+NOTE: Deprecated fields `filterableInStorefront`, `storefrontSearchPosition` and `availableInGrid` are not supported in bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`.
 """
 input AttributeCreateInput @doc(category: "Attributes") {
   """The input type to use for entering attribute values in the dashboard."""
@@ -27148,7 +27148,7 @@ type AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents
 """
 Represents an input for update of attribute.
 
-NOTE: Deprecated fields 'filterableInStorefront', 'storefrontSearchPosition' and 'availableInGrid` are not supported in bulk mutation.
+NOTE: Deprecated fields `filterableInStorefront`, `storefrontSearchPosition` and `availableInGrid` are not supported in bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`.
 """
 input AttributeUpdateInput @doc(category: "Attributes") {
   """Name of an attribute displayed in the interface."""
@@ -27307,7 +27307,7 @@ Added in Saleor 3.15.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
 Triggers the following webhook events:
-- ATTRIBUTE_UPDATED (async): An attribute was updated.
+- ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when  new attribute value was created or deleted.
 - ATTRIBUTE_VALUE_CREATED (async): An attribute value was created.
 - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
 """
