@@ -21,6 +21,9 @@ DEPRECATED_IN_3X_ENUM_VALUE = (
 DEPRECATED_IN_3X_MUTATION = (
     "\n\nDEPRECATED: this mutation will be removed in Saleor 4.0."
 )
+DEPRECATED_IN_3X_TYPE = "\n\nDEPRECATED: this type will be removed in Saleor 4.0."
+
+DEPRECATED_IN_3X_EVENT = "\n\nDEPRECATED: this event will be removed in Saleor 4.0."
 
 ADDED_IN_31 = "\n\nAdded in Saleor 3.1."
 ADDED_IN_32 = "\n\nAdded in Saleor 3.2."

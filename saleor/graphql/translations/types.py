@@ -20,6 +20,7 @@ from ..core.descriptions import (
     ADDED_IN_39,
     ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_TYPE,
     RICH_CONTENT,
 )
 from ..core.enums import LanguageCodeEnum
@@ -602,7 +603,11 @@ class SaleTranslation(BaseTranslationType[discount_models.SaleTranslation]):
     class Meta:
         model = discount_models.SaleTranslation
         interfaces = [graphene.relay.Node]
-        description = "Represents sale translations."
+        description = (
+            "Represents sale translations."
+            + DEPRECATED_IN_3X_TYPE
+            + " Use `PromotionTranslation` instead."
+        )
 
 
 class SaleTranslatableContent(ModelObjectType[discount_models.Sale]):
@@ -628,6 +633,8 @@ class SaleTranslatableContent(ModelObjectType[discount_models.Sale]):
         interfaces = [graphene.relay.Node]
         description = (
             "Represents sale's original translatable fields and related translations."
+            + DEPRECATED_IN_3X_TYPE
+            + " Use `PromotionTranslatableContent` instead."
         )
 
     @staticmethod
