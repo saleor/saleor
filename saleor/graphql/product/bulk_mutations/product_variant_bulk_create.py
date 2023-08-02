@@ -866,11 +866,12 @@ class ProductVariantBulkCreate(BaseMutation):
             if not variant:
                 continue
             track_inventory_by_default = get_track_inventory_by_default(info)
+            track_inventory = variant_data["cleaned_input"].get("track_inventory")
             if track_inventory_by_default is not None:
                 variant.track_inventory = (
                     track_inventory_by_default
-                    if variant_data["cleaned_input"].get("track_inventory") is None
-                    else variant_data["cleaned_input"].get("track_inventory")
+                    if track_inventory is None
+                    else track_inventory
                 )
             variants_to_create.append(variant)
             cleaned_input = variant_data["cleaned_input"]
