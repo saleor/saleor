@@ -108,7 +108,7 @@ class TransactionUpdate(TransactionCreate):
 
     @classmethod
     def validate_transaction_input(
-        cls, instance: payment_models.TransactionItem, transaction_data
+        cls, instance: payment_models.TransactionItem, transaction_data, transaction_event_data
     ):
         currency = instance.currency
         if transaction_data.get("available_actions") is not None:
@@ -116,25 +116,38 @@ class TransactionUpdate(TransactionCreate):
                 set(transaction_data.get("available_actions", []))
             )
 
-        cls.validate_money_input(
-            transaction_data,
-            currency,
-            TransactionUpdateErrorCode.INCORRECT_CURRENCY.value,
-        )
-        cls.validate_metadata_keys(
-            transaction_data.get("metadata", []),
-            field_name="metadata",
-            error_code=TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.value,
-        )
-        cls.validate_metadata_keys(
-            transaction_data.get("private_metadata", []),
-            field_name="privateMetadata",
-            error_code=TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.value,
-        )
-        cls.validate_external_url(
-            transaction_data.get("external_url"),
-            error_code=TransactionCreateErrorCode.INVALID.value,
-        )
+
+        if transaction_data:
+            cls.validate_psp_reference(
+                transaction_data.get("psp_reference"),
+                field_name="transaction",
+                error_code=TransactionCreateErrorCode.INVALID.value,
+            )
+            cls.validate_money_input(
+                transaction_data,
+                currency,
+                TransactionUpdateErrorCode.INCORRECT_CURRENCY.value,
+            )
+            cls.validate_metadata_keys(
+                transaction_data.get("metadata", []),
+                field_name="metadata",
+                error_code=TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.value,
+            )
+            cls.validate_metadata_keys(
+                transaction_data.get("private_metadata", []),
+                field_name="privateMetadata",
+                error_code=TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.value,
+            )
+            cls.validate_external_url(
+                transaction_data.get("external_url"),
+                error_code=TransactionCreateErrorCode.INVALID.value,
+            )
+        if transaction_event_data:
+            cls.validate_psp_reference(
+                transaction_event_data.get("psp_reference"),
+                field_name="transactionEvent",
+                error_code=TransactionCreateErrorCode.INVALID.value,
+            )
 
     @classmethod
     def update_transaction(
@@ -213,8 +226,9 @@ class TransactionUpdate(TransactionCreate):
         previous_charged_value = instance.charged_value
         previous_refunded_value = instance.refunded_value
 
+        cls.validate_transaction_input(instance, transaction, transaction_event)
+
         if transaction:
-            cls.validate_transaction_input(instance, transaction)
             cls.assign_app_to_transaction_data_if_missing(instance, transaction, app)
             cls.cleanup_metadata_data(transaction)
             money_data = cls.get_money_data_from_input(transaction)
