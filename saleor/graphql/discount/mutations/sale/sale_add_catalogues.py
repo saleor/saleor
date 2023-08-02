@@ -7,6 +7,7 @@ from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
 from ....core.utils import WebhookEventInfo
@@ -18,7 +19,11 @@ from .sale_base_catalogue import SaleBaseCatalogueMutation
 
 class SaleAddCatalogues(SaleBaseCatalogueMutation):
     class Meta:
-        description = "Adds products, categories, collections to a voucher."
+        description = (
+            "Adds products, categories, collections to a sale."
+            + DEPRECATED_IN_3X_MUTATION
+            + " Use `promotionRuleCreate` mutation instead."
+        )
         doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
