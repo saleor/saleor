@@ -344,12 +344,12 @@ class AttributeBulkUpdate(BaseMutation):
         if add_values:
             cleaned_add_values = clean_values(
                 add_values,
-                attr,
-                None,
+                attr.input_type,
                 values_existing_external_refs,
                 duplicated_values_external_ref,
                 attribute_index,
                 index_error_map,
+                attr,
                 "addValues",
                 AttributeBulkUpdateError,
             )
