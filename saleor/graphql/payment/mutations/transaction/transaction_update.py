@@ -108,7 +108,10 @@ class TransactionUpdate(TransactionCreate):
 
     @classmethod
     def validate_transaction_input(
-        cls, instance: payment_models.TransactionItem, transaction_data, transaction_event_data
+        cls,
+        instance: payment_models.TransactionItem,
+        transaction_data,
+        transaction_event_data
     ):
         currency = instance.currency
         if transaction_data.get("available_actions") is not None:
@@ -121,7 +124,7 @@ class TransactionUpdate(TransactionCreate):
             cls.validate_psp_reference(
                 transaction_data.get("psp_reference"),
                 field_name="transaction",
-                error_code=TransactionCreateErrorCode.INVALID.value,
+                error_code=TransactionUpdateErrorCode.INVALID.value,
             )
             cls.validate_money_input(
                 transaction_data,
@@ -146,7 +149,7 @@ class TransactionUpdate(TransactionCreate):
             cls.validate_psp_reference(
                 transaction_event_data.get("psp_reference"),
                 field_name="transactionEvent",
-                error_code=TransactionCreateErrorCode.INVALID.value,
+                error_code=TransactionUpdateErrorCode.INVALID.value,
             )
 
     @classmethod

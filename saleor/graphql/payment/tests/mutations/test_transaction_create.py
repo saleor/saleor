@@ -2016,3 +2016,27 @@ def test_transaction_create_for_checkout_updates_last_transaction_modified_at(
     transaction = checkout_with_items.payment_transactions.first()
 
     assert checkout_with_items.last_transaction_modified_at == transaction.modified_at
+
+
+def test_transaction_create_psp_reference_length_exceed(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    psp_reference = "a" * 513
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "pspReference": psp_reference,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]
+    assert data["errors"][0]["field"] == "transaction"
+    assert data["errors"][0]["code"] == TransactionCreateErrorCode.INVALID.name
