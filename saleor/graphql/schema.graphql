@@ -1095,7 +1095,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): Sale @doc(category: "Discounts")
+  ): Sale @doc(category: "Discounts") @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `promotion` query instead.")
 
   """
   List of the shop's sales.
@@ -1134,7 +1134,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): SaleCountableConnection @doc(category: "Discounts")
+  ): SaleCountableConnection @doc(category: "Discounts") @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `promotions` query instead.")
 
   """
   Look up a voucher by ID.
@@ -8771,6 +8771,8 @@ type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping"
 
 """
 Represents sale's original translatable fields and related translations.
+
+DEPRECATED: this type will be removed in Saleor 4.0. Use `PromotionTranslatableContent` instead.
 """
 type SaleTranslatableContent implements Node @doc(category: "Discounts") {
   """The ID of the sale translatable content."""
@@ -8793,7 +8795,11 @@ type SaleTranslatableContent implements Node @doc(category: "Discounts") {
   sale: Sale @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-"""Represents sale translations."""
+"""
+Represents sale translations.
+
+DEPRECATED: this type will be removed in Saleor 4.0. Use `PromotionTranslation` instead.
+"""
 type SaleTranslation implements Node @doc(category: "Discounts") {
   """The ID of the sale translation."""
   id: ID!
@@ -8807,6 +8813,8 @@ type SaleTranslation implements Node @doc(category: "Discounts") {
 
 """
 Sales allow creating discounts for categories, collections or products and are visible to all the customers.
+
+DEPRECATED: this type will be removed in Saleor 4.0. Use `Promotion` type instead.
 """
 type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """The ID of the sale."""
@@ -9018,7 +9026,11 @@ type ProductVariantCountableEdge @doc(category: "Products") {
   cursor: String!
 }
 
-"""Represents sale channel listing."""
+"""
+Represents sale channel listing.
+
+DEPRECATED: this type will be removed in Saleor 4.0. Use `PromotionRule` type instead.
+"""
 type SaleChannelListing implements Node @doc(category: "Discounts") {
   """The ID of the channel listing."""
   id: ID!
@@ -17448,7 +17460,9 @@ type Mutation {
   ): PromotionRuleTranslate
 
   """
-  Creates a new sale. 
+  Creates a new sale.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionCreate` mutation instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -17461,7 +17475,9 @@ type Mutation {
   ): SaleCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_CREATED], syncEvents: [])
 
   """
-  Deletes a sale. 
+  Deletes a sale.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionDelete` mutation instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -17487,7 +17503,9 @@ type Mutation {
   ): SaleBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: [])
 
   """
-  Updates a sale. 
+  Updates a sale.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionUpdate` mutation instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -17504,7 +17522,9 @@ type Mutation {
   ): SaleUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED, SALE_TOGGLE], syncEvents: [])
 
   """
-  Adds products, categories, collections to a voucher. 
+  Adds products, categories, collections to a sale.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionRuleCreate` mutation instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -17520,7 +17540,9 @@ type Mutation {
   ): SaleAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: [])
 
   """
-  Removes products, categories, collections from a sale. 
+  Removes products, categories, collections from a sale.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionRuleUpdate` or `promotionRuleDelete` mutations instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -17552,7 +17574,9 @@ type Mutation {
   ): SaleTranslate @doc(category: "Discounts")
 
   """
-  Manage sale's availability in channels. 
+  Manage sale's availability in channels.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionRuleCreate` or `promotionRuleUpdate` mutations instead. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
@@ -27092,7 +27116,9 @@ input PromotionRuleTranslationInput {
 }
 
 """
-Creates a new sale. 
+Creates a new sale.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionCreate` mutation instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -27164,7 +27190,9 @@ input SaleInput @doc(category: "Discounts") {
 }
 
 """
-Deletes a sale. 
+Deletes a sale.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionDelete` mutation instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -27193,7 +27221,9 @@ type SaleBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: 
 }
 
 """
-Updates a sale. 
+Updates a sale.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionUpdate` mutation instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -27208,7 +27238,9 @@ type SaleUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SAL
 }
 
 """
-Adds products, categories, collections to a voucher. 
+Adds products, categories, collections to a sale.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionRuleCreate` mutation instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -27241,7 +27273,9 @@ input CatalogueInput @doc(category: "Discounts") {
 }
 
 """
-Removes products, categories, collections from a sale. 
+Removes products, categories, collections from a sale.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionRuleUpdate` or `promotionRuleDelete` mutations instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -27267,7 +27301,9 @@ type SaleTranslate @doc(category: "Discounts") {
 }
 
 """
-Manage sale's availability in channels. 
+Manage sale's availability in channels.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionRuleCreate` or `promotionRuleUpdate` mutations instead. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
@@ -32610,6 +32646,8 @@ type ProductVariantMetadataUpdated implements Event @doc(category: "Products") {
 Event sent when new sale is created.
 
 Added in Saleor 3.2.
+
+DEPRECATED: this event will be removed in Saleor 4.0. Use `PromotionCreated` event instead.
 """
 type SaleCreated implements Event @doc(category: "Discounts") {
   """Time of the event."""
@@ -32635,6 +32673,8 @@ type SaleCreated implements Event @doc(category: "Discounts") {
 Event sent when sale is updated.
 
 Added in Saleor 3.2.
+
+DEPRECATED: this event will be removed in Saleor 4.0. Use `PromotionUpdated` event instead.
 """
 type SaleUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
@@ -32660,6 +32700,8 @@ type SaleUpdated implements Event @doc(category: "Discounts") {
 Event sent when sale is deleted.
 
 Added in Saleor 3.2.
+
+DEPRECATED: this event will be removed in Saleor 4.0. Use `PromotionDeleted` event instead.
 """
 type SaleDeleted implements Event @doc(category: "Discounts") {
   """Time of the event."""
@@ -32685,6 +32727,8 @@ type SaleDeleted implements Event @doc(category: "Discounts") {
 The event informs about the start or end of the sale.
 
 Added in Saleor 3.5.
+
+DEPRECATED: this event will be removed in Saleor 4.0. Use `PromotionStarted` and `PromotionEnded` events instead.
 """
 type SaleToggle implements Event @doc(category: "Discounts") {
   """Time of the event."""

@@ -3,7 +3,12 @@ import graphene
 from ...permission.enums import DiscountPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_315, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_315,
+    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
@@ -75,6 +80,9 @@ class DiscountQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         description="Look up a sale by ID.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} " "Use the `promotion` query instead."
+        ),
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
@@ -94,6 +102,9 @@ class DiscountQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         description="List of the shop's sales.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} " "Use the `promotions` query instead."
+        ),
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
