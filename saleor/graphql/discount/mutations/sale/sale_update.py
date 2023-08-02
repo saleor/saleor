@@ -12,6 +12,7 @@ from .....product.tasks import update_products_discounted_prices_of_catalogues_t
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.mutations import ModelMutation
 from ....core.types import DiscountError
 from ....core.utils import WebhookEventInfo
@@ -29,7 +30,11 @@ class SaleUpdate(ModelMutation):
         )
 
     class Meta:
-        description = "Updates a sale."
+        description = (
+            "Updates a sale."
+            + DEPRECATED_IN_3X_MUTATION
+            + " Use `promotionUpdate` mutation instead."
+        )
         model = models.Sale
         object_type = Sale
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)

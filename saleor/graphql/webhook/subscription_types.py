@@ -48,6 +48,7 @@ from ..core.descriptions import (
     ADDED_IN_314,
     ADDED_IN_315,
     ADDED_IN_316,
+    DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -1098,7 +1099,12 @@ class SaleCreated(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when new sale is created." + ADDED_IN_32
+        description = (
+            "Event sent when new sale is created."
+            + ADDED_IN_32
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `PromotionCreated` event instead."
+        )
 
 
 class SaleUpdated(SubscriptionObjectType, SaleBase):
@@ -1106,7 +1112,12 @@ class SaleUpdated(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when sale is updated." + ADDED_IN_32
+        description = (
+            "Event sent when sale is updated."
+            + ADDED_IN_32
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `PromotionUpdated` event instead."
+        )
 
 
 class SaleDeleted(SubscriptionObjectType, SaleBase):
@@ -1114,7 +1125,12 @@ class SaleDeleted(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when sale is deleted." + ADDED_IN_32
+        description = (
+            "Event sent when sale is deleted."
+            + ADDED_IN_32
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `PromotionDeleted` event instead."
+        )
 
 
 class SaleToggle(SubscriptionObjectType, SaleBase):
@@ -1130,7 +1146,10 @@ class SaleToggle(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         description = (
-            "The event informs about the start or end of the sale." + ADDED_IN_35
+            "The event informs about the start or end of the sale."
+            + ADDED_IN_35
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `PromotionStarted` and `PromotionEnded` events instead."
         )
         interfaces = (Event,)
 
