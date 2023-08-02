@@ -258,7 +258,7 @@ def trigger_webhook_sync(
     if timeout:
         kwargs = {"timeout": timeout}
 
-    return send_webhook_request_sync(webhook.app, delivery, **kwargs)
+    return send_webhook_request_sync(delivery, **kwargs)
 
 
 R = TypeVar("R")
@@ -312,7 +312,7 @@ def trigger_all_webhooks_sync(
                 webhook=webhook,
             )
 
-        response_data = send_webhook_request_sync(webhook.app, delivery)
+        response_data = send_webhook_request_sync(delivery)
         if parsed_response := parse_response(response_data):
             return parsed_response
     return None
@@ -594,7 +594,7 @@ def send_webhook_request_async(self, event_delivery_id):
 
 
 def _send_webhook_request_sync(
-    app, delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, attempt=None
+    delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, attempt=None
 ) -> Tuple[WebhookResponse, Optional[Dict[Any, Any]]]:
     event_payload = delivery.payload
     data = event_payload.payload
@@ -620,7 +620,7 @@ def _send_webhook_request_sync(
 
     try:
         with webhooks_opentracing_trace(
-            delivery.event_type, domain, sync=True, app=app
+            delivery.event_type, domain, sync=True, app=webhook.app
         ):
             response = send_webhook_using_http(
                 webhook.target_url,
@@ -667,9 +667,9 @@ def _send_webhook_request_sync(
 
 
 def send_webhook_request_sync(
-    app, delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
+    delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
 ) -> Optional[Dict[Any, Any]]:
-    response, response_data = _send_webhook_request_sync(app, delivery, timeout)
+    response, response_data = _send_webhook_request_sync(delivery, timeout)
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
 
 
@@ -814,7 +814,6 @@ def trigger_transaction_request(
     call_event(
         handle_transaction_request_task.delay,
         delivery.id,
-        webhook.app,
         transaction_data.event.id,
     )
     return None
@@ -825,7 +824,7 @@ def trigger_transaction_request(
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
 )
-def handle_transaction_request_task(self, delivery_id, app, request_event_id):
+def handle_transaction_request_task(self, delivery_id, request_event_id):
     delivery = get_delivery_for_webhook(delivery_id)
     if not delivery:
         logger.error(
@@ -841,7 +840,7 @@ def handle_transaction_request_task(self, delivery_id, app, request_event_id):
         )
         return None
     attempt = create_attempt(delivery, self.request.id)
-    response, response_data = _send_webhook_request_sync(app, delivery, attempt=attempt)
+    response, response_data = _send_webhook_request_sync(delivery, attempt=attempt)
     if response.response_status_code and response.response_status_code >= 500:
         handle_webhook_retry(
             self, delivery.webhook, response.content, delivery, attempt

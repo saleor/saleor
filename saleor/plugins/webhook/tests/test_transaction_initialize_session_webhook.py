@@ -111,7 +111,7 @@ def _assert_fields(payload, webhook, expected_response, response, mock_request):
     assert delivery.event_type == WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
     assert delivery.payload == event_payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(webhook_app, delivery)
+    mock_request.assert_called_once_with(delivery)
     assert response == TransactionSessionResult(
         app_identifier=webhook_app.identifier, response=expected_response, error=None
     )
