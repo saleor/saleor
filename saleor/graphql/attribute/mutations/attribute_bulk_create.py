@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -80,7 +80,8 @@ def validate_value(
 
 def clean_values(
     values: list,
-    input_type: AttributeInputType,
+    attribute: Optional[models.Attribute],
+    input_type: Optional[AttributeInputType],
     values_existing_external_refs: set,
     duplicated_values_external_ref: set,
     attribute_index: int,
@@ -88,8 +89,13 @@ def clean_values(
     path_prefix="values",
     error_class=AttributeBulkCreateError,
 ):
-    slugs_list: list = []
     cleand_values: list = []
+    input_type = attribute.input_type if attribute else input_type
+
+    if attribute:
+        slugs_list: list = list(attribute.values.values_list("slug", flat=True))
+    else:
+        slugs_list: list = []
 
     duplicated_names = get_duplicated_values(
         [unidecode(value_data.name.lower().strip()) for value_data in values]
@@ -395,6 +401,7 @@ class AttributeBulkCreate(BaseMutation):
         if values:
             cleaned_values = clean_values(
                 values,
+                None,
                 input_type,
                 values_existing_external_refs,
                 duplicated_values_external_ref,

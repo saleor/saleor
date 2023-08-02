@@ -511,6 +511,48 @@ def test_attribute_bulk_update_add_new_value(
     assert size_attribute.values.count() == 3
 
 
+def test_attribute_bulk_update_add_value_with_existing_name(
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    assert color_attribute.values.count() == 2
+
+    value = color_attribute.values.first()
+
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+            "fields": {
+                "addValues": [
+                    {
+                        "name": value.name,
+                    }
+                ]
+            },
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    color_attribute.refresh_from_db()
+
+    assert data["count"] == 1
+    assert not data["results"][0]["errors"]
+    assert color_attribute.values.count() == 3
+
+
 def test_attribute_bulk_update_with_duplicated_external_reference_in_values(
     staff_api_client,
     color_attribute,
