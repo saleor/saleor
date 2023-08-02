@@ -324,3 +324,29 @@ def test_account_reset_password_subdomain(
         payload=expected_payload,
         channel_slug=channel_PLN.slug,
     )
+
+
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_account_reset_password_event_triggered(
+    mocked_trigger_webhooks_async,
+    settings,
+    user_api_client,
+    customer_user,
+    channel_PLN,
+    subscription_account_set_password_requested_webhook,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    redirect_url = "https://www.example.com"
+
+    variables = {
+        "email": customer_user.email,
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+
+    # when
+    user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+
+    # then
+    mocked_trigger_webhooks_async.assert_called()

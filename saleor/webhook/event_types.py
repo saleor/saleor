@@ -161,6 +161,7 @@ class WebhookEventAsyncType:
     STAFF_CREATED = "staff_created"
     STAFF_UPDATED = "staff_updated"
     STAFF_DELETED = "staff_deleted"
+    STAFF_SET_PASSWORD_REQUESTED = "staff_set_password_requested"
 
     TRANSACTION_ITEM_METADATA_UPDATED = "transaction_item_metadata_updated"
 
@@ -630,6 +631,10 @@ class WebhookEventAsyncType:
         },
         STAFF_DELETED: {
             "name": "Staff deleted",
+            "permission": AccountPermissions.MANAGE_STAFF,
+        },
+        STAFF_SET_PASSWORD_REQUESTED: {
+            "name": "Setting a password for a staff is requested",
             "permission": AccountPermissions.MANAGE_STAFF,
         },
         TRANSACTION_ITEM_METADATA_UPDATED: {

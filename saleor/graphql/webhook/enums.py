@@ -192,6 +192,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.SHIPPING_ZONE_METADATA_UPDATED: (
         "A shipping zone metadata is updated." + ADDED_IN_38
     ),
+    WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED: (
+        "Setting a new password for the staff account is requested."
+    ),
     WebhookEventAsyncType.STAFF_CREATED: "A new staff user is created.",
     WebhookEventAsyncType.STAFF_UPDATED: "A staff user is updated.",
     WebhookEventAsyncType.STAFF_DELETED: "A staff user is deleted.",

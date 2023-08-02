@@ -1046,6 +1046,12 @@ class BasePlugin:
     # deleted.
     staff_deleted: Callable[["User", Any], Any]
 
+    # Trigger when setting a password for staff is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after set
+    # password for staff is requested.
+    staff_set_password_requested: Callable[["User", str, str, str, None], None]
+
     # Trigger when thumbnail is updated.
     thumbnail_created: Callable[["Thumbnail", Any], Any]
 

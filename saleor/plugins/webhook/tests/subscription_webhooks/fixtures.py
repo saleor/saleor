@@ -839,6 +839,14 @@ def subscription_staff_deleted_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_staff_set_password_requested_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.STAFF_SET_PASSWORD_REQUESTED,
+        WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED,
+    )
+
+
+@pytest.fixture
 def subscription_transaction_item_metadata_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.TRANSACTION_ITEM_METADATA_UPDATED,

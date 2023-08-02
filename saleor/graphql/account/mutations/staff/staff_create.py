@@ -1,7 +1,9 @@
 from collections import defaultdict
 from typing import cast
+from urllib.parse import urlencode
 
 import graphene
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
 from .....account import models
@@ -10,7 +12,7 @@ from .....account.notifications import send_set_password_notification
 from .....account.search import USER_SEARCH_FIELDS, prepare_user_search_document_value
 from .....core.exceptions import PermissionDenied
 from .....core.tracing import traced_atomic_transaction
-from .....core.utils.url import validate_storefront_url
+from .....core.utils.url import prepare_url, validate_storefront_url
 from .....permission.enums import AccountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
@@ -74,6 +76,12 @@ class StaffCreate(ModelMutation):
             WebhookEventInfo(
                 type=WebhookEventAsyncType.NOTIFY_USER,
                 description="A notification for setting the password.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED,
+                description=(
+                    "Setting a new password for the staff account is requested."
+                ),
             ),
         ]
 
@@ -151,20 +159,37 @@ class StaffCreate(ModelMutation):
         pass
 
     @classmethod
-    def save(cls, info: ResolveInfo, user, cleaned_input, send_notification=True):
+    def save(
+        cls,
+        info: ResolveInfo,
+        user,
+        cleaned_input,
+        send_notification=True,
+        redirect_url=None,
+    ):
         if any([field in cleaned_input for field in USER_SEARCH_FIELDS]):
             user.search_document = prepare_user_search_document_value(
                 user, attach_addresses_data=False
             )
         user.save()
-        if cleaned_input.get("redirect_url") and send_notification:
+        redirect_url = cleaned_input.get("redirect_url")
+        if redirect_url and send_notification:
             manager = get_plugin_manager_promise(info.context).get()
             send_set_password_notification(
-                redirect_url=cleaned_input.get("redirect_url"),
+                redirect_url=redirect_url,
                 user=user,
                 manager=manager,
                 channel_slug=None,
                 staff=True,
+            )
+            token = default_token_generator.make_token(user)
+            params = urlencode({"email": user.email, "token": token})
+            cls.call_event(
+                manager.staff_set_password_requested,
+                user,
+                None,
+                token,
+                prepare_url(params, redirect_url),
             )
 
     @classmethod

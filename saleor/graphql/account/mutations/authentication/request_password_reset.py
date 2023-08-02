@@ -55,6 +55,12 @@ class RequestPasswordReset(BaseMutation):
                 type=WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED,
                 description="Setting a new password for the account is requested.",
             ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED,
+                description=(
+                    "Setting a new password for the staff account is requested."
+                ),
+            ),
         ]
 
     @classmethod
@@ -128,13 +134,23 @@ class RequestPasswordReset(BaseMutation):
             channel_slug=channel_slug,
             staff=user.is_staff,
         )
-        cls.call_event(
-            manager.account_set_password_requested,
-            user,
-            channel_slug,
-            token,
-            prepare_url(params, redirect_url),
-        )
+        if user.is_staff:
+            cls.call_event(
+                manager.staff_set_password_requested,
+                user,
+                channel_slug,
+                token,
+                prepare_url(params, redirect_url),
+            )
+        else:
+            cls.call_event(
+                manager.account_set_password_requested,
+                user,
+                channel_slug,
+                token,
+                prepare_url(params, redirect_url),
+            )
+
         user.last_password_reset_request = timezone.now()
         user.save(update_fields=["last_password_reset_request"])
 
