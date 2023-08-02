@@ -129,43 +129,15 @@ class AttributeBulkUpdate(BaseMutation):
     ):
         cleaned_inputs_map: dict = {}
 
-        attr_input_external_refs = [
-            attribute_data.fields.external_reference
-            for attribute_data in attributes_data
-            if attribute_data.fields.external_reference
-        ]
-        attrs_existing_external_refs = set(
-            models.Attribute.objects.filter(
-                external_reference__in=attr_input_external_refs
-            ).values_list("external_reference", flat=True)
-        )
-        duplicated_external_ref = get_duplicated_values(attr_input_external_refs)
-
-        existing_slugs = set(
-            models.Attribute.objects.filter(
-                slug__in=[
-                    slugify(unidecode(attribute_data.fields.name))
-                    for attribute_data in attributes_data
-                    if attribute_data.fields.name
-                ]
-            ).values_list("slug", flat=True)
-        )
-
-        values_input_external_refs = [
-            value.external_reference
-            for attribute_data in attributes_data
-            if attribute_data.fields.add_values
-            for value in attribute_data.fields.add_values
-            if value.external_reference
-        ]
-        values_existing_external_refs = set(
-            models.AttributeValue.objects.filter(
-                external_reference__in=values_input_external_refs
-            ).values_list("external_reference", flat=True)
-        )
-        duplicated_values_external_ref = get_duplicated_values(
-            values_input_external_refs
-        )
+        existing_slugs = cls._get_attrs_existing_slugs(attributes_data)
+        (
+            attrs_existing_external_refs,
+            duplicated_external_ref,
+        ) = cls._get_attrs_existing_and_duplicated_external_refs(attributes_data)
+        (
+            values_existing_external_refs,
+            duplicated_values_external_ref,
+        ) = cls._get_values_existing_and_duplicated_external_refs(attributes_data)
 
         attributes = cls.get_attributes(attributes_data)
         for attribute_index, attribute_data in enumerate(attributes_data):
@@ -259,6 +231,58 @@ class AttributeBulkUpdate(BaseMutation):
             )
             cleaned_inputs_map[attribute_index] = cleaned_input
         return cleaned_inputs_map
+
+    @classmethod
+    def _get_attrs_existing_and_duplicated_external_refs(
+        cls, attributes_data: List[AttributeBulkUpdateInput]
+    ):
+        attr_input_external_refs = [
+            attribute_data.fields.external_reference
+            for attribute_data in attributes_data
+            if attribute_data.fields.external_reference
+        ]
+        attrs_existing_external_refs = set(
+            models.Attribute.objects.filter(
+                external_reference__in=attr_input_external_refs
+            ).values_list("external_reference", flat=True)
+        )
+        duplicated_external_ref = get_duplicated_values(attr_input_external_refs)
+
+        return attrs_existing_external_refs, duplicated_external_ref
+
+    @classmethod
+    def _get_attrs_existing_slugs(cls, attributes_data: List[AttributeBulkUpdateInput]):
+        return set(
+            models.Attribute.objects.filter(
+                slug__in=[
+                    slugify(unidecode(attribute_data.fields.name))
+                    for attribute_data in attributes_data
+                    if attribute_data.fields.name
+                ]
+            ).values_list("slug", flat=True)
+        )
+
+    @classmethod
+    def _get_values_existing_and_duplicated_external_refs(
+        cls, attributes_data: List[AttributeBulkUpdateInput]
+    ):
+        values_input_external_refs = [
+            value.external_reference
+            for attribute_data in attributes_data
+            if attribute_data.fields.add_values
+            for value in attribute_data.fields.add_values
+            if value.external_reference
+        ]
+        values_existing_external_refs = set(
+            models.AttributeValue.objects.filter(
+                external_reference__in=values_input_external_refs
+            ).values_list("external_reference", flat=True)
+        )
+        duplicated_values_external_ref = get_duplicated_values(
+            values_input_external_refs
+        )
+
+        return values_existing_external_refs, duplicated_values_external_ref
 
     @classmethod
     def clean_attribute_input(
@@ -523,6 +547,9 @@ class AttributeBulkUpdate(BaseMutation):
 
         for attribute_data in instances_data_with_errors_list:
             attribute = attribute_data["instance"]
+
+            if not attribute:
+                continue
 
             if attribute_data.get("attribute_updated"):
                 attributes_to_update.append(attribute)

@@ -504,6 +504,45 @@ def test_attribute_bulk_create_with_duplicated_external_reference_in_values(
     )
 
 
+def test_attribute_bulk_create_with_existing_external_reference_in_values(
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
+):
+    # given
+    attribute_1_name = "Example name 1"
+    value_1 = "RED"
+    value_external_reference = color_attribute.values.first().external_reference
+
+    attributes = [
+        {
+            "name": attribute_1_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.DROPDOWN.name,
+            "values": [
+                {"name": value_1, "externalReference": value_external_reference},
+            ],
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_CREATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+
+    errors = data["results"][0]["errors"]
+    assert errors
+    assert errors[0]["path"] == "values.0.externalReference"
+    assert errors[0]["code"] == AttributeBulkCreateErrorCode.UNIQUE.name
+
+
 def test_attribute_bulk_create_dropdown_with_one_invalid_value_and_ignore_failed(
     staff_api_client, permission_manage_product_types_and_attributes
 ):

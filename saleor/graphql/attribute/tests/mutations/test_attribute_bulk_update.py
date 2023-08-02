@@ -4,6 +4,7 @@ import graphene
 
 from .....attribute.error_codes import AttributeBulkUpdateErrorCode
 from .....attribute.models import Attribute
+from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
 
 ATTRIBUTE_BULK_UPDATE_MUTATION = """
@@ -618,3 +619,147 @@ def test_attribute_bulk_update_with_duplicated_external_reference_in_values(
     assert (
         errors_2[0]["code"] == AttributeBulkUpdateErrorCode.DUPLICATED_INPUT_ITEM.name
     )
+
+
+def test_attribute_bulk_update_add_value_with_to_long_name_and_reject_failed_rows(
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    assert color_attribute.values.count() == 2
+
+    new_value_1_name = 60 * "BLACK"
+    new_value_2_name = "BLACK"
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+            "fields": {
+                "addValues": [
+                    {
+                        "name": new_value_1_name,
+                    },
+                    {
+                        "name": new_value_2_name,
+                    },
+                ]
+            },
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {
+            "attributes": attributes,
+            "errorPolicy": ErrorPolicyEnum.REJECT_FAILED_ROWS.name,
+        },
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    color_attribute.refresh_from_db()
+
+    errors = data["results"][0]["errors"]
+    assert data["count"] == 0
+    assert errors
+    assert errors[0]["path"] == "addValues.0.name"
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.MAX_LENGTH.name
+    assert color_attribute.values.count() == 2
+
+
+def test_attribute_bulk_update_add_value_with_to_long_name_and_ignore_failed(
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    assert color_attribute.values.count() == 2
+
+    new_value_1_name = 60 * "BLACK"
+    new_value_2_name = "BLACK"
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+            "fields": {
+                "addValues": [
+                    {
+                        "name": new_value_1_name,
+                    },
+                    {
+                        "name": new_value_2_name,
+                    },
+                ]
+            },
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes, "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    color_attribute.refresh_from_db()
+
+    errors = data["results"][0]["errors"]
+    assert data["count"] == 1
+    assert errors
+    assert errors[0]["path"] == "addValues.0.name"
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.MAX_LENGTH.name
+    assert color_attribute.values.count() == 3
+
+
+def test_attribute_bulk_update_add_value_with_existing_external_ref(
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    assert color_attribute.values.count() == 2
+    external_ref = color_attribute.values.first().external_reference
+    new_value = "BLACK"
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+            "fields": {
+                "addValues": [
+                    {
+                        "name": new_value,
+                        "externalReference": external_ref,
+                    },
+                ]
+            },
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    color_attribute.refresh_from_db()
+
+    errors = data["results"][0]["errors"]
+    assert data["count"] == 0
+    assert errors
+    assert errors[0]["path"] == "addValues.0.externalReference"
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.UNIQUE.name
+    assert color_attribute.values.count() == 2
