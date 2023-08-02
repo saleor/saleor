@@ -14,7 +14,7 @@ from ...channel.types import (
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection, create_connection_slice
 from ...core.context import get_database_connection_name
-from ...core.descriptions import ADDED_IN_31
+from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_TYPE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
 from ...core.types import ModelObjectType, NonNullList
@@ -51,7 +51,11 @@ class SaleChannelListing(ModelObjectType[models.SaleChannelListing]):
     )
 
     class Meta:
-        description = "Represents sale channel listing."
+        description = (
+            "Represents sale channel listing."
+            + DEPRECATED_IN_3X_TYPE
+            + " Use `PromotionRule` type instead."
+        )
         model = models.SaleChannelListing
         interfaces = [relay.Node]
 
@@ -119,6 +123,8 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Sale]):
         description = (
             "Sales allow creating discounts for categories, collections or products "
             "and are visible to all the customers."
+            + DEPRECATED_IN_3X_TYPE
+            + " Use `Promotion` type instead."
         )
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Sale

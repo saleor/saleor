@@ -17,7 +17,11 @@ from ..core.filters import (
 )
 from ..core.types import DateTimeRangeInput, IntRangeInput, StringFilterInput
 from ..core.types.filter_input import WhereInputObjectType
-from ..utils.filters import filter_by_id, filter_by_string_field, filter_range_field
+from ..utils.filters import (
+    filter_by_id,
+    filter_range_field,
+    filter_where_by_string_field,
+)
 from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
 
 
@@ -142,7 +146,7 @@ class PromotionWhere(MetadataFilterBase):
 
     @staticmethod
     def filter_promotion_name(qs, _, value):
-        return filter_by_string_field(qs, "name", value)
+        return filter_where_by_string_field(qs, "name", value)
 
     @staticmethod
     def filter_end_date_range(qs, _, value):

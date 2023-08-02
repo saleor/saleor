@@ -13,7 +13,7 @@ from .....product.tasks import update_products_discounted_prices_of_sale_task
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_31
+from ....core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import PositiveDecimal
@@ -66,7 +66,11 @@ class SaleCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new sale."
+        description = (
+            "Creates a new sale."
+            + DEPRECATED_IN_3X_MUTATION
+            + " Use `promotionCreate` mutation instead."
+        )
         model = models.Sale
         object_type = Sale
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)

@@ -9,6 +9,7 @@ from .....product.tasks import update_products_discounted_prices_of_catalogues_t
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.types import DiscountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -21,7 +22,11 @@ class SaleDelete(ModelDeleteMutation):
         id = graphene.ID(required=True, description="ID of a sale to delete.")
 
     class Meta:
-        description = "Deletes a sale."
+        description = (
+            "Deletes a sale."
+            + DEPRECATED_IN_3X_MUTATION
+            + " Use `promotionDelete` mutation instead."
+        )
         model = models.Sale
         object_type = Sale
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
