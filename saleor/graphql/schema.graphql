@@ -32205,6 +32205,9 @@ type StoredPaymentMethodRequestDelete implements Event @doc(category: "Payments"
   The ID of the payment method that should be deleted by the payment gateway.
   """
   paymentMethodId: String!
+
+  """Channel related to delete request."""
+  channel: Channel!
 }
 
 """_Any value scalar as defined by Federation spec."""

@@ -1824,6 +1824,12 @@ class StoredPaymentMethodRequestDelete(SubscriptionObjectType):
         required=True,
     )
 
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description=("Channel related to delete request."),
+        required=True,
+    )
+
     class Meta:
         root_type = None
         enable_dry_run = False
@@ -1848,6 +1854,13 @@ class StoredPaymentMethodRequestDelete(SubscriptionObjectType):
     ):
         _, payment_method_data = root
         return payment_method_data.payment_method_id
+
+    @classmethod
+    def resolve_channel(
+        cls, root: tuple[str, StoredPaymentMethodRequestDeleteData], _info: ResolveInfo
+    ):
+        _, payment_method_data = root
+        return payment_method_data.channel
 
 
 class TranslationTypes(Union):

@@ -14,6 +14,9 @@ subscription {
         id
       }
       paymentMethodId
+      channel{
+        id
+      }
     }
   }
 }
@@ -21,7 +24,7 @@ subscription {
 
 
 def test_stored_payment_method_request_delete(
-    stored_payment_method_request_delete_app, customer_user
+    stored_payment_method_request_delete_app, customer_user, channel_USD
 ):
     # given
     webhook = stored_payment_method_request_delete_app.webhooks.first()
@@ -31,8 +34,7 @@ def test_stored_payment_method_request_delete(
     payment_method_id = "123"
 
     request_delete_data = StoredPaymentMethodRequestDeleteData(
-        user=customer_user,
-        payment_method_id=payment_method_id,
+        user=customer_user, payment_method_id=payment_method_id, channel=channel_USD
     )
 
     event_type = WebhookEventSyncType.STORED_PAYMENT_METHOD_REQUEST_DELETE
@@ -48,4 +50,5 @@ def test_stored_payment_method_request_delete(
     assert json.loads(delivery.payload.payload) == {
         "paymentMethodId": payment_method_id,
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
+        "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
     }

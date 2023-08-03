@@ -1580,6 +1580,7 @@ class WebhookPlugin(BasePlugin):
                 "user_id": graphene.Node.to_global_id(
                     "User", request_delete_data.user.id
                 ),
+                "channel_slug": request_delete_data.channel.slug,
             }
         )
 
@@ -1590,6 +1591,7 @@ class WebhookPlugin(BasePlugin):
             subscribable_object=StoredPaymentMethodRequestDeleteData(
                 payment_method_id=app_data.name,
                 user=request_delete_data.user,
+                channel=request_delete_data.channel,
             ),
             timeout=WEBHOOK_SYNC_TIMEOUT,
         )

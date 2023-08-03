@@ -1363,7 +1363,7 @@ def test_list_stored_payment_methods(
     "saleor.plugins.tests.sample_plugins.PluginSample.stored_payment_method_request_delete"
 )
 def test_stored_payment_method_request_delete(
-    mocked_stored_payment_method_request_delete, customer_user
+    mocked_stored_payment_method_request_delete, customer_user, channel_USD
 ):
     # given
     plugins = [
@@ -1372,8 +1372,7 @@ def test_stored_payment_method_request_delete(
     ]
     manager = PluginsManager(plugins=plugins)
     request_delete_data = StoredPaymentMethodRequestDeleteData(
-        user=customer_user,
-        payment_method_id="123",
+        user=customer_user, payment_method_id="123", channel=channel_USD
     )
     previous_response = StoredPaymentMethodRequestDeleteResponseData(
         success=False, message="Payment method request delete failed to deliver."

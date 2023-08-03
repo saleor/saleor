@@ -34,6 +34,7 @@ class StoredPaymentMethodRequestDeleteData:
 
     payment_method_id: str
     user: "User"
+    channel: "Channel"
 
 
 @dataclass

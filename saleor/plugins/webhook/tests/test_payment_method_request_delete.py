@@ -20,6 +20,9 @@ subscription {
         id
       }
       paymentMethodId
+      channel{
+        id
+      }
     }
   }
 }
@@ -38,6 +41,7 @@ def test_stored_payment_method_request_delete_with_static_payload(
     webhook_plugin,
     stored_payment_method_request_delete_app,
     webhook_stored_payment_method_request_delete_response,
+    channel_USD,
 ):
     # given
     mock_request.return_value = webhook_stored_payment_method_request_delete_response
@@ -51,6 +55,7 @@ def test_stored_payment_method_request_delete_with_static_payload(
         payment_method_id=to_payment_app_id(
             stored_payment_method_request_delete_app, payment_method_id
         ),
+        channel=channel_USD,
     )
 
     previous_value = StoredPaymentMethodRequestDeleteResponseData(
@@ -68,6 +73,7 @@ def test_stored_payment_method_request_delete_with_static_payload(
         {
             "payment_method_id": payment_method_id,
             "user_id": graphene.Node.to_global_id("User", customer_user.pk),
+            "channel_slug": channel_USD.slug,
         }
     )
     mock_request.assert_called_once_with(
@@ -87,6 +93,7 @@ def test_stored_payment_method_request_delete_with_subscription_payload(
     webhook_plugin,
     stored_payment_method_request_delete_app,
     webhook_stored_payment_method_request_delete_response,
+    channel_USD,
 ):
     # given
     mock_request.return_value = webhook_stored_payment_method_request_delete_response
@@ -104,6 +111,7 @@ def test_stored_payment_method_request_delete_with_subscription_payload(
         payment_method_id=to_payment_app_id(
             stored_payment_method_request_delete_app, payment_method_id
         ),
+        channel=channel_USD,
     )
 
     previous_value = StoredPaymentMethodRequestDeleteResponseData(
@@ -121,6 +129,7 @@ def test_stored_payment_method_request_delete_with_subscription_payload(
         {
             "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
             "paymentMethodId": payment_method_id,
+            "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
         }
     )
     mock_request.assert_called_once_with(
@@ -140,6 +149,7 @@ def test_stored_payment_method_request_delete_missing_correct_response_from_webh
     webhook_plugin,
     stored_payment_method_request_delete_app,
     webhook_stored_payment_method_request_delete_response,
+    channel_USD,
 ):
     # given
     mock_request.return_value = None
@@ -157,6 +167,7 @@ def test_stored_payment_method_request_delete_missing_correct_response_from_webh
         payment_method_id=to_payment_app_id(
             stored_payment_method_request_delete_app, payment_method_id
         ),
+        channel=channel_USD,
     )
 
     previous_value = StoredPaymentMethodRequestDeleteResponseData(
