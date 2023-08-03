@@ -58,7 +58,7 @@ from ..core.doc_category import (
     DOC_CATEGORY_TAXES,
 )
 from ..core.scalars import JSON, PositiveDecimal
-from ..core.types import Money, NonNullList, SubscriptionObjectType
+from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
 from ..order.dataloaders import OrderByIdLoader
 from ..order.types import Order, OrderGrantedRefund
@@ -1757,13 +1757,6 @@ class ListStoredPaymentMethods(SubscriptionObjectType):
         ),
         required=True,
     )
-    value = graphene.Field(
-        Money,
-        description=(
-            "Amount that the payment method must support. If not provided by the user, "
-            "0 will be used as default value."
-        ),
-    )
 
     class Meta:
         root_type = None
@@ -1789,13 +1782,6 @@ class ListStoredPaymentMethods(SubscriptionObjectType):
     ):
         _, payment_method_data = root
         return payment_method_data.channel
-
-    @classmethod
-    def resolve_value(
-        cls, root: tuple[str, ListStoredPaymentMethodsRequestData], _info: ResolveInfo
-    ):
-        _, payment_method_data = root
-        return payment_method_data.amount
 
 
 class TransactionItemMetadataUpdated(SubscriptionObjectType):
