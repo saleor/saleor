@@ -2,17 +2,14 @@ from datetime import timedelta
 from unittest.mock import patch
 
 import graphene
-import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.models import Promotion, PromotionRule, Sale
-from .....discount.utils import fetch_catalogue_info
+from .....discount.models import Promotion, PromotionRule
 from ....tests.utils import get_graphql_content
 from ...enums import DiscountValueTypeEnum
-from ...mutations.utils import convert_catalogue_info_to_global_ids
 from ...utils import convert_migrated_sale_predicate_to_catalogue_info
 
 SALE_CREATE_MUTATION = """
@@ -43,7 +40,7 @@ SALE_CREATE_MUTATION = """
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_products_discounted_prices_of_sale_task.delay")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_created")
 def test_create_sale(
@@ -79,9 +76,10 @@ def test_create_sale(
     # then
     content = get_graphql_content(response)
     data = content["data"]["saleCreate"]["sale"]
-    promotion = Promotion.objects.filter(name="test sale").get()
-    rules = PromotionRule.objects.filter(promotion_id=promotion.id).all()
+    sale = Promotion.objects.filter(name="test sale").get()
+    rules = PromotionRule.objects.filter(promotion_id=sale.id).all()
     assert len(rules) == 1
+    rule = rules[0]
 
     assert data["type"] == DiscountValueType.FIXED.upper()
     assert data["name"] == "test sale"
@@ -93,24 +91,20 @@ def test_create_sale(
     )
     type, id = graphene.Node.from_global_id(data["id"])
     assert type == "Sale"
-    assert str(promotion.old_sale_id) == id
-    assert promotion.last_notification_scheduled_at == timezone.now()
-    assert rules[0].reward_value_type == DiscountValueTypeEnum.FIXED.value
+    assert str(sale.old_sale_id) == id
+    assert sale.last_notification_scheduled_at == timezone.now()
+    assert rule.reward_value_type == DiscountValueTypeEnum.FIXED.value
 
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        rules[0].catalogue_predicate
+        rule.catalogue_predicate
     )
-    created_webhook_mock.assert_called_once_with(promotion, current_catalogue)
-    sale_toggle_mock.assert_called_once_with(promotion, current_catalogue)
-    update_products_discounted_prices_of_sale_task_mock.assert_called_once_with(
-        promotion.id
-    )
+    created_webhook_mock.assert_called_once_with(sale, current_catalogue)
+    sale_toggle_mock.assert_called_once_with(sale, current_catalogue)
+    update_products_discounted_prices_of_sale_task_mock.assert_called_once_with(sale.id)
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_products_discounted_prices_of_sale_task.delay")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_created")
 def test_create_sale_only_start_date(
@@ -144,24 +138,24 @@ def test_create_sale_only_start_date(
     # then
     content = get_graphql_content(response)
     data = content["data"]["saleCreate"]["sale"]
+    sale = Promotion.objects.filter(name="test sale").get()
+    rule = PromotionRule.objects.filter(promotion_id=sale.id).get()
 
     assert data["type"] == DiscountValueType.FIXED.upper()
     assert data["name"] == "test sale"
     assert data["startDate"] == start_date.isoformat()
     assert not data["endDate"]
+    assert sale.last_notification_scheduled_at == timezone.now()
 
-    sale = Sale.objects.filter(name="test sale").get()
-    assert sale.notification_sent_datetime == timezone.now()
-
-    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        rule.catalogue_predicate
+    )
     created_webhook_mock.assert_called_once_with(sale, current_catalogue)
     sale_toggle_mock.assert_called_once_with(sale, current_catalogue)
     update_products_discounted_prices_of_sale_task_mock.assert_called_once_with(sale.id)
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
-@patch("saleor.product.tasks.update_products_discounted_prices_of_sale_task.delay")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 def test_create_sale_with_end_date_before_startdate(
     update_products_discounted_prices_of_sale_task_mock,
     staff_api_client,
@@ -195,9 +189,7 @@ def test_create_sale_with_end_date_before_startdate(
     update_products_discounted_prices_of_sale_task_mock.assert_not_called()
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
-@patch("saleor.product.tasks.update_products_discounted_prices_of_sale_task.delay")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_created")
 def test_create_sale_start_date_and_end_date_before_current_date(
@@ -235,24 +227,24 @@ def test_create_sale_start_date_and_end_date_before_current_date(
     # then
     content = get_graphql_content(response)
     data = content["data"]["saleCreate"]["sale"]
+    sale = Promotion.objects.filter(name="test sale").get()
+    rule = PromotionRule.objects.filter(promotion_id=sale.id).get()
 
     assert data["type"] == DiscountValueType.FIXED.upper()
     assert data["name"] == "test sale"
     assert data["startDate"] == start_date.isoformat()
     assert data["endDate"] == end_date.isoformat()
+    assert sale.last_notification_scheduled_at is None
 
-    sale = Sale.objects.filter(name="test sale").get()
-    assert sale.notification_sent_datetime is None
-
-    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        rule.catalogue_predicate
+    )
     created_webhook_mock.assert_called_once_with(sale, current_catalogue)
     sale_toggle_mock.assert_not_called()
     update_products_discounted_prices_of_sale_task_mock.assert_called_once_with(sale.id)
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
-@patch("saleor.product.tasks.update_products_discounted_prices_of_sale_task.delay")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_created")
 def test_create_sale_start_date_and_end_date_after_current_date(
@@ -290,16 +282,18 @@ def test_create_sale_start_date_and_end_date_after_current_date(
     # then
     content = get_graphql_content(response)
     data = content["data"]["saleCreate"]["sale"]
+    sale = Promotion.objects.filter(name="test sale").get()
+    rule = PromotionRule.objects.filter(promotion_id=sale.id).get()
 
     assert data["type"] == DiscountValueType.FIXED.upper()
     assert data["name"] == "test sale"
     assert data["startDate"] == start_date.isoformat()
     assert data["endDate"] == end_date.isoformat()
+    assert sale.last_notification_scheduled_at is None
 
-    sale = Sale.objects.filter(name="test sale").get()
-    assert sale.notification_sent_datetime is None
-
-    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        rule.catalogue_predicate
+    )
     created_webhook_mock.assert_called_once_with(sale, current_catalogue)
     sale_toggle_mock.assert_not_called()
     update_products_discounted_prices_of_sale_task_mock.assert_called_once_with(sale.id)
