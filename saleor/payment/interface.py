@@ -5,8 +5,6 @@ from enum import Enum
 from functools import cached_property
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
-from prices import Money
-
 from ..order import FulfillmentLineData
 from ..order.fetch import OrderLineInfo
 from ..payment.models import TransactionEvent, TransactionItem
@@ -36,7 +34,6 @@ class PaymentGateway:
 class ListStoredPaymentMethodsRequestData:
     channel: "Channel"
     user: "User"
-    amount: Money
 
 
 @dataclass

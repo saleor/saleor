@@ -1340,12 +1340,9 @@ def test_list_stored_payment_methods(
     mocked_list_stored_payment_methods, channel_USD, customer_user
 ):
     # given
-    amount = Decimal(10)
-    currency = "USD"
     data = ListStoredPaymentMethodsRequestData(
         channel=channel_USD,
         user=customer_user,
-        amount=Money(amount, currency),
     )
 
     plugins = [

@@ -1,12 +1,10 @@
 import uuid
-from decimal import Decimal
 from functools import partial
 from typing import List, Optional, cast
 
 import graphene
 from django.contrib.auth import get_user_model
 from graphene import relay
-from prices import Money
 from promise import Promise
 
 from ...account import models
@@ -43,7 +41,7 @@ from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
-from ..core.scalars import UUID, PositiveDecimal
+from ..core.scalars import UUID
 from ..core.tracing import traced_resolver
 from ..core.types import (
     BaseInputObjectType,
@@ -447,14 +445,6 @@ class User(ModelObjectType[models.User]):
             description="Slug of a channel for which the data should be returned.",
             required=True,
         ),
-        amount=PositiveDecimal(
-            description=(
-                "Amount that will be used to fetch stored payment methods."
-                "The provided amount will be sent to the payment app. The payment app "
-                "will use the amount to fetch all available stored payment methods for "
-                "the requested amount."
-            )
-        ),
     )
 
     class Meta:
@@ -700,7 +690,6 @@ class User(ModelObjectType[models.User]):
         root: models.User,
         info: ResolveInfo,
         channel: str,
-        amount: Optional[Decimal] = None,
     ):
         requestor = get_user_or_app_from_context(info.context)
         if not requestor or requestor.id != root.id:
@@ -711,7 +700,6 @@ class User(ModelObjectType[models.User]):
             request_data = ListStoredPaymentMethodsRequestData(
                 user=root,
                 channel=channel_obj,
-                amount=Money(amount or Decimal(0), channel_obj.currency_code),
             )
             return manager.list_stored_payment_methods(request_data)
 
