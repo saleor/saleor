@@ -43,9 +43,7 @@ from .enums import (
 
 
 class Transaction(ModelObjectType[models.Transaction]):
-    id = graphene.GlobalID(
-        required=True, description="ID of the transaction."
-    )
+    id = graphene.GlobalID(required=True, description="ID of the transaction.")
     created = graphene.DateTime(
         required=True, description="Date and time which transaction was created."
     )
