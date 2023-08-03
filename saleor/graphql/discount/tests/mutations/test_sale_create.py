@@ -8,7 +8,7 @@ from freezegun import freeze_time
 
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.models import Promotion, Sale
+from .....discount.models import Promotion, PromotionRule, Sale
 from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...enums import DiscountValueTypeEnum
@@ -23,6 +23,13 @@ SALE_CREATE_MUTATION = """
                 name
                 startDate
                 endDate
+                products(first: 10) {
+                    edges {
+                        node {
+                            id
+                        }
+                    }
+                }
             }
             errors {
                 field
@@ -71,16 +78,23 @@ def test_create_sale(
     # then
     content = get_graphql_content(response)
     data = content["data"]["saleCreate"]["sale"]
+    promotion = Promotion.objects.filter(name="test sale").get()
+    rules = PromotionRule.objects.filter(promotion_id=promotion.id).all()
+    assert len(rules) == 1
 
     assert data["type"] == DiscountValueType.FIXED.upper()
     assert data["name"] == "test sale"
     assert data["startDate"] == start_date.isoformat()
     assert data["endDate"] == end_date.isoformat()
-    type, _id = graphene.Node.from_global_id(data["id"])
+    assert len(data["products"]["edges"]) == len(product_list)
+    assert {edge["node"]["id"] for edge in data["products"]["edges"]} == set(
+        product_ids
+    )
+    type, id = graphene.Node.from_global_id(data["id"])
     assert type == "Sale"
-    breakpoint()
-    promotion = Promotion.objects.filter(name="test sale").get()
-    assert promotion.notification_sent_datetime == timezone.now()
+    assert str(promotion.old_sale_id) == id
+    # assert promotion.last_notification_scheduled_at == timezone.now()
+    assert rules[0].reward_value_type == DiscountValueTypeEnum.FIXED.value
 
     current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
     created_webhook_mock.assert_called_once_with(sale, current_catalogue)

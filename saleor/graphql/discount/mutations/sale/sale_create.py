@@ -90,12 +90,12 @@ class SaleCreate(ModelMutation):
 
     @classmethod
     def create_predicate(cls, input):
-        products = input.get("products")
-        variants = input.get("variants")
         collections = input.get("collections")
         categories = input.get("categories")
+        products = input.get("products")
+        variants = input.get("variants")
 
-        return create_catalogue_predicate(products, variants, collections, categories)
+        return create_catalogue_predicate(collections, categories, products, variants)
 
     @classmethod
     def success_response(cls, instance):
