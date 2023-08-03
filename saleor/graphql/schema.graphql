@@ -15695,6 +15695,10 @@ type Mutation {
   Creates new fulfillments for an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - FULFILLMENT_CREATED (async): Fulfillment tracking number is created.
+  - ORDER_FULFILLED (async): Order is fulfilled.
   """
   orderFulfill(
     """Fields required to create a fulfillment."""
@@ -15702,7 +15706,7 @@ type Mutation {
 
     """ID of the order to be fulfilled."""
     order: ID
-  ): OrderFulfill @doc(category: "Orders")
+  ): OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED], syncEvents: [])
 
   """
   Cancels existing fulfillment and optionally restocks items. 
@@ -23516,8 +23520,12 @@ type OrderConfirm @doc(category: "Orders") {
 Creates new fulfillments for an order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- FULFILLMENT_CREATED (async): Fulfillment tracking number is created.
+- ORDER_FULFILLED (async): Order is fulfilled.
 """
-type OrderFulfill @doc(category: "Orders") {
+type OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED], syncEvents: []) {
   """List of created fulfillments."""
   fulfillments: [Fulfillment!]
 
@@ -31140,6 +31148,13 @@ type FulfillmentCreated implements Event @doc(category: "Orders") {
 
   """The order the fulfillment belongs to."""
   order: Order
+
+  """
+  If true, send an email notification to the customer.
+  
+  Added in Saleor 3.15.
+  """
+  notifyCustomer: Boolean!
 }
 
 """

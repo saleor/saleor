@@ -850,13 +850,16 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("order_bulk_created", default_value, orders)
 
-    def fulfillment_created(self, fulfillment: "Fulfillment"):
+    def fulfillment_created(
+        self, fulfillment: "Fulfillment", notify_customer: Optional[bool] = True
+    ):
         default_value = None
         return self.__run_method_on_plugins(
             "fulfillment_created",
             default_value,
             fulfillment,
             channel_slug=fulfillment.order.channel.slug,
+            notify_customer=notify_customer,
         )
 
     def fulfillment_canceled(self, fulfillment: "Fulfillment"):
