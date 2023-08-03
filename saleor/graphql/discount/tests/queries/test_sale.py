@@ -82,6 +82,7 @@ def test_staff_query_sale(
     # then
     content = get_graphql_content(response)
     sale_data = content["data"]["sale"]
+    assert sale_data["id"] == graphene.Node.to_global_id("Sale", promotion.old_sale_id)
     assert sale_data["name"] == promotion.name
     assert sale_data["type"] == rule.reward_value_type.upper()
     assert sale_data["discountValue"] == rule.reward_value

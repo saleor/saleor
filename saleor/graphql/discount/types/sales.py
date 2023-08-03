@@ -129,6 +129,10 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Sale]):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
     @staticmethod
+    def resolve_id(root: ChannelContext[models.Promotion], _info: ResolveInfo):
+        return root.node.old_sale_id
+
+    @staticmethod
     def resolve_created(root: ChannelContext[models.Promotion], _info: ResolveInfo):
         return root.node.created_at
 
