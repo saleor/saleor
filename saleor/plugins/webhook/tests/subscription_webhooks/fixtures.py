@@ -45,10 +45,34 @@ def subscription_account_change_email_requested_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_account_email_changed_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_EMAIL_CHANGED,
+        WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED,
+    )
+
+
+@pytest.fixture
 def subscription_account_delete_requested_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ACCOUNT_DELETE_REQUESTED,
         WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED,
+    )
+
+
+@pytest.fixture
+def subscription_account_set_password_requested_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_SET_PASSWORD_REQUESTED,
+        WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED,
+    )
+
+
+@pytest.fixture
+def subscription_account_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_DELETED,
+        WebhookEventAsyncType.ACCOUNT_DELETED,
     )
 
 
@@ -811,6 +835,14 @@ def subscription_staff_deleted_webhook(subscription_webhook):
     return subscription_webhook(
         queries.STAFF_DELETED,
         WebhookEventAsyncType.STAFF_DELETED,
+    )
+
+
+@pytest.fixture
+def subscription_staff_set_password_requested_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.STAFF_SET_PASSWORD_REQUESTED,
+        WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED,
     )
 
 

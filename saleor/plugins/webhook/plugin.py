@@ -239,6 +239,36 @@ class WebhookPlugin(BasePlugin):
             new_email,
         )
 
+    def account_email_changed(
+        self,
+        user: "User",
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_event(
+            WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED,
+            user,
+        )
+
+    def account_set_password_requested(
+        self,
+        user: "User",
+        channel_slug: str,
+        token: str,
+        redirect_url: str,
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_request_event(
+            WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED,
+            user,
+            channel_slug,
+            token,
+            redirect_url,
+        )
+
     def account_delete_requested(
         self,
         user: "User",
@@ -255,6 +285,14 @@ class WebhookPlugin(BasePlugin):
             channel_slug,
             token,
             redirect_url,
+        )
+
+    def account_deleted(self, user: "User", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_event(
+            WebhookEventAsyncType.ACCOUNT_DELETED,
+            user,
         )
 
     def _trigger_address_event(self, event_type, address):
@@ -1446,6 +1484,24 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         self._trigger_staff_event(WebhookEventAsyncType.STAFF_DELETED, staff_user)
+
+    def staff_set_password_requested(
+        self,
+        user: "User",
+        channel_slug: str,
+        token: str,
+        redirect_url: str,
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_request_event(
+            WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED,
+            user,
+            channel_slug,
+            token,
+            redirect_url,
+        )
 
     def thumbnail_created(
         self,

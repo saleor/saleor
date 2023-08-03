@@ -23,9 +23,12 @@ class WebhookEventAsyncType:
     ANY = "any_events"
 
     ACCOUNT_CONFIRMATION_REQUESTED = "account_confirmation_requested"
+    ACCOUNT_EMAIL_CHANGED = "account_email_changed"
     ACCOUNT_CHANGE_EMAIL_REQUESTED = "account_change_email_requested"
+    ACCOUNT_SET_PASSWORD_REQUESTED = "account_set_password_requested"
     ACCOUNT_CONFIRMED = "account_confirmed"
     ACCOUNT_DELETE_REQUESTED = "account_delete_requested"
+    ACCOUNT_DELETED = "account_deleted"
 
     ADDRESS_CREATED = "address_created"
     ADDRESS_UPDATED = "address_updated"
@@ -158,6 +161,7 @@ class WebhookEventAsyncType:
     STAFF_CREATED = "staff_created"
     STAFF_UPDATED = "staff_updated"
     STAFF_DELETED = "staff_deleted"
+    STAFF_SET_PASSWORD_REQUESTED = "staff_set_password_requested"
 
     TRANSACTION_ITEM_METADATA_UPDATED = "transaction_item_metadata_updated"
 
@@ -189,12 +193,24 @@ class WebhookEventAsyncType:
             "name": "Account change email requested",
             "permission": AccountPermissions.MANAGE_USERS,
         },
+        ACCOUNT_EMAIL_CHANGED: {
+            "name": "Account email changed",
+            "permission": AccountPermissions.MANAGE_USERS,
+        },
+        ACCOUNT_SET_PASSWORD_REQUESTED: {
+            "name": "Account set password requested",
+            "permission": AccountPermissions.MANAGE_USERS,
+        },
         ACCOUNT_CONFIRMED: {
             "name": "Account confirmed",
             "permission": AccountPermissions.MANAGE_USERS,
         },
         ACCOUNT_DELETE_REQUESTED: {
             "name": "Account delete requested",
+            "permission": AccountPermissions.MANAGE_USERS,
+        },
+        ACCOUNT_DELETED: {
+            "name": "Account delete confirmed",
             "permission": AccountPermissions.MANAGE_USERS,
         },
         ADDRESS_CREATED: {
@@ -615,6 +631,10 @@ class WebhookEventAsyncType:
         },
         STAFF_DELETED: {
             "name": "Staff deleted",
+            "permission": AccountPermissions.MANAGE_STAFF,
+        },
+        STAFF_SET_PASSWORD_REQUESTED: {
+            "name": "Setting a password for a staff is requested",
             "permission": AccountPermissions.MANAGE_STAFF,
         },
         TRANSACTION_ITEM_METADATA_UPDATED: {

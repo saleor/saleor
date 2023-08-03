@@ -1722,18 +1722,23 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
-  """Account email change is requested."""
+  """An account email change is requested."""
   ACCOUNT_CHANGE_EMAIL_REQUESTED
 
-  """
-  An account is confirmed.
-  
-  Added in Saleor 3.15.
-  """
+  """An account email was changed"""
+  ACCOUNT_EMAIL_CHANGED
+
+  """Setting a new password for the account is requested."""
+  ACCOUNT_SET_PASSWORD_REQUESTED
+
+  """An account is confirmed."""
   ACCOUNT_CONFIRMED
 
   """An account delete is requested."""
   ACCOUNT_DELETE_REQUESTED
+
+  """An account is deleted."""
+  ACCOUNT_DELETED
 
   """A new address created."""
   ADDRESS_CREATED
@@ -1795,11 +1800,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A channel status is changed."""
   CHANNEL_STATUS_CHANGED
 
-  """
-  A channel metadata is updated.
-  
-  Added in Saleor 3.15.
-  """
+  """A channel metadata is updated."""
   CHANNEL_METADATA_UPDATED
 
   """A new gift card created."""
@@ -2135,6 +2136,9 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A staff user is deleted."""
   STAFF_DELETED
+
+  """Setting a new password for the staff account is requested."""
+  STAFF_SET_PASSWORD_REQUESTED
 
   """
   Transaction item metadata is updated.
@@ -2380,18 +2384,23 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
-  """Account email change is requested."""
+  """An account email change is requested."""
   ACCOUNT_CHANGE_EMAIL_REQUESTED
 
-  """
-  An account is confirmed.
-  
-  Added in Saleor 3.15.
-  """
+  """An account email was changed"""
+  ACCOUNT_EMAIL_CHANGED
+
+  """Setting a new password for the account is requested."""
+  ACCOUNT_SET_PASSWORD_REQUESTED
+
+  """An account is confirmed."""
   ACCOUNT_CONFIRMED
 
   """An account delete is requested."""
   ACCOUNT_DELETE_REQUESTED
+
+  """An account is deleted."""
+  ACCOUNT_DELETED
 
   """A new address created."""
   ADDRESS_CREATED
@@ -2453,11 +2462,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A channel status is changed."""
   CHANNEL_STATUS_CHANGED
 
-  """
-  A channel metadata is updated.
-  
-  Added in Saleor 3.15.
-  """
+  """A channel metadata is updated."""
   CHANNEL_METADATA_UPDATED
 
   """A new gift card created."""
@@ -2793,6 +2798,9 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A staff user is deleted."""
   STAFF_DELETED
+
+  """Setting a new password for the staff account is requested."""
+  STAFF_SET_PASSWORD_REQUESTED
 
   """
   Transaction item metadata is updated.
@@ -3396,8 +3404,11 @@ scalar JSONString
 enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ACCOUNT_CONFIRMATION_REQUESTED
   ACCOUNT_CHANGE_EMAIL_REQUESTED
+  ACCOUNT_EMAIL_CHANGED
+  ACCOUNT_SET_PASSWORD_REQUESTED
   ACCOUNT_CONFIRMED
   ACCOUNT_DELETE_REQUESTED
+  ACCOUNT_DELETED
   ADDRESS_CREATED
   ADDRESS_UPDATED
   ADDRESS_DELETED
@@ -3503,6 +3514,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   STAFF_CREATED
   STAFF_UPDATED
   STAFF_DELETED
+  STAFF_SET_PASSWORD_REQUESTED
   TRANSACTION_ITEM_METADATA_UPDATED
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
@@ -17940,6 +17952,8 @@ type Mutation {
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for password reset.
+  - ACCOUNT_SET_PASSWORD_REQUESTED (async): Setting a new password for the account is requested.
+  - STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
   """
   requestPasswordReset(
     """
@@ -17954,7 +17968,7 @@ type Mutation {
     URL of a view where users should be redirected to reset the password. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+  ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED, STAFF_SET_PASSWORD_REQUESTED], syncEvents: [])
 
   """
   Sends a notification confirmation.
@@ -18052,6 +18066,7 @@ type Mutation {
   Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A customer account was updated.
   - NOTIFY_USER (async): A notification that account email change was confirmed.
+  - ACCOUNT_EMAIL_CHANGED (async): An account email was changed.
   """
   confirmEmailChange(
     """
@@ -18061,7 +18076,7 @@ type Mutation {
 
     """A one-time token required to change the email."""
     token: String!
-  ): ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER], syncEvents: [])
+  ): ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER, ACCOUNT_EMAIL_CHANGED], syncEvents: [])
 
   """
   Create a new address for the customer. 
@@ -18174,13 +18189,16 @@ type Mutation {
   Remove user account. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - ACCOUNT_DELETED (async): Account was deleted.
   """
   accountDelete(
     """
     A one-time token required to remove account. Sent by email using AccountRequestDeletion mutation.
     """
     token: String!
-  ): AccountDelete @doc(category: "Users")
+  ): AccountDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_DELETED], syncEvents: [])
 
   """
   Creates user address. 
@@ -18255,11 +18273,12 @@ type Mutation {
   - CUSTOMER_CREATED (async): A new customer account was created.
   - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   - NOTIFY_USER (async): A notification for setting the password.
+  - ACCOUNT_SET_PASSWORD_REQUESTED (async): Setting a new password for the account is requested.
   """
   customerCreate(
     """Fields required to create a customer."""
     input: UserCreateInput!
-  ): CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED, NOTIFY_USER], syncEvents: [])
+  ): CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED, NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED], syncEvents: [])
 
   """
   Updates an existing customer. 
@@ -18347,11 +18366,12 @@ type Mutation {
   Triggers the following webhook events:
   - STAFF_CREATED (async): A new staff account was created.
   - NOTIFY_USER (async): A notification for setting the password.
+  - STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
   """
   staffCreate(
     """Fields required to create a staff user."""
     input: StaffCreateInput!
-  ): StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER], syncEvents: [])
+  ): StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER, STAFF_SET_PASSWORD_REQUESTED], syncEvents: [])
 
   """
   Updates an existing staff user. Apps are not allowed to perform this mutation. 
@@ -28145,8 +28165,10 @@ Sends an email with the account password modification link.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for password reset.
+- ACCOUNT_SET_PASSWORD_REQUESTED (async): Setting a new password for the account is requested.
+- STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
 """
-type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED, STAFF_SET_PASSWORD_REQUESTED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
 }
@@ -28256,8 +28278,9 @@ Requires one of the following permissions: AUTHENTICATED_USER.
 Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A customer account was updated.
 - NOTIFY_USER (async): A notification that account email change was confirmed.
+- ACCOUNT_EMAIL_CHANGED (async): An account email was changed.
 """
-type ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER], syncEvents: []) {
+type ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER, ACCOUNT_EMAIL_CHANGED], syncEvents: []) {
   """A user instance with a new email."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -28426,8 +28449,11 @@ type AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEven
 Remove user account. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- ACCOUNT_DELETED (async): Account was deleted.
 """
-type AccountDelete @doc(category: "Users") {
+type AccountDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_DELETED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
@@ -28505,8 +28531,9 @@ Triggers the following webhook events:
 - CUSTOMER_CREATED (async): A new customer account was created.
 - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
 - NOTIFY_USER (async): A notification for setting the password.
+- ACCOUNT_SET_PASSWORD_REQUESTED (async): Setting a new password for the account is requested.
 """
-type CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED, NOTIFY_USER], syncEvents: []) {
+type CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED, NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
@@ -28748,8 +28775,9 @@ Requires one of the following permissions: MANAGE_STAFF.
 Triggers the following webhook events:
 - STAFF_CREATED (async): A new staff account was created.
 - NOTIFY_USER (async): A notification for setting the password.
+- STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
 """
-type StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER], syncEvents: []) {
+type StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER, STAFF_SET_PASSWORD_REQUESTED], syncEvents: []) {
   staffErrors: [StaffError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [StaffError!]!
   user: User
@@ -29225,11 +29253,82 @@ type AccountChangeEmailRequested implements Event @doc(category: "Users") {
 }
 
 """
+Event sent when account email is changed.
+
+Added in Saleor 3.15.
+"""
+type AccountEmailChanged implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
+
+  """The new email address."""
+  newEmail: String
+}
+
+"""
+Event sent when setting a new password is requested.
+
+Added in Saleor 3.15.
+"""
+type AccountSetPasswordRequested implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
+}
+
+"""
 Event sent when account is confirmed.
 
 Added in Saleor 3.15.
 """
-type AccountConfirmed implements Event @doc(category: "Users") {
+type AccountConfirmed implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29264,6 +29363,40 @@ Event sent when account delete is requested.
 Added in Saleor 3.15.
 """
 type AccountDeleteRequested implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
+}
+
+"""
+Event sent when account is deleted.
+
+Added in Saleor 3.15.
+"""
+type AccountDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -31750,6 +31883,40 @@ type StaffDeleted implements Event @doc(category: "Users") {
 
   """The user the event relates to."""
   user: User
+}
+
+"""
+Event sent when setting a new password for staff is requested.
+
+Added in Saleor 3.15.
+"""
+type StaffSetPasswordRequested implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
 }
 
 """
