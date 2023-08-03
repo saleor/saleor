@@ -10657,7 +10657,11 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Date and time at which payment transaction was created."""
   createdAt: DateTime!
+
+  """Date and time at which payment transaction was modified."""
   modifiedAt: DateTime!
 
   """
@@ -11593,6 +11597,7 @@ enum OrderChargeStatusEnum @doc(category: "Orders") {
 
 """Represents a payment of a given type."""
 type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
+  """ID of the payment."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -11632,13 +11637,29 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Payment gateway used for payment."""
   gateway: String!
+
+  """Determines if the payment is active or not."""
   isActive: Boolean!
+
+  """Date and time at which payment was created."""
   created: DateTime!
+
+  """Date and time at which payment was modified."""
   modified: DateTime!
+
+  """Unique token associated with a payment."""
   token: String!
+
+  """Checkout associated with a payment."""
   checkout: Checkout
+
+  """Order associated with a payment."""
   order: Order
+
+  """Type of method used for payment."""
   paymentMethodType: String!
 
   """
@@ -11691,13 +11712,28 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
 
 """An object representing a single payment."""
 type Transaction implements Node @doc(category: "Payments") {
+  """ID of the transaction."""
   id: ID!
+
+  """Date and time which transaction was created."""
   created: DateTime!
+
+  """Determines the payment associated with a transaction."""
   payment: Payment!
+
+  """Unique token associated with a transaction."""
   token: String!
+
+  """Determines the type of transaction."""
   kind: TransactionKind!
+
+  """Determines if the transaction was successful."""
   isSuccess: Boolean!
+
+  """Error associated with transaction, if any."""
   error: String
+
+  """Response returned by payment gateway."""
   gatewayResponse: JSONString!
 
   """Total amount of the transaction."""
@@ -12101,6 +12137,8 @@ type OrderGrantedRefundLine {
 type TransactionEvent implements Node @doc(category: "Payments") {
   """The ID of the object."""
   id: ID!
+
+  """Date and time at which a transaction event was created."""
   createdAt: DateTime!
 
   """
@@ -22370,6 +22408,7 @@ type PaymentVoid @doc(category: "Payments") {
 
 """Initializes payment process when it is required by gateway."""
 type PaymentInitialize @doc(category: "Payments") {
+  """Payment that was initialized."""
   initializedPayment: PaymentInitialized
   paymentErrors: [PaymentError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PaymentError!]!
@@ -22755,6 +22794,7 @@ Added in Saleor 3.13.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PaymentGatewayInitialize @doc(category: "Payments") {
+  """List of payment gateway configurations."""
   gatewayConfigs: [PaymentGatewayConfig!]
   errors: [PaymentGatewayInitializeError!]!
 }

@@ -36,7 +36,9 @@ class PaymentGatewayToInitialize(BaseInputObjectType):
 
 
 class PaymentGatewayInitialize(TransactionSessionBase):
-    gateway_configs = common_types.NonNullList(PaymentGatewayConfig)
+    gateway_configs = common_types.NonNullList(
+        PaymentGatewayConfig, description="List of payment gateway configurations."
+    )
 
     class Arguments:
         id = graphene.ID(
