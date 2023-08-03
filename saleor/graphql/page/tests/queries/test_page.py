@@ -1,6 +1,10 @@
 import graphene
 
 from .....attribute.models import AttributeValue
+from .....attribute.tests.model_helpers import (
+    get_page_attribute_values,
+    get_page_attributes,
+)
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....tests.utils import dummy_editorjs
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
@@ -36,12 +40,11 @@ def test_query_published_page(user_api_client, page):
 
     page_type = page.page_type
 
-    assert page.attributes.count() == 1
-    page_attr_assigned = page.attributes.first()
-    page_attr = page_attr_assigned.attribute
+    page_attr = get_page_attributes(page).first()
+    assert page_attr is not None
+    assert get_page_attribute_values(page, page_attr).count() == 1
 
-    assert page_attr_assigned.values.count() == 1
-    page_attr_value = page_attr_assigned.values.first()
+    page_attr_value = page_attr.values.first()
 
     # query by ID
     variables = {"id": graphene.Node.to_global_id("Page", page.id)}

@@ -3,7 +3,11 @@ from django.db import models
 
 from ...core.models import SortableModel
 from ...page.models import Page, PageType
+<<<<<<< HEAD
 from .base import AssociatedAttributeManager, AttributeValue, BaseAssignedAttribute
+=======
+from .base import AssociatedAttributeManager
+>>>>>>> daa98bf1f3 (Simplify Page <> Attribute relation)
 
 
 class AssignedPageAttributeValue(SortableModel):
@@ -12,26 +16,22 @@ class AssignedPageAttributeValue(SortableModel):
         on_delete=models.CASCADE,
         related_name="pagevalueassignment",
     )
-    assignment = models.ForeignKey(
-        "AssignedPageAttribute",
-        on_delete=models.CASCADE,
-        related_name="pagevalueassignment",
-    )
     page = models.ForeignKey(
         Page,
         related_name="attributevalues",
         on_delete=models.CASCADE,
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
         db_index=False,
     )
 
     class Meta:
-        unique_together = (("value", "assignment"),)
+        unique_together = (("value", "page"),)
         ordering = ("sort_order", "pk")
         indexes = [BTreeIndex(fields=["page"], name="assignedpageattrvalue_page_idx")]
 
     def get_ordering_queryset(self):
+<<<<<<< HEAD
         return self.assignment.pagevalueassignment.all()
 
 
@@ -51,6 +51,9 @@ class AssignedPageAttribute(BaseAssignedAttribute):
 
     class Meta:
         unique_together = (("page", "assignment"),)
+=======
+        return self.page.attributevalues.all()
+>>>>>>> daa98bf1f3 (Simplify Page <> Attribute relation)
 
 
 class AttributePage(SortableModel):
@@ -59,13 +62,6 @@ class AttributePage(SortableModel):
     )
     page_type = models.ForeignKey(
         PageType, related_name="attributepage", on_delete=models.CASCADE
-    )
-    assigned_pages = models.ManyToManyField(
-        Page,
-        blank=True,
-        through=AssignedPageAttribute,
-        through_fields=("assignment", "page"),
-        related_name="attributesrelated",
     )
 
     objects = AssociatedAttributeManager()
