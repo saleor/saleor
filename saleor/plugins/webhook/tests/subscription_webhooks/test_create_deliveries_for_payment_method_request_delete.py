@@ -2,14 +2,14 @@ import json
 
 import graphene
 
-from .....payment.interface import PaymentMethodRequestDeleteData
+from .....payment.interface import StoredPaymentMethodRequestDeleteData
 from .....webhook.event_types import WebhookEventSyncType
 from ...tasks import create_deliveries_for_subscriptions
 
-PAYMENT_METHOD_REQUEST_DELETE = """
+STORED_PAYMENT_METHOD_REQUEST_DELETE = """
 subscription {
   event {
-    ... on PaymentMethodRequestDelete{
+    ... on StoredPaymentMethodRequestDelete{
       user{
         id
       }
@@ -20,22 +20,22 @@ subscription {
 """
 
 
-def test_payment_method_request_delete(
-    payment_method_request_delete_app, customer_user
+def test_stored_payment_method_request_delete(
+    stored_payment_method_request_delete_app, customer_user
 ):
     # given
-    webhook = payment_method_request_delete_app.webhooks.first()
-    webhook.subscription_query = PAYMENT_METHOD_REQUEST_DELETE
+    webhook = stored_payment_method_request_delete_app.webhooks.first()
+    webhook.subscription_query = STORED_PAYMENT_METHOD_REQUEST_DELETE
     webhook.save()
 
     payment_method_id = "123"
 
-    request_delete_data = PaymentMethodRequestDeleteData(
+    request_delete_data = StoredPaymentMethodRequestDeleteData(
         user=customer_user,
         payment_method_id=payment_method_id,
     )
 
-    event_type = WebhookEventSyncType.PAYMENT_METHOD_REQUEST_DELETE
+    event_type = WebhookEventSyncType.STORED_PAYMENT_METHOD_REQUEST_DELETE
 
     # when
     delivery = create_deliveries_for_subscriptions(

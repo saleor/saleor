@@ -7,7 +7,7 @@ from ...payment.interface import (
     PaymentGateway,
     PaymentMethodCreditCardInfo,
     PaymentMethodData,
-    PaymentMethodRequestDeleteResponseData,
+    StoredPaymentMethodRequestDeleteResponseData,
 )
 from .utils import to_payment_app_id
 
@@ -140,11 +140,11 @@ def get_list_stored_payment_methods_from_response(
     return payment_methods
 
 
-def get_response_for_payment_method_request_delete(
+def get_response_for_stored_payment_method_request_delete(
     response_data: Optional[dict],
-) -> "PaymentMethodRequestDeleteResponseData":
+) -> "StoredPaymentMethodRequestDeleteResponseData":
     response_data = response_data or {"message": "Failed to delivery request."}
-    return PaymentMethodRequestDeleteResponseData(
+    return StoredPaymentMethodRequestDeleteResponseData(
         success=response_data.get("success", False),
         message=response_data.get("message", None),
     )

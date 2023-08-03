@@ -345,7 +345,7 @@ class PluginSample(BasePlugin):
     ):
         return []
 
-    def payment_method_request_delete(self, request_delete_data, previous_value):
+    def stored_payment_method_request_delete(self, request_delete_data, previous_value):
         return previous_value
 
 

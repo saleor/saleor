@@ -22,8 +22,8 @@ from ...payment.interface import (
     PaymentGateway,
     PaymentGatewayData,
     PaymentMethodData,
-    PaymentMethodRequestDeleteData,
-    PaymentMethodRequestDeleteResponseData,
+    StoredPaymentMethodRequestDeleteData,
+    StoredPaymentMethodRequestDeleteResponseData,
     TransactionActionData,
     TransactionSessionData,
 )
@@ -69,7 +69,7 @@ from .shipping import (
 )
 from .stored_payment_methods import (
     get_list_stored_payment_methods_from_response,
-    get_response_for_payment_method_request_delete,
+    get_response_for_stored_payment_method_request_delete,
 )
 from .tasks import (
     send_webhook_request_async,
@@ -1554,11 +1554,11 @@ class WebhookPlugin(BasePlugin):
         delivery_update(delivery, status=EventDeliveryStatus.PENDING)
         send_webhook_request_async.delay(delivery.pk)
 
-    def payment_method_request_delete(
+    def stored_payment_method_request_delete(
         self,
-        request_delete_data: "PaymentMethodRequestDeleteData",
-        previous_value: "PaymentMethodRequestDeleteResponseData",
-    ) -> "PaymentMethodRequestDeleteResponseData":
+        request_delete_data: "StoredPaymentMethodRequestDeleteData",
+        previous_value: "StoredPaymentMethodRequestDeleteResponseData",
+    ) -> "StoredPaymentMethodRequestDeleteResponseData":
         if not self.active:
             return previous_value
 
@@ -1566,7 +1566,7 @@ class WebhookPlugin(BasePlugin):
         if not app_data or not app_data.app_identifier:
             return previous_value
 
-        event_type = WebhookEventSyncType.PAYMENT_METHOD_REQUEST_DELETE
+        event_type = WebhookEventSyncType.STORED_PAYMENT_METHOD_REQUEST_DELETE
         webhook = get_webhooks_for_event(
             event_type, apps_identifier=[app_data.app_identifier]
         ).first()
@@ -1587,7 +1587,7 @@ class WebhookPlugin(BasePlugin):
             event_type,
             payload,
             webhook,
-            subscribable_object=PaymentMethodRequestDeleteData(
+            subscribable_object=StoredPaymentMethodRequestDeleteData(
                 payment_method_id=app_data.name,
                 user=request_delete_data.user,
             ),
@@ -1595,7 +1595,7 @@ class WebhookPlugin(BasePlugin):
         )
 
         # FIXME: Need to figure out how to handle cached stored payment methods
-        return get_response_for_payment_method_request_delete(response_data)
+        return get_response_for_stored_payment_method_request_delete(response_data)
 
     def list_stored_payment_methods(
         self,
@@ -2163,8 +2163,8 @@ class WebhookPlugin(BasePlugin):
     def is_event_active(self, event: str, channel=Optional[str]):
         map_event = {
             "invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED,
-            "payment_method_request_delete": (
-                WebhookEventSyncType.PAYMENT_METHOD_REQUEST_DELETE
+            "stored_payment_method_request_delete": (
+                WebhookEventSyncType.STORED_PAYMENT_METHOD_REQUEST_DELETE
             ),
         }
 

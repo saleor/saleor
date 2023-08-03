@@ -15,7 +15,7 @@ from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
 from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
-    PaymentMethodRequestDeleteData,
+    StoredPaymentMethodRequestDeleteData,
     TransactionActionData,
     TransactionSessionData,
 )
@@ -1806,7 +1806,7 @@ class TransactionItemMetadataUpdated(SubscriptionObjectType):
         return transaction_item
 
 
-class PaymentMethodRequestDelete(SubscriptionObjectType):
+class StoredPaymentMethodRequestDelete(SubscriptionObjectType):
     user = graphene.Field(
         UserType,
         description=(
@@ -1837,14 +1837,14 @@ class PaymentMethodRequestDelete(SubscriptionObjectType):
 
     @classmethod
     def resolve_user(
-        cls, root: tuple[str, PaymentMethodRequestDeleteData], _info: ResolveInfo
+        cls, root: tuple[str, StoredPaymentMethodRequestDeleteData], _info: ResolveInfo
     ):
         _, payment_method_data = root
         return payment_method_data.user
 
     @classmethod
     def resolve_payment_method_id(
-        cls, root: tuple[str, PaymentMethodRequestDeleteData], _info: ResolveInfo
+        cls, root: tuple[str, StoredPaymentMethodRequestDeleteData], _info: ResolveInfo
     ):
         _, payment_method_data = root
         return payment_method_data.payment_method_id
@@ -2363,5 +2363,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
     WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
     WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS: ListStoredPaymentMethods,
-    WebhookEventSyncType.PAYMENT_METHOD_REQUEST_DELETE: PaymentMethodRequestDelete,
+    WebhookEventSyncType.STORED_PAYMENT_METHOD_REQUEST_DELETE: (
+        StoredPaymentMethodRequestDelete
+    ),
 }

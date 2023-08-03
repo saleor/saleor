@@ -21,7 +21,7 @@ JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
 
 @dataclass
-class PaymentMethodRequestDeleteResponseData:
+class StoredPaymentMethodRequestDeleteResponseData:
     """Dataclass for storing the response information from payment app."""
 
     success: bool
@@ -29,7 +29,7 @@ class PaymentMethodRequestDeleteResponseData:
 
 
 @dataclass
-class PaymentMethodRequestDeleteData:
+class StoredPaymentMethodRequestDeleteData:
     """Dataclass for storing the request information for payment app."""
 
     payment_method_id: str
