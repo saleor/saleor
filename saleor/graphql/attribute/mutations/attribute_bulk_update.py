@@ -417,32 +417,32 @@ class AttributeBulkUpdate(BaseMutation):
             remove_values = fields.pop("remove_values", [])
             add_values = fields.pop("add_values", [])
 
-            try:
-                if fields:
+            if fields:
+                try:
                     attr = cls.construct_instance(attr, fields)
                     cls.clean_instance(info, attr)
-
-                data = {
-                    "instance": attr,
-                    "errors": index_error_map[index],
-                    "remove_values": remove_values,
-                    "add_values": [],
-                    "attribute_updated": True if fields else False,
-                }
-            except ValidationError as exc:
-                for key, errors in exc.error_dict.items():
-                    for e in errors:
-                        index_error_map[index].append(
-                            AttributeBulkUpdateError(
-                                path=to_camel_case(key),
-                                message=e.messages[0],
-                                code=e.code,
+                except ValidationError as exc:
+                    for key, errors in exc.error_dict.items():
+                        for e in errors:
+                            index_error_map[index].append(
+                                AttributeBulkUpdateError(
+                                    path=to_camel_case(key),
+                                    message=e.messages[0],
+                                    code=e.code,
+                                )
                             )
-                        )
-                instances_data_and_errors_list.append(
-                    {"instance": None, "errors": index_error_map[index]}
-                )
-                continue
+                    instances_data_and_errors_list.append(
+                        {"instance": None, "errors": index_error_map[index]}
+                    )
+                    continue
+
+            data = {
+                "instance": attr,
+                "errors": index_error_map[index],
+                "remove_values": remove_values,
+                "add_values": [],
+                "attribute_updated": True if fields else False,
+            }
 
             if add_values:
                 values = cls.create_values(attr, add_values, index, index_error_map)

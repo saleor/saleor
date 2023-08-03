@@ -236,6 +236,42 @@ def test_attribute_bulk_update_with_duplicated_external_ref(
     )
 
 
+def test_attribute_bulk_update_with_existing_external_ref(
+    staff_api_client,
+    color_attribute,
+    size_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    existing_external_ref = size_attribute.external_reference
+
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+            "fields": {"externalReference": existing_external_ref},
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    errors = data["results"][0]["errors"]
+
+    assert data["count"] == 0
+    assert errors
+    assert errors[0]["path"] == "fields.externalReference"
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.UNIQUE.name
+
+
 def test_attribute_bulk_update_with_invalid_type_id(
     staff_api_client, permission_manage_product_types_and_attributes
 ):
@@ -763,3 +799,37 @@ def test_attribute_bulk_update_add_value_with_existing_external_ref(
     assert errors[0]["path"] == "addValues.0.externalReference"
     assert errors[0]["code"] == AttributeBulkUpdateErrorCode.UNIQUE.name
     assert color_attribute.values.count() == 2
+
+
+def test_attribute_bulk_update_removes_value_with_invalid_id(
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
+):
+    # given
+    assert color_attribute.values.count() == 2
+
+    invalid_value_id = graphene.Node.to_global_id("Product", 1)
+
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+            "fields": {"removeValues": [invalid_value_id]},
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    errors = data["results"][0]["errors"]
+    assert data["count"] == 0
+    assert errors
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.INVALID.name
+    assert errors[0]["path"] == "removeValues.0"
