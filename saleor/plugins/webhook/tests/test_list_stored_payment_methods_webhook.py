@@ -1,8 +1,5 @@
-from decimal import Decimal
-
 import graphene
 import mock
-from prices import Money
 
 from ....core.models import EventDelivery
 from ....payment.interface import ListStoredPaymentMethodsRequestData
@@ -21,10 +18,6 @@ subscription {
       }
       channel{
         id
-      }
-      value{
-        amount
-        currency
       }
     }
   }
@@ -51,18 +44,14 @@ def test_list_stored_payment_methods_with_static_payload(
     webhook = list_stored_payment_methods_app.webhooks.first()
 
     plugin = webhook_plugin()
-    amount = Decimal(100)
-    currency = "USD"
+
     data = ListStoredPaymentMethodsRequestData(
         channel=channel_USD,
         user=customer_user,
-        amount=Money(amount, currency),
     )
     expected_payload = {
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
-        "currency": currency,
-        "amount": str(amount),
     }
     expected_cache_key = generate_cache_key_for_webhook(
         expected_payload,
@@ -91,7 +80,7 @@ def test_list_stored_payment_methods_with_static_payload(
     assert response == get_list_stored_payment_methods_from_response(
         list_stored_payment_methods_app,
         webhook_list_stored_payment_methods_response,
-        currency,
+        channel_USD.currency_code,
     )
 
 
@@ -117,18 +106,14 @@ def test_list_stored_payment_methods_with_subscription_payload(
     webhook.save()
 
     plugin = webhook_plugin()
-    amount = Decimal(100)
-    currency = "USD"
+
     data = ListStoredPaymentMethodsRequestData(
         channel=channel_USD,
         user=customer_user,
-        amount=Money(amount, currency),
     )
     expected_payload = {
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
-        "currency": currency,
-        "amount": str(amount),
     }
     expected_cache_key = generate_cache_key_for_webhook(
         expected_payload,
@@ -157,7 +142,7 @@ def test_list_stored_payment_methods_with_subscription_payload(
     assert response == get_list_stored_payment_methods_from_response(
         list_stored_payment_methods_app,
         webhook_list_stored_payment_methods_response,
-        currency,
+        channel_USD.currency_code,
     )
 
 
@@ -183,18 +168,14 @@ def test_list_stored_payment_methods_uses_cache_if_available(
     webhook.save()
 
     plugin = webhook_plugin()
-    amount = Decimal(100)
-    currency = "USD"
+
     data = ListStoredPaymentMethodsRequestData(
         channel=channel_USD,
         user=customer_user,
-        amount=Money(amount, currency),
     )
     expected_payload = {
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
-        "currency": currency,
-        "amount": str(amount),
     }
     expected_cache_key = generate_cache_key_for_webhook(
         expected_payload,
@@ -215,7 +196,7 @@ def test_list_stored_payment_methods_uses_cache_if_available(
     assert response == get_list_stored_payment_methods_from_response(
         list_stored_payment_methods_app,
         webhook_list_stored_payment_methods_response,
-        currency,
+        channel_USD.currency_code,
     )
 
 
@@ -241,19 +222,14 @@ def test_list_stored_payment_methods_app_returns_incorrect_response(
     webhook.save()
 
     plugin = webhook_plugin()
-    amount = Decimal(100)
-    currency = "USD"
     data = ListStoredPaymentMethodsRequestData(
         channel=channel_USD,
         user=customer_user,
-        amount=Money(amount, currency),
     )
 
     expected_payload = {
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
-        "currency": currency,
-        "amount": str(amount),
     }
     expected_cache_key = generate_cache_key_for_webhook(
         expected_payload,

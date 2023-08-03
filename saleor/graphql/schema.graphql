@@ -9805,11 +9805,6 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   storedPaymentMethods(
     """Slug of a channel for which the data should be returned."""
     channel: String!
-
-    """
-    Amount that will be used to fetch stored payment methods.The provided amount will be sent to the payment app. The payment app will use the amount to fetch all available stored payment methods for the requested amount.
-    """
-    amount: PositiveDecimal
   ): [StoredPaymentMethod!]
 }
 
@@ -32177,11 +32172,6 @@ type ListStoredPaymentMethods implements Event @doc(category: "Payments") {
   Channel in context which was used to fetch the list of payment methods.
   """
   channel: Channel!
-
-  """
-  Amount that the payment method must support. If not provided by the user, 0 will be used as default value.
-  """
-  value: Money
 }
 
 """_Any value scalar as defined by Federation spec."""

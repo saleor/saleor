@@ -1,8 +1,6 @@
 import json
-from decimal import Decimal
 
 import graphene
-from prices import Money
 
 from .....payment.interface import ListStoredPaymentMethodsRequestData
 from .....webhook.event_types import WebhookEventSyncType
@@ -17,10 +15,6 @@ subscription {
       }
       channel{
         id
-      }
-      value{
-        amount
-        currency
       }
     }
   }
@@ -39,12 +33,9 @@ def test_list_stored_payment_methods(
     webhook.subscription_query = LIST_STORED_PAYMENT_METHODS
     webhook.save()
 
-    amount = 100.0
-    currency = "USD"
     data = ListStoredPaymentMethodsRequestData(
         channel=channel_USD,
         user=customer_user,
-        amount=Money(Decimal(amount), currency),
     )
 
     event_type = WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS
@@ -58,5 +49,4 @@ def test_list_stored_payment_methods(
     assert json.loads(delivery.payload.payload) == {
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
-        "value": {"amount": amount, "currency": currency},
     }

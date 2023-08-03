@@ -2436,21 +2436,9 @@ def test_checkout_with_stored_payment_methods_empty_response(
     query = QUERY_CHECKOUT_STORED_PAYMENT_METHODS
     variables = {"id": to_global_id_or_none(checkout_with_prices)}
 
-    manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout_with_prices)
-    checkout_info = fetch_checkout_info(checkout_with_prices, lines, manager)
-
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout_with_prices.shipping_address,
-    )
-
     request_data = ListStoredPaymentMethodsRequestData(
         user=checkout_with_prices.user,
         channel=checkout_with_prices.channel,
-        amount=total.gross,
     )
 
     # when
@@ -2519,120 +2507,9 @@ def test_checkout_with_stored_payment_methods(
     query = QUERY_CHECKOUT_STORED_PAYMENT_METHODS
     variables = {"id": to_global_id_or_none(checkout_with_prices)}
 
-    manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout_with_prices)
-    checkout_info = fetch_checkout_info(checkout_with_prices, lines, manager)
-
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout_with_prices.shipping_address,
-    )
-
     request_data = ListStoredPaymentMethodsRequestData(
         user=checkout_with_prices.user,
         channel=checkout_with_prices.channel,
-        amount=total.gross,
-    )
-
-    # when
-    response = user_api_client.post_graphql(
-        query,
-        variables,
-    )
-
-    # then
-    content = get_graphql_content(response)
-
-    mocked_list_stored_payment_methods.assert_called_once_with(request_data)
-    assert content["data"]["checkout"]["storedPaymentMethods"] == [
-        {
-            "id": payment_method_id,
-            "gateway": {
-                "name": payment_gateway_name,
-                "id": payment_gateway_id,
-                "config": [],
-                "currencies": [checkout_with_prices.currency],
-            },
-            "paymentMethodId": external_id,
-            "creditCardInfo": {
-                "brand": credit_card_brand,
-                "firstDigits": credit_card_first_digits,
-                "lastDigits": credit_card_last_digits,
-                "expMonth": credit_card_exp_month,
-                "expYear": credit_card_exp_year,
-            },
-            "supportedPaymentFlows": [supported_payment_flow.name],
-            "type": payment_method_type,
-            "name": payment_method_name,
-            "data": payment_method_data,
-        }
-    ]
-
-
-@mock.patch("saleor.plugins.manager.PluginsManager.list_stored_payment_methods")
-def test_checkout_with_stored_payment_methods_with_provided_amount(
-    mocked_list_stored_payment_methods,
-    user_api_client,
-    checkout_with_prices,
-):
-    # given
-    checkout_with_prices.user = user_api_client.user
-    checkout_with_prices.save(update_fields=["user"])
-
-    payment_method_id = "app:payment-method-id"
-    external_id = "payment-method-id"
-    supported_payment_flow = TokenizedPaymentFlowEnum.INTERACTIVE
-    payment_method_type = "credit-card"
-    payment_method_name = "Payment method name"
-    payment_method_data = {"additional_data": "value"}
-
-    payment_gateway_id = "gateway-id"
-    payment_gateway_name = "gateway-name"
-
-    credit_card_brand = "brand"
-    credit_card_first_digits = "123"
-    credit_card_last_digits = "456"
-    credit_card_exp_month = 1
-    credit_card_exp_year = 2021
-
-    requested_amount = Decimal("100.00")
-
-    mocked_list_stored_payment_methods.return_value = [
-        PaymentMethodData(
-            id=payment_method_id,
-            external_id=external_id,
-            supported_payment_flows=[supported_payment_flow.value],
-            type=payment_method_type,
-            credit_card_info=PaymentMethodCreditCardInfo(
-                brand=credit_card_brand,
-                first_digits=credit_card_first_digits,
-                last_digits=credit_card_last_digits,
-                exp_month=credit_card_exp_month,
-                exp_year=credit_card_exp_year,
-            ),
-            name=payment_method_name,
-            data=payment_method_data,
-            gateway=PaymentGateway(
-                id=payment_gateway_id,
-                name=payment_gateway_name,
-                currencies=[checkout_with_prices.currency],
-                config=[],
-            ),
-        )
-    ]
-
-    query = QUERY_CHECKOUT_STORED_PAYMENT_METHODS
-    variables = {
-        "id": to_global_id_or_none(checkout_with_prices),
-        "amount": requested_amount,
-    }
-
-    request_data = ListStoredPaymentMethodsRequestData(
-        user=checkout_with_prices.user,
-        channel=checkout_with_prices.channel,
-        amount=Money(requested_amount, checkout_with_prices.currency),
     )
 
     # when

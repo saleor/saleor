@@ -2,7 +2,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
 import graphene
-import prices
 from promise import Promise
 
 from ...checkout import calculations, models
@@ -25,7 +24,7 @@ from ...tax.utils import get_display_gross_prices
 from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
 from ...webhook.event_types import WebhookEventSyncType
-from ..account.dataloaders import AddressByIdLoader
+from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
 from ..channel.types import Channel
@@ -1083,26 +1082,19 @@ class Checkout(ModelObjectType[models.Checkout]):
             return []
 
         def _resolve_stored_payment_methods(data):
-            address, lines, checkout_info, manager = data
-            if amount is None:
-                taxed_total = calculations.calculate_checkout_total_with_gift_cards(
-                    manager=manager,
-                    checkout_info=checkout_info,
-                    lines=lines,
-                    address=address,
-                )
-                amount_to_request = taxed_total.gross
-            else:
-                amount_to_request = prices.Money(amount, root.currency)
+            channel, user, manager = data
             request_data = ListStoredPaymentMethodsRequestData(
-                user=checkout_info.user,
-                channel=checkout_info.channel,
-                amount=amount_to_request,
+                user=user,
+                channel=channel,
             )
             return manager.list_stored_payment_methods(request_data)
 
-        dataloaders = get_dataloaders_for_fetching_checkout_data(root, info)
-        return Promise.all(dataloaders).then(_resolve_stored_payment_methods)
+        manager = get_plugin_manager_promise(info.context)
+        channel_loader = ChannelByIdLoader(info.context).load(root.channel_id)
+        user_loader = UserByUserIdLoader(info.context).load(root.user_id)
+        return Promise.all([channel_loader, user_loader, manager]).then(
+            _resolve_stored_payment_methods
+        )
 
 
 class CheckoutCountableConnection(CountableConnection):
