@@ -1,6 +1,7 @@
+from collections import defaultdict
 from copy import deepcopy
 from enum import Enum
-from typing import Dict, List, Optional, Union, cast
+from typing import DefaultDict, Dict, List, Optional, Set, Union, cast
 
 import graphene
 from django.db.models import Exists, OuterRef
@@ -191,10 +192,10 @@ def _handle_catalogue_predicate(
     return queryset
 
 
-def convert_migrated_sale_catalogue_predicate(
+def convert_migrated_sale_predicate_to_model_ids(
     catalogue_predicate,
 ) -> Optional[Dict[str, List[int]]]:
-    """Convert catalogue predicate of Promotion created from old sale.
+    """Convert global ids from catalogue predicate of Promotion created from old sale.
 
     All migrated sales have related PromotionRule with "OR" catalogue predicate. This
     function converts:
@@ -219,3 +220,45 @@ def convert_migrated_sale_catalogue_predicate(
             predicates[key] = [graphene.Node.from_global_id(id)[1] for id in ids]
         return predicates
     return None
+
+
+CatalogueInfo = DefaultDict[str, Set[Union[int, str]]]
+PREDICATE_TO_CATALOGUE_INFO_MAP = {
+    "collectionPredicate": "collections",
+    "categoryPredicate": "categories",
+    "productPredicate": "products",
+    "variantPredicate": "variants",
+}
+
+
+def convert_migrated_sale_predicate_to_catalogue_info(
+    catalogue_predicate,
+) -> CatalogueInfo:
+    """Convert predicate of Promotion created from old sale into CatalogueInfo object.
+
+    All migrated sales have related PromotionRule with "OR" catalogue predicate. This
+    function converts:
+        {
+            "OR": [
+                {"collectionPredicate": {"ids": ["UHJvZHV3","UHJvZHV2","UHJvZHV1]}},
+                {"productPredicate": {"ids": ["UHJvZHV9","UHJvZHV8","UHJvZHV7]}},
+            ]
+        }
+    into:
+        {
+            "categories": {},
+            "collections": {1,2,3},
+            "products": {9,8,7},
+            "variants": {},
+        }
+    """
+    catalogue_info: CatalogueInfo = defaultdict(set)
+    if catalogue_predicate.get("OR"):
+        predicates = {
+            list(item.keys())[0]: list(item.values())[0]["ids"]
+            for item in catalogue_predicate["OR"]
+        }
+        for predicate_name, field in PREDICATE_TO_CATALOGUE_INFO_MAP.items():
+            catalogue_info[field] = set(predicates.get(predicate_name, {}))
+
+    return catalogue_info

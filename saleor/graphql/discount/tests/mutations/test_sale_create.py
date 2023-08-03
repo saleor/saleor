@@ -13,6 +13,7 @@ from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...enums import DiscountValueTypeEnum
 from ...mutations.utils import convert_catalogue_info_to_global_ids
+from ...utils import convert_migrated_sale_predicate_to_catalogue_info
 
 SALE_CREATE_MUTATION = """
     mutation saleCreate($input: SaleInput!) {
@@ -93,13 +94,17 @@ def test_create_sale(
     type, id = graphene.Node.from_global_id(data["id"])
     assert type == "Sale"
     assert str(promotion.old_sale_id) == id
-    # assert promotion.last_notification_scheduled_at == timezone.now()
+    assert promotion.last_notification_scheduled_at == timezone.now()
     assert rules[0].reward_value_type == DiscountValueTypeEnum.FIXED.value
 
-    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
-    created_webhook_mock.assert_called_once_with(sale, current_catalogue)
-    sale_toggle_mock.assert_called_once_with(sale, current_catalogue)
-    update_products_discounted_prices_of_sale_task_mock.assert_called_once_with(sale.id)
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        rules[0].catalogue_predicate
+    )
+    created_webhook_mock.assert_called_once_with(promotion, current_catalogue)
+    sale_toggle_mock.assert_called_once_with(promotion, current_catalogue)
+    update_products_discounted_prices_of_sale_task_mock.assert_called_once_with(
+        promotion.id
+    )
 
 
 # TODO will be fixed in PR refactoring the mutation
