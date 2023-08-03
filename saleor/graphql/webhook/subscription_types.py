@@ -1806,7 +1806,7 @@ class TransactionItemMetadataUpdated(SubscriptionObjectType):
         return transaction_item
 
 
-class StoredPaymentMethodRequestDelete(SubscriptionObjectType):
+class StoredPaymentMethodDeleteRequested(SubscriptionObjectType):
     user = graphene.Field(
         UserType,
         description=(
@@ -1823,10 +1823,9 @@ class StoredPaymentMethodRequestDelete(SubscriptionObjectType):
         ),
         required=True,
     )
-
     channel = graphene.Field(
         "saleor.graphql.channel.types.Channel",
-        description=("Channel related to delete request."),
+        description=("Channel related to the requested delete action."),
         required=True,
     )
 
@@ -2376,7 +2375,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
     WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
     WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS: ListStoredPaymentMethods,
-    WebhookEventSyncType.STORED_PAYMENT_METHOD_REQUEST_DELETE: (
-        StoredPaymentMethodRequestDelete
+    WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED: (
+        StoredPaymentMethodDeleteRequested
     ),
 }

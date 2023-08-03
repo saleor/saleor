@@ -6,10 +6,10 @@ from .....payment.interface import StoredPaymentMethodRequestDeleteData
 from .....webhook.event_types import WebhookEventSyncType
 from ...tasks import create_deliveries_for_subscriptions
 
-STORED_PAYMENT_METHOD_REQUEST_DELETE = """
+STORED_PAYMENT_METHOD_DELETE_REQUESTED = """
 subscription {
   event {
-    ... on StoredPaymentMethodRequestDelete{
+    ... on StoredPaymentMethodDeleteRequested{
       user{
         id
       }
@@ -28,7 +28,7 @@ def test_stored_payment_method_request_delete(
 ):
     # given
     webhook = stored_payment_method_request_delete_app.webhooks.first()
-    webhook.subscription_query = STORED_PAYMENT_METHOD_REQUEST_DELETE
+    webhook.subscription_query = STORED_PAYMENT_METHOD_DELETE_REQUESTED
     webhook.save()
 
     payment_method_id = "123"
@@ -37,7 +37,7 @@ def test_stored_payment_method_request_delete(
         user=customer_user, payment_method_id=payment_method_id, channel=channel_USD
     )
 
-    event_type = WebhookEventSyncType.STORED_PAYMENT_METHOD_REQUEST_DELETE
+    event_type = WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED
 
     # when
     delivery = create_deliveries_for_subscriptions(

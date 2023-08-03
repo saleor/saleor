@@ -282,6 +282,10 @@ PaymentGatewayInitializeErrorCode = graphene.Enum.from_enum(
 )
 PaymentGatewayInitializeErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
+StoredPaymentMethodRequestDeleteErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.StoredPaymentMethodRequestDeleteErrorCode
+)
+StoredPaymentMethodRequestDeleteErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
 PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode

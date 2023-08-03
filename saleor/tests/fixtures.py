@@ -6476,7 +6476,7 @@ def stored_payment_method_request_delete_app(db, permission_manage_payments):
         target_url="http://localhost:8000/endpoint/",
     )
     webhook.events.create(
-        event_type=WebhookEventSyncType.STORED_PAYMENT_METHOD_REQUEST_DELETE,
+        event_type=WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED,
     )
     return app
 
