@@ -453,9 +453,12 @@ class ProductQueries(graphene.ObjectType):
     ):
         if sort_field_from_kwargs(kwargs) == ProductOrderField.RANK:
             # sort by RANK can be used only with search filter
-            if not search_string_in_kwargs(kwargs):
+            if not search_string_in_kwargs(kwargs) and not search:
                 raise GraphQLError(
-                    "Sorting by RANK is available only when using a search filter."
+                    (
+                        "Sorting by RANK is available only when using a search filter "
+                        "or search argument."
+                    )
                 )
         if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
             # default to sorting by RANK if search is used
