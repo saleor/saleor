@@ -240,15 +240,15 @@ def convert_migrated_sale_predicate_to_catalogue_info(
     function converts:
         {
             "OR": [
-                {"collectionPredicate": {"ids": ["UHJvZHV3","UHJvZHV2","UHJvZHV1]}},
-                {"productPredicate": {"ids": ["UHJvZHV9","UHJvZHV8","UHJvZHV7]}},
+                {"collectionPredicate": {"ids": ["UHJvZHV3","UHJvZHV2","UHJvZHV1"]}},
+                {"productPredicate": {"ids": ["UHJvZHV9","UHJvZHV8","UHJvZHV7"]}},
             ]
         }
     into:
         {
             "categories": {},
-            "collections": {1,2,3},
-            "products": {9,8,7},
+            "collections": {"UHJvZHV3","UHJvZHV2","UHJvZHV1"},
+            "products": {"UHJvZHV9","UHJvZHV8","UHJvZHV7"},
             "variants": {},
         }
     """
