@@ -7,7 +7,7 @@ from uuid import uuid4
 import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
-from django.db import models
+from django.db import connection, models
 from django.db.models import F, Q
 from django.utils import timezone
 from django_countries.fields import CountryField
@@ -375,11 +375,20 @@ class PromotionQueryset(models.QuerySet["Promotion"]):
 PromotionManager = models.Manager.from_queryset(PromotionQueryset)
 
 
+def get_old_sale_id():
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT nextval('discount_promotion_old_sale_id_seq')")
+        result = cursor.fetchone()
+        return result[0]
+
+
 class Promotion(ModelWithMetadata):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     name = models.CharField(max_length=255)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
-    old_sale_id = models.IntegerField(blank=True, null=True, unique=True)
+    old_sale_id = models.IntegerField(
+        blank=True, null=True, unique=True, default=get_old_sale_id
+    )
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)

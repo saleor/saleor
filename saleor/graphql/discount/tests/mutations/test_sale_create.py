@@ -78,7 +78,7 @@ def test_create_sale(
     assert data["endDate"] == end_date.isoformat()
     type, _id = graphene.Node.from_global_id(data["id"])
     assert type == "Sale"
-
+    breakpoint()
     promotion = Promotion.objects.filter(name="test sale").get()
     assert promotion.notification_sent_datetime == timezone.now()
 
