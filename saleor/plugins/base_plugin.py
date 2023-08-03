@@ -554,7 +554,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic when a fulfillment is
     # created.
-    fulfillment_created: Callable[["Fulfillment", Any], Any]
+    fulfillment_created: Callable[["Fulfillment", bool, Any], Any]
 
     # Trigger when fulfillment is cancelled.
     #

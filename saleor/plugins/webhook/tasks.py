@@ -108,7 +108,9 @@ def create_deliveries_for_subscriptions(
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
             request=initialize_request(
-                requestor, event_type in WebhookEventSyncType.ALL, event_type=event_type
+                requestor,
+                event_type in WebhookEventSyncType.ALL,
+                event_type=event_type,
             ),
             app=webhook.app,
         )
@@ -117,7 +119,6 @@ def create_deliveries_for_subscriptions(
                 "No payload was generated with subscription for event: %s" % event_type
             )
             continue
-
         event_payload = EventPayload(payload=json.dumps({**data}))
         event_payloads.append(event_payload)
         event_deliveries.append(
@@ -196,7 +197,6 @@ def trigger_webhooks_async(
     """
     regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
     deliveries = []
-
     if regular_webhooks:
         payload = EventPayload.objects.create(payload=data)
         deliveries.extend(
