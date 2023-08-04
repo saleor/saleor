@@ -4,7 +4,7 @@ from enum import Enum
 from typing import DefaultDict, Dict, List, Optional, Set, Union, cast
 
 import graphene
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, QuerySet
 from graphene.utils.str_converters import to_camel_case
 
 from ...discount.models import Promotion, PromotionRule
@@ -246,10 +246,8 @@ def convert_migrated_sale_predicate_to_catalogue_info(
         }
     into:
         {
-            "categories": {},
             "collections": {"UHJvZHV3","UHJvZHV2","UHJvZHV1"},
             "products": {"UHJvZHV9","UHJvZHV8","UHJvZHV7"},
-            "variants": {},
         }
     """
     catalogue_info: CatalogueInfo = defaultdict(set)
@@ -262,3 +260,9 @@ def convert_migrated_sale_predicate_to_catalogue_info(
             catalogue_info[field] = set(predicates.get(predicate_name, {}))
 
     return catalogue_info
+
+
+def get_categories_from_predicate(catalogue_predicate) -> QuerySet:
+    return where_filter_qs(
+        Category.objects.all(), {}, CategoryWhere, catalogue_predicate, None
+    ).all()
