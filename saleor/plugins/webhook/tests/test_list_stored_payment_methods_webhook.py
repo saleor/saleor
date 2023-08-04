@@ -65,9 +65,7 @@ def test_list_stored_payment_methods_with_static_payload(
 
     # then
     delivery = EventDelivery.objects.get()
-    mock_request.assert_called_once_with(
-        list_stored_payment_methods_app, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
-    )
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     mocked_cache_get.assert_called_once_with(expected_cache_key)
     mocked_cache_set.assert_called_once_with(
@@ -127,9 +125,7 @@ def test_list_stored_payment_methods_with_subscription_payload(
 
     # then
     delivery = EventDelivery.objects.get()
-    mock_request.assert_called_once_with(
-        list_stored_payment_methods_app, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
-    )
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     mocked_cache_get.assert_called_once_with(expected_cache_key)
     mocked_cache_set.assert_called_once_with(
@@ -243,9 +239,7 @@ def test_list_stored_payment_methods_app_returns_incorrect_response(
 
     # then
     delivery = EventDelivery.objects.get()
-    mock_request.assert_called_once_with(
-        list_stored_payment_methods_app, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
-    )
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     mocked_cache_get.assert_called_once_with(expected_cache_key)
     assert not mocked_cache_set.called
