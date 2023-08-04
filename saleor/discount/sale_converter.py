@@ -167,6 +167,8 @@ def create_catalogue_predicate(collection_ids, category_ids, product_ids, varian
         predicate["OR"].append({"productPredicate": {"ids": product_ids}})
     if variant_ids:
         predicate["OR"].append({"variantPredicate": {"ids": variant_ids}})
+    if not predicate.get("OR"):
+        predicate = {}
 
     return predicate
 

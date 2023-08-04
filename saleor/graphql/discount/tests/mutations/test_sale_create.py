@@ -297,3 +297,57 @@ def test_create_sale_start_date_and_end_date_after_current_date(
     created_webhook_mock.assert_called_once_with(sale, current_catalogue)
     sale_toggle_mock.assert_not_called()
     update_products_discounted_prices_of_sale_task_mock.assert_called_once_with(sale.id)
+
+
+@freeze_time("2020-03-18 12:00:00")
+@patch("saleor.plugins.manager.PluginsManager.sale_toggle")
+@patch("saleor.plugins.manager.PluginsManager.sale_created")
+def test_create_sale_empty_predicate(
+    created_webhook_mock,
+    sale_toggle_mock,
+    staff_api_client,
+    permission_manage_discounts,
+):
+    # given
+    query = SALE_CREATE_MUTATION
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
+    variables = {
+        "input": {
+            "name": "test sale",
+            "type": DiscountValueTypeEnum.FIXED.name,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["saleCreate"]["sale"]
+    sale = Promotion.objects.filter(name="test sale").get()
+    rules = PromotionRule.objects.filter(promotion_id=sale.id).all()
+    assert len(rules) == 1
+    rule = rules[0]
+
+    assert data["type"] == DiscountValueType.FIXED.upper()
+    assert data["name"] == "test sale"
+    assert data["startDate"] == start_date.isoformat()
+    assert data["endDate"] == end_date.isoformat()
+    assert not data["products"]
+    type, id = graphene.Node.from_global_id(data["id"])
+    assert type == "Sale"
+    assert str(sale.old_sale_id) == id
+    assert sale.last_notification_scheduled_at == timezone.now()
+    assert rule.reward_value_type == DiscountValueTypeEnum.FIXED.value
+    assert not rule.catalogue_predicate
+
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        rule.catalogue_predicate
+    )
+    created_webhook_mock.assert_called_once_with(sale, current_catalogue)
+    sale_toggle_mock.assert_called_once_with(sale, current_catalogue)
