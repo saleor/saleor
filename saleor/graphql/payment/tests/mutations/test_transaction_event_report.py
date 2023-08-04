@@ -3,6 +3,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import graphene
+import pytest
 from django.utils import timezone
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
@@ -25,6 +26,7 @@ fragment TransactionEventData on TransactionEventReport {
     transaction {
         id
         actions
+        pspReference
         events {
             id
         }
@@ -1779,3 +1781,67 @@ def test_transaction_event_report_converts_void_action_to_cancel(
     get_graphql_content(response)
     transaction.refresh_from_db()
     transaction.available_actions = [TransactionActionEnum.CANCEL.value]
+
+
+@pytest.mark.parametrize(
+    "transaction_psp_reference, expected_transaction_psp_reference",
+    [
+        (None, "psp_reference_from_event"),
+        ("", "psp_reference_from_event"),
+        ("psp_reference_from_transaction", "psp_reference_from_transaction"),
+    ],
+)
+def test_transaction_event_report_assign_transaction_psp_reference_if_missing(
+    transaction_psp_reference,
+    expected_transaction_psp_reference,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        authorized_value=Decimal("10"), psp_reference=transaction_psp_reference
+    )
+    amount = Decimal("11.00")
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": expected_transaction_psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    transaction.refresh_from_db()
+
+    assert (
+        transaction_report_data["transaction"]["pspReference"]
+        == expected_transaction_psp_reference
+    )
+    assert transaction.psp_reference == expected_transaction_psp_reference

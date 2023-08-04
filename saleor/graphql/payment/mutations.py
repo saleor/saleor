@@ -1573,6 +1573,7 @@ class TransactionEventReport(ModelMutation):
     def update_transaction(
         cls,
         transaction: payment_models.TransactionItem,
+        transaction_event: payment_models.TransactionEvent,
         available_actions: Optional[list[str]] = None,
         app: Optional["App"] = None,
     ):
@@ -1586,6 +1587,20 @@ class TransactionEventReport(ModelMutation):
             "refund_pending_value",
             "cancel_pending_value",
         ]
+
+        if (
+            transaction_event.type
+            in [
+                TransactionEventType.AUTHORIZATION_REQUEST,
+                TransactionEventType.AUTHORIZATION_SUCCESS,
+                TransactionEventType.CHARGE_REQUEST,
+                TransactionEventType.CHARGE_SUCCESS,
+            ]
+            and not transaction.psp_reference
+        ):
+            transaction.psp_reference = transaction_event.psp_reference
+            fields_to_update.append("psp_reference")
+
         if available_actions is not None:
             if "void" in available_actions:
                 available_actions.remove("void")
@@ -1703,6 +1718,7 @@ class TransactionEventReport(ModelMutation):
             previous_refunded_value = transaction.refunded_value
             cls.update_transaction(
                 transaction,
+                transaction_event,
                 available_actions=available_actions,
                 app=app,
             )
