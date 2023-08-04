@@ -97,7 +97,12 @@ def test_transaction_charge_request(order, webhook_app, permission_manage_paymen
             "type": "Credit card",
             "reference": "PSP ref",
             "pspReference": "PSP ref",
-            "order": {"id": graphene.Node.to_global_id("Order", order.id)},
+            "order": {
+                "id": graphene.Node.to_global_id("Order", order.id),
+                "total": {
+                    "gross": {"amount": quantize_price(order.total.gross.amount, "USD")}
+                },
+            },
         },
         "action": {
             "actionType": "CHARGE",
