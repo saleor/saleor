@@ -2,10 +2,10 @@ from datetime import timedelta
 
 import pytest
 from django.utils import timezone
-from freezegun import freeze_time
 
 from .....discount import DiscountValueType
-from .....discount.models import Sale, SaleChannelListing
+from .....discount.models import Promotion, Sale, SaleChannelListing
+from .....discount.sale_converter import convert_sales_to_promotions
 from ....tests.utils import get_graphql_content
 
 QUERY_SALES_WITH_FILTER = """
@@ -55,6 +55,7 @@ def test_query_sales_with_filter_status(
     permission_manage_discounts,
     channel_USD,
 ):
+    # given
     sales = Sale.objects.bulk_create(
         [
             Sale(name="Sale1", start_date=timezone.now()),
@@ -72,11 +73,15 @@ def test_query_sales_with_filter_status(
             for sale in sales
         ]
     )
-
+    convert_sales_to_promotions()
     variables = {"filter": sale_filter}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_SALES_WITH_FILTER, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["sales"]["edges"]
     assert len(data) == count
@@ -96,16 +101,22 @@ def test_query_sales_with_filter_discount_type(
     staff_api_client,
     permission_manage_discounts,
 ):
+    # given
     Sale.objects.bulk_create(
         [
             Sale(name="Sale1", type=DiscountValueType.FIXED),
             Sale(name="Sale2", type=sale_type),
         ]
     )
+    convert_sales_to_promotions()
     variables = {"filter": sale_filter}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_SALES_WITH_FILTER, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["sales"]["edges"]
     assert len(data) == count
@@ -135,6 +146,7 @@ def test_query_sales_with_filter_started(
     permission_manage_discounts,
     channel_USD,
 ):
+    # given
     sales = Sale.objects.bulk_create(
         [
             Sale(name="Sale1"),
@@ -155,11 +167,15 @@ def test_query_sales_with_filter_started(
             for sale in sales
         ]
     )
-
+    convert_sales_to_promotions()
     variables = {"filter": sale_filter}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_SALES_WITH_FILTER, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["sales"]["edges"]
     assert len(data) == count
@@ -192,12 +208,9 @@ def test_query_sales_with_filter_updated_at(
     permission_manage_discounts,
     channel_USD,
 ):
-    with freeze_time("2012-01-14 11:00:00"):
-        sale_1 = Sale.objects.create(name="Sale1")
-
-    with freeze_time("2012-01-14 12:00:00"):
-        sale_2 = Sale.objects.create(name="Sale2")
-
+    # given
+    sale_1 = Sale.objects.create(name="Sale1")
+    sale_2 = Sale.objects.create(name="Sale2")
     SaleChannelListing.objects.bulk_create(
         [
             SaleChannelListing(
@@ -210,10 +223,25 @@ def test_query_sales_with_filter_updated_at(
         ]
     )
 
+    convert_sales_to_promotions()
+    promotions = Promotion.objects.all()
+    assert len(promotions) == 2
+    promotions[0].updated_at = timezone.now().replace(
+        year=2012, month=1, day=14, hour=11, minute=0, second=0
+    )
+    promotions[1].updated_at = timezone.now().replace(
+        year=2012, month=1, day=14, hour=12, minute=0, second=0
+    )
+    Promotion.objects.bulk_update(promotions, ["updated_at"])
+
     variables = {"filter": sale_filter}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_SALES_WITH_FILTER, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["sales"]["edges"]
     assert len(data) == count
@@ -230,6 +258,7 @@ def test_query_sales_with_filter_search(
     permission_manage_discounts,
     channel_USD,
 ):
+    # given
     sales = Sale.objects.bulk_create(
         [
             Sale(name="BigSale", type="PERCENTAGE"),
@@ -252,10 +281,15 @@ def test_query_sales_with_filter_search(
             for i, sale in enumerate(sales)
         ]
     )
+    convert_sales_to_promotions()
     variables = {"filter": sale_filter}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_SALES_WITH_FILTER, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["sales"]["edges"]
     assert len(data) == count
