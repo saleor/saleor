@@ -2,6 +2,7 @@ import warnings
 
 from .....channel.utils import DEPRECATION_WARNING_MESSAGE
 from .....discount.models import Sale, Voucher
+from .....discount.sale_converter import convert_sales_to_promotions
 from ....tests.utils import get_graphql_content
 
 QUERY_SALES_WITH_SORTING_AND_FILTERING = """
@@ -24,6 +25,7 @@ def test_sales_with_sorting_and_without_channel(
     listing = new_sale.channel_listings.first()
     listing.discount_value = 10
     listing.save(update_fields=["discount_value"])
+    convert_sales_to_promotions()
     variables = {"sortBy": {"field": "VALUE", "direction": "ASC"}}
 
     # when
@@ -85,6 +87,7 @@ def test_query_vouchers_with_sort(
 def test_filter_sales_by_query(staff_api_client, permission_manage_discounts):
     sales = Sale.objects.bulk_create([Sale(name="Spanish"), Sale(name="Inquisition")])
     sale = sales[1]
+    convert_sales_to_promotions()
 
     query = """
         query Sales($query: String) {
