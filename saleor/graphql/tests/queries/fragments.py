@@ -470,6 +470,11 @@ fragment TransactionFragment on TransactionItem {
   reference
   order {
     id
+    total {
+      gross {
+        amount
+      }
+    }
   }
 }
 """
