@@ -68,8 +68,10 @@ from .shipping import (
     parse_list_shipping_methods_response,
 )
 from .stored_payment_methods import (
+    get_list_stored_payment_methods_data_dict,
     get_list_stored_payment_methods_from_response,
     get_response_for_stored_payment_method_request_delete,
+    invalidate_cache_for_stored_payment_methods,
 )
 from .tasks import (
     send_webhook_request_async,
@@ -1595,8 +1597,13 @@ class WebhookPlugin(BasePlugin):
             ),
             timeout=WEBHOOK_SYNC_TIMEOUT,
         )
+        if response_data:
+            invalidate_cache_for_stored_payment_methods(
+                request_delete_data.user.id,
+                request_delete_data.channel.slug,
+                app_data.app_identifier,
+            )
 
-        # FIXME: Need to figure out how to handle cached stored payment methods
         return get_response_for_stored_payment_method_request_delete(response_data)
 
     def list_stored_payment_methods(
@@ -1610,12 +1617,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS
 
         if webhooks := get_webhooks_for_event(event_type):
-            payload_dict = {
-                "user_id": graphene.Node.to_global_id(
-                    "User", list_payment_method_data.user.id
-                ),
-                "channel_slug": list_payment_method_data.channel.slug,
-            }
+            payload_dict = get_list_stored_payment_methods_data_dict(
+                list_payment_method_data.user.id, list_payment_method_data.channel.slug
+            )
             payload = self._serialize_payload(payload_dict)
             for webhook in webhooks:
                 if not webhook.app.identifier:
