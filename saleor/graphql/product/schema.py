@@ -143,7 +143,9 @@ from .types import (
 
 
 def search_string_in_kwargs(kwargs: dict) -> bool:
-    return bool(kwargs.get("filter", {}).get("search", "").strip())
+    return bool(kwargs.get("filter", {}).get("search", "").strip()) or bool(
+        kwargs.get("search", "").strip()
+    )
 
 
 def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
@@ -434,14 +436,15 @@ class ProductQueries(graphene.ObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_products(
-        _root, info: ResolveInfo, *, channel=None, search=None, **kwargs
-    ):
+    def resolve_products(_root, info: ResolveInfo, *, channel=None, **kwargs):
         if sort_field_from_kwargs(kwargs) == ProductOrderField.RANK:
             # sort by RANK can be used only with search filter
             if not search_string_in_kwargs(kwargs):
                 raise GraphQLError(
-                    "Sorting by RANK is available only when using a search filter."
+                    (
+                        "Sorting by RANK is available only when using a search filter "
+                        "or search argument."
+                    )
                 )
         if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
             # default to sorting by RANK if search is used
@@ -451,6 +454,7 @@ class ProductQueries(graphene.ObjectType):
                 {"direction": "-", "field": ["search_rank", "id"]}
             )
 
+        search = kwargs.get("search")
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
