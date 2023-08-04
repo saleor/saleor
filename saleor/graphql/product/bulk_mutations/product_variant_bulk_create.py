@@ -47,6 +47,7 @@ from ...core.types import (
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...shop.utils import get_track_inventory_by_default
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.product.product_create import StockInput
 from ..mutations.product_variant.product_variant_create import ProductVariantInput
@@ -853,7 +854,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def save_variants(cls, variants_data_with_errors_list, product):
+    def save_variants(cls, info, variants_data_with_errors_list, product):
         variants_to_create: list = []
         stocks_to_create: list = []
         listings_to_create: list = []
@@ -864,7 +865,14 @@ class ProductVariantBulkCreate(BaseMutation):
 
             if not variant:
                 continue
-
+            track_inventory_by_default = get_track_inventory_by_default(info)
+            track_inventory = variant_data["cleaned_input"].get("track_inventory")
+            if track_inventory_by_default is not None:
+                variant.track_inventory = (
+                    track_inventory_by_default
+                    if track_inventory is None
+                    else track_inventory
+                )
             variants_to_create.append(variant)
             cleaned_input = variant_data["cleaned_input"]
 
@@ -881,7 +889,6 @@ class ProductVariantBulkCreate(BaseMutation):
 
             if not variant.name:
                 cls.set_variant_name(variant, cleaned_input)
-
         models.ProductVariant.objects.bulk_create(variants_to_create)
 
         for variant, attributes in attributes_to_save:
@@ -952,7 +959,7 @@ class ProductVariantBulkCreate(BaseMutation):
                     if data["errors"] and data["instance"]:
                         data["instance"] = None
 
-        cls.save_variants(instances_data_with_errors_list, product)
+        cls.save_variants(info, instances_data_with_errors_list, product)
 
         # prepare and return data
         results = get_results(instances_data_with_errors_list)

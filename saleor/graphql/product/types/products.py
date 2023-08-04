@@ -276,7 +276,12 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         description="The product to which the variant belongs.",
     )
     track_inventory = graphene.Boolean(
-        required=True, description="Whether the inventory of the variant is tracked."
+        required=True,
+        description=(
+            "Determines if the inventory of this variant should be tracked. If false, "
+            "the quantity won't change when customers buy this item. "
+            "If the field is not provided, `Shop.trackInventoryByDefault` will be used."
+        ),
     )
     quantity_limit_per_customer = graphene.Int(
         description="The maximum quantity of this variant that a customer can purchase."

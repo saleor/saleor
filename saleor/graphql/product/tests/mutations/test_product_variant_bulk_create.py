@@ -37,6 +37,7 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
                         id
                         name
                         sku
+                        trackInventory
                         attributes{
                             attribute {
                                 slug
@@ -2235,3 +2236,31 @@ def test_product_variant_bulk_create_two_variants_duplicated_one_attribute_value
     assert not data["results"][0]["errors"]
     assert data["count"] == 1
     assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
+def test_product_variant_bulk_create_with_default_track_inventory(
+    staff_api_client,
+    product_with_variant_with_two_attributes,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    product = product_with_variant_with_two_attributes
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variants = [{"sku": str(uuid4())[:12], "attributes": []}]
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    assert (
+        data["results"][0]["productVariant"]["trackInventory"]
+        == site_settings.track_inventory_by_default
+    )

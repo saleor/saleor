@@ -248,7 +248,10 @@ class Shop(graphene.ObjectType):
         required=True,
     )
     track_inventory_by_default = graphene.Boolean(
-        description="Enable inventory tracking."
+        description=(
+            "This field is used as a default value for "
+            "`ProductVariant.trackInventory`."
+        )
     )
     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
     translation = TranslationField(ShopTranslation, type_name="shop", resolver=None)

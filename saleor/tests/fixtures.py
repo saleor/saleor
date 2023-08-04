@@ -7386,3 +7386,13 @@ def transaction_session_response():
         "externalUrl": "http://127.0.0.1:9090/external-reference",
         "message": "Message related to the payment",
     }
+
+
+class Info:
+    def __init__(self, request):
+        self.context = request
+
+
+@pytest.fixture
+def dummy_info(request):
+    return Info(request)
