@@ -5,6 +5,7 @@ from freezegun import freeze_time
 from graphql_relay import to_global_id
 
 from saleor.discount.models import Promotion
+from saleor.discount.sale_converter import convert_sales_to_promotions
 
 from ...discount.enums import DiscountValueTypeEnum
 from ...tests.utils import get_graphql_content
@@ -219,13 +220,11 @@ def test_sale_create_updates_products_discounted_prices(
     mutation SaleCreate(
             $name: String,
             $type: DiscountValueTypeEnum,
-            $value: PositiveDecimal,
             $products: [ID!]
     ) {
         saleCreate(input: {
                 name: $name,
                 type: $type,
-                value: $value,
                 products: $products
         }) {
             sale {
@@ -241,7 +240,6 @@ def test_sale_create_updates_products_discounted_prices(
     variables = {
         "name": "Half price product",
         "type": DiscountValueTypeEnum.PERCENTAGE.name,
-        "value": "50",
     }
 
     # when
@@ -261,22 +259,20 @@ def test_sale_create_updates_products_discounted_prices(
     )
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
     "saleor.graphql.discount.mutations.sale.sale_update"
-    ".update_products_discounted_prices_of_catalogues_task.delay"
+    ".update_products_discounted_prices_for_promotion_task"
 )
 def test_sale_update_updates_products_discounted_prices(
-    update_products_discounted_prices_of_catalogues_task_mock,
+    mock_update_products_discounted_prices_for_catalogues,
     staff_api_client,
     sale,
     permission_manage_discounts,
 ):
     # given
     query = """
-    mutation SaleUpdate($id: ID!, $value: PositiveDecimal) {
-        saleUpdate(id: $id, input: {value: $value}) {
+    mutation SaleUpdate($id: ID!, $type: DiscountValueTypeEnum) {
+        saleUpdate(id: $id, input: {type: $type}) {
             sale {
                 id
             }
@@ -287,12 +283,12 @@ def test_sale_update_updates_products_discounted_prices(
         }
     }
     """
-    variables = {"id": to_global_id("Sale", sale.pk), "value": "99"}
-
-    category_pks = set(sale.categories.values_list("id", flat=True))
-    collection_pks = set(sale.collections.values_list("id", flat=True))
-    product_pks = set(sale.products.values_list("id", flat=True))
-    variant_pks = set(sale.variants.values_list("id", flat=True))
+    product_ids = list(sale.products.values_list("id", flat=True).all())
+    convert_sales_to_promotions()
+    variables = {
+        "id": to_global_id("Sale", sale.pk),
+        "type": DiscountValueTypeEnum.PERCENTAGE.name,
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -301,16 +297,12 @@ def test_sale_update_updates_products_discounted_prices(
 
     # then
     assert response.status_code == 200
-
     content = get_graphql_content(response)
     assert content["data"]["saleUpdate"]["errors"] == []
 
-    update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
-    args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert set(kwargs["category_ids"]) == category_pks
-    assert set(kwargs["collection_ids"]) == collection_pks
-    assert set(kwargs["product_ids"]) == product_pks
-    assert set(kwargs["variant_ids"]) == variant_pks
+    mock_update_products_discounted_prices_for_catalogues.delay.assert_called_once_with(
+        product_ids
+    )
 
 
 # TODO will be fixed in PR refactoring the mutation

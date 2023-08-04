@@ -743,7 +743,7 @@ class PluginsManager(PaymentInterface):
             "sale_deleted", default_value, sale, previous_catalogue
         )
 
-    def sale_updated(self, sale: "Sale", previous_catalogue, current_catalogue):
+    def sale_updated(self, sale: "Promotion", previous_catalogue, current_catalogue):
         default_value = None
         return self.__run_method_on_plugins(
             "sale_updated", default_value, sale, previous_catalogue, current_catalogue

@@ -84,7 +84,14 @@ class Migration(migrations.Migration):
                         unique=True,
                     ),
                 ),
-                ("name", models.CharField(max_length=255)),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=255,
+                        blank=True,
+                        null=True,
+                    ),
+                ),
                 (
                     "description",
                     saleor.core.db.fields.SanitizedJSONField(
@@ -93,7 +100,7 @@ class Migration(migrations.Migration):
                         sanitizer=saleor.core.utils.editorjs.clean_editor_js,
                     ),
                 ),
-                ("catalogue_predicate", models.JSONField()),
+                ("catalogue_predicate", models.JSONField(blank=True)),
                 (
                     "reward_value_type",
                     models.CharField(

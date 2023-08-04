@@ -971,7 +971,7 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic after
     # a sale is updated.
     sale_updated: Callable[
-        ["Sale", DefaultDict[str, Set[str]], DefaultDict[str, Set[str]], Any], Any
+        ["Promotion", DefaultDict[str, Set[str]], DefaultDict[str, Set[str]], Any], Any
     ]
 
     # Trigger when promotion is created.

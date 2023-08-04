@@ -59,7 +59,7 @@ class Promotion(ModelObjectType[models.Promotion]):
 
 class PromotionRule(ModelObjectType[models.PromotionRule]):
     id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True, description="Name of the promotion rule.")
+    name = graphene.String(description="Name of the promotion rule.")
     description = JSON(description="Description of the promotion rule.")
     promotion = graphene.Field(
         Promotion, description="Promotion to which the rule belongs."

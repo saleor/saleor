@@ -85,6 +85,7 @@ def _convert_sale_into_promotion(sale):
         updated_at=sale.updated_at,
         metadata=sale.metadata,
         private_metadata=sale.private_metadata,
+        last_notification_scheduled_at=sale.notification_sent_datetime,
     )
 
 
@@ -126,7 +127,6 @@ def _create_promotion_rule(
     sale, promotion, discount_value=None, old_channel_listing_id=None
 ):
     return PromotionRule(
-        name="",
         promotion=promotion,
         catalogue_predicate=_create_catalogue_predicate_from_sale(sale),
         reward_value_type=sale.type,
