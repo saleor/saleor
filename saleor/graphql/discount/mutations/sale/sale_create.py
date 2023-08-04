@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
+from .....discount.models import Promotion
 from .....discount.sale_converter import create_catalogue_predicate
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_of_promotion_task
@@ -115,7 +116,8 @@ class SaleCreate(ModelMutation):
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         with traced_atomic_transaction():
             response = super().perform_mutation(_root, info, **data)
-            promotion = response.sale.node
+            promotion: Promotion = response.sale.node
+            promotion.assign_old_sale_id()
             input = data["input"]
             predicate = cls.create_predicate(input)
             models.PromotionRule.objects.create(

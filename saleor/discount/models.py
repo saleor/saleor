@@ -375,20 +375,11 @@ class PromotionQueryset(models.QuerySet["Promotion"]):
 PromotionManager = models.Manager.from_queryset(PromotionQueryset)
 
 
-def get_old_sale_id():
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT nextval('discount_promotion_old_sale_id_seq')")
-        result = cursor.fetchone()
-        return result[0]
-
-
 class Promotion(ModelWithMetadata):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     name = models.CharField(max_length=255)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
-    old_sale_id = models.IntegerField(
-        blank=True, null=True, unique=True, default=get_old_sale_id
-    )
+    old_sale_id = models.IntegerField(blank=True, null=True, unique=True)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -403,6 +394,13 @@ class Promotion(ModelWithMetadata):
         if date is None:
             date = datetime.now(pytz.utc)
         return (not self.end_date or self.end_date >= date) and self.start_date <= date
+
+    def assign_old_sale_id(self):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT nextval('discount_promotion_old_sale_id_seq')")
+            result = cursor.fetchone()
+            self.old_sale_id = result[0]
+            self.save(update_fields=["old_sale_id"])
 
 
 class PromotionTranslation(Translation):
