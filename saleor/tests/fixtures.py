@@ -5574,6 +5574,14 @@ def rule_info(
 
 
 @pytest.fixture
+def promotion_converted_from_sale(sale):
+    from ..discount.sale_converter import convert_sales_to_promotions
+
+    convert_sales_to_promotions()
+    return Promotion.objects.filter(old_sale_id=sale.id).last()
+
+
+@pytest.fixture
 def permission_manage_staff():
     return Permission.objects.get(codename="manage_staff")
 
