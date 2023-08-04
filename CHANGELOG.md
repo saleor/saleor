@@ -85,6 +85,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - `checkoutShippingAddressUpdate`, `checkoutBillingAddressUpdate`, `shopAddressUpdate`, `warehouseUpdate`
   - Add `metadata` to `AddressInput` field
 - Add support for unhandled field `Shop.trackInventoryByDefault` for `productVariantCreate` and `productVariantBulkCreate` - #13492 by @Smit-Parmar
+- Add `storedPaymentMethods` field to `User` and `Checkout` type - #13581
+
 ### Saleor Apps
 
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
