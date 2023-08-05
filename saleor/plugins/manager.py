@@ -862,6 +862,18 @@ class PluginsManager(PaymentInterface):
             notify_customer=notify_customer,
         )
 
+    def fulfillment_updated(
+        self, fulfillment: "Fulfillment", notify_customer: Optional[bool] = True
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "fulfillment_updated",
+            default_value,
+            fulfillment,
+            channel_slug=fulfillment.order.channel.slug,
+            notify_customer=notify_customer,
+        )
+
     def fulfillment_canceled(self, fulfillment: "Fulfillment"):
         default_value = None
         return self.__run_method_on_plugins(

@@ -934,6 +934,25 @@ class WebhookPlugin(BasePlugin):
                 self.requestor,
             )
 
+    def fulfillment_updated(
+        self,
+        fulfillment: "Fulfillment",
+        notify_customer: Optional[bool] = True,
+        previous_value: Optional[Any] = None,
+    ):
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.FULFILLMENT_UPDATED
+        if webhooks := get_webhooks_for_event(event_type):
+            fulfillment_data = generate_fulfillment_payload(fulfillment, self.requestor)
+            trigger_webhooks_async(
+                fulfillment_data,
+                event_type,
+                webhooks,
+                {"notify_customer": notify_customer},
+                self.requestor,
+            )
+
     def fulfillment_canceled(self, fulfillment: "Fulfillment", previous_value):
         if not self.active:
             return previous_value

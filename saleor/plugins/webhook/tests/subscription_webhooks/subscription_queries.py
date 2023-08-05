@@ -1354,6 +1354,26 @@ FULFILLMENT_CREATED = (
 """
 )
 
+
+FULFILLMENT_UPDATED = (
+    fragments.FULFILLMENT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on FulfillmentUpdated{
+          notifyCustomer
+          fulfillment{
+            ...FulfillmentDetails
+          }
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+)
+
 FULFILLMENT_CANCELED = (
     fragments.FULFILLMENT_DETAILS
     + """

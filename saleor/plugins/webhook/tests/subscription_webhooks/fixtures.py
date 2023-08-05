@@ -626,6 +626,14 @@ def subscription_fulfillment_created_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_fulfillment_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.FULFILLMENT_UPDATED,
+        WebhookEventAsyncType.FULFILLMENT_UPDATED,
+    )
+
+
+@pytest.fixture
 def subscription_fulfillment_canceled_webhook(subscription_webhook):
     return subscription_webhook(
         queries.FULFILLMENT_CANCELED,

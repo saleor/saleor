@@ -3,14 +3,17 @@ from typing import cast
 import graphene
 
 from ....account.models import User
+from ....core.notify_events import NotifyEventType
 from ....order.actions import fulfillment_tracking_updated
 from ....order.notifications import send_fulfillment_update
 from ....permission.enums import OrderPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Fulfillment, Order
 from .order_fulfill import FulfillmentUpdateTrackingInput
@@ -36,6 +39,16 @@ class FulfillmentUpdateTracking(BaseMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.FULFILLMENT_UPDATED,
+                description="Fulfillment tracking number is updated.",
+            ),
+            WebhookEventInfo(
+                type=NotifyEventType.ORDER_FULFILLMENT_UPDATE,
+                description="Fulfillment tracking number is updated.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -63,7 +76,9 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment_tracking_updated(fulfillment, user, app, tracking_number, manager)
 
         notify_customer = input.get("notify_customer")
+        cls.call_event(manager.fulfillment_updated, fulfillment, notify_customer)
         if notify_customer:
+            # this event will be deprecated. Fulfillment_updated will replace it.
             send_fulfillment_update(order, fulfillment, manager)
 
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)

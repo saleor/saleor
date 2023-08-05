@@ -1,7 +1,9 @@
 from unittest.mock import ANY, patch
 
 import graphene
+import pytest
 
+from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 FULFILLMENT_UPDATE_TRACKING_QUERY = """
@@ -22,9 +24,11 @@ FULFILLMENT_UPDATE_TRACKING_QUERY = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.fulfillment_updated")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_fulfillment_update_tracking(
     send_fulfillment_update_mock,
+    mocked_fulfillment_updated_event,
     staff_api_client,
     fulfillment,
     permission_group_manage_orders,
@@ -39,6 +43,7 @@ def test_fulfillment_update_tracking(
     data = content["data"]["orderFulfillmentUpdateTracking"]["fulfillment"]
     assert data["trackingNumber"] == tracking
     send_fulfillment_update_mock.assert_not_called()
+    mocked_fulfillment_updated_event.assert_called()
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
@@ -90,19 +95,26 @@ def test_fulfillment_update_tracking_by_app(
     send_fulfillment_update_mock.assert_not_called()
 
 
+@patch("saleor.plugins.manager.PluginsManager.fulfillment_updated")
 @patch(
     "saleor.graphql.order.mutations.fulfillment_update_tracking.send_fulfillment_update"
 )
 def test_fulfillment_update_tracking_send_notification_true(
     send_fulfillment_update_mock,
+    mocked_fulfillment_updated_event,
     staff_api_client,
     fulfillment,
     permission_group_manage_orders,
 ):
+    notify_customer = True
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
     tracking = "stationary tracking"
-    variables = {"id": fulfillment_id, "tracking": tracking, "notifyCustomer": True}
+    variables = {
+        "id": fulfillment_id,
+        "tracking": tracking,
+        "notifyCustomer": notify_customer,
+    }
     response = staff_api_client.post_graphql(
         FULFILLMENT_UPDATE_TRACKING_QUERY,
         variables,
@@ -110,8 +122,12 @@ def test_fulfillment_update_tracking_send_notification_true(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentUpdateTracking"]["fulfillment"]
     assert data["trackingNumber"] == tracking
+
     send_fulfillment_update_mock.assert_called_once_with(
         fulfillment.order, fulfillment, ANY
+    )
+    mocked_fulfillment_updated_event.assert_called_once_with(
+        fulfillment, notify_customer
     )
 
 
@@ -134,3 +150,35 @@ def test_fulfillment_update_tracking_send_notification_false(
     data = content["data"]["orderFulfillmentUpdateTracking"]["fulfillment"]
     assert data["trackingNumber"] == tracking
     send_fulfillment_update_mock.assert_not_called()
+
+
+@pytest.mark.parametrize("notify_customer", [True, False])
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_fulfillment_update_tracking_event_triggered(
+    mocked_webhooks,
+    notify_customer,
+    permission_group_manage_orders,
+    fulfillment,
+    settings,
+    subscription_fulfillment_updated_webhook,
+    staff_api_client,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
+    variables = {
+        "id": fulfillment_id,
+        "tracking": "tracking",
+        "notifyCustomer": notify_customer,
+    }
+
+    # when
+    staff_api_client.post_graphql(FULFILLMENT_UPDATE_TRACKING_QUERY, variables)
+
+    # then
+    mocked_webhooks.assert_called_once()
+    assert mocked_webhooks.call_args[0][1] == (
+        WebhookEventAsyncType.FULFILLMENT_UPDATED
+    )
+    assert mocked_webhooks.call_args[0][3] == {"notify_customer": notify_customer}

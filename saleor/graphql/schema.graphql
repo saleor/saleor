@@ -1919,6 +1919,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A new fulfillment is created."""
   FULFILLMENT_CREATED
+  FULFILLMENT_UPDATED
 
   """A fulfillment is cancelled."""
   FULFILLMENT_CANCELED
@@ -2581,6 +2582,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A new fulfillment is created."""
   FULFILLMENT_CREATED
+  FULFILLMENT_UPDATED
 
   """A fulfillment is cancelled."""
   FULFILLMENT_CANCELED
@@ -3455,6 +3457,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ORDER_METADATA_UPDATED
   ORDER_BULK_CREATED
   FULFILLMENT_CREATED
+  FULFILLMENT_UPDATED
   FULFILLMENT_CANCELED
   FULFILLMENT_APPROVED
   FULFILLMENT_METADATA_UPDATED
@@ -15743,6 +15746,10 @@ type Mutation {
   Updates a fulfillment for an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - FULFILLMENT_UPDATED (async): Fulfillment tracking number is updated.
+  - ORDER_FULFILLMENT_UPDATE (sync): Fulfillment tracking number is updated.
   """
   orderFulfillmentUpdateTracking(
     """ID of a fulfillment to update."""
@@ -15750,7 +15757,7 @@ type Mutation {
 
     """Fields required to update a fulfillment."""
     input: FulfillmentUpdateTrackingInput!
-  ): FulfillmentUpdateTracking @doc(category: "Orders")
+  ): FulfillmentUpdateTracking @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_UPDATED], syncEvents: [])
 
   """
   Refund products. 
@@ -23612,8 +23619,12 @@ type FulfillmentApprove @doc(category: "Orders") {
 Updates a fulfillment for an order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- FULFILLMENT_UPDATED (async): Fulfillment tracking number is updated.
+- ORDER_FULFILLMENT_UPDATE (sync): Fulfillment tracking number is updated.
 """
-type FulfillmentUpdateTracking @doc(category: "Orders") {
+type FulfillmentUpdateTracking @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_UPDATED], syncEvents: []) {
   """A fulfillment with updated tracking."""
   fulfillment: Fulfillment
 
@@ -31131,6 +31142,38 @@ Event sent when new fulfillment is created.
 Added in Saleor 3.4.
 """
 type FulfillmentCreated implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The fulfillment the event relates to."""
+  fulfillment: Fulfillment
+
+  """The order the fulfillment belongs to."""
+  order: Order
+
+  """
+  If true, send an email notification to the customer.
+  
+  Added in Saleor 3.15.
+  """
+  notifyCustomer: Boolean!
+}
+
+"""
+Event sent when new fulfillment is updated.
+
+Added in Saleor 3.15.
+"""
+type FulfillmentUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
