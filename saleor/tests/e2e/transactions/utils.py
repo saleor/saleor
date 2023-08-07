@@ -25,28 +25,29 @@ mutation TransactionCreate($id: ID!, $transactionCreateInput: TransactionCreateI
 
 
 def create_transaction(
-    app_auth_token,
+    e2e_staff_api_client,
     id,
     transaction_name="Credit card",
     message="Charged",
     psp_reference="PSP-ref123",
-    available_actions="[CANCEL, REFUND]",
-    amount_charged="{ currency: 'USD', amount: 1 }",
+    available_actions=["CANCEL", "REFUND"],
+    currency="USD",
+    amount=1,
     external_url="https://saleor.io/payment-id/123",
 ):
     variables = {
-        "input": {
-            "id": id,
+        "id": id,
+        "transactionCreateInput": {
             "name": transaction_name,
             "message": message,
             "pspReference": psp_reference,
             "availableActions": available_actions,
-            "amountCharged": amount_charged,
+            "amountCharged": {"currency": currency, "amount": amount},
             "externalUrl": external_url,
-        }
+        },
     }
 
-    response = app_auth_token.post_graphql(TRANSACTION_CREATE_MUTATION, variables)
+    response = e2e_staff_api_client.post_graphql(TRANSACTION_CREATE_MUTATION, variables)
     content = get_graphql_content(response)
 
     assert content["data"]["transactionCreate"]["errors"] == []
@@ -56,8 +57,8 @@ def create_transaction(
     assert data["name"] == transaction_name
     assert data["message"] == message
     assert data["pspReference"] == psp_reference
-    assert data["availableActions"] == available_actions
-    assert data["amountCharged"]["amount"] == 1
-    assert data["amountCharged"]["currency"] == "USD"
+    assert data["actions"] == available_actions
+    assert data["chargedAmount"]["amount"] == amount
+    assert data["chargedAmount"]["currency"] == currency
 
     return data

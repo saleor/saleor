@@ -108,9 +108,9 @@ def prepare_product(
     )
 
     app = create_app(e2e_staff_api_client, "App for payments", ["HANDLE_PAYMENTS"])
-    app_auth_token = app["authToken"]
+    _app_auth_token = app["authToken"]
 
-    return product_variant_id, app_auth_token
+    return product_variant_id
 
 
 @pytest.mark.e2e
@@ -126,7 +126,7 @@ def test_should_be_able_to_create_partially_paid_order_core_0112(
 ):
     # Before
     channel_slug = "test-channel"
-    product_variant_id, app_auth_token = prepare_product(
+    product_variant_id = prepare_product(
         e2e_staff_api_client,
         permission_manage_products,
         permission_manage_channels,
@@ -166,17 +166,17 @@ def test_should_be_able_to_create_partially_paid_order_core_0112(
 
     # Step 3 - Create transaction for part of amount
     create_transaction(
-        app_auth_token,
+        e2e_staff_api_client,
         checkout_id,
     )
 
-    # Step 4 - Checkout complete results in the order creation
+    # Step 4 - Complete checkout and check created order
     data = raw_checkout_complete(e2e_not_logged_api_client, checkout_id)
     order_data = data["order"]
     assert order_data["id"] is not None
     assert order_data["isShippingRequired"] is True
-    assert order_data["paymentStatus"] == "PARTIALLY_PAID"
-    assert order_data["status"] == "UNCONFIRMED"
+    assert order_data["paymentStatus"] == "PARTIALLY_CHARGED"
+    assert order_data["status"] == "UNFULFILLED"
     assert order_data["isPaid"] is False
 
     errors = data["errors"]
