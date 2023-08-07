@@ -17568,9 +17568,9 @@ type Mutation {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Triggers the following webhook events:
-  - ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when  new attribute value was created or deleted.
-  - ATTRIBUTE_VALUE_CREATED (async): An attribute value was created.
-  - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
+  - ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when new attribute value was created or deleted.
+  - ATTRIBUTE_VALUE_CREATED (async): Called optionally when an attribute value was created.
+  - ATTRIBUTE_VALUE_DELETED (async): Called optionally when an attribute value was deleted.
   """
   attributeBulkUpdate(
     """Input list of attributes to update."""
@@ -27307,9 +27307,9 @@ Added in Saleor 3.15.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
 Triggers the following webhook events:
-- ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when  new attribute value was created or deleted.
-- ATTRIBUTE_VALUE_CREATED (async): An attribute value was created.
-- ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
+- ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when new attribute value was created or deleted.
+- ATTRIBUTE_VALUE_CREATED (async): Called optionally when an attribute value was created.
+- ATTRIBUTE_VALUE_DELETED (async): Called optionally when an attribute value was deleted.
 """
 type AttributeBulkUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED, ATTRIBUTE_VALUE_CREATED, ATTRIBUTE_VALUE_DELETED], syncEvents: []) {
   """Returns how many objects were updated."""
