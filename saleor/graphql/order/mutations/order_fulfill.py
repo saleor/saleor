@@ -115,6 +115,10 @@ class OrderFulfill(BaseMutation):
                 type=WebhookEventAsyncType.ORDER_FULFILLED,
                 description="Order is fulfilled.",
             ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.FULFILLMENT_APPROVED,
+                description="A fulfillment is approved.",
+            ),
         ]
 
     @classmethod

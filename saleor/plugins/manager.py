@@ -875,13 +875,16 @@ class PluginsManager(PaymentInterface):
             channel_slug=fulfillment.order.channel.slug,
         )
 
-    def fulfillment_approved(self, fulfillment: "Fulfillment"):
+    def fulfillment_approved(
+        self, fulfillment: "Fulfillment", notify_customer: Optional[bool] = True
+    ):
         default_value = None
         return self.__run_method_on_plugins(
             "fulfillment_approved",
             default_value,
             fulfillment,
             channel_slug=fulfillment.order.channel.slug,
+            notify_customer=notify_customer,
         )
 
     def fulfillment_metadata_updated(self, fulfillment: "Fulfillment"):
