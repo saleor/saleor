@@ -3,6 +3,8 @@ from unittest.mock import patch
 import graphene
 import pytest
 
+from .....discount.models import Promotion, PromotionRule
+from .....discount.sale_converter import convert_sales_to_promotions
 from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...mutations.utils import convert_catalogue_info_to_global_ids
@@ -24,15 +26,13 @@ SALE_DELETE_MUTATION = """
 """
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
-    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
 @patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 def test_sale_delete_mutation(
     deleted_webhook_mock,
-    update_products_discounted_prices_of_catalogues_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -43,10 +43,12 @@ def test_sale_delete_mutation(
     previous_catalogue = convert_catalogue_info_to_global_ids(
         fetch_catalogue_info(sale)
     )
-    category_ids = set(sale.categories.values_list("id", flat=True))
-    collection_ids = set(sale.collections.values_list("id", flat=True))
-    product_ids = set(sale.products.values_list("id", flat=True))
-    variant_ids = set(sale.variants.values_list("id", flat=True))
+    convert_sales_to_promotions()
+
+    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    assert promotion
+    rules = promotion.rules.all()
+    assert len(rules) == 1
 
     # when
     response = staff_api_client.post_graphql(
@@ -55,14 +57,15 @@ def test_sale_delete_mutation(
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["saleDelete"]
-    assert data["sale"]["name"] == sale.name
-    deleted_webhook_mock.assert_called_once_with(sale, previous_catalogue)
-    with pytest.raises(sale._meta.model.DoesNotExist):
-        sale.refresh_from_db()
-    update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
-    args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert set(kwargs["category_ids"]) == category_ids
-    assert set(kwargs["collection_ids"]) == collection_ids
-    assert set(kwargs["product_ids"]) == product_ids
-    assert set(kwargs["variant_ids"]) == variant_ids
+    assert not content["data"]["saleDelete"]["errors"]
+    data = content["data"]["saleDelete"]["sale"]
+    assert data["name"] == sale.name
+    assert data["id"] == graphene.Node.to_global_id("Sale", sale.id)
+
+    assert not Promotion.objects.filter(id=promotion.id).first()
+    assert not PromotionRule.objects.filter(id=rules[0].id).first()
+    with pytest.raises(promotion._meta.model.DoesNotExist):
+        promotion.refresh_from_db()
+
+    deleted_webhook_mock.assert_called_once_with(promotion, previous_catalogue)
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
