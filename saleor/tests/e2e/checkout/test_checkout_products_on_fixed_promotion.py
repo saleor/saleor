@@ -9,7 +9,7 @@ from ..product.utils import (
     create_product_variant,
     create_product_variant_channel_listing,
 )
-from ..promotions.utils import create_promotion
+from ..promotions.utils import create_promotion, create_promotion_rule
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse, update_warehouse
 
@@ -81,7 +81,21 @@ def test_checkout_products_on_fixed_promotion(
     )
 
     promotion_name = "Promotion Fixed"
-    create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_id = promotion_data["id"]
+
+    promotion_rule = create_promotion_rule(
+        e2e_staff_api_client,
+        promotion_id,
+        "PERCENTAGE",
+        20,
+        "Percentage rule",
+        channel_id,
+        product_id,
+    )
+    product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
+    assert promotion_rule["channels"][0]["id"] == channel_id
+    assert product_predicate[0] == product_id
 
 
 # Step 1 - checkoutCreate for product on promotion

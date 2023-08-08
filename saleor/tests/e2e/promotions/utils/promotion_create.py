@@ -31,6 +31,8 @@ def create_promotion(
     )
     content = get_graphql_content(response)
 
-    data = content["data"]["promotionCreate"]
-    assert data["promotion"]["id"] is not None
+    assert content["data"]["promotionCreate"]["errors"] == []
+
+    data = content["data"]["promotionCreate"]["promotion"]
+    assert data["id"] is not None
     return data
