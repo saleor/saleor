@@ -1,4 +1,4 @@
-from ..utils import get_graphql_content
+from ...utils import get_graphql_content
 
 PROMOTION_CREATE_MUTATION = """
 mutation CreatePromotion($input: PromotionCreateInput!) {
