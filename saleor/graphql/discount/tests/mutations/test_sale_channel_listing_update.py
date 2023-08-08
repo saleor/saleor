@@ -5,7 +5,7 @@ import pytest
 
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.models import SaleChannelListing, Promotion
+from .....discount.models import Promotion, PromotionRule, SaleChannelListing
 from .....discount.sale_converter import convert_sales_to_promotions
 from ....tests.utils import assert_negative_positive_decimal_value, get_graphql_content
 
@@ -40,7 +40,7 @@ mutation UpdateSaleChannelListing(
     ".update_products_discounted_prices_of_promotion_task"
 )
 def test_sale_channel_listing_create_as_staff_user(
-    mock_update_discounted_prices_of_discount_task,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -50,7 +50,14 @@ def test_sale_channel_listing_create_as_staff_user(
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     discounted = 1.12
+
+    channel_listing = SaleChannelListing.objects.filter(
+        sale_id=sale.pk, channel_id=channel_PLN.id
+    )
+    assert len(channel_listing) == 0
+
     convert_sales_to_promotions()
+    assert len(PromotionRule.objects.all()) == 1
 
     variables = {
         "id": sale_id,
@@ -72,23 +79,32 @@ def test_sale_channel_listing_create_as_staff_user(
     data = content["data"]["saleChannelListingUpdate"]["sale"]
     assert data["name"] == sale.name
 
-    assert data["channelListings"][1]["discountValue"] == discounted
-    assert data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
+    channel_listing = data["channelListings"]
+    discounts = [item["discountValue"] for item in channel_listing]
+    slugs = [item["channel"]["slug"] for item in channel_listing]
+    assert discounted in discounts
+    assert channel_PLN.slug in slugs
 
     promotion = Promotion.objects.get(old_sale_id=sale.pk)
-    mock_update_discounted_prices_of_discount_task.delay.assert_called_once_with(
+    rules = promotion.rules.all()
+    assert len(rules) == 2
+    assert (
+        len({(rule.reward_value_type, str(rule.catalogue_predicate)) for rule in rules})
+        == 1
+    )
+    assert all([rule.old_channel_listing_id for rule in rules])
+
+    mock_update_products_discounted_prices_task.delay.assert_called_once_with(
         promotion.pk
     )
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
     "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
     ".update_products_discounted_prices_of_promotion_task"
 )
 def test_sale_channel_listing_update_as_staff_user(
-    mock_update_discounted_prices_of_discount_task,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -98,6 +114,7 @@ def test_sale_channel_listing_update_as_staff_user(
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     discounted = 10.11
+    convert_sales_to_promotions()
 
     variables = {
         "id": sale_id,
@@ -111,7 +128,6 @@ def test_sale_channel_listing_update_as_staff_user(
     assert channel_listing.discount_value == 5
 
     # when
-
     response = staff_api_client.post_graphql(
         SALE_CHANNEL_LISTING_UPDATE_MUTATION,
         variables=variables,
@@ -120,13 +136,21 @@ def test_sale_channel_listing_update_as_staff_user(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["saleChannelListingUpdate"]
-    shipping_method_data = data["sale"]
-    assert not data["errors"]
+    assert not content["data"]["saleChannelListingUpdate"]["errors"]
+    data = content["data"]["saleChannelListingUpdate"]["sale"]
 
-    assert shipping_method_data["channelListings"][0]["discountValue"] == discounted
-    mock_update_discounted_prices_of_discount_task.delay.assert_called_once_with(
-        sale.pk,
+    channel_listing = data["channelListings"]
+
+    assert len(channel_listing) == 1
+    assert channel_listing[0]["discountValue"] == discounted
+    assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
+
+    promotion = Promotion.objects.get(old_sale_id=sale.pk)
+    rules = promotion.rules.all()
+    assert len(rules) == 1
+
+    mock_update_products_discounted_prices_task.delay.assert_called_once_with(
+        promotion.pk
     )
 
 
@@ -173,7 +197,7 @@ def test_sale_channel_listing_update_with_negative_discounted_value(
     ".update_products_discounted_prices_of_promotion_task"
 )
 def test_sale_channel_listing_update_duplicated_ids_in_add_and_remove(
-    mock_update_discounted_prices_of_discount_task,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -205,7 +229,7 @@ def test_sale_channel_listing_update_duplicated_ids_in_add_and_remove(
     assert errors[0]["field"] == "input"
     assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
     assert errors[0]["channels"] == [channel_id]
-    mock_update_discounted_prices_of_discount_task.assert_not_called()
+    mock_update_products_discounted_prices_task.assert_not_called()
 
 
 # TODO will be fixed in PR refactoring the mutation
@@ -215,7 +239,7 @@ def test_sale_channel_listing_update_duplicated_ids_in_add_and_remove(
     ".update_products_discounted_prices_of_promotion_task"
 )
 def test_sale_channel_listing_update_duplicated_channel_in_add(
-    mock_update_discounted_prices_of_discount_task,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -249,7 +273,7 @@ def test_sale_channel_listing_update_duplicated_channel_in_add(
     assert errors[0]["field"] == "addChannels"
     assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
     assert errors[0]["channels"] == [channel_id]
-    mock_update_discounted_prices_of_discount_task.assert_not_called()
+    mock_update_products_discounted_prices_task.assert_not_called()
 
 
 # TODO will be fixed in PR refactoring the mutation
@@ -259,7 +283,7 @@ def test_sale_channel_listing_update_duplicated_channel_in_add(
     ".update_products_discounted_prices_of_promotion_task"
 )
 def test_sale_channel_listing_update_duplicated_channel_in_remove(
-    mock_update_discounted_prices_of_discount_task,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -287,7 +311,7 @@ def test_sale_channel_listing_update_duplicated_channel_in_remove(
     assert errors[0]["field"] == "removeChannels"
     assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
     assert errors[0]["channels"] == [channel_id]
-    mock_update_discounted_prices_of_discount_task.assert_not_called()
+    mock_update_products_discounted_prices_task.assert_not_called()
 
 
 # TODO will be fixed in PR refactoring the mutation
@@ -297,7 +321,7 @@ def test_sale_channel_listing_update_duplicated_channel_in_remove(
     ".update_products_discounted_prices_of_promotion_task"
 )
 def test_sale_channel_listing_update_with_invalid_decimal_places(
-    mock_update_discounted_prices_of_discount_task,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -328,7 +352,7 @@ def test_sale_channel_listing_update_with_invalid_decimal_places(
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["field"] == "input"
     assert errors[0]["channels"] == [channel_id]
-    mock_update_discounted_prices_of_discount_task.assert_not_called()
+    mock_update_products_discounted_prices_task.assert_not_called()
 
 
 # TODO will be fixed in PR refactoring the mutation
@@ -338,7 +362,7 @@ def test_sale_channel_listing_update_with_invalid_decimal_places(
     ".update_products_discounted_prices_of_promotion_task"
 )
 def test_sale_channel_listing_update_with_invalid_percentage_value(
-    mock_update_discounted_prices_of_discount_task,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -372,7 +396,7 @@ def test_sale_channel_listing_update_with_invalid_percentage_value(
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["field"] == "input"
     assert errors[0]["channels"] == [channel_id]
-    mock_update_discounted_prices_of_discount_task.assert_not_called()
+    mock_update_products_discounted_prices_task.assert_not_called()
 
 
 SALE_AND_SALE_CHANNEL_LISTING_UPDATE_MUTATION = """
@@ -415,7 +439,7 @@ mutation UpdateSaleChannelListing(
     ".update_products_discounted_prices_of_promotion_task"
 )
 def test_invalidate_data_sale_channel_listings_update(
-    mock_update_discounted_prices_of_discount_task,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -460,6 +484,6 @@ def test_invalidate_data_sale_channel_listings_update(
 
     # response from the second mutation contains data
     assert channel_listings_data["channelListings"][0]["channel"]["id"] == channel_id
-    mock_update_discounted_prices_of_discount_task.delay.assert_called_once_with(
+    mock_update_products_discounted_prices_task.delay.assert_called_once_with(
         sale.pk,
     )
