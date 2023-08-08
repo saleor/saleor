@@ -533,7 +533,12 @@ class OrderFullyPaid(SubscriptionObjectType, OrderBase):
         root_type = "Order"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when order is fully paid." + ADDED_IN_32
+        description = (
+            "Event sent when order is fully paid."
+            "Note that in certain scenarios payments can still be cancelled even after this event is sent."
+            "Examples are: chargeback, authorization reversal, charge failure etc."
+            + ADDED_IN_32
+        )
 
 
 class OrderPaid(SubscriptionObjectType, OrderBase):
