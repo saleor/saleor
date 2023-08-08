@@ -16,6 +16,7 @@ from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.fields import JSONString
 from ...core.types import BaseInputObjectType, NonNullList, WebhookError
 from .. import enums
+from ..mixins import NotifyUserEventValidationMixin
 from ..types import Webhook
 from . import WebhookCreate
 
@@ -75,7 +76,7 @@ class WebhookUpdateInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_WEBHOOKS
 
 
-class WebhookUpdate(WebhookCreate):
+class WebhookUpdate(WebhookCreate, NotifyUserEventValidationMixin):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a webhook to update.")
         input = WebhookUpdateInput(
@@ -97,6 +98,7 @@ class WebhookUpdate(WebhookCreate):
     def save(cls, _info: ResolveInfo, instance, cleaned_input):
         instance.save()
         events = set(cleaned_input.get("events", []))
+        cls.validate_events(events)
         if events:
             instance.events.all().delete()
             models.WebhookEvent.objects.bulk_create(
