@@ -16,7 +16,7 @@ class ReadOnlyMiddleware:
         "checkoutCustomerDetach",
         "checkoutDeliveryMethodUpdate",
         "checkoutEmailUpdate",
-        "checkoutLineDelete",
+        "checkoutLinesDelete",
         "checkoutLinesAdd",
         "checkoutLinesUpdate",
         "checkoutRemovePromoCode",
