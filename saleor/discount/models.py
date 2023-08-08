@@ -454,6 +454,14 @@ class PromotionRule(models.Model):
             )
         raise NotImplementedError("Unknown discount type")
 
+    def assign_old_channel_listing_id(self):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT nextval('discount_promotionrule_old_channel_listing_id_seq')"
+            )
+            result = cursor.fetchone()
+            self.old_channel_listing_id = result[0]
+
 
 class PromotionRuleTranslation(Translation):
     name = models.CharField(max_length=255, null=True, blank=True)

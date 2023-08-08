@@ -1,15 +1,18 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, List
+from dataclasses import dataclass
+from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import Exists, OuterRef
 
+from .....channel.models import Channel
 from .....core.tracing import traced_atomic_transaction
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.models import SaleChannelListing
+from .....discount.models import Promotion, PromotionRule
 from .....permission.enums import DiscountPermissions
-from .....product.tasks import update_products_discounted_prices_of_sale_task
+from .....product.tasks import update_products_discounted_prices_of_promotion_task
 from ....channel import ChannelContext
 from ....channel.mutations import BaseChannelListingMutation
 from ....core import ResolveInfo
@@ -19,10 +22,12 @@ from ....core.scalars import PositiveDecimal
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
 from ....core.validators import validate_price_precision
 from ....discount.types import Sale
-from ...dataloaders import SaleChannelListingBySaleIdLoader
 
-if TYPE_CHECKING:
-    from ....discount.models import Sale as SaleModel
+
+@dataclass
+class RuleInfo:
+    rule: PromotionRule
+    channel: Channel
 
 
 class SaleChannelListingAddInput(BaseInputObjectType):
@@ -73,18 +78,41 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    def add_channels(cls, sale: "SaleModel", add_channels: List[Dict]):
+    def add_channels(cls, promotion: Promotion, add_channels: List[Dict]):
+        rules_data: List[RuleInfo] = []
+        rule = promotion.rules.first()
+        assert rule
         for add_channel in add_channels:
             channel = add_channel["channel"]
-            defaults = {"currency": channel.currency_code}
-            channel = add_channel["channel"]
-            if "discount_value" in add_channel.keys():
-                defaults["discount_value"] = add_channel.get("discount_value")
-            SaleChannelListing.objects.update_or_create(
-                sale=sale,
-                channel=channel,
-                defaults=defaults,
+            discount_value = add_channel["discount_value"]
+
+            rules_data.append(
+                RuleInfo(
+                    rule=PromotionRule(
+                        name=rule.name,
+                        promotion=promotion,
+                        catalogue_predicate=rule.catalogue_predicate,
+                        reward_value_type=rule.reward_value_type,
+                        reward_value=discount_value,
+                    ),
+                    channel=channel,
+                )
             )
+
+        for rule_data in rules_data:
+            rule_data.rule.assign_old_channel_listing_id()
+
+        new_rules = [rule_data.rule for rule_data in rules_data]
+        PromotionRule.objects.bulk_create(new_rules)
+
+        PromotionRuleChannel = PromotionRule.channels.through
+        rules_channels = [
+            PromotionRuleChannel(
+                promotionrule=rule_data.rule, channel=rule_data.channel
+            )
+            for rule_data in rules_data
+        ]
+        PromotionRuleChannel.objects.bulk_create(rules_channels)
 
     @classmethod
     def clean_discount_values(
@@ -134,37 +162,47 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         return cleaned_channels
 
     @classmethod
-    def remove_channels(cls, sale: "SaleModel", remove_channels: List[int]):
-        sale.channel_listings.filter(channel_id__in=remove_channels).delete()
+    def remove_channels(cls, promotion: Promotion, remove_channels: List[int]):
+        rules = PromotionRule.objects.filter(promotion=promotion)
+        PromotionRuleChannel = PromotionRule.channels.through
+        rule_channel = PromotionRuleChannel.objects.filter(
+            channel_id__in=remove_channels
+        ).filter(Exists(rules.filter(id=OuterRef("promotionrule_id"))))
+
+        # We need to ensure at least one rule is assigned to promotion in order to
+        # determine old sale's type and catalogue
+        rules_to_delete = [data.rule for data in rule_channel]
 
     @classmethod
-    def save(cls, info: ResolveInfo, sale: "SaleModel", cleaned_input: Dict):
+    def save(cls, _info: ResolveInfo, promotion: Promotion, cleaned_input: Dict):
         with traced_atomic_transaction():
-            cls.add_channels(sale, cleaned_input.get("add_channels", []))
-            cls.remove_channels(sale, cleaned_input.get("remove_channels", []))
-            update_products_discounted_prices_of_sale_task.delay(sale.pk)
+            cls.add_channels(promotion, cleaned_input.get("add_channels", []))
+            cls.remove_channels(promotion, cleaned_input.get("remove_channels", []))
+            update_products_discounted_prices_of_promotion_task.delay(promotion.pk)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id, input
     ):
-        sale = cls.get_node_or_error(info, id, only_type=Sale, field="id")
+        object_id = cls.get_global_id_or_error(id, "Sale")
+        promotion = Promotion.objects.get(old_sale_id=object_id)
+        rule = promotion.rules.first()
+        assert rule
+        sale_type = rule.reward_value_type
+
         errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
         cleaned_channels = cls.clean_channels(
             info, input, errors, DiscountErrorCode.DUPLICATED_INPUT_ITEM.value
         )
         cleaned_input = cls.clean_discount_values(
-            cleaned_channels, sale.type, errors, DiscountErrorCode.INVALID.value
+            cleaned_channels, sale_type, errors, DiscountErrorCode.INVALID.value
         )
 
         if errors:
             raise ValidationError(errors)
 
-        cls.save(info, sale, cleaned_input)
-
-        # Invalidate dataloader for channel listings
-        SaleChannelListingBySaleIdLoader(info.context).clear(sale.id)
+        cls.save(info, promotion, cleaned_input)
 
         return SaleChannelListingUpdate(
-            sale=ChannelContext(node=sale, channel_slug=None)
+            sale=ChannelContext(node=promotion, channel_slug=None)
         )
