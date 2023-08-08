@@ -669,7 +669,7 @@ POPULATE_DEFAULTS = get_bool_from_env("POPULATE_DEFAULTS", True)
 
 
 #  Sentry
-sentry_sdk.utils.MAX_STRING_LENGTH = 4096
+sentry_sdk.utils.MAX_STRING_LENGTH = 4096  # type: ignore[attr-defined]
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 SENTRY_OPTS = {"integrations": [CeleryIntegration(), DjangoIntegration()]}
 
