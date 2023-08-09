@@ -29,16 +29,21 @@ mutation CheckoutComplete($checkoutId: ID!) {
           id
         }
       }
-      lines{
+      lines {
         id
-        unitDiscount{
+        unitPrice {
+          gross {
+            amount
+          }
+        }
+        unitDiscount {
           amount
         }
         unitDiscountType
         unitDiscountReason
         unitDiscountValue
-        undiscountedUnitPrice{
-          net{
+        undiscountedUnitPrice {
+          gross {
             amount
           }
         }

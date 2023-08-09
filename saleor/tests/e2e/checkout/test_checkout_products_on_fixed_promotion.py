@@ -187,7 +187,7 @@ def test_checkout_products_on_fixed_promotion_core_2102(
     unit_price = float(variant_price) - discount_value
 
     assert checkout_data["isShippingRequired"] is True
-    assert checkout_lines["unitPrice"]["net"]["amount"] == unit_price
+    assert checkout_lines["unitPrice"]["gross"]["amount"] == unit_price
     assert checkout_lines["undiscountedUnitPrice"]["amount"] == float(variant_price)
 
     # Step 2 - Set DeliveryMethod for checkout.
@@ -210,8 +210,11 @@ def test_checkout_products_on_fixed_promotion_core_2102(
     order_line = order_data["lines"][0]
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
-    assert order_line["undiscountedUnitPrice"]["net"]["amount"] == float(variant_price)
+    assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == float(
+        variant_price
+    )
     assert order_line["unitDiscountType"] == discount_type
+    assert order_line["unitPrice"]["gross"]["amount"] == unit_price
     assert order_line["unitDiscount"]["amount"] == float(discount_value)
     assert (
         order_line["unitDiscountReason"]
