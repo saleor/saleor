@@ -137,7 +137,7 @@ def prepare_product(
 
 
 @pytest.mark.e2e
-def test_checkout_products_on_fixed_promotion(
+def test_checkout_products_on_fixed_promotion_core_2102(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     permission_manage_products,
