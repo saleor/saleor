@@ -855,7 +855,7 @@ class WebhookPlugin(BasePlugin):
 
     def sale_created(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         current_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ) -> Any:
@@ -933,7 +933,7 @@ class WebhookPlugin(BasePlugin):
 
     def sale_toggle(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ):
