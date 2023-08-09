@@ -5,7 +5,9 @@ from django.utils import timezone
 
 from ..... import __version__
 from .....core.utils import build_absolute_uri
+from .....discount.models import Promotion
 from .....graphql.attribute.enums import AttributeInputTypeEnum, AttributeTypeEnum
+from .....graphql.discount.utils import get_categories_from_predicate
 from .....graphql.shop.types import SHOP_ID
 from .....product.models import Product
 
@@ -343,10 +345,12 @@ def generate_shipping_method_payload(shipping_method):
     }
 
 
-def generate_sale_payload(sale):
+def generate_sale_payload(sale: Promotion):
+    predicate = sale.rules.first().catalogue_predicate
+    categories = get_categories_from_predicate(predicate)
     return {
         "sale": {
-            "id": graphene.Node.to_global_id("Sale", sale.pk),
+            "id": graphene.Node.to_global_id("Sale", sale.old_sale_id),
             "name": sale.name,
             "startDate": sale.start_date.isoformat(),
             "endDate": None,
@@ -358,7 +362,7 @@ def generate_sale_payload(sale):
                             "name": category.name,
                         }
                     }
-                    for category in sale.categories.all()
+                    for category in categories
                 ]
             },
         }
