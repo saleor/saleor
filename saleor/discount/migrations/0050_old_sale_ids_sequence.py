@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
 
             SELECT setval(
                 'discount_promotionrule_old_channel_listing_id_seq',
-                 coalesce(max(old_channel_listing_id), 0) + 1, false
+                 coalesce(max(old_channel_listing_id), 0) + 1000, false
             )
             FROM discount_promotionrule;
             """

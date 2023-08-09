@@ -130,6 +130,25 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         PromotionRule.objects.bulk_update(rules_to_update, ["reward_value"])
 
     @classmethod
+    def remove_channels(cls, promotion: Promotion, remove_channels: List[int]):
+        rules = promotion.rules.all()
+        PromotionRuleChannel = PromotionRule.channels.through
+        rule_channel = PromotionRuleChannel.objects.filter(
+            channel_id__in=remove_channels
+        ).filter(Exists(rules.filter(id=OuterRef("promotionrule_id"))))
+        if not rule_channel:
+            return
+        rules_to_delete_ids = list(
+            rule_channel.values_list("promotionrule_id", flat=True)
+        )
+        # We ensure at least one rule is assigned to promotion in order to
+        # determine old sale's type and catalogue
+        if len(rule_channel) >= len(rules):
+            rule_left_id = rules_to_delete_ids.pop()
+            rule_channel.filter(promotionrule_id=rule_left_id).delete()
+        rules.filter(id__in=rules_to_delete_ids).delete()
+
+    @classmethod
     def clean_discount_values(
         cls,
         cleaned_channels,
@@ -175,18 +194,6 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
                 )
             )
         return cleaned_channels
-
-    @classmethod
-    def remove_channels(cls, promotion: Promotion, remove_channels: List[int]):
-        rules = PromotionRule.objects.filter(promotion=promotion)
-        PromotionRuleChannel = PromotionRule.channels.through
-        rule_channel = PromotionRuleChannel.objects.filter(
-            channel_id__in=remove_channels
-        ).filter(Exists(rules.filter(id=OuterRef("promotionrule_id"))))
-
-        # We ensure at least one rule is assigned to promotion in order to
-        # determine old sale's type and catalogue
-        rules_to_delete = [data.rule for data in rule_channel]
 
     @classmethod
     def save(cls, _info: ResolveInfo, promotion: Promotion, cleaned_input: Dict):
