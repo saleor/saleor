@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
 
             SELECT setval(
                 'discount_promotion_old_sale_id_seq',
-                 coalesce(max(old_sale_id), 0) + 1, false
+                 coalesce(max(old_sale_id), 0) + 1000, false
             )
             FROM discount_promotion;
             """
