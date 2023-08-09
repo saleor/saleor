@@ -1023,7 +1023,7 @@ class BasePlugin:
     # Trigger when sale is created.
     #
     # Overwrite this method if you need to trigger specific logic after sale is created.
-    sale_created: Callable[["Sale", DefaultDict[str, Set[str]], Any], Any]
+    sale_created: Callable[["Promotion", DefaultDict[str, Set[str]], Any], Any]
 
     # Trigger when sale is deleted.
     #

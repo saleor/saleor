@@ -152,12 +152,12 @@ def _create_catalogue_predicate_from_sale(sale):
         graphene.Node.to_global_id("ProductVariant", pk)
         for pk in sale.variants.values_list("pk", flat=True)
     ]
-    return _create_catalogue_predicate(
+    return create_catalogue_predicate(
         collection_ids, category_ids, product_ids, variant_ids
     )
 
 
-def _create_catalogue_predicate(collection_ids, category_ids, product_ids, variant_ids):
+def create_catalogue_predicate(collection_ids, category_ids, product_ids, variant_ids):
     predicate: Dict[str, List] = {"OR": []}
     if collection_ids:
         predicate["OR"].append({"collectionPredicate": {"ids": collection_ids}})
@@ -167,6 +167,8 @@ def _create_catalogue_predicate(collection_ids, category_ids, product_ids, varia
         predicate["OR"].append({"productPredicate": {"ids": product_ids}})
     if variant_ids:
         predicate["OR"].append({"variantPredicate": {"ids": variant_ids}})
+    if not predicate.get("OR"):
+        predicate = {}
 
     return predicate
 

@@ -7,7 +7,7 @@ from uuid import uuid4
 import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
-from django.db import models
+from django.db import connection, models
 from django.db.models import F, Q
 from django.utils import timezone
 from django_countries.fields import CountryField
@@ -394,6 +394,13 @@ class Promotion(ModelWithMetadata):
         if date is None:
             date = datetime.now(pytz.utc)
         return (not self.end_date or self.end_date >= date) and self.start_date <= date
+
+    def assign_old_sale_id(self):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT nextval('discount_promotion_old_sale_id_seq')")
+            result = cursor.fetchone()
+            self.old_sale_id = result[0]
+            self.save(update_fields=["old_sale_id"])
 
 
 class PromotionTranslation(Translation):
