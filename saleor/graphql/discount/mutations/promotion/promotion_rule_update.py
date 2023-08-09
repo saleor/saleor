@@ -16,6 +16,7 @@ from ...inputs import PromotionRuleBaseInput
 from ...types import PromotionRule
 from ...utils import get_products_for_rule
 from ...validators import clean_predicate
+from ..utils import clear_promotion_old_sale_id
 
 
 class PromotionRuleUpdateError(Error):
@@ -69,6 +70,7 @@ class PromotionRuleUpdate(ModelMutation):
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
+        clear_promotion_old_sale_id(instance.promotion, save=True)
 
         products = get_products_for_rule(instance)
         product_ids = set(products.values_list("id", flat=True)) | previous_product_ids

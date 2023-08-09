@@ -11,6 +11,7 @@ from ....core.types import Error
 from ...enums import PromotionRuleDeleteErrorCode
 from ...types import PromotionRule
 from ...utils import get_products_for_rule
+from ..utils import clear_promotion_old_sale_id
 
 
 class PromotionRuleDeleteError(Error):
@@ -43,7 +44,10 @@ class PromotionRuleDelete(ModelDeleteMutation):
         product_ids = list(products.values_list("id", flat=True))
 
         db_id = instance.id
+        promotion = instance.promotion
         instance.delete()
+
+        clear_promotion_old_sale_id(promotion, save=True)
 
         # After the instance is deleted, set its ID to the original database's
         # ID so that the success response contains ID of the deleted object.
