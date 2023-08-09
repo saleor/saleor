@@ -2,7 +2,9 @@ from unittest.mock import patch
 
 import pytest
 from freezegun import freeze_time
-from graphql_relay import from_global_id, to_global_id
+from graphql_relay import to_global_id
+
+from saleor.discount.models import Promotion
 
 from ...discount.enums import DiscountValueTypeEnum
 from ...tests.utils import get_graphql_content
@@ -202,12 +204,10 @@ def test_collection_remove_products_updates_discounted_price(
     assert args == {product.id for product in product_list}
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @freeze_time("2010-05-31 12:00:01")
 @patch(
     "saleor.graphql.discount.mutations.sale.sale_create"
-    ".update_products_discounted_prices_of_sale_task"
+    ".update_products_discounted_prices_of_promotion_task"
 )
 def test_sale_create_updates_products_discounted_prices(
     mock_update_products_discounted_prices_of_catalogues,
@@ -255,11 +255,9 @@ def test_sale_create_updates_products_discounted_prices(
     content = get_graphql_content(response)
     assert content["data"]["saleCreate"]["errors"] == []
 
-    relay_sale_id = content["data"]["saleCreate"]["sale"]["id"]
-    _sale_class_name, sale_id_str = from_global_id(relay_sale_id)
-    sale_id = int(sale_id_str)
+    sale = Promotion.objects.filter(name="Half price product").get()
     mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
-        sale_id
+        sale.id
     )
 
 

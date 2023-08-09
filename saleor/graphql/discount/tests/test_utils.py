@@ -4,7 +4,11 @@ import graphene
 
 from ....discount import RewardValueType
 from ....discount.models import Promotion, PromotionRule
-from ..utils import get_variants_for_predicate, get_variants_for_promotion
+from ..utils import (
+    convert_migrated_sale_predicate_to_catalogue_info,
+    get_variants_for_predicate,
+    get_variants_for_promotion,
+)
 
 
 def test_get_variants_for_predicate_with_or(product_with_two_variants, variant):
@@ -260,3 +264,24 @@ def test_get_variants_for_promotion(
     assert variant in variants
     for variant in product_with_two_variants.variants.all():
         assert variant in variants
+
+
+def test_convert_migrated_sale_predicate_to_catalogue_info(
+    promotion_converted_from_sale, product, category, collection, variant
+):
+    # given
+    rule = promotion_converted_from_sale.rules.first()
+    predicate = rule.catalogue_predicate
+    assert len(predicate["OR"]) == 4
+    expected_result = {
+        "categories": {graphene.Node.to_global_id("Category", category.id)},
+        "collections": {graphene.Node.to_global_id("Collection", collection.id)},
+        "products": {graphene.Node.to_global_id("Product", product.id)},
+        "variants": {graphene.Node.to_global_id("ProductVariant", variant.id)},
+    }
+
+    # when
+    catalogue_info = convert_migrated_sale_predicate_to_catalogue_info(predicate)
+
+    # then
+    assert catalogue_info == expected_result

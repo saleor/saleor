@@ -65,7 +65,7 @@ if TYPE_CHECKING:
 from ..payment.models import Payment, TransactionItem
 
 if TYPE_CHECKING:
-    from ..discount.models import Sale
+    from ..discount.models import Promotion
     from ..invoice.models import Invoice
     from ..payment.interface import (
         PaymentData,
@@ -422,7 +422,7 @@ def _calculate_removed(
 
 @traced_payload_generator
 def generate_sale_payload(
-    sale: "Sale",
+    sale: "Promotion",
     previous_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
     current_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
     requestor: Optional["RequestorOrLazyObject"] = None,
@@ -470,7 +470,7 @@ def generate_sale_payload(
 
 @traced_payload_generator
 def generate_sale_toggle_payload(
-    sale: "Sale",
+    sale: "Promotion",
     catalogue: DefaultDict[str, Set[str]],
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):

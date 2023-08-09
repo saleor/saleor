@@ -733,7 +733,7 @@ class PluginsManager(PaymentInterface):
             "draft_order_deleted", default_value, order, channel_slug=order.channel.slug
         )
 
-    def sale_created(self, sale: "Sale", current_catalogue):
+    def sale_created(self, sale: "Promotion", current_catalogue):
         default_value = None
         return self.__run_method_on_plugins(
             "sale_created", default_value, sale, current_catalogue
@@ -751,7 +751,7 @@ class PluginsManager(PaymentInterface):
             "sale_updated", default_value, sale, previous_catalogue, current_catalogue
         )
 
-    def sale_toggle(self, sale: "Sale", catalogue):
+    def sale_toggle(self, sale: "Promotion", catalogue):
         default_value = None
         return self.__run_method_on_plugins(
             "sale_toggle", default_value, sale, catalogue
