@@ -680,7 +680,16 @@ def _prepare_checkout_with_transactions(
                 )
             }
         )
-
+    if checkout_info.checkout.voucher_code and not checkout_info.voucher:
+        raise ValidationError(
+            {
+                "voucher_code": ValidationError(
+                    "Voucher not applicable",
+                    code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
+                )
+            }
+        )
+    _validate_gift_cards(checkout_info.checkout)
     _prepare_checkout(
         manager=manager,
         checkout_info=checkout_info,
@@ -688,6 +697,13 @@ def _prepare_checkout_with_transactions(
         tracking_code=tracking_code,
         redirect_url=redirect_url,
     )
+    try:
+        manager.preprocess_order_creation(checkout_info, lines)
+    except TaxError as tax_error:
+        raise ValidationError(
+            f"Unable to calculate taxes - {str(tax_error)}",
+            code=CheckoutErrorCode.TAX_ERROR.value,
+        )
 
 
 def _prepare_checkout_with_payment(
@@ -1247,7 +1263,7 @@ def create_order_from_checkout(
             return order
 
         # Fetching checkout info inside the transaction block with select_for_update
-        # enure that we are processing checkout on the current data.
+        # ensure that we are processing checkout on the current data.
         checkout_lines, _ = fetch_checkout_lines(checkout, voucher=voucher)
         checkout_info = fetch_checkout_info(
             checkout, checkout_lines, manager, voucher=voucher
@@ -1359,24 +1375,38 @@ def complete_checkout_with_transaction(
     metadata_list: Optional[List] = None,
     private_metadata_list: Optional[List] = None,
 ) -> Optional[Order]:
-    _prepare_checkout_with_transactions(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        tracking_code=tracking_code,
-        redirect_url=redirect_url,
-    )
-
-    return create_order_from_checkout(
-        checkout_info=checkout_info,
-        manager=manager,
-        user=user,
-        app=app,
-        tracking_code=tracking_code,
-        delete_checkout=True,
-        metadata_list=metadata_list,
-        private_metadata_list=private_metadata_list,
-    )
+    try:
+        _prepare_checkout_with_transactions(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            tracking_code=tracking_code,
+            redirect_url=redirect_url,
+        )
+        return create_order_from_checkout(
+            checkout_info=checkout_info,
+            manager=manager,
+            user=user,
+            app=app,
+            tracking_code=tracking_code,
+            delete_checkout=True,
+            metadata_list=metadata_list,
+            private_metadata_list=private_metadata_list,
+        )
+    except NotApplicable:
+        raise ValidationError(
+            {
+                "voucher_code": ValidationError(
+                    "Voucher not applicable",
+                    code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
+                )
+            }
+        )
+    except InsufficientStock as e:
+        error = prepare_insufficient_stock_checkout_validation_error(e)
+        raise error
+    except GiftCardNotApplicable as e:
+        raise ValidationError({"gift_cards": e})
 
 
 def complete_checkout_with_payment(
