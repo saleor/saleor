@@ -61,6 +61,11 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
         undiscountedTotalPrice {
           amount
         }
+        unitPrice {
+          net {
+            amount
+          }
+        }
         undiscountedUnitPrice {
           amount
         }

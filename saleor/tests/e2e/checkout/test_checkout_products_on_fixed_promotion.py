@@ -17,7 +17,12 @@ from ..shipping_zone.utils import (
 )
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse, update_warehouse
-from .utils import checkout_create
+from .utils import (
+    checkout_complete,
+    checkout_create,
+    checkout_delivery_method_update,
+    checkout_dummy_payment_create,
+)
 
 
 @pytest.mark.e2e
@@ -111,12 +116,16 @@ def test_checkout_products_on_fixed_promotion(
     promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
     promotion_id = promotion_data["id"]
 
+    discount_value = 5
+    discount_type = "FIXED"
+    promotion_rule_name = "rule for product"
+
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
         promotion_id,
-        "PERCENTAGE",
-        20,
-        "Percentage rule",
+        discount_type,
+        discount_value,
+        promotion_rule_name,
         channel_id,
         product_id,
     )
@@ -136,10 +145,39 @@ def test_checkout_products_on_fixed_promotion(
         set_default_billing_address=True,
         set_default_shipping_address=True,
     )
-    _checkout_id = checkout_data["id"]
-    _checkout_lines = checkout_data["lines"][0]
+    checkout_id = checkout_data["id"]
+    checkout_lines = checkout_data["lines"][0]
+    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
+    unit_price = float(variant_price) - discount_value
 
     assert checkout_data["isShippingRequired"] is True
+    assert checkout_lines["unitPrice"]["net"]["amount"] == unit_price
+    assert checkout_lines["undiscountedUnitPrice"]["amount"] == float(variant_price)
 
+    # Step 2 - Set DeliveryMethod for checkout.
+    checkout_data = checkout_delivery_method_update(
+        e2e_not_logged_api_client,
+        checkout_id,
+        shipping_method_id,
+    )
+    assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
+    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
 
-#  assert checkout_lines["undiscountedUnitPrice"]["amount"] == variant_price
+    # Step 3 - Create payment for checkout.
+    checkout_dummy_payment_create(
+        e2e_not_logged_api_client, checkout_id, total_gross_amount
+    )
+
+    # Step 5 - Complete checkout.
+    order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
+
+    order_line = order_data["lines"][0]
+    assert order_data["status"] == "UNFULFILLED"
+    assert order_data["total"]["gross"]["amount"] == total_gross_amount
+    assert order_line["undiscountedUnitPrice"]["net"]["amount"] == float(variant_price)
+    assert order_line["unitDiscountType"] == discount_type
+    assert order_line["unitDiscount"]["amount"] == float(discount_value)
+    assert (
+        order_line["unitDiscountReason"]
+        == f"Promotion rules discounts: {promotion_name}: {promotion_rule_name}"
+    )
