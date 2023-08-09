@@ -410,12 +410,12 @@ class PredicateByPromotionIdLoader(DataLoader):
 
     def batch_load(self, keys):
         def with_rules(rules):
-            from .utils import convert_migrated_sale_catalogue_predicate
+            from .utils import convert_migrated_sale_predicate_to_model_ids
 
             rules = [rule for item in rules for rule in item]
             promotion_predicated_map = defaultdict(list)
             for rule in rules:
-                converted_predicate = convert_migrated_sale_catalogue_predicate(
+                converted_predicate = convert_migrated_sale_predicate_to_model_ids(
                     rule.catalogue_predicate
                 )
                 promotion_predicated_map[rule.promotion_id].append(converted_predicate)
