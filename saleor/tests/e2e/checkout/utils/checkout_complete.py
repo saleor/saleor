@@ -20,6 +20,11 @@ mutation CheckoutComplete($checkoutId: ID!) {
           amount
         }
       }
+      subtotal {
+        gross {
+          amount
+        }
+      }
       checkoutId
       deliveryMethod {
         ... on ShippingMethod {

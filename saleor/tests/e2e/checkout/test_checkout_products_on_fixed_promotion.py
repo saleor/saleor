@@ -198,6 +198,7 @@ def test_checkout_products_on_fixed_promotion_core_2102(
     )
     assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+    subtotal_gross_amount = checkout_data["subtotalPrice"]["gross"]["amount"]
 
     # Step 3 - Create payment for checkout.
     checkout_dummy_payment_create(
@@ -210,6 +211,7 @@ def test_checkout_products_on_fixed_promotion_core_2102(
     order_line = order_data["lines"][0]
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
+    assert order_data["subtotal"]["gross"]["amount"] == subtotal_gross_amount
     assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == float(
         variant_price
     )
