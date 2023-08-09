@@ -6,6 +6,7 @@ from graphene import relay
 
 from ....permission.enums import ProductPermissions
 from ....product import models
+from ....product.search import search_products
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -40,6 +41,7 @@ from ..dataloaders import (
 )
 from ..filters import ProductFilterInput, ProductWhereInput
 from ..sorters import ProductOrder
+from ..utils import check_for_sorting_by_rank
 from .channels import CollectionChannelListing
 from .products import ProductCountableConnection
 
@@ -135,11 +137,20 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
     def resolve_products(
         root: ChannelContext[models.Collection], info: ResolveInfo, **kwargs
     ):
+        check_for_sorting_by_rank(info, kwargs)
+        search = kwargs.get("search")
+
         requestor = get_user_or_app_from_context(info.context)
         qs = root.node.products.visible_to_user(  # type: ignore[attr-defined] # mypy does not properly resolve the related manager # noqa: E501
             requestor, root.channel_slug
         )
-        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+
+        if search:
+            qs = ChannelQsContext(
+                qs=search_products(qs.qs, search), channel_slug=root.channel_slug
+            )
+        else:
+            qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
         kwargs["channel"] = root.channel_slug
         qs = filter_connection_queryset(qs, kwargs)
