@@ -2,6 +2,7 @@ import graphene
 
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
+from .....discount.error_codes import DiscountErrorCode
 from .....graphql.core.mutations import ModelDeleteMutation
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
@@ -11,7 +12,11 @@ from ....core import ResolveInfo
 from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
-from ....core.utils import WebhookEventInfo
+from ....core.utils import (
+    WebhookEventInfo,
+    from_global_id_or_error,
+    raise_validation_error,
+)
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Sale
 from ...utils import (
@@ -48,20 +53,15 @@ class SaleDelete(ModelDeleteMutation):
     def perform_mutation(  # type: ignore[override]
         cls, root, info: ResolveInfo, /, *, id: str
     ):
-        object_id = cls.get_global_id_or_error(id, "Sale")
-        promotion = models.Promotion.objects.get(old_sale_id=object_id)
+        promotion = cls.get_promotion_instance(id)
+        old_sale_id = promotion.old_sale_id
         promotion_id = promotion.id
         rule = promotion.rules.first()
-        assert rule
-        previous_predicate = rule.catalogue_predicate
-        previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-            previous_predicate
-        )
-        products = get_products_for_rule(rule)
-        product_ids = set(products.values_list("id", flat=True))
+        previous_catalogue = cls.get_catalogue_info(rule)
+        product_ids = cls.get_product_ids(rule)
         with traced_atomic_transaction():
             promotion.delete()
-            promotion.old_sale_id = object_id
+            promotion.old_sale_id = old_sale_id
             promotion.id = promotion_id
             response = cls.success_response(promotion)
             response.sale = ChannelContext(node=promotion, channel_slug=None)
@@ -73,3 +73,27 @@ class SaleDelete(ModelDeleteMutation):
             )
 
         return response
+
+    @classmethod
+    def get_promotion_instance(cls, id):
+        type, _id = from_global_id_or_error(id, raise_error=False)
+        if type == "Promotion":
+            raise_validation_error(
+                field="id",
+                message="Provided ID refers to Promotion model. "
+                "Please use 'promotionUpdate' mutation instead.",
+                code=DiscountErrorCode.INVALID.value,
+            )
+        object_id = cls.get_global_id_or_error(id, "Sale")
+        return models.Promotion.objects.get(old_sale_id=object_id)
+
+    @classmethod
+    def get_product_ids(cls, rule: models.PromotionRule):
+        products = get_products_for_rule(rule)
+        return set(products.values_list("id", flat=True))
+
+    @classmethod
+    def get_catalogue_info(cls, rule: models.PromotionRule):
+        return convert_migrated_sale_predicate_to_catalogue_info(
+            rule.catalogue_predicate
+        )
