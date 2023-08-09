@@ -2386,3 +2386,68 @@ def test_checkout_balance(
         + transaction.charge_pending_value
         - checkout_with_prices.total.gross.amount
     )
+
+
+def test_checkout_metadata(checkout, user_api_client):
+    # given
+    checkout.metadata_storage.metadata = {"foo": "bar"}
+    checkout.metadata_storage.save()
+
+    query = """
+        query getCheckout($id: ID) {
+            checkout(id: $id) {
+                metadata {
+                    key
+                    value
+                }
+                foo: metafield(key: "foo")
+                nonexistent: metafield(key: "nonexistent")
+                metafields
+            }
+        }
+    """
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["metadata"] == [{"key": "foo", "value": "bar"}]
+    assert content["data"]["checkout"]["foo"] == "bar"
+    assert content["data"]["checkout"]["nonexistent"] is None
+    assert content["data"]["checkout"]["metafields"] == {"foo": "bar"}
+
+
+def test_checkout_no_metadata(checkout, user_api_client):
+    # given
+    checkout.metadata_storage.delete()
+
+    query = """
+        query getCheckout($id: ID) {
+            checkout(id: $id) {
+                metadata {
+                    key
+                    value
+                }
+                metafield(key: "foo")
+                metafields
+            }
+        }
+    """
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["metadata"] == []
+    assert content["data"]["checkout"]["metafield"] is None
+    assert content["data"]["checkout"]["metafields"] == {}

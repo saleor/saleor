@@ -785,7 +785,7 @@ class Checkout(ModelObjectType[models.Checkout]):
             .then(
                 lambda metadata_storage: metadata_storage.metadata.get(key)
                 if metadata_storage
-                else {}
+                else None
             )
         )
 
@@ -831,7 +831,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                     metadata_storage
                 )
                 if metadata_storage
-                else {}
+                else None
             )
         )
 
