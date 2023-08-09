@@ -1,15 +1,22 @@
+from unittest.mock import Mock, call, patch
+
 import graphene
 import pytest
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
+from saleor.core.exceptions import PermissionDenied
+from saleor.permission.enums import ProductPermissions, ProductTypePermissions
+
 from ....attribute import AttributeInputType
 from ....page.error_codes import PageErrorCode
 from ....product.error_codes import ProductErrorCode
+from ..enums import AttributeTypeEnum
 from ..utils import (
     AttributeAssignmentMixin,
     AttrValuesForSelectableFieldInput,
     AttrValuesInput,
+    check_permissions_for_attribute,
     prepare_attribute_values,
     validate_attributes_input,
 )
@@ -2159,3 +2166,75 @@ def test_prepare_attribute_values_that_gives_the_same_slug(color_attribute):
     assert result[0] == existing_value
     assert result[1].name == new_value
     assert result[2].name == new_value_2
+
+
+def test_check_permissions_for_attribute_unknown_type():
+    # given
+    mock_attribute = Mock(type="test type")
+
+    # then
+    with pytest.raises(RuntimeError, match="Unknown attribute type: test type"):
+        check_permissions_for_attribute(Mock(), mock_attribute)
+
+
+@patch("saleor.graphql.attribute.utils.has_one_of_permissions")
+@patch("saleor.graphql.attribute.utils.get_user_or_app_from_context")
+@patch("saleor.graphql.attribute.utils.message_one_of_permissions_required")
+def test_check_permissions_for_attribute_product_type_have_permissions(
+    mock_message_one_of_permissions_required,
+    mock_get_user_or_app_from_context,
+    mock_has_one_of_permissions,
+):
+    # given
+    mock_has_one_of_permissions.return_value = True
+    mock_get_user_or_app_from_context.return_value = "test user"
+    mock_context = Mock()
+    mock_attribute = Mock(type=AttributeTypeEnum.PRODUCT_TYPE.value)
+
+    # when
+    check_permissions_for_attribute(mock_context, mock_attribute)
+
+    # then
+    mock_get_user_or_app_from_context.assert_called_once_with(mock_context)
+    mock_has_one_of_permissions.assert_called_once_with(
+        "test user",
+        (
+            ProductPermissions.MANAGE_PRODUCTS,
+            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+        ),
+    )
+    mock_message_one_of_permissions_required.assert_not_called()
+
+
+@patch("saleor.graphql.attribute.utils.has_one_of_permissions")
+@patch("saleor.graphql.attribute.utils.get_user_or_app_from_context")
+@patch("saleor.graphql.attribute.utils.message_one_of_permissions_required")
+def test_check_permissions_for_attribute_product_type_no_permissions(
+    mock_message_one_of_permissions_required,
+    mock_get_user_or_app_from_context,
+    mock_has_one_of_permissions,
+):
+    # given
+    expected_permissions = (
+        ProductPermissions.MANAGE_PRODUCTS,
+        ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+    )
+    mock_has_one_of_permissions.return_value = False
+    mock_get_user_or_app_from_context.return_value = "test user"
+    mock_context = Mock()
+    mock_attribute = Mock(type=AttributeTypeEnum.PRODUCT_TYPE.value)
+
+    # when
+    with pytest.raises(PermissionDenied):
+        check_permissions_for_attribute(mock_context, mock_attribute)
+
+    # then
+    mock_get_user_or_app_from_context.assert_called_once_with(mock_context)
+    mock_has_one_of_permissions.assert_called_once_with(
+        "test user", expected_permissions
+    )
+    assert mock_message_one_of_permissions_required.mock_calls == [
+        call(expected_permissions),
+        call().lstrip("\n"),
+        call().lstrip().__bool__(),
+    ]

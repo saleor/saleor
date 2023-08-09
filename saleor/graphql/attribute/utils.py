@@ -16,16 +16,27 @@ from text_unidecode import unidecode
 from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ...attribute import models as attribute_models
 from ...attribute.utils import associate_attribute_values_to_instance
+from ...core.exceptions import PermissionDenied
 from ...core.utils import generate_unique_slug, prepare_unique_slug
 from ...core.utils.editorjs import clean_editor_js
 from ...core.utils.url import get_default_storage_root_url
 from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
+from ...permission.enums import (
+    PagePermissions,
+    ProductPermissions,
+    ProductTypePermissions,
+)
+from ...permission.utils import (
+    has_one_of_permissions,
+    message_one_of_permissions_required,
+)
 from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
 from ..core.utils import from_global_id_or_error, get_duplicated_values
 from ..core.validators import validate_one_of_args_is_in_mutation
-from ..utils import get_nodes
+from ..utils import get_nodes, get_user_or_app_from_context
+from .enums import AttributeTypeEnum
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -1371,3 +1382,27 @@ def prepare_error_list_from_error_attribute_mapping(
         errors.append(error)
 
     return errors
+
+
+def check_permissions_for_attribute(context, attribute):
+    if attribute.type == AttributeTypeEnum.PRODUCT_TYPE.value:
+        permissions = (
+            ProductPermissions.MANAGE_PRODUCTS,
+            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+        )
+
+    elif attribute.type == AttributeTypeEnum.PAGE_TYPE.value:
+        permissions = (
+            PagePermissions.MANAGE_PAGES,
+            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+        )
+
+    else:
+        raise RuntimeError(f"Unknown attribute type: {attribute.type}")
+
+    if permissions and not has_one_of_permissions(
+        get_user_or_app_from_context(context), permissions
+    ):
+        raise PermissionDenied(
+            message=message_one_of_permissions_required(permissions).lstrip("\n")
+        )

@@ -1839,6 +1839,23 @@ def swatch_attribute(db):
 
 
 @pytest.fixture
+def page_swatch_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="T-shirt color",
+        name="t-shirt-color",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.SWATCH,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute, name="Blue", slug="blue", value="#0000ff"
+    )
+    return attribute
+
+
+@pytest.fixture
 def product_type_page_reference_attribute(db):
     return Attribute.objects.create(
         slug="page-reference",

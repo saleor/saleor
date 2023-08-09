@@ -281,7 +281,10 @@ def test_delete_attribute_value_by_both_id_and_external_reference(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+        check_no_permissions=False,
     )
     content = get_graphql_content(response)
 
@@ -305,10 +308,129 @@ def test_delete_attribute_value_by_external_reference_not_existing(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+        check_no_permissions=False,
     )
     content = get_graphql_content(response)
 
     # then
     errors = content["data"]["attributeValueDelete"]["errors"]
     assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+
+
+def test_delete_record_for_product_type_without_permissions(
+    staff_api_client, swatch_attribute
+):
+    # given
+    value = swatch_attribute.values.first()
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_DELETE_MUTATION, {"id": node_id}
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert (
+        content["errors"][0]["message"]
+        == "Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES."
+    )
+
+
+def test_delete_record_for_page_type_without_permissions(
+    staff_api_client, page_swatch_attribute
+):
+    # given
+    value = page_swatch_attribute.values.first()
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_DELETE_MUTATION, {"id": node_id}
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert (
+        content["errors"][0]["message"]
+        == "Requires one of the following permissions: MANAGE_PAGES, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES."
+    )
+
+
+def test_delete_record_for_product_type_with_manage_products(
+    staff_api_client, swatch_attribute, permission_manage_products
+):
+    # given
+    value = swatch_attribute.values.first()
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_DELETE_MUTATION,
+        {"id": node_id},
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert "errors" not in content["data"]["attributeValueDelete"]
+
+
+def test_delete_record_for_product_type_with_manage_product_types_and_attributes(
+    staff_api_client, swatch_attribute, permission_manage_product_types_and_attributes
+):
+    # given
+    value = swatch_attribute.values.first()
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_DELETE_MUTATION,
+        {"id": node_id},
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert "errors" not in content["data"]["attributeValueDelete"]
+
+
+def test_delete_record_for_page_type_with_permission_manage_pages(
+    staff_api_client, page_swatch_attribute, permission_manage_pages
+):
+    value = page_swatch_attribute.values.first()
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_DELETE_MUTATION,
+        {"id": node_id},
+        permissions=[permission_manage_pages],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert "errors" not in content["data"]["attributeValueDelete"]
+
+
+def test_delete_record_for_page_type_with_manage_product_types_and_attributes(
+    staff_api_client,
+    page_swatch_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    value = page_swatch_attribute.values.first()
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_DELETE_MUTATION,
+        {"id": node_id},
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert "errors" not in content["data"]["attributeValueDelete"]

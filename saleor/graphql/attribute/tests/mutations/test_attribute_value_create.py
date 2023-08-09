@@ -431,3 +431,88 @@ def test_create_attribute_value_with_non_unique_external_reference(
         error["message"]
         == "Attribute value with this External reference already exists."
     )
+
+
+def test_create_attribute_value_for_product_type_without_permissions(
+    staff_api_client,
+    color_attribute,
+):
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_ATTRIBUTE_VALUE_MUTATION,
+        {
+            "name": "test name",
+            "attributeId": graphene.Node.to_global_id("Attribute", color_attribute.id),
+        },
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert (
+        content["errors"][0]["message"]
+        == "You need one of the following permissions: MANAGE_PRODUCTS"
+    )
+
+
+def test_create_attribute_value_for_page_type_with_manage_products_permission(
+    staff_api_client,
+    rich_text_attribute_page_type,
+    permission_manage_products,
+):
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_ATTRIBUTE_VALUE_MUTATION,
+        {
+            "name": "test name",
+            "attributeId": graphene.Node.to_global_id(
+                "Attribute", rich_text_attribute_page_type.id
+            ),
+        },
+        permissions=(permission_manage_products,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["attributeValueCreate"]["errors"] == []
+
+
+def test_create_attribute_value_for_page_type_with_manage_page_types_permission(
+    staff_api_client, rich_text_attribute_page_type, permission_manage_pages
+):
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_ATTRIBUTE_VALUE_MUTATION,
+        {
+            "name": "test name",
+            "attributeId": graphene.Node.to_global_id(
+                "Attribute", rich_text_attribute_page_type.id
+            ),
+        },
+        permissions=(permission_manage_pages,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["attributeValueCreate"]["errors"] == []
+
+
+def test_create_attribute_value_for_page_type_without_permissions(
+    staff_api_client, rich_text_attribute_page_type
+):
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_ATTRIBUTE_VALUE_MUTATION,
+        {
+            "name": "test name",
+            "attributeId": graphene.Node.to_global_id(
+                "Attribute", rich_text_attribute_page_type.id
+            ),
+        },
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert (
+        content["errors"][0]["message"]
+        == "Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_PAGES."
+    )

@@ -16554,9 +16554,12 @@ type Mutation {
   ): AttributeValueBulkDelete @doc(category: "Attributes")
 
   """
-  Creates a value for an attribute. 
+  Creates a value for an attribute.
   
-  Requires one of the following permissions: MANAGE_PRODUCTS.
+  Depending on the attribute type, it requires different permissions to create:
+  `PRODUCT_TYPE` requires `MANAGE_PRODUCTS` permissions,
+  `PAGE_TYPE` requires `MANAGE_PRODUCTS` or `MANAGE_PAGES` permissions.
+  DEPRECATED: it will be changed in 3.15.
   """
   attributeValueCreate(
     """Attribute to which value will be assigned."""
@@ -16567,9 +16570,12 @@ type Mutation {
   ): AttributeValueCreate @doc(category: "Attributes")
 
   """
-  Deletes a value of an attribute. 
+  Deletes a value of an attribute.
   
-  Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Depending on the attribute type, it requires different permissions to delete:
+  `PRODUCT_TYPE` requires `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,
+  `PAGE_TYPE` requires `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.
+  DEPRECATED: it will be changed in 3.15.
   """
   attributeValueDelete(
     """
@@ -16584,9 +16590,12 @@ type Mutation {
   ): AttributeValueDelete @doc(category: "Attributes")
 
   """
-  Updates value of an attribute. 
+  Updates value of an attribute.
   
-  Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Depending on the attribute type, it requires different permissions to update:
+  `PRODUCT_TYPE` requires `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,
+  `PAGE_TYPE` requires `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.
+  DEPRECATED: it will be changed in 3.15.
   """
   attributeValueUpdate(
     """
@@ -25467,9 +25476,12 @@ type AttributeValueBulkDelete @doc(category: "Attributes") {
 }
 
 """
-Creates a value for an attribute. 
+Creates a value for an attribute.
 
-Requires one of the following permissions: MANAGE_PRODUCTS.
+Depending on the attribute type, it requires different permissions to create:
+`PRODUCT_TYPE` requires `MANAGE_PRODUCTS` permissions,
+`PAGE_TYPE` requires `MANAGE_PRODUCTS` or `MANAGE_PAGES` permissions.
+DEPRECATED: it will be changed in 3.15.
 """
 type AttributeValueCreate @doc(category: "Attributes") {
   """The updated attribute."""
@@ -25480,9 +25492,12 @@ type AttributeValueCreate @doc(category: "Attributes") {
 }
 
 """
-Deletes a value of an attribute. 
+Deletes a value of an attribute.
 
-Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+Depending on the attribute type, it requires different permissions to delete:
+`PRODUCT_TYPE` requires `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,
+`PAGE_TYPE` requires `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.
+DEPRECATED: it will be changed in 3.15.
 """
 type AttributeValueDelete @doc(category: "Attributes") {
   """The updated attribute."""
@@ -25493,9 +25508,12 @@ type AttributeValueDelete @doc(category: "Attributes") {
 }
 
 """
-Updates value of an attribute. 
+Updates value of an attribute.
 
-Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+Depending on the attribute type, it requires different permissions to update:
+`PRODUCT_TYPE` requires `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,
+`PAGE_TYPE` requires `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.
+DEPRECATED: it will be changed in 3.15.
 """
 type AttributeValueUpdate @doc(category: "Attributes") {
   """The updated attribute."""

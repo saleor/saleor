@@ -3,7 +3,6 @@ from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
-from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
@@ -11,6 +10,7 @@ from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
+from ..utils import check_permissions_for_attribute
 from .attribute_update import AttributeValueUpdateInput
 from .attribute_value_create import AttributeValueCreate
 
@@ -52,10 +52,16 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
         )
 
     class Meta:
+        auto_permission_message = False
         model = models.AttributeValue
         object_type = AttributeValue
-        description = "Updates value of an attribute."
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
+        description = (
+            "Updates value of an attribute.\n\n"
+            "Depending on the attribute type, it requires different permissions to update:\n"
+            "`PRODUCT_TYPE` requires `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,\n"
+            "`PAGE_TYPE` requires `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.\n"
+            "DEPRECATED: it will be changed in 3.15."
+        )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
 
@@ -68,6 +74,12 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
         elif cleaned_input.get("file_url"):
             cleaned_input["value"] = ""
         return cleaned_input
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        instance = super().get_instance(info, **data)
+        check_permissions_for_attribute(info.context, instance.attribute)
+        return instance
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
