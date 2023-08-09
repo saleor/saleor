@@ -431,7 +431,7 @@ def update_gift_card_balance(
     gift_card: GiftCard,
     total_price_left: Money,
     balance_data: List[Tuple[GiftCard, float]],
-):
+) -> Money:
     previous_balance = gift_card.current_balance
     if total_price_left < gift_card.current_balance:
         gift_card.current_balance = gift_card.current_balance - total_price_left
