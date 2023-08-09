@@ -687,12 +687,22 @@ def test_update_products_discounted_prices_task(product_list):
 @patch(
     "saleor.product.management.commands"
     ".update_all_products_discounted_prices"
-    ".update_products_discounted_price"
+    ".update_discounted_prices_for_promotion"
+)
+@patch(
+    "saleor.product.management.commands.update_all_products_discounted_prices.DISCOUNTED_PRODUCT_BATCH",
+    1,
 )
 def test_management_commmand_update_all_products_discounted_price(
-    mock_update_product_discounted_price, product_list
+    mock_update_discounted_prices_for_promotion, product_list
 ):
+    # when
     call_command("update_all_products_discounted_prices")
-    call_args_list = mock_update_product_discounted_price.call_args_list
+
+    # then
+    assert mock_update_discounted_prices_for_promotion.call_count == len(product_list)
+
+    call_args_list = mock_update_discounted_prices_for_promotion.call_args_list
     for (args, kwargs), product in zip(call_args_list, product_list):
-        assert args[0] == [product]
+        assert len(args[0]) == 1
+        assert args[0][0].pk == product.pk
