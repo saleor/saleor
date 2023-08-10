@@ -100,6 +100,11 @@ class TransactionUpdate(TransactionCreate):
         cls, instance: payment_models.TransactionItem, transaction_data
     ):
         currency = instance.currency
+        if transaction_data.get("available_actions") is not None:
+            transaction_data["available_actions"] = list(
+                set(transaction_data.get("available_actions", []))
+            )
+
         cls.validate_money_input(
             transaction_data,
             currency,
