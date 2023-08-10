@@ -872,6 +872,7 @@ def graphql_address_data():
         "city": "Wrocław",
         "countryArea": "",
         "phone": "+48321321888",
+        "metadata": [{"key": "public", "value": "public_value"}],
     }
 
 
@@ -6368,6 +6369,7 @@ def webhook_app(
     permission_manage_products,
     permission_manage_staff,
     permission_manage_orders,
+    permission_manage_users,
 ):
     app = App.objects.create(name="Webhook app", is_active=True)
     app.permissions.add(permission_manage_shipping)
@@ -6377,6 +6379,7 @@ def webhook_app(
     app.permissions.add(permission_manage_products)
     app.permissions.add(permission_manage_staff)
     app.permissions.add(permission_manage_orders)
+    app.permissions.add(permission_manage_users)
     return app
 
 
@@ -7422,3 +7425,13 @@ def transaction_session_response():
         "externalUrl": "http://127.0.0.1:9090/external-reference",
         "message": "Message related to the payment",
     }
+
+
+class Info:
+    def __init__(self, request):
+        self.context = request
+
+
+@pytest.fixture
+def dummy_info(request):
+    return Info(request)

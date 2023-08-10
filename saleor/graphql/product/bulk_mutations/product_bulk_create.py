@@ -750,7 +750,7 @@ class ProductBulkCreate(BaseMutation):
             AttributeAssignmentMixin.save(product, attributes)
 
         if variants_input_data:
-            variants = cls.save_variants(variants_input_data)
+            variants = cls.save_variants(info, variants_input_data)
 
         return variants, updated_channels
 
@@ -775,8 +775,8 @@ class ProductBulkCreate(BaseMutation):
         )
 
     @classmethod
-    def save_variants(cls, variants_input_data):
-        return ProductVariantBulkCreate.save_variants(variants_input_data, None)
+    def save_variants(cls, info, variants_input_data):
+        return ProductVariantBulkCreate.save_variants(info, variants_input_data, None)
 
     @classmethod
     def prepare_media(cls, info, product, media_inputs, media_to_create):

@@ -1722,11 +1722,23 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
-  """Account email change is requested."""
+  """An account email change is requested."""
   ACCOUNT_CHANGE_EMAIL_REQUESTED
+
+  """An account email was changed"""
+  ACCOUNT_EMAIL_CHANGED
+
+  """Setting a new password for the account is requested."""
+  ACCOUNT_SET_PASSWORD_REQUESTED
+
+  """An account is confirmed."""
+  ACCOUNT_CONFIRMED
 
   """An account delete is requested."""
   ACCOUNT_DELETE_REQUESTED
+
+  """An account is deleted."""
+  ACCOUNT_DELETED
 
   """A new address created."""
   ADDRESS_CREATED
@@ -1787,6 +1799,9 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A channel status is changed."""
   CHANNEL_STATUS_CHANGED
+
+  """A channel metadata is updated."""
+  CHANNEL_METADATA_UPDATED
 
   """A new gift card created."""
   GIFT_CARD_CREATED
@@ -2121,6 +2136,9 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A staff user is deleted."""
   STAFF_DELETED
+
+  """Setting a new password for the staff account is requested."""
+  STAFF_SET_PASSWORD_REQUESTED
 
   """
   Transaction item metadata is updated.
@@ -2366,11 +2384,23 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
-  """Account email change is requested."""
+  """An account email change is requested."""
   ACCOUNT_CHANGE_EMAIL_REQUESTED
+
+  """An account email was changed"""
+  ACCOUNT_EMAIL_CHANGED
+
+  """Setting a new password for the account is requested."""
+  ACCOUNT_SET_PASSWORD_REQUESTED
+
+  """An account is confirmed."""
+  ACCOUNT_CONFIRMED
 
   """An account delete is requested."""
   ACCOUNT_DELETE_REQUESTED
+
+  """An account is deleted."""
+  ACCOUNT_DELETED
 
   """A new address created."""
   ADDRESS_CREATED
@@ -2431,6 +2461,9 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A channel status is changed."""
   CHANNEL_STATUS_CHANGED
+
+  """A channel metadata is updated."""
+  CHANNEL_METADATA_UPDATED
 
   """A new gift card created."""
   GIFT_CARD_CREATED
@@ -2765,6 +2798,9 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A staff user is deleted."""
   STAFF_DELETED
+
+  """Setting a new password for the staff account is requested."""
+  STAFF_SET_PASSWORD_REQUESTED
 
   """
   Transaction item metadata is updated.
@@ -3368,7 +3404,11 @@ scalar JSONString
 enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ACCOUNT_CONFIRMATION_REQUESTED
   ACCOUNT_CHANGE_EMAIL_REQUESTED
+  ACCOUNT_EMAIL_CHANGED
+  ACCOUNT_SET_PASSWORD_REQUESTED
+  ACCOUNT_CONFIRMED
   ACCOUNT_DELETE_REQUESTED
+  ACCOUNT_DELETED
   ADDRESS_CREATED
   ADDRESS_UPDATED
   ADDRESS_DELETED
@@ -3389,6 +3429,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   CHANNEL_UPDATED
   CHANNEL_DELETED
   CHANNEL_STATUS_CHANGED
+  CHANNEL_METADATA_UPDATED
   GIFT_CARD_CREATED
   GIFT_CARD_UPDATED
   GIFT_CARD_DELETED
@@ -3473,6 +3514,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   STAFF_CREATED
   STAFF_UPDATED
   STAFF_DELETED
+  STAFF_SET_PASSWORD_REQUESTED
   TRANSACTION_ITEM_METADATA_UPDATED
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
@@ -7115,7 +7157,9 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   """The product to which the variant belongs."""
   product: Product!
 
-  """Whether the inventory of the variant is tracked."""
+  """
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item. If the field is not provided, `Shop.trackInventoryByDefault` will be used.
+  """
   trackInventory: Boolean!
 
   """The maximum quantity of this variant that a customer can purchase."""
@@ -7358,6 +7402,21 @@ input AddressInput {
   Phone numbers are validated with Google's [libphonenumber](https://github.com/google/libphonenumber) library.
   """
   phone: String
+
+  """
+  Address public metadata.
+  
+  Added in Saleor 3.15.
+  """
+  metadata: [MetadataInput!]
+}
+
+input MetadataInput {
+  """Key of a metadata item."""
+  key: String!
+
+  """Value of a metadata item."""
+  value: String!
 }
 
 """Represents a custom attribute."""
@@ -8310,6 +8369,7 @@ type PageTranslation implements Node @doc(category: "Pages") {
 A static page that can be manually added by a shop operator through the dashboard.
 """
 type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  """ID of the page."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8349,8 +8409,14 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Title of the page for SEO."""
   seoTitle: String
+
+  """Description of the page for SEO."""
   seoDescription: String
+
+  """Title of the page."""
   title: String!
 
   """
@@ -8367,9 +8433,17 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Added in Saleor 3.3.
   """
   publishedAt: DateTime
+
+  """Determines if the page is published."""
   isPublished: Boolean!
+
+  """Slug of the page."""
   slug: String!
+
+  """Determines the type of page"""
   pageType: PageType!
+
+  """Date and time at which page was created."""
   created: DateTime!
 
   """
@@ -8393,6 +8467,7 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
 Represents a type of page. It defines what attributes are available to pages of this type.
 """
 type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  """ID of the page type."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8432,7 +8507,11 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Name of the page type."""
   name: String!
+
+  """Slug of the page type."""
   slug: String!
 
   """Page attributes of that page type."""
@@ -9531,7 +9610,9 @@ type Shop implements ObjectWithMetadata {
   """
   fulfillmentAllowUnpaid: Boolean!
 
-  """Enable inventory tracking."""
+  """
+  This field is used as a default value for `ProductVariant.trackInventory`.
+  """
   trackInventoryByDefault: Boolean
 
   """Default weight unit."""
@@ -10664,7 +10745,11 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Date and time at which payment transaction was created."""
   createdAt: DateTime!
+
+  """Date and time at which payment transaction was modified."""
   modifiedAt: DateTime!
 
   """
@@ -11600,6 +11685,7 @@ enum OrderChargeStatusEnum @doc(category: "Orders") {
 
 """Represents a payment of a given type."""
 type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
+  """ID of the payment."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -11639,13 +11725,29 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Payment gateway used for payment."""
   gateway: String!
+
+  """Determines if the payment is active or not."""
   isActive: Boolean!
+
+  """Date and time at which payment was created."""
   created: DateTime!
+
+  """Date and time at which payment was modified."""
   modified: DateTime!
+
+  """Unique token associated with a payment."""
   token: String!
+
+  """Checkout associated with a payment."""
   checkout: Checkout
+
+  """Order associated with a payment."""
   order: Order
+
+  """Type of method used for payment."""
   paymentMethodType: String!
 
   """
@@ -11698,13 +11800,28 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
 
 """An object representing a single payment."""
 type Transaction implements Node @doc(category: "Payments") {
+  """ID of the transaction."""
   id: ID!
+
+  """Date and time which transaction was created."""
   created: DateTime!
+
+  """Determines the payment associated with a transaction."""
   payment: Payment!
+
+  """Unique token associated with a transaction."""
   token: String!
+
+  """Determines the type of transaction."""
   kind: TransactionKind!
+
+  """Determines if the transaction was successful."""
   isSuccess: Boolean!
+
+  """Error associated with transaction, if any."""
   error: String
+
+  """Response returned by payment gateway."""
   gatewayResponse: JSONString!
 
   """Total amount of the transaction."""
@@ -12108,6 +12225,8 @@ type OrderGrantedRefundLine {
 type TransactionEvent implements Node @doc(category: "Payments") {
   """The ID of the object."""
   id: ID!
+
+  """Date and time at which a transaction event was created."""
   createdAt: DateTime!
 
   """
@@ -17395,6 +17514,7 @@ type Mutation {
   
   Triggers the following webhook events:
   - CHANNEL_UPDATED (async): A channel was updated.
+  - CHANNEL_METADATA_UPDATED (async): Optionally triggered when public or private metadata is updated.
   """
   channelUpdate(
     """ID of a channel to update."""
@@ -17402,7 +17522,7 @@ type Mutation {
 
     """Fields required to update a channel."""
     input: ChannelUpdateInput!
-  ): ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_UPDATED], syncEvents: [])
+  ): ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_UPDATED, CHANNEL_METADATA_UPDATED], syncEvents: [])
 
   """
   Delete a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed. 
@@ -17526,12 +17646,32 @@ type Mutation {
   - ATTRIBUTE_CREATED (async): An attribute was created.
   """
   attributeBulkCreate(
-    """Input list of products to create."""
-    attributes: [AttributeBulkCreateInput!]!
+    """Input list of attributes to create."""
+    attributes: [AttributeCreateInput!]!
 
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum
   ): AttributeBulkCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: [])
+
+  """
+  Updates attributes.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when new attribute value was created or deleted.
+  - ATTRIBUTE_VALUE_CREATED (async): Called optionally when an attribute value was created.
+  - ATTRIBUTE_VALUE_DELETED (async): Called optionally when an attribute value was deleted.
+  """
+  attributeBulkUpdate(
+    """Input list of attributes to update."""
+    attributes: [AttributeBulkUpdateInput!]!
+
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+  ): AttributeBulkUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED, ATTRIBUTE_VALUE_CREATED, ATTRIBUTE_VALUE_DELETED], syncEvents: [])
 
   """
   Creates/updates translations for an attribute. 
@@ -17929,6 +18069,8 @@ type Mutation {
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for password reset.
+  - ACCOUNT_SET_PASSWORD_REQUESTED (async): Setting a new password for the account is requested.
+  - STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
   """
   requestPasswordReset(
     """
@@ -17943,7 +18085,7 @@ type Mutation {
     URL of a view where users should be redirected to reset the password. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+  ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED, STAFF_SET_PASSWORD_REQUESTED], syncEvents: [])
 
   """
   Sends a notification confirmation.
@@ -17966,14 +18108,19 @@ type Mutation {
     redirectUrl: String!
   ): SendConfirmationEmail @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: [])
 
-  """Confirm user account with token sent by email during registration."""
+  """
+  Confirm user account with token sent by email during registration.
+  
+  Triggers the following webhook events:
+  - ACCOUNT_CONFIRMED (async): Account was confirmed.
+  """
   confirmAccount(
     """E-mail of the user performing account confirmation."""
     email: String!
 
     """A one-time token required to confirm the account."""
     token: String!
-  ): ConfirmAccount @doc(category: "Users")
+  ): ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED], syncEvents: [])
 
   """
   Sets the user's password from the token sent by email using the RequestPasswordReset mutation.
@@ -18036,6 +18183,7 @@ type Mutation {
   Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A customer account was updated.
   - NOTIFY_USER (async): A notification that account email change was confirmed.
+  - ACCOUNT_EMAIL_CHANGED (async): An account email was changed.
   """
   confirmEmailChange(
     """
@@ -18045,7 +18193,7 @@ type Mutation {
 
     """A one-time token required to change the email."""
     token: String!
-  ): ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER], syncEvents: [])
+  ): ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER, ACCOUNT_EMAIL_CHANGED], syncEvents: [])
 
   """
   Create a new address for the customer. 
@@ -18158,13 +18306,16 @@ type Mutation {
   Remove user account. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - ACCOUNT_DELETED (async): Account was deleted.
   """
   accountDelete(
     """
     A one-time token required to remove account. Sent by email using AccountRequestDeletion mutation.
     """
     token: String!
-  ): AccountDelete @doc(category: "Users")
+  ): AccountDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_DELETED], syncEvents: [])
 
   """
   Creates user address. 
@@ -18239,11 +18390,12 @@ type Mutation {
   - CUSTOMER_CREATED (async): A new customer account was created.
   - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   - NOTIFY_USER (async): A notification for setting the password.
+  - ACCOUNT_SET_PASSWORD_REQUESTED (async): Setting a new password for the account is requested.
   """
   customerCreate(
     """Fields required to create a customer."""
     input: UserCreateInput!
-  ): CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED, NOTIFY_USER], syncEvents: [])
+  ): CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED, NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED], syncEvents: [])
 
   """
   Updates an existing customer. 
@@ -18331,11 +18483,12 @@ type Mutation {
   Triggers the following webhook events:
   - STAFF_CREATED (async): A new staff account was created.
   - NOTIFY_USER (async): A notification for setting the password.
+  - STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
   """
   staffCreate(
     """Fields required to create a staff user."""
     input: StaffCreateInput!
-  ): StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER], syncEvents: [])
+  ): StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER, STAFF_SET_PASSWORD_REQUESTED], syncEvents: [])
 
   """
   Updates an existing staff user. Apps are not allowed to perform this mutation. 
@@ -18489,6 +18642,7 @@ enum WebhookErrorCode @doc(category: "Webhooks") {
   UNABLE_TO_PARSE
   MISSING_EVENT
   INVALID_CUSTOM_HEADERS
+  INVALID_NOTIFY_WITH_SUBSCRIPTION
 }
 
 input WebhookCreateInput @doc(category: "Webhooks") {
@@ -19377,7 +19531,9 @@ input ShopSettingsInput {
   """SEO description."""
   description: String
 
-  """Enable inventory tracking."""
+  """
+  This field is used as a default value for `ProductVariant.trackInventory`.
+  """
   trackInventoryByDefault: Boolean
 
   """Default weight unit."""
@@ -19484,14 +19640,6 @@ input ShopSettingsInput {
   DEPRECATED: this field will be removed in Saleor 4.0. To enable taxes for a shipping method, assign a tax class to the shipping method with `shippingPriceCreate` or `shippingPriceUpdate` mutations.
   """
   chargeTaxesOnShipping: Boolean
-}
-
-input MetadataInput {
-  """Key of a metadata item."""
-  key: String!
-
-  """Value of a metadata item."""
-  value: String!
 }
 
 """
@@ -20868,7 +21016,7 @@ input ProductVariantBulkCreateInput @doc(category: "Products") {
   name: String
 
   """
-  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item. If the field is not provided, `Shop.trackInventoryByDefault` will be used.
   """
   trackInventory: Boolean
 
@@ -21673,7 +21821,7 @@ input ProductVariantCreateInput @doc(category: "Products") {
   name: String
 
   """
-  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item. If the field is not provided, `Shop.trackInventoryByDefault` will be used.
   """
   trackInventory: Boolean
 
@@ -21887,7 +22035,7 @@ input ProductVariantBulkUpdateInput @doc(category: "Products") {
   name: String
 
   """
-  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item. If the field is not provided, `Shop.trackInventoryByDefault` will be used.
   """
   trackInventory: Boolean
 
@@ -22110,7 +22258,7 @@ input ProductVariantInput @doc(category: "Products") {
   name: String
 
   """
-  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item. If the field is not provided, `Shop.trackInventoryByDefault` will be used.
   """
   trackInventory: Boolean
 
@@ -22380,6 +22528,7 @@ type PaymentVoid @doc(category: "Payments") {
 
 """Initializes payment process when it is required by gateway."""
 type PaymentInitialize @doc(category: "Payments") {
+  """Payment that was initialized."""
   initializedPayment: PaymentInitialized
   paymentErrors: [PaymentError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PaymentError!]!
@@ -22765,6 +22914,7 @@ Added in Saleor 3.13.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PaymentGatewayInitialize @doc(category: "Payments") {
+  """List of payment gateway configurations."""
   gatewayConfigs: [PaymentGatewayConfig!]
   errors: [PaymentGatewayInitializeError!]!
 }
@@ -26803,8 +26953,9 @@ Requires one of the following permissions when updating only `orderSettings` fie
 
 Triggers the following webhook events:
 - CHANNEL_UPDATED (async): A channel was updated.
+- CHANNEL_METADATA_UPDATED (async): Optionally triggered when public or private metadata is updated.
 """
-type ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_UPDATED], syncEvents: []) {
+type ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_UPDATED, CHANNEL_METADATA_UPDATED], syncEvents: []) {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ChannelError!]!
   channel: Channel
@@ -26982,6 +27133,11 @@ enum AttributeErrorCode @doc(category: "Attributes") {
   UNIQUE
 }
 
+"""
+Represents an input for create of attribute.
+
+NOTE: Deprecated fields `filterableInStorefront`, `storefrontSearchPosition` and `availableInGrid` are not supported in bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`.
+"""
 input AttributeCreateInput @doc(category: "Attributes") {
   """The input type to use for entering attribute values in the dashboard."""
   inputType: AttributeInputTypeEnum
@@ -27112,6 +27268,11 @@ type AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents
   errors: [AttributeError!]!
 }
 
+"""
+Represents an input for update of attribute.
+
+NOTE: Deprecated fields `filterableInStorefront`, `storefrontSearchPosition` and `availableInGrid` are not supported in bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`.
+"""
 input AttributeUpdateInput @doc(category: "Attributes") {
   """Name of an attribute displayed in the interface."""
   name: String
@@ -27261,61 +27422,70 @@ enum AttributeBulkCreateErrorCode @doc(category: "Attributes") {
   MAX_LENGTH
 }
 
-input AttributeBulkCreateInput @doc(category: "Attributes") {
+"""
+Updates attributes.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+
+Triggers the following webhook events:
+- ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when new attribute value was created or deleted.
+- ATTRIBUTE_VALUE_CREATED (async): Called optionally when an attribute value was created.
+- ATTRIBUTE_VALUE_DELETED (async): Called optionally when an attribute value was deleted.
+"""
+type AttributeBulkUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED, ATTRIBUTE_VALUE_CREATED, ATTRIBUTE_VALUE_DELETED], syncEvents: []) {
+  """Returns how many objects were updated."""
+  count: Int!
+
+  """List of the updated attributes."""
+  results: [AttributeBulkUpdateResult!]!
+  errors: [AttributeBulkUpdateError!]!
+}
+
+type AttributeBulkUpdateResult @doc(category: "Attributes") {
+  """Attribute data."""
+  attribute: Attribute
+
+  """List of errors occurred on update attempt."""
+  errors: [AttributeBulkUpdateError!]
+}
+
+type AttributeBulkUpdateError @doc(category: "Attributes") {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AttributeBulkUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeBulkUpdateErrorCode {
+  ALREADY_EXISTS
+  BLANK
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  DUPLICATED_INPUT_ITEM
+  MAX_LENGTH
+}
+
+input AttributeBulkUpdateInput @doc(category: "Attributes") {
+  """ID of an attribute to update."""
+  id: ID
+
   """External ID of this attribute."""
   externalReference: String
 
-  """The input type to use for entering attribute values in the dashboard."""
-  inputType: AttributeInputTypeEnum
-
-  """The entity type which can be used as a reference."""
-  entityType: AttributeEntityTypeEnum
-
-  """Name of an attribute displayed in the interface."""
-  name: String!
-
-  """Internal representation of an attribute name."""
-  slug: String
-
-  """The attribute type."""
-  type: AttributeTypeEnum!
-
-  """The unit of attribute values."""
-  unit: MeasurementUnitsEnum
-
-  """List of attribute's values."""
-  values: [AttributeBulkCreateValueInput!]
-
-  """Whether the attribute requires values to be passed or not."""
-  valueRequired: Boolean
-
-  """Whether the attribute is for variants only."""
-  isVariantOnly: Boolean
-
-  """Whether the attribute should be visible or not in storefront."""
-  visibleInStorefront: Boolean
-
-  """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean
-}
-
-input AttributeBulkCreateValueInput @doc(category: "Attributes") {
-  """Name of a value displayed in the interface."""
-  name: String!
-
-  """
-  Represent value of the attribute value (e.g. color values for swatch attributes).
-  """
-  value: String
-
-  """External ID of this attribute value."""
-  externalReference: String
-
-  """URL of the file attribute. Every time, a new value is created."""
-  fileUrl: String
-
-  """File content type."""
-  contentType: String
+  """Fields to update."""
+  fields: AttributeUpdateInput!
 }
 
 """
@@ -28163,8 +28333,10 @@ Sends an email with the account password modification link.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for password reset.
+- ACCOUNT_SET_PASSWORD_REQUESTED (async): Setting a new password for the account is requested.
+- STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
 """
-type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED, STAFF_SET_PASSWORD_REQUESTED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
 }
@@ -28207,8 +28379,13 @@ enum SendConfirmationEmailErrorCode @doc(category: "Users") {
   MISSING_CHANNEL_SLUG
 }
 
-"""Confirm user account with token sent by email during registration."""
-type ConfirmAccount @doc(category: "Users") {
+"""
+Confirm user account with token sent by email during registration.
+
+Triggers the following webhook events:
+- ACCOUNT_CONFIRMED (async): Account was confirmed.
+"""
+type ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED], syncEvents: []) {
   """An activated user account."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -28269,8 +28446,9 @@ Requires one of the following permissions: AUTHENTICATED_USER.
 Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A customer account was updated.
 - NOTIFY_USER (async): A notification that account email change was confirmed.
+- ACCOUNT_EMAIL_CHANGED (async): An account email was changed.
 """
-type ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER], syncEvents: []) {
+type ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER, ACCOUNT_EMAIL_CHANGED], syncEvents: []) {
   """A user instance with a new email."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -28439,8 +28617,11 @@ type AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEven
 Remove user account. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- ACCOUNT_DELETED (async): Account was deleted.
 """
-type AccountDelete @doc(category: "Users") {
+type AccountDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_DELETED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
@@ -28518,8 +28699,9 @@ Triggers the following webhook events:
 - CUSTOMER_CREATED (async): A new customer account was created.
 - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
 - NOTIFY_USER (async): A notification for setting the password.
+- ACCOUNT_SET_PASSWORD_REQUESTED (async): Setting a new password for the account is requested.
 """
-type CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED, NOTIFY_USER], syncEvents: []) {
+type CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED, NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
@@ -28761,8 +28943,9 @@ Requires one of the following permissions: MANAGE_STAFF.
 Triggers the following webhook events:
 - STAFF_CREATED (async): A new staff account was created.
 - NOTIFY_USER (async): A notification for setting the password.
+- STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
 """
-type StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER], syncEvents: []) {
+type StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER, STAFF_SET_PASSWORD_REQUESTED], syncEvents: []) {
   staffErrors: [StaffError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [StaffError!]!
   user: User
@@ -29238,11 +29421,150 @@ type AccountChangeEmailRequested implements Event @doc(category: "Users") {
 }
 
 """
+Event sent when account email is changed.
+
+Added in Saleor 3.15.
+"""
+type AccountEmailChanged implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
+
+  """The new email address."""
+  newEmail: String
+}
+
+"""
+Event sent when setting a new password is requested.
+
+Added in Saleor 3.15.
+"""
+type AccountSetPasswordRequested implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
+}
+
+"""
+Event sent when account is confirmed.
+
+Added in Saleor 3.15.
+"""
+type AccountConfirmed implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
+}
+
+"""
 Event sent when account delete is requested.
 
 Added in Saleor 3.15.
 """
 type AccountDeleteRequested implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
+}
+
+"""
+Event sent when account is deleted.
+
+Added in Saleor 3.15.
+"""
+type AccountDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29695,6 +30017,28 @@ Event sent when channel status has changed.
 Added in Saleor 3.2.
 """
 type ChannelStatusChanged implements Event @doc(category: "Channels") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The channel the event relates to."""
+  channel: Channel
+}
+
+"""
+Event sent when channel metadata is updated.
+
+Added in Saleor 3.15.
+"""
+type ChannelMetadataUpdated implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -31707,6 +32051,40 @@ type StaffDeleted implements Event @doc(category: "Users") {
 
   """The user the event relates to."""
   user: User
+}
+
+"""
+Event sent when setting a new password for staff is requested.
+
+Added in Saleor 3.15.
+"""
+type StaffSetPasswordRequested implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
 }
 
 """

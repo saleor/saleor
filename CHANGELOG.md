@@ -78,17 +78,38 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add `ProductVariantBulkTranslate` mutation - #13329 by @SzymJ
 - Add `AttributeBulkCreate` mutation - #13398 by @SzymJ
 - Deprecate `WebhookEventTypeAsyncEnum.ANY_EVENTS` and `WebhookEventTypeEnum.ANY_EVENTS`; instead listeners should subscribe to specific webhook events -  #13452 by @maarcingebala
+- Add ability to update `warehouse` address with `MANAGE_PRODUCTS` permissions: - #13248 by @Air-t
+- Add ability to update `site` address with `MANAGE_SETTINGS` permissions: - #13248 by @Air-t
+- Add the ability to set address public metadata in the following mutations: - #13248 by @Air-t
+  - `accountUpdate`, `accountAddressCreate`, `accountAddressUpdate`, `addressCreate`, `AccountAddressUpdate`,
+  - `checkoutShippingAddressUpdate`, `checkoutBillingAddressUpdate`, `shopAddressUpdate`, `warehouseUpdate`
+  - Add `metadata` to `AddressInput` field
+- Add support for unhandled field `Shop.trackInventoryByDefault` for `productVariantCreate` and `productVariantBulkCreate` - #13492 by @Smit-Parmar
+- - Add `AttributeBulkUpdate` mutation - #13532 by @SzymJ
+
 
 ### Saleor Apps
 
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
 - Add `SHOP_METADATA_UPDATED` webhook - #13364, #13388 by @maarcingebala
   - Called when metadata is changed for the Shop object via the generic metadata API or the `shopSettingsUpdate` mutation.
+- Add `CHANNEL_METADATA_UPDATED` webhook - #13448, by @Air-t
+  - Called when metadata is changed for the Channel object via the generic metadata API or the `channelUpdate` mutation.
+- Add `ACCOUNT_CONFIRMED` webhook - #13471, by @Air-t
+  - Called when user confirm an account with `confirmAccount` mutation.
+- Add `ACCOUNT_DELETED` webhook - #13471, by @Air-t
+  - Called after account deletion is confirmed with `accountDelete` mutation.
+- Add `ACCOUNT_EMAIL_CHANGED` webhook - #13537, by @Air-t
+  - Called when `confirmEmailChange` mutation is triggered.
+- Add `ACCOUNT_SET_PASSWORD_REQUESTED` webhook - #13486, by @Air-t
+  - Called after `requestPasswordReset` or `customerCreate` mutation.
+- Add `STAFF_SET_PASSWORD_REQUESTED` webhook - #13486, by @Air-t
+  - Called after `requestPasswordReset` or `customerCreate` mutation for staff users.
 
 ### Other changes
 - Add possibility to log without confirming email - #13059 by @kadewu
   - New mutation `sendConfirmationEmail` to send an email with confirmation link
-  - New environment variable `CONFIRMATION_EMAIL_LOCK_TIME` to control lock time beetwen new email confirmations
+  - New environment variable `CONFIRMATION_EMAIL_LOCK_TIME` to control lock time between new email confirmations
   - Type `User` gets new field `is_confirmed`
   - `CustomerInput` gets new field `is_confirmed`
 - Use public key thumbprint as KID in JWKS.json #13442 by @cmiacz
@@ -119,6 +140,11 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Fix error handling in the permission check for `Query.webhook` - #13378 by @patrys
 - Add missing descriptions to Translation module. - #13410 by @Smit-Parmar
 - Add missing descriptions to menu module - #13409 by @devilsautumn
+- Add missing descriptions to page module - #13536 by @devilsautumn
+- Fix seo field to accept null value - #13512 by @ssuraliya
+- Add missing descriptions to payment module - #13546 by @devilsautumn
+- Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
+
 
 # 3.14.0
 

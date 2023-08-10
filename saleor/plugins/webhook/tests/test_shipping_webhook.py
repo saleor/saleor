@@ -518,7 +518,7 @@ def test_trigger_webhook_sync(mock_request, shipping_app):
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, data, webhook
     )
     event_delivery = EventDelivery.objects.first()
-    mock_request.assert_called_once_with(shipping_app, event_delivery)
+    mock_request.assert_called_once_with(event_delivery)
 
 
 @mock.patch("saleor.plugins.webhook.shipping.cache.set")

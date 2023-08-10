@@ -80,7 +80,6 @@ def test_customer_register(
     }
     query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
-
     response = api_client.post_graphql(query, variables)
 
     new_user = User.objects.get(email=email)

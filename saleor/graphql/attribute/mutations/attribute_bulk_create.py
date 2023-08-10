@@ -16,21 +16,158 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
-from ...core.enums import ErrorPolicyEnum, MeasurementUnitsEnum
+from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, ModelMutation
-from ...core.types import (
-    AttributeBulkCreateError,
-    BaseInputObjectType,
-    BaseObjectType,
-    NonNullList,
-)
+from ...core.types import AttributeBulkCreateError, BaseObjectType, NonNullList
 from ...core.utils import WebhookEventInfo, get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
-from ..enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
+from ..enums import AttributeTypeEnum
+from ..mutations.attribute_create import AttributeCreateInput, AttributeValueCreateInput
 from ..types import Attribute
 
 ONLY_SWATCH_FIELDS = ["file_url", "content_type", "value"]
+DEPRECATED_ATTR_FIELDS = [
+    "storefront_search_position",
+    "filterable_in_storefront",
+    "available_in_grid",
+]
+DEPRECATED_VALUE_FIELDS = ["rich_text", "plain_text"]
+
+
+def validate_value(
+    value_data: AttributeCreateInput,
+    input_type: AttributeInputType,
+    slugs_list: list[str],
+    value_index: int,
+    attribute_index: int,
+    index_error_map: dict[int, list],
+    path_prefix="values",
+    error_class=AttributeBulkCreateError,
+):
+    name = value_data.get("name")
+    is_swatch_attr = input_type == AttributeInputType.SWATCH
+
+    if is_swatch_attr and value_data.get("value") and value_data.get("file_url"):
+        index_error_map[attribute_index].append(
+            error_class(
+                path=f"{path_prefix}.{value_index}",
+                message=("Cannot specify both value and file for swatch attribute."),
+                code=error_class.code.INVALID.value,
+            )
+        )
+
+    if not is_swatch_attr and any(
+        [value_data.get(field) for field in ONLY_SWATCH_FIELDS]
+    ):
+        message = (
+            "Cannot define value, file and contentType fields for not "
+            "swatch attribute."
+        )
+        index_error_map[attribute_index].append(
+            error_class(
+                path=f"{path_prefix}.{value_index}",
+                message=message,
+                code=error_class.code.INVALID.value,
+            )
+        )
+
+    slug_value = prepare_unique_slug(slugify(unidecode(name)), slugs_list)
+    value_data["slug"] = slug_value
+    slugs_list.append(slug_value)
+
+    return value_data
+
+
+def clean_values(
+    values: list,
+    input_type: AttributeInputType,
+    values_existing_external_refs: set,
+    duplicated_values_external_ref: set,
+    attribute_index: int,
+    index_error_map: dict[int, list],
+    attribute=None,
+    path_prefix="values",
+    error_class=AttributeBulkCreateError,
+):
+    cleand_values: list = []
+    slugs_list: list = []
+
+    if attribute:
+        slugs_list = list(attribute.values.values_list("slug", flat=True))
+
+    duplicated_names = get_duplicated_values(
+        [unidecode(value_data.name.lower().strip()) for value_data in values]
+    )
+
+    for value_index, value_data in enumerate(values):
+        external_ref = value_data.external_reference
+        if external_ref in duplicated_values_external_ref:
+            index_error_map[attribute_index].append(
+                error_class(
+                    path=f"{path_prefix}.{value_index}.externalReference",
+                    message="Duplicated external reference.",
+                    code=error_class.code.DUPLICATED_INPUT_ITEM.value,
+                )
+            )
+            continue
+
+        if external_ref and external_ref in values_existing_external_refs:
+            index_error_map[attribute_index].append(
+                error_class(
+                    path=f"{path_prefix}.{value_index}.externalReference",
+                    message="External reference already exists.",
+                    code=error_class.code.UNIQUE.value,
+                )
+            )
+            continue
+
+        if unidecode(value_data.name.lower().strip()) in duplicated_names:
+            index_error_map[attribute_index].append(
+                error_class(
+                    path=f"{path_prefix}.{value_index}.name",
+                    message="Duplicated name.",
+                    code=error_class.code.DUPLICATED_INPUT_ITEM.value,
+                )
+            )
+            continue
+
+        if value_data.value and input_type not in AttributeInputType.TYPES_WITH_CHOICES:
+            index_error_map[attribute_index].append(
+                error_class(
+                    path="values",
+                    message=(f"Values cannot be used with input type {input_type}.",),
+                    code=error_class.code.INVALID.value,
+                )
+            )
+            continue
+
+        if any(key in DEPRECATED_VALUE_FIELDS for key in value_data.keys()):
+            message = (
+                "Deprecated fields 'rich_text', 'plain_text' and are not "
+                "allowed in bulk mutation."
+            )
+            index_error_map[attribute_index].append(
+                AttributeBulkCreateError(
+                    path=f"{path_prefix}.{value_index}",
+                    message=message,
+                    code=error_class.code.INVALID.value,
+                )
+            )
+            continue
+
+        validate_value(
+            value_data,
+            input_type,
+            slugs_list,
+            value_index,
+            attribute_index,
+            index_error_map,
+            path_prefix,
+            error_class,
+        )
+        cleand_values.append(value_data)
+
+    return cleand_values
 
 
 class AttributeBulkCreateResult(BaseObjectType):
@@ -57,51 +194,6 @@ def get_results(
     ]
 
 
-class AttributeBulkCreateValueInput(BaseInputObjectType):
-    name = graphene.String(required=True, description=AttributeValueDescriptions.NAME)
-    value = graphene.String(description=AttributeValueDescriptions.VALUE)
-    external_reference = graphene.String(
-        description="External ID of this attribute value.",
-        required=False,
-    )
-    file_url = graphene.String(
-        required=False,
-        description="URL of the file attribute. Every time, a new value is created.",
-    )
-    content_type = graphene.String(required=False, description="File content type.")
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
-
-
-class AttributeBulkCreateInput(BaseInputObjectType):
-    external_reference = graphene.String(
-        description="External ID of this attribute.", required=False
-    )
-    input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
-    entity_type = AttributeEntityTypeEnum(description=AttributeDescriptions.ENTITY_TYPE)
-    name = graphene.String(required=True, description=AttributeDescriptions.NAME)
-    slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
-    type = AttributeTypeEnum(description=AttributeDescriptions.TYPE, required=True)
-    unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT, required=False)
-    values = NonNullList(
-        AttributeBulkCreateValueInput, description=AttributeDescriptions.VALUES
-    )
-    value_required = graphene.Boolean(description=AttributeDescriptions.VALUE_REQUIRED)
-    is_variant_only = graphene.Boolean(
-        required=False, description=AttributeDescriptions.IS_VARIANT_ONLY
-    )
-    visible_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
-    )
-    filterable_in_dashboard = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
-
-
 class AttributeBulkCreate(BaseMutation):
     count = graphene.Int(
         required=True,
@@ -116,9 +208,9 @@ class AttributeBulkCreate(BaseMutation):
 
     class Arguments:
         attributes = NonNullList(
-            AttributeBulkCreateInput,
+            AttributeCreateInput,
             required=True,
-            description="Input list of products to create.",
+            description="Input list of attributes to create.",
         )
         error_policy = ErrorPolicyEnum(
             required=False,
@@ -141,7 +233,7 @@ class AttributeBulkCreate(BaseMutation):
     def clean_attributes(
         cls,
         info: ResolveInfo,
-        attributes_data: List[AttributeBulkCreateInput],
+        attributes_data: List[AttributeCreateInput],
         index_error_map: dict[int, List[AttributeBulkCreateError]],
     ):
         cleaned_inputs_map: dict = {}
@@ -207,6 +299,21 @@ class AttributeBulkCreate(BaseMutation):
                 cleaned_inputs_map[attribute_index] = None
                 continue
 
+            if any(key in DEPRECATED_ATTR_FIELDS for key in attribute_data.keys()):
+                message = (
+                    "Deprecated fields 'storefront_search_position', "
+                    "'filterable_in_storefront', 'available_in_grid' and are not "
+                    "allowed in bulk mutation."
+                )
+                index_error_map[attribute_index].append(
+                    AttributeBulkCreateError(
+                        message=message,
+                        code=AttributeBulkCreateErrorCode.INVALID.value,
+                    )
+                )
+                cleaned_inputs_map[attribute_index] = None
+                continue
+
             cleaned_input = cls.clean_attribute_input(
                 info,
                 attribute_data,
@@ -223,7 +330,7 @@ class AttributeBulkCreate(BaseMutation):
     def clean_attribute_input(
         cls,
         info: ResolveInfo,
-        attribute_data: AttributeBulkCreateInput,
+        attribute_data: AttributeCreateInput,
         attribute_index: int,
         existing_slugs: set,
         values_existing_external_refs: set,
@@ -232,7 +339,7 @@ class AttributeBulkCreate(BaseMutation):
     ):
         values = attribute_data.pop("values", None)
         cleaned_input = ModelMutation.clean_input(
-            info, None, attribute_data, input_cls=AttributeBulkCreateInput
+            info, None, attribute_data, input_cls=AttributeCreateInput
         )
 
         # check permissions based on attribute type
@@ -290,7 +397,7 @@ class AttributeBulkCreate(BaseMutation):
         cleaned_input["slug"] = cls._generate_slug(cleaned_input, existing_slugs)
 
         if values:
-            cleaned_values = cls.clean_values(
+            cleaned_values = clean_values(
                 values,
                 input_type,
                 values_existing_external_refs,
@@ -301,128 +408,6 @@ class AttributeBulkCreate(BaseMutation):
             cleaned_input["values"] = cleaned_values
 
         return cleaned_input
-
-    @classmethod
-    def clean_values(
-        cls,
-        values: list[AttributeBulkCreateValueInput],
-        input_type: AttributeInputType,
-        values_existing_external_refs: set,
-        duplicated_values_external_ref: set,
-        attribute_index: int,
-        index_error_map: dict[int, List[AttributeBulkCreateError]],
-    ) -> list[AttributeBulkCreateValueInput]:
-        slugs_list: list = []
-        cleand_values: list = []
-
-        duplicated_names = get_duplicated_values(
-            [unidecode(value_data.name.lower().strip()) for value_data in values]
-        )
-
-        for value_index, value_data in enumerate(values):
-            external_ref = value_data.external_reference
-            if external_ref in duplicated_values_external_ref:
-                index_error_map[attribute_index].append(
-                    AttributeBulkCreateError(
-                        path=f"values.{value_index}.externalReference",
-                        message="Duplicated external reference.",
-                        code=AttributeBulkCreateErrorCode.DUPLICATED_INPUT_ITEM.value,
-                    )
-                )
-                continue
-
-            if external_ref and external_ref in values_existing_external_refs:
-                index_error_map[attribute_index].append(
-                    AttributeBulkCreateError(
-                        path=f"values.{value_index}.externalReference",
-                        message="External reference already exists.",
-                        code=AttributeBulkCreateErrorCode.UNIQUE.value,
-                    )
-                )
-                continue
-
-            if unidecode(value_data.name.lower().strip()) in duplicated_names:
-                index_error_map[attribute_index].append(
-                    AttributeBulkCreateError(
-                        path=f"values.{value_index}.name",
-                        message="Duplicated name.",
-                        code=AttributeBulkCreateErrorCode.DUPLICATED_INPUT_ITEM.value,
-                    )
-                )
-                continue
-
-            if (
-                value_data.value
-                and input_type not in AttributeInputType.TYPES_WITH_CHOICES
-            ):
-                index_error_map[attribute_index].append(
-                    AttributeBulkCreateError(
-                        path="values",
-                        message=(
-                            f"Values cannot be used with input type {input_type}.",
-                        ),
-                        code=AttributeBulkCreateErrorCode.INVALID.value,
-                    )
-                )
-                continue
-
-            cls._validate_value(
-                value_data,
-                input_type,
-                slugs_list,
-                value_index,
-                attribute_index,
-                index_error_map,
-            )
-
-            cleand_values.append(value_data)
-
-        return cleand_values
-
-    @classmethod
-    def _validate_value(
-        cls,
-        value_data: AttributeBulkCreateValueInput,
-        input_type: AttributeInputType,
-        slugs_list: list[str],
-        value_index: int,
-        attribute_index: int,
-        index_error_map: dict[int, List[AttributeBulkCreateError]],
-    ):
-        name = value_data.get("name")
-        is_swatch_attr = input_type == AttributeInputType.SWATCH
-
-        if is_swatch_attr and value_data.get("value") and value_data.get("file_url"):
-            index_error_map[attribute_index].append(
-                AttributeBulkCreateError(
-                    path=f"values.{value_index}",
-                    message=(
-                        "Cannot specify both value and file for swatch attribute."
-                    ),
-                    code=AttributeBulkCreateErrorCode.INVALID.value,
-                )
-            )
-
-        if not is_swatch_attr and any(
-            [value_data.get(field) for field in ONLY_SWATCH_FIELDS]
-        ):
-            message = (
-                "Cannot define value, file and contentType fields for not "
-                "swatch attribute."
-            )
-            index_error_map[attribute_index].append(
-                AttributeBulkCreateError(
-                    path=f"values.{value_index}",
-                    message=message,
-                    code=AttributeBulkCreateErrorCode.INVALID.value,
-                )
-            )
-
-        slug_value = prepare_unique_slug(slugify(unidecode(name)), slugs_list)
-        value_data["slug"] = slug_value
-        slugs_list.append(slug_value)
-
-        return value_data
 
     @classmethod
     def _generate_slug(cls, cleaned_input, existing_slugs):
@@ -495,7 +480,7 @@ class AttributeBulkCreate(BaseMutation):
     def create_values(
         cls,
         attribute: models.Attribute,
-        values_data: list[AttributeBulkCreateValueInput],
+        values_data: list[AttributeValueCreateInput],
         values: list[models.AttributeValue],
         attr_index: int,
         index_error_map: dict[int, List[AttributeBulkCreateError]],

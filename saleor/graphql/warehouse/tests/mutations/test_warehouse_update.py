@@ -32,6 +32,10 @@ mutation updateWarehouse($input: WarehouseUpdateInput!, $id: ID!) {
                 id
                 streetAddress1
                 streetAddress2
+                metadata {
+                    key
+                    value
+                }
             }
         }
     }
@@ -40,7 +44,7 @@ mutation updateWarehouse($input: WarehouseUpdateInput!, $id: ID!) {
 
 
 def test_mutation_update_warehouse(
-    staff_api_client, warehouse, permission_manage_products
+    staff_api_client, warehouse, permission_manage_products, graphql_address_data
 ):
     # given
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
@@ -49,18 +53,29 @@ def test_mutation_update_warehouse(
     external_reference = "test-ext-ref"
     variables = {
         "id": warehouse_id,
-        "input": {"name": "New name", "externalReference": external_reference},
+        "input": {
+            "name": "New name",
+            "externalReference": external_reference,
+            "address": graphql_address_data,
+        },
     }
 
     # when
-    staff_api_client.post_graphql(
+    response = staff_api_client.post_graphql(
         MUTATION_UPDATE_WAREHOUSE,
         variables=variables,
         permissions=[permission_manage_products],
     )
+    content = get_graphql_content(response)
 
     # then
     warehouse.refresh_from_db()
+    warehouse_data = content["data"]["updateWarehouse"]["warehouse"]
+
+    assert warehouse_data["address"]["metadata"] == [
+        {"key": "public", "value": "public_value"}
+    ]
+    assert warehouse.address.metadata == {"public": "public_value"}
     assert not (warehouse.name == warehouse_old_name)
     assert warehouse.name == "New name"
     assert warehouse.slug == warehouse_slug

@@ -273,3 +273,31 @@ def test_webhook_update_invalid_custom_headers(
         '"X-*" or "Authorization*".'
     )
     assert error["code"] == WebhookErrorCode.INVALID_CUSTOM_HEADERS.name
+
+
+def test_webhook_update_notify_user_with_another_event(app_api_client, webhook):
+    # given
+    query = WEBHOOK_UPDATE
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {
+        "id": webhook_id,
+        "input": {
+            "name": "NOTIFY_USER with another event fails to save",
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [
+                WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
+                WebhookEventTypeAsyncEnum.NOTIFY_USER.name,
+            ],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["webhookUpdate"]
+    assert not data["webhook"]
+    error = data["errors"][0]
+    assert error["field"] == "asyncEvents"
+    assert error["code"] == WebhookErrorCode.INVALID_NOTIFY_WITH_SUBSCRIPTION.name

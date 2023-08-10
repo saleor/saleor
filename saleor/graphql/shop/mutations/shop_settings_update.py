@@ -29,7 +29,10 @@ class ShopSettingsInput(graphene.InputObjectType):
     header_text = graphene.String(description="Header text.")
     description = graphene.String(description="SEO description.")
     track_inventory_by_default = graphene.Boolean(
-        description="Enable inventory tracking."
+        description=(
+            "This field is used as a default value for "
+            "`ProductVariant.trackInventory`."
+        )
     )
     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
     automatic_fulfillment_digital_products = graphene.Boolean(

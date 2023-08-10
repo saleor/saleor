@@ -172,7 +172,7 @@ class TransactionProcess(BaseMutation):
         event, data = handle_transaction_process_session(
             transaction_item=transaction_item,
             source_object=source_object,
-            payment_gateway=PaymentGatewayData(
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=app_identifier, data=data
             ),
             app=app,

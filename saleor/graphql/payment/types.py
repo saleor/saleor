@@ -43,14 +43,28 @@ from .enums import (
 
 
 class Transaction(ModelObjectType[models.Transaction]):
-    id = graphene.GlobalID(required=True)
-    created = graphene.DateTime(required=True)
-    payment = graphene.Field(lambda: Payment, required=True)
-    token = graphene.String(required=True)
-    kind = TransactionKindEnum(required=True)
-    is_success = graphene.Boolean(required=True)
-    error = graphene.String()
-    gateway_response = JSONString(required=True)
+    id = graphene.GlobalID(required=True, description="ID of the transaction.")
+    created = graphene.DateTime(
+        required=True, description="Date and time which transaction was created."
+    )
+    payment = graphene.Field(
+        lambda: Payment,
+        required=True,
+        description="Determines the payment associated with a transaction.",
+    )
+    token = graphene.String(
+        required=True, description="Unique token associated with a transaction."
+    )
+    kind = TransactionKindEnum(
+        required=True, description="Determines the type of transaction."
+    )
+    is_success = graphene.Boolean(
+        required=True, description="Determines if the transaction was successful."
+    )
+    error = graphene.String(description="Error associated with transaction, if any.")
+    gateway_response = JSONString(
+        required=True, description="Response returned by payment gateway."
+    )
     amount = graphene.Field(Money, description="Total amount of the transaction.")
 
     class Meta:
@@ -113,15 +127,33 @@ class PaymentSource(BaseObjectType):
 
 
 class Payment(ModelObjectType[models.Payment]):
-    id = graphene.GlobalID(required=True)
-    gateway = graphene.String(required=True)
-    is_active = graphene.Boolean(required=True)
-    created = graphene.DateTime(required=True)
-    modified = graphene.DateTime(required=True)
-    token = graphene.String(required=True)
-    checkout = graphene.Field("saleor.graphql.checkout.types.Checkout")
-    order = graphene.Field("saleor.graphql.order.types.Order")
-    payment_method_type = graphene.String(required=True)
+    id = graphene.GlobalID(required=True, description="ID of the payment.")
+    gateway = graphene.String(
+        required=True, description="Payment gateway used for payment."
+    )
+    is_active = graphene.Boolean(
+        required=True, description="Determines if the payment is active or not."
+    )
+    created = graphene.DateTime(
+        required=True, description="Date and time at which payment was created."
+    )
+    modified = graphene.DateTime(
+        required=True, description="Date and time at which payment was modified."
+    )
+    token = graphene.String(
+        required=True, description="Unique token associated with a payment."
+    )
+    checkout = graphene.Field(
+        "saleor.graphql.checkout.types.Checkout",
+        description="Checkout associated with a payment.",
+    )
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order",
+        description="Order associated with a payment.",
+    )
+    payment_method_type = graphene.String(
+        required=True, description="Type of method used for payment."
+    )
     customer_ip_address = PermissionsField(
         graphene.String,
         description="IP address of the user who created the payment.",
@@ -266,7 +298,10 @@ class PaymentInitialized(BaseObjectType):
 
 
 class TransactionEvent(ModelObjectType[models.TransactionEvent]):
-    created_at = graphene.DateTime(required=True)
+    created_at = graphene.DateTime(
+        required=True,
+        description="Date and time at which a transaction event was created.",
+    )
     psp_reference = graphene.String(
         description="PSP reference of transaction." + ADDED_IN_313, required=True
     )
@@ -343,8 +378,14 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
 
 class TransactionItem(ModelObjectType[models.TransactionItem]):
-    created_at = graphene.DateTime(required=True)
-    modified_at = graphene.DateTime(required=True)
+    created_at = graphene.DateTime(
+        required=True,
+        description="Date and time at which payment transaction was created.",
+    )
+    modified_at = graphene.DateTime(
+        required=True,
+        description="Date and time at which payment transaction was modified.",
+    )
     actions = NonNullList(
         TransactionActionEnum,
         description=(

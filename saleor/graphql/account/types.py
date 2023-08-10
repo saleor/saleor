@@ -10,6 +10,7 @@ from promise import Promise
 from ...account import models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
+from ...graphql.meta.inputs import MetadataInput
 from ...order import OrderStatus
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions, AppPermission, OrderPermissions
@@ -84,6 +85,12 @@ class AddressInput(BaseInputObjectType):
             "Phone numbers are validated with Google's "
             "[libphonenumber](https://github.com/google/libphonenumber) library."
         )
+    )
+
+    metadata = graphene.List(
+        graphene.NonNull(MetadataInput),
+        description="Address public metadata." + ADDED_IN_315,
+        required=False,
     )
 
 

@@ -5,6 +5,7 @@ import graphene
 from .....account import models
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
+from ....account.mixins import AddressMetadataMixin
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_314
 from ....core.doc_category import DOC_CATEGORY_USERS
@@ -34,7 +35,7 @@ class AccountInput(AccountBaseInput):
         doc_category = DOC_CATEGORY_USERS
 
 
-class AccountUpdate(BaseCustomerCreate):
+class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate):
     class Arguments:
         input = AccountInput(
             description="Fields required to update the account of the logged-in user.",

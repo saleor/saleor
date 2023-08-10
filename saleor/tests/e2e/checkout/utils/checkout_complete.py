@@ -20,6 +20,10 @@ mutation CheckoutComplete($checkoutId: ID!) {
           amount
         }
       }
+      paymentStatus
+      statusDisplay
+      status
+      isPaid
       checkoutId
       deliveryMethod {
         ... on ShippingMethod {
@@ -35,7 +39,7 @@ mutation CheckoutComplete($checkoutId: ID!) {
 """
 
 
-def checkout_complete(api_client, checkout_id):
+def raw_checkout_complete(api_client, checkout_id):
     variables = {
         "checkoutId": checkout_id,
     }
@@ -45,9 +49,17 @@ def checkout_complete(api_client, checkout_id):
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["checkoutComplete"]["errors"] == []
+    raw_data = content["data"]["checkoutComplete"]
 
-    data = content["data"]["checkoutComplete"]["order"]
+    return raw_data
+
+
+def checkout_complete(api_client, checkout_id):
+    checkout_response = raw_checkout_complete(api_client, checkout_id)
+
+    assert checkout_response["errors"] == []
+
+    data = checkout_response["order"]
     assert data["id"] is not None
     assert data["checkoutId"] == checkout_id
 

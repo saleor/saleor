@@ -495,13 +495,20 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
-    shipping_address = graphql_address_data
+    billing_metadata = [{"key": "billing", "value": "billing_value"}]
+    shipping_metadata = [{"key": "shipping", "value": "shipping_value"}]
+    shipping_address_data = graphql_address_data.copy()
+    billing_address_data = graphql_address_data.copy()
+    shipping_address_data["metadata"] = shipping_metadata
+    billing_address_data["metadata"] = billing_metadata
+
     variables = {
         "checkoutInput": {
             "channel": channel_USD.slug,
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": test_email,
-            "shippingAddress": shipping_address,
+            "shippingAddress": shipping_address_data,
+            "billingAddress": billing_address_data,
         }
     }
     assert not Checkout.objects.exists()
@@ -517,20 +524,27 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
     assert checkout_line.variant == variant
     assert checkout_line.quantity == 1
     assert new_checkout.shipping_address is not None
-    assert new_checkout.shipping_address.first_name == shipping_address["firstName"]
-    assert new_checkout.shipping_address.last_name == shipping_address["lastName"]
+    assert (
+        new_checkout.shipping_address.first_name == shipping_address_data["firstName"]
+    )
+    assert new_checkout.shipping_address.last_name == shipping_address_data["lastName"]
     assert (
         new_checkout.shipping_address.street_address_1
-        == shipping_address["streetAddress1"]
+        == shipping_address_data["streetAddress1"]
     )
     assert (
         new_checkout.shipping_address.street_address_2
-        == shipping_address["streetAddress2"]
+        == shipping_address_data["streetAddress2"]
     )
-    assert new_checkout.shipping_address.postal_code == shipping_address["postalCode"]
-    assert new_checkout.shipping_address.country == shipping_address["country"]
-    assert new_checkout.shipping_address.city == shipping_address["city"].upper()
+    assert (
+        new_checkout.shipping_address.postal_code == shipping_address_data["postalCode"]
+    )
+    assert new_checkout.shipping_address.country == shipping_address_data["country"]
+    assert new_checkout.shipping_address.city == shipping_address_data["city"].upper()
     assert not Reservation.objects.exists()
+
+    assert new_checkout.shipping_address.metadata == {"shipping": "shipping_value"}
+    assert new_checkout.billing_address.metadata == {"billing": "billing_value"}
 
 
 def test_checkout_create_with_custom_price(

@@ -32,6 +32,7 @@ from ..payment.interface import (
     PaymentData,
     PaymentGateway,
     TransactionActionData,
+    TransactionSessionResult,
 )
 from ..thumbnail.models import Thumbnail
 from .models import PluginConfiguration
@@ -150,6 +151,12 @@ class BasePlugin:
     def __str__(self):
         return self.PLUGIN_NAME
 
+    # Trigger when account is confirmed by user.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # is confirmed.
+    account_confirmed: Callable[["User", None], None]
+
     # Trigger when account confirmation is requested.
     #
     # Overwrite this method if you need to trigger specific logic after an account
@@ -163,6 +170,24 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic after an account
     # change email is requested.
     account_change_email_requested: Callable[["User", str, str, str, str, None], None]
+
+    # Trigger when account set password is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # set password is requested.
+    account_set_password_requested: Callable[["User", str, str, str, None], None]
+
+    # Trigger when account delete is confirmed.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # delete is confirmed.
+    account_deleted: Callable[["User", None], None]
+
+    # Trigger when account email is changed.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # email is changed.
+    account_email_changed: Callable[["User", None], None]
 
     # Trigger when account delete is requested.
     #
@@ -402,6 +427,12 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic after a channel
     # status is changed.
     channel_status_changed: Callable[["Channel", None], None]
+
+    # Trigger when channel metadata is changed.
+    #
+    # Overwrite this method if you need to trigger specific logic after a channel
+    # metadata is changed.
+    channel_metadata_updated: Callable[["Channel", None], None]
 
     change_user_address: Callable[
         ["Address", Union[str, None], Union["User", None], bool, "Address"], "Address"
@@ -849,11 +880,11 @@ class BasePlugin:
     ]
 
     transaction_initialize_session: Callable[
-        ["TransactionSessionData", None], "PaymentGatewayData"
+        ["TransactionSessionData", None], "TransactionSessionResult"
     ]
 
     transaction_process_session: Callable[
-        ["TransactionSessionData", None], "PaymentGatewayData"
+        ["TransactionSessionData", None], "TransactionSessionResult"
     ]
 
     # Trigger when transaction item metadata is updated.
@@ -1014,6 +1045,12 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic after a staff user is
     # deleted.
     staff_deleted: Callable[["User", Any], Any]
+
+    # Trigger when setting a password for staff is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after set
+    # password for staff is requested.
+    staff_set_password_requested: Callable[["User", str, str, str, None], None]
 
     # Trigger when thumbnail is updated.
     thumbnail_created: Callable[["Thumbnail", Any], Any]
