@@ -16,10 +16,12 @@ from ...core.descriptions import (
     ADDED_IN_313,
     ADDED_IN_314,
     ADDED_IN_315,
+    DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
 from ...core.doc_category import (
     DOC_CATEGORY_CHANNELS,
+    DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_ORDERS,
     DOC_CATEGORY_PRODUCTS,
 )
@@ -36,7 +38,7 @@ from ..enums import (
     TransactionFlowStrategyEnum,
 )
 from ..types import Channel
-from .utils import clean_delete_expired_orders_after, clean_expire_orders_after
+from .utils import clean_input_checkout_settings, clean_input_order_settings
 
 
 class StockSettingsInput(BaseInputObjectType):
@@ -50,6 +52,26 @@ class StockSettingsInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class CheckoutSettingsInput(BaseInputObjectType):
+    use_legacy_error_flow = graphene.Boolean(
+        description=(
+            "Default `true`. Determines if the checkout mutations should use legacy "
+            "error flow. In legacy flow, all mutations can raise an exception "
+            "unrelated to the requested action - (e.g. out-of-stock exception when "
+            "updating checkoutShippingAddress.) "
+            "If `false`, the errors will be aggregated in `checkout.problems` field. "
+            "Some of the `problems` can block the finalizing checkout process. "
+            "The legacy flow will be removed in Saleor 4.0. "
+            "The flow with `checkout.problems` will be the default one. "
+            + ADDED_IN_315
+            + DEPRECATED_IN_3X_INPUT
+        )
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
 class OrderSettingsInput(BaseInputObjectType):
@@ -146,6 +168,12 @@ class ChannelInput(BaseInputObjectType):
         required=False,
     )
 
+    checkout_settings = graphene.Field(
+        CheckoutSettingsInput,
+        description="The channel checkout settings" + ADDED_IN_315 + PREVIEW_FEATURE,
+        required=False,
+    )
+
     class Meta:
         doc_category = DOC_CATEGORY_CHANNELS
 
@@ -204,48 +232,10 @@ class ChannelCreate(ModelMutation):
         if stock_settings := cleaned_input.get("stock_settings"):
             cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
         if order_settings := cleaned_input.get("order_settings"):
-            automatically_confirm_all_new_orders = order_settings.get(
-                "automatically_confirm_all_new_orders"
-            )
-            if automatically_confirm_all_new_orders is not None:
-                cleaned_input[
-                    "automatically_confirm_all_new_orders"
-                ] = automatically_confirm_all_new_orders
+            clean_input_order_settings(order_settings, cleaned_input)
 
-            automatically_fulfill_non_shippable_gift_card = order_settings.get(
-                "automatically_fulfill_non_shippable_gift_card"
-            )
-            if automatically_fulfill_non_shippable_gift_card is not None:
-                cleaned_input[
-                    "automatically_fulfill_non_shippable_gift_card"
-                ] = automatically_fulfill_non_shippable_gift_card
-            if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
-                cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
-
-            if "expire_orders_after" in order_settings:
-                expire_orders_after = order_settings["expire_orders_after"]
-                cleaned_input["expire_orders_after"] = clean_expire_orders_after(
-                    expire_orders_after
-                )
-
-            if "delete_expired_orders_after" in order_settings:
-                delete_expired_orders_after = order_settings[
-                    "delete_expired_orders_after"
-                ]
-                cleaned_input[
-                    "delete_expired_orders_after"
-                ] = clean_delete_expired_orders_after(delete_expired_orders_after)
-
-            if default_transaction_strategy := order_settings.get(
-                "default_transaction_flow_strategy"
-            ):
-                cleaned_input[
-                    "default_transaction_flow_strategy"
-                ] = default_transaction_strategy
-
-            allow_unpaid_orders = order_settings.get("allow_unpaid_orders")
-            if allow_unpaid_orders is not None:
-                cleaned_input["allow_unpaid_orders"] = allow_unpaid_orders
+        if checkout_settings := cleaned_input.get("checkout_settings"):
+            clean_input_checkout_settings(checkout_settings, cleaned_input)
 
         return cleaned_input
 

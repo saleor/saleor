@@ -5,7 +5,11 @@ from django.utils.text import slugify
 from ....channel import models
 from ....channel.error_codes import ChannelErrorCode
 from ....core.tracing import traced_atomic_transaction
-from ....permission.enums import ChannelPermissions, OrderPermissions
+from ....permission.enums import (
+    ChannelPermissions,
+    CheckoutPermissions,
+    OrderPermissions,
+)
 from ....shipping.tasks import (
     drop_invalid_shipping_methods_relations_for_given_channels,
 )
@@ -22,7 +26,7 @@ from ...utils.validators import check_for_duplicates
 from ..types import Channel
 from ..utils import delete_invalid_warehouse_to_shipping_zone_relations
 from .channel_create import ChannelInput
-from .utils import clean_delete_expired_orders_after, clean_expire_orders_after
+from .utils import clean_input_checkout_settings, clean_input_order_settings
 
 
 class ChannelUpdateInput(ChannelInput):
@@ -62,8 +66,11 @@ class ChannelUpdate(ModelMutation):
             "Update a channel.\n\n"
             "Requires one of the following permissions: MANAGE_CHANNELS.\n"
             "Requires one of the following permissions "
-            "when updating only orderSettings field: "
+            "when updating only `orderSettings` field: "
             "MANAGE_CHANNELS, MANAGE_ORDERS."
+            "Requires one of the following permissions "
+            "when updating only `checkoutSettings` field: "
+            "MANAGE_CHANNELS, MANAGE_CHECKOUTS."
         )
         auto_permission_message = False
         model = models.Channel
@@ -110,64 +117,41 @@ class ChannelUpdate(ModelMutation):
         if stock_settings := cleaned_input.get("stock_settings"):
             cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
         if order_settings := cleaned_input.get("order_settings"):
-            automatically_confirm_all_new_orders = order_settings.get(
-                "automatically_confirm_all_new_orders"
-            )
-            if automatically_confirm_all_new_orders is not None:
-                cleaned_input[
-                    "automatically_confirm_all_new_orders"
-                ] = automatically_confirm_all_new_orders
-            automatically_fulfill_non_shippable_gift_card = order_settings.get(
-                "automatically_fulfill_non_shippable_gift_card"
-            )
-            if automatically_fulfill_non_shippable_gift_card is not None:
-                cleaned_input[
-                    "automatically_fulfill_non_shippable_gift_card"
-                ] = automatically_fulfill_non_shippable_gift_card
+            clean_input_order_settings(order_settings, cleaned_input)
 
-            if "expire_orders_after" in order_settings:
-                expire_orders_after = order_settings["expire_orders_after"]
-                cleaned_input["expire_orders_after"] = clean_expire_orders_after(
-                    expire_orders_after
-                )
-
-            if "delete_expired_orders_after" in order_settings:
-                delete_expired_orders_after = order_settings[
-                    "delete_expired_orders_after"
-                ]
-                cleaned_input[
-                    "delete_expired_orders_after"
-                ] = clean_delete_expired_orders_after(delete_expired_orders_after)
-
-            if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
-                cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
-
-            if default_transaction_strategy := order_settings.get(
-                "default_transaction_flow_strategy"
-            ):
-                cleaned_input[
-                    "default_transaction_flow_strategy"
-                ] = default_transaction_strategy
-
-            allow_unpaid_orders = order_settings.get("allow_unpaid_orders")
-            if allow_unpaid_orders is not None:
-                cleaned_input["allow_unpaid_orders"] = allow_unpaid_orders
+        if checkout_settings := cleaned_input.get("checkout_settings"):
+            clean_input_checkout_settings(checkout_settings, cleaned_input)
 
         return cleaned_input
 
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):
         permissions = [ChannelPermissions.MANAGE_CHANNELS]
-
+        all_perm_required = False
         # Permission MANAGE_ORDERS or MANAGE_CHANNELS is required to update
         # orderSettings. MANAGE_ORDERS can be used only when
         # channelUpdate mutation will get OrderSettingsInput and
         # not any other fields. Otherwise needed permission is MANAGE_CHANNELS.
         input = data["data"]["input"]
-        if "order_settings" in input and len(input) == 1:
+
+        if ["order_settings"] == list(input.keys()):
             permissions.append(OrderPermissions.MANAGE_ORDERS)
 
-        return super().check_permissions(context, permissions, **data)
+        # Permission MANAGE_CHECKOUTS or MANAGE_CHANNELS is required to update
+        # checkoutSettings.
+        if ["checkout_settings"] == list(input.keys()):
+            permissions.append(CheckoutPermissions.MANAGE_CHECKOUTS)
+
+        if set(["order_settings", "checkout_settings"]) == set(input.keys()):
+            permissions = [
+                OrderPermissions.MANAGE_ORDERS,
+                CheckoutPermissions.MANAGE_CHECKOUTS,
+            ]
+            all_perm_required = True
+
+        return super().check_permissions(
+            context, permissions, require_all_permissions=all_perm_required, **data
+        )
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):

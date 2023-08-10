@@ -86,6 +86,13 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Add `metadata` to `AddressInput` field
 - Add support for unhandled field `Shop.trackInventoryByDefault` for `productVariantCreate` and `productVariantBulkCreate` - #13492 by @Smit-Parmar
 - Add `storedPaymentMethods` field to `User` and `Checkout` type - #13581
+- - Add `AttributeBulkUpdate` mutation - #13532 by @SzymJ
+
+- Better checkout error feedback - #13458 by @korycins
+  - Add `Checkout.problems` field
+  - Add `CheckoutLine.problems` field
+  - Add `CheckoutSettingsInput` to `ChannelCreateInput` & `ChannelUpdateInput`
+  - Add `checkoutSettings` field to `Channel`
 
 ### Saleor Apps
 
@@ -142,6 +149,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add missing descriptions to page module - #13536 by @devilsautumn
 - Fix seo field to accept null value - #13512 by @ssuraliya
 - Add missing descriptions to payment module - #13546 by @devilsautumn
+- Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
+
 
 # 3.14.0
 

@@ -1131,3 +1131,34 @@ def test_checkout_lines_update_remove_shipping_if_removed_product_with_shipping(
     checkout.refresh_from_db()
     assert checkout.lines.count() == 1
     assert not checkout.shipping_method
+
+
+def test_with_active_problems_flow(
+    api_client, checkout_with_problems, product_with_single_variant
+):
+    # given
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    variant = product_with_single_variant.variants.first()
+
+    checkout_info = fetch_checkout_info(
+        checkout_with_problems, [], get_plugins_manager()
+    )
+    add_variant_to_checkout(checkout_info, variant, 1)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_problems),
+        "lines": [{"variantId": to_global_id_or_none(variant), "quantity": 3}],
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutLinesUpdate"]["errors"]

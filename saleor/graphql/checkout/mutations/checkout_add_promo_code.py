@@ -74,7 +74,10 @@ class CheckoutAddPromoCode(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
 
-        if unavailable_variant_pks:
+        if (
+            unavailable_variant_pks
+            and checkout.channel.use_legacy_error_flow_for_checkout
+        ):
             not_available_variants_ids = {
                 graphene.Node.to_global_id("ProductVariant", pk)
                 for pk in unavailable_variant_pks

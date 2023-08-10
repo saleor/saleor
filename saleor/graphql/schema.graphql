@@ -4954,6 +4954,17 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_ORDERS.
   """
   orderSettings: OrderSettings!
+
+  """
+  Channel-specific checkout settings.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
+  """
+  checkoutSettings: CheckoutSettings!
 }
 
 """
@@ -5442,6 +5453,22 @@ enum TransactionFlowStrategyEnum @doc(category: "Payments") {
 
 """The `Day` scalar type represents number of days by integer value."""
 scalar Day
+
+"""
+Represents the channel-specific checkout settings.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutSettings {
+  """
+  Default `true`. Determines if the checkout mutations should use legacy error flow. In legacy flow, all mutations can raise an exception unrelated to the requested action - (e.g. out-of-stock exception when updating checkoutShippingAddress.) If `false`, the errors will be aggregated in `checkout.problems` field. Some of the `problems` can block the finalizing checkout process. The legacy flow will be removed in Saleor 4.0. The flow with `checkout.problems` will be the default one.
+  
+  Added in Saleor 3.15.This field will be removed in Saleor 4.0.
+  """
+  useLegacyErrorFlow: Boolean!
+}
 
 """Represents shipping method postal code rule."""
 type ShippingMethodPostalCodeRule implements Node @doc(category: "Shipping") {
@@ -10307,6 +10334,15 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
     """Amount that will be used to fetch stored payment methods."""
     amount: PositiveDecimal
   ): [StoredPaymentMethod!]
+
+  """
+  List of problems with the checkout.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  problems: [CheckoutProblem!]
 }
 
 """
@@ -10632,6 +10668,54 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
 
   """Indicates whether the item need to be delivered."""
   requiresShipping: Boolean!
+
+  """
+  List of problems with the checkout line.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  problems: [CheckoutLineProblem!]
+}
+
+"""
+Represents an problem in the checkout line.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+union CheckoutLineProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
+
+"""
+Indicates insufficient stock for a given checkout line.Placing the order will not be possible until solving this problem.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutLineProblemInsufficientStock @doc(category: "Checkout") {
+  """Available quantity of a variant."""
+  availableQuantity: Int
+
+  """The line that has variant with insufficient stock."""
+  line: CheckoutLine!
+
+  """The variant with insufficient stock."""
+  variant: ProductVariant!
+}
+
+"""
+The variant assigned to the checkout line is not available.Placing the order will not be possible until solving this problem.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutLineProblemVariantNotAvailable @doc(category: "Checkout") {
+  """The line that has variant that is not available."""
+  line: CheckoutLine!
 }
 
 """
@@ -12356,6 +12440,15 @@ enum TokenizedPaymentFlowEnum {
 }
 
 scalar JSON
+
+"""
+Represents an problem in the checkout.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+union CheckoutProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
 
 type CheckoutCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""
@@ -17493,7 +17586,7 @@ type Mutation {
   Update a channel.
   
   Requires one of the following permissions: MANAGE_CHANNELS.
-  Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
+  Requires one of the following permissions when updating only `orderSettings` field: MANAGE_CHANNELS, MANAGE_ORDERS.Requires one of the following permissions when updating only `checkoutSettings` field: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
   
   Triggers the following webhook events:
   - CHANNEL_UPDATED (async): A channel was updated.
@@ -17629,12 +17722,32 @@ type Mutation {
   - ATTRIBUTE_CREATED (async): An attribute was created.
   """
   attributeBulkCreate(
-    """Input list of products to create."""
-    attributes: [AttributeBulkCreateInput!]!
+    """Input list of attributes to create."""
+    attributes: [AttributeCreateInput!]!
 
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum
   ): AttributeBulkCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: [])
+
+  """
+  Updates attributes.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when new attribute value was created or deleted.
+  - ATTRIBUTE_VALUE_CREATED (async): Called optionally when an attribute value was created.
+  - ATTRIBUTE_VALUE_DELETED (async): Called optionally when an attribute value was deleted.
+  """
+  attributeBulkUpdate(
+    """Input list of attributes to update."""
+    attributes: [AttributeBulkUpdateInput!]!
+
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+  ): AttributeBulkUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED, ATTRIBUTE_VALUE_CREATED, ATTRIBUTE_VALUE_DELETED], syncEvents: [])
 
   """
   Creates/updates translations for an attribute. 
@@ -18605,6 +18718,7 @@ enum WebhookErrorCode @doc(category: "Webhooks") {
   UNABLE_TO_PARSE
   MISSING_EVENT
   INVALID_CUSTOM_HEADERS
+  INVALID_NOTIFY_WITH_SUBSCRIPTION
 }
 
 input WebhookCreateInput @doc(category: "Webhooks") {
@@ -26802,6 +26916,15 @@ input ChannelCreateInput @doc(category: "Channels") {
   """
   privateMetadata: [MetadataInput!]
 
+  """
+  The channel checkout settings
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutSettings: CheckoutSettingsInput
+
   """Name of the channel."""
   name: String!
 
@@ -26885,11 +27008,22 @@ input OrderSettingsInput @doc(category: "Orders") {
   allowUnpaidOrders: Boolean
 }
 
+input CheckoutSettingsInput @doc(category: "Checkout") {
+  """
+  Default `true`. Determines if the checkout mutations should use legacy error flow. In legacy flow, all mutations can raise an exception unrelated to the requested action - (e.g. out-of-stock exception when updating checkoutShippingAddress.) If `false`, the errors will be aggregated in `checkout.problems` field. Some of the `problems` can block the finalizing checkout process. The legacy flow will be removed in Saleor 4.0. The flow with `checkout.problems` will be the default one. 
+  
+  Added in Saleor 3.15.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
+  useLegacyErrorFlow: Boolean
+}
+
 """
 Update a channel.
 
 Requires one of the following permissions: MANAGE_CHANNELS.
-Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
+Requires one of the following permissions when updating only `orderSettings` field: MANAGE_CHANNELS, MANAGE_ORDERS.Requires one of the following permissions when updating only `checkoutSettings` field: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
 
 Triggers the following webhook events:
 - CHANNEL_UPDATED (async): A channel was updated.
@@ -26942,6 +27076,15 @@ input ChannelUpdateInput @doc(category: "Channels") {
   Added in Saleor 3.15.
   """
   privateMetadata: [MetadataInput!]
+
+  """
+  The channel checkout settings
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutSettings: CheckoutSettingsInput
 
   """Name of the channel."""
   name: String
@@ -27064,6 +27207,11 @@ enum AttributeErrorCode @doc(category: "Attributes") {
   UNIQUE
 }
 
+"""
+Represents an input for create of attribute.
+
+NOTE: Deprecated fields `filterableInStorefront`, `storefrontSearchPosition` and `availableInGrid` are not supported in bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`.
+"""
 input AttributeCreateInput @doc(category: "Attributes") {
   """The input type to use for entering attribute values in the dashboard."""
   inputType: AttributeInputTypeEnum
@@ -27194,6 +27342,11 @@ type AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents
   errors: [AttributeError!]!
 }
 
+"""
+Represents an input for update of attribute.
+
+NOTE: Deprecated fields `filterableInStorefront`, `storefrontSearchPosition` and `availableInGrid` are not supported in bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`.
+"""
 input AttributeUpdateInput @doc(category: "Attributes") {
   """Name of an attribute displayed in the interface."""
   name: String
@@ -27343,61 +27496,70 @@ enum AttributeBulkCreateErrorCode @doc(category: "Attributes") {
   MAX_LENGTH
 }
 
-input AttributeBulkCreateInput @doc(category: "Attributes") {
+"""
+Updates attributes.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+
+Triggers the following webhook events:
+- ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when new attribute value was created or deleted.
+- ATTRIBUTE_VALUE_CREATED (async): Called optionally when an attribute value was created.
+- ATTRIBUTE_VALUE_DELETED (async): Called optionally when an attribute value was deleted.
+"""
+type AttributeBulkUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED, ATTRIBUTE_VALUE_CREATED, ATTRIBUTE_VALUE_DELETED], syncEvents: []) {
+  """Returns how many objects were updated."""
+  count: Int!
+
+  """List of the updated attributes."""
+  results: [AttributeBulkUpdateResult!]!
+  errors: [AttributeBulkUpdateError!]!
+}
+
+type AttributeBulkUpdateResult @doc(category: "Attributes") {
+  """Attribute data."""
+  attribute: Attribute
+
+  """List of errors occurred on update attempt."""
+  errors: [AttributeBulkUpdateError!]
+}
+
+type AttributeBulkUpdateError @doc(category: "Attributes") {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AttributeBulkUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeBulkUpdateErrorCode {
+  ALREADY_EXISTS
+  BLANK
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  DUPLICATED_INPUT_ITEM
+  MAX_LENGTH
+}
+
+input AttributeBulkUpdateInput @doc(category: "Attributes") {
+  """ID of an attribute to update."""
+  id: ID
+
   """External ID of this attribute."""
   externalReference: String
 
-  """The input type to use for entering attribute values in the dashboard."""
-  inputType: AttributeInputTypeEnum
-
-  """The entity type which can be used as a reference."""
-  entityType: AttributeEntityTypeEnum
-
-  """Name of an attribute displayed in the interface."""
-  name: String!
-
-  """Internal representation of an attribute name."""
-  slug: String
-
-  """The attribute type."""
-  type: AttributeTypeEnum!
-
-  """The unit of attribute values."""
-  unit: MeasurementUnitsEnum
-
-  """List of attribute's values."""
-  values: [AttributeBulkCreateValueInput!]
-
-  """Whether the attribute requires values to be passed or not."""
-  valueRequired: Boolean
-
-  """Whether the attribute is for variants only."""
-  isVariantOnly: Boolean
-
-  """Whether the attribute should be visible or not in storefront."""
-  visibleInStorefront: Boolean
-
-  """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean
-}
-
-input AttributeBulkCreateValueInput @doc(category: "Attributes") {
-  """Name of a value displayed in the interface."""
-  name: String!
-
-  """
-  Represent value of the attribute value (e.g. color values for swatch attributes).
-  """
-  value: String
-
-  """External ID of this attribute value."""
-  externalReference: String
-
-  """URL of the file attribute. Every time, a new value is created."""
-  fileUrl: String
-
-  """File content type."""
-  contentType: String
+  """Fields to update."""
+  fields: AttributeUpdateInput!
 }
 
 """

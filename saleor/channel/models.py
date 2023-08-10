@@ -44,6 +44,8 @@ class Channel(ModelWithMetadata):
         default=timedelta(days=60),
     )
 
+    use_legacy_error_flow_for_checkout = models.BooleanField(default=True)
+
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         app_label = "channel"

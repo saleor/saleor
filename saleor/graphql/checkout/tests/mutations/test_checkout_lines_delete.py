@@ -115,3 +115,28 @@ def tests_checkout_lines_delete_invalid_lines_ids(user_api_client, checkout_with
     errors = content["errors"][0]
     assert errors["extensions"]["exception"]["code"] == "GraphQLError"
     assert checkout.last_change == previous_last_change
+
+
+def test_with_active_problems_flow(api_client, checkout_with_problems):
+    # given
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    line = checkout_with_problems.lines.first()
+    first_line_id = to_global_id_or_none(line)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_problems),
+        "linesIds": [first_line_id],
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_DELETE,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutLinesDelete"]["errors"]
