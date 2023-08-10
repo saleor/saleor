@@ -1574,10 +1574,9 @@ def test_sale_updated(promotion_converted_from_sale, subscription_sale_updated_w
     assert deliveries[0].webhook == webhooks[0]
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
-def test_sale_deleted(sale, subscription_sale_deleted_webhook):
+def test_sale_deleted(promotion_converted_from_sale, subscription_sale_deleted_webhook):
     # given
+    sale = promotion_converted_from_sale
     webhooks = [subscription_sale_deleted_webhook]
     event_type = WebhookEventAsyncType.SALE_DELETED
     expected_payload = generate_sale_payload(sale)
@@ -1591,10 +1590,9 @@ def test_sale_deleted(sale, subscription_sale_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
-def test_sale_toggle(sale, subscription_sale_toggle_webhook):
+def test_sale_toggle(promotion_converted_from_sale, subscription_sale_toggle_webhook):
     # given
+    sale = promotion_converted_from_sale
     webhooks = [subscription_sale_toggle_webhook]
     event_type = WebhookEventAsyncType.SALE_TOGGLE
     expected_payload = generate_sale_payload(sale)

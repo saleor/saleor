@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
     from ...core.models import EventDelivery
-    from ...discount.models import Promotion, Sale
+    from ...discount.models import Promotion
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductVariant
 
@@ -235,7 +235,7 @@ class PluginSample(BasePlugin):
 
     def sale_deleted(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         previous_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ):
