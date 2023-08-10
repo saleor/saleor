@@ -18,6 +18,7 @@ from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PromotionUpdateErrorCode
 from ...types import Promotion
+from ..utils import clear_promotion_old_sale_id
 from .promotion_create import PromotionInput
 
 
@@ -54,6 +55,7 @@ class PromotionUpdate(ModelMutation):
         with transaction.atomic():
             instance = cls.construct_instance(instance, cleaned_input)
             cls.clean_instance(info, instance)
+            clear_promotion_old_sale_id(instance)
             cls.save(info, instance, cleaned_input)
             cls._save_m2m(info, instance, cleaned_input)
             # update the product undiscounted prices for promotion only when

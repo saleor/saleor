@@ -261,3 +261,59 @@ def test_promotion_update_end_date_before_start_date(
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionCreateErrorCode.INVALID.name
     assert errors[0]["field"] == "endDate"
+
+
+@freeze_time("2020-03-18 12:00:00")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.promotion_started")
+@patch("saleor.plugins.manager.PluginsManager.promotion_updated")
+def test_promotion_update_clears_old_sale_id(
+    promotion_updated_mock,
+    promotion_started_mock,
+    update_products_discounted_prices_of_promotion_task_mock,
+    staff_api_client,
+    permission_group_manage_discounts,
+    promotion_converted_from_sale,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    start_date = timezone.now() - timedelta(days=1)
+    end_date = timezone.now() + timedelta(days=10)
+
+    promotion = promotion_converted_from_sale
+    assert promotion.old_sale_id
+    new_promotion_name = "new test promotion"
+    variables = {
+        "id": graphene.Node.to_global_id("Promotion", promotion.id),
+        "input": {
+            "name": new_promotion_name,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionUpdate"]
+    promotion_data = data["promotion"]
+
+    assert not data["errors"]
+    assert promotion_data["name"] == new_promotion_name
+    assert promotion_data["description"] == promotion.description
+    assert promotion_data["startDate"] == start_date.isoformat()
+    assert promotion_data["endDate"] == end_date.isoformat()
+    assert promotion_data["createdAt"] == promotion.created_at.isoformat()
+    assert promotion_data["updatedAt"] == timezone.now().isoformat()
+
+    promotion.refresh_from_db()
+    assert promotion.last_notification_scheduled_at == timezone.now()
+    assert promotion.old_sale_id is None
+
+    promotion_updated_mock.assert_called_once_with(promotion)
+    promotion_started_mock.assert_called_once_with(promotion)
+    update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
+        promotion.id
+    )
