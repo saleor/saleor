@@ -1,10 +1,10 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List
+from uuid import UUID
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Exists, OuterRef
 
 from .....channel.models import Channel
 from .....core.tracing import traced_atomic_transaction
@@ -32,6 +32,21 @@ from ...dataloaders import (
 class RuleInfo:
     rule: PromotionRule
     channel: Channel
+
+
+@dataclass
+class Data:
+    promotion: Promotion
+    rules: Dict[UUID, PromotionRule]
+    channel_rule: Dict[int, PromotionRule]
+
+    @property
+    def all_rules(self):
+        return [rule for rule in self.rules.values()]
+
+    @property
+    def all_channel_ids(self):
+        return [channel_id for channel_id in self.channel_rule.keys()]
 
 
 class SaleChannelListingAddInput(BaseInputObjectType):
@@ -82,18 +97,12 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    def add_channels(cls, promotion: Promotion, add_channels: List[Dict]):
+    def add_channels(cls, data: Data, add_channels: List[Dict]):
         rules_data_to_add: List[RuleInfo] = []
         rules_to_update: List[PromotionRule] = []
-        # TODO many database hits - potential refactor
-        rules = promotion.rules.all()
-        PromotionRuleChannel = PromotionRule.channels.through
-        rule_ids = [rule.id for rule in rules]
-        rule_channel = PromotionRuleChannel.objects.filter(
-            promotionrule_id__in=rule_ids
-        )
-        current_channel_ids = rule_channel.values_list("channel_id", flat=True)
-        rule = rules[0]
+
+        current_channel_ids = data.all_channel_ids
+        examplary_rule = data.all_rules[0]
         for add_channel in add_channels:
             channel = add_channel["channel"]
             discount_value = add_channel["discount_value"]
@@ -102,10 +111,10 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
                 rules_data_to_add.append(
                     RuleInfo(
                         rule=PromotionRule(
-                            name=rule.name,
-                            promotion=promotion,
-                            catalogue_predicate=rule.catalogue_predicate,
-                            reward_value_type=rule.reward_value_type,
+                            name=examplary_rule.name,
+                            promotion=data.promotion,
+                            catalogue_predicate=examplary_rule.catalogue_predicate,
+                            reward_value_type=examplary_rule.reward_value_type,
                             reward_value=discount_value,
                         ),
                         channel=channel,
@@ -113,44 +122,52 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
                 )
             else:
                 # We ensure that every rule has one or none related channel
-                rule_to_update = rules.get(
-                    id=rule_channel.get(channel_id=channel.id).promotionrule_id  # type: ignore[attr-defined] # noqa: E501
-                )
+                rule_to_update = data.channel_rule[channel.id]
                 rule_to_update.reward_value = discount_value
                 rules_to_update.append(rule_to_update)
 
-        for rule_data in rules_data_to_add:
-            rule_data.rule.assign_old_channel_listing_id()
+        if rules_data_to_add:
+            for rule_data_to_add in rules_data_to_add:
+                rule_data_to_add.rule.assign_old_channel_listing_id()
 
-        new_rules = [rule_data.rule for rule_data in rules_data_to_add]
-        PromotionRule.objects.bulk_create(new_rules)
-        rules_channels = [
-            PromotionRuleChannel(
-                promotionrule=rule_data.rule, channel=rule_data.channel
-            )
-            for rule_data in rules_data_to_add
-        ]
-        PromotionRuleChannel.objects.bulk_create(rules_channels)
-        PromotionRule.objects.bulk_update(rules_to_update, ["reward_value"])
+            new_rules = [rule_data.rule for rule_data in rules_data_to_add]
+
+            PromotionRule.objects.bulk_create(new_rules)
+            for new_rule in new_rules:
+                data.rules.update({new_rule.id: new_rule})
+
+            PromotionRuleChannel = PromotionRule.channels.through
+            rules_channels = [
+                PromotionRuleChannel(
+                    promotionrule=rule_data_to_add.rule,
+                    channel=rule_data_to_add.channel,
+                )
+                for rule_data_to_add in rules_data_to_add
+            ]
+            PromotionRuleChannel.objects.bulk_create(rules_channels)
+            for rule_channel in rules_channels:
+                data.channel_rule.update(
+                    {rule_channel.channel_id: rule_channel.promotionrule_id}  # type: ignore[attr-defined] # noqa: E501
+                )
+
+        if rules_to_update:
+            PromotionRule.objects.bulk_update(rules_to_update, ["reward_value"])
+            for rule_to_update in rules_to_update:
+                data.rules.update({rule_to_update.id: rule_to_update})
 
     @classmethod
-    def remove_channels(cls, promotion: Promotion, remove_channels: List[int]):
-        rules = promotion.rules.all()
-        PromotionRuleChannel = PromotionRule.channels.through
-        rule_channel = PromotionRuleChannel.objects.filter(
-            channel_id__in=remove_channels
-        ).filter(Exists(rules.filter(id=OuterRef("promotionrule_id"))))
-        if not rule_channel:
-            return
-        rules_to_delete_ids = list(
-            rule_channel.values_list("promotionrule_id", flat=True)
-        )
+    def remove_channels(cls, data: Data, remove_channels: List[str]):
+        rules_to_delete_ids = [
+            data.channel_rule[int(channel_id)].id for channel_id in remove_channels
+        ]
         # We ensure at least one rule is assigned to promotion in order to
         # determine old sale's type and catalogue
-        if len(rule_channel) >= len(rules):
+        if len(rules_to_delete_ids) >= len(data.rules):
             rule_left_id = rules_to_delete_ids.pop()
-            rule_channel.filter(promotionrule_id=rule_left_id).delete()
-        rules.filter(id__in=rules_to_delete_ids).delete()
+            PromotionRule.channels.through.objects.filter(
+                promotionrule_id=rule_left_id
+            ).delete()
+        PromotionRule.objects.filter(id__in=rules_to_delete_ids).delete()
 
     @classmethod
     def clean_discount_values(
@@ -200,11 +217,26 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         return cleaned_channels
 
     @classmethod
-    def save(cls, _info: ResolveInfo, promotion: Promotion, cleaned_input: Dict):
+    def save(cls, _info: ResolveInfo, data: Data, cleaned_input: Dict):
         with traced_atomic_transaction():
-            cls.add_channels(promotion, cleaned_input.get("add_channels", []))
-            cls.remove_channels(promotion, cleaned_input.get("remove_channels", []))
-            update_products_discounted_prices_of_promotion_task.delay(promotion.pk)
+            cls.add_channels(data, cleaned_input.get("add_channels", []))
+            cls.remove_channels(data, cleaned_input.get("remove_channels", []))
+            update_products_discounted_prices_of_promotion_task.delay(data.promotion.pk)
+
+    @classmethod
+    def get_initial_data(cls, rules) -> Data:
+        promotion = rules[0].promotion
+        PromotionRuleChannel = PromotionRule.channels.through
+        rule_ids = [rule.id for rule in rules]
+        rules_channels = PromotionRuleChannel.objects.filter(
+            promotionrule_id__in=rule_ids
+        )
+        ruleid_rule_map = {rule.pk: rule for rule in rules}
+        channelid_rule_map = {
+            item.channel_id: ruleid_rule_map[item.promotionrule_id]  # type: ignore[attr-defined] # noqa: E501
+            for item in rules_channels
+        }
+        return Data(promotion, ruleid_rule_map, channelid_rule_map)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -212,9 +244,8 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
     ):
         object_id = cls.get_global_id_or_error(id, "Sale")
         promotion = Promotion.objects.get(old_sale_id=object_id)
-        rule = promotion.rules.first()
-        assert rule
-        sale_type = rule.reward_value_type
+        rules = promotion.rules.all()
+        sale_type = rules[0].reward_value_type
 
         errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
         cleaned_channels = cls.clean_channels(
@@ -227,7 +258,8 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         if errors:
             raise ValidationError(errors)
 
-        cls.save(info, promotion, cleaned_input)
+        data = cls.get_initial_data(rules)
+        cls.save(info, data, cleaned_input)
 
         # Invalidate dataloader for channel listings
         SaleChannelListingByPromotionIdLoader(info.context).clear(promotion.pk)
