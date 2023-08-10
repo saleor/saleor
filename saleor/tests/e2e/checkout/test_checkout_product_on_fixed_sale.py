@@ -1,3 +1,4 @@
+
 import pytest
 
 from ..product.utils.preparing_product import prepare_product
