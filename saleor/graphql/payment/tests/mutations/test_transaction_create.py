@@ -158,6 +158,7 @@ def test_transaction_create_for_order_by_app(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CHARGE.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -187,6 +188,8 @@ def test_transaction_create_for_order_by_app(
     )
 
     # then
+    available_actions = list(set(available_actions))
+
     transaction = order_with_lines.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
@@ -313,6 +316,7 @@ def test_transaction_create_for_checkout_by_app(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
@@ -346,6 +350,8 @@ def test_transaction_create_for_checkout_by_app(
     checkout_with_items.refresh_from_db()
     assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
     assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
+    available_actions = list(set(available_actions))
 
     transaction = checkout_with_items.payment_transactions.first()
     content = get_graphql_content(response)
@@ -849,6 +855,7 @@ def test_transaction_create_for_order_by_staff(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
@@ -877,6 +884,8 @@ def test_transaction_create_for_order_by_staff(
     )
 
     # then
+    available_actions = list(set(available_actions))
+
     transaction = order_with_lines.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
@@ -1002,6 +1011,7 @@ def test_transaction_create_for_checkout_by_staff(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CHARGE.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -1029,6 +1039,8 @@ def test_transaction_create_for_checkout_by_staff(
     )
 
     # then
+    available_actions = list(set(available_actions))
+
     checkout_with_items.refresh_from_db()
     assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
     assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
