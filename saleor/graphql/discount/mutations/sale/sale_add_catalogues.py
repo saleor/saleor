@@ -57,7 +57,7 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
 
             def sale_update_event():
                 return manager.sale_updated(
-                    sale,
+                    sale,  # type: ignore # will be handled in separate PR
                     previous_catalogue=previous_cat_converted,
                     current_catalogue=current_cat_converted,
                 )
