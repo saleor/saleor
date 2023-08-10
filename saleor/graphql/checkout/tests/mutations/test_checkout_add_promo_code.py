@@ -1181,3 +1181,29 @@ def test_checkout_add_voucher_code_invalidates_price(
     assert data["checkout"]["voucherCode"] == voucher.code
     assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == expected_total
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total
+
+
+def test_with_active_problems_flow(
+    api_client,
+    checkout_with_problems,
+    voucher,
+):
+    # given
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_problems),
+        "promoCode": voucher.code,
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_ADD_PROMO_CODE,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutAddPromoCode"]["errors"]

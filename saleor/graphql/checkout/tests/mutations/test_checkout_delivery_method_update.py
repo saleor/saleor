@@ -589,3 +589,29 @@ def test_checkout_delivery_method_update_with_not_valid_address_data(
         )
         assert checkout.shipping_method is None
         assert checkout.collection_point is None
+
+
+def test_with_active_problems_flow(
+    api_client,
+    checkout_with_problems,
+    shipping_method,
+):
+    # given
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_DELIVERY_METHOD,
+        {
+            "id": to_global_id_or_none(checkout_with_problems),
+            "deliveryMethodId": method_id,
+        },
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutDeliveryMethodUpdate"]["errors"]

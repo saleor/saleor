@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Optional
 import graphene
 from promise import Promise
 
-from ...checkout import calculations, models
+from ...checkout import calculations, models, problems
 from ...checkout.base_calculations import (
     calculate_undiscounted_base_line_total_price,
     calculate_undiscounted_base_line_unit_price,
@@ -25,8 +25,13 @@ from ...webhook.event_types import WebhookEventSyncType
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
+from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import Channel
-from ..checkout.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
+from ..checkout.dataloaders import (
+    ChannelByCheckoutLineIDLoader,
+    CheckoutLinesProblemsByCheckoutIdLoader,
+    CheckoutProblemsByCheckoutIdDataloader,
+)
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
@@ -36,6 +41,7 @@ from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_39,
     ADDED_IN_313,
+    ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -101,6 +107,93 @@ def get_dataloaders_for_fetching_checkout_data(
     checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
     manager = get_plugin_manager_promise(info.context)
     return address, lines, checkout_info, manager
+
+
+class CheckoutLineProblemInsufficientStock(
+    BaseObjectType,
+):
+    available_quantity = graphene.Int(description="Available quantity of a variant.")
+    line = graphene.Field(
+        "saleor.graphql.checkout.types.CheckoutLine",
+        description="The line that has variant with insufficient stock.",
+        required=True,
+    )
+    variant = graphene.Field(
+        "saleor.graphql.product.types.ProductVariant",
+        description="The variant with insufficient stock.",
+        required=True,
+    )
+
+    class Meta:
+        description = (
+            (
+                "Indicates insufficient stock for a given checkout line."
+                "Placing the order will not be possible until solving this problem."
+            )
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+
+class CheckoutLineProblemVariantNotAvailable(BaseObjectType):
+    line = graphene.Field(
+        "saleor.graphql.checkout.types.CheckoutLine",
+        description="The line that has variant that is not available.",
+        required=True,
+    )
+
+    class Meta:
+        description = (
+            (
+                "The variant assigned to the checkout line is not available."
+                "Placing the order will not be possible until solving this problem."
+            )
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+
+class CheckoutLineProblem(graphene.Union):
+    class Meta:
+        types = (
+            CheckoutLineProblemInsufficientStock,
+            CheckoutLineProblemVariantNotAvailable,
+        )
+        description = (
+            "Represents an problem in the checkout line."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+    @classmethod
+    def resolve_type(cls, instance: problems.CHECKOUT_PROBLEM_TYPE, info: ResolveInfo):
+        if isinstance(instance, problems.CheckoutLineProblemInsufficientStock):
+            return CheckoutLineProblemInsufficientStock
+        if isinstance(instance, problems.CheckoutLineProblemVariantNotAvailable):
+            return CheckoutLineProblemVariantNotAvailable
+        return super(CheckoutLineProblem, cls).resolve_type(instance, info)
+
+
+class CheckoutProblem(graphene.Union):
+    class Meta:
+        types = [] + list(CheckoutLineProblem._meta.types)
+        description = (
+            "Represents an problem in the checkout." + ADDED_IN_315 + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+    @classmethod
+    def resolve_type(
+        cls, instance: problems.CHECKOUT_LINE_PROBLEM_TYPE, info: ResolveInfo
+    ):
+        if isinstance(instance, problems.CheckoutLineProblemInsufficientStock):
+            return CheckoutLineProblemInsufficientStock
+        if isinstance(instance, problems.CheckoutLineProblemVariantNotAvailable):
+            return CheckoutLineProblemVariantNotAvailable
+        return super(CheckoutProblem, cls).resolve_type(instance, info)
 
 
 class GatewayConfigLine(BaseObjectType):
@@ -180,6 +273,12 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
     requires_shipping = graphene.Boolean(
         description="Indicates whether the item need to be delivered.",
         required=True,
+    )
+    problems = NonNullList(
+        CheckoutLineProblem,
+        description="List of problems with the checkout line."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
     )
 
     class Meta:
@@ -353,6 +452,18 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
             .load(root.variant_id)
             .then(is_shipping_required)
         )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_problems(root: models.CheckoutLine, info: ResolveInfo):
+        problems_dataloader = CheckoutLinesProblemsByCheckoutIdLoader(
+            info.context
+        ).load(root.checkout_id)
+
+        def get_problem_for_line(problems):
+            return problems.get(str(root.pk), [])
+
+        return problems_dataloader.then(get_problem_for_line)
 
 
 class CheckoutLineCountableConnection(CountableConnection):
@@ -665,6 +776,13 @@ class Checkout(ModelObjectType[models.Checkout]):
                 description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
             ),
         ],
+    )
+
+    problems = NonNullList(
+        CheckoutProblem,
+        description=(
+            "List of problems with the checkout." + ADDED_IN_315 + PREVIEW_FEATURE
+        ),
     )
 
     class Meta:
@@ -1086,6 +1204,14 @@ class Checkout(ModelObjectType[models.Checkout]):
             TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
         )
         return Promise.all(dataloaders).then(_calculate_total_balance_for_transactions)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_problems(root: models.Checkout, info):
+        checkout_problems_dataloader = CheckoutProblemsByCheckoutIdDataloader(
+            info.context
+        )
+        return checkout_problems_dataloader.load(root.pk)
 
 
 class CheckoutCountableConnection(CountableConnection):

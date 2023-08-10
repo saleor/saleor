@@ -4952,6 +4952,17 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_ORDERS.
   """
   orderSettings: OrderSettings!
+
+  """
+  Channel-specific checkout settings.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
+  """
+  checkoutSettings: CheckoutSettings!
 }
 
 """
@@ -5440,6 +5451,22 @@ enum TransactionFlowStrategyEnum @doc(category: "Payments") {
 
 """The `Day` scalar type represents number of days by integer value."""
 scalar Day
+
+"""
+Represents the channel-specific checkout settings.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutSettings {
+  """
+  Default `true`. Determines if the checkout mutations should use legacy error flow. In legacy flow, all mutations can raise an exception unrelated to the requested action - (e.g. out-of-stock exception when updating checkoutShippingAddress.) If `false`, the errors will be aggregated in `checkout.problems` field. Some of the `problems` can block the finalizing checkout process. The legacy flow will be removed in Saleor 4.0. The flow with `checkout.problems` will be the default one.
+  
+  Added in Saleor 3.15.This field will be removed in Saleor 4.0.
+  """
+  useLegacyErrorFlow: Boolean!
+}
 
 """Represents shipping method postal code rule."""
 type ShippingMethodPostalCodeRule implements Node @doc(category: "Shipping") {
@@ -10279,6 +10306,15 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
   chargeStatus: CheckoutChargeStatusEnum! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
+
+  """
+  List of problems with the checkout.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  problems: [CheckoutProblem!]
 }
 
 """
@@ -10604,6 +10640,54 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
 
   """Indicates whether the item need to be delivered."""
   requiresShipping: Boolean!
+
+  """
+  List of problems with the checkout line.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  problems: [CheckoutLineProblem!]
+}
+
+"""
+Represents an problem in the checkout line.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+union CheckoutLineProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
+
+"""
+Indicates insufficient stock for a given checkout line.Placing the order will not be possible until solving this problem.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutLineProblemInsufficientStock @doc(category: "Checkout") {
+  """Available quantity of a variant."""
+  availableQuantity: Int
+
+  """The line that has variant with insufficient stock."""
+  line: CheckoutLine!
+
+  """The variant with insufficient stock."""
+  variant: ProductVariant!
+}
+
+"""
+The variant assigned to the checkout line is not available.Placing the order will not be possible until solving this problem.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutLineProblemVariantNotAvailable @doc(category: "Checkout") {
+  """The line that has variant that is not available."""
+  line: CheckoutLine!
 }
 
 """
@@ -12280,6 +12364,15 @@ enum CheckoutChargeStatusEnum @doc(category: "Checkout") {
   FULL
   OVERCHARGED
 }
+
+"""
+Represents an problem in the checkout.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+union CheckoutProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
 
 type CheckoutCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""
@@ -17417,7 +17510,7 @@ type Mutation {
   Update a channel.
   
   Requires one of the following permissions: MANAGE_CHANNELS.
-  Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
+  Requires one of the following permissions when updating only `orderSettings` field: MANAGE_CHANNELS, MANAGE_ORDERS.Requires one of the following permissions when updating only `checkoutSettings` field: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
   
   Triggers the following webhook events:
   - CHANNEL_UPDATED (async): A channel was updated.
@@ -26749,6 +26842,15 @@ input ChannelCreateInput @doc(category: "Channels") {
   """
   privateMetadata: [MetadataInput!]
 
+  """
+  The channel checkout settings
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutSettings: CheckoutSettingsInput
+
   """Name of the channel."""
   name: String!
 
@@ -26832,11 +26934,22 @@ input OrderSettingsInput @doc(category: "Orders") {
   allowUnpaidOrders: Boolean
 }
 
+input CheckoutSettingsInput @doc(category: "Checkout") {
+  """
+  Default `true`. Determines if the checkout mutations should use legacy error flow. In legacy flow, all mutations can raise an exception unrelated to the requested action - (e.g. out-of-stock exception when updating checkoutShippingAddress.) If `false`, the errors will be aggregated in `checkout.problems` field. Some of the `problems` can block the finalizing checkout process. The legacy flow will be removed in Saleor 4.0. The flow with `checkout.problems` will be the default one. 
+  
+  Added in Saleor 3.15.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
+  useLegacyErrorFlow: Boolean
+}
+
 """
 Update a channel.
 
 Requires one of the following permissions: MANAGE_CHANNELS.
-Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
+Requires one of the following permissions when updating only `orderSettings` field: MANAGE_CHANNELS, MANAGE_ORDERS.Requires one of the following permissions when updating only `checkoutSettings` field: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
 
 Triggers the following webhook events:
 - CHANNEL_UPDATED (async): A channel was updated.
@@ -26889,6 +27002,15 @@ input ChannelUpdateInput @doc(category: "Channels") {
   Added in Saleor 3.15.
   """
   privateMetadata: [MetadataInput!]
+
+  """
+  The channel checkout settings
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutSettings: CheckoutSettingsInput
 
   """Name of the channel."""
   name: String

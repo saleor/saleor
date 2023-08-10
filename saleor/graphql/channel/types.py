@@ -12,7 +12,11 @@ from promise import Promise
 from ...channel import models
 from ...core.models import ModelWithMetadata
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import ChannelPermissions, OrderPermissions
+from ...permission.enums import (
+    ChannelPermissions,
+    CheckoutPermissions,
+    OrderPermissions,
+)
 from ..account.enums import CountryCodeEnum
 from ..core import ResolveInfo
 from ..core.descriptions import (
@@ -24,9 +28,14 @@ from ..core.descriptions import (
     ADDED_IN_313,
     ADDED_IN_314,
     ADDED_IN_315,
+    DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
-from ..core.doc_category import DOC_CATEGORY_ORDERS, DOC_CATEGORY_PRODUCTS
+from ..core.doc_category import (
+    DOC_CATEGORY_CHECKOUT,
+    DOC_CATEGORY_ORDERS,
+    DOC_CATEGORY_PRODUCTS,
+)
 from ..core.fields import PermissionsField
 from ..core.scalars import Day, Minute
 from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
@@ -167,6 +176,32 @@ class StockSettings(BaseObjectType):
     class Meta:
         description = "Represents the channel stock settings." + ADDED_IN_37
         doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class CheckoutSettings(ObjectType):
+    use_legacy_error_flow = graphene.Boolean(
+        required=True,
+        description=(
+            "Default `true`. Determines if the checkout mutations should use legacy "
+            "error flow. In legacy flow, all mutations can raise an exception "
+            "unrelated to the requested action - (e.g. out-of-stock exception when "
+            "updating checkoutShippingAddress.) "
+            "If `false`, the errors will be aggregated in `checkout.problems` field. "
+            "Some of the `problems` can block the finalizing checkout process. "
+            "The legacy flow will be removed in Saleor 4.0. "
+            "The flow with `checkout.problems` will be the default one."
+            + ADDED_IN_315
+            + DEPRECATED_IN_3X_FIELD
+        ),
+    )
+
+    class Meta:
+        description = (
+            "Represents the channel-specific checkout settings."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
 class OrderSettings(ObjectType):
@@ -329,6 +364,18 @@ class Channel(ModelObjectType):
         ],
     )
 
+    checkout_settings = PermissionsField(
+        CheckoutSettings,
+        description="Channel-specific checkout settings."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
+        required=True,
+        permissions=[
+            ChannelPermissions.MANAGE_CHANNELS,
+            CheckoutPermissions.MANAGE_CHECKOUTS,
+        ],
+    )
+
     class Meta:
         description = "Represents channel."
         model = models.Channel
@@ -477,4 +524,10 @@ class Channel(ModelObjectType):
             default_transaction_flow_strategy=root.default_transaction_flow_strategy,
             delete_expired_orders_after=root.delete_expired_orders_after.days,
             allow_unpaid_orders=(root.allow_unpaid_orders),
+        )
+
+    @staticmethod
+    def resolve_checkout_settings(root: models.Channel, _info):
+        return CheckoutSettings(
+            use_legacy_error_flow=root.use_legacy_error_flow_for_checkout
         )

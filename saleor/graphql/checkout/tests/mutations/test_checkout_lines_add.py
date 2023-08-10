@@ -1038,3 +1038,29 @@ def test_checkout_lines_invalid_variant_id(user_api_client, checkout, stock):
     )
     assert data["errors"][0]["message"] == error_msg
     assert data["errors"][0]["field"] == "variantId"
+
+
+def test_with_active_problems_flow(
+    api_client, checkout_with_problems, product_with_single_variant
+):
+    # given
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    variant = product_with_single_variant.variants.first()
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_problems),
+        "lines": [{"variantId": to_global_id_or_none(variant), "quantity": 1}],
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutLinesAdd"]["errors"]

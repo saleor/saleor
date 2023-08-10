@@ -87,6 +87,11 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add support for unhandled field `Shop.trackInventoryByDefault` for `productVariantCreate` and `productVariantBulkCreate` - #13492 by @Smit-Parmar
 - - Add `AttributeBulkUpdate` mutation - #13532 by @SzymJ
 
+- Better checkout error feedback - #13458 by @korycins
+  - Add `Checkout.problems` field
+  - Add `CheckoutLine.problems` field
+  - Add `CheckoutSettingsInput` to `ChannelCreateInput` & `ChannelUpdateInput`
+  - Add `checkoutSettings` field to `Channel`
 
 ### Saleor Apps
 

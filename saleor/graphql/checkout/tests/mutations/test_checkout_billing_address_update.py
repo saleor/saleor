@@ -556,3 +556,29 @@ def test_checkout_billing_address_update_with_disabled_fields_normalization(
     assert billing_address.country_area == address_data["countryArea"]
     assert billing_address.postal_code == address_data["postalCode"]
     assert billing_address.street_address_1 == address_data["streetAddress1"]
+
+
+def test_with_active_problems_flow(
+    api_client,
+    checkout_with_problems,
+    graphql_address_data,
+):
+    # given
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    new_address = graphql_address_data
+    variables = {
+        "id": to_global_id_or_none(checkout_with_problems),
+        "billingAddress": new_address,
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutBillingAddressUpdate"]["errors"]

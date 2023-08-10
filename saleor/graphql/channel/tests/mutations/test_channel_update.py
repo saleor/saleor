@@ -1137,3 +1137,213 @@ def test_channel_update_set_incorrect_delete_expired_orders_after(
     error = content["data"]["channelUpdate"]["errors"][0]
     assert error["field"] == "deleteExpiredOrdersAfter"
     assert error["code"] == ChannelErrorCode.INVALID.name
+
+
+CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """
+    mutation UpdateChannel($id: ID!,$input: ChannelUpdateInput!){
+        channelUpdate(id: $id, input: $input){
+            channel{
+                id
+                name
+                slug
+                currencyCode
+                checkoutSettings {
+                    useLegacyErrorFlow
+                }
+            }
+            errors{
+                field
+                code
+                message
+                shippingZones
+                warehouses
+            }
+        }
+    }
+"""
+
+
+def test_channel_update_set_checkout_use_legacy_error_flow(
+    permission_manage_channels, staff_api_client, channel_USD
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {"useLegacyErrorFlow": False},
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
+    assert channel_USD.use_legacy_error_flow_for_checkout is False
+
+
+def test_channel_update_set_checkout_use_legacy_error_flow_with_checkout_permission(
+    permission_manage_checkouts, staff_api_client, channel_USD
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {"useLegacyErrorFlow": False},
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_checkouts,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
+    assert channel_USD.use_legacy_error_flow_for_checkout is False
+
+
+def test_channel_update_set_checkout_use_legacy_error_flow_without_permission(
+    staff_api_client, channel_USD
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {"useLegacyErrorFlow": False},
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_channel_update_checkout_and_order_settings_with_manage_orders(
+    staff_api_client, channel_USD, permission_manage_orders
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {"useLegacyErrorFlow": False},
+            "orderSettings": {"automaticallyConfirmAllNewOrders": False},
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=[permission_manage_orders],
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_channel_update_order_and_checkout_settings_with_manage_checkouts(
+    staff_api_client, channel_USD, permission_manage_checkouts
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {"automaticallyConfirmAllNewOrders": False},
+            "checkoutSettings": {"useLegacyErrorFlow": False},
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=[permission_manage_checkouts],
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_channel_update_with_order_and_checkout_settings(
+    staff_api_client, channel_USD, permission_manage_checkouts, permission_manage_orders
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {"automaticallyConfirmAllNewOrders": False},
+            "checkoutSettings": {"useLegacyErrorFlow": False},
+        },
+    }
+    query = """
+    mutation UpdateChannel($id: ID!,$input: ChannelUpdateInput!){
+        channelUpdate(id: $id, input: $input){
+            channel{
+                id
+                name
+                slug
+                currencyCode
+                checkoutSettings {
+                    useLegacyErrorFlow
+                }
+                orderSettings {
+                    automaticallyConfirmAllNewOrders
+                }
+            }
+            errors{
+                field
+                code
+                message
+                shippingZones
+                warehouses
+            }
+        }
+    }
+    """
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_checkouts, permission_manage_orders],
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
+    assert channel_USD.use_legacy_error_flow_for_checkout is False
+    assert channel_data["orderSettings"]["automaticallyConfirmAllNewOrders"] is False
+    assert channel_USD.automatically_confirm_all_new_orders is False

@@ -38,6 +38,7 @@ from ...core.utils.events import call_event
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import BasePermissionEnum
 from ...permission.utils import (
+    all_permissions_required,
     message_one_of_permissions_required,
     one_of_permissions_or_auth_filter_required,
 )
@@ -503,7 +504,9 @@ class BaseMutation(graphene.Mutation):
         return instance
 
     @classmethod
-    def check_permissions(cls, context, permissions=None, **data):
+    def check_permissions(
+        cls, context, permissions=None, require_all_permissions=False, **data
+    ):
         """Determine whether user or app has rights to perform this mutation.
 
         Default implementation assumes that account is allowed to perform any
@@ -515,7 +518,8 @@ class BaseMutation(graphene.Mutation):
         all_permissions = permissions or cls._meta.permissions
         if not all_permissions:
             return True
-
+        if require_all_permissions:
+            return all_permissions_required(context, all_permissions)
         return one_of_permissions_or_auth_filter_required(context, all_permissions)
 
     @classmethod

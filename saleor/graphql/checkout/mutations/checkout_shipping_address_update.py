@@ -135,9 +135,15 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
                 "lines__variant__product__product_type"
             ),
         )
+        use_legacy_error_flow_for_checkout = (
+            checkout.channel.use_legacy_error_flow_for_checkout
+        )
 
-        lines, _ = fetch_checkout_lines(checkout)
-        if not is_shipping_required(lines):
+        lines, _ = fetch_checkout_lines(
+            checkout,
+        )
+
+        if use_legacy_error_flow_for_checkout and not is_shipping_required(lines):
             raise ValidationError(
                 {
                     "shipping_address": ValidationError(
@@ -168,7 +174,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
         checkout.set_country(country, commit=True)
 
         # Resolve and process the lines, validating variants quantities
-        if lines:
+        if lines and use_legacy_error_flow_for_checkout:
             cls.process_checkout_lines(
                 info,
                 lines,
