@@ -428,7 +428,7 @@ class PromotionRule(models.Model):
         Promotion, on_delete=models.CASCADE, related_name="rules"
     )
     channels = models.ManyToManyField(Channel)
-    catalogue_predicate = models.JSONField(blank=True)
+    catalogue_predicate = models.JSONField(blank=True, default=dict)
     reward_value_type = models.CharField(
         max_length=255, choices=RewardValueType.CHOICES, blank=True, null=True
     )
