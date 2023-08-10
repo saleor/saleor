@@ -1500,10 +1500,9 @@ def test_sale_created(promotion_converted_from_sale, subscription_sale_created_w
     assert deliveries[0].webhook == webhooks[0]
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
-def test_sale_updated(sale, subscription_sale_updated_webhook):
+def test_sale_updated(promotion_converted_from_sale, subscription_sale_updated_webhook):
     # given
+    sale = promotion_converted_from_sale
     webhooks = [subscription_sale_updated_webhook]
     event_type = WebhookEventAsyncType.SALE_UPDATED
     expected_payload = generate_sale_payload(sale)
