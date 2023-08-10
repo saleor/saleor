@@ -305,14 +305,12 @@ def test_sale_update_updates_products_discounted_prices(
     )
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
     "saleor.graphql.discount.mutations.sale.sale_delete"
-    ".update_products_discounted_prices_of_catalogues_task.delay"
+    ".update_products_discounted_prices_for_promotion_task"
 )
 def test_sale_delete_updates_products_discounted_prices(
-    update_products_discounted_prices_of_catalogues_task_mock,
+    mock_update_products_discounted_prices_for_catalogues,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -332,10 +330,8 @@ def test_sale_delete_updates_products_discounted_prices(
     }
     """
     variables = {"id": to_global_id("Sale", sale.pk)}
-    category_ids = set(sale.categories.values_list("id", flat=True))
-    collection_ids = set(sale.collections.values_list("id", flat=True))
+    convert_sales_to_promotions()
     product_ids = set(sale.products.values_list("id", flat=True))
-    variant_ids = set(sale.variants.values_list("id", flat=True))
 
     # when
     response = staff_api_client.post_graphql(
@@ -348,12 +344,9 @@ def test_sale_delete_updates_products_discounted_prices(
     content = get_graphql_content(response)
     assert content["data"]["saleDelete"]["errors"] == []
 
-    update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
-    args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert set(kwargs["category_ids"]) == category_ids
-    assert set(kwargs["collection_ids"]) == collection_ids
-    assert set(kwargs["product_ids"]) == product_ids
-    assert set(kwargs["variant_ids"]) == variant_ids
+    mock_update_products_discounted_prices_for_catalogues.delay.assert_called_once_with(
+        list(product_ids)
+    )
 
 
 # TODO will be fixed in PR refactoring the mutation
