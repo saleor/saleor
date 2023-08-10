@@ -101,3 +101,40 @@ def test_promotion_delete_by_customer(
     # then
     assert_no_permission(response)
     update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+
+
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
+def test_promotion_delete_clears_old_sale_id(
+    update_products_discounted_prices_for_promotion_task_mock,
+    staff_api_client,
+    permission_group_manage_discounts,
+    promotion_converted_from_sale,
+    product,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion = promotion_converted_from_sale
+    rule = promotion.rules.first()
+
+    assert promotion.old_sale_id
+
+    variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_DELETE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleDelete"]
+    assert data["promotionRule"]["name"] == rule.name
+    with pytest.raises(rule._meta.model.DoesNotExist):
+        rule.refresh_from_db()
+
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
+
+    promotion.refresh_from_db()
+    assert promotion.old_sale_id is None
