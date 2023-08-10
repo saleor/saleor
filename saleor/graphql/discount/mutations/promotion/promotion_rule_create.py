@@ -16,6 +16,7 @@ from ...enums import PromotionRuleCreateErrorCode
 from ...types import PromotionRule
 from ...utils import get_products_for_rule
 from ...validators import clean_predicate
+from ..utils import clear_promotion_old_sale_id
 from .promotion_create import PromotionRuleInput
 
 
@@ -93,3 +94,4 @@ class PromotionRuleCreate(ModelMutation):
             update_products_discounted_prices_for_promotion_task.delay(
                 list(products.values_list("id", flat=True))
             )
+        clear_promotion_old_sale_id(instance.promotion, save=True)
