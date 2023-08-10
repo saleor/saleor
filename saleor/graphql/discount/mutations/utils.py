@@ -31,5 +31,5 @@ def clear_promotion_old_sale_id(promotion: Promotion, *, save=False):
     """Clear the promotion `old_sale_id` if set."""
     if promotion.old_sale_id:
         promotion.old_sale_id = None
-    if save:
-        promotion.save(update_fields=["old_sale_id"])
+        if save:
+            promotion.save(update_fields=["old_sale_id"])
