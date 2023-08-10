@@ -226,7 +226,7 @@ class PluginSample(BasePlugin):
 
     def sale_updated(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         previous_catalogue: DefaultDict[str, Set[str]],
         current_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
