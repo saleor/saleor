@@ -4,12 +4,14 @@ ORDER_LINES_CREATE_MUTATION = """
 mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]! ){
   orderLinesCreate(id: $id input: $input, ) {
     order {
-      lines {
-        quantity
-        variant {
-          id
+        id
+        lines {
+            quantity
+            variant {
+            id
+            }
+            unitDiscountReason
         }
-      }
     }
     errors {
       field
