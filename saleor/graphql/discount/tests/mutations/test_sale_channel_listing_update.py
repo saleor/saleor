@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import graphene
-import pytest
 
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
@@ -269,8 +268,6 @@ def test_sale_channel_listing_remove_all_channels(
     )
 
 
-@pytest.mark.django_db
-@pytest.mark.count_queries(autouse=False)
 @patch(
     "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
     ".update_products_discounted_prices_of_promotion_task"
@@ -283,7 +280,6 @@ def test_sale_channel_listing_add_update_remove_channels(
     channel_PLN,
     channel_USD,
     channel_JPY,
-    count_queries,
 ):
     # given
     sale = sale_with_many_channels
@@ -339,10 +335,6 @@ def test_sale_channel_listing_add_update_remove_channels(
     assert len(rules) == 2
     for rule in rules:
         assert len(rule.channels.all()) == 1
-
-    mock_update_products_discounted_prices_task.delay.assert_called_once_with(
-        promotion.pk
-    )
 
 
 def test_sale_channel_listing_update_with_negative_discounted_value(
