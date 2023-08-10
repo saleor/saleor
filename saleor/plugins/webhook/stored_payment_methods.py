@@ -1,14 +1,20 @@
 import logging
 from typing import Optional, cast
 
+import graphene
+from django.core.cache import cache
+
 from ...app.models import App
 from ...payment import TokenizedPaymentFlow
 from ...payment.interface import (
     PaymentGateway,
     PaymentMethodCreditCardInfo,
     PaymentMethodData,
+    StoredPaymentMethodRequestDeleteResponseData,
 )
-from .utils import to_payment_app_id
+from ...webhook.event_types import WebhookEventSyncType
+from ...webhook.utils import get_webhooks_for_event
+from .utils import generate_cache_key_for_webhook, to_payment_app_id
 
 logger = logging.getLogger(__name__)
 
@@ -137,3 +143,33 @@ def get_list_stored_payment_methods_from_response(
         ):
             payment_methods.append(parsed_payment_method)
     return payment_methods
+
+
+def get_response_for_stored_payment_method_request_delete(
+    response_data: Optional[dict],
+) -> "StoredPaymentMethodRequestDeleteResponseData":
+    response_data = response_data or {"message": "Failed to delivery request."}
+    return StoredPaymentMethodRequestDeleteResponseData(
+        success=response_data.get("success", False),
+        message=response_data.get("message", None),
+    )
+
+
+def get_list_stored_payment_methods_data_dict(user_id: int, channel_slug: str):
+    return {
+        "user_id": graphene.Node.to_global_id("User", user_id),
+        "channel_slug": channel_slug,
+    }
+
+
+def invalidate_cache_for_stored_payment_methods(
+    user_id: int, channel_slug: str, app_identifier: str
+):
+    event_type = WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS
+    cache_data = get_list_stored_payment_methods_data_dict(user_id, channel_slug)
+    webhooks = get_webhooks_for_event(event_type, apps_identifier=[app_identifier])
+    for webhook in webhooks:
+        cache_key = generate_cache_key_for_webhook(
+            cache_data, webhook.target_url, event_type, webhook.app_id
+        )
+        cache.delete(cache_key)
