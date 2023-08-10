@@ -126,7 +126,7 @@ if TYPE_CHECKING:
     from ...channel.models import Channel
     from ...core.utils.translations import Translation
     from ...csv.models import ExportFile
-    from ...discount.models import Promotion, Sale, Voucher
+    from ...discount.models import Promotion, Voucher
     from ...giftcard.models import GiftCard
     from ...invoice.models import Invoice
     from ...menu.models import Menu, MenuItem
@@ -919,7 +919,7 @@ class WebhookPlugin(BasePlugin):
 
     def sale_deleted(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         previous_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ) -> Any:
