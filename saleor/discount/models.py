@@ -436,6 +436,7 @@ class PromotionRule(models.Model):
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         null=True,
+        blank=True,
     )
     old_channel_listing_id = models.IntegerField(blank=True, null=True, unique=True)
 

@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import graphene
-import pytest
 
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
@@ -211,9 +210,6 @@ def test_sale_channel_listing_remove_channels(
     )
 
 
-# TODO Another test for scenario: add -> remove all -> add -> remove all
-
-
 @patch(
     "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
     ".update_products_discounted_prices_of_promotion_task"
@@ -272,8 +268,9 @@ def test_sale_channel_listing_remove_all_channels(
     )
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
+# TODO Another test for scenario: add -> remove all -> add -> remove all
+
+
 def test_sale_channel_listing_update_with_negative_discounted_value(
     staff_api_client,
     sale,
@@ -284,6 +281,13 @@ def test_sale_channel_listing_update_with_negative_discounted_value(
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     discounted_value = -10
+    convert_sales_to_promotions()
+
+    channel_listing = SaleChannelListing.objects.get(
+        sale_id=sale.pk, channel_id=channel_USD.id
+    )
+    assert channel_listing.discount_value == 5
+    staff_api_client.user.user_permissions.add(permission_manage_discounts)
 
     variables = {
         "id": sale_id,
@@ -293,23 +297,17 @@ def test_sale_channel_listing_update_with_negative_discounted_value(
             ]
         },
     }
-    channel_listing = SaleChannelListing.objects.get(
-        sale_id=sale.pk, channel_id=channel_USD.id
-    )
-    assert channel_listing.discount_value == 5
 
     # when
-    staff_api_client.user.user_permissions.add(permission_manage_discounts)
-
     response = staff_api_client.post_graphql(
         SALE_CHANNEL_LISTING_UPDATE_MUTATION,
         variables=variables,
     )
+
+    # then
     assert_negative_positive_decimal_value(response)
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
     "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
     ".update_products_discounted_prices_of_promotion_task"
@@ -325,6 +323,8 @@ def test_sale_channel_listing_update_duplicated_ids_in_add_and_remove(
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     discounted = 10.11
+    convert_sales_to_promotions()
+
     variables = {
         "id": sale_id,
         "input": {
@@ -350,8 +350,6 @@ def test_sale_channel_listing_update_duplicated_ids_in_add_and_remove(
     mock_update_products_discounted_prices_task.assert_not_called()
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
     "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
     ".update_products_discounted_prices_of_promotion_task"
@@ -367,6 +365,8 @@ def test_sale_channel_listing_update_duplicated_channel_in_add(
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     discounted = 10.11
+    convert_sales_to_promotions()
+
     variables = {
         "id": sale_id,
         "input": {
@@ -394,8 +394,6 @@ def test_sale_channel_listing_update_duplicated_channel_in_add(
     mock_update_products_discounted_prices_task.assert_not_called()
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
     "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
     ".update_products_discounted_prices_of_promotion_task"
@@ -410,6 +408,7 @@ def test_sale_channel_listing_update_duplicated_channel_in_remove(
     # given
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    convert_sales_to_promotions()
     variables = {
         "id": sale_id,
         "input": {"removeChannels": [channel_id, channel_id]},
@@ -432,8 +431,6 @@ def test_sale_channel_listing_update_duplicated_channel_in_remove(
     mock_update_products_discounted_prices_task.assert_not_called()
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
     "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
     ".update_products_discounted_prices_of_promotion_task"
@@ -449,6 +446,7 @@ def test_sale_channel_listing_update_with_invalid_decimal_places(
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
     discounted = 1.123
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    convert_sales_to_promotions()
     variables = {
         "id": sale_id,
         "input": {
@@ -463,9 +461,9 @@ def test_sale_channel_listing_update_with_invalid_decimal_places(
         permissions=(permission_manage_discounts,),
     )
     content = get_graphql_content(response)
+
     # then
     errors = content["data"]["saleChannelListingUpdate"]["errors"]
-
     assert len(errors) == 1
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["field"] == "input"
@@ -473,8 +471,6 @@ def test_sale_channel_listing_update_with_invalid_decimal_places(
     mock_update_products_discounted_prices_task.assert_not_called()
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
     "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
     ".update_products_discounted_prices_of_promotion_task"
@@ -493,6 +489,7 @@ def test_sale_channel_listing_update_with_invalid_percentage_value(
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
     discounted = 101
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    convert_sales_to_promotions()
     variables = {
         "id": sale_id,
         "input": {
@@ -550,8 +547,6 @@ mutation UpdateSaleChannelListing(
 """
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
     "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
     ".update_products_discounted_prices_of_promotion_task"
@@ -568,6 +563,7 @@ def test_invalidate_data_sale_channel_listings_update(
     sale.channel_listings.all().delete()
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    convert_sales_to_promotions()
     variables = {
         "id": sale_id,
         "saleInput": {},
@@ -585,9 +581,17 @@ def test_invalidate_data_sale_channel_listings_update(
     content = get_graphql_content(response)
 
     # then
-    channel_listing = sale.channel_listings.first()
-    assert channel_listing.discount_value == discount_value
-    assert channel_listing.channel_id == channel_USD.id
+    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    rules = promotion.rules.all()
+    assert len(rules) == 2
+    old_rule = rules.get(old_channel_listing_id__isnull=True)
+    new_rule = rules.get(old_channel_listing_id__isnull=False)
+    assert old_rule.reward_value is None
+    assert new_rule.reward_value == discount_value
+
+    assert old_rule.channels.first() is None
+    assert new_rule.channels.first().id == channel_USD.id
+    assert len(new_rule.channels.all()) == 1
 
     sale_errors = content["data"]["saleUpdate"]["errors"]
     channel_listings_errors = content["data"]["saleChannelListingUpdate"]["errors"]
@@ -603,5 +607,5 @@ def test_invalidate_data_sale_channel_listings_update(
     # response from the second mutation contains data
     assert channel_listings_data["channelListings"][0]["channel"]["id"] == channel_id
     mock_update_products_discounted_prices_task.delay.assert_called_once_with(
-        sale.pk,
+        promotion.pk,
     )
