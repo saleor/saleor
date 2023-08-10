@@ -180,6 +180,14 @@ class AccountOperationBase(AbstractType):
         return Shop()
 
 
+class AccountConfirmed(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when account is confirmed." + ADDED_IN_315
+
+
 class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = "User"
@@ -211,12 +219,42 @@ class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
         return data["new_email"]
 
 
+class AccountEmailChanged(SubscriptionObjectType, AccountOperationBase):
+    new_email = graphene.String(
+        description="The new email address.",
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when account email is changed." + ADDED_IN_315
+
+
+class AccountSetPasswordRequested(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when setting a new password is requested." + ADDED_IN_315
+        )
+
+
 class AccountDeleteRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = "User"
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account delete is requested." + ADDED_IN_315
+
+
+class AccountDeleted(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when account is deleted." + ADDED_IN_315
 
 
 class AddressBase(AbstractType):
@@ -449,6 +487,14 @@ class ChannelStatusChanged(SubscriptionObjectType, ChannelBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when channel status has changed." + ADDED_IN_32
+
+
+class ChannelMetadataUpdated(SubscriptionObjectType, ChannelBase):
+    class Meta:
+        root_type = "Channel"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when channel metadata is updated." + ADDED_IN_315
 
 
 class OrderBase(AbstractType):
@@ -1510,6 +1556,17 @@ class StaffDeleted(SubscriptionObjectType, UserBase):
         description = "Event sent when staff user is deleted." + ADDED_IN_35
 
 
+class StaffSetPasswordRequested(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when setting a new password for staff is requested."
+            + ADDED_IN_315
+        )
+
+
 class TransactionAction(SubscriptionObjectType, AbstractType):
     action_type = graphene.Field(
         TransactionActionEnum,
@@ -1700,7 +1757,7 @@ class TransactionSessionBase(SubscriptionObjectType, AbstractType):
     @classmethod
     def resolve_data(cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo):
         _, transaction_session_data = root
-        return transaction_session_data.payment_gateway.data
+        return transaction_session_data.payment_gateway_data.data
 
     @classmethod
     def resolve_merchant_reference(
@@ -2229,7 +2286,11 @@ class ThumbnailCreated(SubscriptionObjectType):
 WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: AccountConfirmationRequested,
     WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED: AccountChangeEmailRequested,
+    WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED: AccountEmailChanged,
+    WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED: AccountSetPasswordRequested,
+    WebhookEventAsyncType.ACCOUNT_CONFIRMED: AccountConfirmed,
     WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: AccountDeleteRequested,
+    WebhookEventAsyncType.ACCOUNT_DELETED: AccountDeleted,
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
     WebhookEventAsyncType.ADDRESS_DELETED: AddressDeleted,
@@ -2250,6 +2311,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.CHANNEL_UPDATED: ChannelUpdated,
     WebhookEventAsyncType.CHANNEL_DELETED: ChannelDeleted,
     WebhookEventAsyncType.CHANNEL_STATUS_CHANGED: ChannelStatusChanged,
+    WebhookEventAsyncType.CHANNEL_METADATA_UPDATED: ChannelMetadataUpdated,
     WebhookEventAsyncType.GIFT_CARD_CREATED: GiftCardCreated,
     WebhookEventAsyncType.GIFT_CARD_UPDATED: GiftCardUpdated,
     WebhookEventAsyncType.GIFT_CARD_DELETED: GiftCardDeleted,
@@ -2334,6 +2396,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.STAFF_CREATED: StaffCreated,
     WebhookEventAsyncType.STAFF_UPDATED: StaffUpdated,
     WebhookEventAsyncType.STAFF_DELETED: StaffDeleted,
+    WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED: StaffSetPasswordRequested,
     WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: (
         TransactionItemMetadataUpdated
     ),

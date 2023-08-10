@@ -23,6 +23,10 @@ mutation createWarehouse($input: WarehouseCreateInput!) {
             externalReference
             address {
                 id
+                metadata {
+                    key
+                    value
+                }
             }
             shippingZones(first: 5) {
                 edges {
@@ -46,6 +50,7 @@ def test_mutation_create_warehouse(
     staff_api_client, permission_manage_products, shipping_zone
 ):
     # given
+    metadata = [{"key": "public", "value": "public_value"}]
     variables = {
         "input": {
             "name": "Test warehouse",
@@ -58,6 +63,7 @@ def test_mutation_create_warehouse(
                 "country": "PL",
                 "postalCode": "53-601",
                 "companyName": "Amazing Company Inc",
+                "metadata": metadata,
             },
         }
     }
@@ -73,6 +79,7 @@ def test_mutation_create_warehouse(
     content = get_graphql_content(response)
     assert Warehouse.objects.count() == 1
     warehouse = Warehouse.objects.first()
+    address = warehouse.address
     created_warehouse = content["data"]["createWarehouse"]["warehouse"]
     assert created_warehouse["id"] == graphene.Node.to_global_id(
         "Warehouse", warehouse.id
@@ -81,6 +88,8 @@ def test_mutation_create_warehouse(
     assert created_warehouse["slug"] == warehouse.slug
     assert created_warehouse["companyName"] == warehouse.address.company_name
     assert created_warehouse["externalReference"] == warehouse.external_reference
+    assert created_warehouse["address"]["metadata"] == metadata
+    assert address.metadata == {"public": "public_value"}
 
 
 def test_mutation_create_warehouse_shipping_zone_provided(

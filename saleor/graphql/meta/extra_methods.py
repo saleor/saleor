@@ -9,6 +9,11 @@ def extra_checkout_actions(instance, info: ResolveInfo, **data):
     manager.checkout_metadata_updated(instance)
 
 
+def extra_channel_actions(instance, info: ResolveInfo, **data):
+    manager = get_plugin_manager_promise(info.context).get()
+    manager.channel_metadata_updated(instance)
+
+
 def extra_collection_actions(instance, info: ResolveInfo, **data):
     manager = get_plugin_manager_promise(info.context).get()
     manager.collection_metadata_updated(instance)
@@ -77,6 +82,7 @@ TYPE_EXTRA_METHODS = {
     "Collection": extra_collection_actions,
     "Fulfillment": extra_fulfillment_actions,
     "GiftCard": extra_gift_card_actions,
+    "Channel": extra_channel_actions,
     "Order": extra_order_actions,
     "Product": extra_product_actions,
     "ProductVariant": extra_variant_actions,

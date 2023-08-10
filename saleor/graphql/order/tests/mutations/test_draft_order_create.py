@@ -46,11 +46,19 @@ DRAFT_ORDER_CREATE_MUTATION = """
                         city
                         streetAddress1
                         postalCode
+                        metadata {
+                            key
+                            value
+                        }
                     }
                     shippingAddress{
                         city
                         streetAddress1
                         postalCode
+                        metadata {
+                            key
+                            value
+                        }
                     }
                     status
                     voucher {
@@ -125,7 +133,9 @@ def test_draft_order_create(
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
+
     assert not content["data"]["draftOrderCreate"]["errors"]
+    stored_metadata = {"public": "public_value"}
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
     assert data["voucher"]["code"] == voucher.code
@@ -140,6 +150,8 @@ def test_draft_order_create(
         data["shippingAddress"]["streetAddress1"]
         == graphql_address_data["streetAddress1"]
     )
+    assert data["billingAddress"]["metadata"] == graphql_address_data["metadata"]
+    assert data["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
 
     order = Order.objects.first()
     assert order.user == customer_user
@@ -147,6 +159,8 @@ def test_draft_order_create(
     assert order.shipping_method_name == shipping_method.name
     assert order.billing_address
     assert order.shipping_address
+    assert order.billing_address.metadata == stored_metadata
+    assert order.shipping_address.metadata == stored_metadata
     assert order.search_vector
     assert order.external_reference == external_reference
     shipping_total = shipping_method.channel_listings.get(

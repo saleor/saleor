@@ -146,7 +146,14 @@ class TransactionSessionData:
     transaction: "TransactionItem"
     source_object: Union["Checkout", "Order"]
     action: TransactionProcessActionData
-    payment_gateway: PaymentGatewayData
+    payment_gateway_data: PaymentGatewayData
+
+
+@dataclass
+class TransactionSessionResult:
+    app_identifier: str
+    response: Optional[Dict[Any, Any]] = None
+    error: Optional[str] = None
 
 
 @dataclass

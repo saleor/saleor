@@ -2127,3 +2127,32 @@ def test_pagination_for_sorting_collections_by_published_at_date(
     assert [node["node"]["slug"] for node in data["edges"]] == [
         collection.slug for collection in collections[first:]
     ]
+
+
+def test_collections_query_return_error_with_sort_by_rank_without_search(
+    staff_api_client, published_collection, product_list, channel_USD
+):
+    # given
+    for product in product_list:
+        published_collection.products.add(product)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", published_collection.pk),
+        "sortBy": {"direction": "DESC", "field": "RANK"},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        GET_SORTED_PRODUCTS_COLLECTION_QUERY, variables
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+
+    # then
+    errors = content["errors"]
+    expected_message = (
+        "Sorting by RANK is available only when using a search filter "
+        "or search argument."
+    )
+    assert len(errors) == 1
+    assert errors[0]["message"] == expected_message

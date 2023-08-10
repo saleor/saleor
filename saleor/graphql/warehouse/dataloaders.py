@@ -421,10 +421,12 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
         channel_slug: Optional[str],
         variant_ids: Iterable[int],
     ) -> Iterable[Tuple[int, List[Stock]]]:
+        # convert to set to not return the same stocks for the same variant twice
+        variant_ids_set = set(variant_ids)
         stocks = (
             Stock.objects.all()
             .using(self.database_connection_name)
-            .filter(product_variant_id__in=variant_ids)
+            .filter(product_variant_id__in=variant_ids_set)
         )
         if country_code:
             stocks = stocks.filter(
@@ -457,7 +459,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                 variant_id,
                 stocks_by_variant_id_map[variant_id],
             )
-            for variant_id in variant_ids
+            for variant_id in variant_ids_set
         ]
 
 

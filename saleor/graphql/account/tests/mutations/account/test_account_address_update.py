@@ -13,6 +13,10 @@ ACCOUNT_ADDRESS_UPDATE_MUTATION = """
         accountAddressUpdate(id: $addressId, input: $address) {
             address {
                 city
+                metadata {
+                    key
+                    value
+                }
             }
             user {
                 id
@@ -39,9 +43,11 @@ def test_customer_update_own_address(
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["accountAddressUpdate"]
+    assert data["address"]["metadata"] == [{"key": "public", "value": "public_value"}]
     assert data["address"]["city"] == address_data["city"].upper()
     address_obj.refresh_from_db()
     assert address_obj.city == address_data["city"].upper()
+    assert address_obj.metadata == {"public": "public_value"}
     user.refresh_from_db()
     assert generate_address_search_document_value(address_obj) in user.search_document
 

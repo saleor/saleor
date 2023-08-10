@@ -27,6 +27,21 @@ ACCOUNT_CONFIRMATION_REQUESTED = (
 """
 )
 
+ACCOUNT_CONFIRMED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountConfirmed{
+          user{
+            ...CustomerDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 
 ACCOUNT_CHANGE_EMAIL_REQUESTED = (
     fragments.CUSTOMER_DETAILS
@@ -57,6 +72,22 @@ ACCOUNT_CHANGE_EMAIL_REQUESTED = (
 )
 
 
+ACCOUNT_EMAIL_CHANGED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountEmailChanged{
+          user{
+            ...CustomerDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 ACCOUNT_DELETE_REQUESTED = (
     fragments.CUSTOMER_DETAILS
     + """
@@ -77,6 +108,48 @@ ACCOUNT_DELETE_REQUESTED = (
                 host
                 url
             }
+          }
+        }
+      }
+    }
+"""
+)
+
+ACCOUNT_SET_PASSWORD_REQUESTED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountSetPasswordRequested{
+          user{
+            ...CustomerDetails
+          }
+          token
+          redirectUrl
+          channel{
+            slug
+            id
+          }
+          shop{
+            domain{
+                host
+                url
+            }
+          }
+        }
+      }
+    }
+"""
+)
+
+ACCOUNT_DELETED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountDeleted{
+          user{
+            ...CustomerDetails
           }
         }
       }
@@ -748,6 +821,34 @@ STAFF_DELETED = (
         ...on StaffDeleted{
           user{
             ...StaffDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+STAFF_SET_PASSWORD_REQUESTED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on StaffSetPasswordRequested{
+          user{
+            ...CustomerDetails
+          }
+          token
+          redirectUrl
+          channel{
+            slug
+            id
+          }
+          shop{
+            domain{
+                host
+                url
+            }
           }
         }
       }

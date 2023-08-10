@@ -101,6 +101,12 @@ def test_clean_seo_fields():
     assert data["seo_description"] == description
 
 
+def test_clean_seo_fields_accepts_null():
+    data = {"seo": None}
+    clean_seo_fields(data)
+    assert not data
+
+
 @pytest.mark.parametrize(
     "cleaned_input",
     [

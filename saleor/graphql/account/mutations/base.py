@@ -1,7 +1,9 @@
 from collections import defaultdict
 from typing import List
+from urllib.parse import urlencode
 
 import graphene
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
 from ....account import events as account_events
@@ -11,7 +13,7 @@ from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
-from ....core.utils.url import validate_storefront_url
+from ....core.utils.url import prepare_url, validate_storefront_url
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty
 from ....giftcard.utils import get_user_gift_cards
 from ....graphql.utils import get_user_or_app_from_context
@@ -22,7 +24,7 @@ from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel, validate_channel
 from ...core import ResolveInfo, SaleorContext
-from ...core.descriptions import ADDED_IN_310, ADDED_IN_314
+from ...core.descriptions import ADDED_IN_310, ADDED_IN_314, ADDED_IN_315
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
@@ -89,6 +91,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         cleaned_input = cls.clean_input(
             info=info, instance=instance, data=data.get("input")
         )
+        cls.update_metadata(instance, cleaned_input.pop("metadata", list()))
         address = cls.validate_address(cleaned_input, instance=instance)
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
@@ -209,6 +212,9 @@ class CustomerInput(UserInput, UserAddressInput):
     external_reference = graphene.String(
         description="External ID of the customer." + ADDED_IN_310, required=False
     )
+    is_confirmed = graphene.Boolean(
+        required=False, description="User account is confirmed." + ADDED_IN_315
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS
@@ -250,21 +256,25 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         if shipping_address_data:
+            address_metadata = shipping_address_data.pop("metadata", list())
             shipping_address = cls.validate_address(
                 shipping_address_data,
                 address_type=AddressType.SHIPPING,
                 instance=getattr(instance, SHIPPING_ADDRESS_FIELD),
                 info=info,
             )
+            cls.update_metadata(shipping_address, address_metadata)
             cleaned_input[SHIPPING_ADDRESS_FIELD] = shipping_address
 
         if billing_address_data:
+            address_metadata = billing_address_data.pop("metadata", list())
             billing_address = cls.validate_address(
                 billing_address_data,
                 address_type=AddressType.BILLING,
                 instance=getattr(instance, BILLING_ADDRESS_FIELD),
                 info=info,
             )
+            cls.update_metadata(billing_address, address_metadata)
             cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
 
         if cleaned_input.get("redirect_url"):
@@ -317,7 +327,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         else:
             manager.customer_updated(instance)
 
-        if cleaned_input.get("redirect_url"):
+        if redirect_url := cleaned_input.get("redirect_url"):
             channel_slug = cleaned_input.get("channel")
             if not instance.is_staff:
                 channel_slug = clean_channel(
@@ -327,12 +337,20 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                 channel_slug = validate_channel(
                     channel_slug, error_class=AccountErrorCode
                 ).slug
-
             send_set_password_notification(
-                cleaned_input.get("redirect_url"),
+                redirect_url,
                 instance,
                 manager,
                 channel_slug,
+            )
+            token = default_token_generator.make_token(instance)
+            params = urlencode({"email": instance.email, "token": token})
+            cls.call_event(
+                manager.account_set_password_requested,
+                instance,
+                channel_slug,
+                token,
+                prepare_url(params, redirect_url),
             )
 
     @classmethod
@@ -405,7 +423,13 @@ class StaffDeleteMixin(UserDeleteMixin):
         abstract = True
 
     @classmethod
-    def check_permissions(cls, context: SaleorContext, permissions=None, **data):
+    def check_permissions(
+        cls,
+        context: SaleorContext,
+        permissions=None,
+        require_all_permissions=False,
+        **data
+    ):
         if get_app_promise(context).get():
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."

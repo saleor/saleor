@@ -86,3 +86,22 @@ def test_checkout_customer_detach_by_app_without_permissions(
     assert_no_permission(response)
     checkout.refresh_from_db()
     assert checkout.last_change == previous_last_change
+
+
+def test_with_active_problems_flow(user_api_client, checkout_with_problems):
+    # given
+    checkout_with_problems.user = user_api_client.user
+    checkout_with_problems.save(update_fields=["user"])
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    variables = {"id": to_global_id_or_none(checkout_with_problems)}
+
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CUSTOMER_DETACH, variables
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutCustomerDetach"]["errors"]

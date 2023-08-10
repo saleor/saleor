@@ -108,14 +108,12 @@ def public_address_permissions(
 
     if address.user_addresses.filter(Exists(staff_users.filter(id=OuterRef("id")))):
         return [AccountPermissions.MANAGE_STAFF]
-
-    if (
-        warehouse_models.Warehouse.objects.filter(address_id=address.id).exists()
-        or site_models.SiteSettings.objects.filter(
-            company_address_id=address.id
-        ).exists()
-    ):
-        raise PermissionDenied()
+    elif warehouse_models.Warehouse.objects.filter(address_id=address.id).exists():
+        return [ProductPermissions.MANAGE_PRODUCTS]
+    elif site_models.SiteSettings.objects.filter(
+        company_address_id=address.id
+    ).exists():
+        return [SitePermissions.MANAGE_SETTINGS]
 
     return [AccountPermissions.MANAGE_USERS]
 

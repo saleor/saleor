@@ -1,4 +1,5 @@
 import graphene
+from django.utils import timezone
 
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_AUTH
@@ -47,6 +48,8 @@ class ExternalRefresh(BaseMutation):
 
         if access_tokens_response.user and access_tokens_response.user.id:
             info.context._cached_user = access_tokens_response.user
+            access_tokens_response.user.last_login = timezone.now()
+            access_tokens_response.user.save(update_fields=["last_login", "updated_at"])
 
         return cls(
             token=access_tokens_response.token,

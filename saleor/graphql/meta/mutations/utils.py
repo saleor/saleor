@@ -18,17 +18,15 @@ def get_valid_metadata_instance(instance) -> ModelWithMetadata:
     return instance
 
 
-def save_instance(instance, metadata_field: str):
-    fields = [metadata_field]
-
+def save_instance(instance, metadata_fields: list):
     try:
         if bool(instance._meta.get_field("updated_at")):
-            fields.append("updated_at")
+            metadata_fields.append("updated_at")
     except FieldDoesNotExist:
         pass
 
     try:
-        instance.save(update_fields=fields)
+        instance.save(update_fields=metadata_fields)
     except DatabaseError:
         msg = "Cannot update metadata for instance. Updating not existing object."
         raise ValidationError(

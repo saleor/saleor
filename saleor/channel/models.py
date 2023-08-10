@@ -33,6 +33,7 @@ class Channel(ModelWithMetadata):
     )
 
     automatically_confirm_all_new_orders = models.BooleanField(default=True, null=True)
+    allow_unpaid_orders = models.BooleanField(default=False)
     automatically_fulfill_non_shippable_gift_card = models.BooleanField(
         default=True,
         null=True,
@@ -42,6 +43,8 @@ class Channel(ModelWithMetadata):
     delete_expired_orders_after = models.DurationField(
         default=timedelta(days=60),
     )
+
+    use_legacy_error_flow_for_checkout = models.BooleanField(default=True)
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)

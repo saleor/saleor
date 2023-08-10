@@ -69,6 +69,12 @@ class AttributeUpdateInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
+        description = (
+            "Represents an input for update of attribute.\n\n"
+            "NOTE: Deprecated fields `filterableInStorefront`, "
+            "`storefrontSearchPosition` and `availableInGrid` are not supported in "
+            "bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`."
+        )
 
 
 class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):

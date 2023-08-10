@@ -38,5 +38,5 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
             cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
             meta_instance.store_value_in_private_metadata(items=items)
-            save_instance(meta_instance, "private_metadata")
+            save_instance(meta_instance, ["private_metadata"])
         return cls.success_response(instance)

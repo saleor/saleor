@@ -122,7 +122,7 @@ def raise_validation_error(field=None, message=None, code=None):
 
 
 def ext_ref_to_global_id_or_error(model, external_reference):
-    """Convert external reference to graphen global id."""
+    """Convert external reference to global id."""
     internal_id = (
         model.objects.filter(external_reference=external_reference)
         .values_list("id", flat=True)

@@ -55,7 +55,7 @@ def test_trigger_webhook_sync(mock_request, payment_app):
         WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app.webhooks.first()
     )
     event_delivery = EventDelivery.objects.first()
-    mock_request.assert_called_once_with(payment_app, event_delivery)
+    mock_request.assert_called_once_with(event_delivery)
 
 
 @mock.patch("saleor.plugins.webhook.tasks.create_delivery_for_subscription_sync_event")
@@ -76,7 +76,7 @@ def test_trigger_webhook_sync_with_subscription(
         payment_app.webhooks.first(),
         payment,
     )
-    mock_request.assert_called_once_with(payment_app, fake_delivery)
+    mock_request.assert_called_once_with(fake_delivery)
 
 
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
@@ -97,7 +97,7 @@ def test_send_webhook_request_sync_failed_attempt(
     mock_post().status_code = expected_data["status_code"]
     mock_post().elapsed = expected_data["duration"]
     # when
-    response_data = send_webhook_request_sync(app, event_delivery)
+    response_data = send_webhook_request_sync(event_delivery)
     attempt = EventDeliveryAttempt.objects.first()
 
     # then
@@ -130,7 +130,7 @@ def test_send_webhook_request_sync_successful_attempt(
     mock_post().status_code = expected_data["status_code"]
     mock_post().elapsed = expected_data["duration"]
     # when
-    response_data = send_webhook_request_sync(app, event_delivery)
+    response_data = send_webhook_request_sync(event_delivery)
 
     attempt = EventDeliveryAttempt.objects.first()
 
@@ -163,7 +163,7 @@ def test_send_webhook_request_sync_request_exception(
     )
 
     # when
-    response_data = send_webhook_request_sync(app, event_delivery)
+    response_data = send_webhook_request_sync(event_delivery)
     attempt = EventDeliveryAttempt.objects.first()
 
     # then
@@ -189,7 +189,7 @@ def test_send_webhook_request_sync_when_exception_with_response(
     mock_response.status_code = 302
     mock_post.side_effect = TooManyRedirects(response=mock_response)
     # when
-    send_webhook_request_sync(app, event_delivery)
+    send_webhook_request_sync(event_delivery)
     attempt = EventDeliveryAttempt.objects.first()
 
     # then
@@ -217,7 +217,7 @@ def test_send_webhook_request_sync_json_parsing_error(
     mock_post().status_code = expected_data["status_code"]
 
     # when
-    response_data = send_webhook_request_sync(app, event_delivery)
+    response_data = send_webhook_request_sync(event_delivery)
     attempt = EventDeliveryAttempt.objects.first()
 
     # then
@@ -237,7 +237,7 @@ def test_send_webhook_request_with_proper_timeout(mock_post, event_delivery, app
     mock_post().headers = {"header_key": "header_val"}
     mock_post().elapsed = datetime.timedelta(seconds=1)
     mock_post().status_code = 200
-    send_webhook_request_sync(app, event_delivery)
+    send_webhook_request_sync(event_delivery)
     assert mock_post.call_args.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
 
@@ -253,7 +253,7 @@ def test_send_webhook_request_sync_invalid_scheme(webhook, app):
             payload=event_payload,
             webhook=webhook,
         )
-        send_webhook_request_sync(app, delivery)
+        send_webhook_request_sync(delivery)
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")

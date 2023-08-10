@@ -162,6 +162,19 @@ AppErrorCode.doc_category = DOC_CATEGORY_APPS
 AttributeErrorCode = graphene.Enum.from_enum(attribute_error_codes.AttributeErrorCode)
 AttributeErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
 
+
+AttributeBulkCreateErrorCode = graphene.Enum.from_enum(
+    attribute_error_codes.AttributeBulkCreateErrorCode
+)
+AttributeBulkCreateErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
+
+
+AttributeBulkUpdateErrorCode = graphene.Enum.from_enum(
+    attribute_error_codes.AttributeBulkUpdateErrorCode
+)
+AttributeBulkCreateErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
+
+
 AttributeTranslateErrorCode = graphene.Enum.from_enum(
     translatable_error_codes.AttributeTranslateErrorCode
 )
@@ -303,6 +316,11 @@ ProductVariantBulkErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
 CollectionErrorCode = graphene.Enum.from_enum(product_error_codes.CollectionErrorCode)
 CollectionErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
+
+SendConfirmationEmailErrorCode = graphene.Enum.from_enum(
+    account_error_codes.SendConfirmationEmailErrorCode
+)
+SendConfirmationEmailErrorCode.doc_category = DOC_CATEGORY_USERS
 
 ShopErrorCode = graphene.Enum.from_enum(core_error_codes.ShopErrorCode)
 

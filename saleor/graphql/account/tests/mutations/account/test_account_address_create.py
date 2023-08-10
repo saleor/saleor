@@ -19,6 +19,10 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
     address {
         id,
         city
+        metadata {
+            key
+            value
+        }
     }
     user {
         email
@@ -36,18 +40,23 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
 def test_customer_create_address(user_api_client, graphql_address_data):
     user = user_api_client.user
     user_addresses_count = user.addresses.count()
+    user_addresses_ids = list(user.addresses.values_list("id", flat=True))
 
     query = ACCOUNT_ADDRESS_CREATE_MUTATION
     mutation_name = "accountAddressCreate"
-
     variables = {"addressInput": graphql_address_data}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
 
+    assert data["address"]["metadata"] == [{"key": "public", "value": "public_value"}]
     assert data["address"]["city"] == graphql_address_data["city"].upper()
 
     user.refresh_from_db()
+
+    assert user.addresses.exclude(id__in=user_addresses_ids).first().metadata == {
+        "public": "public_value"
+    }
     assert user.addresses.count() == user_addresses_count + 1
     assert (
         generate_address_search_document_value(user.addresses.last())

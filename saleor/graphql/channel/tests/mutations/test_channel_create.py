@@ -46,6 +46,10 @@ CHANNEL_CREATE_MUTATION = """
                     markAsPaidStrategy
                     defaultTransactionFlowStrategy
                     deleteExpiredOrdersAfter
+                    allowUnpaidOrders
+                }
+                checkoutSettings {
+                    useLegacyErrorFlow
                 }
             }
             errors{
@@ -80,6 +84,7 @@ def test_channel_create_mutation_as_staff_user(
                 "automaticallyFulfillNonShippableGiftCard": False,
                 "expireOrdersAfter": 10,
             },
+            "checkoutSettings": {"useLegacyErrorFlow": False},
         }
     }
 
@@ -111,6 +116,7 @@ def test_channel_create_mutation_as_staff_user(
         is False
     )
     assert channel_data["orderSettings"]["expireOrdersAfter"] == 10
+    assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
 
 
 def test_channel_create_mutation_as_app(
@@ -128,6 +134,7 @@ def test_channel_create_mutation_as_app(
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
+            "checkoutSettings": {"useLegacyErrorFlow": False},
         }
     }
 
@@ -162,6 +169,7 @@ def test_channel_create_mutation_as_app(
         is True
     )
     assert channel_data["orderSettings"]["expireOrdersAfter"] is None
+    assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
 
 
 def test_channel_create_mutation_as_customer(user_api_client):
@@ -711,3 +719,77 @@ def test_channel_create_mutation_set_incorrect_delete_expired_orders_after(
     error = content["data"]["channelCreate"]["errors"][0]
     assert error["field"] == "deleteExpiredOrdersAfter"
     assert error["code"] == ChannelErrorCode.INVALID.name
+
+
+def test_channel_create_set_checkout_use_legacy_error_flow(
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "checkoutSettings": {"useLegacyErrorFlow": False},
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get()
+    assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
+    assert channel.use_legacy_error_flow_for_checkout is False
+
+
+@pytest.mark.parametrize("allowUnpaid", [True, False])
+def test_channel_create_set_allow_unpaid_orders(
+    allowUnpaid,
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "orderSettings": {"allowUnpaidOrders": allowUnpaid},
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get()
+    assert channel_data["orderSettings"]["allowUnpaidOrders"] == allowUnpaid
+    assert channel.allow_unpaid_orders == allowUnpaid

@@ -40,5 +40,5 @@ class DeletePrivateMetadata(BaseMetadataMutation):
             meta_instance = get_valid_metadata_instance(instance)
             for key in keys:
                 meta_instance.delete_value_from_private_metadata(key)
-            save_instance(meta_instance, "private_metadata")
+            save_instance(meta_instance, ["private_metadata"])
         return cls.success_response(instance)

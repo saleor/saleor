@@ -17,10 +17,11 @@ from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import AddressTypeEnum
 from ...i18n import I18nMixin
+from ...mixins import AddressMetadataMixin
 from ...types import Address, AddressInput, User
 
 
-class AccountAddressCreate(ModelMutation, I18nMixin):
+class AccountAddressCreate(AddressMetadataMixin, ModelMutation, I18nMixin):
     user = graphene.Field(
         User, description="A user instance for which the address was created."
     )

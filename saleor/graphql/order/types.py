@@ -41,8 +41,7 @@ from ...permission.enums import (
     ProductPermissions,
 )
 from ...permission.utils import has_one_of_permissions
-from ...product import ProductMediaTypes
-from ...product.models import ALL_PRODUCTS_PERMISSIONS
+from ...product.models import ALL_PRODUCTS_PERMISSIONS, ProductMediaTypes
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data

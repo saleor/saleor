@@ -26,6 +26,7 @@ from ...payment.interface import (
     StoredPaymentMethodRequestDeleteResponseData,
     TransactionActionData,
     TransactionSessionData,
+    TransactionSessionResult,
 )
 from ...payment.models import Payment, TransactionItem
 from ...settings import WEBHOOK_SYNC_TIMEOUT
@@ -161,7 +162,7 @@ class WebhookPlugin(BasePlugin):
                 metadata_updated_data, event_type, webhooks, instance, self.requestor
             )
 
-    def _trigger_account_event(
+    def _trigger_account_request_event(
         self, event_type, user, channel_slug, token, redirect_url, new_email=None
     ):
         if webhooks := get_webhooks_for_event(event_type):
@@ -189,6 +190,28 @@ class WebhookPlugin(BasePlugin):
                 self.requestor,
             )
 
+    def _trigger_account_event(self, event_type, user):
+        if webhooks := get_webhooks_for_event(event_type):
+            raw_payload = {
+                "id": graphene.Node.to_global_id("User", user.id),
+            }
+            data = {"user": user}
+            trigger_webhooks_async(
+                self._serialize_payload(raw_payload),
+                event_type,
+                webhooks,
+                data,
+                self.requestor,
+            )
+
+    def account_confirmed(self, user: "User", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_event(
+            WebhookEventAsyncType.ACCOUNT_CONFIRMED,
+            user,
+        )
+
     def account_confirmation_requested(
         self,
         user: "User",
@@ -199,7 +222,7 @@ class WebhookPlugin(BasePlugin):
     ) -> None:
         if not self.active:
             return previous_value
-        self._trigger_account_event(
+        self._trigger_account_request_event(
             WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
             user,
             channel_slug,
@@ -218,13 +241,43 @@ class WebhookPlugin(BasePlugin):
     ) -> None:
         if not self.active:
             return previous_value
-        self._trigger_account_event(
+        self._trigger_account_request_event(
             WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED,
             user,
             channel_slug,
             token,
             redirect_url,
             new_email,
+        )
+
+    def account_email_changed(
+        self,
+        user: "User",
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_event(
+            WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED,
+            user,
+        )
+
+    def account_set_password_requested(
+        self,
+        user: "User",
+        channel_slug: str,
+        token: str,
+        redirect_url: str,
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_request_event(
+            WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED,
+            user,
+            channel_slug,
+            token,
+            redirect_url,
         )
 
     def account_delete_requested(
@@ -237,12 +290,20 @@ class WebhookPlugin(BasePlugin):
     ) -> None:
         if not self.active:
             return previous_value
-        self._trigger_account_event(
+        self._trigger_account_request_event(
             WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED,
             user,
             channel_slug,
             token,
             redirect_url,
+        )
+
+    def account_deleted(self, user: "User", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_event(
+            WebhookEventAsyncType.ACCOUNT_DELETED,
+            user,
         )
 
     def _trigger_address_event(self, event_type, address):
@@ -449,6 +510,15 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self.__trigger_channel_event(
             WebhookEventAsyncType.CHANNEL_STATUS_CHANGED, channel
+        )
+
+    def channel_metadata_updated(
+        self, channel: "Channel", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self.__trigger_channel_event(
+            WebhookEventAsyncType.CHANNEL_METADATA_UPDATED, channel
         )
 
     def _trigger_gift_card_event(self, event_type, gift_card: "GiftCard"):
@@ -1426,6 +1496,24 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_staff_event(WebhookEventAsyncType.STAFF_DELETED, staff_user)
 
+    def staff_set_password_requested(
+        self,
+        user: "User",
+        channel_slug: str,
+        token: str,
+        redirect_url: str,
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_request_event(
+            WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED,
+            user,
+            channel_slug,
+            token,
+            redirect_url,
+        )
+
     def thumbnail_created(
         self,
         thumbnail: Thumbnail,
@@ -1854,23 +1942,25 @@ class WebhookPlugin(BasePlugin):
     def _transaction_session_base(
         self, transaction_session_data: TransactionSessionData, webhook_event: str
     ):
-        if not transaction_session_data.payment_gateway.app_identifier:
+        if not transaction_session_data.payment_gateway_data.app_identifier:
             error = "Missing app identifier"
-            return PaymentGatewayData(
-                app_identifier=transaction_session_data.payment_gateway.app_identifier,
+            return TransactionSessionResult(
+                app_identifier=transaction_session_data.payment_gateway_data.app_identifier,
                 error=error,
             )
         webhook = get_webhooks_for_event(
             webhook_event,
-            apps_identifier=[transaction_session_data.payment_gateway.app_identifier],
+            apps_identifier=[
+                transaction_session_data.payment_gateway_data.app_identifier
+            ],
         ).first()
         if not webhook:
             error = (
                 "Unable to find an active webhook for "
                 f"`{webhook_event.upper()}` event."
             )
-            return PaymentGatewayData(
-                app_identifier=transaction_session_data.payment_gateway.app_identifier,
+            return TransactionSessionResult(
+                app_identifier=transaction_session_data.payment_gateway_data.app_identifier,
                 error=error,
             )
 
@@ -1878,7 +1968,7 @@ class WebhookPlugin(BasePlugin):
             transaction_session_data.action,
             transaction_session_data.transaction,
             transaction_session_data.source_object,
-            transaction_session_data.payment_gateway,
+            transaction_session_data.payment_gateway_data,
         )
 
         response_data = trigger_webhook_sync(
@@ -1890,15 +1980,15 @@ class WebhookPlugin(BasePlugin):
         error_msg = None
         if response_data is None:
             error_msg = "Unable to parse a transaction initialize response."
-        return PaymentGatewayData(
-            app_identifier=transaction_session_data.payment_gateway.app_identifier,
-            data=response_data,
+        return TransactionSessionResult(
+            app_identifier=transaction_session_data.payment_gateway_data.app_identifier,
+            response=response_data,
             error=error_msg,
         )
 
     def transaction_initialize_session(
         self, transaction_session_data: TransactionSessionData, previous_value
-    ) -> PaymentGatewayData:
+    ) -> TransactionSessionResult:
         if not self.active:
             return previous_value
         return self._transaction_session_base(
@@ -1908,7 +1998,7 @@ class WebhookPlugin(BasePlugin):
 
     def transaction_process_session(
         self, transaction_session_data: TransactionSessionData, previous_value
-    ) -> PaymentGatewayData:
+    ) -> TransactionSessionResult:
         if not self.active:
             return previous_value
         return self._transaction_session_base(

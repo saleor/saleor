@@ -1,6 +1,7 @@
 import graphene
 
 from ....account import models as account_models
+from ....graphql.account.mixins import AddressMetadataMixin
 from ....permission.enums import SitePermissions
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -12,7 +13,7 @@ from ...site.dataloaders import get_site_promise
 from ..types import Shop
 
 
-class ShopAddressUpdate(BaseMutation, I18nMixin):
+class ShopAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixin):
     shop = graphene.Field(Shop, description="Updated shop.")
 
     class Arguments:
