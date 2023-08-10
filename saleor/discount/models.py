@@ -422,13 +422,13 @@ class PromotionTranslation(Translation):
 
 class PromotionRule(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, blank=True, null=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     promotion = models.ForeignKey(
         Promotion, on_delete=models.CASCADE, related_name="rules"
     )
     channels = models.ManyToManyField(Channel)
-    catalogue_predicate = models.JSONField()
+    catalogue_predicate = models.JSONField(blank=True, default=dict)
     reward_value_type = models.CharField(
         max_length=255, choices=RewardValueType.CHOICES, blank=True, null=True
     )
