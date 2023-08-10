@@ -50,7 +50,7 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
             current_catalogue = fetch_catalogue_info(sale)
             cls.call_event(
                 lambda: manager.sale_updated(
-                    sale,
+                    sale,  # type: ignore # will be handled in separate PR
                     previous_catalogue=convert_catalogue_info_to_global_ids(
                         previous_catalogue
                     ),
