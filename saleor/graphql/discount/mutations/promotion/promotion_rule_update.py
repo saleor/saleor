@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from .....discount import models
+from .....discount import RewardValueType, models
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....core import ResolveInfo
@@ -17,6 +17,7 @@ from ...types import PromotionRule
 from ...utils import get_products_for_rule
 from ...validators import clean_predicate
 from ..utils import clear_promotion_old_sale_id
+from .validators import clean_fixed_discount_value, clean_percentage_discount_value
 
 
 class PromotionRuleUpdateError(Error):
@@ -92,6 +93,7 @@ class PromotionRuleUpdate(ModelMutation):
             error.code = PromotionRuleUpdateErrorCode.DUPLICATED_INPUT_ITEM.value
             raise ValidationError({"addChannels": error, "removeChannels": error})
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
+        cls.clean_reward(instance, cleaned_input)
         if catalogue_predicate := cleaned_input.get("catalogue_predicate"):
             try:
                 cleaned_input["catalogue_predicate"] = clean_predicate(
@@ -100,6 +102,79 @@ class PromotionRuleUpdate(ModelMutation):
             except ValidationError as error:
                 raise ValidationError({"catalogue_predicate": error})
         return cleaned_input
+
+    @classmethod
+    def clean_reward(cls, instance, cleaned_input):
+        """Validate reward value and reward value type.
+
+        - Fixed reward value type requires channels with the same currency code
+        to be specified.
+        - Validate price precision for fixed reward value.
+        - Check if percentage reward value is not above 100.
+        """
+        channel_currencies = set(
+            instance.channels.values_list("currency_code", flat=True)
+        )
+        if add_channels := cleaned_input.get("add_channels"):
+            channel_currencies.update(
+                [channel.currency_code for channel in add_channels]
+            )
+        if remove_channels := cleaned_input.get("remove_channels"):
+            channel_currencies = channel_currencies - {
+                channel.currency_code for channel in remove_channels
+            }
+
+        if "reward_value" in cleaned_input or "reward_value_type" in cleaned_input:
+            reward_value = cleaned_input.get("reward_value") or instance.reward_value
+            reward_value_type = (
+                cleaned_input.get("reward_value_type") or instance.reward_value_type
+            )
+            if reward_value_type == RewardValueType.FIXED:
+                if not channel_currencies:
+                    field = (
+                        "reward_value_type"
+                        if "reward_value_type" in cleaned_input
+                        else "remove_channels"
+                    )
+                    raise ValidationError(
+                        {
+                            field: ValidationError(
+                                "Channels must be specified for FIXED rewardValueType.",
+                                code=PromotionRuleUpdateErrorCode.INVALID.value,
+                            )
+                        }
+                    )
+                if len(channel_currencies) > 1:
+                    field = (
+                        "reward_value_type"
+                        if "reward_value_type" in cleaned_input
+                        else "add_channels"
+                    )
+                    raise ValidationError(
+                        {
+                            field: ValidationError(
+                                "Channels must have the same currency code "
+                                "for FIXED rewardValueType.",
+                                code=PromotionRuleUpdateErrorCode.INVALID.value,
+                            )
+                        }
+                    )
+                currency = channel_currencies.pop()
+                try:
+                    clean_fixed_discount_value(
+                        reward_value,
+                        PromotionRuleUpdateErrorCode.INVALID.value,
+                        currency,
+                    )
+                except ValidationError as error:
+                    raise ValidationError({"reward_value": error})
+            elif reward_value_type == RewardValueType.PERCENTAGE:
+                try:
+                    clean_percentage_discount_value(
+                        reward_value, PromotionRuleUpdateErrorCode.INVALID.value
+                    )
+                except ValidationError as error:
+                    raise ValidationError({"reward_value": error})
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
