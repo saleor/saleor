@@ -1,6 +1,6 @@
 import pytest
 
-from ..orders.utils.draft_order import draft_order_create
+from ..orders.utils.draft_order_create import draft_order_create
 from ..orders.utils.order_lines import order_lines_create
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_shop
@@ -43,9 +43,12 @@ def test_checkout_create_from_order_core_0104(
     )
 
     # Step 1 - Create checkout from order
+    input = {
+        "channelId": result_channel_id,
+    }
     data = draft_order_create(
         e2e_staff_api_client,
-        result_channel_id,
+        input,
     )
 
     order_id = data["order"]["id"]
