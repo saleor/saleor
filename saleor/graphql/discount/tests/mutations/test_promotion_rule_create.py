@@ -526,3 +526,79 @@ def test_promotion_rule_invalid_catalogue_predicate(
     assert errors[0]["code"] == PromotionRuleCreateErrorCode.INVALID.name
     assert errors[0]["field"] == "cataloguePredicate"
     assert promotion.rules.count() == rules_count
+
+
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
+def test_promotion_rule_create_clears_old_sale_id(
+    update_products_discounted_prices_for_promotion_task_mock,
+    staff_api_client,
+    permission_group_manage_discounts,
+    description_json,
+    channel_USD,
+    channel_PLN,
+    variant,
+    product,
+    promotion_converted_from_sale,
+):
+    # given
+    promotion = promotion_converted_from_sale
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+
+    assert promotion.old_sale_id
+
+    channel_ids = [
+        graphene.Node.to_global_id("Channel", channel.pk)
+        for channel in [channel_USD, channel_PLN]
+    ]
+    catalogue_predicate = {
+        "OR": [
+            {
+                "variantPredicate": {
+                    "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+                }
+            }
+        ]
+    }
+    name = "test promotion rule"
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.FIXED.name
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    rules_count = promotion.rules.count()
+
+    variables = {
+        "input": {
+            "name": name,
+            "promotion": promotion_id,
+            "description": description_json,
+            "channels": channel_ids,
+            "rewardValueType": reward_value_type,
+            "rewardValue": reward_value,
+            "cataloguePredicate": catalogue_predicate,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleCreate"]
+    rule_data = data["promotionRule"]
+
+    assert not data["errors"]
+    assert rule_data["name"] == name
+    assert rule_data["description"] == description_json
+    assert {channel["id"] for channel in rule_data["channels"]} == set(channel_ids)
+    assert rule_data["cataloguePredicate"] == catalogue_predicate
+    assert rule_data["rewardValueType"] == reward_value_type
+    assert rule_data["rewardValue"] == reward_value
+    assert rule_data["promotion"]["id"] == promotion_id
+    assert promotion.rules.count() == rules_count + 1
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
+
+    promotion.refresh_from_db()
+    assert promotion.old_sale_id is None
