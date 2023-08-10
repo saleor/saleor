@@ -22,7 +22,10 @@ from ....core.scalars import PositiveDecimal
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
 from ....core.validators import validate_price_precision
 from ....discount.types import Sale
-from ...dataloaders import SaleChannelListingByPromotionIdLoader
+from ...dataloaders import (
+    PromotionRulesByPromotionIdLoader,
+    SaleChannelListingByPromotionIdLoader,
+)
 
 
 @dataclass
@@ -228,6 +231,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
 
         # Invalidate dataloader for channel listings
         SaleChannelListingByPromotionIdLoader(info.context).clear(promotion.pk)
+        PromotionRulesByPromotionIdLoader(info.context).clear(promotion.pk)
 
         return SaleChannelListingUpdate(
             sale=ChannelContext(node=promotion, channel_slug=None)
