@@ -1,0 +1,77 @@
+from saleor.graphql.tests.utils import get_graphql_content
+
+DRAFT_ORDER_UPDATE_MUTATION = """
+mutation DraftOrderUpdate ($input: DraftOrderInput!, $id: ID!) {
+  draftOrderUpdate(input:$input, id: $id ) {
+
+    order {
+        id
+        lines {
+            totalPrice {
+                gross {
+                    amount
+                }
+            }
+            unitPrice {
+                gross {
+                    amount
+                }
+            }
+            unitDiscountReason
+        }
+        subtotal{ gross { amount}}
+        totalBalance{amount}
+        total{
+            gross{
+                amount
+                }
+            }
+        isShippingRequired
+        shippingPrice{gross {
+            amount
+            }
+        }
+        shippingMethod {
+        id
+        }
+        shippingMethods{ id }
+        deliveryMethod {
+            __typename
+            ... on ShippingMethod {
+                id
+                __typename
+            }
+        }
+    errors{
+        message
+        field
+        code
+    }
+  }
+}
+}
+"""
+
+
+def draft_order_update(
+    api_client,
+    id,
+    input,
+):
+    variables = {"id": id, "input": input}
+
+    response = api_client.post_graphql(
+        DRAFT_ORDER_UPDATE_MUTATION,
+        variables=variables,
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["draftOrderUpdate"]
+
+    order_id = data["order"]["id"]
+    # errors = data["errors"]
+
+    # assert errors == []
+    assert order_id == id
+
+    return data

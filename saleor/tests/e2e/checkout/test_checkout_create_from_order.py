@@ -1,7 +1,7 @@
 import pytest
 
 from ..channel.utils import create_channel
-from ..orders.utils.draft_order import draft_order_create
+from ..orders.utils.draft_order_create import draft_order_create
 from ..orders.utils.order_lines import order_lines_create
 from ..product.utils import (
     create_category,
@@ -98,10 +98,10 @@ def prepare_product(
         product_variant_id,
         channel_id,
     )
-    data = draft_order_create(
-        e2e_staff_api_client,
-        channel_id,
-    )
+    input = {
+        "channelId": channel_id,
+    }
+    data = draft_order_create(e2e_staff_api_client, input)
 
     order_id = data["order"]["id"]
     order_lines = [{"variantId": product_variant_id, "quantity": 1, "price": 100}]
