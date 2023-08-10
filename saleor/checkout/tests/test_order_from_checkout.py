@@ -188,8 +188,7 @@ def test_create_order_with_many_gift_cards_worth_more_than_total(
     gift_cards_balance_before_order = (
         gift_card_1.current_balance.amount + gift_card_2.current_balance.amount
     )
-    checkout.gift_cards.add(gift_card_2)
-    checkout.gift_cards.add(gift_card_1)
+    checkout.gift_cards.add(gift_card_2, gift_card_1)
     checkout.save()
     checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
@@ -207,7 +206,7 @@ def test_create_order_with_many_gift_cards_worth_more_than_total(
     zero_price = zero_money(gift_card.currency)
 
     # then
-    assert order.gift_cards.count() > 0
+    assert order.gift_cards.count() == 2
     assert gift_card_1.current_balance == zero_price
     assert gift_card_2.current_balance.amount == gift_card_2_balance_halved
     assert price_without_gift_card.gross.amount == (

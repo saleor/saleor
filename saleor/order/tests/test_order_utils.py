@@ -353,8 +353,7 @@ def test_add_gift_cards_to_order_with_more_than_total(
     # given
     checkout = checkout_with_item
     checkout.user = staff_user
-    checkout.gift_cards.add(gift_card_expiry_date)
-    checkout.gift_cards.add(gift_card)
+    checkout.gift_cards.add(gift_card_expiry_date, gift_card)
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
