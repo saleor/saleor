@@ -88,7 +88,7 @@ if TYPE_CHECKING:
     from ...account.models import Address, Group, User
     from ...attribute.models import Attribute, AttributeValue
     from ...channel.models import Channel
-    from ...discount.models import Promotion, Sale, Voucher
+    from ...discount.models import Promotion, Voucher
     from ...giftcard.models import GiftCard
     from ...invoice.models import Invoice
     from ...menu.models import Menu, MenuItem
@@ -760,7 +760,7 @@ class WebhookPlugin(BasePlugin):
 
     def sale_deleted(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         previous_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ) -> Any:

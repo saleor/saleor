@@ -47,7 +47,7 @@ if TYPE_CHECKING:
     from ..core.middleware import Requestor
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxData, TaxType
-    from ..discount.models import Promotion, Sale, Voucher
+    from ..discount.models import Promotion, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
@@ -964,7 +964,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after
     # a sale is deleted.
-    sale_deleted: Callable[["Sale", DefaultDict[str, Set[str]], Any], Any]
+    sale_deleted: Callable[["Promotion", DefaultDict[str, Set[str]], Any], Any]
 
     # Trigger when sale is updated.
     #
