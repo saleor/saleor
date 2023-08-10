@@ -292,9 +292,13 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     ):
         checkout = get_checkout(cls, info, checkout_id=None, token=token, id=id)
 
+        use_legacy_error_flow_for_checkout = (
+            checkout.channel.use_legacy_error_flow_for_checkout
+        )
+
         manager = get_plugin_manager_promise(info.context).get()
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-        if unavailable_variant_pks:
+        if use_legacy_error_flow_for_checkout and unavailable_variant_pks:
             not_available_variants_ids = {
                 graphene.Node.to_global_id("ProductVariant", pk)
                 for pk in unavailable_variant_pks
@@ -309,7 +313,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                 }
             )
 
-        if not is_shipping_required(lines):
+        if use_legacy_error_flow_for_checkout and not is_shipping_required(lines):
             raise ValidationError(
                 {
                     "delivery_method": ValidationError(

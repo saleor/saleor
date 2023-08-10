@@ -128,6 +128,12 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             return instance
 
     @classmethod
+    def set_track_inventory(cls, _info, instance, cleaned_input):
+        track_inventory = cleaned_input.get("track_inventory")
+        if track_inventory is not None:
+            instance.track_inventory = track_inventory
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         root,

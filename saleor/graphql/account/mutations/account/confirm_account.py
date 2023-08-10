@@ -6,10 +6,13 @@ from .....account import models
 from .....account.error_codes import AccountErrorCode
 from .....giftcard.utils import assign_user_gift_cards
 from .....order.utils import match_orders_with_new_user
+from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....core.utils import WebhookEventInfo
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import User
 
 INVALID_TOKEN = "Invalid or expired token."
@@ -35,6 +38,12 @@ class ConfirmAccount(BaseMutation):
         doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ACCOUNT_CONFIRMED,
+                description="Account was confirmed.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
@@ -60,9 +69,17 @@ class ConfirmAccount(BaseMutation):
             )
 
         user.is_active = True
-        user.save(update_fields=["is_active", "updated_at"])
+        user.is_confirmed = True
+        user.save(update_fields=["is_active", "is_confirmed", "updated_at"])
 
         match_orders_with_new_user(user)
         assign_user_gift_cards(user)
 
+        cls.post_save_action(info, user)
+
         return ConfirmAccount(user=user)
+
+    @classmethod
+    def post_save_action(cls, info: ResolveInfo, instance):
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.account_confirmed, instance)

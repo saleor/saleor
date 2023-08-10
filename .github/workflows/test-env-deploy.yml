@@ -31,7 +31,7 @@ jobs:
           ref: ${{ github.head_ref }}
 
       - name: Build and push
-        uses: kciter/aws-ecr-action@v1
+        uses: kciter/aws-ecr-action@79255b7c5aa03dbf6d7c46cff2bfd049874cd98d # v4
         with:
           access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

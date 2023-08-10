@@ -5,10 +5,11 @@ from ....account.types import Address
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
+from ...mixins import AddressMetadataMixin
 from ..base import BaseAddressUpdate
 
 
-class AddressUpdate(BaseAddressUpdate):
+class AddressUpdate(AddressMetadataMixin, BaseAddressUpdate):
     class Meta:
         description = "Updates an address."
         doc_category = DOC_CATEGORY_USERS

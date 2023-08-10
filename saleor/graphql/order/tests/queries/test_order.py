@@ -1125,6 +1125,24 @@ def test_query_order_by_external_reference(user_api_client, order):
     assert data["id"] == graphene.Node.to_global_id("Order", order.id)
 
 
+@pytest.mark.parametrize("external_reference", ['" "', "not-existing"])
+def test_query_order_by_not_existing_external_reference(
+    external_reference, user_api_client, order
+):
+    # given
+    query = QUERY_ORDER_BY_EXTERNAL_REFERENCE
+    order.external_reference = "test-ext-ref"
+    order.save(update_fields=["external_reference"])
+    variables = {"externalReference": external_reference}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["order"] is None
+
+
 def test_query_order_by_external_reference_and_id(user_api_client, order):
     # given
     query = QUERY_ORDER_BY_EXTERNAL_REFERENCE

@@ -80,9 +80,7 @@ def test_stored_payment_method_request_delete_with_static_payload(
             "channel_slug": channel_USD.slug,
         }
     )
-    mock_request.assert_called_once_with(
-        stored_payment_method_request_delete_app, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
-    )
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
         success=True,
@@ -136,9 +134,7 @@ def test_stored_payment_method_request_delete_with_subscription_payload(
             "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
         }
     )
-    mock_request.assert_called_once_with(
-        stored_payment_method_request_delete_app, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
-    )
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
         success=True,
@@ -186,9 +182,7 @@ def test_stored_payment_method_request_delete_missing_correct_response_from_webh
     # then
     delivery = EventDelivery.objects.get()
 
-    mock_request.assert_called_once_with(
-        stored_payment_method_request_delete_app, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
-    )
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
         success=False, message="Failed to delivery request."
@@ -228,7 +222,7 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     ]
 
     webhook = stored_payment_method_request_delete_app.webhooks.first()
-    webhook.subscription_query = STORED_PAYMENT_METHOD_REQUEST_DELETE
+    webhook.subscription_query = STORED_PAYMENT_METHOD_DELETE_REQUESTED
     webhook.save()
 
     plugin = webhook_plugin()
@@ -281,7 +275,7 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
 
     # then
     delivery = EventDelivery.objects.filter(
-        event_type=WebhookEventSyncType.STORED_PAYMENT_METHOD_REQUEST_DELETE
+        event_type=WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED
     ).first()
     assert delivery.payload.payload == json.dumps(
         {
@@ -293,9 +287,7 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     # delete the same cache key as created when fetching stored payment methods
     mocked_cache_delete.assert_called_once_with(expected_cache_key)
 
-    mocked_request.assert_called_with(
-        stored_payment_method_request_delete_app, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
-    )
+    mocked_request.assert_called_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
         success=True,

@@ -8,6 +8,7 @@ from .....account.utils import (
 from .....core.tracing import traced_atomic_transaction
 from .....permission.enums import AccountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
+from ....account.mixins import AddressMetadataMixin
 from ....account.types import Address, AddressInput, User
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
@@ -18,7 +19,7 @@ from ....plugins.dataloaders import get_plugin_manager_promise
 from ...i18n import I18nMixin
 
 
-class AddressCreate(ModelMutation, I18nMixin):
+class AddressCreate(AddressMetadataMixin, ModelMutation, I18nMixin):
     user = graphene.Field(
         User, description="A user instance for which the address was created."
     )

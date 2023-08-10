@@ -16,6 +16,8 @@ from ..translations.mutations import (
 from .bulk_mutations import AttributeBulkDelete, AttributeValueBulkDelete
 from .filters import AttributeFilterInput, AttributeWhereInput, filter_attribute_search
 from .mutations import (
+    AttributeBulkCreate,
+    AttributeBulkUpdate,
     AttributeCreate,
     AttributeDelete,
     AttributeReorderValues,
@@ -77,6 +79,8 @@ class AttributeMutations(graphene.ObjectType):
     attribute_create = AttributeCreate.Field()
     attribute_delete = AttributeDelete.Field()
     attribute_update = AttributeUpdate.Field()
+    attribute_bulk_create = AttributeBulkCreate.Field()
+    attribute_bulk_update = AttributeBulkUpdate.Field()
     attribute_translate = AttributeTranslate.Field()
     attribute_bulk_translate = AttributeBulkTranslate.Field()
     attribute_bulk_delete = AttributeBulkDelete.Field()

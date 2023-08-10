@@ -3,6 +3,7 @@ from typing import Optional
 from django_countries import countries
 
 from ...shipping.models import ShippingZone
+from ..site.dataloaders import get_site_promise
 
 
 def get_countries_codes_list(attached_to_shipping_zones: Optional[bool] = None):
@@ -26,3 +27,10 @@ def get_countries_codes_list(attached_to_shipping_zones: Optional[bool] = None):
             return all_countries_codes - covered_countries_codes
 
     return all_countries_codes
+
+
+def get_track_inventory_by_default(info):
+    site = get_site_promise(info.context).get()
+    if site is not None and site.settings is not None:
+        return site.settings.track_inventory_by_default
+    return None

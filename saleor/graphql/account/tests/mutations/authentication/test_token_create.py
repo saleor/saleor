@@ -156,7 +156,7 @@ def test_create_token_invalid_email(api_client, customer_user):
 def test_create_token_unconfirmed_email(api_client, customer_user):
     # given
     variables = {"email": customer_user.email, "password": customer_user._password}
-    customer_user.is_active = False
+    customer_user.is_confirmed = False
     customer_user.save()
     expected_error_code = AccountErrorCode.ACCOUNT_NOT_CONFIRMED.value.upper()
 
@@ -170,10 +170,54 @@ def test_create_token_unconfirmed_email(api_client, customer_user):
     assert response_error["field"] == "email"
 
 
+@freeze_time("2020-03-18 12:00:00")
+def test_create_token_unconfirmed_user_unconfirmed_login_enabled(
+    api_client, customer_user, settings, site_settings
+):
+    # given
+    variables = {"email": customer_user.email, "password": customer_user._password}
+    site_settings.allow_login_without_confirmation = True
+    site_settings.save()
+    customer_user.is_confirmed = False
+    customer_user.save()
+
+    # when
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["tokenCreate"]
+
+    user_email = data["user"]["email"]
+    assert customer_user.email == user_email
+    assert content["data"]["tokenCreate"]["errors"] == []
+
+    token = data["token"]
+    refreshToken = data["refreshToken"]
+
+    payload = jwt_decode(token)
+    assert payload["email"] == customer_user.email
+    assert payload["user_id"] == graphene.Node.to_global_id("User", customer_user.id)
+    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
+    expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_ACCESS
+    assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
+    assert payload["type"] == JWT_ACCESS_TYPE
+
+    payload = jwt_decode(refreshToken)
+    assert payload["email"] == customer_user.email
+    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
+    expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_REFRESH
+    assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
+    assert payload["type"] == JWT_REFRESH_TYPE
+    assert payload["token"] == customer_user.jwt_token_key
+    assert payload["iss"] == build_absolute_uri(reverse("api"))
+
+
 def test_create_token_deactivated_user(api_client, customer_user):
     # given
     variables = {"email": customer_user.email, "password": customer_user._password}
     customer_user.is_active = False
+    customer_user.is_confirmed = True
     customer_user.last_login = datetime(2020, 3, 18, tzinfo=timezone.utc)
     customer_user.save()
     expected_error_code = AccountErrorCode.INACTIVE.value.upper()

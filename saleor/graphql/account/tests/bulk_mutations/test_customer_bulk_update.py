@@ -27,6 +27,18 @@ CUSTOMER_BULK_UPDATE_MUTATION = """
                 customer{
                     id
                     firstName
+                    defaultShippingAddress {
+                        metadata {
+                            key
+                            value
+                        }
+                    }
+                    defaultBillingAddress {
+                        metadata {
+                            key
+                            value
+                        }
+                    }
                 }
             }
             count
@@ -39,6 +51,7 @@ def test_customers_bulk_update_using_ids(
     staff_api_client,
     customer_users,
     permission_manage_users,
+    graphql_address_data,
 ):
     # given
     customer_1 = customer_users[0]
@@ -55,12 +68,16 @@ def test_customers_bulk_update_using_ids(
             "id": customer_1_id,
             "input": {
                 "firstName": customer_1_new_name,
+                "defaultShippingAddress": graphql_address_data,
+                "defaultBillingAddress": graphql_address_data,
             },
         },
         {
             "id": customer_2_id,
             "input": {
                 "firstName": customer_2_new_name,
+                "defaultShippingAddress": graphql_address_data,
+                "defaultBillingAddress": graphql_address_data,
             },
         },
     ]
@@ -76,11 +93,16 @@ def test_customers_bulk_update_using_ids(
     # then
     customer_1.refresh_from_db()
     customer_2.refresh_from_db()
+    stored_metadata = {"public": "public_value"}
     assert not data["results"][0]["errors"]
     assert not data["results"][1]["errors"]
     assert data["count"] == 2
     assert customer_1.first_name == customer_1_new_name
+    assert customer_1.default_billing_address.metadata == stored_metadata
+    assert customer_1.default_shipping_address.metadata == stored_metadata
     assert customer_2.first_name == customer_2_new_name
+    assert customer_2.default_billing_address.metadata == stored_metadata
+    assert customer_2.default_shipping_address.metadata == stored_metadata
 
 
 @patch("saleor.plugins.manager.PluginsManager.customer_updated")
@@ -276,6 +298,56 @@ def test_customers_bulk_update_generate_events_when_email_change(
     assert data["count"] == 1
     assert email_changed_event.type == CustomerEvents.EMAIL_ASSIGNED
     assert email_changed_event.user.pk == staff_user.pk
+    assert gift_card.created_by == customer_user
+    assert gift_card.created_by_email == customer_user.email
+    assert order.user == customer_user
+
+
+def test_customers_bulk_update_match_orders_and_gift_card_when_confirmed(
+    staff_api_client,
+    staff_user,
+    gift_card,
+    order,
+    customer_user,
+    permission_manage_users,
+):
+    # given
+    customer_user.is_confirmed = False
+    customer_user.save()
+
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+
+    gift_card.created_by = None
+    gift_card.created_by_email = customer_user.email
+    gift_card.save(update_fields=["created_by", "created_by_email"])
+
+    order.user = None
+    order.user_email = customer_user.email
+    order.save(update_fields=["user_email", "user"])
+
+    customers_input = [
+        {
+            "id": customer_id,
+            "input": {
+                "isConfirmed": True,
+            },
+        }
+    ]
+
+    variables = {"customers": customers_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(CUSTOMER_BULK_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["customerBulkUpdate"]
+
+    # then
+    gift_card.refresh_from_db()
+    order.refresh_from_db()
+    customer_user.refresh_from_db()
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
     assert gift_card.created_by == customer_user
     assert gift_card.created_by_email == customer_user.email
     assert order.user == customer_user

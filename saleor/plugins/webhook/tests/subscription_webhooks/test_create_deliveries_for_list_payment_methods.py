@@ -24,6 +24,7 @@ subscription {
 
 def test_list_stored_payment_methods(
     list_stored_payment_methods_app,
+    webhook_list_stored_payment_methods_response,
     channel_USD,
     customer_user,
 ):

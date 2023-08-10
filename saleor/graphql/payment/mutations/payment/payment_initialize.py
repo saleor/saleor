@@ -14,7 +14,9 @@ from ...types import PaymentInitialized
 
 
 class PaymentInitialize(BaseMutation):
-    initialized_payment = graphene.Field(PaymentInitialized, required=False)
+    initialized_payment = graphene.Field(
+        PaymentInitialized, required=False, description="Payment that was initialized."
+    )
 
     class Arguments:
         gateway = graphene.String(

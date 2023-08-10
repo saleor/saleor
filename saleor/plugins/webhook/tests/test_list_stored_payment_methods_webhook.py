@@ -1,6 +1,5 @@
 import graphene
 import mock
-import pytest
 
 from ....core.models import EventDelivery
 from ....payment.interface import ListStoredPaymentMethodsRequestData
@@ -24,28 +23,6 @@ subscription {
   }
 }
 """
-
-
-@pytest.fixture
-def webhook_list_stored_payment_methods_response():
-    return {
-        "paymentMethods": [
-            {
-                "id": "method-1",
-                "supportedPaymentFlows": ["INTERACTIVE"],
-                "type": "Credit Card",
-                "creditCardInfo": {
-                    "brand": "visa",
-                    "lastDigits": "1234",
-                    "expMonth": 1,
-                    "expYear": 2023,
-                    "firstDigits": "123456",
-                },
-                "name": "***1234",
-                "data": {"some": "data"},
-            }
-        ]
-    }
 
 
 @mock.patch("saleor.plugins.webhook.tasks.cache.set")
@@ -88,9 +65,7 @@ def test_list_stored_payment_methods_with_static_payload(
 
     # then
     delivery = EventDelivery.objects.get()
-    mock_request.assert_called_once_with(
-        list_stored_payment_methods_app, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
-    )
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     mocked_cache_get.assert_called_once_with(expected_cache_key)
     mocked_cache_set.assert_called_once_with(
@@ -150,9 +125,7 @@ def test_list_stored_payment_methods_with_subscription_payload(
 
     # then
     delivery = EventDelivery.objects.get()
-    mock_request.assert_called_once_with(
-        list_stored_payment_methods_app, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
-    )
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     mocked_cache_get.assert_called_once_with(expected_cache_key)
     mocked_cache_set.assert_called_once_with(
@@ -266,9 +239,7 @@ def test_list_stored_payment_methods_app_returns_incorrect_response(
 
     # then
     delivery = EventDelivery.objects.get()
-    mock_request.assert_called_once_with(
-        list_stored_payment_methods_app, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
-    )
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     mocked_cache_get.assert_called_once_with(expected_cache_key)
     assert not mocked_cache_set.called

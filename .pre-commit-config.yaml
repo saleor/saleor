@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/ambv/black
-    rev: 23.3.0
+    rev: 23.7.0
     hooks:
       - id: black
         language_version: python3.9
@@ -16,7 +16,7 @@ repos:
         exclude_types: [svg]
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.277
+    rev: v0.0.282
     hooks:
       - id: ruff
 

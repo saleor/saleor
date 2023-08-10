@@ -26,6 +26,7 @@ from ...core.mutations import ModelMutation
 from ...core.types import BaseInputObjectType, NonNullList, WebhookError
 from ...core.utils import raise_validation_error
 from .. import enums
+from ..mixins import NotifyUserEventValidationMixin
 from ..subscription_query import SubscriptionQuery
 from ..types import Webhook
 
@@ -80,7 +81,7 @@ class WebhookCreateInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_WEBHOOKS
 
 
-class WebhookCreate(ModelMutation):
+class WebhookCreate(ModelMutation, NotifyUserEventValidationMixin):
     class Arguments:
         input = WebhookCreateInput(
             description="Fields required to create a webhook.", required=True
@@ -147,8 +148,10 @@ class WebhookCreate(ModelMutation):
 
         return cleaned_data
 
-    @staticmethod
-    def _clean_webhook_events(data, subscription_query: Optional[SubscriptionQuery]):
+    @classmethod
+    def _clean_webhook_events(
+        cls, data, subscription_query: Optional[SubscriptionQuery]
+    ):
         # if `events` field is not empty, use this field. Otherwise get event types
         # from `async_events` and `sync_events`. If the fields are also empty,
         # parse events from `query`.
@@ -159,6 +162,7 @@ class WebhookCreate(ModelMutation):
 
         if not events and subscription_query:
             events = subscription_query.events
+        cls.validate_events(events)
 
         data["events"] = events
         return data

@@ -4,6 +4,7 @@ from os.path import exists, join
 from typing import Optional, Union, cast
 
 import jwt
+from authlib.jose import JsonWebKey
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from django.conf import settings
@@ -20,7 +21,6 @@ from .utils import build_absolute_uri
 logger = logging.getLogger(__name__)
 
 PUBLIC_KEY: Optional[rsa.RSAPublicKey] = None
-KID = "1"
 
 
 class JWTManagerBase:
@@ -56,6 +56,10 @@ class JWTManagerBase:
 
     @classmethod
     def get_jwks(cls) -> dict:
+        return NotImplemented
+
+    @classmethod
+    def get_key_id(cls) -> str:
         return NotImplemented
 
     @classmethod
@@ -138,8 +142,22 @@ class JWTManager(JWTManagerBase):
     @classmethod
     def get_jwks(cls) -> dict:
         jwk_dict = json.loads(RSAAlgorithm.to_jwk(cls.get_public_key()))
-        jwk_dict.update({"use": "sig", "kid": KID})
+        jwk_dict.update({"use": "sig", "kid": cls.get_key_id()})
         return {"keys": [jwk_dict]}
+
+    @classmethod
+    def get_key_id(cls) -> str:
+        """Generate JWT key ID for the public key.
+
+        This generates a "thumbprint" as 'kid' field using RFC 7638 implementation
+        based on the RSA public key.
+        """
+        public_key_pem = cls.get_public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        jwk = JsonWebKey.import_key(public_key_pem)
+        return jwk.thumbprint()
 
     @classmethod
     def encode(cls, payload):
@@ -147,7 +165,7 @@ class JWTManager(JWTManagerBase):
             payload,
             cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
             algorithm="RS256",
-            headers={"kid": KID},
+            headers={"kid": cls.get_key_id()},
         )
 
     @classmethod
@@ -156,7 +174,7 @@ class JWTManager(JWTManagerBase):
             payload,
             key=cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
             algorithm="RS256",
-            headers={"kid": KID},
+            headers={"kid": cls.get_key_id()},
             is_payload_detached=is_payload_detached,
         )
 

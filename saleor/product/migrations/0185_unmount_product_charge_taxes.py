@@ -6,6 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("product", "0184_product_product_gin"),
+        ("tax", "0004_migrate_tax_classes"),
     ]
 
     state_operations = [

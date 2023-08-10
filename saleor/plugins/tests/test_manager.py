@@ -25,6 +25,7 @@ from ...payment.interface import (
     StoredPaymentMethodRequestDeleteResponseData,
     TransactionProcessActionData,
     TransactionSessionData,
+    TransactionSessionResult,
 )
 from ...product.models import Product
 from ..base_plugin import ExternalAccessTokens
@@ -1214,7 +1215,7 @@ def test_manager_transaction_initialize_session(
             currency=transaction.currency,
             action_type=action_type,
         ),
-        payment_gateway=PaymentGatewayData(
+        payment_gateway_data=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=None, error=None
         ),
     )
@@ -1224,7 +1225,7 @@ def test_manager_transaction_initialize_session(
     )
 
     # then
-    assert isinstance(response, PaymentGatewayData)
+    assert isinstance(response, TransactionSessionResult)
 
 
 def test_manager_transaction_process_session(
@@ -1255,7 +1256,7 @@ def test_manager_transaction_process_session(
             currency=transaction.currency,
             action_type=action_type,
         ),
-        payment_gateway=PaymentGatewayData(
+        payment_gateway_data=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=None, error=None
         ),
     )
@@ -1265,7 +1266,7 @@ def test_manager_transaction_process_session(
     )
 
     # then
-    assert isinstance(response, PaymentGatewayData)
+    assert isinstance(response, TransactionSessionResult)
 
 
 @patch("saleor.plugins.tests.sample_plugins.PluginSample.checkout_fully_paid")

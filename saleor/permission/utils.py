@@ -8,6 +8,26 @@ if TYPE_CHECKING:
     from ..app.models import App
 
 
+def all_permissions_required(context, permissions: Iterable[BasePermissionEnum]):
+    """Determine whether user or app has rights to perform an action.
+
+    The `context` parameter is the Context instance associated with the request.
+
+    All required Saleor's permissions must be fulfilled.
+    If authorization filter provided, at least one of them must be fulfilled.
+    """
+    if not permissions:
+        return True
+
+    perm_results = _get_result_of_permissions_checks(context, permissions)
+    auth_filters_results = _get_result_of_authorization_filters_checks(
+        context, permissions
+    )
+    if auth_filters_results:
+        return all(perm_results) and any(auth_filters_results)
+    return all(perm_results)
+
+
 def one_of_permissions_or_auth_filter_required(
     context, permissions: Iterable[BasePermissionEnum]
 ) -> bool:
@@ -18,33 +38,44 @@ def one_of_permissions_or_auth_filter_required(
     if not permissions:
         return True
 
-    authorization_filters = [
-        p for p in permissions if isinstance(p, AuthorizationFilters)
-    ]
-    permissions = [p for p in permissions if not isinstance(p, AuthorizationFilters)]
+    perm_results = _get_result_of_permissions_checks(context, permissions)
+    auth_filters_results = _get_result_of_authorization_filters_checks(
+        context, permissions
+    )
+    return any(perm_results) or any(auth_filters_results)
 
-    granted_by_permissions = False
-    granted_by_authorization_filters = False
+
+def _get_result_of_permissions_checks(
+    context, permissions: Iterable[BasePermissionEnum]
+) -> Iterable[bool]:
+    permissions = [p for p in permissions if not isinstance(p, AuthorizationFilters)]
 
     # TODO: move this function from graphql to core
     from saleor.graphql.utils import get_user_or_app_from_context
 
     requestor = get_user_or_app_from_context(context)
 
+    perm_checks_results = []
     if requestor and permissions:
         perm_checks_results = [requestor.has_perm(perm) for perm in permissions]
-        granted_by_permissions = any(perm_checks_results)
+    return perm_checks_results
 
+
+def _get_result_of_authorization_filters_checks(
+    context, permissions: Iterable[BasePermissionEnum]
+) -> Iterable[bool]:
+    authorization_filters = [
+        p for p in permissions if isinstance(p, AuthorizationFilters)
+    ]
+    auth_filters_results = []
     if authorization_filters:
-        auth_filters_results = []
         for p in authorization_filters:
             perm_fn = resolve_authorization_filter_fn(p)
             if perm_fn:
                 res = perm_fn(context)
                 auth_filters_results.append(bool(res))
-        granted_by_authorization_filters = any(auth_filters_results)
 
-    return granted_by_permissions or granted_by_authorization_filters
+    return auth_filters_results
 
 
 def permission_required(

@@ -29,14 +29,16 @@ CONFIRM_ACCOUNT_MUTATION = """
 @patch(
     "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
 )
+@patch("saleor.plugins.manager.PluginsManager.account_confirmed")
 def test_account_confirmation(
     match_orders_with_new_user_mock,
     assign_gift_cards_mock,
+    mocked_account_confirmed,
     api_client,
     customer_user,
     channel_USD,
 ):
-    customer_user.is_active = False
+    customer_user.is_confirmed = False
     customer_user.save()
 
     variables = {
@@ -51,7 +53,8 @@ def test_account_confirmation(
     customer_user.refresh_from_db()
     match_orders_with_new_user_mock.assert_called_once_with(customer_user)
     assign_gift_cards_mock.assert_called_once_with(customer_user)
-    assert customer_user.is_active is True
+    assert customer_user.is_confirmed is True
+    mocked_account_confirmed.assert_called_once_with(customer_user)
 
 
 @freeze_time("2018-05-31 12:00:01")

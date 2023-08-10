@@ -776,3 +776,34 @@ def test_checkout_add_payment_run_multiple_times(
     payments = Payment.objects.filter(checkout=checkout)
     assert payments.count() == 2
     assert payments.filter(is_active=True).count() == 1
+
+
+def test_with_active_problems_flow(
+    api_client,
+    checkout_with_problems,
+    shipping_method,
+):
+    # given
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    return_url = "https://www.example.com"
+    variables = {
+        "id": to_global_id_or_none(checkout_with_problems),
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "returnUrl": return_url,
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(
+        CREATE_PAYMENT_MUTATION,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutPaymentCreate"]["errors"]

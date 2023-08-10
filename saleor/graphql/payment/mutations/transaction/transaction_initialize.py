@@ -118,7 +118,7 @@ class TransactionInitialize(TransactionSessionBase):
         app = cls.clean_app_from_payment_gateway(payment_gateway_data)
         transaction, event, data = handle_transaction_initialize_session(
             source_object=source_object,
-            payment_gateway=payment_gateway_data,
+            payment_gateway_data=payment_gateway_data,
             amount=amount,
             action=action,
             app=app,

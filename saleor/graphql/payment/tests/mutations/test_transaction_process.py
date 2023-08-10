@@ -14,6 +14,7 @@ from .....payment.interface import (
     PaymentGatewayData,
     TransactionProcessActionData,
     TransactionSessionData,
+    TransactionSessionResult,
 )
 from .....payment.models import TransactionEvent
 from ....core.enums import TransactionProcessErrorCode
@@ -165,7 +166,7 @@ def _assert_fields(
                 amount=expected_amount,
                 currency=source_object.currency,
             ),
-            payment_gateway=PaymentGatewayData(
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=app_identifier, data=data, error=None
             ),
         )
@@ -205,8 +206,8 @@ def test_for_checkout_without_data(
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
     del expected_response["data"]
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -266,8 +267,8 @@ def test_for_order_without_data(
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
     del expected_response["data"]
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -325,8 +326,8 @@ def test_for_checkout_with_data(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
     expected_data = {"some": "json-data"}
     variables = {
@@ -386,8 +387,8 @@ def test_for_order_with_data(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     expected_data = {"some": "json-data"}
@@ -447,8 +448,8 @@ def test_checkout_with_pending_amount(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_REQUEST.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -507,8 +508,8 @@ def test_order_with_pending_amount(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_REQUEST.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -566,8 +567,8 @@ def test_checkout_with_action_required_response(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -624,8 +625,8 @@ def test_order_with_action_required_response(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -878,8 +879,8 @@ def test_checkout_fully_paid(
     expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
     expected_response["result"] = result.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
