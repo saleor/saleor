@@ -1826,7 +1826,7 @@ class StoredPaymentMethodRequestDelete(SubscriptionObjectType):
 
     channel = graphene.Field(
         "saleor.graphql.channel.types.Channel",
-        description=("Channel related to delete request."),
+        description="Channel related to delete request.",
         required=True,
     )
 
