@@ -62,7 +62,7 @@ if TYPE_CHECKING:
     from ..core.middleware import Requestor
     from ..core.utils.translations import Translation
     from ..csv.models import ExportFile
-    from ..discount.models import Promotion, Sale, Voucher
+    from ..discount.models import Promotion, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
@@ -749,7 +749,7 @@ class PluginsManager(PaymentInterface):
             "sale_created", default_value, sale, current_catalogue
         )
 
-    def sale_deleted(self, sale: "Sale", previous_catalogue):
+    def sale_deleted(self, sale: "Promotion", previous_catalogue):
         default_value = None
         return self.__run_method_on_plugins(
             "sale_deleted", default_value, sale, previous_catalogue
