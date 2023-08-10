@@ -90,3 +90,10 @@ class TransactionProcessErrorCode(Enum):
     TRANSACTION_ALREADY_PROCESSED = "transaction_already_processed"
     MISSING_PAYMENT_APP_RELATION = "missing_payment_app_relation"
     MISSING_PAYMENT_APP = "missing_payment_app"
+
+
+class StoredPaymentMethodRequestDeleteErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    CHANNEL_INACTIVE = "channel_inactive"

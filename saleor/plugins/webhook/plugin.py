@@ -1656,7 +1656,7 @@ class WebhookPlugin(BasePlugin):
         if not app_data or not app_data.app_identifier:
             return previous_value
 
-        event_type = WebhookEventSyncType.STORED_PAYMENT_METHOD_REQUEST_DELETE
+        event_type = WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED
         webhook = get_webhooks_for_event(
             event_type, apps_identifier=[app_data.app_identifier]
         ).first()
@@ -2260,7 +2260,7 @@ class WebhookPlugin(BasePlugin):
         map_event = {
             "invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED,
             "stored_payment_method_request_delete": (
-                WebhookEventSyncType.STORED_PAYMENT_METHOD_REQUEST_DELETE
+                WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED
             ),
         }
 

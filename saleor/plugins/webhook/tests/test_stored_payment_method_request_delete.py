@@ -16,10 +16,10 @@ from ....webhook.models import Webhook
 from ..const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ..utils import generate_cache_key_for_webhook, to_payment_app_id
 
-STORED_PAYMENT_METHOD_REQUEST_DELETE = """
+STORED_PAYMENT_METHOD_DELETE_REQUESTED = """
 subscription {
   event {
-    ... on StoredPaymentMethodRequestDelete{
+    ... on StoredPaymentMethodDeleteRequested{
       user{
         id
       }
@@ -101,7 +101,7 @@ def test_stored_payment_method_request_delete_with_subscription_payload(
     mock_request.return_value = webhook_stored_payment_method_request_delete_response
 
     webhook = stored_payment_method_request_delete_app.webhooks.first()
-    webhook.subscription_query = STORED_PAYMENT_METHOD_REQUEST_DELETE
+    webhook.subscription_query = STORED_PAYMENT_METHOD_DELETE_REQUESTED
     webhook.save()
 
     plugin = webhook_plugin()
@@ -155,7 +155,7 @@ def test_stored_payment_method_request_delete_missing_correct_response_from_webh
     mock_request.return_value = None
 
     webhook = stored_payment_method_request_delete_app.webhooks.first()
-    webhook.subscription_query = STORED_PAYMENT_METHOD_REQUEST_DELETE
+    webhook.subscription_query = STORED_PAYMENT_METHOD_DELETE_REQUESTED
     webhook.save()
 
     plugin = webhook_plugin()
@@ -222,7 +222,7 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     ]
 
     webhook = stored_payment_method_request_delete_app.webhooks.first()
-    webhook.subscription_query = STORED_PAYMENT_METHOD_REQUEST_DELETE
+    webhook.subscription_query = STORED_PAYMENT_METHOD_DELETE_REQUESTED
     webhook.save()
 
     plugin = webhook_plugin()
@@ -275,7 +275,7 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
 
     # then
     delivery = EventDelivery.objects.filter(
-        event_type=WebhookEventSyncType.STORED_PAYMENT_METHOD_REQUEST_DELETE
+        event_type=WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED
     ).first()
     assert delivery.payload.payload == json.dumps(
         {
