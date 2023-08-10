@@ -401,7 +401,7 @@ def test_transaction_update_available_actions_by_app(
     transaction = transaction_item_created_by_app
     available_actions = [
         TransactionActionEnum.REFUND.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.REFUND.name,
     ]
 
     variables = {
@@ -420,11 +420,8 @@ def test_transaction_update_available_actions_by_app(
     transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["actions"] == [
-        TransactionActionEnum.REFUND.name,
-        TransactionActionEnum.CANCEL.name,
-    ]
-    assert transaction.available_actions == ["refund", "cancel"]
+    assert data["actions"] == list(set(available_actions))
+    assert transaction.available_actions == [TransactionActionEnum.REFUND.value]
 
 
 @pytest.mark.parametrize(
@@ -1381,7 +1378,7 @@ def test_transaction_update_available_actions_by_staff(
     transaction = transaction_item_created_by_user
     available_actions = [
         TransactionActionEnum.REFUND.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.REFUND.name,
     ]
 
     variables = {
@@ -1400,11 +1397,8 @@ def test_transaction_update_available_actions_by_staff(
     transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["actions"] == [
-        TransactionActionEnum.REFUND.name,
-        TransactionActionEnum.CANCEL.name,
-    ]
-    assert transaction.available_actions == ["refund", "cancel"]
+    assert data["actions"] == list(set(available_actions))
+    assert transaction.available_actions == [TransactionActionEnum.REFUND.value]
 
 
 @pytest.mark.parametrize(
