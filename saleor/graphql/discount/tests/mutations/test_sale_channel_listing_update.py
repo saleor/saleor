@@ -336,6 +336,10 @@ def test_sale_channel_listing_add_update_remove_channels(
     for rule in rules:
         assert len(rule.channels.all()) == 1
 
+    mock_update_products_discounted_prices_task.delay.assert_called_once_with(
+        promotion.pk
+    )
+
 
 def test_sale_channel_listing_update_with_negative_discounted_value(
     staff_api_client,

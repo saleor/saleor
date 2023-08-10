@@ -85,7 +85,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
     def add_channels(cls, promotion: Promotion, add_channels: List[Dict]):
         rules_data_to_add: List[RuleInfo] = []
         rules_to_update: List[PromotionRule] = []
-        # TODO many database hits - potential refactor
+
         rules = promotion.rules.all()
         PromotionRuleChannel = PromotionRule.channels.through
         rule_ids = [rule.id for rule in rules]
@@ -93,7 +93,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
             promotionrule_id__in=rule_ids
         )
         current_channel_ids = rule_channel.values_list("channel_id", flat=True)
-        rule = rules[0]
+        examplart_rule = rules[0]
         for add_channel in add_channels:
             channel = add_channel["channel"]
             discount_value = add_channel["discount_value"]
@@ -102,10 +102,10 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
                 rules_data_to_add.append(
                     RuleInfo(
                         rule=PromotionRule(
-                            name=rule.name,
+                            name=examplart_rule.name,
                             promotion=promotion,
-                            catalogue_predicate=rule.catalogue_predicate,
-                            reward_value_type=rule.reward_value_type,
+                            catalogue_predicate=examplart_rule.catalogue_predicate,
+                            reward_value_type=examplart_rule.reward_value_type,
                             reward_value=discount_value,
                         ),
                         channel=channel,
