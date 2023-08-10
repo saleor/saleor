@@ -81,7 +81,7 @@ class SaleDelete(ModelDeleteMutation):
             raise_validation_error(
                 field="id",
                 message="Provided ID refers to Promotion model. "
-                "Please use 'promotionUpdate' mutation instead.",
+                "Please use 'promotionDelete' mutation instead.",
                 code=DiscountErrorCode.INVALID.value,
             )
         object_id = cls.get_global_id_or_error(id, "Sale")

@@ -103,7 +103,7 @@ def test_sale_delete_mutation_with_promotion_id(
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["message"] == (
         "Provided ID refers to Promotion model. "
-        "Please use 'promotionUpdate' mutation instead."
+        "Please use 'promotionDelete' mutation instead."
     )
 
     deleted_webhook_mock.assert_not_called()
