@@ -334,17 +334,24 @@ class PluginSample(BasePlugin):
             app_identifier="321", response=None, error="Some error"
         )
 
-    def checkout_fully_paid(self, checkout):
+    def checkout_fully_paid(self, checkout, previous_value):
         return None
 
-    def order_fully_refunded(self, order):
+    def order_fully_refunded(self, order, previous_value):
         return None
 
-    def order_paid(self, order):
+    def order_paid(self, order, previous_value):
         return None
 
-    def order_refunded(self, order):
+    def order_refunded(self, order, previous_value):
         return None
+
+    def list_stored_payment_methods(
+        self,
+        list_payment_method_data,
+        previous_value,
+    ):
+        return []
 
 
 class ChannelPluginSample(PluginSample):

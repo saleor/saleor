@@ -12,6 +12,7 @@ from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
 from ...graphql.meta.inputs import MetadataInput
 from ...order import OrderStatus
+from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions, AppPermission, OrderPermissions
 from ...thumbnail.utils import (
@@ -22,6 +23,7 @@ from ...thumbnail.utils import (
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader, get_app_promise
 from ..app.types import App
+from ..channel.dataloaders import ChannelBySlugLoader
 from ..channel.types import Channel
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout, CheckoutCountableConnection
@@ -55,6 +57,7 @@ from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_n
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
+from ..payment.types import StoredPaymentMethod
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .dataloaders import (
@@ -399,7 +402,10 @@ class User(ModelObjectType[models.User]):
     )
     stored_payment_sources = NonNullList(
         "saleor.graphql.payment.types.PaymentSource",
-        description="List of stored payment sources.",
+        description=(
+            "List of stored payment sources. The field returns a list of payment "
+            "sources stored for payment plugins."
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -426,6 +432,19 @@ class User(ModelObjectType[models.User]):
     updated_at = graphene.DateTime(
         required=True,
         description="The data when the user last update the account information.",
+    )
+    stored_payment_methods = NonNullList(
+        StoredPaymentMethod,
+        description=(
+            "Returns a list of user's stored payment methods that can be used in "
+            "provided channel. The field returns a list of stored payment methods by "
+            "payment apps. When `amount` is not provided, 0 will be used as default "
+            "value." + ADDED_IN_315 + PREVIEW_FEATURE
+        ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned.",
+            required=True,
+        ),
     )
 
     class Meta:
@@ -665,6 +684,31 @@ class User(ModelObjectType[models.User]):
             else:
                 results.append(users_by_email.get(root.email))
         return results
+
+    @staticmethod
+    def resolve_stored_payment_methods(
+        root: models.User,
+        info: ResolveInfo,
+        channel: str,
+    ):
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor or requestor.id != root.id:
+            return []
+
+        def get_stored_payment_methods(data):
+            channel_obj, manager = data
+            request_data = ListStoredPaymentMethodsRequestData(
+                user=root,
+                channel=channel_obj,
+            )
+            return manager.list_stored_payment_methods(request_data)
+
+        return Promise.all(
+            [
+                ChannelBySlugLoader(info.context).load(channel),
+                get_plugin_manager_promise(info.context),
+            ]
+        ).then(get_stored_payment_methods)
 
 
 class UserCountableConnection(CountableConnection):

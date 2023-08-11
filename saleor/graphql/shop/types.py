@@ -14,7 +14,6 @@ from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import SitePermissions, get_permissions
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
-from ..checkout.types import PaymentGateway
 from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_31,
@@ -43,6 +42,7 @@ from ..core.types import (
 )
 from ..core.utils import str_to_enum
 from ..meta.types import ObjectWithMetadata
+from ..payment.types import PaymentGateway
 from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..shipping.types import ShippingMethod
 from ..site.dataloaders import get_site_promise, load_site_callback

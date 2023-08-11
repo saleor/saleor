@@ -10,12 +10,68 @@ from ..order.fetch import OrderLineInfo
 from ..payment.models import TransactionEvent, TransactionItem
 
 if TYPE_CHECKING:
+    from ..account.models import User
     from ..app.models import App
+    from ..channel.models import Channel
     from ..checkout.models import Checkout
     from ..order.models import Order, OrderGrantedRefund
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
+
+
+@dataclass
+class PaymentGateway:
+    """Dataclass for storing information about a payment gateway."""
+
+    id: str
+    name: str
+    currencies: List[str]
+    config: List[Dict[str, Any]]
+
+
+@dataclass
+class ListStoredPaymentMethodsRequestData:
+    channel: "Channel"
+    user: "User"
+
+
+@dataclass
+class PaymentMethodCreditCardInfo:
+    brand: str
+    last_digits: str
+    exp_month: int
+    exp_year: int
+    first_digits: Optional[str] = None
+
+
+@dataclass
+class PaymentMethodData:
+    """Payment method data.
+
+    Represents a payment method stored for user (tokenized) in payment gateway, such
+    as credit card or SEPA direct debit
+
+    id - ID of stored payment method used to make payment actions
+    type - Type of the payment method
+    gateway - The app that owns the payment method
+    external_id - ID of the payment method in the payment gateway
+    supported_payment_flows - List of supported flows that can be performed with this
+    payment method
+    credit_card_info - Credit card information if the payment method is a credit card
+    name -  Name of the payment method. Example: last 4 digits of credit card,
+    obfuscated email
+    data - JSON data returned by Payment Provider app for this payment method
+    """
+
+    id: str
+    type: str
+    external_id: str
+    gateway: PaymentGateway
+    supported_payment_flows: List[str] = field(default_factory=list)
+    credit_card_info: Optional[PaymentMethodCreditCardInfo] = None
+    name: Optional[str] = None
+    data: Optional[JSONType] = None
 
 
 @dataclass
@@ -245,16 +301,6 @@ class CustomerSource:
     gateway: str
     credit_card_info: Optional[PaymentMethodInfo] = None
     metadata: Optional[Dict[str, str]] = None
-
-
-@dataclass
-class PaymentGateway:
-    """Dataclass for storing information about a payment gateway."""
-
-    id: str
-    name: str
-    currencies: List[str]
-    config: List[Dict[str, Any]]
 
 
 @dataclass

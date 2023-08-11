@@ -18,6 +18,7 @@ from ...discount.utils import (
 )
 from ...graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
 from ...payment.interface import (
+    ListStoredPaymentMethodsRequestData,
     PaymentGateway,
     PaymentGatewayData,
     TransactionProcessActionData,
@@ -1332,3 +1333,26 @@ def test_order_paid(mocked_sample_method, order):
 
     # then
     mocked_sample_method.assert_called_once_with(order, previous_value=None)
+
+
+@patch("saleor.plugins.tests.sample_plugins.PluginSample.list_stored_payment_methods")
+def test_list_stored_payment_methods(
+    mocked_list_stored_payment_methods, channel_USD, customer_user
+):
+    # given
+    data = ListStoredPaymentMethodsRequestData(
+        channel=channel_USD,
+        user=customer_user,
+    )
+
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+
+    # when
+    manager.list_stored_payment_methods(data)
+
+    # then
+    mocked_list_stored_payment_methods.assert_called_once()

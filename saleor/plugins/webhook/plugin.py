@@ -4,7 +4,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, DefaultDict, Final, List, Optional, Set, Union
 
 import graphene
-from django.core.cache import cache
 
 from ...app.models import App
 from ...checkout.models import Checkout
@@ -18,14 +17,17 @@ from ...graphql.webhook.subscription_payload import initialize_request
 from ...payment import PaymentError, TransactionKind
 from ...payment.interface import (
     GatewayResponse,
+    ListStoredPaymentMethodsRequestData,
     PaymentData,
     PaymentGateway,
     PaymentGatewayData,
+    PaymentMethodData,
     TransactionActionData,
     TransactionSessionData,
     TransactionSessionResult,
 )
 from ...payment.models import Payment, TransactionItem
+from ...settings import WEBHOOK_SYNC_TIMEOUT
 from ...thumbnail.models import Thumbnail
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
@@ -58,9 +60,10 @@ from ...webhook.payloads import (
 )
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import BasePlugin, ExcludedShippingMethod
-from .const import CACHE_EXCLUDED_SHIPPING_KEY
+from .const import CACHE_EXCLUDED_SHIPPING_KEY, WEBHOOK_CACHE_DEFAULT_TIMEOUT
+from .list_stored_payment_methods import get_list_stored_payment_methods_from_response
 from .shipping import (
-    generate_cache_key_for_shipping_list_methods_for_checkout,
+    get_cache_data_for_shipping_list_methods_for_checkout,
     get_excluded_shipping_data,
     parse_list_shipping_methods_response,
 )
@@ -69,6 +72,7 @@ from .tasks import (
     trigger_all_webhooks_sync,
     trigger_transaction_request,
     trigger_webhook_sync,
+    trigger_webhook_sync_if_not_cached,
     trigger_webhooks_async,
 )
 from .utils import (
@@ -1633,6 +1637,46 @@ class WebhookPlugin(BasePlugin):
         delivery_update(delivery, status=EventDeliveryStatus.PENDING)
         send_webhook_request_async.delay(delivery.pk)
 
+    def list_stored_payment_methods(
+        self,
+        list_payment_method_data: "ListStoredPaymentMethodsRequestData",
+        previous_value: list["PaymentMethodData"],
+    ) -> list["PaymentMethodData"]:
+        if not self.active:
+            return previous_value
+
+        event_type = WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS
+
+        if webhooks := get_webhooks_for_event(event_type):
+            payload_dict = {
+                "user_id": graphene.Node.to_global_id(
+                    "User", list_payment_method_data.user.id
+                ),
+                "channel_slug": list_payment_method_data.channel.slug,
+            }
+            payload = self._serialize_payload(payload_dict)
+            for webhook in webhooks:
+                if not webhook.app.identifier:
+                    continue
+                response_data = trigger_webhook_sync_if_not_cached(
+                    event_type,
+                    payload,
+                    webhook,
+                    cache_data=payload_dict,
+                    subscribable_object=list_payment_method_data,
+                    request_timeout=WEBHOOK_SYNC_TIMEOUT,
+                    cache_timeout=WEBHOOK_CACHE_DEFAULT_TIMEOUT,
+                )
+                if response_data:
+                    previous_value.extend(
+                        get_list_stored_payment_methods_from_response(
+                            webhook.app,
+                            response_data,
+                            list_payment_method_data.channel.currency_code,
+                        )
+                    )
+        return previous_value
+
     def _request_transaction_action(
         self,
         transaction_data: "TransactionActionData",
@@ -2071,30 +2115,17 @@ class WebhookPlugin(BasePlugin):
         webhooks = get_webhooks_for_event(event_type)
         if webhooks:
             payload = generate_checkout_payload(checkout, self.requestor)
+            cache_data = get_cache_data_for_shipping_list_methods_for_checkout(payload)
             for webhook in webhooks:
-                if not webhook:
-                    raise PaymentError(
-                        f"No payment webhook found for event: {event_type}."
-                    )
-
-                cache_key = generate_cache_key_for_shipping_list_methods_for_checkout(
-                    payload, webhook.target_url
+                response_data = trigger_webhook_sync_if_not_cached(
+                    event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                    payload=payload,
+                    webhook=webhook,
+                    cache_data=cache_data,
+                    subscribable_object=checkout,
+                    request_timeout=WEBHOOK_SYNC_TIMEOUT,
+                    cache_timeout=CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT,
                 )
-                response_data = cache.get(cache_key)
-
-                if response_data is None:
-                    response_data = trigger_webhook_sync(
-                        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                        payload=payload,
-                        webhook=webhook,
-                        subscribable_object=checkout,
-                    )
-                    if response_data is not None:
-                        cache.set(
-                            cache_key,
-                            response_data,
-                            CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                        )
 
                 if response_data:
                     shipping_methods = parse_list_shipping_methods_response(

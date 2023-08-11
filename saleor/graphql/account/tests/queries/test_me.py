@@ -1,6 +1,14 @@
 import graphene
+import mock
 
 from .....order.models import FulfillmentStatus
+from .....payment.interface import (
+    ListStoredPaymentMethodsRequestData,
+    PaymentGateway,
+    PaymentMethodCreditCardInfo,
+    PaymentMethodData,
+)
+from ....payment.enums import TokenizedPaymentFlowEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 ME_QUERY = """
@@ -271,3 +279,125 @@ def test_me_with_cancelled_fulfillments(
     fulfillments = order["fulfillments"]
     assert len(fulfillments) == 1
     assert fulfillments[0]["status"] == FulfillmentStatus.FULFILLED.upper()
+
+
+QUERY_ME_WITH_STORED_PAYMENT_METHODS = """
+query Me($channel: String!) {
+  me{
+    storedPaymentMethods(channel: $channel){
+      id
+      gateway{
+        name
+        id
+        config{
+          field
+          value
+        }
+        currencies
+      }
+      paymentMethodId
+      creditCardInfo{
+        brand
+        firstDigits
+        lastDigits
+        expMonth
+        expYear
+      }
+      supportedPaymentFlows
+      type
+      name
+      data
+    }
+  }
+}
+"""
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.list_stored_payment_methods")
+def test_me_query_stored_payment_methods(
+    mocked_list_stored_payment_methods, user_api_client, channel_USD, customer_user
+):
+    # given
+    payment_method_id = "app:payment-method-id"
+    external_id = "payment-method-id"
+    supported_payment_flow = TokenizedPaymentFlowEnum.INTERACTIVE
+    payment_method_type = "credit-card"
+    payment_method_name = "Payment method name"
+    payment_method_data = {"additional_data": "value"}
+
+    payment_gateway_id = "gateway-id"
+    payment_gateway_name = "gateway-name"
+
+    credit_card_brand = "brand"
+    credit_card_first_digits = "123"
+    credit_card_last_digits = "456"
+    credit_card_exp_month = 1
+    credit_card_exp_year = 2021
+
+    mocked_list_stored_payment_methods.return_value = [
+        PaymentMethodData(
+            id=payment_method_id,
+            external_id=external_id,
+            supported_payment_flows=[supported_payment_flow.value],
+            type=payment_method_type,
+            credit_card_info=PaymentMethodCreditCardInfo(
+                brand=credit_card_brand,
+                first_digits=credit_card_first_digits,
+                last_digits=credit_card_last_digits,
+                exp_month=credit_card_exp_month,
+                exp_year=credit_card_exp_year,
+            ),
+            name=payment_method_name,
+            data=payment_method_data,
+            gateway=PaymentGateway(
+                id=payment_gateway_id,
+                name=payment_gateway_name,
+                currencies=[channel_USD.currency_code],
+                config=[],
+            ),
+        )
+    ]
+
+    request_data = ListStoredPaymentMethodsRequestData(
+        user=user_api_client.user,
+        channel=channel_USD,
+    )
+
+    query = QUERY_ME_WITH_STORED_PAYMENT_METHODS
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables={
+            "channel": channel_USD.slug,
+        },
+    )
+
+    # then
+    mocked_list_stored_payment_methods.assert_called_once_with(request_data)
+    content = get_graphql_content(response)
+
+    data = content["data"]["me"]
+    assert data["storedPaymentMethods"] == [
+        {
+            "id": payment_method_id,
+            "gateway": {
+                "name": payment_gateway_name,
+                "id": payment_gateway_id,
+                "config": [],
+                "currencies": [channel_USD.currency_code],
+            },
+            "paymentMethodId": external_id,
+            "creditCardInfo": {
+                "brand": credit_card_brand,
+                "firstDigits": credit_card_first_digits,
+                "lastDigits": credit_card_last_digits,
+                "expMonth": credit_card_exp_month,
+                "expYear": credit_card_exp_year,
+            },
+            "supportedPaymentFlows": [supported_payment_flow.name],
+            "type": payment_method_type,
+            "name": payment_method_name,
+            "data": payment_method_data,
+        }
+    ]

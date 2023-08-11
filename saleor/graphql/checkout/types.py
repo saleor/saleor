@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
 import graphene
@@ -12,6 +13,7 @@ from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.taxes import zero_money, zero_taxed_money
 from ...core.utils.lazyobjects import unwrap_lazy
+from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.enums import (
     AccountPermissions,
     CheckoutPermissions,
@@ -22,7 +24,7 @@ from ...tax.utils import get_display_gross_prices
 from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
 from ...webhook.event_types import WebhookEventSyncType
-from ..account.dataloaders import AddressByIdLoader
+from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
@@ -45,10 +47,10 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
-from ..core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
+from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import BaseField
-from ..core.scalars import UUID
+from ..core.scalars import UUID, PositiveDecimal
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo, str_to_enum
@@ -57,7 +59,7 @@ from ..giftcard.dataloaders import GiftCardsByCheckoutIdLoader
 from ..giftcard.types import GiftCard
 from ..meta import resolvers as MetaResolvers
 from ..meta.types import ObjectWithMetadata, _filter_metadata
-from ..payment.types import TransactionItem
+from ..payment.types import PaymentGateway, StoredPaymentMethod, TransactionItem
 from ..plugins.dataloaders import (
     get_plugin_manager_promise,
     plugin_manager_promise_callback,
@@ -194,37 +196,6 @@ class CheckoutProblem(graphene.Union):
         if isinstance(instance, problems.CheckoutLineProblemVariantNotAvailable):
             return CheckoutLineProblemVariantNotAvailable
         return super(CheckoutProblem, cls).resolve_type(instance, info)
-
-
-class GatewayConfigLine(BaseObjectType):
-    field = graphene.String(required=True, description="Gateway config key.")
-    value = graphene.String(description="Gateway config value for key.")
-
-    class Meta:
-        description = "Payment gateway client configuration key and value pair."
-        doc_category = DOC_CATEGORY_PAYMENTS
-
-
-class PaymentGateway(BaseObjectType):
-    name = graphene.String(required=True, description="Payment gateway name.")
-    id = graphene.ID(required=True, description="Payment gateway ID.")
-    config = NonNullList(
-        GatewayConfigLine,
-        required=True,
-        description="Payment gateway client configuration.",
-    )
-    currencies = NonNullList(
-        graphene.String,
-        required=True,
-        description="Payment gateway supported currencies.",
-    )
-
-    class Meta:
-        description = (
-            "Available payment gateway backend with configuration "
-            "necessary to setup client."
-        )
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class CheckoutLine(ModelObjectType[models.CheckoutLine]):
@@ -777,6 +748,18 @@ class Checkout(ModelObjectType[models.Checkout]):
             ),
         ],
     )
+    stored_payment_methods = NonNullList(
+        StoredPaymentMethod,
+        description=(
+            "List of user's stored payment methods that can be used in this checkout "
+            "session. It uses the channel that the checkout was created in. "
+            "When `amount` is not provided, `checkout.total` will be used as a default "
+            "value." + ADDED_IN_315 + PREVIEW_FEATURE
+        ),
+        amount=PositiveDecimal(
+            description="Amount that will be used to fetch stored payment methods."
+        ),
+    )
 
     problems = NonNullList(
         CheckoutProblem,
@@ -1212,6 +1195,31 @@ class Checkout(ModelObjectType[models.Checkout]):
             info.context
         )
         return checkout_problems_dataloader.load(root.pk)
+
+    @staticmethod
+    def resolve_stored_payment_methods(
+        root: models.Checkout, info: ResolveInfo, amount: Optional[Decimal] = None
+    ):
+        if root.user_id is None:
+            return []
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor or requestor.id != root.user_id:
+            return []
+
+        def _resolve_stored_payment_methods(data):
+            channel, user, manager = data
+            request_data = ListStoredPaymentMethodsRequestData(
+                user=user,
+                channel=channel,
+            )
+            return manager.list_stored_payment_methods(request_data)
+
+        manager = get_plugin_manager_promise(info.context)
+        channel_loader = ChannelByIdLoader(info.context).load(root.channel_id)
+        user_loader = UserByUserIdLoader(info.context).load(root.user_id)
+        return Promise.all([channel_loader, user_loader, manager]).then(
+            _resolve_stored_payment_methods
+        )
 
 
 class CheckoutCountableConnection(CountableConnection):
