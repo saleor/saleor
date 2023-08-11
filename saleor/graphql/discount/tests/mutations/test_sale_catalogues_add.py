@@ -4,9 +4,12 @@ import graphene
 import pytest
 
 from .....discount.error_codes import DiscountErrorCode
+from .....discount.models import Promotion
+from .....discount.sale_converter import convert_sales_to_promotions
 from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...mutations.utils import convert_catalogue_info_to_global_ids
+from ...utils import convert_migrated_sale_predicate_to_catalogue_info
 
 SALE_CATALOGUES_ADD_MUTATION = """
     mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
@@ -24,8 +27,6 @@ SALE_CATALOGUES_ADD_MUTATION = """
 """
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
 )
@@ -54,6 +55,8 @@ def test_sale_add_catalogues(
         graphene.Node.to_global_id("ProductVariant", variant.id)
         for variant in product_variant_list
     ]
+    convert_sales_to_promotions()
+
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
         "input": {
@@ -70,11 +73,12 @@ def test_sale_add_catalogues(
     )
 
     # then
-    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
     content = get_graphql_content(response)
-    data = content["data"]["saleCataloguesAdd"]
+    assert not content["data"]["saleCataloguesAdd"]["errors"]
+    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    predicate = promotion.rules.first().catalogue_predicate
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
-    assert not data["errors"]
     assert product in sale.products.all()
     assert category in sale.categories.all()
     assert collection in sale.collections.all()

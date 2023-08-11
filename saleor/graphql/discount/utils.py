@@ -267,3 +267,57 @@ def get_categories_from_predicate(catalogue_predicate) -> QuerySet:
     return where_filter_qs(
         Category.objects.all(), {}, CategoryWhere, catalogue_predicate, None
     ).all()
+
+
+def get_product_ids_for_predicate(predicate: dict) -> set[int]:
+    variants = get_variants_for_predicate(predicate)
+    products = Product.objects.filter(
+        Exists(variants.filter(product_id=OuterRef("id")))
+    )
+    return set(products.values_list("id", flat=True))
+
+
+def merge_migrated_sale_predicates(predicate_1: dict, predicate_2: dict) -> dict:
+    predicate_1_or = predicate_1.get("OR")
+    predicate_2_or = predicate_2.get("OR")
+
+    if not predicate_1_or:
+        return predicate_2
+
+    if not predicate_2_or:
+        return predicate_1
+
+    catalogue_info_1 = convert_migrated_sale_predicate_to_catalogue_info(predicate_1)
+    catalogue_info_2 = convert_migrated_sale_predicate_to_catalogue_info(predicate_2)
+    merged_catalogue_info = merge_catalogues_info(catalogue_info_1, catalogue_info_2)
+    return convert_catalogue_info_into_predicate(merged_catalogue_info)
+
+
+def merge_catalogues_info(
+    catalogue_1: CatalogueInfo, catalogue_2: CatalogueInfo
+) -> CatalogueInfo:
+    new_catalogue = deepcopy(catalogue_1)
+    new_catalogue["collections"].update(catalogue_2.get("collections", {}))
+    new_catalogue["categories"].update(catalogue_2.get("categories", {}))
+    new_catalogue["products"].update(catalogue_2.get("products", {}))
+    new_catalogue["variants"].update(catalogue_2.get("variants", {}))
+    return new_catalogue
+
+
+def convert_catalogue_info_into_predicate(catalogue_info: CatalogueInfo) -> dict:
+    catalogue = []
+    collection_ids = catalogue_info.get("collections")
+    category_ids = catalogue_info.get("categories")
+    product_ids = catalogue_info.get("products")
+    variants_ids = catalogue_info.get("variants")
+    if collection_ids:
+        catalogue.append({"collectionPredicate": {"ids": list(collection_ids)}})
+    if category_ids:
+        catalogue.append({"categoryPredicate": {"ids": list(category_ids)}})
+    if product_ids:
+        catalogue.append({"productPredicate": {"ids": list(product_ids)}})
+    if variants_ids:
+        catalogue.append({"variantPredicate": {"ids": list(variants_ids)}})
+    if catalogue:
+        return {"OR": catalogue}
+    return {}

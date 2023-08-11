@@ -8,6 +8,7 @@ from ..utils import (
     convert_migrated_sale_predicate_to_catalogue_info,
     get_variants_for_predicate,
     get_variants_for_promotion,
+    merge_migrated_sale_predicates,
 )
 
 
@@ -285,3 +286,55 @@ def test_convert_migrated_sale_predicate_to_catalogue_info(
 
     # then
     assert catalogue_info == expected_result
+
+
+def test_merge_migrated_sale_predicate(
+    collection_list, category_list, product_list, product_variant_list
+):
+    # given
+    collection_ids = [
+        graphene.Node.to_global_id("Collection", item.id) for item in collection_list
+    ]
+    category_ids = [
+        graphene.Node.to_global_id("Category", item.id) for item in category_list
+    ]
+    product_ids = [
+        graphene.Node.to_global_id("Product", item.id) for item in product_list
+    ]
+    variant_ids = [
+        graphene.Node.to_global_id("ProductVariant", item.id)
+        for item in product_variant_list
+    ]
+
+    predicate_1 = {
+        "OR": [
+            {"collectionPredicate": {"ids": [collection_ids[0]]}},
+            {"categoryPredicate": {"ids": [category_ids[0]]}},
+            {"productPredicate": {"ids": [product_ids[0]]}},
+            {"variantPredicate": {"ids": [variant_ids[0]]}},
+        ]
+    }
+
+    predicate_2 = {
+        "OR": [
+            {"collectionPredicate": {"ids": [collection_ids[1]]}},
+            {"categoryPredicate": {"ids": category_ids[:2]}},
+            {"productPredicate": {"ids": [product_ids[0]]}},
+            {"variantPredicate": {"ids": [variant_ids[2]]}},
+        ]
+    }
+
+    expected_predicate = {
+        "OR": [
+            {"collectionPredicate": {"ids": collection_ids[:2]}},
+            {"categoryPredicate": {"ids": category_ids[:2]}},
+            {"productPredicate": {"ids": [product_ids[0]]}},
+            {"variantPredicate": {"ids": [variant_ids[0], variant_ids[2]]}},
+        ]
+    }
+
+    # when
+    merged_predicate = merge_migrated_sale_predicates(predicate_1, predicate_2)
+
+    # then
+    assert merged_predicate == expected_predicate

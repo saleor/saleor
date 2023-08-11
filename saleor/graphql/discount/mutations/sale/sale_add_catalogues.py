@@ -39,18 +39,13 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id: str, input
     ):
-        sale = cast(
-            models.Sale,
-            cls.get_node_or_error(info, id, only_type=Sale, field="sale_id"),
-        )
-        previous_catalogue = fetch_catalogue_info(sale)
+        promotion = cls.get_instance(info, id)
+        previous_catalogue = cls.get_catalogue_from_promotion(promotion)
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
-            cls.add_catalogues_to_node(sale, input)
+            cls.add_items_to_predicate(promotion, previous_catalogue, input)
             current_catalogue = fetch_catalogue_info(sale)
-            previous_cat_converted = convert_catalogue_info_to_global_ids(
-                previous_catalogue
-            )
+
             current_cat_converted = convert_catalogue_info_to_global_ids(
                 current_catalogue
             )
@@ -58,7 +53,7 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
             def sale_update_event():
                 return manager.sale_updated(
                     sale,  # type: ignore # will be handled in separate PR
-                    previous_catalogue=previous_cat_converted,
+                    previous_catalogue=previous_catalogue,
                     current_catalogue=current_cat_converted,
                 )
 
