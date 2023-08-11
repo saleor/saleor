@@ -102,12 +102,12 @@ class CheckoutComplete(BaseMutation, I18nMixin):
 
     class Meta:
         description = (
-            "Completes the checkout. As a result a new order is created."
+            "Completes the checkout. As a result a new order is created. "
             "The mutation allows to create the unpaid order when setting "
-            "`allowUnpaidOrders` for given `Channel` is set to `true`. "
-            "When `allowUnpaidOrders` is set to `false`, checkout can be completed "
-            "only when attached `Payment`/`TransactionItem`s fully cover the "
-            "checkout's total. "
+            "`orderSettings.allowUnpaidOrders` for given `Channel` is set to `true`. "
+            "When `orderSettings.allowUnpaidOrders` is set to `false`, checkout can "
+            "be completed only when attached `Payment`/`TransactionItem`s fully cover "
+            "the checkout's total. "
             "When processing the checkout with `Payment`, in case of required "
             "additional confirmation step like 3D secure, the `confirmationNeeded` "
             "flag will be set to True and no order will be created until payment is "
