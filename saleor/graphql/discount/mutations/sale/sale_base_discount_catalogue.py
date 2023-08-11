@@ -1,9 +1,9 @@
-import copy
+from typing import List
 
 from django.core.exceptions import ValidationError
 
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.models import Promotion
+from .....discount.models import PromotionRule
 from .....discount.sale_converter import create_catalogue_predicate
 from .....product.tasks import (
     update_products_discounted_prices_for_promotion_task,
@@ -12,12 +12,7 @@ from .....product.tasks import (
 from .....product.utils import get_products_ids_without_variants
 from ....core.mutations import BaseMutation
 from ....product.types import Category, Collection, Product, ProductVariant
-from ...utils import (
-    CatalogueInfo,
-    convert_migrated_sale_predicate_to_catalogue_info,
-    get_product_ids_for_predicate,
-    get_variants_for_predicate, merge_migrated_sale_predicates,
-)
+from ...utils import get_product_ids_for_predicate, merge_migrated_sale_predicates
 
 
 class BaseDiscountCatalogueMutation(BaseMutation):
@@ -94,15 +89,9 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         cls.recalculate_discounted_prices(products, categories, collections, variants)
 
     @classmethod
-    def get_catalogue_from_promotion(cls, promotion: Promotion) -> CatalogueInfo:
-        rules = promotion.rules.all()
-        previous_predicate = rules[0].catalogue_predicate
-        return convert_migrated_sale_predicate_to_catalogue_info(previous_predicate)
-
-    @classmethod
     def add_items_to_predicate(
-        cls, promotion: Promotion, previous_catalogue: CatalogueInfo, input
-    ):
+        cls, rules: List[PromotionRule], previous_predicate: dict, input: dict
+    ) -> dict:
         if product_ids := input.get("products", []):
             products = cls.get_nodes_or_error(product_ids, "products", Product)
             cls.clean_product(products)
@@ -117,9 +106,16 @@ class BaseDiscountCatalogueMutation(BaseMutation):
             predicate_to_merge = create_catalogue_predicate(
                 collection_ids, category_ids, product_ids, variant_ids
             )
+            new_predicate = merge_migrated_sale_predicates(
+                previous_predicate, predicate_to_merge
+            )
+            for rule in rules:
+                rule.catalogue_predicate = new_predicate
+
+            PromotionRule.objects.bulk_update(rules, ["catalogue_predicate"])
+
             product_ids = get_product_ids_for_predicate(predicate_to_merge)
             update_products_discounted_prices_for_promotion_task.delay(
                 list(product_ids)
             )
-
-            new_predicate = merge_migrated_sale_predicates()
+            return new_predicate

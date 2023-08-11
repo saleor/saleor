@@ -1,8 +1,4 @@
-from typing import cast
-
 from .....core.tracing import traced_atomic_transaction
-from .....discount import models
-from .....discount.utils import fetch_catalogue_info
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
@@ -12,8 +8,7 @@ from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ...types import Sale
-from ..utils import convert_catalogue_info_to_global_ids
+from ...utils import convert_migrated_sale_predicate_to_catalogue_info
 from .sale_base_catalogue import SaleBaseCatalogueMutation
 
 
@@ -40,23 +35,23 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
         cls, _root, info: ResolveInfo, /, *, id: str, input
     ):
         promotion = cls.get_instance(info, id)
-        previous_catalogue = cls.get_catalogue_from_promotion(promotion)
+        rules = promotion.rules.all()
+        previous_predicate = rules[0].catalogue_predicate
+        previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+            previous_predicate
+        )
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
-            cls.add_items_to_predicate(promotion, previous_catalogue, input)
-            current_catalogue = fetch_catalogue_info(sale)
-
-            current_cat_converted = convert_catalogue_info_to_global_ids(
-                current_catalogue
+            new_predicate = cls.add_items_to_predicate(rules, previous_predicate, input)
+            current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+                new_predicate
             )
 
-            def sale_update_event():
-                return manager.sale_updated(
-                    sale,  # type: ignore # will be handled in separate PR
-                    previous_catalogue=previous_catalogue,
-                    current_catalogue=current_cat_converted,
-                )
+            cls.call_event(
+                manager.sale_updated,
+                promotion,
+                previous_catalogue,
+                current_catalogue,
+            )
 
-            cls.call_event(sale_update_event)
-
-        return SaleAddCatalogues(sale=ChannelContext(node=sale, channel_slug=None))
+        return SaleAddCatalogues(sale=ChannelContext(node=promotion, channel_slug=None))

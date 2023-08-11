@@ -28,12 +28,12 @@ SALE_CATALOGUES_ADD_MUTATION = """
 
 
 @patch(
-    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_catalogues(
     updated_webhook_mock,
-    update_products_discounted_prices_of_catalogues_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     sale,
     category,
@@ -79,30 +79,24 @@ def test_sale_add_catalogues(
     predicate = promotion.rules.first().catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
-    assert product in sale.products.all()
-    assert category in sale.categories.all()
-    assert collection in sale.collections.all()
-    assert set(product_variant_list + [variant]) == set(sale.variants.all())
+    assert collection_id in current_catalogue["collections"]
+    assert category_id in current_catalogue["categories"]
+    assert product_id in current_catalogue["products"]
+    assert all([variant in current_catalogue["variants"] for variant in variant_ids])
 
     updated_webhook_mock.assert_called_once_with(
-        sale, previous_catalogue=previous_catalogue, current_catalogue=current_catalogue
+        promotion, previous_catalogue, current_catalogue
     )
-    args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert kwargs["category_ids"] == [category.id]
-    assert kwargs["collection_ids"] == [collection.id]
-    assert kwargs["product_ids"] == [product.id]
-    assert set(kwargs["variant_ids"]) == {
-        variant.id for variant in product_variant_list
-    }
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
 
 
 # TODO will be fixed in PR refactoring the mutation
 @pytest.mark.skip
 @patch(
-    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
 def test_sale_add_no_catalogues(
-    update_products_discounted_prices_of_catalogues_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     new_sale,
     permission_manage_discounts,
@@ -128,16 +122,16 @@ def test_sale_add_no_catalogues(
     assert not new_sale.categories.exists()
     assert not new_sale.collections.exists()
     assert not new_sale.variants.exists()
-    update_products_discounted_prices_of_catalogues_task_mock.assert_not_called()
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
 # TODO will be fixed in PR refactoring the mutation
 @pytest.mark.skip
 @patch(
-    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
 def test_sale_remove_no_catalogues(
-    update_products_discounted_prices_of_catalogues_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     sale,
     category,
@@ -172,16 +166,16 @@ def test_sale_remove_no_catalogues(
     assert sale.categories.exists()
     assert sale.collections.exists()
     assert sale.variants.exists()
-    update_products_discounted_prices_of_catalogues_task_mock.assert_not_called()
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
 # TODO will be fixed in PR refactoring the mutation
 @pytest.mark.skip
 @patch(
-    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
 def test_sale_add_catalogues_with_product_without_variants(
-    update_products_discounted_prices_of_catalogues_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     sale,
     category,
@@ -212,4 +206,4 @@ def test_sale_add_catalogues_with_product_without_variants(
 
     assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
     assert error["message"] == "Cannot manage products without variants."
-    update_products_discounted_prices_of_catalogues_task_mock.assert_not_called()
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
