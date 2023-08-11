@@ -1,6 +1,5 @@
 import pytest
 
-from ..apps.utils import create_app
 from ..channel.utils import create_channel
 from ..product.utils import (
     create_category,
@@ -31,8 +30,6 @@ def prepare_product(
     permission_manage_channels,
     permission_manage_shipping,
     permission_manage_product_types_and_attributes,
-    permission_manage_apps,
-    permission_manage_payments,
     channel_slug,
 ):
     permissions = [
@@ -40,8 +37,6 @@ def prepare_product(
         permission_manage_channels,
         permission_manage_shipping,
         permission_manage_product_types_and_attributes,
-        permission_manage_apps,
-        permission_manage_payments,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
@@ -107,9 +102,6 @@ def prepare_product(
         channel_id,
     )
 
-    app = create_app(e2e_staff_api_client, "App for payments", ["HANDLE_PAYMENTS"])
-    _app_auth_token = app["authToken"]
-
     return product_variant_id
 
 
@@ -117,11 +109,11 @@ def prepare_product(
 def test_should_be_able_to_create_partially_paid_order_core_0112(
     e2e_staff_api_client,
     e2e_not_logged_api_client,
+    e2e_app_api_client,
     permission_manage_products,
     permission_manage_channels,
     permission_manage_shipping,
     permission_manage_product_types_and_attributes,
-    permission_manage_apps,
     permission_manage_payments,
 ):
     # Before
@@ -132,10 +124,10 @@ def test_should_be_able_to_create_partially_paid_order_core_0112(
         permission_manage_channels,
         permission_manage_shipping,
         permission_manage_product_types_and_attributes,
-        permission_manage_apps,
-        permission_manage_payments,
         channel_slug,
     )
+    app_permissions = [permission_manage_payments]
+    assign_permissions(e2e_app_api_client, app_permissions)
 
     # Step 1 - Create checkout.
     lines = [
@@ -166,7 +158,7 @@ def test_should_be_able_to_create_partially_paid_order_core_0112(
 
     # Step 3 - Create transaction for part of amount
     create_transaction(
-        e2e_staff_api_client,
+        e2e_app_api_client,
         checkout_id,
     )
 
