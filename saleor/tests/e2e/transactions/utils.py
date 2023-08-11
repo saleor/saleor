@@ -25,7 +25,7 @@ mutation TransactionCreate($id: ID!, $transactionCreateInput: TransactionCreateI
 
 
 def create_transaction(
-    e2e_staff_api_client,
+    e2e_api_client,
     id,
     transaction_name="Credit card",
     message="Charged",
@@ -47,7 +47,7 @@ def create_transaction(
         },
     }
 
-    response = e2e_staff_api_client.post_graphql(TRANSACTION_CREATE_MUTATION, variables)
+    response = e2e_api_client.post_graphql(TRANSACTION_CREATE_MUTATION, variables)
     content = get_graphql_content(response)
 
     assert content["data"]["transactionCreate"]["errors"] == []
