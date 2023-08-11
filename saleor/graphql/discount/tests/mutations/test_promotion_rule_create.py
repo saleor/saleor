@@ -574,7 +574,7 @@ def test_promotion_rule_create_invalid_price_precision(
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleCreateErrorCode.INVALID.name
+    assert errors[0]["code"] == PromotionRuleCreateErrorCode.INVALID_PRECISION.name
     assert errors[0]["field"] == "rewardValue"
     assert promotion.rules.count() == rules_count
 
@@ -638,7 +638,10 @@ def test_promotion_rule_create_fixed_reward_value_multiple_currencies(
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleCreateErrorCode.INVALID.name
+    assert (
+        errors[0]["code"]
+        == PromotionRuleCreateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.name
+    )
     assert errors[0]["field"] == "rewardValueType"
     assert promotion.rules.count() == rules_count
 

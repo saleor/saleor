@@ -386,7 +386,10 @@ def test_promotion_rule_update_add_channel_with_different_currency_to_fixed_disc
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert (
+        errors[0]["code"]
+        == PromotionRuleUpdateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.name
+    )
     assert errors[0]["field"] == "addChannels"
 
 
@@ -425,7 +428,7 @@ def test_promotion_rule_update_remove_last_channel_from_fixed_discount(
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.MISSING_CHANNELS.name
     assert errors[0]["field"] == "removeChannels"
 
 
@@ -464,7 +467,10 @@ def test_promotion_rule_update_change_reward_value_type_to_fixed_multiple_channe
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert (
+        errors[0]["code"]
+        == PromotionRuleUpdateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.name
+    )
     assert errors[0]["field"] == "rewardValueType"
 
 
@@ -502,7 +508,7 @@ def test_promotion_rule_update_change_reward_value_type_to_fixed_no_channels(
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.MISSING_CHANNELS.name
     assert errors[0]["field"] == "rewardValueType"
 
 
@@ -544,7 +550,7 @@ def test_promotion_rule_update_reward_value_invalid_precision(
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID_PRECISION.name
     assert errors[0]["field"] == "rewardValue"
 
 

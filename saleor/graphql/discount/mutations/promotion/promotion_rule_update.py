@@ -140,7 +140,7 @@ class PromotionRuleUpdate(ModelMutation):
                         {
                             field: ValidationError(
                                 "Channels must be specified for FIXED rewardValueType.",
-                                code=PromotionRuleUpdateErrorCode.INVALID.value,
+                                code=PromotionRuleUpdateErrorCode.MISSING_CHANNELS.value,
                             )
                         }
                     )
@@ -150,12 +150,15 @@ class PromotionRuleUpdate(ModelMutation):
                         if "reward_value_type" in cleaned_input
                         else "add_channels"
                     )
+                    error_code = (
+                        PromotionRuleUpdateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.value
+                    )
                     raise ValidationError(
                         {
                             field: ValidationError(
                                 "Channels must have the same currency code "
                                 "for FIXED rewardValueType.",
-                                code=PromotionRuleUpdateErrorCode.INVALID.value,
+                                code=error_code,
                             )
                         }
                     )
@@ -163,7 +166,7 @@ class PromotionRuleUpdate(ModelMutation):
                 try:
                     clean_fixed_discount_value(
                         reward_value,
-                        PromotionRuleUpdateErrorCode.INVALID.value,
+                        PromotionRuleUpdateErrorCode.INVALID_PRECISION.value,
                         currency,
                     )
                 except ValidationError as error:

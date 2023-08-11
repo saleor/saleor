@@ -89,7 +89,7 @@ class PromotionRuleCreate(ModelMutation):
         if reward_value is None:
             errors["reward_value"].append(
                 ValidationError(
-                    "The rewardValue is required for when cataloguePredicate "
+                    "The rewardValue is required when cataloguePredicate "
                     "is provided.",
                     code=PromotionRuleCreateErrorCode.REQUIRED.value,
                 )
@@ -112,11 +112,14 @@ class PromotionRuleCreate(ModelMutation):
                 return
             currencies = {channel.currency_code for channel in channels}
             if len(currencies) > 1:
+                error_code = (
+                    PromotionRuleCreateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.value
+                )
                 errors["reward_value_type"].append(
                     ValidationError(
                         "For FIXED rewardValueType, all channels must have "
                         "the same currency.",
-                        code=PromotionRuleCreateErrorCode.INVALID.value,
+                        code=error_code,
                     )
                 )
                 return
@@ -124,7 +127,9 @@ class PromotionRuleCreate(ModelMutation):
             currency = currencies.pop()
             try:
                 clean_fixed_discount_value(
-                    reward_value, PromotionRuleCreateErrorCode.INVALID.value, currency
+                    reward_value,
+                    PromotionRuleCreateErrorCode.INVALID_PRECISION.value,
+                    currency,
                 )
             except ValidationError as error:
                 errors["reward_value"].append(error)
