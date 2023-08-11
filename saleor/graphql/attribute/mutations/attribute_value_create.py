@@ -6,20 +6,18 @@ from django.core.exceptions import ValidationError
 from ....attribute import AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ....core.exceptions import PermissionDenied
 from ....core.utils import generate_unique_slug
-from ....permission.enums import PagePermissions, ProductPermissions
-from ....permission.utils import (
-    has_one_of_permissions,
-    message_one_of_permissions_required,
-)
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ...utils import get_user_or_app_from_context
-from ..enums import AttributeTypeEnum
+from ..constants import (
+    CREATE_PAGE_TYPE_PERMISSIONS_TEXT,
+    CREATE_PERMISSIONS_MAP,
+    CREATE_PRODUCT_TYPE_PERMISSIONS_TEXT,
+)
 from ..types import Attribute, AttributeValue
+from ..utils import check_permissions_for_attribute
 from .attribute_create import AttributeValueCreateInput
 from .mixins import AttributeMixin
 from .validators import validate_value_is_unique
@@ -46,10 +44,13 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         object_type = AttributeValue
         description = (
             "Creates a value for an attribute.\n\n"
-            "Depending on the attribute type, it requires different permissions to create:\n"
-            "`PRODUCT_TYPE` requires `MANAGE_PRODUCTS` permissions,\n"
-            "`PAGE_TYPE` requires `MANAGE_PRODUCTS` or `MANAGE_PAGES` permissions.\n"
-            "DEPRECATED: it will be changed in 3.15."
+            "Depending on the attribute type, "
+            "it requires different permissions to create:\n"
+            f"`PRODUCT_TYPE` requires {CREATE_PRODUCT_TYPE_PERMISSIONS_TEXT} "
+            f"permissions,\n"
+            f"`PAGE_TYPE` requires {CREATE_PAGE_TYPE_PERMISSIONS_TEXT} permissions.\n"
+            "\n"
+            "DEPRECATED: those permissions will be changed in 4.0.\n"
         )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
@@ -99,7 +100,7 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
     ):
         attribute = cls.get_node_or_error(info, attribute_id, only_type=Attribute)
         instance = models.AttributeValue(attribute=attribute)
-        cls._check_permissions_for_attribute(info.context, attribute)
+        check_permissions_for_attribute(info.context, attribute, CREATE_PERMISSIONS_MAP)
         cleaned_input = cls.clean_input(info, instance, input)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)
@@ -114,24 +115,3 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_value_created, instance)
         cls.call_event(manager.attribute_updated, instance.attribute)
-
-    @classmethod
-    def _check_permissions_for_attribute(cls, context, attribute):
-        if attribute.type == AttributeTypeEnum.PRODUCT_TYPE.value:
-            permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-            if not cls.check_permissions(context, permissions):
-                raise PermissionDenied(permissions=permissions)
-
-        elif attribute.type == AttributeTypeEnum.PAGE_TYPE.value:
-            permissions = (
-                ProductPermissions.MANAGE_PRODUCTS,
-                PagePermissions.MANAGE_PAGES,
-            )
-            if not has_one_of_permissions(
-                get_user_or_app_from_context(context), permissions
-            ):
-                raise PermissionDenied(
-                    message=message_one_of_permissions_required(permissions).lstrip(
-                        "\n"
-                    )
-                )

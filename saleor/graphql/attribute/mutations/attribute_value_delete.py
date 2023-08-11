@@ -8,6 +8,11 @@ from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ..constants import (
+    UPDATE_DELETE_PAGE_TYPE_PERMISSIONS_TEXT,
+    UPDATE_DELETE_PERMISSIONS_MAP,
+    UPDATE_DELETE_PRODUCT_TYPE_PERMISSIONS_TEXT,
+)
 from ..types import Attribute, AttributeValue
 from ..utils import check_permissions_for_attribute
 
@@ -28,10 +33,13 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         object_type = AttributeValue
         description = (
             "Deletes a value of an attribute.\n\n"
-            "Depending on the attribute type, it requires different permissions to delete:\n"
-            "`PRODUCT_TYPE` requires `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,\n"
-            "`PAGE_TYPE` requires `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.\n"
-            "DEPRECATED: it will be changed in 3.15."
+            "Depending on the attribute type, "
+            "it requires different permissions to delete:\n"
+            "`PRODUCT_TYPE` requires "
+            f"{UPDATE_DELETE_PRODUCT_TYPE_PERMISSIONS_TEXT} permissions,\n"
+            f"`PAGE_TYPE` requires {UPDATE_DELETE_PAGE_TYPE_PERMISSIONS_TEXT} "
+            f"permissions.\n"
+            "DEPRECATED: those permissions will be changed in 4.0.\n"
         )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
@@ -41,7 +49,9 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
-        check_permissions_for_attribute(info.context, instance.attribute)
+        check_permissions_for_attribute(
+            info.context, instance.attribute, UPDATE_DELETE_PERMISSIONS_MAP
+        )
         product_ids = cls.get_product_ids_to_update(instance)
         response = super().perform_mutation(
             _root, info, external_reference=external_reference, id=id

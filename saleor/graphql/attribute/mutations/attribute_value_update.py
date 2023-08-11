@@ -9,6 +9,11 @@ from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ..constants import (
+    UPDATE_DELETE_PAGE_TYPE_PERMISSIONS_TEXT,
+    UPDATE_DELETE_PERMISSIONS_MAP,
+    UPDATE_DELETE_PRODUCT_TYPE_PERMISSIONS_TEXT,
+)
 from ..types import Attribute, AttributeValue
 from ..utils import check_permissions_for_attribute
 from .attribute_update import AttributeValueUpdateInput
@@ -57,10 +62,13 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
         object_type = AttributeValue
         description = (
             "Updates value of an attribute.\n\n"
-            "Depending on the attribute type, it requires different permissions to update:\n"
-            "`PRODUCT_TYPE` requires `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,\n"
-            "`PAGE_TYPE` requires `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.\n"
-            "DEPRECATED: it will be changed in 3.15."
+            "Depending on the attribute type, "
+            "it requires different permissions to update:\n"
+            "`PRODUCT_TYPE` requires "
+            f"{UPDATE_DELETE_PRODUCT_TYPE_PERMISSIONS_TEXT} permissions,\n"
+            f"`PAGE_TYPE` requires {UPDATE_DELETE_PAGE_TYPE_PERMISSIONS_TEXT} "
+            f"permissions.\n"
+            "DEPRECATED: those permissions will be changed in 4.0.\n"
         )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
@@ -78,7 +86,9 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
     @classmethod
     def get_instance(cls, info, **data):
         instance = super().get_instance(info, **data)
-        check_permissions_for_attribute(info.context, instance.attribute)
+        check_permissions_for_attribute(
+            info.context, instance.attribute, UPDATE_DELETE_PERMISSIONS_MAP
+        )
         return instance
 
     @classmethod
