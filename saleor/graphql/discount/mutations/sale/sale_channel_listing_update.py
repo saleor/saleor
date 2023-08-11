@@ -1,6 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -88,24 +88,27 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
 
         rules = promotion.rules.all()
         PromotionRuleChannel = PromotionRule.channels.through
-        rule_ids = [rule.id for rule in rules]
         rule_channel = PromotionRuleChannel.objects.filter(
-            promotionrule_id__in=rule_ids
+            Exists(rules.filter(id=OuterRef("promotionrule_id")))
         )
-        current_channel_ids = rule_channel.values_list("channel_id", flat=True)
-        examplart_rule = rules[0]
+        channelid_ruleid_map = {
+            channel_id: rule_id
+            for channel_id, rule_id in rule_channel.values_list(
+                "channel_id", "promotionrule_id"
+            )
+        }
+        examplary_rule = rules[0]
         for add_channel in add_channels:
             channel = add_channel["channel"]
             discount_value = add_channel["discount_value"]
 
-            if channel.id not in current_channel_ids:
+            if channel.id not in channelid_ruleid_map.keys():
                 rules_data_to_add.append(
                     RuleInfo(
                         rule=PromotionRule(
-                            name=examplart_rule.name,
                             promotion=promotion,
-                            catalogue_predicate=examplart_rule.catalogue_predicate,
-                            reward_value_type=examplart_rule.reward_value_type,
+                            catalogue_predicate=examplary_rule.catalogue_predicate,
+                            reward_value_type=examplary_rule.reward_value_type,
                             reward_value=discount_value,
                         ),
                         channel=channel,
@@ -113,14 +116,15 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
                 )
             else:
                 # We ensure that every rule has one or none related channel
-                rule_to_update = rules.get(
-                    id=rule_channel.get(channel_id=channel.id).promotionrule_id  # type: ignore[attr-defined] # noqa: E501
-                )
+                rule_to_update = rules.get(id=channelid_ruleid_map[channel.id])
                 rule_to_update.reward_value = discount_value
                 rules_to_update.append(rule_to_update)
 
-        for rule_data in rules_data_to_add:
-            rule_data.rule.assign_old_channel_listing_id()
+        old_listing_ids = PromotionRule.get_old_channel_listing_ids(
+            len(rules_data_to_add)
+        )
+        for i in range(len(rules_data_to_add)):
+            rules_data_to_add[i].rule.old_channel_listing_id = old_listing_ids[i]
 
         new_rules = [rule_data.rule for rule_data in rules_data_to_add]
         PromotionRule.objects.bulk_create(new_rules)
@@ -213,7 +217,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         object_id = cls.get_global_id_or_error(id, "Sale")
         promotion = Promotion.objects.get(old_sale_id=object_id)
         rule = promotion.rules.first()
-        assert rule
+        rule = cast(PromotionRule, rule)
         sale_type = rule.reward_value_type
 
         errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
