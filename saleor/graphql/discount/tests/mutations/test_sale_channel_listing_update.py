@@ -105,6 +105,72 @@ def test_sale_channel_listing_add_channels(
     "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
     ".update_products_discounted_prices_of_promotion_task"
 )
+def test_sale_channel_listing_add_multiple_channels(
+    mock_update_products_discounted_prices_task,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    channel_PLN,
+    channel_JPY,
+):
+    # given
+    sale_id = graphene.Node.to_global_id("Sale", sale.pk)
+    channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    channel_jpy_id = graphene.Node.to_global_id("Channel", channel_JPY.id)
+    discounted = 5
+
+    channel_listing = SaleChannelListing.objects.filter(
+        sale_id=sale.pk, channel_id__in=[channel_PLN.id, channel_JPY.id]
+    )
+    assert len(channel_listing) == 0
+    convert_sales_to_promotions()
+
+    variables = {
+        "id": sale_id,
+        "input": {
+            "addChannels": [
+                {"channelId": channel_pln_id, "discountValue": discounted},
+                {"channelId": channel_jpy_id, "discountValue": discounted},
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SALE_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_discounts,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["saleChannelListingUpdate"]["errors"]
+    data = content["data"]["saleChannelListingUpdate"]["sale"]
+    assert data["name"] == sale.name
+
+    channel_listing = data["channelListings"]
+    discounts = [item["discountValue"] for item in channel_listing]
+    slugs = [item["channel"]["slug"] for item in channel_listing]
+    assert discounted in discounts
+    assert channel_PLN.slug in slugs
+    assert channel_JPY.slug in slugs
+
+    promotion = Promotion.objects.get(old_sale_id=sale.pk)
+    rules = promotion.rules.all()
+    assert len(rules) == 3
+    old_channel_listing_ids = [rule.old_channel_listing_id for rule in rules]
+    assert all(old_channel_listing_ids)
+    assert len(set(old_channel_listing_ids)) == 3
+
+    mock_update_products_discounted_prices_task.delay.assert_called_once_with(
+        promotion.pk
+    )
+
+
+@patch(
+    "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
+    ".update_products_discounted_prices_of_promotion_task"
+)
 def test_sale_channel_listing_update_channels(
     mock_update_products_discounted_prices_task,
     staff_api_client,

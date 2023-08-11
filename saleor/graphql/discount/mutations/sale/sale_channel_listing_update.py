@@ -124,7 +124,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
             len(rules_data_to_add)
         )
         for i in range(len(rules_data_to_add)):
-            rules_data_to_add[i].rule.old_channel_listing_id = old_listing_ids[i]
+            rules_data_to_add[i].rule.old_channel_listing_id = old_listing_ids[i][0]
 
         new_rules = [rule_data.rule for rule_data in rules_data_to_add]
         PromotionRule.objects.bulk_create(new_rules)

@@ -464,7 +464,7 @@ class PromotionRule(models.Model):
                 FROM generate_series(1, {qunatity})
                 """
             )
-            return cursor.fetchone()
+            return cursor.fetchall()
 
 
 class PromotionRuleTranslation(Translation):
