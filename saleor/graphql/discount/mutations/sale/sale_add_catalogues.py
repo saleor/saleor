@@ -1,5 +1,10 @@
+from typing import List, Optional
+
 from .....core.tracing import traced_atomic_transaction
+from .....discount.models import PromotionRule
+from .....discount.sale_converter import create_catalogue_predicate
 from .....permission.enums import DiscountPermissions
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -8,7 +13,11 @@ from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ...utils import convert_migrated_sale_predicate_to_catalogue_info
+from ...utils import (
+    convert_migrated_sale_predicate_to_catalogue_info,
+    get_product_ids_for_predicate,
+    merge_migrated_sale_predicates,
+)
 from .sale_base_catalogue import SaleBaseCatalogueMutation
 
 
@@ -43,15 +52,41 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             new_predicate = cls.add_items_to_predicate(rules, previous_predicate, input)
-            current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-                new_predicate
-            )
+            # TODO add to post save actions
+            # TODO check previous product_ids with current if price recalculation needed
+            # TODO add test for the case
+            if new_predicate:
+                current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+                    new_predicate
+                )
 
-            cls.call_event(
-                manager.sale_updated,
-                promotion,
-                previous_catalogue,
-                current_catalogue,
-            )
+                cls.call_event(
+                    manager.sale_updated,
+                    promotion,
+                    previous_catalogue,
+                    current_catalogue,
+                )
 
         return SaleAddCatalogues(sale=ChannelContext(node=promotion, channel_slug=None))
+
+    @classmethod
+    def add_items_to_predicate(
+        cls, rules: List[PromotionRule], previous_predicate: dict, input: dict
+    ) -> Optional[dict]:
+        catalogue_item_ids = cls.get_catalogue_item_ids(input)
+        if any(catalogue_item_ids):
+            predicate_to_merge = create_catalogue_predicate(*catalogue_item_ids)
+            new_predicate = merge_migrated_sale_predicates(
+                previous_predicate, predicate_to_merge
+            )
+            for rule in rules:
+                rule.catalogue_predicate = new_predicate
+
+            PromotionRule.objects.bulk_update(rules, ["catalogue_predicate"])
+
+            product_ids = get_product_ids_for_predicate(predicate_to_merge)
+            update_products_discounted_prices_for_promotion_task.delay(
+                list(product_ids)
+            )
+            return new_predicate
+        return None

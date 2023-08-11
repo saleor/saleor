@@ -248,10 +248,15 @@ def convert_migrated_sale_predicate_to_catalogue_info(
     into:
         {
             "collections": {"UHJvZHV3","UHJvZHV2","UHJvZHV1"},
+            "categories": {},
             "products": {"UHJvZHV9","UHJvZHV8","UHJvZHV7"},
+            "variants": {},
         }
     """
     catalogue_info: CatalogueInfo = defaultdict(set)
+    for field in PREDICATE_TO_CATALOGUE_INFO_MAP.values():
+        catalogue_info[field] = set()
+
     if catalogue_predicate.get("OR"):
         predicates = {
             list(item.keys())[0]: list(item.values())[0]["ids"]
@@ -282,10 +287,10 @@ def merge_migrated_sale_predicates(predicate_1: dict, predicate_2: dict) -> dict
     predicate_2_or = predicate_2.get("OR")
 
     if not predicate_1_or:
-        return predicate_2
+        return deepcopy(predicate_2)
 
     if not predicate_2_or:
-        return predicate_1
+        return deepcopy(predicate_1)
 
     catalogue_info_1 = convert_migrated_sale_predicate_to_catalogue_info(predicate_1)
     catalogue_info_2 = convert_migrated_sale_predicate_to_catalogue_info(predicate_2)
