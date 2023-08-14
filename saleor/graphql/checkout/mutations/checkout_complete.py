@@ -102,12 +102,16 @@ class CheckoutComplete(BaseMutation, I18nMixin):
 
     class Meta:
         description = (
-            "Completes the checkout. As a result a new order is created and "
-            "a payment charge is made. This action requires a successful "
-            "payment before it can be performed. "
-            "In case additional confirmation step as 3D secure is required "
-            "confirmationNeeded flag will be set to True and no order created "
-            "until payment is confirmed with second call of this mutation."
+            "Completes the checkout. As a result a new order is created. "
+            "The mutation allows to create the unpaid order when setting "
+            "`orderSettings.allowUnpaidOrders` for given `Channel` is set to `true`. "
+            "When `orderSettings.allowUnpaidOrders` is set to `false`, checkout can "
+            "be completed only when attached `Payment`/`TransactionItem`s fully cover "
+            "the checkout's total. "
+            "When processing the checkout with `Payment`, in case of required "
+            "additional confirmation step like 3D secure, the `confirmationNeeded` "
+            "flag will be set to True and no order will be created until payment is "
+            "confirmed with second call of this mutation."
         )
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError

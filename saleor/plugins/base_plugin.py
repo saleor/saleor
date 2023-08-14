@@ -685,17 +685,17 @@ class BasePlugin:
 
     list_payment_sources: Callable[[str, Any], List["CustomerSource"]]
 
+    list_stored_payment_methods: Callable[
+        ["ListStoredPaymentMethodsRequestData", list["PaymentMethodData"]],
+        list["PaymentMethodData"],
+    ]
+
     stored_payment_method_request_delete: Callable[
         [
             "StoredPaymentMethodRequestDeleteData",
             "StoredPaymentMethodRequestDeleteResponseData",
         ],
         "StoredPaymentMethodRequestDeleteResponseData",
-    ]
-
-    list_stored_payment_methods: Callable[
-        ["ListStoredPaymentMethodsRequestData", list["PaymentMethodData"]],
-        list["PaymentMethodData"],
     ]
 
     # Trigger when menu is created.
