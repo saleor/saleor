@@ -1,54 +1,62 @@
 from saleor.graphql.tests.utils import get_graphql_content
 
 DRAFT_ORDER_UPDATE_MUTATION = """
-mutation DraftOrderUpdate ($input: DraftOrderInput!, $id: ID!) {
-  draftOrderUpdate(input:$input, id: $id ) {
-
+mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
+  draftOrderUpdate(input: $input, id: $id) {
+    errors {
+      message
+      field
+      code
+    }
     order {
-        id
-        lines {
-            totalPrice {
-                gross {
-                    amount
-                }
-            }
-            unitPrice {
-                gross {
-                    amount
-                }
-            }
-            unitDiscountReason
-        }
-        subtotal{ gross { amount}}
-        totalBalance{amount}
-        total{
-            gross{
-                amount
-                }
-            }
-        isShippingRequired
-        shippingPrice{gross {
+      id
+      lines {
+        totalPrice {
+          gross {
             amount
-            }
+          }
         }
-        shippingMethod {
+        unitPrice {
+          gross {
+            amount
+          }
+        }
+        unitDiscountReason
+      }
+      subtotal {
+        gross {
+          amount
+        }
+      }
+      totalBalance {
+        amount
+      }
+      total {
+        gross {
+          amount
+        }
+      }
+      isShippingRequired
+      shippingPrice {
+        gross {
+          amount
+        }
+      }
+      shippingMethod {
         id
+      }
+      shippingMethods {
+        id
+      }
+      deliveryMethod {
+        __typename
+        ... on ShippingMethod {
+          id
+          __typename
         }
-        shippingMethods{ id }
-        deliveryMethod {
-            __typename
-            ... on ShippingMethod {
-                id
-                __typename
-            }
-        }
-    errors{
-        message
-        field
-        code
+      }
     }
   }
-}
 }
 """
 
@@ -65,13 +73,11 @@ def draft_order_update(
         variables=variables,
     )
     content = get_graphql_content(response)
-
     data = content["data"]["draftOrderUpdate"]
-
     order_id = data["order"]["id"]
-    # errors = data["errors"]
+    errors = data["errors"]
 
-    # assert errors == []
+    assert errors == []
     assert order_id == id
 
     return data
