@@ -1,10 +1,8 @@
 from saleor.graphql.tests.utils import get_graphql_content
 
 DRAFT_ORDER_COMPLETE_MUTATION = """
-mutation DraftOrderComplete ($id: ID!) {
-  draftOrderComplete(
-    id: $id
-  ) {
+mutation DraftOrderComplete($id: ID!) {
+  draftOrderComplete(id: $id) {
     errors {
       message
       field
@@ -25,8 +23,16 @@ mutation DraftOrderComplete ($id: ID!) {
           amount
         }
       }
-      subtotal{gross {amount}}
-      shippingPrice{gross{amount}}
+      subtotal {
+        gross {
+          amount
+        }
+      }
+      shippingPrice {
+        gross {
+          amount
+        }
+      }
       displayGrossPrices
       status
       lines {
