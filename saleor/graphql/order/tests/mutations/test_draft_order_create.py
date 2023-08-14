@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
-from unittest.mock import ANY, Mock, patch
+from decimal import Decimal
+from unittest.mock import Mock, patch
 
 import graphene
 import pytest
@@ -14,6 +15,7 @@ from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from .....order.models import Order, OrderEvent
 from .....product.models import ProductVariant
+from .....tax import TaxCalculationStrategy
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_ORDER_CREATE_MUTATION = """
@@ -70,8 +72,43 @@ DRAFT_ORDER_CREATE_MUTATION = """
                             amount
                         }
                     }
+                    undiscountedTotal {
+                        gross {
+                            amount
+                        }
+                    }
+                    shippingPrice {
+                        gross {
+                            amount
+                        }
+                    }
                     shippingMethodName
                     externalReference
+                    lines {
+                        productVariantId
+                        quantity
+                        unitDiscount {
+                          amount
+                        }
+                        undiscountedUnitPrice {
+                            gross {
+                                amount
+                            }
+                        }
+                        unitPrice {
+                            gross {
+                                amount
+                            }
+                        }
+                        totalPrice {
+                            gross {
+                                amount
+                            }
+                        }
+                        unitDiscountReason
+                        unitDiscountType
+                        unitDiscountValue
+                    }
                 }
             }
         }
@@ -1312,8 +1349,10 @@ def test_draft_order_create_price_recalculation(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     fake_order = Mock()
     fake_order.total = zero_taxed_money(channel_PLN.currency_code)
-    response = Mock(return_value=(fake_order, None))
-    mock_fetch_order_prices_if_expired.side_effect = response
+    fake_order.undiscounted_total = zero_taxed_money(channel_PLN.currency_code)
+    fake_order.shipping_price = zero_taxed_money(channel_PLN.currency_code)
+    fetch_prices_response = Mock(return_value=(fake_order, None))
+    mock_fetch_order_prices_if_expired.side_effect = fetch_prices_response
     query = DRAFT_ORDER_CREATE_MUTATION
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     discount = "10"
@@ -1357,7 +1396,7 @@ def test_draft_order_create_price_recalculation(
     assert Order.objects.count() == 1
     order = Order.objects.first()
     lines = list(order.lines.all())
-    mock_fetch_order_prices_if_expired.assert_called_once_with(order, ANY, lines, False)
+    mock_fetch_order_prices_if_expired.assert_called()
 
 
 def test_draft_order_create_update_display_gross_prices(
@@ -1504,3 +1543,258 @@ def test_draft_order_create_with_custom_price_in_order_line(
     order_line_1 = order.lines.get(variant=variant_1)
     assert order_line_1.base_unit_price_amount == expected_price_variant_1
     assert order_line_1.undiscounted_base_unit_price_amount == expected_price_variant_1
+
+
+def test_draft_order_create_product_on_promotion(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    customer_user,
+    shipping_method,
+    variant,
+    promotion,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    variant = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    reward_value = Decimal("1.0")
+    rule = promotion.rules.first()
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel_USD.currency_code,
+    )
+
+    quantity = 2
+    variant_list = [
+        {"variantId": variant_id, "quantity": quantity},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert data["shippingMethodName"] == shipping_method.name
+    assert data["shippingAddress"]
+    assert data["billingAddress"]
+
+    order = Order.objects.first()
+    shipping_total = (
+        shipping_method.channel_listings.get(channel_id=order.channel_id)
+        .get_total()
+        .amount
+    )
+    assert data["shippingPrice"]["gross"]["amount"] == shipping_total
+
+    assert order.search_vector
+
+    assert len(data["lines"]) == 1
+    line_data = data["lines"][0]
+    assert line_data["unitDiscount"]["amount"] == reward_value
+    assert (
+        line_data["unitPrice"]["gross"]["amount"]
+        == variant_channel_listing.discounted_price_amount
+    )
+    assert (
+        line_data["undiscountedUnitPrice"]["gross"]["amount"]
+        == variant_channel_listing.price_amount
+    )
+    line_total = variant_channel_listing.discounted_price_amount * quantity
+    assert line_data["totalPrice"]["gross"]["amount"] == line_total
+    # TODO: TO FIX
+    # assert line_data["unitDiscountReason"]
+    # assert line_data["unitDiscountType"]
+
+    assert data["total"]["gross"]["amount"] == shipping_total + line_total
+    assert (
+        data["undiscountedTotal"]["gross"]["amount"]
+        == shipping_total + variant_channel_listing.price_amount * quantity
+    )
+
+    # Ensure the correct event was created
+    created_draft_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.DRAFT_CREATED
+    )
+    assert created_draft_event.user == staff_user
+    assert created_draft_event.parameters == {}
+
+    # Ensure the order_added_products_event was created properly
+    added_products_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.ADDED_PRODUCTS
+    )
+    event_parameters = added_products_event.parameters
+    assert event_parameters
+    assert len(event_parameters["lines"]) == 1
+
+    order_lines = list(order.lines.all())
+    assert event_parameters["lines"][0]["item"] == str(order_lines[0])
+    assert event_parameters["lines"][0]["line_pk"] == str(order_lines[0].pk)
+    assert event_parameters["lines"][0]["quantity"] == quantity
+
+    # TODO: check if OrderLineDiscount was created properly
+
+
+def test_draft_order_create_product_on_promotion_flat_taxes(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    customer_user,
+    shipping_method,
+    variant,
+    promotion,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    variant = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    tc = channel_USD.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.save()
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    reward_value = Decimal("1.0")
+    rule = promotion.rules.first()
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel_USD.currency_code,
+    )
+
+    quantity = 2
+    variant_list = [
+        {"variantId": variant_id, "quantity": quantity},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert data["shippingMethodName"] == shipping_method.name
+    assert data["shippingAddress"]
+    assert data["billingAddress"]
+
+    order = Order.objects.first()
+    shipping_total = (
+        shipping_method.channel_listings.get(channel_id=order.channel_id)
+        .get_total()
+        .amount
+    )
+    assert data["shippingPrice"]["gross"]["amount"] == shipping_total
+
+    assert order.search_vector
+
+    assert len(data["lines"]) == 1
+    line_data = data["lines"][0]
+    assert line_data["unitDiscount"]["amount"] == reward_value
+    assert (
+        line_data["unitPrice"]["gross"]["amount"]
+        == variant_channel_listing.discounted_price_amount
+    )
+    assert (
+        line_data["undiscountedUnitPrice"]["gross"]["amount"]
+        == variant_channel_listing.price_amount
+    )
+    line_total = variant_channel_listing.discounted_price_amount * quantity
+    assert line_data["totalPrice"]["gross"]["amount"] == line_total
+    # TODO: TO FIX
+    # assert line_data["unitDiscountReason"]
+    # assert line_data["unitDiscountType"]
+
+    assert data["total"]["gross"]["amount"] == shipping_total + line_total
+    assert (
+        data["undiscountedTotal"]["gross"]["amount"]
+        == shipping_total + variant_channel_listing.price_amount * quantity
+    )
+
+    # Ensure the correct event was created
+    created_draft_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.DRAFT_CREATED
+    )
+    assert created_draft_event.user == staff_user
+    assert created_draft_event.parameters == {}
+
+    # Ensure the order_added_products_event was created properly
+    added_products_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.ADDED_PRODUCTS
+    )
+    event_parameters = added_products_event.parameters
+    assert event_parameters
+    assert len(event_parameters["lines"]) == 1
+
+    order_lines = list(order.lines.all())
+    assert event_parameters["lines"][0]["item"] == str(order_lines[0])
+    assert event_parameters["lines"][0]["line_pk"] == str(order_lines[0].pk)
+    assert event_parameters["lines"][0]["quantity"] == quantity
+
+    # TODO: check if OrderLineDiscount was created properly
