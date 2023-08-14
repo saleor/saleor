@@ -188,19 +188,19 @@ def test_transaction_create_for_order_by_app(
     )
 
     # then
-    available_actions = list(set(available_actions))
+    available_actions = set(available_actions)
 
     transaction = order_with_lines.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
-    assert data["actions"] == available_actions
+    assert set(data["actions"]) == available_actions
     assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["externalUrl"] == external_url
     assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
-    assert available_actions == list(map(str.upper, transaction.available_actions))
+    assert available_actions == set(map(str.upper, transaction.available_actions))
     assert status == transaction.status
     assert psp_reference == transaction.psp_reference
     assert authorized_value == transaction.authorized_value
@@ -351,19 +351,19 @@ def test_transaction_create_for_checkout_by_app(
     assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
     assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
 
-    available_actions = list(set(available_actions))
+    available_actions = set(available_actions)
 
     transaction = checkout_with_items.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
-    assert data["actions"] == available_actions
+    assert set(data["actions"]) == available_actions
     assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["externalUrl"] == external_url
     assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
-    assert available_actions == list(map(str.upper, transaction.available_actions))
+    assert available_actions == set(map(str.upper, transaction.available_actions))
     assert status == transaction.status
     assert psp_reference == transaction.psp_reference
     assert authorized_value == transaction.authorized_value
@@ -474,10 +474,12 @@ def test_transaction_create_multiple_amounts_provided_by_app(
     )
 
     # then
+
+    available_actions = set(available_actions)
     transaction = TransactionItem.objects.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
-    assert data["actions"] == available_actions
+    assert set(data["actions"]) == available_actions
     assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
@@ -884,18 +886,18 @@ def test_transaction_create_for_order_by_staff(
     )
 
     # then
-    available_actions = list(set(available_actions))
+    available_actions = set(available_actions)
 
     transaction = order_with_lines.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
-    assert data["actions"] == available_actions
+    assert set(data["actions"]) == available_actions
     assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
-    assert available_actions == list(map(str.upper, transaction.available_actions))
+    assert available_actions == set(map(str.upper, transaction.available_actions))
     assert status == transaction.status
     assert psp_reference == transaction.psp_reference
     assert authorized_value == transaction.authorized_value
@@ -1039,7 +1041,7 @@ def test_transaction_create_for_checkout_by_staff(
     )
 
     # then
-    available_actions = list(set(available_actions))
+    available_actions = set(available_actions)
 
     checkout_with_items.refresh_from_db()
     assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
@@ -1047,13 +1049,13 @@ def test_transaction_create_for_checkout_by_staff(
     transaction = checkout_with_items.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
-    assert data["actions"] == available_actions
+    assert set(data["actions"]) == available_actions
     assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
-    assert available_actions == list(map(str.upper, transaction.available_actions))
+    assert available_actions == set(map(str.upper, transaction.available_actions))
     assert status == transaction.status
     assert psp_reference == transaction.psp_reference
     assert authorized_value == transaction.authorized_value
@@ -1218,10 +1220,11 @@ def test_transaction_create_multiple_amounts_provided_by_staff(
     )
 
     # then
+    available_actions = set(available_actions)
     transaction = TransactionItem.objects.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
-    assert data["actions"] == available_actions
+    assert set(data["actions"]) == available_actions
     assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
