@@ -351,6 +351,251 @@ def test_promotion_rule_update_invalid_catalogue_predicate(
     assert errors[0]["field"] == "cataloguePredicate"
 
 
+def test_promotion_rule_update_add_channel_with_different_currency_to_fixed_discount(
+    app_api_client,
+    permission_manage_discounts,
+    channel_PLN,
+    promotion,
+):
+    # given
+    rule = promotion.rules.get(name="Fixed promotion rule")
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    add_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
+    reward_value = Decimal("10")
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "addChannels": add_channel_ids,
+            "rewardValue": reward_value,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["code"]
+        == PromotionRuleUpdateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.name
+    )
+    assert errors[0]["field"] == "addChannels"
+
+
+def test_promotion_rule_update_remove_last_channel_from_fixed_discount(
+    app_api_client,
+    permission_manage_discounts,
+    channel_USD,
+    promotion,
+):
+    # given
+    rule = promotion.rules.get(name="Fixed promotion rule")
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    remove_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    reward_value = Decimal("10")
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "removeChannels": remove_channel_ids,
+            "rewardValue": reward_value,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.MISSING_CHANNELS.name
+    assert errors[0]["field"] == "removeChannels"
+
+
+def test_promotion_rule_update_change_reward_value_type_to_fixed_multiple_channels(
+    app_api_client,
+    permission_manage_discounts,
+    channel_PLN,
+    promotion,
+):
+    # given
+    rule = promotion.rules.get(name="Percentage promotion rule")
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    rule.channels.add(channel_PLN)
+
+    reward_value_type = RewardValueTypeEnum.FIXED.name
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "rewardValueType": reward_value_type,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["code"]
+        == PromotionRuleUpdateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.name
+    )
+    assert errors[0]["field"] == "rewardValueType"
+
+
+def test_promotion_rule_update_change_reward_value_type_to_fixed_no_channels(
+    app_api_client,
+    permission_manage_discounts,
+    promotion,
+):
+    # given
+    rule = promotion.rules.get(name="Percentage promotion rule")
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    rule.channels.clear()
+
+    reward_value_type = RewardValueTypeEnum.FIXED.name
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "rewardValueType": reward_value_type,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.MISSING_CHANNELS.name
+    assert errors[0]["field"] == "rewardValueType"
+
+
+def test_promotion_rule_update_reward_value_invalid_precision(
+    app_api_client,
+    permission_manage_discounts,
+    channel_USD,
+    channel_PLN,
+    promotion,
+):
+    # given
+    rule = promotion.rules.get(name="Fixed promotion rule")
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    add_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
+    remove_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    reward_value = Decimal("10.12212")
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "addChannels": add_channel_ids,
+            "removeChannels": remove_channel_ids,
+            "rewardValue": reward_value,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID_PRECISION.name
+    assert errors[0]["field"] == "rewardValue"
+
+
+def test_promotion_rule_update_reward_value_invalid_percentage_value(
+    app_api_client,
+    permission_manage_discounts,
+    channel_USD,
+    channel_PLN,
+    promotion,
+):
+    # given
+    rule = promotion.rules.get(name="Percentage promotion rule")
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    add_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
+    remove_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    reward_value = Decimal("101")
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "addChannels": add_channel_ids,
+            "removeChannels": remove_channel_ids,
+            "rewardValue": reward_value,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert errors[0]["field"] == "rewardValue"
+
+
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
@@ -406,7 +651,7 @@ def test_promotion_rule_update_clears_old_sale_id(
     }
     collection.products.add(product_list[2])
     reward_value = Decimal("10")
-    reward_value_type = RewardValueTypeEnum.FIXED.name
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     rules_count = promotion.rules.count()
 
