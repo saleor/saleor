@@ -26665,6 +26665,8 @@ enum PromotionRuleCreateErrorCode {
   NOT_FOUND
   REQUIRED
   INVALID
+  MULTIPLE_CURRENCIES_NOT_ALLOWED
+  INVALID_PRECISION
 }
 
 input PromotionRuleCreateInput {
@@ -26732,6 +26734,9 @@ enum PromotionRuleUpdateErrorCode {
   NOT_FOUND
   INVALID
   DUPLICATED_INPUT_ITEM
+  MISSING_CHANNELS
+  MULTIPLE_CURRENCIES_NOT_ALLOWED
+  INVALID_PRECISION
 }
 
 input PromotionRuleUpdateInput {
