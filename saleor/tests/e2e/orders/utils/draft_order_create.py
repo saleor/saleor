@@ -1,40 +1,45 @@
 from saleor.graphql.tests.utils import get_graphql_content
 
 DRAFT_ORDER_CREATE_MUTATION = """
-mutation OrderDraftCreate($input: DraftOrderCreateInput!){
-    draftOrderCreate(input: $input) {
-        errors {
-            message
-            field
-            code
-        }
-        order {
-            id
-            billingAddress{ streetAddress1}
-            shippingAddress{ streetAddress1}
-            shippingMethods{id }
-            lines{
-                productVariantId
-                quantity
-                undiscountedUnitPrice{
-                    gross{
-                        amount
-                        }
-                        }
-                unitPrice{
-                    gross{
-                        amount
-                        }
-                        }
-                totalPrice{
-                    gross{
-                        amount
-                            }
-                        }
-            }
-
-        }
+mutation OrderDraftCreate($input: DraftOrderCreateInput!) {
+  draftOrderCreate(input: $input) {
+    errors {
+      message
+      field
+      code
     }
+    order {
+      id
+      billingAddress {
+        streetAddress1
+      }
+      shippingAddress {
+        streetAddress1
+      }
+      shippingMethods {
+        id
+      }
+      lines {
+        productVariantId
+        quantity
+        undiscountedUnitPrice {
+          gross {
+            amount
+          }
+        }
+        unitPrice {
+          gross {
+            amount
+          }
+        }
+        totalPrice {
+          gross {
+            amount
+          }
+        }
+      }
+    }
+  }
 }
 """
 
