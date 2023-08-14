@@ -64,7 +64,7 @@ def test_promotion_rule_create(
             "name": "Rule 1",
             "description": description_json,
             "channels": rule_channel_ids,
-            "rewardValueType": RewardValueTypeEnum.FIXED.name,
+            "rewardValueType": RewardValueTypeEnum.PERCENTAGE.name,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
         }
