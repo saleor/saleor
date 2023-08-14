@@ -30,6 +30,7 @@ class Operators(Enum):
     OR = "or"
 
 
+# TODO: move to validators in promotion dir
 def clean_predicate(predicate: Union[Dict[str, Union[dict, list]], list]):
     """Convert camel cases keys into snake case."""
     if isinstance(predicate, list):
