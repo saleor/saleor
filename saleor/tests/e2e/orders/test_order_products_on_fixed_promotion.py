@@ -18,10 +18,10 @@ from ..shipping_zone.utils import (
 )
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse, update_warehouse
+from .utils import order_lines_create
 from .utils.draft_order_complete import draft_order_complete
 from .utils.draft_order_create import draft_order_create
 from .utils.draft_order_update import draft_order_update
-from .utils import order_lines_create
 
 
 def prepare_product(
@@ -176,28 +176,16 @@ def test_order_products_on_fixed_promotion_CORE_2101(
     )
 
     # Step 1 - Create a draft order for a product with fixed promotion
-    lines = [{"variantId": product_variant_id, "quantity": 1}]
     input = {
         "channelId": channel_id,
         "billingAddress": DEFAULT_ADDRESS,
         "shippingAddress": DEFAULT_ADDRESS,
         "shippingMethod": shipping_method_id,
-        "lines": lines,
     }
     data = draft_order_create(e2e_staff_api_client, input)
     order_id = data["order"]["id"]
     assert data["order"]["billingAddress"] is not None
     assert data["order"]["shippingAddress"] is not None
-    order_shipping_method_id = data["order"]["shippingMethods"][0]["id"]
-    unit_price = float(variant_price) - float(discount_value)
-    undiscounted_price = data["order"]["lines"][0]["undiscountedUnitPrice"]["gross"][
-        "amount"
-    ]
-    assert float(undiscounted_price) == float(variant_price)
-    assert data["order"]["lines"][0]["unitPrice"]["gross"]["amount"] == unit_price
-    print(data)
-    # UNCOMMENT WHEN https://github.com/saleor/saleor/issues/13675 is resolved:
-    # assert order_shipping_method_id == shipping_method_id
     assert order_id is not None
 
     # Step 2 - Add order lines to the order
@@ -205,7 +193,19 @@ def test_order_products_on_fixed_promotion_CORE_2101(
     order_lines = order_lines_create(e2e_staff_api_client, order_id, lines)
     order_product_variant_id = order_lines["order"]["lines"][0]["variant"]["id"]
     assert order_product_variant_id == product_variant_id
-    print(order_lines)
+    unit_price = float(variant_price) - float(discount_value)
+    undiscounted_price = order_lines["order"]["lines"][0]["undiscountedUnitPrice"][
+        "gross"
+    ]["amount"]
+    assert float(undiscounted_price) == float(variant_price)
+    assert (
+        order_lines["order"]["lines"][0]["unitPrice"]["gross"]["amount"] == unit_price
+    )
+    promotion_reason = order_lines["order"]["lines"][0]["unitDiscountReason"]
+    assert (
+        promotion_reason
+        == f"Promotion rules discounts: {promotion_name}: {promotion_rule_name}"
+    )
 
     # Step 3 - Add a shipping method to the order
     input = {"shippingMethod": shipping_method_id}
@@ -214,8 +214,7 @@ def test_order_products_on_fixed_promotion_CORE_2101(
     shipping_price = draft_update["order"]["shippingPrice"]["gross"]["amount"]
     subtotal_gross_amount = draft_update["order"]["subtotal"]["gross"]["amount"]
     total_gross_amount = draft_update["order"]["total"]["gross"]["amount"]
-    assert order_shipping_method_id == order_shipping_id
-    print(draft_update)
+    assert order_shipping_id is not None
 
     # Step 4 - Complete the draft order
     order = draft_order_complete(e2e_staff_api_client, order_id)
@@ -226,6 +225,7 @@ def test_order_products_on_fixed_promotion_CORE_2101(
     assert order_line["unitDiscount"]["amount"] == float(discount_value)
     assert order_line["unitDiscountType"] == discount_type
     assert order_line["unitDiscountValue"] == float(discount_value)
+    assert order_line["unitDiscountReason"] == promotion_reason
     product_price = order_line["undiscountedUnitPrice"]["gross"]["amount"]
     assert product_price == float(undiscounted_price)
     assert product_price == float(variant_price)
