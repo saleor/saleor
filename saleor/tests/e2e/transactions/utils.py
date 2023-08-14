@@ -27,14 +27,16 @@ mutation TransactionCreate($id: ID!, $transactionCreateInput: TransactionCreateI
 def create_transaction(
     e2e_api_client,
     id,
-    transaction_name="Credit card",
-    message="Charged",
+    transaction_name="CreditCard",
+    message="",
     psp_reference="PSP-ref123",
-    available_actions=["CANCEL", "REFUND"],
+    available_actions=None,
     currency="USD",
     amount=1,
     external_url="https://saleor.io/payment-id/123",
 ):
+    if not available_actions:
+        available_actions = []
     variables = {
         "id": id,
         "transactionCreateInput": {

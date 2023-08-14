@@ -160,6 +160,11 @@ def test_should_be_able_to_create_partially_paid_order_core_0112(
     create_transaction(
         e2e_app_api_client,
         checkout_id,
+        transaction_name="CreditCard",
+        message="Charged",
+        psp_reference="PSP-ref123",
+        available_actions=["REFUND", "CANCEL"],
+        amount=1,
     )
 
     # Step 4 - Complete checkout and check created order
