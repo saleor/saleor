@@ -93,7 +93,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Add `CheckoutLine.problems` field
   - Add `CheckoutSettingsInput` to `ChannelCreateInput` & `ChannelUpdateInput`
   - Add `checkoutSettings` field to `Channel`
-
+- Add `externalReference` to `updateWarehouse`. It will allow update warehouse by
+  external reference. - #13342 by @Smit-Parmar
 ### Saleor Apps
 
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada

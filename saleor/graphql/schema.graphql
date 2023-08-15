@@ -14119,8 +14119,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   updateWarehouse(
+    """
+    External reference of an warehouse.
+    
+    Added in Saleor 3.15.
+    """
+    externalReference: String
+
     """ID of a warehouse to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update warehouse."""
     input: WarehouseUpdateInput!
