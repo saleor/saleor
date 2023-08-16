@@ -436,6 +436,7 @@ class PromotionRule(models.Model):
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         null=True,
+        blank=True,
     )
     old_channel_listing_id = models.IntegerField(blank=True, null=True, unique=True)
 
@@ -453,6 +454,17 @@ class PromotionRule(models.Model):
                 rounding=ROUND_HALF_UP,
             )
         raise NotImplementedError("Unknown discount type")
+
+    @staticmethod
+    def get_old_channel_listing_ids(qunatity):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"""
+                SELECT nextval('discount_promotionrule_old_channel_listing_id_seq')
+                FROM generate_series(1, {qunatity})
+                """
+            )
+            return cursor.fetchall()
 
 
 class PromotionRuleTranslation(Translation):

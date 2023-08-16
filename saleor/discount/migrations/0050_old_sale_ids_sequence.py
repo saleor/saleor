@@ -24,4 +24,21 @@ class Migration(migrations.Migration):
             ],
             reverse_sql=["DROP SEQUENCE discount_promotion_old_sale_id_seq"],
         ),
+        migrations.RunSQL(
+            sql=[
+                """
+            CREATE SEQUENCE discount_promotionrule_old_channel_listing_id_seq
+            OWNED BY discount_promotionrule.old_channel_listing_id;
+
+            SELECT setval(
+                'discount_promotionrule_old_channel_listing_id_seq',
+                 coalesce(max(old_channel_listing_id), 0) + 1000, false
+            )
+            FROM discount_promotionrule;
+            """
+            ],
+            reverse_sql=[
+                "DROP SEQUENCE discount_promotionrule_old_channel_listing_id_seq"
+            ],
+        ),
     ]
