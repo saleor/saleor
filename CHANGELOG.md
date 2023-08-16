@@ -7,8 +7,10 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
+- Add `storedPaymentMethodRequestDelete` mutation - #13660 by @korycins
 
 ### Saleor Apps
+- Add `STORED_PAYMENT_METHOD_DELETE_REQUESTED` webhook event - #13660 by @korycins
 
 ### Other changes
 
