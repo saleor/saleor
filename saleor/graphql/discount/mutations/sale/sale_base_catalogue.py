@@ -1,14 +1,11 @@
 import graphene
 
-from .....discount.error_codes import DiscountErrorCode
-from .....discount.models import Promotion
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....core import ResolveInfo
-from ....core.utils import from_global_id_or_error, raise_validation_error
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Sale
 from ...utils import (
-    convert_migrated_sale_predicate_to_catalogue_info,
+    convert_catalogue_info_into_predicate,
     get_product_ids_for_predicate,
 )
 from ..voucher.voucher_add_catalogues import CatalogueInput
@@ -31,26 +28,9 @@ class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):
         abstract = True
 
     @classmethod
-    def get_instance(cls, _info: ResolveInfo, id):
-        type, _id = from_global_id_or_error(id, raise_error=False)
-        if type == "Promotion":
-            raise_validation_error(
-                field="id",
-                message="Provided ID refers to Promotion model. "
-                "Please use 'promotionRuleCreate' mutation instead.",
-                code=DiscountErrorCode.INVALID.value,
-            )
-        object_id = cls.get_global_id_or_error(id, "Sale")
-        return Promotion.objects.get(old_sale_id=object_id)
-
-    @classmethod
     def post_save_actions(
-        cls, info: ResolveInfo, promotion, previous_predicate, new_predicate
+        cls, info: ResolveInfo, promotion, previous_catalogue, new_catalogue
     ):
-        previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-            previous_predicate
-        )
-        new_catalogue = convert_migrated_sale_predicate_to_catalogue_info(new_predicate)
         if previous_catalogue != new_catalogue:
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(
@@ -60,6 +40,8 @@ class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):
                 new_catalogue,
             )
 
+        previous_predicate = convert_catalogue_info_into_predicate(previous_catalogue)
+        new_predicate = convert_catalogue_info_into_predicate(new_catalogue)
         previous_product_ids = get_product_ids_for_predicate(previous_predicate)
         new_product_ids = get_product_ids_for_predicate(new_predicate)
 

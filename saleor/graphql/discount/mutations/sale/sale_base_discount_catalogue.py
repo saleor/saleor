@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.core.exceptions import ValidationError
 
 from .....discount.error_codes import DiscountErrorCode
@@ -5,6 +7,7 @@ from .....product.tasks import update_products_discounted_prices_of_catalogues_t
 from .....product.utils import get_products_ids_without_variants
 from ....core.mutations import BaseMutation
 from ....product.types import Category, Collection, Product, ProductVariant
+from ...utils import CatalogueInfo
 
 
 class BaseDiscountCatalogueMutation(BaseMutation):
@@ -81,14 +84,21 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         cls.recalculate_discounted_prices(products, categories, collections, variants)
 
     @classmethod
-    def get_catalogue_item_ids(cls, input):
-        if product_ids := input.get("products", []):
+    def get_catalogue_info_from_input(cls, input) -> CatalogueInfo:
+        catalogue_info: CatalogueInfo = defaultdict(set)
+        if collection_ids := input.get("collections", set()):
+            cls.get_nodes_or_error(collection_ids, "collections", Collection)
+        if category_ids := input.get("categories", set()):
+            cls.get_nodes_or_error(category_ids, "categories", Category)
+        if product_ids := input.get("products", set()):
             products = cls.get_nodes_or_error(product_ids, "products", Product)
             cls.clean_product(products)
-        if category_ids := input.get("categories", []):
-            cls.get_nodes_or_error(category_ids, "categories", Category)
-        if collection_ids := input.get("collections", []):
-            cls.get_nodes_or_error(collection_ids, "collections", Collection)
-        if variant_ids := input.get("variants", []):
+        if variant_ids := input.get("variants", set()):
             cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
-        return collection_ids, category_ids, product_ids, variant_ids
+
+        catalogue_info["collections"] = set(collection_ids)
+        catalogue_info["categories"] = set(category_ids)
+        catalogue_info["products"] = set(product_ids)
+        catalogue_info["variants"] = set(variant_ids)
+
+        return catalogue_info

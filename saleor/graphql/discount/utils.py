@@ -268,47 +268,6 @@ def convert_migrated_sale_predicate_to_catalogue_info(
     return catalogue_info
 
 
-def get_categories_from_predicate(catalogue_predicate) -> QuerySet:
-    return where_filter_qs(
-        Category.objects.all(), {}, CategoryWhere, catalogue_predicate, None
-    ).all()
-
-
-def get_product_ids_for_predicate(predicate: dict) -> set[int]:
-    variants = get_variants_for_predicate(predicate)
-    products = Product.objects.filter(
-        Exists(variants.filter(product_id=OuterRef("id")))
-    )
-    return set(products.values_list("id", flat=True))
-
-
-def merge_migrated_sale_predicates(predicate_1: dict, predicate_2: dict) -> dict:
-    predicate_1_or = predicate_1.get("OR")
-    predicate_2_or = predicate_2.get("OR")
-
-    if not predicate_1_or:
-        return deepcopy(predicate_2)
-
-    if not predicate_2_or:
-        return deepcopy(predicate_1)
-
-    catalogue_info_1 = convert_migrated_sale_predicate_to_catalogue_info(predicate_1)
-    catalogue_info_2 = convert_migrated_sale_predicate_to_catalogue_info(predicate_2)
-    merged_catalogue_info = merge_catalogues_info(catalogue_info_1, catalogue_info_2)
-    return convert_catalogue_info_into_predicate(merged_catalogue_info)
-
-
-def merge_catalogues_info(
-    catalogue_1: CatalogueInfo, catalogue_2: CatalogueInfo
-) -> CatalogueInfo:
-    new_catalogue = deepcopy(catalogue_1)
-    new_catalogue["collections"].update(catalogue_2.get("collections", set()))
-    new_catalogue["categories"].update(catalogue_2.get("categories", set()))
-    new_catalogue["products"].update(catalogue_2.get("products", set()))
-    new_catalogue["variants"].update(catalogue_2.get("variants", set()))
-    return new_catalogue
-
-
 def convert_catalogue_info_into_predicate(catalogue_info: CatalogueInfo) -> dict:
     catalogue = []
     collection_ids = catalogue_info.get("collections")
@@ -328,22 +287,29 @@ def convert_catalogue_info_into_predicate(catalogue_info: CatalogueInfo) -> dict
     return {}
 
 
-def subtract_migrated_sale_predicates(predicate_1: dict, predicate_2: dict) -> dict:
-    predicate_1_or = predicate_1.get("OR")
-    predicate_2_or = predicate_2.get("OR")
+def get_categories_from_predicate(catalogue_predicate) -> QuerySet:
+    return where_filter_qs(
+        Category.objects.all(), {}, CategoryWhere, catalogue_predicate, None
+    ).all()
 
-    if not predicate_1_or:
-        return {}
 
-    if not predicate_2_or:
-        return deepcopy(predicate_1)
-
-    catalogue_info_1 = convert_migrated_sale_predicate_to_catalogue_info(predicate_1)
-    catalogue_info_2 = convert_migrated_sale_predicate_to_catalogue_info(predicate_2)
-    subtracted_catalogue_info = subtract_catalogues_info(
-        catalogue_info_1, catalogue_info_2
+def get_product_ids_for_predicate(predicate: dict) -> set[int]:
+    variants = get_variants_for_predicate(predicate)
+    products = Product.objects.filter(
+        Exists(variants.filter(product_id=OuterRef("id")))
     )
-    return convert_catalogue_info_into_predicate(subtracted_catalogue_info)
+    return set(products.values_list("id", flat=True))
+
+
+def merge_catalogues_info(
+    catalogue_1: CatalogueInfo, catalogue_2: CatalogueInfo
+) -> CatalogueInfo:
+    new_catalogue = deepcopy(catalogue_1)
+    new_catalogue["collections"].update(catalogue_2.get("collections", set()))
+    new_catalogue["categories"].update(catalogue_2.get("categories", set()))
+    new_catalogue["products"].update(catalogue_2.get("products", set()))
+    new_catalogue["variants"].update(catalogue_2.get("variants", set()))
+    return new_catalogue
 
 
 def subtract_catalogues_info(

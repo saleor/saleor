@@ -152,7 +152,7 @@ def test_sale_add_catalogues_no_changes_in_catalogue(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
-def test_sale_add_empty_catalogues_to_sale(
+def test_sale_add_empty_catalogues(
     updated_webhook_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
@@ -209,11 +209,11 @@ def test_sale_add_empty_catalogues_to_sale_with_empty_catalogues(
 ):
     # given
     query = SALE_CATALOGUES_ADD_MUTATION
+    convert_sales_to_promotions()
     variables = {
         "id": graphene.Node.to_global_id("Sale", new_sale.id),
         "input": {"products": [], "collections": [], "categories": [], "variants": []},
     }
-    convert_sales_to_promotions()
 
     # when
     response = staff_api_client.post_graphql(

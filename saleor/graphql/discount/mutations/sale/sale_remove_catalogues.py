@@ -1,8 +1,8 @@
 from typing import List, Optional
 
 from .....core.tracing import traced_atomic_transaction
-from .....discount.models import PromotionRule
-from .....discount.sale_converter import create_catalogue_predicate
+from .....discount.error_codes import DiscountErrorCode
+from .....discount.models import Promotion, PromotionRule
 from .....graphql.channel import ChannelContext
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
@@ -10,8 +10,17 @@ from ....core import ResolveInfo
 from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
-from ....core.utils import WebhookEventInfo
-from ...utils import subtract_migrated_sale_predicates
+from ....core.utils import (
+    WebhookEventInfo,
+    from_global_id_or_error,
+    raise_validation_error,
+)
+from ...utils import (
+    CatalogueInfo,
+    convert_catalogue_info_into_predicate,
+    convert_migrated_sale_predicate_to_catalogue_info,
+    subtract_catalogues_info,
+)
 from .sale_base_catalogue import SaleBaseCatalogueMutation
 
 
@@ -40,36 +49,54 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
         promotion = cls.get_instance(info, id)
         rules = promotion.rules.all()
         previous_predicate = rules[0].catalogue_predicate
+        previous_catalogue_info = convert_migrated_sale_predicate_to_catalogue_info(
+            previous_predicate
+        )
 
         with traced_atomic_transaction():
-            new_predicate = cls.remove_items_from_predicate(
-                rules, previous_predicate, input
+            new_catalogue_info = cls.remove_items_from_catalogue(
+                rules, previous_catalogue_info, input
             )
-            if new_predicate:
-                cls.post_save_actions(
-                    info,
-                    promotion,
-                    previous_predicate,
-                    new_predicate,
-                )
+            cls.post_save_actions(
+                info,
+                promotion,
+                previous_catalogue_info,
+                new_catalogue_info,
+            )
 
         return SaleRemoveCatalogues(
             sale=ChannelContext(node=promotion, channel_slug=None)
         )
 
     @classmethod
-    def remove_items_from_predicate(
-        cls, rules: List[PromotionRule], previous_predicate: dict, input: dict
-    ) -> Optional[dict]:
-        catalogue_item_ids = cls.get_catalogue_item_ids(input)
-        if any(catalogue_item_ids):
-            predicate_to_remove = create_catalogue_predicate(*catalogue_item_ids)
-            new_predicate = subtract_migrated_sale_predicates(
-                previous_predicate, predicate_to_remove
+    def get_instance(cls, _info: ResolveInfo, id):
+        type, _id = from_global_id_or_error(id, raise_error=False)
+        if type == "Promotion":
+            raise_validation_error(
+                field="id",
+                message="Provided ID refers to Promotion model. Please use "
+                "`promotionRuleUpdate` or `promotionRuleDelete` mutation instead.",
+                code=DiscountErrorCode.INVALID.value,
             )
+        object_id = cls.get_global_id_or_error(id, "Sale")
+        return Promotion.objects.get(old_sale_id=object_id)
+
+    @classmethod
+    def remove_items_from_catalogue(
+        cls, rules: List[PromotionRule], previous_catalogue_info: CatalogueInfo, input
+    ) -> Optional[dict]:
+        if not any(previous_catalogue_info):
+            return previous_catalogue_info
+
+        catalogue_info_to_remove = cls.get_catalogue_info_from_input(input)
+        if any(catalogue_info_to_remove):
+            new_catalogue = subtract_catalogues_info(
+                previous_catalogue_info, catalogue_info_to_remove
+            )
+            new_predicate = convert_catalogue_info_into_predicate(new_catalogue)
             for rule in rules:
                 rule.catalogue_predicate = new_predicate
             PromotionRule.objects.bulk_update(rules, ["catalogue_predicate"])
-            return new_predicate
+            return new_catalogue
 
-        return None
+        return previous_catalogue_info
