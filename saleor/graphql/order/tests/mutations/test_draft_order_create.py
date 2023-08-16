@@ -1637,9 +1637,12 @@ def test_draft_order_create_product_on_promotion(
     )
     line_total = variant_channel_listing.discounted_price_amount * quantity
     assert line_data["totalPrice"]["gross"]["amount"] == line_total
-    # TODO: TO FIX
-    # assert line_data["unitDiscountReason"]
-    # assert line_data["unitDiscountType"]
+    assert line_data["unitDiscountReason"]
+    assert line_data["unitDiscountType"]
+
+    line = order.lines.first()
+    assert line.discounts.count() == 1
+    assert line.sale_id
 
     assert data["total"]["gross"]["amount"] == shipping_total + line_total
     assert (
@@ -1666,8 +1669,6 @@ def test_draft_order_create_product_on_promotion(
     assert event_parameters["lines"][0]["item"] == str(order_lines[0])
     assert event_parameters["lines"][0]["line_pk"] == str(order_lines[0].pk)
     assert event_parameters["lines"][0]["quantity"] == quantity
-
-    # TODO: check if OrderLineDiscount was created properly
 
 
 def test_draft_order_create_product_on_promotion_flat_taxes(
@@ -1767,9 +1768,12 @@ def test_draft_order_create_product_on_promotion_flat_taxes(
     )
     line_total = variant_channel_listing.discounted_price_amount * quantity
     assert line_data["totalPrice"]["gross"]["amount"] == line_total
-    # TODO: TO FIX
-    # assert line_data["unitDiscountReason"]
-    # assert line_data["unitDiscountType"]
+    assert line_data["unitDiscountReason"]
+    assert line_data["unitDiscountType"]
+
+    line = order.lines.first()
+    assert line.discounts.count() == 1
+    assert line.sale_id
 
     assert data["total"]["gross"]["amount"] == shipping_total + line_total
     assert (
@@ -1796,5 +1800,3 @@ def test_draft_order_create_product_on_promotion_flat_taxes(
     assert event_parameters["lines"][0]["item"] == str(order_lines[0])
     assert event_parameters["lines"][0]["line_pk"] == str(order_lines[0].pk)
     assert event_parameters["lines"][0]["quantity"] == quantity
-
-    # TODO: check if OrderLineDiscount was created properly
