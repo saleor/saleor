@@ -128,14 +128,14 @@ def _create_promotion_rule(
 ):
     return PromotionRule(
         promotion=promotion,
-        catalogue_predicate=_create_catalogue_predicate_from_sale(sale),
+        catalogue_predicate=create_catalogue_predicate_from_sale(sale),
         reward_value_type=sale.type,
         reward_value=discount_value,
         old_channel_listing_id=old_channel_listing_id,
     )
 
 
-def _create_catalogue_predicate_from_sale(sale):
+def create_catalogue_predicate_from_sale(sale):
     collection_ids = [
         graphene.Node.to_global_id("Collection", pk)
         for pk in sale.collections.values_list("pk", flat=True)
