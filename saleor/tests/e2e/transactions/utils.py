@@ -59,7 +59,7 @@ def create_transaction(
     assert data["name"] == transaction_name
     assert data["message"] == message
     assert data["pspReference"] == psp_reference
-    assert data["actions"] == available_actions
+    assert set(data["actions"]) == set(available_actions)
     assert data["chargedAmount"]["amount"] == amount
     assert data["chargedAmount"]["currency"] == currency
 
