@@ -46,25 +46,15 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
         promotion = cls.get_instance(info, id)
         rules = promotion.rules.all()
         previous_predicate = rules[0].catalogue_predicate
-        previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-            previous_predicate
-        )
-        manager = get_plugin_manager_promise(info.context).get()
+
         with traced_atomic_transaction():
             new_predicate = cls.add_items_to_predicate(rules, previous_predicate, input)
-            # TODO add to post save actions
-            # TODO check previous product_ids with current if price recalculation needed
-            # TODO add test for the case
             if new_predicate:
-                current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-                    new_predicate
-                )
-
-                cls.call_event(
-                    manager.sale_updated,
+                cls.post_save_actions(
+                    info,
                     promotion,
-                    previous_catalogue,
-                    current_catalogue,
+                    previous_predicate,
+                    new_predicate,
                 )
 
         return SaleAddCatalogues(sale=ChannelContext(node=promotion, channel_slug=None))
@@ -81,12 +71,34 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
             )
             for rule in rules:
                 rule.catalogue_predicate = new_predicate
-
             PromotionRule.objects.bulk_update(rules, ["catalogue_predicate"])
 
-            product_ids = get_product_ids_for_predicate(predicate_to_merge)
+            return new_predicate
+
+        return None
+
+    @classmethod
+    def post_save_actions(
+        cls, info: ResolveInfo, promotion, previous_predicate, new_predicate
+    ):
+        manager = get_plugin_manager_promise(info.context).get()
+
+        previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+            previous_predicate
+        )
+        new_catalogue = convert_migrated_sale_predicate_to_catalogue_info(new_predicate)
+
+        if previous_catalogue != new_catalogue:
+            cls.call_event(
+                manager.sale_updated,
+                promotion,
+                previous_catalogue,
+                new_catalogue,
+            )
+
+        previous_product_ids = get_product_ids_for_predicate(previous_predicate)
+        product_ids = get_product_ids_for_predicate(new_predicate)
+        if previous_product_ids != product_ids:
             update_products_discounted_prices_for_promotion_task.delay(
                 list(product_ids)
             )
-            return new_predicate
-        return None
