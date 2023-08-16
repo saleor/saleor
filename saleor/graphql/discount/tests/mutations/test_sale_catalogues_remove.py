@@ -1,11 +1,13 @@
 from unittest.mock import patch
 
 import graphene
-import pytest
 
+from .....discount.models import Promotion
+from .....discount.sale_converter import convert_sales_to_promotions
 from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...mutations.utils import convert_catalogue_info_to_global_ids
+from ...utils import convert_migrated_sale_predicate_to_catalogue_info
 
 SALE_CATALOGUES_REMOVE_MUTATION = """
     mutation saleCataloguesRemove($id: ID!, $input: CatalogueInput!) {
@@ -23,28 +25,29 @@ SALE_CATALOGUES_REMOVE_MUTATION = """
 """
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
-    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_remove_catalogues(
     updated_webhook_mock,
-    update_products_discounted_prices_of_catalogues_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     sale,
     category,
     product,
     collection,
-    product_variant_list,
+    variant,
+    product_list,
     permission_manage_discounts,
 ):
     # given
-    sale.products.add(product)
-    sale.collections.add(collection)
-    sale.categories.add(category)
-    sale.variants.add(*product_variant_list)
+    sale.products.add(product_list[0])
+
+    assert collection in sale.collections.all()
+    assert category in sale.categories.all()
+    assert product in sale.products.all()
+    assert variant in sale.variants.all()
 
     query = SALE_CATALOGUES_REMOVE_MUTATION
     previous_catalogue = convert_catalogue_info_to_global_ids(
@@ -53,17 +56,16 @@ def test_sale_remove_catalogues(
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
-    variant_ids = [
-        graphene.Node.to_global_id("ProductVariant", variant.id)
-        for variant in product_variant_list
-    ]
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    convert_sales_to_promotions()
+
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
         "input": {
-            "products": [product_id],
             "collections": [collection_id],
             "categories": [category_id],
-            "variants": variant_ids,
+            "products": [product_id],
+            "variants": [variant_id],
         },
     }
 
@@ -73,25 +75,24 @@ def test_sale_remove_catalogues(
     )
 
     # then
-    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
-
     content = get_graphql_content(response)
-    data = content["data"]["saleCataloguesRemove"]
-    product_variants = list(sale.variants.all())
+    assert not content["data"]["saleCataloguesRemove"]["errors"]
+    assert content["data"]["saleCataloguesRemove"]["sale"]["name"] == sale.name
+    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    predicate = promotion.rules.first().catalogue_predicate
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
-    assert not data["errors"]
-    assert product not in sale.products.all()
-    assert category not in sale.categories.all()
-    assert collection not in sale.collections.all()
-    assert not any(v in product_variants for v in product_variant_list)
+    assert collection_id not in current_catalogue["collections"]
+    assert category_id not in current_catalogue["categories"]
+    assert product_id not in current_catalogue["products"]
+    assert variant_id not in current_catalogue["variants"]
+
+    assert (
+        graphene.Node.to_global_id("Product", product_list[0].id)
+        in current_catalogue["products"]
+    )
 
     updated_webhook_mock.assert_called_once_with(
-        sale, previous_catalogue=previous_catalogue, current_catalogue=current_catalogue
+        promotion, previous_catalogue, current_catalogue
     )
-    args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert kwargs["category_ids"] == [category.id]
-    assert kwargs["collection_ids"] == [collection.id]
-    assert kwargs["product_ids"] == [product.id]
-    assert set(kwargs["variant_ids"]) == {
-        variant.id for variant in product_variant_list
-    }
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()

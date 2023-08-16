@@ -302,10 +302,10 @@ def merge_catalogues_info(
     catalogue_1: CatalogueInfo, catalogue_2: CatalogueInfo
 ) -> CatalogueInfo:
     new_catalogue = deepcopy(catalogue_1)
-    new_catalogue["collections"].update(catalogue_2.get("collections", {}))
-    new_catalogue["categories"].update(catalogue_2.get("categories", {}))
-    new_catalogue["products"].update(catalogue_2.get("products", {}))
-    new_catalogue["variants"].update(catalogue_2.get("variants", {}))
+    new_catalogue["collections"].update(catalogue_2.get("collections", set()))
+    new_catalogue["categories"].update(catalogue_2.get("categories", set()))
+    new_catalogue["products"].update(catalogue_2.get("products", set()))
+    new_catalogue["variants"].update(catalogue_2.get("variants", set()))
     return new_catalogue
 
 
@@ -326,3 +326,32 @@ def convert_catalogue_info_into_predicate(catalogue_info: CatalogueInfo) -> dict
     if catalogue:
         return {"OR": catalogue}
     return {}
+
+
+def subtract_migrated_sale_predicates(predicate_1: dict, predicate_2: dict) -> dict:
+    predicate_1_or = predicate_1.get("OR")
+    predicate_2_or = predicate_2.get("OR")
+
+    if not predicate_1_or:
+        return {}
+
+    if not predicate_2_or:
+        return deepcopy(predicate_1)
+
+    catalogue_info_1 = convert_migrated_sale_predicate_to_catalogue_info(predicate_1)
+    catalogue_info_2 = convert_migrated_sale_predicate_to_catalogue_info(predicate_2)
+    subtracted_catalogue_info = subtract_catalogues_info(
+        catalogue_info_1, catalogue_info_2
+    )
+    return convert_catalogue_info_into_predicate(subtracted_catalogue_info)
+
+
+def subtract_catalogues_info(
+    catalogue_1: CatalogueInfo, catalogue_2: CatalogueInfo
+) -> CatalogueInfo:
+    new_catalogue = deepcopy(catalogue_1)
+    new_catalogue["collections"] -= catalogue_2.get("collections", set())
+    new_catalogue["categories"] -= catalogue_2.get("categories", set())
+    new_catalogue["products"] -= catalogue_2.get("products", set())
+    new_catalogue["variants"] -= catalogue_2.get("variants", set())
+    return new_catalogue

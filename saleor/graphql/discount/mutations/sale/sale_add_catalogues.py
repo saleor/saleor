@@ -4,7 +4,6 @@ from .....core.tracing import traced_atomic_transaction
 from .....discount.models import PromotionRule
 from .....discount.sale_converter import create_catalogue_predicate
 from .....permission.enums import DiscountPermissions
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -12,12 +11,7 @@ from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
 from ....core.utils import WebhookEventInfo
-from ....plugins.dataloaders import get_plugin_manager_promise
-from ...utils import (
-    convert_migrated_sale_predicate_to_catalogue_info,
-    get_product_ids_for_predicate,
-    merge_migrated_sale_predicates,
-)
+from ...utils import merge_migrated_sale_predicates
 from .sale_base_catalogue import SaleBaseCatalogueMutation
 
 
@@ -75,27 +69,3 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
             return new_predicate
 
         return None
-
-    @classmethod
-    def post_save_actions(
-        cls, info: ResolveInfo, promotion, previous_predicate, new_predicate
-    ):
-        previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-            previous_predicate
-        )
-        new_catalogue = convert_migrated_sale_predicate_to_catalogue_info(new_predicate)
-        if previous_catalogue != new_catalogue:
-            manager = get_plugin_manager_promise(info.context).get()
-            cls.call_event(
-                manager.sale_updated,
-                promotion,
-                previous_catalogue,
-                new_catalogue,
-            )
-
-        previous_product_ids = get_product_ids_for_predicate(previous_predicate)
-        product_ids = get_product_ids_for_predicate(new_predicate)
-        if previous_product_ids != product_ids:
-            update_products_discounted_prices_for_promotion_task.delay(
-                list(product_ids)
-            )

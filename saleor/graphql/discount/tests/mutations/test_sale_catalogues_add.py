@@ -74,6 +74,7 @@ def test_sale_add_catalogues(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesAdd"]["errors"]
+    assert content["data"]["saleCataloguesAdd"]["sale"]["name"] == sale.name
     promotion = Promotion.objects.get(old_sale_id=sale.id)
     predicate = promotion.rules.first().catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
