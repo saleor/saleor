@@ -3,7 +3,7 @@ import pillow_avif  # noqa: F401 # imported for side effects
 from .celeryconf import app as celery_app
 
 __all__ = ["celery_app"]
-__version__ = "3.15.0-a.0"
+__version__ = "3.16.0-a.0"
 
 
 class PatchedSubscriberExecutionContext(object):
