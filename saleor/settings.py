@@ -7,6 +7,7 @@ from datetime import timedelta
 from typing import List
 
 import dj_database_url
+import dj_db_conn_pool
 import dj_email_url
 import django_cache_url
 import django_stubs_ext
@@ -80,7 +81,7 @@ INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 # Maximum time in seconds Django can keep the database connections opened.
 # Set the value to 0 to disable connection persistence, database connections
 # will be closed after each request.
-DB_CONN_MAX_AGE = int(os.environ.get("DB_CONN_MAX_AGE", 600))
+DB_CONN_MAX_AGE = 0  # int(os.environ.get("DB_CONN_MAX_AGE", 600))
 
 DATABASE_CONNECTION_DEFAULT_NAME = "default"
 # TODO: For local envs will be activated in separate PR.
@@ -101,6 +102,8 @@ DATABASES = {
         conn_max_age=DB_CONN_MAX_AGE,
     ),
 }
+
+dj_db_conn_pool.setup(pool_size=10, max_overflow=10)
 
 DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
 
