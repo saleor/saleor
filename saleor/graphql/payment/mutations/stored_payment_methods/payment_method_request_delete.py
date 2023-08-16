@@ -5,7 +5,7 @@ from .....payment.interface import StoredPaymentMethodRequestDeleteData
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventSyncType
 from ....channel.utils import validate_channel
-from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_316, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import StoredPaymentMethodRequestDeleteErrorCode
 from ....core.mutations import BaseMutation
@@ -35,7 +35,7 @@ class StoredPaymentMethodRequestDelete(BaseMutation):
         doc_category = DOC_CATEGORY_PAYMENTS
         description = (
             "Request to delete a stored payment method on payment provider side."
-            + ADDED_IN_315
+            + ADDED_IN_316
             + PREVIEW_FEATURE
         )
 

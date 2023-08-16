@@ -15572,7 +15572,7 @@ type Mutation {
   """
   Request to delete a stored payment method on payment provider side.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.16.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -23158,7 +23158,7 @@ enum TransactionProcessErrorCode @doc(category: "Payments") {
 """
 Request to delete a stored payment method on payment provider side.
 
-Added in Saleor 3.15.
+Added in Saleor 3.16.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -33116,7 +33116,7 @@ type ListStoredPaymentMethods implements Event @doc(category: "Payments") {
 """
 Event sent when user requests to delete a payment method.
 
-Added in Saleor 3.15.
+Added in Saleor 3.16.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """

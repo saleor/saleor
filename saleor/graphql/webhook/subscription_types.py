@@ -47,6 +47,7 @@ from ..core.descriptions import (
     ADDED_IN_313,
     ADDED_IN_314,
     ADDED_IN_315,
+    ADDED_IN_316,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -1893,7 +1894,7 @@ class StoredPaymentMethodDeleteRequested(SubscriptionObjectType):
         interfaces = (Event,)
         description = (
             "Event sent when user requests to delete a payment method."
-            + ADDED_IN_315
+            + ADDED_IN_316
             + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_PAYMENTS
