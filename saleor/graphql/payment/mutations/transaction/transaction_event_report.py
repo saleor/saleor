@@ -211,6 +211,10 @@ class TransactionEventReport(ModelMutation):
         )
 
         cls.clean_instance(info, transaction_event)
+
+        if available_actions is not None:
+            available_actions = list(set(available_actions))
+
         already_processed = False
         error_code = None
         error_msg = None
@@ -286,6 +290,11 @@ class TransactionEventReport(ModelMutation):
             if transaction.checkout_id:
                 manager = get_plugin_manager_promise(info.context).get()
                 transaction_amounts_for_checkout_updated(transaction, manager)
+        elif available_actions is not None and set(
+            transaction.available_actions
+        ) != set(available_actions):
+            transaction.available_actions = available_actions
+            transaction.save(update_fields=["available_actions"])
 
         return cls(
             already_processed=already_processed,
