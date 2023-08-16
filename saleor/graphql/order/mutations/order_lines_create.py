@@ -4,9 +4,10 @@ from typing import Dict, List
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....checkout.fetch import get_variant_channel_listing, get_variant_rules_info
+from ....checkout.fetch import get_variant_channel_listing
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
+from ....discount.interface import fetch_variant_rules_info
 from ....order import events
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_lines
@@ -222,7 +223,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         )
         for variant in variants:
             variant_channel_listing = get_variant_channel_listing(variant, channel_id)
-            rules_info = get_variant_rules_info(variant_channel_listing, language_code)
+            rules_info = fetch_variant_rules_info(
+                variant_channel_listing, language_code
+            )
             variant_id_to_variant_and_rules_info_map[
                 graphene.Node.to_global_id("ProductVariant", variant.pk)
             ] = VariantData(variant=variant, rules_info=rules_info)

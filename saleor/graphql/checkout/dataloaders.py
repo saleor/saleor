@@ -7,13 +7,13 @@ from promise import Promise
 from ...checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
-    VariantPromotionRuleInfo,
     apply_voucher_to_checkout_line,
     get_delivery_method_info,
     update_delivery_method_lists_for_checkout_info,
 )
 from ...checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ...discount import VoucherType
+from ...discount.interface import VariantPromotionRuleInfo
 from ...payment.models import TransactionItem
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..channel.dataloaders import ChannelByIdLoader
