@@ -599,6 +599,90 @@ def test_update_taxes_for_order_lines_voucher_on_shipping(
         assert line.tax_rate == Decimal("0.23")
 
 
+def test_update_taxes_for_order_line_on_promotion(order_with_lines, promotion):
+    # given
+    order = order_with_lines
+    currency = order.currency
+    prices_entered_with_tax = True
+    _enable_flat_rates(order, prices_entered_with_tax)
+    country_code = get_order_country(order)
+
+    line = order_with_lines.lines.first()
+    variant = line.variant
+
+    channel = order_with_lines.channel
+    reward_value = Decimal("1.0")
+    rule = promotion.rules.first()
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel.currency_code,
+    )
+    line.total_price_gross_amount = (
+        variant_channel_listing.discounted_price_amount * line.quantity
+    )
+    line.total_price_net_amount = (
+        variant_channel_listing.discounted_price_amount * line.quantity
+    )
+    line.undiscounted_total_price_gross_amount = (
+        variant_channel_listing.price_amount * line.quantity
+    )
+    line.undiscounted_total_price_net_amount = (
+        variant_channel_listing.price_amount * line.quantity
+    )
+
+    line.unit_price_gross_amount = variant_channel_listing.discounted_price_amount
+    line.unit_price_net_amount = variant_channel_listing.discounted_price_amount
+    line.undiscounted_unit_price_gross_amount = variant_channel_listing.price_amount
+    line.undiscounted_unit_price_net_amount = variant_channel_listing.price_amount
+
+    line.base_unit_price_amount = variant_channel_listing.discounted_price_amount
+    line.undiscounted_base_unit_price_amount = variant_channel_listing.price_amount
+
+    line.unit_discount_amount = reward_value
+    line.save()
+    lines = order.lines.all()
+
+    # when
+    lines, _ = update_taxes_for_order_lines(
+        order, lines, country_code, Decimal(23), prices_entered_with_tax
+    )
+
+    # then
+    for line in lines:
+        assert line.unit_price == TaxedMoney(
+            net=quantize_price(line.base_unit_price / Decimal("1.23"), currency),
+            gross=line.base_unit_price,
+        )
+        assert line.undiscounted_unit_price == TaxedMoney(
+            net=quantize_price(
+                line.undiscounted_base_unit_price / Decimal("1.23"), currency
+            ),
+            gross=line.undiscounted_base_unit_price,
+        )
+        assert line.total_price == TaxedMoney(
+            net=quantize_price(
+                line.base_unit_price / Decimal("1.23") * line.quantity, currency
+            ),
+            gross=line.base_unit_price * line.quantity,
+        )
+        assert line.undiscounted_total_price == TaxedMoney(
+            net=quantize_price(
+                line.undiscounted_base_unit_price / Decimal("1.23") * line.quantity,
+                currency,
+            ),
+            gross=line.undiscounted_base_unit_price * line.quantity,
+        )
+        assert line.tax_rate == Decimal("0.23")
+
+
 def test_use_original_tax_rate_when_tax_class_is_removed_from_order_line(
     order_with_lines,
 ):
