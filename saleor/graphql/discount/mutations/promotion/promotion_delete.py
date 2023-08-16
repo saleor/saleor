@@ -42,9 +42,11 @@ class PromotionDelete(ModelDeleteMutation):
         product_ids = list(
             get_products_for_promotion(instance).values_list("id", flat=True)
         )
+        promotion_id = instance.id
 
         with transaction.atomic():
             response = super().perform_mutation(root, info, id=id)
-            cls.call_event(manager.promotion_deleted(instance))
+            instance.id = promotion_id
+            cls.call_event(manager.promotion_deleted, instance)
             update_products_discounted_prices_for_promotion_task.delay(product_ids)
         return response
