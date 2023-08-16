@@ -744,6 +744,7 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
         "time": event_time,
         "externalUrl": event_url,
         "message": event_cause,
+        "actions": ["CHARGE", "CHARGE", "CANCEL"],
     }
 
     # when
@@ -752,7 +753,10 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
     )
 
     # then
-    assert TransactionEvent.objects.count() == 2
+    transaction.refresh_from_db()
+    assert len(transaction.available_actions) == 2
+    assert set(transaction.available_actions) == set(["charge", "cancel"])
+    assert transaction.events.count() == 2
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
     assert event
@@ -1424,7 +1428,7 @@ def test_create_transaction_event_for_transaction_session_success_sets_actions(
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
-    response["actions"] = ["CANCEL", "CHARGE", "REFUND"]
+    response["actions"] = ["CANCEL", "CANCEL", "CHARGE", "REFUND"]
 
     transaction = transaction_item_generator()
     request_event = TransactionEvent.objects.create(
@@ -1442,6 +1446,7 @@ def test_create_transaction_event_for_transaction_session_success_sets_actions(
 
     # then
     transaction.refresh_from_db()
+    assert len(transaction.available_actions) == 3
     assert set(transaction.available_actions) == set(["refund", "charge", "cancel"])
 
 
