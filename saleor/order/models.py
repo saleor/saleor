@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List, Optional, cast
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import connection, models
@@ -809,10 +809,14 @@ class OrderEvent(models.Model):
         null=True,
         on_delete=models.SET_NULL,
         related_name="related_events",
+        db_index=False,
     )
 
     class Meta:
         ordering = ("date",)
+        indexes = [
+            BTreeIndex(fields=["related"], name="order_orderevent_related_id_idx")
+        ]
 
     def __repr__(self):
         return f"{self.__class__.__name__}(type={self.type!r}, user={self.user!r})"
