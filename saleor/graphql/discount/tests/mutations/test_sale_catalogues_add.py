@@ -238,49 +238,6 @@ def test_sale_add_empty_catalogues_to_sale_with_empty_catalogues(
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
-def test_sale_add_catalogues_with_product_without_variants(
-    update_products_discounted_prices_for_promotion_task_mock,
-    staff_api_client,
-    sale,
-    category,
-    product,
-    collection,
-    permission_manage_discounts,
-):
-    # given
-    query = SALE_CATALOGUES_ADD_MUTATION
-    product.variants.all().delete()
-    product_id = graphene.Node.to_global_id("Product", product.id)
-    collection_id = graphene.Node.to_global_id("Collection", collection.id)
-    category_id = graphene.Node.to_global_id("Category", category.id)
-    convert_sales_to_promotions()
-
-    variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
-        "input": {
-            "products": [product_id],
-            "collections": [collection_id],
-            "categories": [category_id],
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    error = content["data"]["saleCataloguesAdd"]["errors"][0]
-
-    assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
-    assert error["message"] == "Cannot manage products without variants."
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
-
-
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_catalogues_no_product_ids_change(
     updated_webhook_mock,
@@ -329,3 +286,82 @@ def test_sale_add_catalogues_no_product_ids_change(
         promotion, previous_catalogue, current_catalogue
     )
     update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+
+
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
+def test_sale_add_catalogues_with_product_without_variants(
+    update_products_discounted_prices_for_promotion_task_mock,
+    staff_api_client,
+    sale,
+    category,
+    product,
+    collection,
+    permission_manage_discounts,
+):
+    # given
+    query = SALE_CATALOGUES_ADD_MUTATION
+    product.variants.all().delete()
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    convert_sales_to_promotions()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "input": {
+            "products": [product_id],
+            "collections": [collection_id],
+            "categories": [category_id],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["saleCataloguesAdd"]["errors"][0]
+
+    assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
+    assert error["message"] == "Cannot manage products without variants."
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+
+
+def test_sale_add_catalogues_with_promotion_id(
+    staff_api_client,
+    sale,
+    product,
+    permission_manage_discounts,
+):
+    # given
+    query = SALE_CATALOGUES_ADD_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    convert_sales_to_promotions()
+
+    promotion = Promotion.objects.get(old_sale_id=sale.id)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Promotion", promotion.id),
+        "input": {
+            "products": [product_id],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["saleCataloguesAdd"]["errors"][0]
+
+    assert error["code"] == DiscountErrorCode.INVALID.name
+    assert error["message"] == (
+        "Provided ID refers to Promotion model. "
+        "Please use 'promotionRuleCreate' mutation instead."
+    )

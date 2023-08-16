@@ -72,7 +72,6 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
             for rule in rules:
                 rule.catalogue_predicate = new_predicate
             PromotionRule.objects.bulk_update(rules, ["catalogue_predicate"])
-
             return new_predicate
 
         return None
@@ -81,14 +80,12 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
     def post_save_actions(
         cls, info: ResolveInfo, promotion, previous_predicate, new_predicate
     ):
-        manager = get_plugin_manager_promise(info.context).get()
-
         previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
             previous_predicate
         )
         new_catalogue = convert_migrated_sale_predicate_to_catalogue_info(new_predicate)
-
         if previous_catalogue != new_catalogue:
+            manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(
                 manager.sale_updated,
                 promotion,

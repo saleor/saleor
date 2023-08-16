@@ -335,6 +335,12 @@ def test_merge_migrated_sale_predicate(
 
     # when
     merged_predicate = merge_migrated_sale_predicates(predicate_1, predicate_2)
+    merged_catalogue_info = convert_migrated_sale_predicate_to_catalogue_info(
+        merged_predicate
+    )
+    expected_catalogue_info = convert_migrated_sale_predicate_to_catalogue_info(
+        expected_predicate
+    )
 
     # then
-    assert merged_predicate == expected_predicate
+    assert merged_catalogue_info == expected_catalogue_info
