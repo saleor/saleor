@@ -93,7 +93,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Add `CheckoutLine.problems` field
   - Add `CheckoutSettingsInput` to `ChannelCreateInput` & `ChannelUpdateInput`
   - Add `checkoutSettings` field to `Channel`
-- Add Filter warehouses by metadata -#13345 by @Smit-Parmar
+- Add Filter warehouses by metadata - #13345 by @Smit-Parmar
 
 ### Saleor Apps
 
