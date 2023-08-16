@@ -1159,7 +1159,7 @@ def create_transaction_event_for_transaction_session(
         transaction_item.psp_reference = event.psp_reference
         available_actions = transaction_request_response.available_actions
         if available_actions is not None:
-            transaction_item.available_actions = available_actions
+            transaction_item.available_actions = list(set(available_actions))
 
         recalculate_transaction_amounts(transaction_item, save=False)
         transaction_item.save(
@@ -1231,7 +1231,7 @@ def create_transaction_event_from_request_and_webhook_response(
     recalculate_transaction_amounts(transaction_item, save=False)
     available_actions = transaction_request_response.available_actions
     if available_actions is not None:
-        transaction_item.available_actions = available_actions
+        transaction_item.available_actions = list(set(available_actions))
 
     transaction_item.save(
         update_fields=[

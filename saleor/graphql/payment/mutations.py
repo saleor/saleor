@@ -965,6 +965,10 @@ class TransactionCreate(BaseMutation):
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier
+
+        transaction_input["available_actions"] = list(
+            set(transaction_input.get("available_actions", []))
+        )
         transaction = payment_models.TransactionItem(
             token=uuid.uuid4(),
             use_old_id=True,
@@ -1199,6 +1203,10 @@ class TransactionUpdate(TransactionCreate):
         cls, instance: payment_models.TransactionItem, transaction_data
     ):
         currency = instance.currency
+        if transaction_data.get("available_actions") is not None:
+            transaction_data["available_actions"] = list(
+                set(transaction_data.get("available_actions", []))
+            )
         cls.validate_money_input(
             transaction_data,
             currency,
@@ -1675,6 +1683,10 @@ class TransactionEventReport(ModelMutation):
         )
 
         cls.clean_instance(info, transaction_event)
+
+        if available_actions is not None:
+            available_actions = list(set(available_actions))
+
         already_processed = False
         error_code = None
         error_msg = None
@@ -1712,6 +1724,7 @@ class TransactionEventReport(ModelMutation):
         if error_msg and error_code and error_field:
             create_failed_transaction_event(transaction_event, cause=error_msg)
             raise ValidationError({error_field: ValidationError(error_msg, error_code)})
+
         if not already_processed:
             previous_authorized_value = transaction.authorized_value
             previous_charged_value = transaction.charged_value
@@ -1750,6 +1763,11 @@ class TransactionEventReport(ModelMutation):
             if transaction.checkout_id:
                 manager = get_plugin_manager_promise(info.context).get()
                 transaction_amounts_for_checkout_updated(transaction, manager)
+        elif available_actions is not None and set(
+            transaction.available_actions
+        ) != set(available_actions):
+            transaction.available_actions = available_actions
+            transaction.save(update_fields=["available_actions"])
 
         return cls(
             already_processed=already_processed,
