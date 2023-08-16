@@ -3964,6 +3964,55 @@ def order_line(order, variant):
 
 
 @pytest.fixture
+def order_line_on_promotion(order_line, promotion):
+    variant = order_line.variant
+
+    channel = order_line.order.channel
+    reward_value = Decimal("1.0")
+    rule = promotion.rules.first()
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel.currency_code,
+    )
+    order_line.total_price_gross_amount = (
+        variant_channel_listing.discounted_price_amount * order_line.quantity
+    )
+    order_line.total_price_net_amount = (
+        variant_channel_listing.discounted_price_amount * order_line.quantity
+    )
+    order_line.undiscounted_total_price_gross_amount = (
+        variant_channel_listing.price_amount * order_line.quantity
+    )
+    order_line.undiscounted_total_price_net_amount = (
+        variant_channel_listing.price_amount * order_line.quantity
+    )
+
+    order_line.unit_price_gross_amount = variant_channel_listing.discounted_price_amount
+    order_line.unit_price_net_amount = variant_channel_listing.discounted_price_amount
+    order_line.undiscounted_unit_price_gross_amount = (
+        variant_channel_listing.price_amount
+    )
+    order_line.undiscounted_unit_price_net_amount = variant_channel_listing.price_amount
+
+    order_line.base_unit_price_amount = variant_channel_listing.discounted_price_amount
+    order_line.undiscounted_base_unit_price_amount = (
+        variant_channel_listing.price_amount
+    )
+
+    order_line.unit_discount_amount = reward_value
+    order_line.save()
+    return order_line
+
+
+@pytest.fixture
 def gift_card_non_shippable_order_line(
     order, gift_card_non_shippable_variant, warehouse
 ):
