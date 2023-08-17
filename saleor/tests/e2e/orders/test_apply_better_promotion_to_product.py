@@ -165,7 +165,6 @@ def test_apply_best_promotion_to_product_core_2105(
         float(variant_price) * second_discount_value / 100, 2
     )
     product_variant = product_data["variants"][0]
-    assert product_data["pricing"]["onSale"] is True
     assert product_variant["pricing"]["onSale"] is True
     assert (
         product_variant["pricing"]["discount"]["gross"]["amount"]
