@@ -1,9 +1,7 @@
 import graphene
-import pytest
 
-from saleor.discount.models import Promotion
-from saleor.discount.sale_converter import convert_sales_to_promotions
-
+from .....discount.models import Promotion
+from .....discount.sale_converter import convert_sales_to_promotions
 from . import PRIVATE_KEY, PRIVATE_VALUE, PUBLIC_KEY, PUBLIC_VALUE
 from .test_delete_metadata import (
     execute_clear_public_metadata_for_item,
@@ -82,8 +80,6 @@ def test_delete_private_metadata_for_voucher(
     )
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 def test_delete_private_metadata_for_sale(
     staff_api_client, permission_manage_discounts, sale
 ):
@@ -91,6 +87,7 @@ def test_delete_private_metadata_for_sale(
     sale.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     sale.save(update_fields=["private_metadata"])
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
+    convert_sales_to_promotions()
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -98,8 +95,9 @@ def test_delete_private_metadata_for_sale(
     )
 
     # then
+    promotion = Promotion.objects.get(old_sale_id=sale.id)
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMetadata"]["item"], sale, sale_id
+        response["data"]["deletePrivateMetadata"]["item"], promotion, sale_id
     )
 
 
@@ -120,13 +118,12 @@ def test_add_public_metadata_for_voucher(
     )
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 def test_add_private_metadata_for_sale(
     staff_api_client, permission_manage_discounts, sale
 ):
     # given
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
+    convert_sales_to_promotions()
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -134,8 +131,9 @@ def test_add_private_metadata_for_sale(
     )
 
     # then
+    promotion = Promotion.objects.get(old_sale_id=sale.id)
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"], sale, sale_id
+        response["data"]["updatePrivateMetadata"]["item"], promotion, sale_id
     )
 
 
