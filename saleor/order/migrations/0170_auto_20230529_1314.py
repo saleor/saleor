@@ -19,6 +19,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="related_events",
                 to="order.orderevent",
+                db_index=False,
             ),
         ),
         migrations.AlterField(

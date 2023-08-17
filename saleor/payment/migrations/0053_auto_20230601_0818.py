@@ -5,14 +5,10 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("payment", "0051_alter_transactionitem_available_actions"),
+        ("payment", "0052_auto_20230816_1214"),
     ]
 
     operations = [
-        migrations.RemoveIndex(
-            model_name="transactionitem",
-            name="payment_tra_order_i_e783c4_gin",
-        ),
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.RemoveField(
