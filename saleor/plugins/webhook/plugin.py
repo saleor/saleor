@@ -599,16 +599,6 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED, gift_card
         )
 
-    def order_created(self, order: "Order", previous_value: Any) -> Any:
-        if not self.active:
-            return previous_value
-        event_type = WebhookEventAsyncType.ORDER_CREATED
-        if webhooks := get_webhooks_for_event(event_type):
-            order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
-            )
-
     def _trigger_menu_event(self, event_type, menu):
         if webhooks := get_webhooks_for_event(event_type):
             payload = self._serialize_payload(

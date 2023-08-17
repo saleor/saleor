@@ -32,6 +32,7 @@ from ..warehouse.management import (
     get_order_lines_with_track_inventory,
 )
 from ..warehouse.models import Stock
+from ..webhook.events import order as order_events
 from . import (
     FulfillmentLineData,
     FulfillmentStatus,
@@ -97,6 +98,7 @@ def order_created(
     order = order_info.order
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
     call_event(manager.order_created, order)
+    call_event(order_events.order_created, order, user or app)
     payment = order_info.payment
     if payment and order.is_pre_authorized():
         order_authorized(
