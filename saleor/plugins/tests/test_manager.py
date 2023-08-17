@@ -1213,6 +1213,7 @@ def test_manager_transaction_initialize_session(
             currency=transaction.currency,
             action_type=action_type,
         ),
+        customer_ip_address="127.0.0.1",
         payment_gateway_data=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=None, error=None
         ),
@@ -1254,6 +1255,7 @@ def test_manager_transaction_process_session(
             currency=transaction.currency,
             action_type=action_type,
         ),
+        customer_ip_address="127.0.0.1",
         payment_gateway_data=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=None, error=None
         ),

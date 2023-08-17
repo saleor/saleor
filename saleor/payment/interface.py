@@ -130,6 +130,7 @@ class TransactionSessionData:
     source_object: Union["Checkout", "Order"]
     action: TransactionProcessActionData
     payment_gateway_data: PaymentGatewayData
+    customer_ip_address: Optional[str]
 
 
 @dataclass
