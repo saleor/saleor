@@ -12,6 +12,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Change error message when denying a permission - #13334 by @rafiwts
+
 # 3.15.0 [Unreleased]
 
 ### Breaking changes
