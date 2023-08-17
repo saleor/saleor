@@ -1,5 +1,3 @@
-import copy
-
 import graphene
 
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
@@ -44,13 +42,14 @@ class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):
 
         previous_predicate = convert_catalogue_info_into_predicate(previous_catalogue)
         new_predicate = convert_catalogue_info_into_predicate(new_catalogue)
-        previous_product_ids = get_product_ids_for_predicate(
-            copy.deepcopy(previous_predicate)
-        )
-        new_product_ids = get_product_ids_for_predicate(copy.deepcopy(new_predicate))
+        previous_product_ids = get_product_ids_for_predicate(previous_predicate)
+        new_product_ids = get_product_ids_for_predicate(new_predicate)
 
         if previous_product_ids != new_product_ids:
-            product_ids = previous_product_ids | new_product_ids
+            if len(new_product_ids) > len(previous_product_ids):
+                product_ids = new_product_ids - previous_product_ids
+            else:
+                product_ids = previous_product_ids - new_product_ids
             update_products_discounted_prices_for_promotion_task.delay(
                 list(product_ids)
             )

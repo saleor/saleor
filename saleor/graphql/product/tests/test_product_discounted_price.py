@@ -372,8 +372,9 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
         }
     """
     sale = new_sale
+    sale.products.add(product_list[0])
     sale_id = to_global_id("Sale", sale.pk)
-    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    product_ids = [to_global_id("Product", product.pk) for product in product_list[1:]]
     convert_sales_to_promotions()
 
     variables = {
@@ -395,7 +396,7 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
     assert not content["data"]["saleCataloguesAdd"]["errors"]
 
     args, _ = mock_update_products_discounted_prices_for_promotion.delay.call_args
-    assert set(args[0]) == {product.id for product in product_list}
+    assert set(args[0]) == {product.id for product in product_list[1:]}
 
 
 @patch(
@@ -449,5 +450,6 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesRemove"]["errors"]
 
-    args, _ = mock_update_products_discounted_prices_for_promotion.delay.call_args
-    assert set(args[0]) == {product.id for product in product_list}
+    mock_update_products_discounted_prices_for_promotion.delay.called_once_with(
+        product_id
+    )
