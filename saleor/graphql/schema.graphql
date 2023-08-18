@@ -16557,10 +16557,13 @@ type Mutation {
   Creates a value for an attribute.
   
   Depending on the attribute type, it requires different permissions to create:
-  `PRODUCT_TYPE` requires `ProductPermissions.MANAGE_PRODUCTS` or `ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,
-  `PAGE_TYPE` requires `ProductPermissions.MANAGE_PRODUCTS` or `PagePermissions.MANAGE_PAGES` or `ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.
+  -`PRODUCT_TYPE`: Requires one of the following permissions: `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.
+  -`PAGE_TYPE`: `MANAGE_PRODUCTS` or `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.
   
-  DEPRECATED: those permissions will be changed in 4.0.
+  
+  DEPRECATED in Saleor 4.0, for attribute type:
+   - `PAGE_TYPE`, `MANAGE_PAGES` permission will be required,
+   - `PRODUCT_TYPE`, `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permission will be required.
   """
   attributeValueCreate(
     """Attribute to which value will be assigned."""
@@ -16574,9 +16577,13 @@ type Mutation {
   Deletes a value of an attribute.
   
   Depending on the attribute type, it requires different permissions to delete:
-  `PRODUCT_TYPE` requires `ProductPermissions.MANAGE_PRODUCTS` or `ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,
-  `PAGE_TYPE` requires `PagePermissions.MANAGE_PAGES` or `ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.
-  DEPRECATED: those permissions will be changed in 4.0.
+  -`PRODUCT_TYPE`: Requires one of the following permissions: `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.
+  -`PAGE_TYPE`: `MANAGE_PRODUCTS` or `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.
+  
+  
+  DEPRECATED in Saleor 4.0, for attribute type:
+   - `PAGE_TYPE`, `MANAGE_PAGES` permission will be required,
+   - `PRODUCT_TYPE`, `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permission will be required.
   """
   attributeValueDelete(
     """
@@ -16594,9 +16601,13 @@ type Mutation {
   Updates value of an attribute.
   
   Depending on the attribute type, it requires different permissions to update:
-  `PRODUCT_TYPE` requires `ProductPermissions.MANAGE_PRODUCTS` or `ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,
-  `PAGE_TYPE` requires `PagePermissions.MANAGE_PAGES` or `ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.
-  DEPRECATED: those permissions will be changed in 4.0.
+  -`PRODUCT_TYPE`: Requires one of the following permissions: `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.
+  -`PAGE_TYPE`: `MANAGE_PRODUCTS` or `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.
+  
+  
+  DEPRECATED in Saleor 4.0, for attribute type:
+   - `PAGE_TYPE`, `MANAGE_PAGES` permission will be required,
+   - `PRODUCT_TYPE`, `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permission will be required.
   """
   attributeValueUpdate(
     """
@@ -25480,10 +25491,13 @@ type AttributeValueBulkDelete @doc(category: "Attributes") {
 Creates a value for an attribute.
 
 Depending on the attribute type, it requires different permissions to create:
-`PRODUCT_TYPE` requires `ProductPermissions.MANAGE_PRODUCTS` or `ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,
-`PAGE_TYPE` requires `ProductPermissions.MANAGE_PRODUCTS` or `PagePermissions.MANAGE_PAGES` or `ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.
+-`PRODUCT_TYPE`: Requires one of the following permissions: `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.
+-`PAGE_TYPE`: `MANAGE_PRODUCTS` or `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.
 
-DEPRECATED: those permissions will be changed in 4.0.
+
+DEPRECATED in Saleor 4.0, for attribute type:
+ - `PAGE_TYPE`, `MANAGE_PAGES` permission will be required,
+ - `PRODUCT_TYPE`, `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permission will be required.
 """
 type AttributeValueCreate @doc(category: "Attributes") {
   """The updated attribute."""
@@ -25497,9 +25511,13 @@ type AttributeValueCreate @doc(category: "Attributes") {
 Deletes a value of an attribute.
 
 Depending on the attribute type, it requires different permissions to delete:
-`PRODUCT_TYPE` requires `ProductPermissions.MANAGE_PRODUCTS` or `ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,
-`PAGE_TYPE` requires `PagePermissions.MANAGE_PAGES` or `ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.
-DEPRECATED: those permissions will be changed in 4.0.
+-`PRODUCT_TYPE`: Requires one of the following permissions: `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.
+-`PAGE_TYPE`: `MANAGE_PRODUCTS` or `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.
+
+
+DEPRECATED in Saleor 4.0, for attribute type:
+ - `PAGE_TYPE`, `MANAGE_PAGES` permission will be required,
+ - `PRODUCT_TYPE`, `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permission will be required.
 """
 type AttributeValueDelete @doc(category: "Attributes") {
   """The updated attribute."""
@@ -25513,9 +25531,13 @@ type AttributeValueDelete @doc(category: "Attributes") {
 Updates value of an attribute.
 
 Depending on the attribute type, it requires different permissions to update:
-`PRODUCT_TYPE` requires `ProductPermissions.MANAGE_PRODUCTS` or `ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions,
-`PAGE_TYPE` requires `PagePermissions.MANAGE_PAGES` or `ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permissions.
-DEPRECATED: those permissions will be changed in 4.0.
+-`PRODUCT_TYPE`: Requires one of the following permissions: `MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.
+-`PAGE_TYPE`: `MANAGE_PRODUCTS` or `MANAGE_PAGES` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.
+
+
+DEPRECATED in Saleor 4.0, for attribute type:
+ - `PAGE_TYPE`, `MANAGE_PAGES` permission will be required,
+ - `PRODUCT_TYPE`, `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permission will be required.
 """
 type AttributeValueUpdate @doc(category: "Attributes") {
   """The updated attribute."""

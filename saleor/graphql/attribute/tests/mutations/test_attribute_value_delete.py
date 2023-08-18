@@ -334,8 +334,8 @@ def test_delete_record_for_product_type_without_permissions(
 
     # then
     content = get_graphql_content(response, ignore_errors=True)
-    assert (
-        content["errors"][0]["message"] == "Requires one of the following permissions: "
+    assert content["errors"][0]["message"] == (
+        "\n\nRequires one of the following permissions: "
         "MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES."
     )
 
@@ -354,8 +354,8 @@ def test_delete_record_for_page_type_without_permissions(
 
     # then
     content = get_graphql_content(response, ignore_errors=True)
-    assert (
-        content["errors"][0]["message"] == "Requires one of the following permissions: "
+    assert content["errors"][0]["message"] == (
+        "\n\nRequires one of the following permissions: "
         "MANAGE_PAGES, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES."
     )
 

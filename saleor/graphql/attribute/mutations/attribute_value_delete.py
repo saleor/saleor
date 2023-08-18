@@ -8,11 +8,6 @@ from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ..constants import (
-    UPDATE_DELETE_PAGE_TYPE_PERMISSIONS_TEXT,
-    UPDATE_DELETE_PERMISSIONS_MAP,
-    UPDATE_DELETE_PRODUCT_TYPE_PERMISSIONS_TEXT,
-)
 from ..types import Attribute, AttributeValue
 from ..utils import check_permissions_for_attribute
 
@@ -35,11 +30,14 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
             "Deletes a value of an attribute.\n\n"
             "Depending on the attribute type, "
             "it requires different permissions to delete:\n"
-            "`PRODUCT_TYPE` requires "
-            f"{UPDATE_DELETE_PRODUCT_TYPE_PERMISSIONS_TEXT} permissions,\n"
-            f"`PAGE_TYPE` requires {UPDATE_DELETE_PAGE_TYPE_PERMISSIONS_TEXT} "
-            f"permissions.\n"
-            "DEPRECATED: those permissions will be changed in 4.0.\n"
+            "-`PRODUCT_TYPE`: Requires one of the following permissions: "
+            "`MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.\n"
+            "-`PAGE_TYPE`: `MANAGE_PRODUCTS` or `MANAGE_PAGES` or "
+            "`MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.\n"
+            "\n\nDEPRECATED in Saleor 4.0, for attribute type:\n"
+            " - `PAGE_TYPE`, `MANAGE_PAGES` permission will be required,\n"
+            " - `PRODUCT_TYPE`, `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permission will "
+            "be required.\n"
         )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
@@ -49,9 +47,7 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
-        check_permissions_for_attribute(
-            info.context, instance.attribute, UPDATE_DELETE_PERMISSIONS_MAP
-        )
+        check_permissions_for_attribute(info.context, instance.attribute, "default")
         product_ids = cls.get_product_ids_to_update(instance)
         response = super().perform_mutation(
             _root, info, external_reference=external_reference, id=id

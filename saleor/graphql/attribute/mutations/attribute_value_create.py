@@ -11,11 +11,6 @@ from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ..constants import (
-    CREATE_PAGE_TYPE_PERMISSIONS_TEXT,
-    CREATE_PERMISSIONS_MAP,
-    CREATE_PRODUCT_TYPE_PERMISSIONS_TEXT,
-)
 from ..types import Attribute, AttributeValue
 from ..utils import check_permissions_for_attribute
 from .attribute_create import AttributeValueCreateInput
@@ -46,11 +41,14 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
             "Creates a value for an attribute.\n\n"
             "Depending on the attribute type, "
             "it requires different permissions to create:\n"
-            f"`PRODUCT_TYPE` requires {CREATE_PRODUCT_TYPE_PERMISSIONS_TEXT} "
-            f"permissions,\n"
-            f"`PAGE_TYPE` requires {CREATE_PAGE_TYPE_PERMISSIONS_TEXT} permissions.\n"
-            "\n"
-            "DEPRECATED: those permissions will be changed in 4.0.\n"
+            "-`PRODUCT_TYPE`: Requires one of the following permissions: "
+            "`MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.\n"
+            "-`PAGE_TYPE`: `MANAGE_PRODUCTS` or `MANAGE_PAGES` or "
+            "`MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.\n"
+            "\n\nDEPRECATED in Saleor 4.0, for attribute type:\n"
+            " - `PAGE_TYPE`, `MANAGE_PAGES` permission will be required,\n"
+            " - `PRODUCT_TYPE`, `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permission will "
+            "be required.\n"
         )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
@@ -100,7 +98,7 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
     ):
         attribute = cls.get_node_or_error(info, attribute_id, only_type=Attribute)
         instance = models.AttributeValue(attribute=attribute)
-        check_permissions_for_attribute(info.context, attribute, CREATE_PERMISSIONS_MAP)
+        check_permissions_for_attribute(info.context, attribute, "create")
         cleaned_input = cls.clean_input(info, instance, input)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)
