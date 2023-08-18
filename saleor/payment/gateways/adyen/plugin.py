@@ -1,5 +1,5 @@
 import json
-from typing import List, Optional
+from typing import List, Optional, Iterable
 from urllib.parse import urlencode, urljoin
 
 import opentracing
@@ -11,7 +11,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 from django.urls import reverse
 from requests.exceptions import SSLError
 
-from ....checkout.models import Checkout
+from ....checkout.fetch import CheckoutInfo
 from ....core.utils import build_absolute_uri
 from ....core.utils.url import prepare_url
 from ....order.events import external_notification_event
@@ -302,7 +302,7 @@ class AdyenGatewayPlugin(BasePlugin):
         self, currency: Optional[str],
         checkout: Optional["Checkout"],
         checkout_info: Optional["CheckoutInfo"],
-        checkout_lines: Optional["CheckoutLineInfo"],
+        checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
         previous_value
     ) -> List["PaymentGateway"]:
         """Fetch current configuration for given checkout.
@@ -325,7 +325,7 @@ class AdyenGatewayPlugin(BasePlugin):
             }
         ]
 
-        if checkout:
+        if checkout_info:
             # If checkout is available, fetch available payment methods from Adyen API
             # and append them to the config object returned for the gateway.
             request = request_data_for_gateway_config(

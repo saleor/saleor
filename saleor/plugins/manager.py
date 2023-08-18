@@ -1463,7 +1463,7 @@ class PluginsManager(PaymentInterface):
         channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> List["PaymentGateway"]:
-        channel_slug = checkout.channel.slug if checkout else channel_slug
+        channel_slug = checkout_info.channel.slug if checkout_info else channel_slug
         plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
         payment_plugins = [
             plugin for plugin in plugins if "process_payment" in type(plugin).__dict__
@@ -1474,7 +1474,11 @@ class PluginsManager(PaymentInterface):
         for plugin in payment_plugins:
             gateways.extend(
                 plugin.get_payment_gateways(
-                    currency=currency, checkout=checkout, previous_value=None
+                    currency=currency,
+                    checkout=checkout,
+                    checkout_info=checkout_info,
+                    checkout_lines=checkout_lines,
+                    previous_value=None
                 )
             )
         return gateways

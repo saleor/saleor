@@ -286,7 +286,7 @@ def test_get_payment_gateways(
         }
     ]
     mock_send_request.return_value = mock_json_response
-    response_data = plugin.get_payment_gateways("USD", None, None)
+    response_data = plugin.get_payment_gateways("USD", None, None, None, None)
     expected_response_1 = parse_list_payment_gateways_response(
         mock_json_response, payment_app
     )
@@ -319,7 +319,7 @@ def test_get_payment_gateways_with_transactions(
     plugin = webhook_plugin()
 
     # when
-    response_data = plugin.get_payment_gateways("USD", None, None)
+    response_data = plugin.get_payment_gateways("USD", None, None, None, None)
 
     # then
     assert len(response_data) == 1
@@ -350,7 +350,7 @@ def test_get_payment_gateways_with_transactions_and_app_without_identifier(
     plugin = webhook_plugin()
 
     # when
-    response_data = plugin.get_payment_gateways("USD", None, None)
+    response_data = plugin.get_payment_gateways("USD", None, None, None, None)
 
     # then
     assert len(response_data) == 0
@@ -386,7 +386,7 @@ def test_get_payment_gateways_multiple_webhooks_in_the_same_app(
     mock_send_request.return_value = mock_json_response
 
     # when
-    response_data = plugin.get_payment_gateways("USD", None, None)
+    response_data = plugin.get_payment_gateways("USD", None, None, None, None)
 
     # then
     expected_response_1 = parse_list_payment_gateways_response(
@@ -414,7 +414,7 @@ def test_get_payment_gateways_filters_out_unsupported_currencies(
         }
     ]
     mock_send_request.return_value = mock_json_response
-    response_data = plugin.get_payment_gateways("PLN", None, None)
+    response_data = plugin.get_payment_gateways("PLN", None, None, None, None)
     assert response_data == []
 
 
@@ -434,7 +434,7 @@ def test_get_payment_gateways_for_checkout(
     ]
     mock_send_request.return_value = mock_json_response
     mock_generate_payload.return_value = ""
-    plugin.get_payment_gateways("USD", checkout, None)
+    plugin.get_payment_gateways("USD", checkout, None, None, None)
     assert mock_generate_payload.call_args[0][1] == checkout
 
 
