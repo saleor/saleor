@@ -62,7 +62,19 @@ class E2eApiClient(BaseApiClient):
 
 
 @pytest.fixture
-def e2e_staff_api_client(
+def e2e_staff_api_client():
+    e2e_staff_user = User.objects.create_user(
+        email="e2e_staff_test@example.com",
+        password="password",
+        is_staff=True,
+        is_active=True,
+    )
+
+    return E2eApiClient(user=e2e_staff_user)
+
+
+@pytest.fixture
+def e2e_staff_api_client_with_permissions(
     permission_manage_products,
     permission_manage_channels,
     permission_manage_shipping,
@@ -110,6 +122,7 @@ def e2e_not_logged_api_client():
     return E2eApiClient()
 
 
+@pytest.fixture
 def e2e_app_api_client():
     e2e_app = App.objects.create(
         name="e2e app",
@@ -120,45 +133,51 @@ def e2e_app_api_client():
 
 
 @pytest.fixture
-def prepare_product(e2e_staff_api_client):
-    warehouse_data = create_warehouse(e2e_staff_api_client)
+def prepare_product(e2e_staff_api_client_with_permissions):
+    warehouse_data = create_warehouse(e2e_staff_api_client_with_permissions)
     warehouse_id = warehouse_data["id"]
     channel_slug = "test"
     warehouse_ids = [warehouse_id]
     channel_data = create_channel(
-        e2e_staff_api_client, slug=channel_slug, warehouse_ids=warehouse_ids
+        e2e_staff_api_client_with_permissions,
+        slug=channel_slug,
+        warehouse_ids=warehouse_ids,
     )
     channel_id = channel_data["id"]
 
     channel_ids = [channel_id]
     shipping_zone_data = create_shipping_zone(
-        e2e_staff_api_client,
+        e2e_staff_api_client_with_permissions,
         warehouse_ids=warehouse_ids,
         channel_ids=channel_ids,
     )
     shipping_zone_id = shipping_zone_data["id"]
 
     shipping_method_data = create_shipping_method(
-        e2e_staff_api_client, shipping_zone_id
+        e2e_staff_api_client_with_permissions, shipping_zone_id
     )
     shipping_method_id = shipping_method_data["id"]
 
     create_shipping_method_channel_listing(
-        e2e_staff_api_client, shipping_method_id, channel_id
+        e2e_staff_api_client_with_permissions, shipping_method_id, channel_id
     )
 
     product_type_data = create_product_type(
-        e2e_staff_api_client,
+        e2e_staff_api_client_with_permissions,
     )
     product_type_id = product_type_data["id"]
 
-    category_data = create_category(e2e_staff_api_client)
+    category_data = create_category(e2e_staff_api_client_with_permissions)
     category_id = category_data["id"]
 
-    product_data = create_product(e2e_staff_api_client, product_type_id, category_id)
+    product_data = create_product(
+        e2e_staff_api_client_with_permissions, product_type_id, category_id
+    )
     product_id = product_data["id"]
 
-    create_product_channel_listing(e2e_staff_api_client, product_id, channel_id)
+    create_product_channel_listing(
+        e2e_staff_api_client_with_permissions, product_id, channel_id
+    )
 
     stocks = [
         {
@@ -167,14 +186,14 @@ def prepare_product(e2e_staff_api_client):
         }
     ]
     product_variant_data = create_product_variant(
-        e2e_staff_api_client,
+        e2e_staff_api_client_with_permissions,
         product_id,
         stocks=stocks,
     )
     product_variant_id = product_variant_data["id"]
 
     create_product_variant_channel_listing(
-        e2e_staff_api_client,
+        e2e_staff_api_client_with_permissions,
         product_variant_id,
         channel_id,
     )
