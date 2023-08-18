@@ -46,7 +46,8 @@ class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):
         new_product_ids = get_product_ids_for_predicate(new_predicate)
 
         if previous_product_ids != new_product_ids:
-            if len(new_product_ids) > len(previous_product_ids):
+            is_add_mutation = len(new_product_ids) > len(previous_product_ids)
+            if is_add_mutation:
                 product_ids = new_product_ids - previous_product_ids
             else:
                 product_ids = previous_product_ids - new_product_ids
