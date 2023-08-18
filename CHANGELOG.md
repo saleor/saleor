@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 ### Other changes
+- Fix error in variant available stock calculation - 13593 by @awaisdar001
 
 # 3.15.0 [Unreleased]
 
