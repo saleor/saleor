@@ -197,4 +197,4 @@ def prepare_product(e2e_staff_api_client_with_permissions):
         product_variant_id,
         channel_id,
     )
-    return product_variant_id, channel_id
+    return product_variant_id, channel_id, channel_slug
