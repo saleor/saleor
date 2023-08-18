@@ -7,8 +7,10 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
+- Add `customerIpAddress` to `transactionInitialize` and `transactionProcess` mutations - #13718 by @korycins
 
 ### Saleor Apps
+- Add `customerIpAddress` to `TRANSACTION_INITIALIZE_SESSION` and `TRANSACTION_PROCESS_SESSION` webhooks  #13718 by @korycins
 
 ### Other changes
 
