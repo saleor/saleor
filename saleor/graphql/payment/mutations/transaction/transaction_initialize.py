@@ -59,8 +59,8 @@ class TransactionInitialize(TransactionSessionBase):
         customer_ip_address = graphene.String(
             description=(
                 "The customer's IP address. If not provided Saleor will try to "
-                "determine the customer's IP address on its own."
-                " The customer's IP address will be passed to the payment app."
+                "determine the customer's IP address on its own. "
+                "The customer's IP address will be passed to the payment app. "
                 "The IP should be in ipv4 or ipv6 format. "
                 "The field can be used only by an app that has `HANDLE_PAYMENTS` "
                 "permission." + ADDED_IN_316
