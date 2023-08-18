@@ -530,3 +530,33 @@ def test_product_variant_bulk_update_with_already_existing_sku(
     error = data["results"][0]["errors"][0]
     assert error["field"] == "sku"
     assert error["code"] == ProductVariantBulkErrorCode.UNIQUE.name
+
+
+def test_product_variant_bulk_update_when_variant_not_exists(
+    staff_api_client,
+    product_with_two_variants,
+    permission_manage_products,
+):
+    # given
+    product_id = graphene.Node.to_global_id("Product", product_with_two_variants.pk)
+    not_existing_variant_id = graphene.Node.to_global_id("ProductVariant", -1)
+
+    variants = [{"id": not_existing_variant_id, "sku": "NewSku"}]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantBulkUpdate"]
+
+    # then
+    assert data["results"][0]["errors"]
+    error = data["results"][0]["errors"][0]
+    assert error["path"] == "id"
+    assert error["field"] == "id"
+    assert error["code"] == ProductVariantBulkErrorCode.INVALID.name
