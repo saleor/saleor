@@ -1,6 +1,6 @@
 import pytest
 
-# from .. import DEFAULT_ADDRESS
+from .. import DEFAULT_ADDRESS
 from ..channel.utils import create_channel
 from ..product.utils import (
     create_category,
@@ -18,13 +18,12 @@ from ..shipping_zone.utils import (
 )
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse
-
-# from .utils import (
-#     draft_order_complete,
-#     draft_order_create,
-#     draft_order_update,
-#     order_lines_create,
-# )
+from .utils import (
+    draft_order_complete,
+    draft_order_create,
+    draft_order_update,
+    order_lines_create,
+)
 
 
 def prepare_product(
@@ -128,11 +127,11 @@ def prepare_product(
     )
     sale_catalogues_add(e2e_staff_api_client, sale_id, variants=product_variant_id)
 
-    return channel_id, product_variant_id, shipping_method_id
+    return channel_id, product_variant_id, sale_id, shipping_method_id
 
 
 @pytest.mark.e2e
-def test_order_products_on_fixed_promotion_CORE_2101(
+def test_order_products_on_fixed_sale_CORE_1001(
     e2e_staff_api_client,
     permission_manage_products,
     permission_manage_channels,
@@ -148,7 +147,7 @@ def test_order_products_on_fixed_promotion_CORE_2101(
     discount_type = "FIXED"
     discount_value = 5
 
-    prepare_product(
+    channel_id, product_variant_id, sale_id, shipping_method_id = prepare_product(
         e2e_staff_api_client,
         permission_manage_products,
         permission_manage_channels,
@@ -162,3 +161,49 @@ def test_order_products_on_fixed_promotion_CORE_2101(
         discount_type,
         discount_value,
     )
+
+    # Step 1 - Create a draft order
+    input = {
+        "channelId": channel_id,
+        "billingAddress": DEFAULT_ADDRESS,
+        "shippingAddress": DEFAULT_ADDRESS,
+    }
+    data = draft_order_create(e2e_staff_api_client, input)
+    order_id = data["order"]["id"]
+    assert data["order"]["billingAddress"] is not None
+    assert data["order"]["shippingAddress"] is not None
+    assert order_id is not None
+
+    # Step 2 - Add product on sale to draft order
+    lines = [{"variantId": product_variant_id, "quantity": 1}]
+    order_lines = order_lines_create(e2e_staff_api_client, order_id, lines)
+
+    draft_line = order_lines["order"]["lines"][0]
+    assert draft_line["variant"]["id"] == product_variant_id
+    unit_price = float(variant_price) - discount_value
+    undiscounted_price = draft_line["undiscountedUnitPrice"]["gross"]["amount"]
+    assert undiscounted_price == float(variant_price)
+    assert draft_line["unitPrice"]["gross"]["amount"] == unit_price
+
+    # Step 3 - Add a shipping method to the order
+    input = {"shippingMethod": shipping_method_id}
+    draft_update = draft_order_update(e2e_staff_api_client, order_id, input)
+
+    order_shipping_id = draft_update["order"]["deliveryMethod"]["id"]
+    shipping_price = draft_update["order"]["shippingPrice"]["gross"]["amount"]
+    assert order_shipping_id is not None
+
+    # Step 4 - Complete the draft order
+    order = draft_order_complete(e2e_staff_api_client, order_id)
+
+    order_line = order["order"]["lines"][0]
+    assert order_line["unitDiscount"]["amount"] == discount_value
+    assert order_line["unitDiscountValue"] == discount_value
+    assert order_line["unitDiscountType"] == discount_type
+    assert draft_line["unitDiscountReason"] == f"Sale: {sale_id}"
+    product_price = order_line["undiscountedUnitPrice"]["gross"]["amount"]
+    assert product_price == undiscounted_price
+    total = order["order"]["total"]["gross"]["amount"]
+    subtotal = order["order"]["subtotal"]["gross"]["amount"]
+    assert shipping_price + subtotal == total
+    assert order["order"]["status"] == "UNFULFILLED"
