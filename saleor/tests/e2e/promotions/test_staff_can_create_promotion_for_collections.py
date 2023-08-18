@@ -112,6 +112,7 @@ def test_create_promotion_for_collections_core_2100(
     promotion_id = promotion_data["id"]
 
     collection_ids = [collection_id]
+    predicate_input = {"collectionPredicate": {"ids": collection_ids}}
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
         promotion_id,
@@ -119,10 +120,9 @@ def test_create_promotion_for_collections_core_2100(
         discount_value,
         promotion_rule_name,
         channel_id,
-        collection_ids,
+        predicate_input,
     )
 
-    print(promotion_rule)
     collection_predicate = promotion_rule["cataloguePredicate"]["collectionPredicate"]
     assert promotion_rule["channels"][0]["id"] == channel_id
     assert collection_predicate["ids"][0] == collection_id
