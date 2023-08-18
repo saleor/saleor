@@ -299,7 +299,11 @@ class AdyenGatewayPlugin(BasePlugin):
         return previous_value
 
     def get_payment_gateways(
-        self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
+        self, currency: Optional[str],
+        checkout: Optional["Checkout"],
+        checkout_info: Optional["CheckoutInfo"],
+        checkout_lines: Optional["CheckoutLineInfo"],
+        previous_value
     ) -> List["PaymentGateway"]:
         """Fetch current configuration for given checkout.
 
@@ -325,7 +329,10 @@ class AdyenGatewayPlugin(BasePlugin):
             # If checkout is available, fetch available payment methods from Adyen API
             # and append them to the config object returned for the gateway.
             request = request_data_for_gateway_config(
-                checkout, local_config.connection_params["merchant_account"]
+                checkout,
+                checkout_info,
+                checkout_lines,
+                local_config.connection_params["merchant_account"]
             )
             with opentracing.global_tracer().start_active_span(
                 "adyen.checkout.payment_methods"

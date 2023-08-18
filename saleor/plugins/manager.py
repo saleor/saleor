@@ -1458,6 +1458,8 @@ class PluginsManager(PaymentInterface):
         self,
         currency: Optional[str] = None,
         checkout: Optional["Checkout"] = None,
+        checkout_info: Optional["CheckoutInfo"] = None,
+        checkout_lines: Optional["CheckoutLineInfo"] = None,
         channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> List["PaymentGateway"]:
