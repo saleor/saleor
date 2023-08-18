@@ -1,8 +1,17 @@
 import json
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, DefaultDict, Final, List, Optional, Set, Union, \
-    Iterable
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    DefaultDict,
+    Final,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Union,
+)
 
 import graphene
 from django.core.cache import cache

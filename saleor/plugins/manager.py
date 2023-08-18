@@ -1459,7 +1459,7 @@ class PluginsManager(PaymentInterface):
         currency: Optional[str] = None,
         checkout: Optional["Checkout"] = None,
         checkout_info: Optional["CheckoutInfo"] = None,
-        checkout_lines: Optional["CheckoutLineInfo"] = None,
+        checkout_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
         channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> List["PaymentGateway"]:
@@ -1478,7 +1478,7 @@ class PluginsManager(PaymentInterface):
                     checkout=checkout,
                     checkout_info=checkout_info,
                     checkout_lines=checkout_lines,
-                    previous_value=None
+                    previous_value=None,
                 )
             )
         return gateways

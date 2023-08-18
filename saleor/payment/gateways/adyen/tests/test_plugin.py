@@ -64,7 +64,7 @@ def test_get_payment_gateway_for_checkout(
         checkout=checkout_with_single_item,
         checkout_info=checkout_info,
         checkout_lines=checkout_lines_info,
-        previous_value=None
+        previous_value=None,
     )[0]
     assert response.id == adyen_plugin.PLUGIN_ID
     assert response.name == adyen_plugin.PLUGIN_NAME

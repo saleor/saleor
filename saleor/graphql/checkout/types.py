@@ -676,10 +676,9 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_available_payment_gateways(
         root: models.Checkout, info: ResolveInfo, manager
     ):
-
         checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
-        checkout_lines_info = (
-            CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
+        checkout_lines_info = CheckoutLinesByCheckoutTokenLoader(info.context).load(
+            root.token
         )
 
         def get_available_payment_gateways(results):
@@ -690,8 +689,10 @@ class Checkout(ModelObjectType[models.Checkout]):
                 checkout_lines=checkout_lines_info,
                 channel_slug=root.channel.slug,
             )
-        return Promise.all(
-            [checkout_info, checkout_lines_info]).then(get_available_payment_gateways)
+
+        return Promise.all([checkout_info, checkout_lines_info]).then(
+            get_available_payment_gateways
+        )
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, info):

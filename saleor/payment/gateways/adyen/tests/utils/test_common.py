@@ -5,7 +5,7 @@ from unittest import mock
 import pytest
 from prices import Money, TaxedMoney
 
-from saleor.checkout.fetch import fetch_checkout_lines, fetch_checkout_info
+from saleor.checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from saleor.core.prices import quantize_price
 from saleor.payment import PaymentError
 from saleor.payment.gateways.adyen.utils.common import (
@@ -707,21 +707,16 @@ def test_to_adyen_price(value, currency, expected_result):
     assert result == expected_result
 
 
-def test_request_data_for_gateway_config(
-    checkout_with_item, address):
+def test_request_data_for_gateway_config(checkout_with_item, address):
     # given
     checkout_with_item.billing_address = address
     merchant_account = "test_account"
     manager = get_plugins_manager()
     lines_info, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(
-        checkout_with_item, lines_info, manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines_info, manager)
     # when
     response_config = request_data_for_gateway_config(
-        checkout_with_item,
-        checkout_info,
-        lines_info,
-        merchant_account
+        checkout_with_item, checkout_info, lines_info, merchant_account
     )
 
     # then
@@ -738,15 +733,11 @@ def test_request_data_for_gateway_config_no_country(checkout, address, settings)
     merchant_account = "test_account"
     manager = get_plugins_manager()
     lines_info, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(
-        checkout, lines_info, manager)
+    checkout_info = fetch_checkout_info(checkout, lines_info, manager)
 
     # when
     response_config = request_data_for_gateway_config(
-        checkout,
-        checkout_info,
-        lines_info,
-        merchant_account
+        checkout, checkout_info, lines_info, merchant_account
     )
 
     # then

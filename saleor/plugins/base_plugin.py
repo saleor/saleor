@@ -1089,7 +1089,7 @@ class BasePlugin:
         checkout: Optional["Checkout"],
         checkout_info: Optional["CheckoutInfo"],
         checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
-        previous_value
+        previous_value,
     ) -> List["PaymentGateway"]:
         payment_config = (
             self.get_payment_config(previous_value)
