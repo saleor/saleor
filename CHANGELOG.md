@@ -55,6 +55,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add a new `product` field on `AssignedProductAttributeValue`. First part of a simplification of Attribute - Product relation from #12881. by @aniav
 - Lazy legacy webhooks payload generation - #13758 by @maarcingebala
 - Fix NoneType in `prodcutChannelsListingUpdate` - #13694 by @Manoj-gowra
+- Update workflow actions with poetry dependencies - #13736 by @rafiwts
 
 # 3.15.0 [Unreleased]
 
