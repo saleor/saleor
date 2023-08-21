@@ -5,7 +5,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from ....checkout.fetch import VariantPromotionRuleInfo
+from ....discount.interface import VariantPromotionRuleInfo
 from ....product.models import VariantChannelListingPromotionRule
 from ... import DiscountType, RewardValueType
 from ...models import CheckoutLineDiscount, PromotionRule
