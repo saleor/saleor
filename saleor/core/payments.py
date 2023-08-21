@@ -19,7 +19,6 @@ class PaymentInterface(ABC):
     def list_payment_gateways(
         self,
         currency: Optional[str] = None,
-        checkout: Optional["Checkout"] = None,
         checkout_info: Optional["CheckoutInfo"] = None,
         checkout_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
         channel_slug: Optional[str] = None,
