@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-import pytest
 from freezegun import freeze_time
 from graphql_relay import to_global_id
 
@@ -264,7 +263,7 @@ def test_sale_create_updates_products_discounted_prices(
     ".update_products_discounted_prices_for_promotion_task"
 )
 def test_sale_update_updates_products_discounted_prices(
-    mock_update_products_discounted_prices_for_catalogues,
+    mock_update_products_discounted_prices_for_promotion,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -283,7 +282,7 @@ def test_sale_update_updates_products_discounted_prices(
         }
     }
     """
-    product_ids = list(sale.products.values_list("id", flat=True).all())
+    product_ids = set(sale.products.values_list("id", flat=True).all())
     convert_sales_to_promotions()
     variables = {
         "id": to_global_id("Sale", sale.pk),
@@ -300,9 +299,8 @@ def test_sale_update_updates_products_discounted_prices(
     content = get_graphql_content(response)
     assert content["data"]["saleUpdate"]["errors"] == []
 
-    mock_update_products_discounted_prices_for_catalogues.delay.assert_called_once_with(
-        product_ids
-    )
+    args, _ = mock_update_products_discounted_prices_for_promotion.delay.call_args
+    assert set(args[0]) == product_ids
 
 
 @patch(
@@ -310,7 +308,7 @@ def test_sale_update_updates_products_discounted_prices(
     ".update_products_discounted_prices_for_promotion_task"
 )
 def test_sale_delete_updates_products_discounted_prices(
-    mock_update_products_discounted_prices_for_catalogues,
+    mock_update_products_discounted_prices_for_promotion,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -344,25 +342,19 @@ def test_sale_delete_updates_products_discounted_prices(
     content = get_graphql_content(response)
     assert content["data"]["saleDelete"]["errors"] == []
 
-    mock_update_products_discounted_prices_for_catalogues.delay.assert_called_once_with(
-        list(product_ids)
-    )
+    args, _ = mock_update_products_discounted_prices_for_promotion.delay.call_args
+    assert set(args[0]) == product_ids
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
-    "saleor.graphql.discount.mutations.sale.sale_base_discount_catalogue"
-    ".update_products_discounted_prices_of_catalogues_task"
+    "saleor.graphql.discount.mutations.sale.sale_base_catalogue"
+    ".update_products_discounted_prices_for_promotion_task"
 )
 def test_sale_add_catalogues_updates_products_discounted_prices(
-    mock_update_products_discounted_prices_of_catalogues,
+    mock_update_products_discounted_prices_for_promotion,
     staff_api_client,
-    sale,
-    product,
-    category,
-    collection,
-    product_variant_list,
+    new_sale,
+    product_list,
     permission_manage_discounts,
 ):
     # given
@@ -379,20 +371,16 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
             }
         }
     """
+    sale = new_sale
+    sale.products.add(product_list[0])
     sale_id = to_global_id("Sale", sale.pk)
-    product_id = to_global_id("Product", product.pk)
-    collection_id = to_global_id("Collection", collection.pk)
-    category_id = to_global_id("Category", category.pk)
-    variant_ids = [
-        to_global_id("ProductVariant", variant.pk) for variant in product_variant_list
-    ]
+    product_ids = [to_global_id("Product", product.pk) for product in product_list[1:]]
+    convert_sales_to_promotions()
+
     variables = {
         "id": sale_id,
         "input": {
-            "products": [product_id],
-            "collections": [collection_id],
-            "categories": [category_id],
-            "variants": variant_ids,
+            "products": product_ids,
         },
     }
 
@@ -407,38 +395,26 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesAdd"]["errors"]
 
-    mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
-        product_ids=[product.pk],
-        category_ids=[category.pk],
-        collection_ids=[collection.pk],
-        variant_ids=[variant.pk for variant in product_variant_list],
-    )
+    args, _ = mock_update_products_discounted_prices_for_promotion.delay.call_args
+    assert set(args[0]) == {product.id for product in product_list[1:]}
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @patch(
-    "saleor.graphql.discount.mutations.sale.sale_base_discount_catalogue"
-    ".update_products_discounted_prices_of_catalogues_task"
+    "saleor.graphql.discount.mutations.sale.sale_base_catalogue"
+    ".update_products_discounted_prices_for_promotion_task"
 )
 def test_sale_remove_catalogues_updates_products_discounted_prices(
-    mock_update_products_discounted_prices_of_catalogues,
+    mock_update_products_discounted_prices_for_promotion,
     staff_api_client,
-    sale,
-    product,
-    category,
-    collection,
-    product_variant_list,
+    new_sale,
+    product_list,
     permission_manage_discounts,
 ):
     # given
-    assert product in sale.products.all()
-    assert category in sale.categories.all()
-    assert collection in sale.collections.all()
+    sale = new_sale
+    sale.products.add(*product_list)
+    convert_sales_to_promotions()
 
-    sale.variants.add(*product_variant_list)
-
-    assert all(variant in sale.variants.all() for variant in product_variant_list)
     query = """
         mutation SaleCataloguesRemove($id: ID!, $input: CatalogueInput!) {
             saleCataloguesRemove(id: $id, input: $input) {
@@ -452,20 +428,14 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
             }
         }
     """
+
     sale_id = to_global_id("Sale", sale.pk)
-    product_id = to_global_id("Product", product.pk)
-    collection_id = to_global_id("Collection", collection.pk)
-    category_id = to_global_id("Category", category.pk)
-    variant_ids = [
-        to_global_id("ProductVariant", variant.pk) for variant in product_variant_list
-    ]
+    product_id = to_global_id("Product", product_list[-1].pk)
+
     variables = {
         "id": sale_id,
         "input": {
             "products": [product_id],
-            "collections": [collection_id],
-            "categories": [category_id],
-            "variants": variant_ids,
         },
     }
 
@@ -480,9 +450,6 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesRemove"]["errors"]
 
-    mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
-        product_ids=[product.pk],
-        category_ids=[category.pk],
-        collection_ids=[collection.pk],
-        variant_ids=[variant.pk for variant in product_variant_list],
+    mock_update_products_discounted_prices_for_promotion.delay.called_once_with(
+        product_id
     )
