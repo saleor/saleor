@@ -9488,7 +9488,7 @@ Represents promotion's original translatable fields and related translations.
 
 Added in Saleor 3.15.
 """
-type PromotionTranslatableContent implements Node {
+type PromotionTranslatableContent implements Node @doc(category: "Discounts") {
   """ID of the promotion translatable content."""
   id: ID!
 
@@ -9514,7 +9514,7 @@ Represents promotion translations.
 
 Added in Saleor 3.15.
 """
-type PromotionTranslation implements Node {
+type PromotionTranslation implements Node @doc(category: "Discounts") {
   """ID of the promotion translation."""
   id: ID!
 
@@ -9537,7 +9537,7 @@ Represents promotion rule's original translatable fields and related translation
 
 Added in Saleor 3.15.
 """
-type PromotionRuleTranslatableContent implements Node {
+type PromotionRuleTranslatableContent implements Node @doc(category: "Discounts") {
   """ID of the promotion rule translatable content."""
   id: ID!
 
@@ -9563,7 +9563,7 @@ Represents promotion rule translations.
 
 Added in Saleor 3.15.
 """
-type PromotionRuleTranslation implements Node {
+type PromotionRuleTranslation implements Node @doc(category: "Discounts") {
   """ID of the promotion rule translation."""
   id: ID!
 
@@ -17442,7 +17442,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): PromotionTranslate
+  ): PromotionTranslate @doc(category: "Discounts")
 
   """
   Creates/updates translations for a promotion rule.
@@ -17460,7 +17460,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): PromotionRuleTranslate
+  ): PromotionRuleTranslate @doc(category: "Discounts")
 
   """
   Creates a new sale.
@@ -17561,7 +17561,9 @@ type Mutation {
   ): SaleRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: [])
 
   """
-  Creates/updates translations for a sale. 
+  Creates/updates translations for a sale.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `PromotionTranslate` mutation instead. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
@@ -27084,7 +27086,7 @@ Added in Saleor 3.15.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type PromotionTranslate {
+type PromotionTranslate @doc(category: "Discounts") {
   errors: [TranslationError!]!
   promotion: Promotion
 }
@@ -27107,7 +27109,7 @@ Added in Saleor 3.15.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type PromotionRuleTranslate {
+type PromotionRuleTranslate @doc(category: "Discounts") {
   errors: [TranslationError!]!
   promotionRule: PromotionRule
 }
@@ -27298,7 +27300,9 @@ type SaleRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEv
 }
 
 """
-Creates/updates translations for a sale. 
+Creates/updates translations for a sale.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `PromotionTranslate` mutation instead. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
@@ -32769,7 +32773,7 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionCreated implements Event {
+type PromotionCreated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -32793,7 +32797,7 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionUpdated implements Event {
+type PromotionUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -32817,7 +32821,7 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionDeleted implements Event {
+type PromotionDeleted implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -32841,7 +32845,7 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionStarted implements Event {
+type PromotionStarted implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -32865,7 +32869,7 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionEnded implements Event {
+type PromotionEnded implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
