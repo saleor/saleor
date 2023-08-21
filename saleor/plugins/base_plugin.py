@@ -1086,7 +1086,6 @@ class BasePlugin:
     def get_payment_gateways(
         self,
         currency: Optional[str],
-        checkout: Optional["Checkout"],
         checkout_info: Optional["CheckoutInfo"],
         checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
         previous_value,

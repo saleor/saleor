@@ -716,7 +716,7 @@ def test_request_data_for_gateway_config(checkout_with_item, address):
     checkout_info = fetch_checkout_info(checkout_with_item, lines_info, manager)
     # when
     response_config = request_data_for_gateway_config(
-        checkout_with_item, checkout_info, lines_info, merchant_account
+        checkout_info, lines_info, merchant_account
     )
 
     # then
@@ -737,7 +737,7 @@ def test_request_data_for_gateway_config_no_country(checkout, address, settings)
 
     # when
     response_config = request_data_for_gateway_config(
-        checkout, checkout_info, lines_info, merchant_account
+        checkout_info, lines_info, merchant_account
     )
 
     # then

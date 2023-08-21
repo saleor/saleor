@@ -1475,7 +1475,6 @@ class PluginsManager(PaymentInterface):
             gateways.extend(
                 plugin.get_payment_gateways(
                     currency=currency,
-                    checkout=checkout,
                     checkout_info=checkout_info,
                     checkout_lines=checkout_lines,
                     previous_value=None,

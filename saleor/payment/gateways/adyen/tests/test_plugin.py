@@ -61,7 +61,6 @@ def test_get_payment_gateway_for_checkout(
     adyen_plugin = adyen_plugin()
     response = adyen_plugin.get_payment_gateways(
         currency=None,
-        checkout=checkout_with_single_item,
         checkout_info=checkout_info,
         checkout_lines=checkout_lines_info,
         previous_value=None,

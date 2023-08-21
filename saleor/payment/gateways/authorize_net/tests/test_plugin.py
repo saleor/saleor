@@ -18,7 +18,6 @@ def test_get_payment_gateway_for_checkout(
     checkout_with_single_item.save()
     response = authorize_net_plugin.get_payment_gateways(
         currency=None,
-        checkout=checkout_with_single_item,
         checkout_info=checkout_info,
         checkout_lines=checkout_lines_info,
         previous_value=None,
@@ -52,7 +51,6 @@ def test_get_payment_gateway_for_checkout_inactive(
     currency = checkout_with_single_item.currency
     response = authorize_net_plugin.get_payment_gateways(
         currency=currency,
-        checkout=checkout_with_single_item,
         checkout_info=checkout_info,
         checkout_lines=checkout_lines_info,
         previous_value=None,

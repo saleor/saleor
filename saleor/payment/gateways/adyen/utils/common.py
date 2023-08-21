@@ -333,12 +333,12 @@ def get_shopper_locale_value(country_code: str):
 
 
 def request_data_for_gateway_config(
-    checkout,
     checkout_info: "CheckoutInfo",
     lines: Optional[Iterable[CheckoutLineInfo]],
     merchant_account,
 ) -> Dict[str, Any]:
     manager = get_plugins_manager()
+    checkout = checkout_info.checkout
     address = checkout_info.billing_address or checkout_info.shipping_address
     lines = lines or []
     total = checkout_total(
