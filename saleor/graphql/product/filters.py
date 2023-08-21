@@ -41,8 +41,10 @@ from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.filters import (
     EnumFilter,
     GlobalIDMultipleChoiceFilter,
+    GlobalIDMultipleChoiceWhereFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
+    MetadataWhereFilterBase,
     ObjectTypeFilter,
     OperationObjectTypeFilter,
     filter_slug_list,
@@ -65,6 +67,7 @@ from ..core.types.filter_input import (
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import (
     filter_by_id,
+    filter_by_ids,
     filter_by_string_field,
     filter_range_field,
     filter_where_by_id_field,
@@ -810,8 +813,8 @@ class ProductFilter(MetadataFilterBase):
         return _filter_stock_availability(queryset, name, value, channel_slug)
 
 
-class ProductWhere(MetadataFilterBase):
-    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
+class ProductWhere(MetadataWhereFilterBase):
+    ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Product"))
     name = OperationObjectTypeFilter(
         input_class=StringFilterInput,
         method="filter_product_name",
@@ -1037,8 +1040,8 @@ class ProductVariantFilter(MetadataFilterBase):
         return queryset.filter(qs)
 
 
-class ProductVariantWhere(MetadataFilterBase):
-    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("ProductVariant"))
+class ProductVariantWhere(MetadataWhereFilterBase):
+    ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("ProductVariant"))
 
     class Meta:
         model = ProductVariant
@@ -1072,8 +1075,8 @@ class CollectionFilter(MetadataFilterBase):
         return queryset
 
 
-class CollectionWhere(MetadataFilterBase):
-    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Collection"))
+class CollectionWhere(MetadataWhereFilterBase):
+    ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Collection"))
 
     class Meta:
         model = Collection
@@ -1102,8 +1105,8 @@ class CategoryFilter(MetadataFilterBase):
         return queryset.filter(name_slug_desc_qs)
 
 
-class CategoryWhere(MetadataFilterBase):
-    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Category"))
+class CategoryWhere(MetadataWhereFilterBase):
+    ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Category"))
 
     class Meta:
         model = Category

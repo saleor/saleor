@@ -37,3 +37,33 @@ def test_product_variant_filter_by_ids(api_client, product_variant_list, channel
         product_variant_list[0].sku,
         product_variant_list[1].sku,
     }
+
+
+def test_product_variant_filter_by_none_as_ids(
+    api_client, product_variant_list, channel_USD
+):
+    # given
+    variables = {"channel": channel_USD.slug, "where": {"AND": [{"ids": None}]}}
+
+    # when
+    response = api_client.post_graphql(PRODUCT_VARIANTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    variants = data["data"]["productVariants"]["edges"]
+    assert len(variants) == 0
+
+
+def test_product_variant_filter_by_ids_empty_list(
+    api_client, product_variant_list, channel_USD
+):
+    # given
+    variables = {"channel": channel_USD.slug, "where": {"AND": [{"ids": []}]}}
+
+    # when
+    response = api_client.post_graphql(PRODUCT_VARIANTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    variants = data["data"]["productVariants"]["edges"]
+    assert len(variants) == 0

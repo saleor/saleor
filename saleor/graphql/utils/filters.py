@@ -39,11 +39,29 @@ def filter_range_field(qs, field, value):
 
 
 def filter_by_id(object_type):
+    """Use only in standard filters.
+
+    Returns entering qs when value is empty.
+    """
     from . import resolve_global_ids_to_primary_keys
 
     def inner(qs, _, value):
         if not value:
             return qs
+        _, obj_pks = resolve_global_ids_to_primary_keys(value, object_type)
+        return qs.filter(id__in=obj_pks)
+
+    return inner
+
+
+def filter_by_ids(object_type):
+    """Use in where filters.
+
+    Returns empty qs when value is empty.
+    """
+    from . import resolve_global_ids_to_primary_keys
+
+    def inner(qs, _, value):
         _, obj_pks = resolve_global_ids_to_primary_keys(value, object_type)
         return qs.filter(id__in=obj_pks)
 
