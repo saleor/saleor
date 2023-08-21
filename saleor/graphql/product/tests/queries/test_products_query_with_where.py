@@ -48,6 +48,32 @@ def test_product_filter_by_ids(api_client, product_list, channel_USD):
     }
 
 
+def test_product_filter_by_none_as_ids(api_client, product_list, channel_USD):
+    # given
+    variables = {"channel": channel_USD.slug, "where": {"ids": None}}
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 0
+
+
+def test_product_filter_by_ids_empty_list(api_client, product_list, channel_USD):
+    # given
+    variables = {"channel": channel_USD.slug, "where": {"ids": []}}
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 0
+
+
 @pytest.mark.parametrize(
     "where, indexes",
     [

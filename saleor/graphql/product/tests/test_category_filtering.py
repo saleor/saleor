@@ -632,3 +632,29 @@ def test_categories_where_by_ids(api_client, category_list):
         category_list[0].slug,
         category_list[1].slug,
     }
+
+
+def test_categories_where_by_none_as_ids(api_client, category_list):
+    # given
+    variables = {"where": {"ids": None}}
+
+    # when
+    response = api_client.post_graphql(CATEGORY_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    categories = data["data"]["categories"]["edges"]
+    assert len(categories) == 0
+
+
+def test_categories_where_by_ids_empty_list(api_client, category_list):
+    # given
+    variables = {"where": {"AND": [{"ids": []}]}}
+
+    # when
+    response = api_client.post_graphql(CATEGORY_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    categories = data["data"]["categories"]["edges"]
+    assert len(categories) == 0

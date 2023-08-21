@@ -24,6 +24,8 @@ from ..product.filters import (
     ProductWhere,
 )
 
+PREDICATE_OPERATOR_DATA_T = List[Dict[str, Union[list, dict, str, bool]]]
+
 
 class Operators(Enum):
     AND = "and"
@@ -149,7 +151,7 @@ def get_variants_for_predicate(
 
 
 def _handle_and_data(
-    queryset: ProductVariantQueryset, data: List[Dict[str, Union[list, dict, str]]]
+    queryset: ProductVariantQueryset, data: PREDICATE_OPERATOR_DATA_T
 ) -> ProductVariantQueryset:
     for predicate_data in data:
         if contains_filter_operator(predicate_data):
@@ -162,7 +164,7 @@ def _handle_and_data(
 
 
 def _handle_or_data(
-    queryset: ProductVariantQueryset, data: List[Dict[str, Union[dict, str, list]]]
+    queryset: ProductVariantQueryset, data: PREDICATE_OPERATOR_DATA_T
 ) -> ProductVariantQueryset:
     qs = queryset.model.objects.none()
     for predicate_data in data:
@@ -174,13 +176,13 @@ def _handle_or_data(
     return queryset
 
 
-def contains_filter_operator(input: Dict[str, Union[dict, str, list]]) -> bool:
+def contains_filter_operator(input: Dict[str, Union[dict, str, list, bool]]) -> bool:
     return any([operator in input for operator in ["AND", "OR", "NOT"]])
 
 
 def _handle_catalogue_predicate(
     queryset: ProductVariantQueryset,
-    predicate_data: Dict[str, Union[dict, str, list]],
+    predicate_data: Dict[str, Union[dict, str, list, bool]],
     operator,
 ) -> ProductVariantQueryset:
     for field, handle_method in PREDICATE_TO_HANDLE_METHOD.items():
