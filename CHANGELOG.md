@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
+- Adjust where filtering by empty values - explicit treat empty values - #13754 by @IKarbowiak
 
 ### Saleor Apps
 
