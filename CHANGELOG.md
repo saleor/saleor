@@ -183,6 +183,9 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - `preprocess_order_creation`
 
   This breaking change affect any custom plugins in open-source Saleor, if they override any of the above mentioned methods.
+- The signature of the `list_payment_gateways` manager method has changed. It may affect Saleor open-source users, who maintain plugins overriding this method. Changes:
+  - The `checkout: Checkout` argument was removed
+  - `checkout_info: CheckoutInfo` and `checkout_lines: Iterable[CheckoutLineInfo]` arguments were added instead
 
 ### GraphQL API
 
