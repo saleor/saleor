@@ -13,6 +13,7 @@ from prices import Money, TaxedMoney
 from ...account.models import Address
 from ...core.taxes import zero_money
 from ...discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
+from ...discount.interface import VariantPromotionRuleInfo
 from ...discount.models import (
     CheckoutLineDiscount,
     NotApplicable,
@@ -33,7 +34,6 @@ from ..fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
     DeliveryMethodBase,
-    VariantPromotionRuleInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
     get_delivery_method_info,
