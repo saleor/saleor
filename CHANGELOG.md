@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
+- Fix giftcard code description - #13728 by @rafiwts
 
 # 3.15.0 [Unreleased]
 
