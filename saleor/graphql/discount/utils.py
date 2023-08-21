@@ -248,10 +248,15 @@ def convert_migrated_sale_predicate_to_catalogue_info(
     into:
         {
             "collections": {"UHJvZHV3","UHJvZHV2","UHJvZHV1"},
+            "categories": {},
             "products": {"UHJvZHV9","UHJvZHV8","UHJvZHV7"},
+            "variants": {},
         }
     """
     catalogue_info: CatalogueInfo = defaultdict(set)
+    for field in PREDICATE_TO_CATALOGUE_INFO_MAP.values():
+        catalogue_info[field] = set()
+
     if catalogue_predicate.get("OR"):
         predicates = {
             list(item.keys())[0]: list(item.values())[0]["ids"]
@@ -263,7 +268,56 @@ def convert_migrated_sale_predicate_to_catalogue_info(
     return catalogue_info
 
 
+def convert_catalogue_info_into_predicate(catalogue_info: CatalogueInfo) -> dict:
+    catalogue = []
+    collection_ids = catalogue_info.get("collections")
+    category_ids = catalogue_info.get("categories")
+    product_ids = catalogue_info.get("products")
+    variants_ids = catalogue_info.get("variants")
+    if collection_ids:
+        catalogue.append({"collectionPredicate": {"ids": list(collection_ids)}})
+    if category_ids:
+        catalogue.append({"categoryPredicate": {"ids": list(category_ids)}})
+    if product_ids:
+        catalogue.append({"productPredicate": {"ids": list(product_ids)}})
+    if variants_ids:
+        catalogue.append({"variantPredicate": {"ids": list(variants_ids)}})
+    if catalogue:
+        return {"OR": catalogue}
+    return {}
+
+
 def get_categories_from_predicate(catalogue_predicate) -> QuerySet:
     return where_filter_qs(
         Category.objects.all(), {}, CategoryWhere, catalogue_predicate, None
     ).all()
+
+
+def get_product_ids_for_predicate(predicate: dict) -> set[int]:
+    variants = get_variants_for_predicate(predicate)
+    products = Product.objects.filter(
+        Exists(variants.filter(product_id=OuterRef("id")))
+    )
+    return set(products.values_list("id", flat=True))
+
+
+def merge_catalogues_info(
+    catalogue_1: CatalogueInfo, catalogue_2: CatalogueInfo
+) -> CatalogueInfo:
+    new_catalogue = deepcopy(catalogue_1)
+    new_catalogue["collections"].update(catalogue_2.get("collections", set()))
+    new_catalogue["categories"].update(catalogue_2.get("categories", set()))
+    new_catalogue["products"].update(catalogue_2.get("products", set()))
+    new_catalogue["variants"].update(catalogue_2.get("variants", set()))
+    return new_catalogue
+
+
+def subtract_catalogues_info(
+    catalogue_1: CatalogueInfo, catalogue_2: CatalogueInfo
+) -> CatalogueInfo:
+    new_catalogue = deepcopy(catalogue_1)
+    new_catalogue["collections"] -= catalogue_2.get("collections", set())
+    new_catalogue["categories"] -= catalogue_2.get("categories", set())
+    new_catalogue["products"] -= catalogue_2.get("products", set())
+    new_catalogue["variants"] -= catalogue_2.get("variants", set())
+    return new_catalogue
