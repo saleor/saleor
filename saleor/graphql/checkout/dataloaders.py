@@ -7,7 +7,6 @@ from promise import Promise
 from ...checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
-    VariantPromotionRuleInfo,
     apply_voucher_to_checkout_line,
     get_delivery_method_info,
     update_delivery_method_lists_for_checkout_info,
@@ -24,6 +23,7 @@ from ...checkout.problems import (
     get_checkout_problems,
 )
 from ...discount import VoucherType
+from ...discount.interface import VariantPromotionRuleInfo
 from ...payment.models import TransactionItem
 from ...product.models import ProductChannelListing
 from ...warehouse.models import Stock
