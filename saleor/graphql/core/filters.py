@@ -2,7 +2,7 @@ import django_filters
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.forms import CharField, Field, MultipleChoiceField
+from django.forms import CharField, Field, MultipleChoiceField, NullBooleanField
 from django_filters import Filter, MultipleChoiceFilter
 from django_filters.filters import FilterMethod
 from graphql_relay import from_global_id
@@ -219,13 +219,7 @@ class MetadataWhereFilterBase(WhereFilterSet):
         abstract = True
 
 
-class GlobalIDMultipleChoiceWhereFilter(MultipleChoiceFilter):
-    field_class = GlobalIDMultipleChoiceField
-
-    def filter(self, qs, value):
-        gids = [from_global_id(v)[1] for v in value]
-        return super(GlobalIDMultipleChoiceWhereFilter, self).filter(qs, gids)
-
+class WhereFilter(Filter):
     def method():  # type: ignore
         # Filter method needs to be lazily resolved, as it may be dependent on
         # the 'parent' FilterSet.
@@ -247,6 +241,58 @@ class GlobalIDMultipleChoiceWhereFilter(MultipleChoiceFilter):
         return locals()
 
     method = property(**method())  # type: ignore
+
+
+class ObjectTypeWhereFilter(WhereFilter):
+    def __init__(self, input_class, *args, **kwargs):
+        self.input_class = input_class
+        super().__init__(*args, **kwargs)
+
+
+class OperationObjectTypeWhereFilter(WhereFilter):
+    field_class = DefaultOperationField
+
+    def __init__(self, input_class, *args, **kwargs):
+        self.input_class = input_class
+        super().__init__(*args, **kwargs)
+
+
+class ListObjectTypeWhereFilter(MultipleChoiceFilter, WhereFilter):
+    field_class = DefaultMultipleChoiceField
+
+    def __init__(self, input_class, *args, **kwargs):
+        self.input_class = input_class
+        super().__init__(*args, **kwargs)
+
+
+class BooleanWhereFilter(WhereFilter):
+    field_class = NullBooleanField
+
+
+class CharWhereFilter(WhereFilter):
+    field_class = CharField
+
+
+class EnumWhereFilter(CharWhereFilter):
+    """Wheer filter class for Graphene enum object.
+
+    enum_class needs to be passed explicitly as well as the method.
+    """
+
+    def __init__(self, input_class, *args, **kwargs):
+        assert kwargs.get(
+            "method"
+        ), "Providing exact filter method is required for EnumFilter"
+        self.input_class = input_class
+        super().__init__(*args, **kwargs)
+
+
+class GlobalIDMultipleChoiceWhereFilter(MultipleChoiceFilter, WhereFilter):
+    field_class = GlobalIDMultipleChoiceField
+
+    def filter(self, qs, value):
+        gids = [from_global_id(v)[1] for v in value]
+        return super(GlobalIDMultipleChoiceWhereFilter, self).filter(qs, gids)
 
 
 class WhereFilterMethod(FilterMethod):

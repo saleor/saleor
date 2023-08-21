@@ -17,6 +17,7 @@ from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
+    MetadataWhereFilterBase,
     OperationObjectTypeFilter,
     filter_slug_list,
 )
@@ -30,7 +31,7 @@ from ..core.types import (
 from ..core.types.filter_input import FilterInputDescriptions, WhereInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
-from ..utils.filters import filter_by_id, filter_by_string_field
+from ..utils.filters import filter_by_id, filter_where_by_string_field
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 
 
@@ -193,11 +194,11 @@ class MeasurementUnitsEnumFilterInput(BaseInputObjectType):
 
 
 def filter_attribute_name(qs, _, value):
-    return filter_by_string_field(qs, "name", value)
+    return filter_where_by_string_field(qs, "name", value)
 
 
 def filter_attribute_slug(qs, _, value):
-    return filter_by_string_field(qs, "slug", value)
+    return filter_where_by_string_field(qs, "slug", value)
 
 
 def filter_with_choices(qs, _, value):
@@ -210,22 +211,22 @@ def filter_with_choices(qs, _, value):
 
 
 def filter_attribute_input_type(qs, _, value):
-    return filter_by_string_field(qs, "input_type", value)
+    return filter_where_by_string_field(qs, "input_type", value)
 
 
 def filter_attribute_entity_type(qs, _, value):
-    return filter_by_string_field(qs, "entity_type", value)
+    return filter_where_by_string_field(qs, "entity_type", value)
 
 
 def filter_attribute_type(qs, _, value):
-    return filter_by_string_field(qs, "type", value)
+    return filter_where_by_string_field(qs, "type", value)
 
 
 def filter_attribute_unit(qs, _, value):
-    return filter_by_string_field(qs, "unit", value)
+    return filter_where_by_string_field(qs, "unit", value)
 
 
-class AttributeWhere(MetadataFilterBase):
+class AttributeWhere(MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Attribute"))
     name = OperationObjectTypeFilter(
         input_class=StringFilterInput, method=filter_attribute_name
