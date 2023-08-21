@@ -5,10 +5,10 @@ import graphene
 import pytest
 from prices import Money, TaxedMoney
 
-from ...checkout.fetch import VariantPromotionRuleInfo
 from ...core.utils.translations import get_translation
 from ...core.weight import zero_weight
 from ...discount import DiscountType, RewardValueType
+from ...discount.interface import VariantPromotionRuleInfo
 from ...discount.models import (
     DiscountValueType,
     NotApplicable,

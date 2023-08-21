@@ -46,7 +46,11 @@ from ..utils import (
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
-from .utils import SHIPPING_METHOD_UPDATE_FIELDS, ShippingMethodUpdateMixin
+from .utils import (
+    SHIPPING_METHOD_UPDATE_FIELDS,
+    ShippingMethodUpdateMixin,
+    get_variant_rule_info_map,
+)
 
 
 class OrderLineInput(BaseInputObjectType):
@@ -249,51 +253,55 @@ class DraftOrderCreate(
 
     @classmethod
     def clean_lines(cls, cleaned_input, lines, channel):
-        if lines:
-            grouped_lines_data: List[OrderLineData] = []
-            lines_data_map: Dict[str, OrderLineData] = defaultdict(OrderLineData)
+        if not lines:
+            return
+        grouped_lines_data: List[OrderLineData] = []
+        lines_data_map: Dict[str, OrderLineData] = defaultdict(OrderLineData)
 
-            variant_ids = [line.get("variant_id") for line in lines]
-            variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
-            validate_product_is_published_in_channel(variants, channel)
-            validate_variant_channel_listings(variants, channel)
-            quantities = [line.get("quantity") for line in lines]
-            if not all(quantity > 0 for quantity in quantities):
-                raise ValidationError(
-                    {
-                        "quantity": ValidationError(
-                            "Ensure this value is greater than 0.",
-                            code=OrderErrorCode.ZERO_QUANTITY.value,
-                        )
-                    }
-                )
-
-            for line in lines:
-                variant_id = line.get("variant_id")
-                _, variant_db_id = graphene.Node.from_global_id(variant_id)
-                variant = list(
-                    filter(lambda x: (x.pk == int(variant_db_id)), variants)
-                )[0]
-                custom_price = line.get("price", None)
-
-                if line.get("force_new_line"):
-                    line_data = OrderLineData(
-                        variant_id=variant_db_id,
-                        variant=variant,
-                        price_override=custom_price,
+        variant_pks = cls.get_global_ids_or_error(
+            [line.get("variant_id") for line in lines], ProductVariant, "variant_id"
+        )
+        variants_data = get_variant_rule_info_map(variant_pks, channel.id)
+        variants = [data.variant for data in variants_data.values()]
+        validate_product_is_published_in_channel(variants, channel)
+        validate_variant_channel_listings(variants, channel)
+        quantities = [line.get("quantity") for line in lines]
+        if not all(quantity > 0 for quantity in quantities):
+            raise ValidationError(
+                {
+                    "quantity": ValidationError(
+                        "Ensure this value is greater than 0.",
+                        code=OrderErrorCode.ZERO_QUANTITY.value,
                     )
-                    grouped_lines_data.append(line_data)
-                else:
-                    line_data = lines_data_map[variant_db_id]
-                    line_data.variant_id = variant_db_id
-                    line_data.variant = variant
-                    line_data.price_override = custom_price
+                }
+            )
 
-                if (quantity := line.get("quantity")) is not None:
-                    line_data.quantity += quantity
+        for line in lines:
+            variant_id = line.get("variant_id")
+            variant_data = variants_data[variant_id]
+            variant = variant_data.variant
+            custom_price = line.get("price", None)
 
-            grouped_lines_data += list(lines_data_map.values())
-            cleaned_input["lines_data"] = grouped_lines_data
+            if line.get("force_new_line"):
+                line_data = OrderLineData(
+                    variant_id=variant.id,
+                    variant=variant,
+                    price_override=custom_price,
+                    rules_info=variant_data.rules_info,
+                )
+                grouped_lines_data.append(line_data)
+            else:
+                line_data = lines_data_map[variant.id]
+                line_data.variant_id = variant.id
+                line_data.variant = variant
+                line_data.price_override = custom_price
+                line_data.rules_info = variant_data.rules_info
+
+            if (quantity := line.get("quantity")) is not None:
+                line_data.quantity += quantity
+
+        grouped_lines_data += list(lines_data_map.values())
+        cleaned_input["lines_data"] = grouped_lines_data
 
     @classmethod
     def clean_addresses(
