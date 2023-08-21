@@ -84,6 +84,7 @@ def test_product_filter_by_ids_empty_list(api_client, product_list, channel_USD)
         ({"oneOf": ["Test product 1", "Test product 2"]}, [0, 1]),
         ({"oneOf": ["Test product 1", "Non-existing"]}, [0]),
         ({"oneOf": ["Non-existing 1", "Non-existing 2"]}, []),
+        (None, []),
     ],
 )
 def test_product_filter_by_name(where, indexes, api_client, product_list, channel_USD):
@@ -111,6 +112,7 @@ def test_product_filter_by_name(where, indexes, api_client, product_list, channe
         ({"oneOf": ["test-product-a", "test-product-b"]}, [0, 1]),
         ({"oneOf": ["test-product-a", "non-existing"]}, [0]),
         ({"oneOf": ["non-existing-1", "non-existing-2"]}, []),
+        (None, []),
     ],
 )
 def test_product_filter_by_slug(where, indexes, api_client, product_list, channel_USD):

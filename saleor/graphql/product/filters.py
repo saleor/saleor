@@ -991,27 +991,27 @@ def where_filter_updated_at_range(qs, _, value):
 
 class ProductWhere(MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Product"))
-    name = OperationObjectTypeFilter(
+    name = OperationObjectTypeWhereFilter(
         input_class=StringFilterInput,
         method="filter_product_name",
         help_text="Filter by product name.",
     )
-    slug = OperationObjectTypeFilter(
+    slug = OperationObjectTypeWhereFilter(
         input_class=StringFilterInput,
         method="filter_product_slug",
         help_text="Filter by product slug.",
     )
-    product_type = OperationObjectTypeFilter(
+    product_type = OperationObjectTypeWhereFilter(
         input_class=GlobalIDFilterInput,
         method="filter_product_type",
         help_text="Filter by product type.",
     )
-    category = OperationObjectTypeFilter(
+    category = OperationObjectTypeWhereFilter(
         input_class=GlobalIDFilterInput,
         method="filter_category",
         help_text="Filter by product category.",
     )
-    collection = OperationObjectTypeFilter(
+    collection = OperationObjectTypeWhereFilter(
         input_class=GlobalIDFilterInput,
         method="filter_collection",
         help_text="Filter by collection.",

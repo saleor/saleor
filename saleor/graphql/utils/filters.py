@@ -84,6 +84,8 @@ def filter_where_range_field(qs, field, value):
 def filter_where_by_string_field(
     qs: "QuerySet", field: str, value: Dict[str, Union[str, List[str]]]
 ):
+    if value is None:
+        return qs.none()
     if "eq" in value:
         # allow filtering by `None` value
         return qs.filter(**{field: value["eq"]})
