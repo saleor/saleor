@@ -78,7 +78,7 @@ class SaleTranslate(BaseTranslateMutation):
                 }
             )
         type, node_pk = from_global_id_or_error(id, raise_error=False)
-        if type == "Promotion" or type == "PromotionTranslatableContent":
+        if type in ("Promotion", "PromotionTranslatableContent"):
             raise_validation_error(
                 field="id",
                 message="Provided ID refers to Promotion model. "
