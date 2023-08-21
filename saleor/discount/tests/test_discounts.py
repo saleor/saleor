@@ -6,7 +6,7 @@ import pytest
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
-from ...checkout.fetch import VariantPromotionRuleInfo
+from ...discount.interface import VariantPromotionRuleInfo
 from ...product.models import Product, ProductVariant, ProductVariantChannelListing
 from .. import DiscountInfo, DiscountValueType, RewardValueType, VoucherType
 from ..models import (

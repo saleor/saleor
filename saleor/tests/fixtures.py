@@ -38,11 +38,7 @@ from ..attribute.models import (
 )
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout import base_calculations
-from ..checkout.fetch import (
-    VariantPromotionRuleInfo,
-    fetch_checkout_info,
-    fetch_checkout_lines,
-)
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ..core import EventDeliveryStatus, JobStatus
@@ -61,6 +57,7 @@ from ..discount import (
     RewardValueType,
     VoucherType,
 )
+from ..discount.interface import VariantPromotionRuleInfo
 from ..discount.models import (
     CheckoutLineDiscount,
     NotApplicable,
@@ -4000,6 +3997,55 @@ def order_line(order, variant):
         tax_rate=Decimal("0.23"),
         tax_class=variant.product.tax_class,
     )
+
+
+@pytest.fixture
+def order_line_on_promotion(order_line, promotion):
+    variant = order_line.variant
+
+    channel = order_line.order.channel
+    reward_value = Decimal("1.0")
+    rule = promotion.rules.first()
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel.currency_code,
+    )
+    order_line.total_price_gross_amount = (
+        variant_channel_listing.discounted_price_amount * order_line.quantity
+    )
+    order_line.total_price_net_amount = (
+        variant_channel_listing.discounted_price_amount * order_line.quantity
+    )
+    order_line.undiscounted_total_price_gross_amount = (
+        variant_channel_listing.price_amount * order_line.quantity
+    )
+    order_line.undiscounted_total_price_net_amount = (
+        variant_channel_listing.price_amount * order_line.quantity
+    )
+
+    order_line.unit_price_gross_amount = variant_channel_listing.discounted_price_amount
+    order_line.unit_price_net_amount = variant_channel_listing.discounted_price_amount
+    order_line.undiscounted_unit_price_gross_amount = (
+        variant_channel_listing.price_amount
+    )
+    order_line.undiscounted_unit_price_net_amount = variant_channel_listing.price_amount
+
+    order_line.base_unit_price_amount = variant_channel_listing.discounted_price_amount
+    order_line.undiscounted_base_unit_price_amount = (
+        variant_channel_listing.price_amount
+    )
+
+    order_line.unit_discount_amount = reward_value
+    order_line.save()
+    return order_line
 
 
 @pytest.fixture
