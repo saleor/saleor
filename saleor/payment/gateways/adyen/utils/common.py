@@ -1,7 +1,7 @@
 import json
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional
 
 import Adyen
 import opentracing
@@ -16,7 +16,12 @@ from .....checkout.calculations import (
     checkout_shipping_price,
     checkout_total,
 )
-from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.fetch import (
+    CheckoutInfo,
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from .....checkout.models import Checkout
 from .....checkout.utils import get_checkout_metadata, is_shipping_required
 from .....payment.models import Payment
@@ -328,12 +333,14 @@ def get_shopper_locale_value(country_code: str):
 
 
 def request_data_for_gateway_config(
-    checkout: "Checkout", merchant_account
+    checkout_info: "CheckoutInfo",
+    lines: Optional[Iterable[CheckoutLineInfo]],
+    merchant_account,
 ) -> Dict[str, Any]:
     manager = get_plugins_manager()
-    address = checkout.billing_address or checkout.shipping_address
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout = checkout_info.checkout
+    address = checkout_info.billing_address or checkout_info.shipping_address
+    lines = lines or []
     total = checkout_total(
         manager=manager,
         checkout_info=checkout_info,
