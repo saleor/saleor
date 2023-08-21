@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Iterable, List, Optional
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 
 if TYPE_CHECKING:
-    from ..checkout.models import Checkout
     from ..payment.interface import (
         CustomerSource,
         GatewayResponse,
