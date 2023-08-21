@@ -1,12 +1,23 @@
 import json
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, DefaultDict, Final, List, Optional, Set, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    DefaultDict,
+    Final,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Union,
+)
 
 import graphene
 from django.core.cache import cache
 
 from ...app.models import App
+from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ...checkout.models import Checkout
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
@@ -1750,11 +1761,15 @@ class WebhookPlugin(BasePlugin):
     def get_payment_gateways(
         self,
         currency: Optional[str],
-        checkout: Optional["Checkout"],
+        checkout_info: Optional["CheckoutInfo"],
+        checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
         previous_value,
         **kwargs
     ) -> List["PaymentGateway"]:
         gateways = []
+        checkout = None
+        if checkout_info:
+            checkout = checkout_info.checkout
         event_type = WebhookEventSyncType.PAYMENT_LIST_GATEWAYS
         webhooks = get_webhooks_for_event(event_type)
         for webhook in webhooks:

@@ -674,10 +674,24 @@ class Checkout(ModelObjectType[models.Checkout]):
     @prevent_sync_event_circular_query
     @plugin_manager_promise_callback
     def resolve_available_payment_gateways(
-        root: models.Checkout, _info: ResolveInfo, manager
+        root: models.Checkout, info: ResolveInfo, manager
     ):
-        return manager.list_payment_gateways(
-            currency=root.currency, checkout=root, channel_slug=root.channel.slug
+        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
+        checkout_lines_info = CheckoutLinesByCheckoutTokenLoader(info.context).load(
+            root.token
+        )
+
+        def get_available_payment_gateways(results):
+            (checkout_info, checkout_lines_info) = results
+            return manager.list_payment_gateways(
+                currency=root.currency,
+                checkout_info=checkout_info,
+                checkout_lines=checkout_lines_info,
+                channel_slug=root.channel.slug,
+            )
+
+        return Promise.all([checkout_info, checkout_lines_info]).then(
+            get_available_payment_gateways
         )
 
     @staticmethod

@@ -1084,7 +1084,11 @@ class BasePlugin:
         return previous_value
 
     def get_payment_gateways(
-        self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
+        self,
+        currency: Optional[str],
+        checkout_info: Optional["CheckoutInfo"],
+        checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
+        previous_value,
     ) -> List["PaymentGateway"]:
         payment_config = (
             self.get_payment_config(previous_value)
