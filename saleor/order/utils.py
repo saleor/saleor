@@ -62,7 +62,8 @@ from .models import Order, OrderGrantedRefund, OrderLine
 if TYPE_CHECKING:
     from ..app.models import App
     from ..channel.models import Channel
-    from ..checkout.fetch import CheckoutInfo, VariantPromotionRuleInfo
+    from ..checkout.fetch import CheckoutInfo
+    from ..discount.interface import VariantPromotionRuleInfo
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
 

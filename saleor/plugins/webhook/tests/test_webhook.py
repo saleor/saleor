@@ -26,13 +26,14 @@ from ....account.notifications import (
     send_account_confirmation,
 )
 from ....app.models import App
-from ....checkout.fetch import VariantPromotionRuleInfo, fetch_checkout_lines
+from ....checkout.fetch import fetch_checkout_lines
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
 from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
 from ....discount import RewardValueType
+from ....discount.interface import VariantPromotionRuleInfo
 from ....discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
     fetch_catalogue_info,

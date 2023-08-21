@@ -599,6 +599,56 @@ def test_update_taxes_for_order_lines_voucher_on_shipping(
         assert line.tax_rate == Decimal("0.23")
 
 
+def test_update_taxes_for_order_line_on_promotion(
+    order_with_lines, order_line_on_promotion
+):
+    # given
+    order = order_with_lines
+    currency = order.currency
+    prices_entered_with_tax = True
+    _enable_flat_rates(order, prices_entered_with_tax)
+    country_code = get_order_country(order)
+
+    line = order_with_lines.lines.first()
+    order_line_on_promotion.order = order
+    order_line_on_promotion.save(update_fields=["order"])
+
+    lines = order.lines.all()
+    assert lines.count() == 3
+
+    # when
+    lines, _ = update_taxes_for_order_lines(
+        order, lines, country_code, Decimal(23), prices_entered_with_tax
+    )
+
+    # then
+    for line in lines:
+        assert line.unit_price == TaxedMoney(
+            net=quantize_price(line.base_unit_price / Decimal("1.23"), currency),
+            gross=line.base_unit_price,
+        )
+        assert line.undiscounted_unit_price == TaxedMoney(
+            net=quantize_price(
+                line.undiscounted_base_unit_price / Decimal("1.23"), currency
+            ),
+            gross=line.undiscounted_base_unit_price,
+        )
+        assert line.total_price == TaxedMoney(
+            net=quantize_price(
+                line.base_unit_price / Decimal("1.23") * line.quantity, currency
+            ),
+            gross=line.base_unit_price * line.quantity,
+        )
+        assert line.undiscounted_total_price == TaxedMoney(
+            net=quantize_price(
+                line.undiscounted_base_unit_price / Decimal("1.23") * line.quantity,
+                currency,
+            ),
+            gross=line.undiscounted_base_unit_price * line.quantity,
+        )
+        assert line.tax_rate == Decimal("0.23")
+
+
 def test_use_original_tax_rate_when_tax_class_is_removed_from_order_line(
     order_with_lines,
 ):

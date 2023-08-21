@@ -41,11 +41,8 @@ from .models import (
 
 if TYPE_CHECKING:
     from ..account.models import User
-    from ..checkout.fetch import (
-        CheckoutInfo,
-        CheckoutLineInfo,
-        VariantPromotionRuleInfo,
-    )
+    from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
+    from ..discount.interface import VariantPromotionRuleInfo
     from ..order.models import Order
     from ..plugins.manager import PluginsManager
     from ..product.managers import ProductVariantQueryset

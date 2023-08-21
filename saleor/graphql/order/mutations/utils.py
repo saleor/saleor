@@ -1,14 +1,20 @@
+from collections import namedtuple
 from typing import Optional
 
+import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
+from ....checkout.fetch import get_variant_channel_listing
 from ....core.taxes import zero_money, zero_taxed_money
+from ....discount.interface import fetch_variant_rules_info
 from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
 from ....payment import PaymentError
 from ....payment import models as payment_models
 from ....plugins.manager import PluginsManager
+from ....product import models as product_models
 from ....shipping.interface import ShippingMethodData
 from ....shipping.models import ShippingMethodChannelListing
 from ..utils import get_shipping_method_availability_error
@@ -171,3 +177,27 @@ def clean_payment(payment: Optional[payment_models.Payment]) -> payment_models.P
             }
         )
     return payment
+
+
+VariantData = namedtuple("VariantData", ["variant", "rules_info"])
+
+
+def get_variant_rule_info_map(
+    variant_ids, channel_id, language_code=settings.LANGUAGE_CODE
+):
+    variant_id_to_variant_and_rules_info_map = {}
+    variants = product_models.ProductVariant.objects.filter(
+        pk__in=variant_ids
+    ).prefetch_related(
+        "channel_listings__variantlistingpromotionrule__promotion_rule__promotion",
+        "channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
+        "channel_listings__variantlistingpromotionrule__promotion_rule__translations",
+    )
+    for variant in variants:
+        variant_channel_listing = get_variant_channel_listing(variant, channel_id)
+        rules_info = fetch_variant_rules_info(variant_channel_listing, language_code)
+        variant_id_to_variant_and_rules_info_map[
+            graphene.Node.to_global_id("ProductVariant", variant.pk)
+        ] = VariantData(variant=variant, rules_info=rules_info)
+
+    return variant_id_to_variant_and_rules_info_map

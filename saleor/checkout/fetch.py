@@ -8,7 +8,6 @@ from typing import (
     Dict,
     Iterable,
     List,
-    NamedTuple,
     Optional,
     Tuple,
     Union,
@@ -17,7 +16,7 @@ from uuid import UUID
 
 from ..core.utils.lazyobjects import lazy_no_retry
 from ..discount import DiscountType, VoucherType
-from ..discount.interface import fetch_voucher_info
+from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
@@ -30,15 +29,8 @@ from ..warehouse.models import Warehouse
 if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..discount.interface import VoucherInfo
-    from ..discount.models import (
-        CheckoutLineDiscount,
-        Promotion,
-        PromotionRule,
-        PromotionRuleTranslation,
-        PromotionTranslation,
-        Voucher,
-    )
+    from ..discount.interface import VariantPromotionRuleInfo, VoucherInfo
+    from ..discount.models import CheckoutLineDiscount, Voucher
     from ..plugins.manager import PluginsManager
     from ..product.models import (
         Collection,
@@ -47,7 +39,6 @@ if TYPE_CHECKING:
         ProductType,
         ProductVariant,
         ProductVariantChannelListing,
-        VariantChannelListingPromotionRule,
     )
     from ..tax.models import TaxClass, TaxConfiguration
     from .models import Checkout, CheckoutLine
@@ -79,14 +70,6 @@ class CheckoutLineInfo:
             for discount in self.discounts
             if discount.type == DiscountType.PROMOTION
         ]
-
-
-class VariantPromotionRuleInfo(NamedTuple):
-    rule: "PromotionRule"
-    variant_listing_promotion_rule: "VariantChannelListingPromotionRule"
-    promotion: "Promotion"
-    promotion_translation: Optional["PromotionTranslation"]
-    rule_translation: Optional["PromotionRuleTranslation"]
 
 
 @dataclass
@@ -293,7 +276,7 @@ def fetch_checkout_lines(
             variant, checkout.channel_id
         )
         translation_language_code = checkout.language_code
-        rules_info = get_variant_rules_info(
+        rules_info = fetch_variant_rules_info(
             variant_channel_listing, translation_language_code
         )
 
@@ -354,46 +337,6 @@ def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
         if channel_listing.channel_id == channel_id:
             variant_channel_listing = channel_listing
     return variant_channel_listing
-
-
-def get_variant_rules_info(
-    variant_channel_listing: "ProductVariantChannelListing",
-    translation_language_code: str,
-):
-    listings_rules = (
-        variant_channel_listing.variantlistingpromotionrule.all()
-        if variant_channel_listing
-        else []
-    )
-    rules_info = []
-    for listing_promotion_rule in listings_rules:
-        promotion = listing_promotion_rule.promotion_rule.promotion
-        promotion_translations = [
-            translation
-            for translation in promotion.translations.all()
-            if translation.language_code == translation_language_code
-        ]
-        promotion_translation = (
-            promotion_translations[0] if promotion_translations else None
-        )
-
-        rule_translations = [
-            translation
-            for translation in listing_promotion_rule.promotion_rule.translations.all()
-            if translation.language_code == translation_language_code
-        ]
-        rule_translation = rule_translations[0] if rule_translations else None
-
-        rules_info.append(
-            VariantPromotionRuleInfo(
-                rule=listing_promotion_rule.promotion_rule,
-                variant_listing_promotion_rule=listing_promotion_rule,
-                promotion=promotion,
-                promotion_translation=promotion_translation,
-                rule_translation=rule_translation,
-            )
-        )
-    return rules_info
 
 
 def _is_variant_valid(
