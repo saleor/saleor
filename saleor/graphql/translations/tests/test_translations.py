@@ -9,6 +9,9 @@ from freezegun import freeze_time
 from mock import ANY
 
 from ....attribute.utils import associate_attribute_values_to_instance
+from ....discount.error_codes import DiscountErrorCode
+from ....discount.models import Promotion
+from ....discount.sale_converter import convert_sales_to_promotions
 from ....permission.models import Permission
 from ....tests.utils import dummy_editorjs
 from ....webhook.event_types import WebhookEventAsyncType
@@ -1655,13 +1658,15 @@ SALE_TRANSLATION_MUTATION = """
                     }
                 }
             }
+            errors {
+                code
+                field
+            }
         }
     }
 """
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
@@ -1674,16 +1679,22 @@ def test_sale_create_translation(
     permission_manage_translations,
     settings,
 ):
+    # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     sale = promotion_converted_from_sale
     sale_id = graphene.Node.to_global_id("Sale", sale.old_sale_id)
+    variables = {"saleId": sale_id}
+
+    # when
     response = staff_api_client.post_graphql(
         SALE_TRANSLATION_MUTATION,
-        {"saleId": sale_id},
+        variables,
         permissions=[permission_manage_translations],
     )
+
+    # then
     data = get_graphql_content(response)["data"]["saleTranslate"]
 
     assert data["sale"]["translation"]["name"] == "Wyprz PL"
@@ -1703,28 +1714,31 @@ def test_sale_create_translation(
     )
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 def test_sale_create_translation_by_translatable_content_id(
     staff_api_client,
     sale,
     permission_manage_translations,
 ):
+    # given
     translatable_content_id = graphene.Node.to_global_id(
         "SaleTranslatableContent", sale.id
     )
+    variables = {"saleId": translatable_content_id}
+    convert_sales_to_promotions()
+
+    # when
     response = staff_api_client.post_graphql(
         SALE_TRANSLATION_MUTATION,
-        {"saleId": translatable_content_id},
+        variables,
         permissions=[permission_manage_translations],
     )
+
+    # then
     data = get_graphql_content(response)["data"]["saleTranslate"]
     assert data["sale"]["translation"]["name"] == "Wyprz PL"
     assert data["sale"]["translation"]["language"]["code"] == "PL"
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 @freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
@@ -1737,17 +1751,26 @@ def test_sale_update_translation(
     permission_manage_translations,
     settings,
 ):
+    # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     translation = sale.translations.create(language_code="pl", name="Sale")
 
     sale_id = graphene.Node.to_global_id("Sale", sale.id)
+    variables = {"saleId": sale_id}
+    convert_sales_to_promotions()
+
+    translation = Promotion.objects.first().translations.get(language_code="pl")
+
+    # when
     response = staff_api_client.post_graphql(
         SALE_TRANSLATION_MUTATION,
-        {"saleId": sale_id},
+        variables,
         permissions=[permission_manage_translations],
     )
+
+    # then
     data = get_graphql_content(response)["data"]["saleTranslate"]
 
     assert data["sale"]["translation"]["name"] == "Wyprz PL"
@@ -1765,6 +1788,34 @@ def test_sale_update_translation(
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
+
+
+def test_sale_create_translation_with_promotion_id(
+    any_webhook,
+    staff_api_client,
+    promotion_converted_from_sale,
+    permission_manage_translations,
+    settings,
+):
+    # given
+    sale_id = graphene.Node.to_global_id("Promotion", promotion_converted_from_sale.id)
+    variables = {"saleId": sale_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        SALE_TRANSLATION_MUTATION,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["saleTranslate"]
+
+    assert not data["sale"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == DiscountErrorCode.INVALID.name
 
 
 PAGE_TRANSLATE_MUTATION = """
