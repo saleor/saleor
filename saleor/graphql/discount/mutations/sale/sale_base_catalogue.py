@@ -1,6 +1,13 @@
 import graphene
 
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from ....core import ResolveInfo
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Sale
+from ...utils import (
+    convert_catalogue_info_into_predicate,
+    get_product_ids_for_predicate,
+)
 from ..voucher.voucher_add_catalogues import CatalogueInput
 from .sale_base_discount_catalogue import BaseDiscountCatalogueMutation
 
@@ -19,3 +26,31 @@ class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):
 
     class Meta:
         abstract = True
+
+    @classmethod
+    def post_save_actions(
+        cls, info: ResolveInfo, promotion, previous_catalogue, new_catalogue
+    ):
+        if previous_catalogue != new_catalogue:
+            manager = get_plugin_manager_promise(info.context).get()
+            cls.call_event(
+                manager.sale_updated,
+                promotion,
+                previous_catalogue,
+                new_catalogue,
+            )
+
+        previous_predicate = convert_catalogue_info_into_predicate(previous_catalogue)
+        new_predicate = convert_catalogue_info_into_predicate(new_catalogue)
+        previous_product_ids = get_product_ids_for_predicate(previous_predicate)
+        new_product_ids = get_product_ids_for_predicate(new_predicate)
+
+        if previous_product_ids != new_product_ids:
+            is_add_mutation = len(new_product_ids) > len(previous_product_ids)
+            if is_add_mutation:
+                product_ids = new_product_ids - previous_product_ids
+            else:
+                product_ids = previous_product_ids - new_product_ids
+            update_products_discounted_prices_for_promotion_task.delay(
+                list(product_ids)
+            )
