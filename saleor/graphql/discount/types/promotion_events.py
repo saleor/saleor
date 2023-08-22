@@ -3,9 +3,10 @@ from graphene import relay
 
 from ....discount import PromotionEvents as events
 from ....discount import models
+from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AccountPermissions, AppPermission
 from ...account.dataloaders import UserByUserIdLoader
-from ...account.utils import check_is_owner_or_has_one_of_perms
+from ...account.utils import is_owner_or_has_one_of_perms
 from ...app.dataloaders import AppByIdLoader
 from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
@@ -29,7 +30,11 @@ class PromotionEventInterface(graphene.Interface):
     created_by = PermissionsField(
         UserOrApp,
         description="User or App that created the promotion event. ",
-        permissions=[AccountPermissions.MANAGE_STAFF, AppPermission.MANAGE_APPS],
+        permissions=[
+            AccountPermissions.MANAGE_STAFF,
+            AppPermission.MANAGE_APPS,
+            AuthorizationFilters.OWNER,
+        ],
     )
 
     class Meta:
@@ -46,20 +51,22 @@ class PromotionEventInterface(graphene.Interface):
             return None
 
         def _resolve_user(user):
-            check_is_owner_or_has_one_of_perms(
+            if is_owner_or_has_one_of_perms(
                 requester,
                 user,
                 AccountPermissions.MANAGE_STAFF,
-            )
-            return user
+            ):
+                return user
+            return None
 
         def _resolve_app(app):
-            check_is_owner_or_has_one_of_perms(
+            if is_owner_or_has_one_of_perms(
                 requester,
                 app,
                 AppPermission.MANAGE_APPS,
-            )
-            return app
+            ):
+                return app
+            return None
 
         if root.user_id:
             return (
