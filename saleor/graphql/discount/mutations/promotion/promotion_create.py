@@ -181,13 +181,11 @@ class PromotionCreate(ModelMutation):
         data = data["input"]
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
-        manager = get_plugin_manager_promise(info.context).get()
-
         cls.clean_instance(info, instance)
         with transaction.atomic():
             cls.save(info, instance, cleaned_input)
             rules = cls._save_m2m(info, instance, cleaned_input)
-            cls.post_save_actions(manager, instance, info, rules)
+            cls.post_save_actions(info, instance, rules)
 
         return cls.success_response(instance)
 
@@ -214,39 +212,32 @@ class PromotionCreate(ModelMutation):
     @classmethod
     def post_save_actions(
         cls,
-        manager: "PluginsManager",
+        info,
         instance: models.Promotion,
-        info: ResolveInfo,
         rules: List[models.PromotionRule],
     ):
-        cls.call_event(manager.promotion_created, instance)
-        has_started = cls.send_promotion_started_webhook(manager, instance)
+        manager = get_plugin_manager_promise(info.context).get()
+        has_started = cls.has_started(instance)
         cls.save_promotion_events(info, instance, rules, has_started)
+        cls.call_event(manager.promotion_created, instance)
+        if has_started:
+            cls.send_promotion_started_webhook(manager, instance)
         update_products_discounted_prices_of_promotion_task.delay(instance.pk)
 
     @classmethod
-    def send_promotion_started_webhook(
-        cls, manager: "PluginsManager", instance: models.Promotion
-    ) -> bool:
-        """Send a webhook about starting promotion if it hasn't been sent yet.
+    def has_started(cls, instance: models.Promotion) -> bool:
+        """Check if promotion has started and notification hasn't been sent yet.
 
-        Send the webhook when the start date is before the current date and the
+        Return true, when the start date is before the current date and the
         promotion is not already finished.
-
-        :return: True if webhook was sent
         """
         now = datetime.now(pytz.utc)
-
         start_date = instance.start_date
         end_date = instance.end_date
 
-        if (start_date and start_date <= now) and (not end_date or not end_date <= now):
-            cls.call_event(manager.promotion_started, instance)
-            instance.last_notification_scheduled_at = now
-            instance.save(update_fields=["last_notification_scheduled_at"])
-            return True
-
-        return False
+        return (start_date and (start_date <= now)) and (  # type: ignore[return-value] # mypy's return value is type of Union[datetime, bool]  # noqa: E501
+            not end_date or not (end_date <= now)
+        )
 
     @classmethod
     def save_promotion_events(
@@ -264,3 +255,14 @@ class PromotionCreate(ModelMutation):
 
         if has_started:
             events.promotion_started_event(instance, user, app)
+
+    @classmethod
+    def send_promotion_started_webhook(
+        cls, manager: "PluginsManager", instance: models.Promotion
+    ):
+        """Send a webhook about starting promotion if it hasn't been sent yet."""
+
+        now = datetime.now(pytz.utc)
+        cls.call_event(manager.promotion_started, instance)
+        instance.last_notification_scheduled_at = now
+        instance.save(update_fields=["last_notification_scheduled_at"])
