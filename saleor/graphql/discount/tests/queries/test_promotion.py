@@ -249,7 +249,7 @@ QUERY_PROMOTION_BY_ID_WITH_EVENTS = """
         promotion(id: $id) {
             id
             events {
-                ... on PromotionEvent {
+                ... on PromotionEventInterface {
                     type
                     createdBy {
                         ... on User {
@@ -257,7 +257,7 @@ QUERY_PROMOTION_BY_ID_WITH_EVENTS = """
                         }
                     }
                 }
-                ... on PromotionRuleEvent {
+                ... on PromotionRuleEventInterface {
                     ruleId
                 }
             }

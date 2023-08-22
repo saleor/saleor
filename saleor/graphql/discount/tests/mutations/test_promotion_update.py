@@ -22,7 +22,7 @@ PROMOTION_UPDATE_MUTATION = """
                 createdAt
                 updatedAt
                 events {
-                    ... on PromotionEvent {
+                    ... on PromotionEventInterface {
                         type
                     }
                 }

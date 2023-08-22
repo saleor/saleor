@@ -19,10 +19,10 @@ PROMOTION_RULE_CREATE_MUTATION = """
                 promotion {
                     id
                     events {
-                        ... on PromotionEvent {
+                        ... on PromotionEventInterface {
                             type
                         }
-                        ... on PromotionRuleEvent {
+                        ... on PromotionRuleEventInterface {
                             ruleId
                     }
                 }

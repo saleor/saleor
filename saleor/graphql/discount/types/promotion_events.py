@@ -20,7 +20,7 @@ def resolve_event_type(root: models.PromotionEvent, _info):
     return root.type
 
 
-class PromotionEvent(graphene.Interface):
+class PromotionEventInterface(graphene.Interface):
     id = graphene.GlobalID()
     date = graphene.DateTime(description="Date when event happened.", required=True)
     type = PromotionEventsEnum(
@@ -78,7 +78,7 @@ class PromotionCreatedEvent(ModelObjectType[models.PromotionEvent]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent]
+        interfaces = [relay.Node, PromotionEventInterface]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -90,7 +90,7 @@ class PromotionUpdatedEvent(ModelObjectType[models.PromotionEvent]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent]
+        interfaces = [relay.Node, PromotionEventInterface]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -102,7 +102,7 @@ class PromotionStartedEvent(ModelObjectType[models.PromotionEvent]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent]
+        interfaces = [relay.Node, PromotionEventInterface]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -112,12 +112,12 @@ class PromotionEndedEvent(ModelObjectType[models.PromotionEvent]):
         description = (
             "History log of the promotion ended event." + ADDED_IN_315 + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent]
+        interfaces = [relay.Node, PromotionEventInterface]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
 
-class PromotionRuleEvent(graphene.Interface):
+class PromotionRuleEventInterface(graphene.Interface):
     class Meta:
         description = (
             "History log of the promotion event related to rule."
@@ -144,7 +144,7 @@ class PromotionRuleCreatedEvent(ModelObjectType[models.PromotionEvent]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent, PromotionRuleEvent]
+        interfaces = [relay.Node, PromotionEventInterface, PromotionRuleEventInterface]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -156,7 +156,7 @@ class PromotionRuleUpdatedEvent(ModelObjectType[models.PromotionEvent]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent, PromotionRuleEvent]
+        interfaces = [relay.Node, PromotionEventInterface, PromotionRuleEventInterface]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -168,7 +168,7 @@ class PromotionRuleDeletedEvent(ModelObjectType[models.PromotionEvent]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent, PromotionRuleEvent]
+        interfaces = [relay.Node, PromotionEventInterface, PromotionRuleEventInterface]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -184,7 +184,7 @@ PROMOTION_EVENT_MAP = {
 }
 
 
-class UnionPromotionEvent(graphene.Union):
+class PromotionEvent(graphene.Union):
     class Meta:
         types = [v for v in PROMOTION_EVENT_MAP.values()]
 

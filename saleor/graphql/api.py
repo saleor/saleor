@@ -14,7 +14,6 @@ from .core.federation.schema import build_federated_schema
 from .core.schema import CoreMutations, CoreQueries
 from .csv.schema import CsvMutations, CsvQueries
 from .discount.schema import DiscountMutations, DiscountQueries
-from .discount.types.promotion_events import PROMOTION_EVENT_MAP
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
 from .invoice.schema import InvoiceMutations
 from .menu.schema import MenuMutations, MenuQueries
@@ -164,9 +163,7 @@ GraphQLWebhookEventsInfoDirective = graphql.GraphQLDirective(
 schema = build_federated_schema(
     Query,
     mutation=Mutation,
-    types=unit_enums
-    + list(WEBHOOK_TYPES_MAP.values())
-    + list(PROMOTION_EVENT_MAP.values()),
+    types=unit_enums + list(WEBHOOK_TYPES_MAP.values()),
     subscription=Subscription,
     directives=graphql.specified_directives
     + [GraphQLDocDirective, GraphQLWebhookEventsInfoDirective],

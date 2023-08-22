@@ -936,7 +936,7 @@ PROMOTION_CREATE_WITH_EVENTS = """
             promotion {
                 id
                 events {
-                    ... on PromotionEvent {
+                    ... on PromotionEventInterface {
                         type
                         createdBy {
                             ... on User {
@@ -947,7 +947,7 @@ PROMOTION_CREATE_WITH_EVENTS = """
                             }
                         }
                     }
-                    ... on PromotionRuleEvent {
+                    ... on PromotionRuleEventInterface {
                         ruleId
                     }
                 }

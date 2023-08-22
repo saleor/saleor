@@ -43,7 +43,7 @@ class Promotion(ModelObjectType[models.Promotion]):
     )
     translation = TranslationField(PromotionTranslation, type_name="promotion")
     events = NonNullList(
-        lambda: PromotionEvent,
+        PromotionEvent,
         description="The list of events associated with the promotion.",
     )
 

@@ -18,10 +18,10 @@ PROMOTION_RULE_UPDATE_MUTATION = """
                 promotion {
                     id
                     events {
-                        ... on PromotionEvent {
+                        ... on PromotionEventInterface {
                             type
                         }
-                        ... on PromotionRuleEvent {
+                        ... on PromotionRuleEventInterface {
                             ruleId
                         }
                     }
