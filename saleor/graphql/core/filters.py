@@ -242,6 +242,19 @@ class WhereFilter(Filter):
 
     method = property(**method())  # type: ignore
 
+    def filter(self, qs, value):
+        if self.distinct:
+            qs = qs.distinct()
+        lookup = "%s__%s" % (self.field_name, self.lookup_expr)
+        qs = self.get_method(qs)(**{lookup: value})
+        return qs
+
+
+class WhereFilterMethod(FilterMethod):
+    def __call__(self, qs, value):
+        """Override the default FilterMethod to allow filtering by empty values."""
+        return self.method(qs, self.f.field_name, value)
+
 
 class ObjectTypeWhereFilter(WhereFilter):
     def __init__(self, input_class, *args, **kwargs):
@@ -295,7 +308,12 @@ class GlobalIDMultipleChoiceWhereFilter(MultipleChoiceFilter, WhereFilter):
         return super(GlobalIDMultipleChoiceWhereFilter, self).filter(qs, gids)
 
 
-class WhereFilterMethod(FilterMethod):
-    def __call__(self, qs, value):
-        """Override the default FilterMethod to allow filtering by empty values."""
-        return self.method(qs, self.f.field_name, value)
+class GlobalIDWhereFilter(WhereFilter):
+    field_class = GlobalIDFormField
+
+    def filter(self, qs, value):
+        """Convert the filter value to a primary key before filtering."""
+        _id = None
+        if value is not None:
+            _, _id = from_global_id(value)
+        return super(GlobalIDFilter, self).filter(qs, _id)  # type: ignore

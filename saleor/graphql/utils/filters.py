@@ -133,4 +133,4 @@ def filter_where_by_numeric_field(
         if gte is not None:
             qs = qs.filter(**{f"{field}__gte": gte})
         return qs
-    return qs
+    return qs.none()

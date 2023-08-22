@@ -50,7 +50,6 @@ from ..core.filters import (
     MetadataWhereFilterBase,
     ObjectTypeFilter,
     ObjectTypeWhereFilter,
-    OperationObjectTypeFilter,
     OperationObjectTypeWhereFilter,
     filter_slug_list,
 )

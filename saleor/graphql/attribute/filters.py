@@ -12,13 +12,16 @@ from ..core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
 from ..core.filters import (
+    BooleanWhereFilter,
     EnumFilter,
     GlobalIDFilter,
     GlobalIDMultipleChoiceFilter,
+    GlobalIDMultipleChoiceWhereFilter,
+    GlobalIDWhereFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
     MetadataWhereFilterBase,
-    OperationObjectTypeFilter,
+    OperationObjectTypeWhereFilter,
     filter_slug_list,
 )
 from ..core.types import (
@@ -31,7 +34,7 @@ from ..core.types import (
 from ..core.types.filter_input import FilterInputDescriptions, WhereInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
-from ..utils.filters import filter_by_id, filter_where_by_string_field
+from ..utils.filters import filter_by_ids, filter_where_by_string_field
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 
 
@@ -207,7 +210,7 @@ def filter_with_choices(qs, _, value):
         return qs.filter(lookup)
     elif value is False:
         return qs.exclude(lookup)
-    return qs
+    return qs.none()
 
 
 def filter_attribute_input_type(qs, _, value):
@@ -226,49 +229,55 @@ def filter_attribute_unit(qs, _, value):
     return filter_where_by_string_field(qs, "unit", value)
 
 
+def where_filter_attributes_by_product_types(qs, field, value, requestor, channel_slug):
+    if not value:
+        return qs.none()
+
+    return filter_attributes_by_product_types(qs, field, value, requestor, channel_slug)
+
+
 class AttributeWhere(MetadataWhereFilterBase):
-    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Attribute"))
-    name = OperationObjectTypeFilter(
+    ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Attribute"))
+    name = OperationObjectTypeWhereFilter(
         input_class=StringFilterInput, method=filter_attribute_name
     )
-    slug = OperationObjectTypeFilter(
+    slug = OperationObjectTypeWhereFilter(
         input_class=StringFilterInput, method=filter_attribute_slug
     )
-    with_choices = django_filters.BooleanFilter(method=filter_with_choices)
-    input_type = OperationObjectTypeFilter(
+    with_choices = BooleanWhereFilter(method=filter_with_choices)
+    input_type = OperationObjectTypeWhereFilter(
         AttributeInputTypeEnumFilterInput, method=filter_attribute_input_type
     )
-    entity_type = OperationObjectTypeFilter(
+    entity_type = OperationObjectTypeWhereFilter(
         AttributeEntityTypeEnumFilterInput, method=filter_attribute_entity_type
     )
-    type = OperationObjectTypeFilter(
+    type = OperationObjectTypeWhereFilter(
         AttributeTypeEnumFilterInput, method=filter_attribute_type
     )
-    unit = OperationObjectTypeFilter(
+    unit = OperationObjectTypeWhereFilter(
         MeasurementUnitsEnumFilterInput, method=filter_attribute_unit
     )
-    in_collection = GlobalIDFilter(method="filter_in_collection")
-    in_category = GlobalIDFilter(method="filter_in_category")
+    in_collection = GlobalIDWhereFilter(method="filter_in_collection")
+    in_category = GlobalIDWhereFilter(method="filter_in_category")
+    value_required = BooleanWhereFilter()
+    visible_in_storefront = BooleanWhereFilter()
+    filterable_in_dashboard = BooleanWhereFilter()
 
     class Meta:
         model = Attribute
-        fields = [
-            "value_required",
-            "visible_in_storefront",
-            "filterable_in_dashboard",
-        ]
+        fields = []
 
     def filter_in_collection(self, qs, name, value):
         requestor = get_user_or_app_from_context(self.request)
         channel_slug = get_channel_slug_from_filter_data(self.data)
-        return filter_attributes_by_product_types(
+        return where_filter_attributes_by_product_types(
             qs, name, value, requestor, channel_slug
         )
 
     def filter_in_category(self, qs, name, value):
         requestor = get_user_or_app_from_context(self.request)
         channel_slug = get_channel_slug_from_filter_data(self.data)
-        return filter_attributes_by_product_types(
+        return where_filter_attributes_by_product_types(
             qs, name, value, requestor, channel_slug
         )
 
