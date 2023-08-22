@@ -2,7 +2,7 @@ import pytest
 
 from ..channel.utils import create_channel
 from ..orders.utils.draft_order_create import draft_order_create
-from ..orders.utils.order_lines import order_lines_create
+from ..orders.utils.order_lines_create import order_lines_create
 from ..product.utils import (
     create_category,
     create_product,

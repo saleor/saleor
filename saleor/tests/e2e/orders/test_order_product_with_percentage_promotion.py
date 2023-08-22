@@ -140,7 +140,7 @@ def prepare_product(
 
 
 @pytest.mark.e2e
-def test_order_products_on_fixed_promotion_CORE_2101(
+def test_order_products_on_percentage_promotion_CORE_2103(
     e2e_staff_api_client,
     permission_manage_products,
     permission_manage_channels,
@@ -153,8 +153,8 @@ def test_order_products_on_fixed_promotion_CORE_2101(
     channel_slug = "test-channel"
     variant_price = "20"
     promotion_name = "Promotion Fixed"
-    discount_value = 5
-    discount_type = "FIXED"
+    discount_value = 10
+    discount_type = "PERCENTAGE"
     promotion_rule_name = "rule for product"
 
     (
@@ -191,15 +191,17 @@ def test_order_products_on_fixed_promotion_CORE_2101(
     assert order_id is not None
 
     # Step 2 - Add order lines to the order
-    lines = [{"variantId": product_variant_id, "quantity": 1}]
+    quantity = 2
+    lines = [{"variantId": product_variant_id, "quantity": quantity}]
     order_lines = order_lines_create(e2e_staff_api_client, order_id, lines)
     order_product_variant_id = order_lines["order"]["lines"][0]["variant"]["id"]
+    discount = round(float(variant_price) * discount_value / 100, 2)
     assert order_product_variant_id == product_variant_id
-    unit_price = float(variant_price) - float(discount_value)
+    unit_price = float(variant_price) - discount
     undiscounted_price = order_lines["order"]["lines"][0]["undiscountedUnitPrice"][
         "gross"
     ]["amount"]
-    assert float(undiscounted_price) == float(variant_price)
+    assert undiscounted_price == float(variant_price)
     assert (
         order_lines["order"]["lines"][0]["unitPrice"]["gross"]["amount"] == unit_price
     )
@@ -224,20 +226,20 @@ def test_order_products_on_fixed_promotion_CORE_2101(
     assert order_complete_id == order_id
     order_line = order["order"]["lines"][0]
     assert order_line["productVariantId"] == product_variant_id
-    assert order_line["unitDiscount"]["amount"] == float(discount_value)
-    assert order_line["unitDiscountType"] == discount_type
-    assert order_line["unitDiscountValue"] == float(discount_value)
-    assert order_line["unitDiscountReason"] == promotion_reason
     product_price = order_line["undiscountedUnitPrice"]["gross"]["amount"]
-    assert product_price == float(undiscounted_price)
     assert product_price == float(variant_price)
+    assert discount == order_line["unitDiscount"]["amount"]
+    assert order_line["unitDiscountType"] == "FIXED"
+    assert order_line["unitDiscountValue"] == discount
+    assert order_line["unitDiscountReason"] == promotion_reason
+    product_discounted_price = product_price - discount
+    assert product_discounted_price == order_line["unitPrice"]["gross"]["amount"]
     shipping_amount = order["order"]["shippingPrice"]["gross"]["amount"]
     assert shipping_amount == shipping_price
-    subtotal = product_price - order_line["unitDiscountValue"]
+    subtotal = quantity * product_discounted_price
     assert subtotal == order["order"]["subtotal"]["gross"]["amount"]
     assert subtotal == subtotal_gross_amount
     total = shipping_amount + subtotal
     assert total == order["order"]["total"]["gross"]["amount"]
-    assert total == float(total_gross_amount)
-
+    assert total == total_gross_amount
     assert order["order"]["status"] == "UNFULFILLED"
