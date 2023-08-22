@@ -1,5 +1,5 @@
 from ...orders.utils.draft_order_create import draft_order_create
-from ...orders.utils.order_lines import order_lines_create
+from ...orders.utils.order_lines_create import order_lines_create
 from ...product.utils.product_channel_listing import raw_create_product_channel_listing
 from .checkout_billing_address_update import checkout_billing_address_update
 from .checkout_complete import checkout_complete, raw_checkout_complete
