@@ -226,7 +226,7 @@ class PromotionCreate(ModelMutation):
 
     @classmethod
     def has_started(cls, instance: models.Promotion) -> bool:
-        """Check if promotion has started and notification hasn't been sent yet.
+        """Check if promotion has started.
 
         Return true, when the start date is before the current date and the
         promotion is not already finished.

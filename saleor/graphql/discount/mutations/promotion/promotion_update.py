@@ -23,7 +23,7 @@ from ...types import Promotion
 from ..utils import clear_promotion_old_sale_id
 from .promotion_create import PromotionInput
 
-EVENT_TYPE = {
+TOGGLE_EVENT = {
     "started": events.promotion_started_event,
     "ended": events.promotion_ended_event,
 }
@@ -83,38 +83,30 @@ class PromotionUpdate(ModelMutation):
 
     @classmethod
     def post_save_actions(cls, info, cleaned_input, instance, previous_end_date):
+        toggle_type = cls.get_toggle_type(instance, cleaned_input, previous_end_date)
+        cls.save_events(info, instance, toggle_type)
+
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.promotion_updated, instance)
+        cls.send_promotion_toggle_webhook(manager, instance, toggle_type)
+
         # update the product undiscounted prices for promotion only when
         # start or end date has changed
         if "start_date" in cleaned_input or "end_date" in cleaned_input:
             update_products_discounted_prices_of_promotion_task.delay(instance.pk)
 
-        manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(
-            manager.promotion_updated,
-            instance,
-        )
-        sent_webhook_type = cls.send_promotion_toggle_webhook(
-            manager, instance, cleaned_input, previous_end_date
-        )
-        cls.save_events(info, instance, sent_webhook_type)
-
     @classmethod
-    def send_promotion_toggle_webhook(
-        cls,
-        manager: "PluginsManager",
-        instance: models.Promotion,
-        clean_input: dict,
-        previous_end_date: datetime,
-    ) -> Optional[str]:
-        """Send a webhook about starting or ending promotion if it wasn't sent yet.
+    def get_toggle_type(cls, instance, clean_input, previous_end_date) -> Optional[str]:
+        """Check if promotion has started, ended or there was no toggle.
 
-        Send webhook when the start or end date already passed and the notification_date
-        is not set or the last notification was sent before start or end date.
+        Promotion toggles when start or end date already passed and the
+        notification_date is not set or the last notification was sent before start
+        or end date.
 
-        :return: "started" for promotion_started and "ended" for promotion_ended webhook
+        :return: "started" if promotion has started, "ended" if promotion has ended or
+        None if there was no toggle.
         """
         now = datetime.now(pytz.utc)
-
         notification_date = instance.last_notification_scheduled_at
         start_date = clean_input.get("start_date")
         end_date = clean_input.get("end_date")
@@ -122,45 +114,53 @@ class PromotionUpdate(ModelMutation):
         if not start_date and not end_date:
             return None
 
-        send_notification = False
-        for date in [start_date, end_date]:
-            if (
-                date
-                and date <= now
-                and (notification_date is None or notification_date < date)
-            ):
-                send_notification = True
+        if (
+            start_date
+            and start_date <= now
+            and (notification_date is None or notification_date < start_date)
+            and (not end_date or end_date > now)
+        ):
+            return "started"
 
-        event = None
-        if (start_date and start_date <= now) and (not end_date or end_date > now):
-            event = manager.promotion_started
-
-        # we always need to notify if the end_date is in the past and previously
-        # the end date was not set
-        if end_date and end_date <= now and previous_end_date is None:
-            event = manager.promotion_ended
-            send_notification = True
-
-        if send_notification and event:
-            cls.call_event(event, instance)
-            instance.last_notification_scheduled_at = now
-            instance.save(update_fields=["last_notification_scheduled_at"])
-            if event == manager.promotion_started:
-                return "started"
-            if event == manager.promotion_ended:
-                return "ended"
+        if (
+            end_date
+            and end_date <= now
+            and (
+                (notification_date is None or notification_date < end_date)
+                or previous_end_date is None
+            )
+        ):
+            return "ended"
         return None
+
+    @classmethod
+    def send_promotion_toggle_webhook(
+        cls,
+        manager: "PluginsManager",
+        instance: models.Promotion,
+        toggle_type: Optional[str],
+    ):
+        """Send a webhook about starting or ending promotion, if it wasn't sent yet."""
+        event = None
+        if toggle_type == "started":
+            event = manager.promotion_started
+        if toggle_type == "ended":
+            event = manager.promotion_ended
+        if event:
+            cls.call_event(event, instance)
+            instance.last_notification_scheduled_at = datetime.now(pytz.utc)
+            instance.save(update_fields=["last_notification_scheduled_at"])
 
     @classmethod
     def save_events(
         cls,
         info: ResolveInfo,
         instance: models.Promotion,
-        sent_webhook_type: Optional[str],
+        toggle_type: Optional[str],
     ):
         app = get_app_promise(info.context).get()
         user = info.context.user
         events.promotion_updated_event(instance, user, app)
-        if sent_webhook_type:
-            if event_function := EVENT_TYPE.get(sent_webhook_type):
+        if toggle_type:
+            if event_function := TOGGLE_EVENT.get(toggle_type):
                 event_function(instance, user, app)
