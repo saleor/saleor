@@ -46,6 +46,15 @@ def get_transaction_item(id: str) -> payment_models.TransactionItem:
 def clean_customer_ip_address(
     info, customer_ip_address: Optional[str], error_code: str
 ):
+    """Get customer IP address.
+
+    The customer IP address is required for some payment gateways. By default, the
+    customer IP address is taken from the request.
+
+    If customer IP address is provided, we require the app to have the
+    `PaymentPermissions.HANDLE_PAYMENTS` permission.
+    """
+
     if not customer_ip_address:
         return get_client_ip(info.context)
     app = get_app_promise(info.context).get()
