@@ -210,7 +210,7 @@ def test_collection_remove_products_updates_discounted_price(
     ".update_products_discounted_prices_of_promotion_task"
 )
 def test_sale_create_updates_products_discounted_prices(
-    mock_update_products_discounted_prices_of_catalogues,
+    mock_update_products_discounted_prices_of_promotion_task,
     staff_api_client,
     permission_manage_discounts,
 ):
@@ -253,7 +253,7 @@ def test_sale_create_updates_products_discounted_prices(
     assert content["data"]["saleCreate"]["errors"] == []
 
     sale = Promotion.objects.filter(name="Half price product").get()
-    mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
+    mock_update_products_discounted_prices_of_promotion_task.delay.assert_called_once_with(
         sale.id
     )
 
