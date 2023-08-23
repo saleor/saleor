@@ -42,6 +42,13 @@ def associate_attribute_values_to_instance(
     # Associate the attribute and the passed values
     assignment = _associate_attribute_to_instance(instance, attribute.pk)
     assignment.values.set(values)
+
+    # While migrating to a new structure we need to make sure we also
+    # copy the assigned product to AssignedProductAttributeValue
+    # where it will live after issue #12881 will be implemented
+    AssignedProductAttributeValue.objects.filter(assignment_id=assignment.pk).update(
+        product_id=instance.pk
+    )
     sort_assigned_attribute_values(instance, assignment, values)
 
     return assignment
@@ -71,10 +78,6 @@ def _associate_attribute_to_instance(
         assignment, _ = AssignedProductAttribute.objects.get_or_create(
             product=instance, assignment=attribute_rel
         )
-        # While migrating to a new structure we need to make sure we also
-        # copy the assigned product to AssignedProductAttributeValue
-        # where it will live after issue #12881 will be implemented
-        assignment.productvalueassignment.update(product_id=instance.pk)
     elif isinstance(instance, ProductVariant):
         attribute_rel = instance.product.product_type.attributevariant.get(
             attribute_id=attribute_pk

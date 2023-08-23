@@ -121,7 +121,7 @@ def test_associate_attribute_to_variant_instance_multiple_values(
 
 
 def test_associate_attribute_to_product_copies_data_over_to_new_field(
-    product, attribute_value_generator
+    product, color_attribute
 ):
     """Ensure data is double writed.
 
@@ -129,25 +129,15 @@ def test_associate_attribute_to_product_copies_data_over_to_new_field(
     value of AssignedProductAttribute.product is copied over to
     AssignedProductAttributeValue.product.
     """
-    old_assignment = product.attributes.first()
-    assert old_assignment is not None, "The product doesn't have attribute-values"
-    assert old_assignment.values.count() == 1
-
-    attribute = old_assignment.attribute
-    attribute_value_generator(
-        attribute=attribute,
-        slug="attr-value2",
-    )
-    values = attribute.values.all()
+    values = color_attribute.values.all()
 
     # Assign new values
     new_assignment = associate_attribute_values_to_instance(
-        product, attribute, values[1], values[0]
+        product, color_attribute, values[0], values[1]
     )
 
     # Ensure the new assignment was created
-    assert new_assignment.pk == old_assignment.pk
     assert new_assignment.values.count() == 2
     assert list(
-        new_assignment.variantvalueassignment.values_list("value_id", "product_id")
+        new_assignment.productvalueassignment.values_list("value_id", "product_id")
     ) == [(values[0].pk, product.id), (values[1].pk, product.id)]
