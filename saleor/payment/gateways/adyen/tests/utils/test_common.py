@@ -5,6 +5,7 @@ from unittest import mock
 import pytest
 from prices import Money, TaxedMoney
 
+from saleor.checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from saleor.core.prices import quantize_price
 from saleor.payment import PaymentError
 from saleor.payment.gateways.adyen.utils.common import (
@@ -18,6 +19,7 @@ from saleor.payment.gateways.adyen.utils.common import (
 )
 from saleor.payment.interface import PaymentMethodInfo
 from saleor.payment.utils import price_from_minor_unit, price_to_minor_unit
+from saleor.plugins.manager import get_plugins_manager
 
 from ...utils.common import prepare_address_request_data
 
@@ -709,10 +711,12 @@ def test_request_data_for_gateway_config(checkout_with_item, address):
     # given
     checkout_with_item.billing_address = address
     merchant_account = "test_account"
-
+    manager = get_plugins_manager()
+    lines_info, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines_info, manager)
     # when
     response_config = request_data_for_gateway_config(
-        checkout_with_item, merchant_account
+        checkout_info, lines_info, merchant_account
     )
 
     # then
@@ -727,9 +731,14 @@ def test_request_data_for_gateway_config(checkout_with_item, address):
 def test_request_data_for_gateway_config_no_country(checkout, address, settings):
     # given
     merchant_account = "test_account"
+    manager = get_plugins_manager()
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines_info, manager)
 
     # when
-    response_config = request_data_for_gateway_config(checkout, merchant_account)
+    response_config = request_data_for_gateway_config(
+        checkout_info, lines_info, merchant_account
+    )
 
     # then
     assert response_config == {
