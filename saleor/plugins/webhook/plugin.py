@@ -114,7 +114,7 @@ if TYPE_CHECKING:
     from ...channel.models import Channel
     from ...core.utils.translations import Translation
     from ...csv.models import ExportFile
-    from ...discount.models import Promotion, Voucher
+    from ...discount.models import Promotion, PromotionRule, Voucher
     from ...giftcard.models import GiftCard
     from ...invoice.models import Invoice
     from ...menu.models import Menu, MenuItem
@@ -926,6 +926,54 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         self._trigger_promotion_event(WebhookEventAsyncType.PROMOTION_ENDED, promotion)
+
+    def _trigger_promotion_rule_event(
+        self, event_type: str, promotion_rule: "PromotionRule"
+    ):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = self._serialize_payload(
+                {
+                    "id": graphene.Node.to_global_id(
+                        "PromotionRule", promotion_rule.id
+                    ),
+                }
+            )
+            trigger_webhooks_async(
+                payload, event_type, webhooks, promotion_rule, self.requestor
+            )
+
+    def promotion_rule_created(
+        self,
+        promotion_rule: "PromotionRule",
+        previous_value: Any,
+    ):
+        if not self.active:
+            return previous_value
+        self._trigger_promotion_rule_event(
+            WebhookEventAsyncType.PROMOTION_RULE_CREATED, promotion_rule
+        )
+
+    def promotion_rule_updated(
+        self,
+        promotion_rule: "PromotionRule",
+        previous_value: Any,
+    ):
+        if not self.active:
+            return previous_value
+        self._trigger_promotion_rule_event(
+            WebhookEventAsyncType.PROMOTION_RULE_UPDATED, promotion_rule
+        )
+
+    def promotion_rule_deleted(
+        self,
+        promotion_rule: "PromotionRule",
+        previous_value: Any,
+    ):
+        if not self.active:
+            return previous_value
+        self._trigger_promotion_rule_event(
+            WebhookEventAsyncType.PROMOTION_RULE_DELETED, promotion_rule
+        )
 
     def invoice_request(
         self,

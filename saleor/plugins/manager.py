@@ -61,7 +61,7 @@ if TYPE_CHECKING:
     from ..core.middleware import Requestor
     from ..core.utils.translations import Translation
     from ..csv.models import ExportFile
-    from ..discount.models import Promotion, Voucher
+    from ..discount.models import Promotion, PromotionRule, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
@@ -793,6 +793,24 @@ class PluginsManager(PaymentInterface):
     def promotion_ended(self, promotion: "Promotion"):
         default_value = None
         return self.__run_method_on_plugins("promotion_ended", default_value, promotion)
+
+    def promotion_rule_created(self, promotion_rule: "PromotionRule"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_rule_created", default_value, promotion_rule
+        )
+
+    def promotion_rule_updated(self, promotion_rule: "PromotionRule"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_rule_updated", default_value, promotion_rule
+        )
+
+    def promotion_rule_deleted(self, promotion_rule: "PromotionRule"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_rule_deleted", default_value, promotion_rule
+        )
 
     def invoice_request(
         self, order: "Order", invoice: "Invoice", number: Optional[str]

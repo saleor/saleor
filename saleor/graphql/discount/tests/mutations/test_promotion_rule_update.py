@@ -44,11 +44,13 @@ PROMOTION_RULE_UPDATE_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.promotion_rule_updated")
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
 def test_promotion_rule_update_by_staff_user(
     update_products_discounted_prices_for_promotion_task_mock,
+    promotion_rule_updated_mock,
     staff_api_client,
     permission_group_manage_discounts,
     channel_USD,
@@ -132,6 +134,7 @@ def test_promotion_rule_update_by_staff_user(
     update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
     args, _kwargs = update_products_discounted_prices_for_promotion_task_mock.call_args
     assert set(args[0]) == {product_list[1].id, product_list[2].id}
+    promotion_rule_updated_mock.assert_called_once_with(rule)
 
 
 @patch(

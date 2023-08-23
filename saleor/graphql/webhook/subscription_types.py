@@ -1213,6 +1213,54 @@ class PromotionEnded(SubscriptionObjectType, PromotionBase):
         interfaces = (Event,)
 
 
+class PromotionRuleBase(AbstractType):
+    promotion_rule = graphene.Field(
+        "saleor.graphql.discount.types.PromotionRule",
+        description="The promotion rule the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_promotion_rule(root, _info: ResolveInfo):
+        _, promotion_rule = root
+        return promotion_rule
+
+
+class PromotionRuleCreated(SubscriptionObjectType, PromotionRuleBase):
+    class Meta:
+        root_type = "PromotionRule"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when new promotion rule is created."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+
+
+class PromotionRuleUpdated(SubscriptionObjectType, PromotionRuleBase):
+    class Meta:
+        root_type = "PromotionRule"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when new promotion rule is updated."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+
+
+class PromotionRuleDeleted(SubscriptionObjectType, PromotionRuleBase):
+    class Meta:
+        root_type = "PromotionRule"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when new promotion rule is deleted."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+
+
 class InvoiceBase(AbstractType):
     invoice = graphene.Field(
         "saleor.graphql.invoice.types.Invoice",
@@ -2558,6 +2606,9 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PROMOTION_DELETED: PromotionDeleted,
     WebhookEventAsyncType.PROMOTION_STARTED: PromotionStarted,
     WebhookEventAsyncType.PROMOTION_ENDED: PromotionEnded,
+    WebhookEventAsyncType.PROMOTION_RULE_CREATED: PromotionRuleCreated,
+    WebhookEventAsyncType.PROMOTION_RULE_UPDATED: PromotionRuleUpdated,
+    WebhookEventAsyncType.PROMOTION_RULE_DELETED: PromotionRuleDeleted,
     WebhookEventAsyncType.INVOICE_REQUESTED: InvoiceRequested,
     WebhookEventAsyncType.INVOICE_DELETED: InvoiceDeleted,
     WebhookEventAsyncType.INVOICE_SENT: InvoiceSent,

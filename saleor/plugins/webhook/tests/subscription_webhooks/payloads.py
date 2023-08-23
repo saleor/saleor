@@ -381,6 +381,24 @@ def generate_promotion_payload(promotion):
     }
 
 
+def generate_promotion_rule_payload(promotion_rule):
+    return {
+        "promotionRule": {
+            "id": graphene.Node.to_global_id("PromotionRule", promotion_rule.pk),
+            "name": promotion_rule.name,
+            "rewardValue": float(promotion_rule.reward_value),
+            "rewardValueType": promotion_rule.reward_value_type.upper(),
+            "cataloguePredicate": promotion_rule.catalogue_predicate,
+            "promotion": {
+                "id": graphene.Node.to_global_id(
+                    "Promotion", promotion_rule.promotion.pk
+                ),
+                "name": promotion_rule.promotion.name,
+            },
+        }
+    }
+
+
 def generate_voucher_payload(voucher, voucher_global_id):
     return json.dumps(
         {
