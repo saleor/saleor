@@ -196,6 +196,33 @@ def test_checkout_available_payment_gateways(
     ]
 
 
+@mock.patch("saleor.plugins.manager.PluginsManager.list_payment_gateways")
+def test_checkout_available_payment_gateways_valid_info_sent(
+    mocked_list_gateways,
+    api_client,
+    checkout_with_item,
+    checkout_info,
+    checkout_lines_info,
+):
+    # given
+    checkout = checkout_with_item
+    channel_slug = checkout.channel.slug
+    currency = checkout.currency
+    query = GET_CHECKOUT_PAYMENTS_QUERY
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+
+    # when
+    api_client.post_graphql(query, variables)
+
+    # then
+    mocked_list_gateways.assert_called_with(
+        currency=currency,
+        checkout_info=checkout_info,
+        checkout_lines=checkout_lines_info,
+        channel_slug=channel_slug,
+    )
+
+
 def test_checkout_available_payment_gateways_currency_specified_USD(
     api_client,
     checkout_with_item,

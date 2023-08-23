@@ -677,16 +677,16 @@ class Checkout(ModelObjectType[models.Checkout]):
         root: models.Checkout, info: ResolveInfo, manager
     ):
         checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
-        checkout_lines_info = CheckoutLinesByCheckoutTokenLoader(info.context).load(
+        checkout_lines_info = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
             root.token
         )
 
         def get_available_payment_gateways(results):
-            (checkout_info, checkout_lines_info) = results
+            (checkout, lines_info) = results
             return manager.list_payment_gateways(
                 currency=root.currency,
-                checkout_info=checkout_info,
-                checkout_lines=checkout_lines_info,
+                checkout_info=checkout,
+                checkout_lines=lines_info,
                 channel_slug=root.channel.slug,
             )
 
