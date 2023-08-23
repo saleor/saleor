@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 from decimal import Decimal
+from functools import partial
 from unittest import mock
 from unittest.mock import ANY, MagicMock
 from urllib.parse import urlencode
@@ -139,7 +140,9 @@ def test_order_created(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -165,7 +168,9 @@ def test_order_confirmed(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -191,7 +196,9 @@ def test_draft_order_created(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -217,7 +224,9 @@ def test_draft_order_deleted(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -243,7 +252,9 @@ def test_draft_order_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -269,7 +280,9 @@ def test_customer_created(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -295,7 +308,9 @@ def test_customer_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -320,7 +335,9 @@ def test_customer_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -345,7 +362,9 @@ def test_order_fully_paid(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -375,7 +394,9 @@ def test_order_paid(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -405,7 +426,9 @@ def test_order_refunded(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -435,7 +458,9 @@ def test_order_fully_refunded(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -461,7 +486,9 @@ def test_collection_created(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -487,7 +514,9 @@ def test_collection_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -513,7 +542,9 @@ def test_collection_deleted(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -539,7 +570,9 @@ def test_collection_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -565,7 +598,9 @@ def test_product_created(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -591,7 +626,9 @@ def test_product_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -633,7 +670,9 @@ def test_product_deleted(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -659,7 +698,9 @@ def test_product_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -685,7 +726,9 @@ def test_product_variant_created(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -711,7 +754,9 @@ def test_product_variant_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -737,7 +782,9 @@ def test_product_variant_deleted(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -763,7 +810,9 @@ def test_product_variant_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -790,7 +839,9 @@ def test_product_variant_out_of_stock(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -817,7 +868,9 @@ def test_product_variant_back_in_stock(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -843,7 +896,9 @@ def test_order_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -869,7 +924,9 @@ def test_order_cancelled(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -895,7 +952,9 @@ def test_order_expired(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -921,7 +980,9 @@ def test_order_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -947,7 +1008,9 @@ def test_checkout_created(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 def test_checkout_payload_includes_sales(checkout_with_item, sale, discount_info):
@@ -1007,7 +1070,9 @@ def test_checkout_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("2014-06-28 10:50")
@@ -1037,7 +1102,9 @@ def test_checkout_fully_paid(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1063,7 +1130,9 @@ def test_checkout_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1085,7 +1154,9 @@ def test_page_created(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1107,7 +1178,9 @@ def test_page_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1132,7 +1205,9 @@ def test_page_deleted(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1159,7 +1234,9 @@ def test_invoice_request(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1186,7 +1263,9 @@ def test_invoice_delete(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1213,7 +1292,9 @@ def test_invoice_sent(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -1239,7 +1320,9 @@ def test_fulfillment_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1265,7 +1348,9 @@ def test_gift_card_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1291,7 +1376,9 @@ def test_voucher_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1318,7 +1405,9 @@ def test_shop_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1344,7 +1433,9 @@ def test_shipping_zone_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1370,7 +1461,9 @@ def test_warehouse_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1396,7 +1489,9 @@ def test_transaction_item_metadata_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -1509,7 +1604,9 @@ def test_sale_created(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1547,7 +1644,9 @@ def test_sale_updated(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1571,7 +1670,9 @@ def test_sale_deleted(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @freeze_time("2020-10-10 10:10")
@@ -1600,7 +1701,9 @@ def test_sale_toggle(
         None,
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 @mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_async.delay")

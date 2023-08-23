@@ -1,4 +1,5 @@
 import json
+from functools import partial
 from unittest.mock import patch
 
 import graphene
@@ -873,6 +874,9 @@ def test_product_create_translation(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 def test_product_create_translation_for_description(
@@ -1026,6 +1030,9 @@ def test_product_update_translation(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 PRODUCT_VARIANT_TRANSLATE_MUTATION = """
@@ -1087,6 +1094,9 @@ def test_product_variant_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1233,6 +1243,9 @@ def test_collection_create_translation(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 def test_collection_create_translation_by_translatable_content_id(
@@ -1329,6 +1342,9 @@ def test_collection_update_translation(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 def test_collection_translation_mutation_validates_inputs_length(
@@ -1403,6 +1419,9 @@ def test_category_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1498,6 +1517,9 @@ def test_category_update_translation(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 VOUCHER_TRANSLATE_MUTATION = """
@@ -1552,6 +1574,9 @@ def test_voucher_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1609,6 +1634,9 @@ def test_voucher_update_translation(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 SALE_TRANSLATION_MUTATION = """
@@ -1663,6 +1691,9 @@ def test_sale_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1721,6 +1752,9 @@ def test_sale_update_translation(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 PAGE_TRANSLATE_MUTATION = """
@@ -1776,6 +1810,9 @@ def test_page_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1867,6 +1904,9 @@ def test_page_update_translation(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 ATTRIBUTE_TRANSLATE_MUTATION = """
@@ -1924,6 +1964,9 @@ def test_attribute_create_translation(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 def test_attribute_create_translation_by_translatable_content_id(
@@ -1980,6 +2023,9 @@ def test_attribute_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -2044,6 +2090,9 @@ def test_attribute_value_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -2170,6 +2219,9 @@ def test_attribute_value_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -2623,6 +2675,9 @@ def test_shipping_method_create_translation(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 def test_shipping_method_create_translation_by_translatable_content_id(
@@ -2706,6 +2761,9 @@ def test_shipping_method_update_translation(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 MENU_ITEM_TRANSLATE = """
@@ -2765,6 +2823,9 @@ def test_menu_item_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -2832,6 +2893,9 @@ def test_shop_create_translation(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 SHOP_SETTINGS_TRANSLATE_MUTATION = """
@@ -2892,6 +2956,9 @@ def test_shop_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 

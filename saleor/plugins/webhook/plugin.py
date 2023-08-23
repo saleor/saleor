@@ -170,8 +170,8 @@ class WebhookPlugin(BasePlugin):
 
     def _trigger_metadata_updated_event(self, event_type, instance):
         if webhooks := get_webhooks_for_event(event_type):
-            metadata_payload_generator = generate_metadata_updated_payload(
-                instance, self.requestor
+            metadata_payload_generator = partial(
+                generate_metadata_updated_payload, instance, self.requestor
             )
             trigger_webhooks_async(
                 None,
@@ -1059,12 +1059,19 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_BULK_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            # TODO: FIXME
-            order_data = [
-                generate_order_payload(order, self.requestor) for order in orders
-            ]
+
+            def generate_bulk_order_payload():
+                return [
+                    generate_order_payload(order, self.requestor) for order in orders
+                ]
+
             trigger_webhooks_async(
-                order_data, event_type, webhooks, orders, self.requestor
+                None,
+                event_type,
+                webhooks,
+                orders,
+                self.requestor,
+                legacy_data_generator=generate_bulk_order_payload,
             )
 
     def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
@@ -1507,8 +1514,8 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
         if webhooks := get_webhooks_for_event(event_type):
-            product_variant_data_generator = (
-                generate_product_variant_with_stock_payload([stock])
+            product_variant_data_generator = partial(
+                generate_product_variant_with_stock_payload, [stock]
             )
             trigger_webhooks_async(
                 None,
@@ -1524,8 +1531,8 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
         if webhooks := get_webhooks_for_event(event_type):
-            product_variant_data_generator = (
-                generate_product_variant_with_stock_payload([stock], self.requestor)
+            product_variant_data_generator = partial(
+                generate_product_variant_with_stock_payload, [stock], self.requestor
             )
             trigger_webhooks_async(
                 None,
@@ -1558,8 +1565,8 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.CHECKOUT_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            checkout_data_generator = generate_checkout_payload(
-                checkout, self.requestor
+            checkout_data_generator = partial(
+                generate_checkout_payload, checkout, self.requestor
             )
             trigger_webhooks_async(
                 None,
@@ -1575,8 +1582,8 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
         if webhooks := get_webhooks_for_event(event_type):
-            checkout_data_generator = generate_checkout_payload(
-                checkout, self.requestor
+            checkout_data_generator = partial(
+                generate_checkout_payload, checkout, self.requestor
             )
             trigger_webhooks_async(
                 None,
@@ -1592,8 +1599,8 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
         if webhooks := get_webhooks_for_event(event_type):
-            checkout_data_generator = generate_checkout_payload(
-                checkout, self.requestor
+            checkout_data_generator = partial(
+                generate_checkout_payload, checkout, self.requestor
             )
             trigger_webhooks_async(
                 None,

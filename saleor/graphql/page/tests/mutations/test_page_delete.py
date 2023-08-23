@@ -1,3 +1,4 @@
+from functools import partial
 from unittest import mock
 
 import graphene
@@ -71,7 +72,9 @@ def test_page_delete_trigger_webhook(
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
     )
-    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
 
 
 def test_page_delete_with_file_attribute(
