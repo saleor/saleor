@@ -1021,7 +1021,7 @@ def test_channel_update_order_mark_as_paid_strategy(
     )
 
 
-def test_channel_update_default_transaction_flow_strategy(
+def test_channel_update_default_transaction_flow_strategy_via_order_settings(
     permission_manage_orders,
     staff_api_client,
     channel_USD,
@@ -1347,3 +1347,109 @@ def test_channel_update_with_order_and_checkout_settings(
     assert channel_USD.use_legacy_error_flow_for_checkout is False
     assert channel_data["orderSettings"]["automaticallyConfirmAllNewOrders"] is False
     assert channel_USD.automatically_confirm_all_new_orders is False
+
+
+CHANNEL_UPDATE_MUTATION_WITH_PAYMENT_SETTINGS = """
+    mutation UpdateChannel($id: ID!,$input: ChannelUpdateInput!){
+        channelUpdate(id: $id, input: $input){
+            channel{
+                id
+                name
+                slug
+                currencyCode
+                paymentSettings {
+                    defaultTransactionFlowStrategy
+                }
+            }
+            errors{
+                field
+                code
+                message
+                shippingZones
+                warehouses
+            }
+        }
+    }
+"""
+
+
+def test_channel_update_default_transaction_flow_strategy(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "paymentSettings": {
+                "defaultTransactionFlowStrategy": (
+                    TransactionFlowStrategyEnum.AUTHORIZATION.name
+                ),
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_PAYMENT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    assert (
+        channel_data["paymentSettings"]["defaultTransactionFlowStrategy"]
+        == TransactionFlowStrategyEnum.AUTHORIZATION.name
+    )
+    channel_USD.refresh_from_db()
+    assert (
+        channel_USD.default_transaction_flow_strategy
+        == TransactionFlowStrategyEnum.AUTHORIZATION.value
+    )
+
+
+def test_channel_update_default_transaction_flow_strategy_with_payment_permission(
+    permission_manage_payments,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "paymentSettings": {
+                "defaultTransactionFlowStrategy": (
+                    TransactionFlowStrategyEnum.AUTHORIZATION.name
+                ),
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_PAYMENT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_payments,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    assert (
+        channel_data["paymentSettings"]["defaultTransactionFlowStrategy"]
+        == TransactionFlowStrategyEnum.AUTHORIZATION.name
+    )
+    channel_USD.refresh_from_db()
+    assert (
+        channel_USD.default_transaction_flow_strategy
+        == TransactionFlowStrategyEnum.AUTHORIZATION.value
+    )

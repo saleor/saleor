@@ -9,6 +9,7 @@ from ....permission.enums import (
     ChannelPermissions,
     CheckoutPermissions,
     OrderPermissions,
+    PaymentPermissions,
 )
 from ....shipping.tasks import (
     drop_invalid_shipping_methods_relations_for_given_channels,
@@ -26,7 +27,11 @@ from ...utils.validators import check_for_duplicates
 from ..types import Channel
 from ..utils import delete_invalid_warehouse_to_shipping_zone_relations
 from .channel_create import ChannelInput
-from .utils import clean_input_checkout_settings, clean_input_order_settings
+from .utils import (
+    clean_input_checkout_settings,
+    clean_input_order_settings,
+    clean_input_payment_settings,
+)
 
 
 class ChannelUpdateInput(ChannelInput):
@@ -67,10 +72,13 @@ class ChannelUpdate(ModelMutation):
             "Requires one of the following permissions: MANAGE_CHANNELS.\n"
             "Requires one of the following permissions "
             "when updating only `orderSettings` field: "
-            "MANAGE_CHANNELS, MANAGE_ORDERS."
+            "`MANAGE_CHANNELS`, `MANAGE_ORDERS`.\n"
             "Requires one of the following permissions "
             "when updating only `checkoutSettings` field: "
-            "MANAGE_CHANNELS, MANAGE_CHECKOUTS."
+            "`MANAGE_CHANNELS`, `MANAGE_CHECKOUTS`.\n"
+            "Requires one of the following permissions "
+            "when updating only `paymentSettings` field: "
+            "`MANAGE_CHANNELS`, `HANDLE_PAYMENTS`."
         )
         auto_permission_message = False
         model = models.Channel
@@ -122,35 +130,42 @@ class ChannelUpdate(ModelMutation):
         if checkout_settings := cleaned_input.get("checkout_settings"):
             clean_input_checkout_settings(checkout_settings, cleaned_input)
 
+        if payment_settings := cleaned_input.get("payment_settings"):
+            clean_input_payment_settings(payment_settings, cleaned_input)
+
         return cleaned_input
 
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):
         permissions = [ChannelPermissions.MANAGE_CHANNELS]
-        all_perm_required = False
-        # Permission MANAGE_ORDERS or MANAGE_CHANNELS is required to update
-        # orderSettings. MANAGE_ORDERS can be used only when
-        # channelUpdate mutation will get OrderSettingsInput and
-        # not any other fields. Otherwise needed permission is MANAGE_CHANNELS.
+        has_permission = super().check_permissions(
+            context, permissions, require_all_permissions=False, **data
+        )
+        if has_permission:
+            return has_permission
+
+        # Validate if user/app has enough permissions to update the specific settings.
         input = data["data"]["input"]
 
-        if ["order_settings"] == list(input.keys()):
-            permissions.append(OrderPermissions.MANAGE_ORDERS)
+        settings_per_permission_map = {
+            "order_settings": OrderPermissions.MANAGE_ORDERS,
+            "checkout_settings": CheckoutPermissions.MANAGE_CHECKOUTS,
+            "payment_settings": PaymentPermissions.HANDLE_PAYMENTS,
+        }
 
-        # Permission MANAGE_CHECKOUTS or MANAGE_CHANNELS is required to update
-        # checkoutSettings.
-        if ["checkout_settings"] == list(input.keys()):
-            permissions.append(CheckoutPermissions.MANAGE_CHECKOUTS)
+        if set(input.keys()).difference(settings_per_permission_map.keys()):
+            # user/app doesn't have MANAGE_CHANNELS and input contains not only
+            # settings fields.
+            return False
 
-        if set(["order_settings", "checkout_settings"]) == set(input.keys()):
-            permissions = [
-                OrderPermissions.MANAGE_ORDERS,
-                CheckoutPermissions.MANAGE_CHECKOUTS,
-            ]
-            all_perm_required = True
+        permissions = []
+        for key in input.keys():
+            permissions.append(settings_per_permission_map[key])
 
+        if not permissions:
+            return False
         return super().check_permissions(
-            context, permissions, require_all_permissions=all_perm_required, **data
+            context, permissions, require_all_permissions=True, **data
         )
 
     @classmethod

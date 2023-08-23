@@ -241,10 +241,39 @@ ProductManager = models.Manager.from_queryset(ProductsQueryset)
 
 class ProductVariantQueryset(models.QuerySet):
     def annotate_quantities(self):
+        """Annotate the queryset with quantity-related fields.
+
+        This method annotates the queryset with the following fields:
+        - `quantity`: The total quantity in stock for each product variant.
+        - `quantity_allocated`: The total quantity allocated from the stock
+          for each product variant.
+        - `available_quantity`: The available quantity for each product variant,
+          which is calculated as `quantity - quantity_allocated`.
+        """
+
+        from saleor.warehouse.models import Allocation
+
+        allocations_subquery = (
+            Allocation.objects.filter(stock__product_variant=OuterRef("pk"))
+            .values("stock__product_variant")
+            .annotate(total_allocated=Coalesce(Sum("quantity_allocated"), 0))
+            .values("total_allocated")
+        )
+
         return self.annotate(
-            quantity=Coalesce(Sum("stocks__quantity"), 0),
+            quantity=Coalesce(Sum("stocks__quantity"), Value(0)),
             quantity_allocated=Coalesce(
-                Sum("stocks__allocations__quantity_allocated"), 0
+                Subquery(allocations_subquery, output_field=models.IntegerField()),
+                Value(0),
+            ),
+            available_quantity=Case(
+                When(quantity_allocated=None, then=F("quantity")),
+                default=F("quantity")
+                - Coalesce(
+                    Subquery(allocations_subquery, output_field=models.IntegerField()),
+                    Value(0),
+                ),
+                output_field=models.IntegerField(),
             ),
         )
 

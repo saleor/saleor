@@ -5,14 +5,21 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.16.0 [Unreleased]
 
 ### Breaking changes
+- **Feature preview breaking change**:
+  - Deprecate `OrderSettingsInput.defaultTransactionFlowStrategy`. It will be removed
+in 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
+  - Deprecate `OrderSettings.defaultTransactionFlowStrategy`. It will be removed
+in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 
 ### GraphQL API
 - Add `customerIpAddress` to `transactionInitialize` and `transactionProcess` mutations - #13718 by @korycins
+- Add `PaymentSettings` to `Channel` - #13677 by @korycins
 
 ### Saleor Apps
 - Add `customerIpAddress` to `TRANSACTION_INITIALIZE_SESSION` and `TRANSACTION_PROCESS_SESSION` webhooks  #13718 by @korycins
 
 ### Other changes
+- Fix error in variant available stock calculation - 13593 by @awaisdar001
 
 # 3.15.0 [Unreleased]
 

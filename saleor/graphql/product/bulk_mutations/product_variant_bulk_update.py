@@ -418,7 +418,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         variants_global_id_to_instance_map,
         index_error_map,
     ):
-        cleaned_inputs_map = {}
+        cleaned_inputs_map: dict = {}
         product_type = product.product_type
 
         # fetch existing data required to validate inputs
@@ -473,11 +473,12 @@ class ProductVariantBulkUpdate(BaseMutation):
                 index_error_map[index].append(
                     ProductVariantBulkError(
                         field="id",
-                        pth="id",
+                        path="id",
                         message=message,
                         code=ProductErrorCode.INVALID,
                     )
                 )
+                cleaned_inputs_map[index] = None
                 continue
 
             cleaned_input = cls.clean_variant(
