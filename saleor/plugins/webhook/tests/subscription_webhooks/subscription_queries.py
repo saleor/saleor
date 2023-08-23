@@ -459,6 +459,21 @@ GIFT_CARD_METADATA_UPDATED = (
 """
 )
 
+GIFT_CARD_EXPORT_COMPLETED = (
+    fragments.GIFT_CARD_EXPORT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on GiftCardExportCompleted{
+          export{
+            ...GiftCardExportDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 VOUCHER_CREATED = (
     fragments.VOUCHER_DETAILS
     + """

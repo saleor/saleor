@@ -293,6 +293,7 @@ def test_export_products_by_app(
     save_file_mock.assert_called_once_with(app_export_file, mock_file, ANY)
 
 
+@patch("saleor.plugins.manager.PluginsManager.gift_card_export_completed")
 @patch("saleor.csv.utils.export.create_file_with_headers")
 @patch("saleor.csv.utils.export.export_gift_cards_in_batches")
 @patch("saleor.csv.utils.export.send_export_download_link_notification")
@@ -302,6 +303,7 @@ def test_export_gift_cards(
     send_email_mock,
     export_in_batches_mock,
     create_file_with_headers_mock,
+    mocked_gift_card_export_completed,
     user_export_file,
     gift_card,
     gift_card_expiry_date,
@@ -333,6 +335,8 @@ def test_export_gift_cards(
     send_email_mock.assert_called_once_with(user_export_file, "gift cards")
 
     save_file_mock.assert_called_once_with(user_export_file, mock_file, ANY)
+
+    mocked_gift_card_export_completed.assert_called_once_with(user_export_file)
 
 
 @patch("saleor.csv.utils.export.create_file_with_headers")

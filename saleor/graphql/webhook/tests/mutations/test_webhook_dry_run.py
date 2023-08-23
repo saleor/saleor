@@ -224,6 +224,7 @@ def async_subscription_webhooks_with_root_objects(
     subscription_gift_card_sent_webhook,
     subscription_gift_card_status_changed_webhook,
     subscription_gift_card_metadata_updated_webhook,
+    subscription_gift_card_export_completed_webhook,
     subscription_menu_created_webhook,
     subscription_menu_updated_webhook,
     subscription_menu_deleted_webhook,
@@ -336,6 +337,7 @@ def async_subscription_webhooks_with_root_objects(
     translated_attribute,
     transaction_item_created_by_app,
     product_media_image,
+    user_export_file,
 ):
     events = WebhookEventAsyncType
     attr = numeric_attribute
@@ -391,6 +393,10 @@ def async_subscription_webhooks_with_root_objects(
         events.GIFT_CARD_METADATA_UPDATED: [
             subscription_gift_card_metadata_updated_webhook,
             gift_card,
+        ],
+        events.GIFT_CARD_EXPORT_COMPLETED: [
+            subscription_gift_card_export_completed_webhook,
+            user_export_file,
         ],
         events.MENU_CREATED: [subscription_menu_created_webhook, menu],
         events.MENU_UPDATED: [subscription_menu_updated_webhook, menu],
