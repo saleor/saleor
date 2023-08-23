@@ -329,7 +329,7 @@ def async_subscription_webhooks_with_root_objects(
     product,
     fulfilled_order,
     promotion,
-    sale,
+    promotion_converted_from_sale,
     fulfillment,
     stock,
     customer_user,
@@ -472,10 +472,22 @@ def async_subscription_webhooks_with_root_objects(
         events.PROMOTION_DELETED: [subscription_promotion_deleted_webhook, promotion],
         events.PROMOTION_STARTED: [subscription_promotion_started_webhook, promotion],
         events.PROMOTION_ENDED: [subscription_promotion_ended_webhook, promotion],
-        events.SALE_CREATED: [subscription_sale_created_webhook, sale],
-        events.SALE_UPDATED: [subscription_sale_updated_webhook, sale],
-        events.SALE_DELETED: [subscription_sale_deleted_webhook, sale],
-        events.SALE_TOGGLE: [subscription_sale_toggle_webhook, sale],
+        events.SALE_CREATED: [
+            subscription_sale_created_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_UPDATED: [
+            subscription_sale_updated_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_DELETED: [
+            subscription_sale_deleted_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_TOGGLE: [
+            subscription_sale_toggle_webhook,
+            promotion_converted_from_sale,
+        ],
         events.INVOICE_REQUESTED: [subscription_invoice_requested_webhook, invoice],
         events.INVOICE_DELETED: [subscription_invoice_deleted_webhook, invoice],
         events.INVOICE_SENT: [subscription_invoice_sent_webhook, invoice],
@@ -605,8 +617,7 @@ def async_subscription_webhooks_with_root_objects(
     }
 
 
-@pytest.mark.skip
-def test_webhook_dry_run_root_type(
+def test_webhook_dry_run_root_type2(
     superuser_api_client,
     async_subscription_webhooks_with_root_objects,
 ):
@@ -622,7 +633,17 @@ def test_webhook_dry_run_root_type(
 
         webhook = async_subscription_webhooks_with_root_objects[event_name][0]
         object = async_subscription_webhooks_with_root_objects[event_name][1]
-        object_id = graphene.Node.to_global_id(object.__class__.__name__, object.pk)
+        object_type = object.__class__.__name__
+        events = WebhookEventAsyncType
+        if event_name in [
+            events.SALE_CREATED,
+            events.SALE_UPDATED,
+            events.SALE_DELETED,
+            events.SALE_TOGGLE,
+        ]:
+            object_id = graphene.Node.to_global_id("Sale", object.old_sale_id)
+        else:
+            object_id = graphene.Node.to_global_id(object_type, object.pk)
 
         variables = {"objectId": object_id, "query": webhook.subscription_query}
 
