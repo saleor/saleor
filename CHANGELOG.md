@@ -210,7 +210,6 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
 - Add Index for 'Created' field of the Order Model - #13682 by @ritanjandawn
 
-
 # 3.14.0
 
 ### Breaking changes
