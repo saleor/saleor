@@ -149,6 +149,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Add `CheckoutLine.problems` field
   - Add `CheckoutSettingsInput` to `ChannelCreateInput` & `ChannelUpdateInput`
   - Add `checkoutSettings` field to `Channel`
+- Extended `AttributeValueTranslation.name` to 255 characters - #13776 by @aniav
 
 ### Saleor Apps
 
@@ -208,6 +209,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add missing descriptions to payment module - #13546 by @devilsautumn
 - Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
 - Add Index for 'Created' field of the Order Model - #13682 by @ritanjandawn
+
 
 # 3.14.0
 
