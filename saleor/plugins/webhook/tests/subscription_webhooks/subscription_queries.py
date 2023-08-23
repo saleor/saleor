@@ -1341,6 +1341,7 @@ FULFILLMENT_CREATED = (
     subscription{
       event{
         ...on FulfillmentCreated{
+          notifyCustomer
           fulfillment{
             ...FulfillmentDetails
           }
