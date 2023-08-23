@@ -5,6 +5,8 @@ from urllib.parse import urlsplit
 
 import requests
 
+from saleor.core.http_client import HTTPClient
+
 from .... import PaymentError
 
 # https://developer.apple.com/documentation/apple_pay_on_the_web/
@@ -101,7 +103,8 @@ def make_request_to_initialize_apple_pay(
     with NamedTemporaryFile() as f:
         f.write(certificate.encode())
         f.flush()  # ensure all data written
-        return requests.post(
+        return HTTPClient.send_request(
+            "POST",
             validation_url,
             json=request_data,
             cert=f.name,

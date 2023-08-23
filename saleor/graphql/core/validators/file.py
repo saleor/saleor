@@ -1,10 +1,10 @@
 import mimetypes
 import os
 
-import requests
 from django.core.exceptions import ValidationError
 from PIL import Image, UnidentifiedImageError
 
+from ....core.http_client import HTTPClient
 from ....thumbnail import MIME_TYPE_TO_PIL_IDENTIFIER
 from ..utils import add_hash_to_file_name
 
@@ -40,7 +40,7 @@ def validate_image_url(url: str, field_name: str, error_code: str) -> None:
 
     Instead of the whole file, only the headers are fetched.
     """
-    head = requests.head(url, timeout=30, allow_redirects=False)
+    head = HTTPClient.send_request("HEAD", url, timeout=30, allow_redirects=False)
     header = head.headers
     content_type = header.get("content-type")
     if content_type is None or not is_supported_image_mimetype(content_type):

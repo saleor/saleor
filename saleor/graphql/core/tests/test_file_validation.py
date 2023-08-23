@@ -5,6 +5,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
+from requests_hardened import HTTPSession
 
 from ....product.error_codes import ProductErrorCode
 from ..validators.file import (
@@ -64,7 +65,8 @@ def test_validate_image_url_valid_image_response(monkeypatch):
     valid_image_response_mock = Mock()
     valid_image_response_mock.headers = {"content-type": "image/jpeg"}
     monkeypatch.setattr(
-        "saleor.graphql.core.validators.file.requests.head",
+        HTTPSession,
+        "request",
         Mock(return_value=valid_image_response_mock),
     )
     field = "image"
@@ -85,7 +87,8 @@ def test_validate_image_url_invalid_mimetype_response(monkeypatch):
     invalid_response_mock = Mock()
     invalid_response_mock.headers = {"content-type": "application/json"}
     monkeypatch.setattr(
-        "saleor.graphql.core.validators.file.requests.head",
+        HTTPSession,
+        "request",
         Mock(return_value=invalid_response_mock),
     )
     field = "image"
@@ -108,7 +111,8 @@ def test_validate_image_url_response_without_content_headers(monkeypatch):
     invalid_response_mock = Mock()
     invalid_response_mock.headers = {}
     monkeypatch.setattr(
-        "saleor.graphql.core.validators.file.requests.head",
+        HTTPSession,
+        "request",
         Mock(return_value=invalid_response_mock),
     )
     field = "image"

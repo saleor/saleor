@@ -1,7 +1,6 @@
 import json
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import requests
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import (
     constants,
@@ -10,6 +9,8 @@ from authorizenet.apicontrollers import (
 )
 from lxml import etree
 from lxml.objectify import ObjectifiedElement
+
+from saleor.core.http_client import HTTPClient
 
 from ... import TransactionKind
 from ...interface import (
@@ -38,7 +39,8 @@ def authenticate_test(
             "merchantAuthentication": {"name": name, "transactionKey": transaction_key}
         }
     }
-    response = requests.post(
+    response = HTTPClient.send_request(
+        "POST",
         url,
         json=data,
         headers={"content-type": "application/json"},

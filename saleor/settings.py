@@ -735,6 +735,13 @@ PLUGINS = BUILTIN_PLUGINS + EXTERNAL_PLUGINS
 WEBHOOK_TIMEOUT = 10
 WEBHOOK_SYNC_TIMEOUT = 20
 
+# Whether to allow connecting to localhost during external calls (such as
+# but not limited to webhooks).
+HTTP_IP_FILTER_ALLOW_LOCALHOST: bool = get_bool_from_env(
+    "HTTP_IP_FILTER_ALLOW_LOCALHOST", False
+)
+HTTP_IP_FILTER_ENABLED: bool = get_bool_from_env("HTTP_IP_FILTER_ENABLED", False)
+
 # Since we split checkout complete logic into two separate transactions, in order to
 # mimic stock lock, we apply short reservation for the stocks. The value represents
 # time of the reservation in seconds.

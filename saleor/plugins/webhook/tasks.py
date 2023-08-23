@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Ty
 from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
-import requests
 from botocore.exceptions import ClientError
 from celery import group
 from celery.exceptions import MaxRetriesExceededError, Retry
@@ -21,6 +20,7 @@ from requests.exceptions import RequestException
 from ...app.headers import AppHeaders, DeprecatedAppHeaders
 from ...celeryconf import app
 from ...core import EventDeliveryStatus
+from ...core.http_client import HTTPClient
 from ...core.models import EventDelivery, EventPayload
 from ...core.tracing import webhooks_opentracing_trace
 from ...core.utils import build_absolute_uri
@@ -406,7 +406,8 @@ def send_webhook_using_http(
         headers.update(custom_headers)
 
     try:
-        response = requests.post(
+        response = HTTPClient.send_request(
+            "POST",
             target_url,
             data=message,
             headers=headers,

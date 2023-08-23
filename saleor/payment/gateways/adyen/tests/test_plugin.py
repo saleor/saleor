@@ -6,6 +6,7 @@ import Adyen
 import pytest
 from django.core.exceptions import ValidationError
 from requests.exceptions import ConnectTimeout, RequestException, SSLError
+from requests_hardened import HTTPSession
 
 from .....plugins.models import PluginConfiguration
 from .... import PaymentError, TransactionKind
@@ -604,7 +605,7 @@ def test_capture_payment(
     assert response.transaction_id == "852610007697063J"  # ID returned by Adyen
 
 
-@mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_validate_plugin_configuration_incorrect_certificate(
     mocked_request, adyen_plugin
 ):
@@ -615,7 +616,7 @@ def test_validate_plugin_configuration_incorrect_certificate(
         plugin.validate_plugin_configuration(configuration)
 
 
-@mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_validate_plugin_configuration_correct_cert(mocked_request, adyen_plugin):
     plugin = adyen_plugin(apple_pay_cert="correct_cert")
     mocked_request.side_effect = RequestException()
