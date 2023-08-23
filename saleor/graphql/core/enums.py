@@ -300,6 +300,11 @@ StoredPaymentMethodRequestDeleteErrorCode = graphene.Enum.from_enum(
 )
 StoredPaymentMethodRequestDeleteErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
+PaymentGatewayInitializeTokenizationErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.PaymentGatewayInitializeTokenizationErrorCode
+)
+PaymentGatewayInitializeTokenizationErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
+
 PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )
