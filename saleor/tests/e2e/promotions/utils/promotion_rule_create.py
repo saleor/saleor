@@ -27,17 +27,14 @@ mutation promotionRuleCreate($input: PromotionRuleCreateInput!) {
 def create_promotion_rule(
     staff_api_client,
     promotion_id,
+    catalogue_predicate,
     reward_value_type="PERCENTAGE",
     reward_value=5,
     promotion_rule_name="Test rule",
     channel_id=None,
-    product_ids=None,
 ):
     if not channel_id:
         channel_id = []
-
-    if not product_ids:
-        product_ids = []
 
     variables = {
         "input": {
@@ -46,9 +43,7 @@ def create_promotion_rule(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "channels": channel_id,
-            "cataloguePredicate": {
-                "productPredicate": {"ids": product_ids},
-            },
+            "cataloguePredicate": catalogue_predicate,
         }
     }
 
