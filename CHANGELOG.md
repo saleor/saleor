@@ -21,6 +21,7 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
+- The CSV export will now use empty string for empty attribute values instead of a single whitespace value - by @aniav
 
 # 3.15.0 [Unreleased]
 

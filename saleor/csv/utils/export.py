@@ -221,7 +221,7 @@ def append_to_file(
     file_type: str,
     delimiter: str,
 ):
-    table = etl.fromdicts(export_data, header=headers, missing=" ")
+    table = etl.fromdicts(export_data, header=headers, missing="")
 
     if file_type == FileTypes.CSV:
         etl.io.csv.appendcsv(table, temporary_file.name, delimiter=delimiter)
