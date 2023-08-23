@@ -1,5 +1,4 @@
 import graphene
-import pytest
 
 from .....app.models import App
 from .....core.jwt import create_access_token_for_app
@@ -68,13 +67,12 @@ def test_delete_public_metadata_for_app(staff_api_client, permission_manage_apps
     )
 
 
-# TODO will be fixed in PR refactoring the mutation
-@pytest.mark.skip
 def test_add_public_metadata_for_sale(
-    staff_api_client, permission_manage_discounts, sale
+    staff_api_client, permission_manage_discounts, promotion_converted_from_sale
 ):
     # given
-    sale_id = graphene.Node.to_global_id("Sale", sale.pk)
+    promotion = promotion_converted_from_sale
+    sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -83,7 +81,9 @@ def test_add_public_metadata_for_sale(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], sale, sale_id
+        response["data"]["updateMetadata"]["item"],
+        promotion_converted_from_sale,
+        sale_id,
     )
 
 

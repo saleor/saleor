@@ -605,7 +605,6 @@ def async_subscription_webhooks_with_root_objects(
     }
 
 
-# TODO will be fixed in PR refactoring the mutation
 @pytest.mark.skip
 def test_webhook_dry_run_root_type(
     superuser_api_client,

@@ -52,6 +52,9 @@ class TranslatableItem(graphene.Union):
     @classmethod
     def resolve_type(cls, instance, info: ResolveInfo):
         instance_type = type(instance)
+        kind = info.variable_values.get("kind")
+        if kind == TranslatableKinds.SALE:
+            return translation_types.SaleTranslatableContent
         if instance_type in TYPES_TRANSLATIONS_MAP:
             return TYPES_TRANSLATIONS_MAP[instance_type]
 
@@ -155,4 +158,6 @@ class TranslationQueries(graphene.ObjectType):
             TranslatableKinds.PROMOTION.value: Promotion,  # type: ignore[attr-defined]
             TranslatableKinds.PROMOTION_RULE.value: PromotionRule,  # type: ignore[attr-defined] # noqa: E501
         }
+        if kind == TranslatableKinds.SALE.value:  # type: ignore[attr-defined]
+            return Promotion.objects.filter(old_sale_id=kind_id).first()
         return models[kind].objects.filter(pk=kind_id).first()
