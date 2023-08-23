@@ -40,6 +40,8 @@ from ..payment.interface import (
     PaymentData,
     PaymentGateway,
     PaymentGatewayData,
+    PaymentGatewayInitializeTokenizationRequestData,
+    PaymentGatewayInitializeTokenizationResponseData,
     PaymentMethodData,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
@@ -1554,6 +1556,21 @@ class PluginsManager(PaymentInterface):
             "stored_payment_method_request_delete",
             default_response,
             request_delete_data,
+        )
+        return response
+
+    def payment_gateway_initialize_tokenization(
+        self,
+        request_data: "PaymentGatewayInitializeTokenizationRequestData",
+    ) -> "PaymentGatewayInitializeTokenizationResponseData":
+        default_response = PaymentGatewayInitializeTokenizationResponseData(
+            success=False,
+            message="Payment gateway initialize tokenization failed to deliver.",
+        )
+        response = self.__run_method_on_plugins(
+            "payment_gateway_initialize_tokenization",
+            default_response,
+            request_data,
         )
         return response
 

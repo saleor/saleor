@@ -2277,6 +2277,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   TRANSACTION_PROCESS_SESSION
   LIST_STORED_PAYMENT_METHODS
   STORED_PAYMENT_METHOD_DELETE_REQUESTED
+  PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION
 }
 
 """Synchronous webhook event."""
@@ -2365,6 +2366,7 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   TRANSACTION_PROCESS_SESSION
   LIST_STORED_PAYMENT_METHODS
   STORED_PAYMENT_METHOD_DELETE_REQUESTED
+  PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION
 }
 
 """Asynchronous webhook event."""
@@ -33045,7 +33047,7 @@ type PaymentGatewayInitializeSession implements Event @doc(category: "Payments")
   """Checkout or order"""
   sourceObject: OrderOrCheckout!
 
-  """Payment gateway data in JSON format, recieved from storefront."""
+  """Payment gateway data in JSON format, received from storefront."""
   data: JSON
 
   """Amount requested for initializing the payment gateway."""
@@ -33080,7 +33082,7 @@ type TransactionInitializeSession implements Event @doc(category: "Payments") {
   """Checkout or order"""
   sourceObject: OrderOrCheckout!
 
-  """Payment gateway data in JSON format, recieved from storefront."""
+  """Payment gateway data in JSON format, received from storefront."""
   data: JSON
 
   """Merchant reference assigned to this payment."""
@@ -33125,7 +33127,7 @@ type TransactionProcessSession implements Event @doc(category: "Payments") {
   """Checkout or order"""
   sourceObject: OrderOrCheckout!
 
-  """Payment gateway data in JSON format, recieved from storefront."""
+  """Payment gateway data in JSON format, received from storefront."""
   data: JSON
 
   """Merchant reference assigned to this payment."""
@@ -33218,6 +33220,36 @@ type StoredPaymentMethodDeleteRequested implements Event @doc(category: "Payment
 
   """Channel related to the requested delete action."""
   channel: Channel!
+}
+
+"""
+Event sent to initialize a new session in payment gateway to store the payment method. 
+
+Added in Saleor 3.16.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PaymentGatewayInitializeTokenizationSession implements Event @doc(category: "Payments") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The user related to the requested payment gateway tokenization."""
+  user: User!
+
+  """Channel related to the requested delete action."""
+  channel: Channel!
+
+  """Payment gateway data in JSON format, received from storefront."""
+  data: JSON
 }
 
 """_Any value scalar as defined by Federation spec."""
