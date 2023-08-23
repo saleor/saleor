@@ -6,7 +6,7 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
-    command: uvicorn --reload saleor.asgi:application --host 0.0.0.0 --port 8000
+    command: /bin/sh -c "while sleep 1000; do :; done"
     env_file:
       - common.env
       - backend.env
