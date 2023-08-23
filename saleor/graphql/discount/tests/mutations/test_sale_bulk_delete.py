@@ -150,6 +150,7 @@ def test_delete_sales_with_variants_triggers_webhook(
     variables = {
         "ids": [graphene.Node.to_global_id("Sale", sale.id) for sale in sale_list]
     }
+
     # when
     response = staff_api_client.post_graphql(
         SALE_BULK_DELETE_MUTATION, variables, permissions=[permission_manage_discounts]
@@ -157,8 +158,10 @@ def test_delete_sales_with_variants_triggers_webhook(
     content = get_graphql_content(response)
     # create a list of payloads with which the webhook was called
     called_payloads_list = []
+
     for arg_list in mocked_webhook_trigger.call_args_list:
-        called_arg = json.loads(arg_list[0][0])
+        data_generator = arg_list[1]["legacy_data_generator"]
+        called_arg = json.loads(data_generator())
         # we don't want to compare meta fields, only rest of payloads
         called_arg[0].pop("meta")
         called_payloads_list.append(called_arg)

@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 import graphene
 import pytest
@@ -7,7 +7,6 @@ from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from ......webhook.event_types import WebhookEventAsyncType
-from ......webhook.payloads import generate_customer_payload
 from .....tests.utils import get_graphql_content
 from ....mutations.staff import CustomerDelete
 
@@ -93,12 +92,14 @@ def test_customer_delete_trigger_webhook(
     assert data["errors"] == []
     assert data["user"]["id"] == customer_id
     mocked_webhook_trigger.assert_called_once_with(
-        generate_customer_payload(customer_user, staff_api_client.user),
+        None,
         WebhookEventAsyncType.CUSTOMER_DELETED,
         [any_webhook],
         customer_user,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
     )
+    assert mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"] is not None
 
 
 @patch("saleor.account.signals.delete_from_storage_task.delay")
