@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable, List, Optional
+from typing import Iterable, List
 from uuid import UUID
 
 from celery.utils.log import get_task_logger
@@ -10,17 +10,11 @@ from django.utils import timezone
 from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
-from ..discount.models import Promotion, Sale
+from ..discount.models import Promotion
 from ..warehouse.management import deactivate_preorder_for_variant
 from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
-from .utils.variant_prices import (
-    update_discounted_prices_for_promotion,
-    update_products_discounted_price,
-    update_products_discounted_prices,
-    update_products_discounted_prices_of_catalogues,
-    update_products_discounted_prices_of_sale,
-)
+from .utils.variant_prices import update_discounted_prices_for_promotion
 from .utils.variants import generate_and_set_variant_name
 
 logger = logging.getLogger(__name__)
@@ -81,38 +75,6 @@ def update_variants_names(product_type_pk: int, saved_attributes_ids: List[int])
 
 
 @app.task
-def update_product_discounted_price_task(product_pk: int):
-    try:
-        product = Product.objects.get(pk=product_pk)
-    except ObjectDoesNotExist:
-        logging.warning(f"Cannot find product with id: {product_pk}.")
-        return
-    update_products_discounted_price([product])
-
-
-@app.task
-def update_products_discounted_prices_of_catalogues_task(
-    product_ids: Optional[List[int]] = None,
-    category_ids: Optional[List[int]] = None,
-    collection_ids: Optional[List[int]] = None,
-    variant_ids: Optional[List[int]] = None,
-):
-    update_products_discounted_prices_of_catalogues(
-        product_ids, category_ids, collection_ids, variant_ids
-    )
-
-
-@app.task
-def update_products_discounted_prices_of_sale_task(discount_pk: int):
-    try:
-        discount = Sale.objects.get(pk=discount_pk)
-    except ObjectDoesNotExist:
-        logging.warning(f"Cannot find discount with id: {discount_pk}.")
-        return
-    update_products_discounted_prices_of_sale(discount)
-
-
-@app.task
 def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
     from ..graphql.discount.utils import get_products_for_promotion
 
@@ -136,12 +98,6 @@ def update_products_discounted_prices_for_promotion_task(product_ids: Iterable[i
         update_discounted_prices_for_promotion(qs)
         remaining_ids = list(set(product_ids) - set(ids))
         update_products_discounted_prices_for_promotion_task.delay(remaining_ids)
-
-
-@app.task
-def update_products_discounted_prices_task(product_ids: List[int]):
-    products = Product.objects.filter(pk__in=product_ids)
-    update_products_discounted_prices(products)
 
 
 @app.task

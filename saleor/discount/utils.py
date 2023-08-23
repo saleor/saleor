@@ -510,10 +510,6 @@ def fetch_discounts(date: datetime.date) -> List[DiscountInfo]:
     ]
 
 
-def fetch_active_discounts() -> List[DiscountInfo]:
-    return fetch_discounts(timezone.now())
-
-
 def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
     catalogue_info: CatalogueInfo = defaultdict(set)
     for sale_data in Sale.objects.filter(id=instance.id).values(*CATALOGUE_FIELDS):
