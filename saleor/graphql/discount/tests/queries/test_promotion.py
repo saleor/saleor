@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import graphene
 
-from .....discount import RewardValueType
+from .....discount import PromotionEvents, RewardValueType
 from .....tests.utils import dummy_editorjs
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -242,3 +242,63 @@ def test_query_promotion_rule_translation(
             assert rule["translation"]["language"]["code"] == "FR"
         else:
             assert not rule["translation"]
+
+
+QUERY_PROMOTION_BY_ID_WITH_EVENTS = """
+    query Promotion($id: ID!) {
+        promotion(id: $id) {
+            id
+            events {
+                ... on PromotionEventInterface {
+                    type
+                    createdBy {
+                        ... on User {
+                            id
+                        }
+                    }
+                }
+                ... on PromotionRuleEventInterface {
+                    ruleId
+                }
+            }
+        }
+    }
+"""
+
+
+def test_query_promotion_events(
+    promotion_events,
+    staff_api_client,
+    permission_manage_discounts,
+    permission_manage_staff,
+):
+    # given
+    promotion = promotion_events[0].promotion
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    variables = {"id": promotion_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PROMOTION_BY_ID_WITH_EVENTS,
+        variables,
+        permissions=(permission_manage_discounts, permission_manage_staff),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    events = content["data"]["promotion"]["events"]
+    assert len(events) == promotion.events.count()
+    rule_events = [
+        PromotionEvents.RULE_CREATED,
+        PromotionEvents.RULE_UPDATED,
+        PromotionEvents.RULE_DELETED,
+    ]
+    for db_event in promotion.events.all():
+        event_data = {
+            "type": db_event.type.upper(),
+            "createdBy": {"id": graphene.Node.to_global_id("User", db_event.user.id)},
+        }
+        if db_event.type in rule_events:
+            event_data["ruleId"] = db_event.parameters.get("rule_id")
+
+        assert event_data in events
