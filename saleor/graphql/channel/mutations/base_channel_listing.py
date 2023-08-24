@@ -68,6 +68,8 @@ class BaseChannelListingMutation(BaseMutation):
         add_channels = input.get(input_source, [])
         add_channels_ids = [channel["channel_id"] for channel in add_channels]
         remove_channels_ids = input.get("remove_channels", [])
+        if remove_channels_ids is None:
+            return {}
         cls.validate_duplicated_channel_ids(
             add_channels_ids, remove_channels_ids, errors, error_code
         )
