@@ -32,6 +32,22 @@ from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
 from ..graphql.core import ResolveInfo, SaleorContext
 from ..order import base_calculations as base_order_calculations
 from ..order.interface import OrderTaxedPricesData
+from ..payment.interface import (
+    CustomerSource,
+    GatewayResponse,
+    InitializedPaymentResponse,
+    ListStoredPaymentMethodsRequestData,
+    PaymentData,
+    PaymentGateway,
+    PaymentGatewayData,
+    PaymentMethodData,
+    StoredPaymentMethodRequestDeleteData,
+    StoredPaymentMethodRequestDeleteResponseData,
+    TokenConfig,
+    TransactionActionData,
+    TransactionSessionData,
+    TransactionSessionResult,
+)
 from ..tax.utils import calculate_tax_rate
 from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
@@ -49,20 +65,6 @@ if TYPE_CHECKING:
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page, PageType
-    from ..payment.interface import (
-        CustomerSource,
-        GatewayResponse,
-        InitializedPaymentResponse,
-        ListStoredPaymentMethodsRequestData,
-        PaymentData,
-        PaymentGateway,
-        PaymentGatewayData,
-        PaymentMethodData,
-        TokenConfig,
-        TransactionActionData,
-        TransactionSessionData,
-        TransactionSessionResult,
-    )
     from ..payment.models import TransactionItem
     from ..product.models import (
         Category,
@@ -1540,6 +1542,20 @@ class PluginsManager(PaymentInterface):
             default_value,
             list_stored_payment_methods_data,
         )
+
+    def stored_payment_method_request_delete(
+        self,
+        request_delete_data: "StoredPaymentMethodRequestDeleteData",
+    ) -> "StoredPaymentMethodRequestDeleteResponseData":
+        default_response = StoredPaymentMethodRequestDeleteResponseData(
+            success=False, message="Payment method request delete failed to deliver."
+        )
+        response = self.__run_method_on_plugins(
+            "stored_payment_method_request_delete",
+            default_response,
+            request_delete_data,
+        )
+        return response
 
     def translation_created(self, translation: "Translation"):
         default_value = None
