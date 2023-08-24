@@ -15,6 +15,7 @@ from .mutations import (
     PaymentInitialize,
     PaymentRefund,
     PaymentVoid,
+    StoredPaymentMethodRequestDelete,
     TransactionCreate,
     TransactionEventReport,
     TransactionInitialize,
@@ -97,3 +98,5 @@ class PaymentMutations(graphene.ObjectType):
     payment_gateway_initialize = PaymentGatewayInitialize.Field()
     transaction_initialize = TransactionInitialize.Field()
     transaction_process = TransactionProcess.Field()
+
+    stored_payment_method_request_delete = StoredPaymentMethodRequestDelete.Field()

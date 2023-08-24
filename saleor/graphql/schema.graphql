@@ -2276,6 +2276,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
   LIST_STORED_PAYMENT_METHODS
+  STORED_PAYMENT_METHOD_DELETE_REQUESTED
 }
 
 """Synchronous webhook event."""
@@ -2363,6 +2364,7 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
   LIST_STORED_PAYMENT_METHODS
+  STORED_PAYMENT_METHOD_DELETE_REQUESTED
 }
 
 """Asynchronous webhook event."""
@@ -15605,6 +15607,26 @@ type Mutation {
   ): TransactionProcess @doc(category: "Payments")
 
   """
+  Request to delete a stored payment method on payment provider side.
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - STORED_PAYMENT_METHOD_DELETE_REQUESTED (sync): The customer requested to delete a payment method.
+  """
+  storedPaymentMethodRequestDelete(
+    """Slug of a channel related to delete request."""
+    channel: String!
+
+    """The ID of the payment method."""
+    id: ID!
+  ): StoredPaymentMethodRequestDelete @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [STORED_PAYMENT_METHOD_DELETE_REQUESTED])
+
+  """
   Creates a new page. 
   
   Requires one of the following permissions: MANAGE_PAGES.
@@ -15901,6 +15923,10 @@ type Mutation {
   Creates new fulfillments for an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - FULFILLMENT_CREATED (async): A new fulfillment is created.
+  - ORDER_FULFILLED (async): Order is fulfilled.
   """
   orderFulfill(
     """Fields required to create a fulfillment."""
@@ -15908,7 +15934,7 @@ type Mutation {
 
     """ID of the order to be fulfilled."""
     order: ID
-  ): OrderFulfill @doc(category: "Orders")
+  ): OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED], syncEvents: [])
 
   """
   Cancels existing fulfillment and optionally restocks items. 
@@ -23173,6 +23199,48 @@ enum TransactionProcessErrorCode @doc(category: "Payments") {
 }
 
 """
+Request to delete a stored payment method on payment provider side.
+
+Added in Saleor 3.16.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- STORED_PAYMENT_METHOD_DELETE_REQUESTED (sync): The customer requested to delete a payment method.
+"""
+type StoredPaymentMethodRequestDelete @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [STORED_PAYMENT_METHOD_DELETE_REQUESTED]) {
+  """True, if the delete request was processed successfully."""
+  success: Boolean
+
+  """A message returned by payment app."""
+  message: String
+  errors: [PaymentMethodRequestDeleteError!]!
+}
+
+type PaymentMethodRequestDeleteError @doc(category: "Payments") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: StoredPaymentMethodRequestDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum StoredPaymentMethodRequestDeleteErrorCode @doc(category: "Payments") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  CHANNEL_INACTIVE
+}
+
+"""
 Creates a new page. 
 
 Requires one of the following permissions: MANAGE_PAGES.
@@ -23723,8 +23791,12 @@ type OrderConfirm @doc(category: "Orders") {
 Creates new fulfillments for an order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- FULFILLMENT_CREATED (async): A new fulfillment is created.
+- ORDER_FULFILLED (async): Order is fulfilled.
 """
-type OrderFulfill @doc(category: "Orders") {
+type OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED], syncEvents: []) {
   """List of created fulfillments."""
   fulfillments: [Fulfillment!]
 
@@ -31409,6 +31481,13 @@ type FulfillmentCreated implements Event @doc(category: "Orders") {
 
   """The order the fulfillment belongs to."""
   order: Order
+
+  """
+  If true, send an email notification to the customer.
+  
+  Added in Saleor 3.16.
+  """
+  notifyCustomer: Boolean!
 }
 
 """
@@ -33132,6 +33211,40 @@ type ListStoredPaymentMethods implements Event @doc(category: "Payments") {
   """
   Channel in context which was used to fetch the list of payment methods.
   """
+  channel: Channel!
+}
+
+"""
+Event sent when user requests to delete a payment method.
+
+Added in Saleor 3.16.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type StoredPaymentMethodDeleteRequested implements Event @doc(category: "Payments") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The user for which the app should proceed with payment method delete request.
+  """
+  user: User!
+
+  """
+  The ID of the payment method that should be deleted by the payment gateway.
+  """
+  paymentMethodId: String!
+
+  """Channel related to the requested delete action."""
   channel: Channel!
 }
 

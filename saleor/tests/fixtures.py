@@ -6503,6 +6503,27 @@ def list_stored_payment_methods_app(db, permission_manage_payments):
 
 
 @pytest.fixture
+def stored_payment_method_request_delete_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment method request delete",
+        is_active=True,
+        identifier="saleor.payment.app.payment.method.request.delete",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="stored_payment_method_request_delete",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED,
+    )
+    return app
+
+
+@pytest.fixture
 def tax_app(db, permission_handle_taxes):
     app = App.objects.create(name="Tax App", is_active=True)
     app.permissions.add(permission_handle_taxes)

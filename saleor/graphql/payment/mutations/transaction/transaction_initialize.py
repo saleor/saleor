@@ -19,7 +19,7 @@ from ....core.types import common as common_types
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionEvent, TransactionItem
 from ..base import TransactionSessionBase
-from ..payment.payment_gateway_initialize import PaymentGatewayToInitialize
+from .payment_gateway_initialize import PaymentGatewayToInitialize
 from .utils import clean_customer_ip_address
 
 

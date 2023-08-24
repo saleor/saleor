@@ -2,12 +2,13 @@ from .payment import (
     CheckoutPaymentCreate,
     PaymentCapture,
     PaymentCheckBalance,
-    PaymentGatewayInitialize,
     PaymentInitialize,
     PaymentRefund,
     PaymentVoid,
 )
+from .stored_payment_methods import StoredPaymentMethodRequestDelete
 from .transaction import (
+    PaymentGatewayInitialize,
     TransactionCreate,
     TransactionEventReport,
     TransactionInitialize,
@@ -25,6 +26,7 @@ __all__ = [
     "PaymentInitialize",
     "PaymentRefund",
     "PaymentVoid",
+    "StoredPaymentMethodRequestDelete",
     "TransactionCreate",
     "TransactionEventReport",
     "TransactionInitialize",
