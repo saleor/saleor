@@ -1426,6 +1426,24 @@ FULFILLMENT_METADATA_UPDATED = (
 """
 )
 
+FULFILLMENT_TRACKING_NUMBER_UPDATED = (
+    fragments.FULFILLMENT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on FulfillmentTrackingNumberUpdated{
+          fulfillment{
+            ...FulfillmentDetails
+          }
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+)
+
 
 CUSTOMER_CREATED = (
     fragments.CUSTOMER_DETAILS

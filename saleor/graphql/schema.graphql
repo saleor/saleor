@@ -1939,6 +1939,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   FULFILLMENT_METADATA_UPDATED
+  FULFILLMENT_TRACKING_NUMBER_UPDATED
 
   """A draft order is created."""
   DRAFT_ORDER_CREATED
@@ -2612,6 +2613,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   FULFILLMENT_METADATA_UPDATED
+  FULFILLMENT_TRACKING_NUMBER_UPDATED
 
   """A draft order is created."""
   DRAFT_ORDER_CREATED
@@ -3477,6 +3479,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   FULFILLMENT_CANCELED
   FULFILLMENT_APPROVED
   FULFILLMENT_METADATA_UPDATED
+  FULFILLMENT_TRACKING_NUMBER_UPDATED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
   DRAFT_ORDER_DELETED
@@ -15928,6 +15931,7 @@ type Mutation {
   Triggers the following webhook events:
   - FULFILLMENT_CREATED (async): A new fulfillment is created.
   - ORDER_FULFILLED (async): Order is fulfilled.
+  - FULFILLMENT_TRACKING_NUMBER_UPDATED (async): Sent when fulfillment tracking number is updated.
   - FULFILLMENT_APPROVED (async): A fulfillment is approved.
   """
   orderFulfill(
@@ -15936,7 +15940,7 @@ type Mutation {
 
     """ID of the order to be fulfilled."""
     order: ID
-  ): OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED, FULFILLMENT_APPROVED], syncEvents: [])
+  ): OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED, FULFILLMENT_TRACKING_NUMBER_UPDATED, FULFILLMENT_APPROVED], syncEvents: [])
 
   """
   Cancels existing fulfillment and optionally restocks items. 
@@ -15976,6 +15980,9 @@ type Mutation {
   Updates a fulfillment for an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - FULFILLMENT_TRACKING_NUMBER_UPDATED (async): Fulfillment tracking number is updated.
   """
   orderFulfillmentUpdateTracking(
     """ID of a fulfillment to update."""
@@ -15983,7 +15990,7 @@ type Mutation {
 
     """Fields required to update a fulfillment."""
     input: FulfillmentUpdateTrackingInput!
-  ): FulfillmentUpdateTracking @doc(category: "Orders")
+  ): FulfillmentUpdateTracking @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_TRACKING_NUMBER_UPDATED], syncEvents: [])
 
   """
   Refund products. 
@@ -23801,9 +23808,10 @@ Requires one of the following permissions: MANAGE_ORDERS.
 Triggers the following webhook events:
 - FULFILLMENT_CREATED (async): A new fulfillment is created.
 - ORDER_FULFILLED (async): Order is fulfilled.
+- FULFILLMENT_TRACKING_NUMBER_UPDATED (async): Sent when fulfillment tracking number is updated.
 - FULFILLMENT_APPROVED (async): A fulfillment is approved.
 """
-type OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED, FULFILLMENT_APPROVED], syncEvents: []) {
+type OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED, FULFILLMENT_TRACKING_NUMBER_UPDATED, FULFILLMENT_APPROVED], syncEvents: []) {
   """List of created fulfillments."""
   fulfillments: [Fulfillment!]
 
@@ -23893,8 +23901,11 @@ type FulfillmentApprove @doc(category: "Orders") @webhookEventsInfo(asyncEvents:
 Updates a fulfillment for an order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- FULFILLMENT_TRACKING_NUMBER_UPDATED (async): Fulfillment tracking number is updated.
 """
-type FulfillmentUpdateTracking @doc(category: "Orders") {
+type FulfillmentUpdateTracking @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_TRACKING_NUMBER_UPDATED], syncEvents: []) {
   """A fulfillment with updated tracking."""
   fulfillment: Fulfillment
 
@@ -31521,6 +31532,31 @@ type FulfillmentCreated implements Event @doc(category: "Orders") {
   Added in Saleor 3.16.
   """
   notifyCustomer: Boolean!
+}
+
+"""
+Event sent when the tracking number is updated.
+
+Added in Saleor 3.16.
+"""
+type FulfillmentTrackingNumberUpdated implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The fulfillment the event relates to."""
+  fulfillment: Fulfillment
+
+  """The order the fulfillment belongs to."""
+  order: Order
 }
 
 """

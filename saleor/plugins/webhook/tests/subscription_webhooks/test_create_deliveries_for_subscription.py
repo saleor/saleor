@@ -1756,6 +1756,23 @@ def test_fulfillment_metadata_updated(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_fulfillment_tracking_number_updated(
+    fulfillment, subscription_fulfillment_tracking_number_updated
+):
+    # given
+    webhooks = [subscription_fulfillment_tracking_number_updated]
+    event_type = WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED
+    expected_payload = generate_fulfillment_payload(fulfillment)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_customer_created(customer_user, subscription_customer_created_webhook):
     # given
     webhooks = [subscription_customer_created_webhook]

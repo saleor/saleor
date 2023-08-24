@@ -1029,6 +1029,16 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED, fulfillment
         )
 
+    def tracking_number_updated(self, fulfillment: "Fulfillment", previous_value):
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED
+        if webhooks := get_webhooks_for_event(event_type):
+            fulfillment_data = generate_fulfillment_payload(fulfillment, self.requestor)
+            trigger_webhooks_async(
+                fulfillment_data, event_type, webhooks, fulfillment, self.requestor
+            )
+
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
