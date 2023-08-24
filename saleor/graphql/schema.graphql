@@ -17253,7 +17253,11 @@ type Mutation {
   ): PromotionRuleTranslate @doc(category: "Discounts")
 
   """
-  Deletes promotions. 
+  Deletes promotions.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -26689,7 +26693,11 @@ input PromotionRuleTranslationInput {
 }
 
 """
-Deletes promotions. 
+Deletes promotions.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
