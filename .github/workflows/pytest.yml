@@ -9,6 +9,8 @@ on:
       - requirements_dev.txt
       - "saleor/**"
       - ".github/workflows/pytest.yml"
+      - pyproject.toml
+      - poetry.lock
   push:
     branches:
       - main
@@ -18,6 +20,8 @@ on:
       - Dockerfile
       - requirements_dev.txt
       - "saleor/**"
+      - pyproject.toml
+      - poetry.lock
 
 env:
   BENCH_PATH: ./queries-results.json
