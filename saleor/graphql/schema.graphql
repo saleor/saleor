@@ -10398,7 +10398,7 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   """
   Gift card code. It can be fetched both by a staff member with 'MANAGE_GIFT_CARD' when gift card hasn't been used yet or a user who bought or issued the gift card.
   
-  Requires one of the following permissions: MANAGE_GIFT_CARD.
+  Requires one of the following permissions: MANAGE_GIFT_CARD, OWNER.
   """
   code: String!
   created: DateTime!

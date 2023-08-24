@@ -240,7 +240,8 @@ class GiftCard(ModelObjectType[models.GiftCard]):
             f"'{GiftcardPermissions.MANAGE_GIFT_CARD.name}' when gift card "
             "hasn't been used yet or a user who bought or issued the gift card."
             + "\n\nRequires one of the following permissions: "
-            f"{GiftcardPermissions.MANAGE_GIFT_CARD.name}."
+            f"{GiftcardPermissions.MANAGE_GIFT_CARD.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
         required=True,
     )
