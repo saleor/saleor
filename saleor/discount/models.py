@@ -8,20 +8,28 @@ import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.db import connection, models
-from django.db.models import F, Q
+from django.db.models import F, JSONField, Q
 from django.utils import timezone
 from django_countries.fields import CountryField
 from django_prices.models import MoneyField
 from django_prices.templatetags.prices import amount
 from prices import Money, fixed_discount, percentage_discount
 
+from ..app.models import App
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata
 from ..core.utils.editorjs import clean_editor_js
+from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import Translation
 from ..permission.enums import DiscountPermissions
-from . import DiscountType, DiscountValueType, RewardValueType, VoucherType
+from . import (
+    DiscountType,
+    DiscountValueType,
+    PromotionEvents,
+    RewardValueType,
+    VoucherType,
+)
 
 if TYPE_CHECKING:
     from ..account.models import User
@@ -572,3 +580,30 @@ class CheckoutLineDiscount(BaseDiscount):
 
     class Meta:
         ordering = ("created_at", "id")
+
+
+class PromotionEvent(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    date = models.DateTimeField(auto_now_add=True, db_index=True, editable=False)
+    type = models.CharField(max_length=255, choices=PromotionEvents.CHOICES)
+    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        related_name="promotion_events",
+        on_delete=models.SET_NULL,
+    )
+    app = models.ForeignKey(
+        App,
+        blank=True,
+        null=True,
+        related_name="promotion_events",
+        on_delete=models.SET_NULL,
+    )
+    promotion = models.ForeignKey(
+        Promotion, related_name="events", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        ordering = ("date",)

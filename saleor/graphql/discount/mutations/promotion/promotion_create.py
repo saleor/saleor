@@ -9,10 +9,11 @@ from django.db import transaction
 from graphql.error import GraphQLError
 
 from .....channel import models as channel_models
-from .....discount import models
+from .....discount import events, models
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
 from .....product.tasks import update_products_discounted_prices_of_promotion_task
+from ....app.dataloaders import get_app_promise
 from ....channel.types import Channel
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
@@ -180,14 +181,12 @@ class PromotionCreate(ModelMutation):
         data = data["input"]
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
-        manager = get_plugin_manager_promise(info.context).get()
-
         cls.clean_instance(info, instance)
         with transaction.atomic():
             cls.save(info, instance, cleaned_input)
-            cls._save_m2m(info, instance, cleaned_input)
-            cls.send_promotion_webhooks(manager, instance)
-            update_products_discounted_prices_of_promotion_task.delay(instance.pk)
+            rules = cls._save_m2m(info, instance, cleaned_input)
+            cls.post_save_actions(info, instance, rules)
+
         return cls.success_response(instance)
 
     @classmethod
@@ -196,8 +195,8 @@ class PromotionCreate(ModelMutation):
     ):
         super()._save_m2m(info, instance, cleaned_data)
         rules_with_channels_to_add = []
+        rules = []
         if rules_data := cleaned_data.get("rules"):
-            rules = []
             for rule_data in rules_data:
                 channels = rule_data.pop("channels", None)
                 rule = models.PromotionRule(promotion=instance, **rule_data)
@@ -208,28 +207,62 @@ class PromotionCreate(ModelMutation):
         for rule, channels in rules_with_channels_to_add:
             rule.channels.set(channels)
 
+        return rules
+
     @classmethod
-    def send_promotion_webhooks(
-        cls, manager: "PluginsManager", instance: models.Promotion
+    def post_save_actions(
+        cls,
+        info,
+        instance: models.Promotion,
+        rules: List[models.PromotionRule],
     ):
+        manager = get_plugin_manager_promise(info.context).get()
+        has_started = cls.has_started(instance)
+        cls.save_promotion_events(info, instance, rules, has_started)
         cls.call_event(manager.promotion_created, instance)
-        cls.send_promotion_started_webhook(manager, instance)
+        if has_started:
+            cls.send_promotion_started_webhook(manager, instance)
+        update_products_discounted_prices_of_promotion_task.delay(instance.pk)
+
+    @classmethod
+    def has_started(cls, instance: models.Promotion) -> bool:
+        """Check if promotion has started.
+
+        Return true, when the start date is before the current date and the
+        promotion is not already finished.
+        """
+        now = datetime.now(pytz.utc)
+        start_date = instance.start_date
+        end_date = instance.end_date
+
+        return (start_date and (start_date <= now)) and (  # type: ignore[return-value] # mypy's return value is type of Union[datetime, bool]  # noqa: E501
+            not end_date or not (end_date <= now)
+        )
+
+    @classmethod
+    def save_promotion_events(
+        cls,
+        info: ResolveInfo,
+        instance: models.Promotion,
+        rules: List[models.PromotionRule],
+        has_started: bool,
+    ):
+        app = get_app_promise(info.context).get()
+        user = info.context.user
+        events.promotion_created_event(instance, user, app)
+        if rules:
+            events.rule_created_event(user, app, rules)
+
+        if has_started:
+            events.promotion_started_event(instance, user, app)
 
     @classmethod
     def send_promotion_started_webhook(
         cls, manager: "PluginsManager", instance: models.Promotion
     ):
-        """Send a webhook about starting promotion if it hasn't been sent yet.
+        """Send a webhook about starting promotion if it hasn't been sent yet."""
 
-        Send the webhook when the start date is before the current date and the
-        promotion is not already finished.
-        """
         now = datetime.now(pytz.utc)
-
-        start_date = instance.start_date
-        end_date = instance.end_date
-
-        if (start_date and start_date <= now) and (not end_date or not end_date <= now):
-            cls.call_event(manager.promotion_started, instance)
-            instance.last_notification_scheduled_at = now
-            instance.save(update_fields=["last_notification_scheduled_at"])
+        cls.call_event(manager.promotion_started, instance)
+        instance.last_notification_scheduled_at = now
+        instance.save(update_fields=["last_notification_scheduled_at"])
