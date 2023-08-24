@@ -9,7 +9,7 @@ from freezegun import freeze_time
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import Promotion
-from ....discount.sale_converter import convert_sales_to_promotions
+from ....discount.tests.sale_converter import convert_sales_to_promotions
 from ....permission.models import Permission
 from ....tests.utils import dummy_editorjs
 from ....webhook.event_types import WebhookEventAsyncType

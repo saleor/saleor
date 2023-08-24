@@ -8,7 +8,7 @@ from .....core.tracing import traced_atomic_transaction
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion
-from .....discount.sale_converter import create_catalogue_predicate
+from .....discount.tests.sale_converter import create_catalogue_predicate
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_of_promotion_task
 from .....webhook.event_types import WebhookEventAsyncType

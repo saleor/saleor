@@ -20,7 +20,7 @@ from ...discount.models import (
     Voucher,
     VoucherChannelListing,
 )
-from ...discount.sale_converter import convert_sales_to_promotions
+from ...discount.tests.sale_converter import convert_sales_to_promotions
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import VariantChannelListingPromotionRule

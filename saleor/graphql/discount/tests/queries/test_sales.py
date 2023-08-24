@@ -1,4 +1,4 @@
-from .....discount.sale_converter import convert_sales_to_promotions
+from .....discount.tests.sale_converter import convert_sales_to_promotions
 from ....tests.utils import get_graphql_content
 
 
