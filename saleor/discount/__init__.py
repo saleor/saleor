@@ -52,6 +52,27 @@ class RewardValueType:
     ]
 
 
+class PromotionEvents:
+    PROMOTION_CREATED = "promotion_created"
+    PROMOTION_UPDATED = "promotion_updated"
+    PROMOTION_STARTED = "promotion_started"
+    PROMOTION_ENDED = "promotion_ended"
+
+    RULE_CREATED = "rule_created"
+    RULE_UPDATED = "rule_updated"
+    RULE_DELETED = "rule_deleted"
+
+    CHOICES = [
+        (PROMOTION_CREATED, "Promotion created"),
+        (PROMOTION_UPDATED, "Promotion updated"),
+        (PROMOTION_STARTED, "Promotion started"),
+        (PROMOTION_ENDED, "Promotion ended"),
+        (RULE_CREATED, "Rule created"),
+        (RULE_UPDATED, "Rule updated"),
+        (RULE_DELETED, "Rule deleted"),
+    ]
+
+
 @dataclass
 class DiscountInfo:
     sale: "Sale"
