@@ -54,6 +54,7 @@ from ..discount import (
     DiscountInfo,
     DiscountType,
     DiscountValueType,
+    PromotionEvents,
     RewardValueType,
     VoucherType,
 )
@@ -62,6 +63,7 @@ from ..discount.models import (
     CheckoutLineDiscount,
     NotApplicable,
     Promotion,
+    PromotionEvent,
     PromotionRule,
     PromotionRuleTranslation,
     PromotionTranslation,
@@ -5635,6 +5637,54 @@ def promotion_converted_from_sale_with_empty_predicate():
     sale = Sale.objects.create(name="Sale with no rules", type=DiscountValueType.FIXED)
     convert_sales_to_promotions()
     return Promotion.objects.filter(old_sale_id=sale.id).last()
+
+
+@pytest.fixture
+def promotion_events(promotion, staff_user):
+    rule_id = promotion.rules.first().pk
+    events = PromotionEvent.objects.bulk_create(
+        [
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_CREATED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_UPDATED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+            PromotionEvent(
+                type=PromotionEvents.RULE_CREATED,
+                user=staff_user,
+                promotion=promotion,
+                parameters={"rule_id": rule_id},
+            ),
+            PromotionEvent(
+                type=PromotionEvents.RULE_UPDATED,
+                user=staff_user,
+                promotion=promotion,
+                parameters={"rule_id": rule_id},
+            ),
+            PromotionEvent(
+                type=PromotionEvents.RULE_DELETED,
+                user=staff_user,
+                promotion=promotion,
+                parameters={"rule_id": rule_id},
+            ),
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_STARTED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_ENDED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+        ]
+    )
+    return events
 
 
 @pytest.fixture

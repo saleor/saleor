@@ -13922,6 +13922,9 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
     """A language code to return the translation for promotion."""
     languageCode: LanguageCodeEnum!
   ): PromotionTranslation
+
+  """The list of events associated with the promotion."""
+  events: [PromotionEvent!]
 }
 
 """
@@ -13972,6 +13975,225 @@ type PromotionRule implements Node @doc(category: "Discounts") {
 enum RewardValueTypeEnum @doc(category: "Discounts") {
   FIXED
   PERCENTAGE
+}
+
+union PromotionEvent = PromotionCreatedEvent | PromotionUpdatedEvent | PromotionStartedEvent | PromotionEndedEvent | PromotionRuleCreatedEvent | PromotionRuleUpdatedEvent | PromotionRuleDeletedEvent
+
+"""
+History log of the promotion created event.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionCreatedEvent implements Node & PromotionEventInterface @doc(category: "Discounts") {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: PromotionEventsEnum!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS, OWNER.
+  """
+  createdBy: UserOrApp
+}
+
+interface PromotionEventInterface {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: PromotionEventsEnum!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS, OWNER.
+  """
+  createdBy: UserOrApp
+}
+
+"""An enumeration."""
+enum PromotionEventsEnum @doc(category: "Discounts") {
+  PROMOTION_CREATED
+  PROMOTION_UPDATED
+  PROMOTION_STARTED
+  PROMOTION_ENDED
+  RULE_CREATED
+  RULE_UPDATED
+  RULE_DELETED
+}
+
+"""
+History log of the promotion updated event.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionUpdatedEvent implements Node & PromotionEventInterface @doc(category: "Discounts") {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: PromotionEventsEnum!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS, OWNER.
+  """
+  createdBy: UserOrApp
+}
+
+"""
+History log of the promotion started event.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionStartedEvent implements Node & PromotionEventInterface @doc(category: "Discounts") {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: PromotionEventsEnum!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS, OWNER.
+  """
+  createdBy: UserOrApp
+}
+
+"""
+History log of the promotion ended event.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionEndedEvent implements Node & PromotionEventInterface @doc(category: "Discounts") {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: PromotionEventsEnum!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS, OWNER.
+  """
+  createdBy: UserOrApp
+}
+
+"""
+History log of the promotion rule created event.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionRuleCreatedEvent implements Node & PromotionEventInterface & PromotionRuleEventInterface @doc(category: "Discounts") {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: PromotionEventsEnum!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS, OWNER.
+  """
+  createdBy: UserOrApp
+
+  """The rule ID associated with the promotion event."""
+  ruleId: String
+}
+
+"""
+History log of the promotion event related to rule.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+interface PromotionRuleEventInterface {
+  """The rule ID associated with the promotion event."""
+  ruleId: String
+}
+
+"""
+History log of the promotion rule created event.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionRuleUpdatedEvent implements Node & PromotionEventInterface & PromotionRuleEventInterface @doc(category: "Discounts") {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: PromotionEventsEnum!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS, OWNER.
+  """
+  createdBy: UserOrApp
+
+  """The rule ID associated with the promotion event."""
+  ruleId: String
+}
+
+"""
+History log of the promotion rule created event.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionRuleDeletedEvent implements Node & PromotionEventInterface & PromotionRuleEventInterface @doc(category: "Discounts") {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: PromotionEventsEnum!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS, OWNER.
+  """
+  createdBy: UserOrApp
+
+  """The rule ID associated with the promotion event."""
+  ruleId: String
 }
 
 type PromotionCountableConnection @doc(category: "Discounts") {
