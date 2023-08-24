@@ -5,14 +5,23 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.16.0 [Unreleased]
 
 ### Breaking changes
+- **Feature preview breaking change**:
+  - Deprecate `OrderSettingsInput.defaultTransactionFlowStrategy`. It will be removed
+in 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
+  - Deprecate `OrderSettings.defaultTransactionFlowStrategy`. It will be removed
+in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 
 ### GraphQL API
 - Add `storedPaymentMethodRequestDelete` mutation - #13660 by @korycins
+- Add `PaymentSettings` to `Channel` - #13677 by @korycins
 
 ### Saleor Apps
 - Add `STORED_PAYMENT_METHOD_DELETE_REQUESTED` webhook event - #13660 by @korycins
+- Add `NOTIFY_CUSTOMER` flag to `FulfillmentCreated` type - #13620, by @Air-t
+  - Inform apps if customer should be notified when fulfillment is created.
 
 ### Other changes
+- Fix error in variant available stock calculation - 13593 by @awaisdar001
 
 # 3.15.0 [Unreleased]
 

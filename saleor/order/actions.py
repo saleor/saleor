@@ -297,9 +297,8 @@ def order_fulfilled(
             order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
         )
         call_event(manager.order_updated, order)
-
         for fulfillment in fulfillments:
-            call_event(manager.fulfillment_created, fulfillment)
+            call_event(manager.fulfillment_created, fulfillment, notify_customer)
 
         if order.status == OrderStatus.FULFILLED:
             call_event(manager.order_fulfilled, order)

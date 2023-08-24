@@ -4967,6 +4967,17 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
   """
   checkoutSettings: CheckoutSettings!
+
+  """
+  Channel-specific payment settings.
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS, HANDLE_PAYMENTS.
+  """
+  paymentSettings: PaymentSettings!
 }
 
 """
@@ -5400,7 +5411,7 @@ type OrderSettings {
   
   Added in Saleor 3.13.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.This preview feature field will be removed in Saleor 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
 
@@ -5470,6 +5481,18 @@ type CheckoutSettings {
   Added in Saleor 3.15.This field will be removed in Saleor 4.0.
   """
   useLegacyErrorFlow: Boolean!
+}
+
+"""Represents the channel-specific payment settings."""
+type PaymentSettings {
+  """
+  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
 }
 
 """Represents shipping method postal code rule."""
@@ -15886,6 +15909,10 @@ type Mutation {
   Creates new fulfillments for an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - FULFILLMENT_CREATED (async): A new fulfillment is created.
+  - ORDER_FULFILLED (async): Order is fulfilled.
   """
   orderFulfill(
     """Fields required to create a fulfillment."""
@@ -15893,7 +15920,7 @@ type Mutation {
 
     """ID of the order to be fulfilled."""
     order: ID
-  ): OrderFulfill @doc(category: "Orders")
+  ): OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED], syncEvents: [])
 
   """
   Cancels existing fulfillment and optionally restocks items. 
@@ -17608,7 +17635,9 @@ type Mutation {
   Update a channel.
   
   Requires one of the following permissions: MANAGE_CHANNELS.
-  Requires one of the following permissions when updating only `orderSettings` field: MANAGE_CHANNELS, MANAGE_ORDERS.Requires one of the following permissions when updating only `checkoutSettings` field: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
+  Requires one of the following permissions when updating only `orderSettings` field: `MANAGE_CHANNELS`, `MANAGE_ORDERS`.
+  Requires one of the following permissions when updating only `checkoutSettings` field: `MANAGE_CHANNELS`, `MANAGE_CHECKOUTS`.
+  Requires one of the following permissions when updating only `paymentSettings` field: `MANAGE_CHANNELS`, `HANDLE_PAYMENTS`.
   
   Triggers the following webhook events:
   - CHANNEL_UPDATED (async): A channel was updated.
@@ -23748,8 +23777,12 @@ type OrderConfirm @doc(category: "Orders") {
 Creates new fulfillments for an order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- FULFILLMENT_CREATED (async): A new fulfillment is created.
+- ORDER_FULFILLED (async): Order is fulfilled.
 """
-type OrderFulfill @doc(category: "Orders") {
+type OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED], syncEvents: []) {
   """List of created fulfillments."""
   fulfillments: [Fulfillment!]
 
@@ -26989,6 +27022,15 @@ input ChannelCreateInput @doc(category: "Channels") {
   """
   checkoutSettings: CheckoutSettingsInput
 
+  """
+  The channel payment settings
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  paymentSettings: PaymentSettingsInput
+
   """Name of the channel."""
   name: String!
 
@@ -27059,11 +27101,13 @@ input OrderSettingsInput @doc(category: "Orders") {
   Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  DEPRECATED: this preview feature field will be removed in Saleor 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
 
   """
-  Determine if it is possible to place unpdaid order by calling `checkoutComplete` mutation.
+  Determine if it is possible to place unpaid order by calling `checkoutComplete` mutation.
   
   Added in Saleor 3.15.
   
@@ -27083,11 +27127,24 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   useLegacyErrorFlow: Boolean
 }
 
+input PaymentSettingsInput @doc(category: "Payments") {
+  """
+  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
+}
+
 """
 Update a channel.
 
 Requires one of the following permissions: MANAGE_CHANNELS.
-Requires one of the following permissions when updating only `orderSettings` field: MANAGE_CHANNELS, MANAGE_ORDERS.Requires one of the following permissions when updating only `checkoutSettings` field: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
+Requires one of the following permissions when updating only `orderSettings` field: `MANAGE_CHANNELS`, `MANAGE_ORDERS`.
+Requires one of the following permissions when updating only `checkoutSettings` field: `MANAGE_CHANNELS`, `MANAGE_CHECKOUTS`.
+Requires one of the following permissions when updating only `paymentSettings` field: `MANAGE_CHANNELS`, `HANDLE_PAYMENTS`.
 
 Triggers the following webhook events:
 - CHANNEL_UPDATED (async): A channel was updated.
@@ -27149,6 +27206,15 @@ input ChannelUpdateInput @doc(category: "Channels") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   checkoutSettings: CheckoutSettingsInput
+
+  """
+  The channel payment settings
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  paymentSettings: PaymentSettingsInput
 
   """Name of the channel."""
   name: String
@@ -31401,6 +31467,13 @@ type FulfillmentCreated implements Event @doc(category: "Orders") {
 
   """The order the fulfillment belongs to."""
   order: Order
+
+  """
+  If true, send an email notification to the customer.
+  
+  Added in Saleor 3.16.
+  """
+  notifyCustomer: Boolean!
 }
 
 """
