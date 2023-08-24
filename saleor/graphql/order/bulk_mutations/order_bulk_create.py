@@ -954,8 +954,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         billing_address: Optional[Address] = None
         billing_address_input = order_input["billing_address"]
+        metadata_list = billing_address_input.pop("metadata", None)
+        private_metadata_list = billing_address_input.pop("private_metadata", None)
         try:
             billing_address = cls.validate_address(billing_address_input)
+            cls.validate_and_update_metadata(
+                billing_address, metadata_list, private_metadata_list
+            )
         except Exception:
             order_data.errors.append(
                 OrderBulkError(

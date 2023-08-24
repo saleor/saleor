@@ -128,6 +128,10 @@ ORDER_BULK_CREATE = """
                     }
                     billingAddress{
                         postalCode
+                        metadata{
+                            key
+                            value
+                        }
                     }
                     shippingAddress{
                         postalCode
@@ -634,7 +638,11 @@ def test_order_bulk_create(
     assert order["shippingAddress"]["postalCode"] == graphql_address_data["postalCode"]
     assert db_order.billing_address.postal_code == graphql_address_data["postalCode"]
     assert db_order.shipping_address.postal_code == graphql_address_data["postalCode"]
-
+    assert order["billingAddress"]["metadata"] == graphql_address_data["metadata"]
+    assert db_order.billing_address.metadata == {
+        graphql_address_data["metadata"][0]["key"]:
+            graphql_address_data["metadata"][0]["value"]
+    }
     note = order["events"][0]
     assert note["message"] == "Test message"
     assert note["user"]["id"] == graphene.Node.to_global_id("User", customer_user.id)
