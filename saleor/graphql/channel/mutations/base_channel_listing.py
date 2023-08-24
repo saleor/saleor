@@ -66,7 +66,8 @@ class BaseChannelListingMutation(BaseMutation):
         input_source="add_channels",
     ) -> Dict:
         add_channels = input.get(input_source, [])
-        add_channels_ids = [channel["channel_id"] for channel in add_channels]
+        add_channels_ids = [channel["channel_id"] for channel in add_channels
+                            if channel.get('remove_variants',[]) is not None]
         remove_channels_ids = input.get("remove_channels", [])
         if remove_channels_ids is None:
             return {}

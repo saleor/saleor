@@ -115,6 +115,38 @@ def test_clean_channels_remove_channels(channel_PLN):
     assert errors["input"] == []
 
 
+def test_clean_channels_remove_channels_is_null():
+    # given
+    channel_id = None
+    error_code = ShippingErrorCode.DUPLICATED_INPUT_ITEM.value
+    errors = defaultdict(list)
+
+    # when
+    result = BaseChannelListingMutation.clean_channels(
+        None, {"remove_channels": channel_id}, errors, error_code
+    )
+
+    # then
+    assert result == {}
+
+
+def test_clean_channels_remove_variants_is_null():
+    # given
+    error_code = ShippingErrorCode.DUPLICATED_INPUT_ITEM.value
+    errors = defaultdict(list)
+    remove_variants = {}
+    remove_variants["remove_variants"] = None
+    add_channels_values = [remove_variants]
+
+    # when
+    result = BaseChannelListingMutation.clean_channels(
+        None, {"add_channels" : add_channels_values}, errors, error_code
+    )
+
+    # then
+    assert result == {"add_channels": [], "remove_channels": []}
+
+
 def test_test_clean_channels_with_errors(channel_PLN):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
@@ -148,3 +180,4 @@ def test_test_clean_channels_invalid_object_type(channel_PLN):
         error.value.error_dict["remove_channels"][0].message
         == f"Must receive Channel id: {channel_id}."
     )
+
