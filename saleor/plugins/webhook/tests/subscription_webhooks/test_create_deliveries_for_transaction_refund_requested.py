@@ -25,6 +25,7 @@ subscription {
       action {
         actionType
         amount
+        currency
       }
     }
   }
@@ -60,6 +61,7 @@ subscription {
       action {
         actionType
         amount
+        currency
       }
     }
   }
@@ -133,6 +135,7 @@ def test_transaction_refund_request(order, webhook_app, permission_manage_paymen
         "action": {
             "actionType": "REFUND",
             "amount": quantize_price(action_value, "USD"),
+            "currency": "USD",
         },
     }
 
@@ -231,5 +234,6 @@ def test_transaction_refund_request_with_granted_refund(
         "action": {
             "actionType": "REFUND",
             "amount": 12.3,
+            "currency": "USD",
         },
     }
