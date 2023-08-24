@@ -21,6 +21,7 @@ from ..translations.mutations import (
 )
 from .filters import PromotionWhereInput, SaleFilter, VoucherFilter
 from .mutations import (
+    PromotionBulkDelete,
     PromotionCreate,
     PromotionDelete,
     PromotionRuleCreate,
@@ -208,6 +209,7 @@ class DiscountMutations(graphene.ObjectType):
     promotion_rule_delete = PromotionRuleDelete.Field()
     promotion_translate = PromotionTranslate.Field()
     promotion_rule_translate = PromotionRuleTranslate.Field()
+    promotion_bulk_delete = PromotionBulkDelete.Field()
 
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()
