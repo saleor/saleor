@@ -396,6 +396,14 @@ def subscription_product_metadata_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_product_export_completed_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_EXPORT_COMPLETED,
+        WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED,
+    )
+
+
+@pytest.fixture
 def subscription_product_media_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.PRODUCT_MEDIA_CREATED, WebhookEventAsyncType.PRODUCT_CREATED

@@ -117,6 +117,7 @@ class WebhookEventAsyncType:
     PRODUCT_UPDATED = "product_updated"
     PRODUCT_DELETED = "product_deleted"
     PRODUCT_METADATA_UPDATED = "product_metadata_updated"
+    PRODUCT_EXPORT_COMPLETED = "product_export_completed"
 
     PRODUCT_MEDIA_CREATED = "product_media_created"
     PRODUCT_MEDIA_UPDATED = "product_media_updated"
@@ -500,6 +501,10 @@ class WebhookEventAsyncType:
         },
         PRODUCT_METADATA_UPDATED: {
             "name": "Product metadata updated",
+            "permission": ProductPermissions.MANAGE_PRODUCTS,
+        },
+        PRODUCT_EXPORT_COMPLETED: {
+            "name": "Product export completed",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
         },
         PRODUCT_MEDIA_CREATED: {

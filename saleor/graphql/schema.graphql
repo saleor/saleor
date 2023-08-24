@@ -2019,6 +2019,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_METADATA_UPDATED
 
   """
+  A product export is completed.
+  
+  Added in Saleor 3.16.
+  """
+  PRODUCT_EXPORT_COMPLETED
+
+  """
   A new product media is created.
   
   Added in Saleor 3.12.
@@ -2690,6 +2697,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   PRODUCT_METADATA_UPDATED
+
+  """
+  A product export is completed.
+  
+  Added in Saleor 3.16.
+  """
+  PRODUCT_EXPORT_COMPLETED
 
   """
   A new product media is created.
@@ -3499,6 +3513,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_UPDATED
   PRODUCT_DELETED
   PRODUCT_METADATA_UPDATED
+  PRODUCT_EXPORT_COMPLETED
   PRODUCT_MEDIA_CREATED
   PRODUCT_MEDIA_UPDATED
   PRODUCT_MEDIA_DELETED
@@ -16993,11 +17008,12 @@ type Mutation {
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for the exported file.
+  - PRODUCT_EXPORT_COMPLETED (async): A notification for the exported file.
   """
   exportProducts(
     """Fields required to export product data."""
     input: ExportProductsInput!
-  ): ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+  ): ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, PRODUCT_EXPORT_COMPLETED], syncEvents: [])
 
   """
   Export gift cards to csv file.
@@ -26206,8 +26222,9 @@ Requires one of the following permissions: MANAGE_PRODUCTS.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for the exported file.
+- PRODUCT_EXPORT_COMPLETED (async): A notification for the exported file.
 """
-type ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+type ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, PRODUCT_EXPORT_COMPLETED], syncEvents: []) {
   """
   The newly created export file job which is responsible for export data.
   """
@@ -31046,6 +31063,28 @@ type ProductMetadataUpdated implements Event @doc(category: "Products") {
 
   """The category of the product."""
   category: Category
+}
+
+"""
+Event sent when product export is completed.
+
+Added in Saleor 3.16.
+"""
+type ProductExportCompleted implements Event @doc(category: "Products") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The export file for products."""
+  export: ExportFile
 }
 
 """

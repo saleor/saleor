@@ -22,7 +22,9 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 - Add `NOTIFY_CUSTOMER` flag to `FulfillmentApproved` type - #13637, by @Air-t
   - Inform apps if customer should be notified when fulfillment is approved.
 - Add `GIFT_CARD_EXPORT_COMPLETED` webhook - #13765, by @Air-t
-  - Event sent when CSV export is completed.
+  - Event sent when CSV export for gift cards is completed.
+- Add `PRODUCT_EXPORT_COMPLETED` webhook - #13787, by @Air-t
+  - Event sent when CSV export for products is completed.
 
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001

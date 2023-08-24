@@ -428,7 +428,7 @@ def generate_gift_card_payload(gift_card, card_global_id):
     )
 
 
-def generate_gift_card_export_payload(export_file, export_global_id):
+def generate_export_payload(export_file, export_global_id):
     return json.dumps(
         {
             "export": {

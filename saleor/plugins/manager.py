@@ -700,6 +700,12 @@ class PluginsManager(PaymentInterface):
             "product_variant_metadata_updated", default_value, product_variant
         )
 
+    def product_export_completed(self, export: "ExportFile"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_export_completed", default_value, export
+        )
+
     def order_created(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins(
