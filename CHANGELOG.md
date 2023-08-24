@@ -21,6 +21,7 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
+- Add missing currency in action for transaction requests - 13786 by @AjmalPonneth
 
 # 3.15.0 [Unreleased]
 

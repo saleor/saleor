@@ -25,6 +25,7 @@ subscription {
       action {
         actionType
         amount
+        currency
       }
     }
   }
@@ -98,5 +99,6 @@ def test_transaction_charge_request(order, webhook_app, permission_manage_paymen
         "action": {
             "actionType": "CHARGE",
             "amount": quantize_price(action_value, "USD"),
+            "currency": "USD",
         },
     }
