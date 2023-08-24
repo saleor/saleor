@@ -2,9 +2,10 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from .....discount import RewardValueType, models
+from .....discount import RewardValueType, events, models
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
@@ -72,13 +73,7 @@ class PromotionRuleUpdate(ModelMutation):
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         clear_promotion_old_sale_id(instance.promotion, save=True)
-
-        products = get_products_for_rule(instance)
-        product_ids = set(products.values_list("id", flat=True)) | previous_product_ids
-        if product_ids:
-            update_products_discounted_prices_for_promotion_task.delay(
-                list(product_ids)
-            )
+        cls.post_save_action(info, instance, previous_product_ids)
 
         return cls.success_response(instance)
 
@@ -187,3 +182,14 @@ class PromotionRuleUpdate(ModelMutation):
                 instance.channels.remove(*remove_channels)
             if add_channels := cleaned_data.get("add_channels"):
                 instance.channels.add(*add_channels)
+
+    @classmethod
+    def post_save_action(cls, info, instance, previous_product_ids):
+        products = get_products_for_rule(instance)
+        product_ids = set(products.values_list("id", flat=True)) | previous_product_ids
+        if product_ids:
+            update_products_discounted_prices_for_promotion_task.delay(
+                list(product_ids)
+            )
+        app = get_app_promise(info.context).get()
+        events.rule_updated_event(info.context.user, app, [instance])

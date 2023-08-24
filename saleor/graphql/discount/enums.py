@@ -3,6 +3,7 @@ import graphene
 from ...discount import (
     DiscountType,
     DiscountValueType,
+    PromotionEvents,
     RewardValueType,
     VoucherType,
     error_codes,
@@ -15,6 +16,8 @@ OrderDiscountTypeEnum = to_enum(DiscountType, type_name="OrderDiscountType")
 OrderDiscountTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
 RewardValueTypeEnum = to_enum(RewardValueType, type_name="RewardValueTypeEnum")
 RewardValueTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
+PromotionEventsEnum = to_enum(PromotionEvents, type_name="PromotionEventsEnum")
+PromotionEventsEnum.doc_category = DOC_CATEGORY_DISCOUNTS
 
 PromotionCreateErrorCode = graphene.Enum.from_enum(error_codes.PromotionCreateErrorCode)
 PromotionUpdateErrorCode = graphene.Enum.from_enum(error_codes.PromotionUpdateErrorCode)
