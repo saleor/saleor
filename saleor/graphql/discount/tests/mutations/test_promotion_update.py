@@ -5,7 +5,9 @@ import graphene
 from django.utils import timezone
 from freezegun import freeze_time
 
+from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionCreateErrorCode
+from .....discount.models import PromotionEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 PROMOTION_UPDATE_MUTATION = """
@@ -19,6 +21,11 @@ PROMOTION_UPDATE_MUTATION = """
                 endDate
                 createdAt
                 updatedAt
+                events {
+                    ... on PromotionEventInterface {
+                        type
+                    }
+                }
             }
             errors {
                 field
@@ -72,6 +79,9 @@ def test_promotion_update_by_staff_user(
     assert promotion_data["endDate"] == end_date.isoformat()
     assert promotion_data["createdAt"] == promotion.created_at.isoformat()
     assert promotion_data["updatedAt"] == timezone.now().isoformat()
+    event_types = [event["type"] for event in promotion_data["events"]]
+    assert PromotionEvents.PROMOTION_UPDATED.upper() in event_types
+    assert PromotionEvents.PROMOTION_STARTED.upper() in event_types
 
     promotion.refresh_from_db()
     assert promotion.last_notification_scheduled_at == timezone.now()
@@ -129,6 +139,9 @@ def test_promotion_update_by_app(
     assert promotion_data["endDate"] == end_date.isoformat()
     assert promotion_data["createdAt"] == promotion.created_at.isoformat()
     assert promotion_data["updatedAt"] == timezone.now().isoformat()
+    event_types = [event["type"] for event in promotion_data["events"]]
+    assert PromotionEvents.PROMOTION_UPDATED.upper() in event_types
+    assert PromotionEvents.PROMOTION_ENDED.upper() in event_types
 
     promotion_updated_mock.assert_called_once_with(promotion)
     promotion_ended_mock.assert_called_once_with(promotion)
@@ -181,6 +194,11 @@ def test_promotion_update_dates_dont_change(
     assert promotion_data["endDate"] == promotion.end_date.isoformat()
     assert promotion_data["createdAt"] == promotion.created_at.isoformat()
     assert promotion_data["updatedAt"] == timezone.now().isoformat()
+
+    event_types = [event["type"] for event in promotion_data["events"]]
+    assert PromotionEvents.PROMOTION_UPDATED.upper() in event_types
+    assert PromotionEvents.PROMOTION_STARTED.upper() not in event_types
+    assert PromotionEvents.PROMOTION_ENDED.upper() not in event_types
 
     promotion.refresh_from_db()
     assert promotion.last_notification_scheduled_at == previous_notification_date
@@ -317,3 +335,35 @@ def test_promotion_update_clears_old_sale_id(
     update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
         promotion.id
     )
+
+
+def test_promotion_update_events(
+    staff_api_client, permission_group_manage_discounts, promotion
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    start_date = timezone.now() - timedelta(days=1)
+    end_date = timezone.now() + timedelta(days=10)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Promotion", promotion.id),
+        "input": {
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+        },
+    }
+    event_count = PromotionEvent.objects.count()
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionUpdate"]
+    assert not data["errors"]
+
+    event_types = {event["type"] for event in data["promotion"]["events"]}
+    assert len(event_types) == 2
+    assert PromotionEvent.objects.count() == event_count + 2
+    assert PromotionEvents.PROMOTION_UPDATED.upper() in event_types
+    assert PromotionEvents.PROMOTION_STARTED.upper() in event_types
