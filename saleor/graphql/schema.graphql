@@ -14143,9 +14143,9 @@ type Mutation {
   """
   updateWarehouse(
     """
-    External reference of an warehouse.
+    External reference of a warehouse.
     
-    Added in Saleor 3.15.
+    Added in Saleor 3.16.
     """
     externalReference: String
 
