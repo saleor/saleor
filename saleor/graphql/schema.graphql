@@ -17335,6 +17335,23 @@ type Mutation {
   ): PromotionRuleTranslate @doc(category: "Discounts")
 
   """
+  Deletes promotions.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - PROMOTION_DELETED (async): A promotion was deleted.
+  """
+  promotionBulkDelete(
+    """List of promotion IDs to delete."""
+    ids: [ID!]!
+  ): PromotionBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [PROMOTION_DELETED], syncEvents: [])
+
+  """
   Creates a new sale.
   
   DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionCreate` mutation instead. 
@@ -26815,19 +26832,21 @@ input PromotionRuleTranslationInput {
 }
 
 """
-Creates a new sale.
+Deletes promotions.
 
-DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionCreate` mutation instead. 
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
 Triggers the following webhook events:
-- SALE_CREATED (async): A sale was created.
+- PROMOTION_DELETED (async): A promotion was deleted.
 """
-type SaleCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_CREATED], syncEvents: []) {
-  discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+type PromotionBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [PROMOTION_DELETED], syncEvents: []) {
+  """Returns how many objects were affected."""
+  count: Int!
   errors: [DiscountError!]!
-  sale: Sale
 }
 
 type DiscountError @doc(category: "Discounts") {
@@ -26859,6 +26878,22 @@ enum DiscountErrorCode @doc(category: "Discounts") {
   UNIQUE
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
   DUPLICATED_INPUT_ITEM
+}
+
+"""
+Creates a new sale.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `promotionCreate` mutation instead. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- SALE_CREATED (async): A sale was created.
+"""
+type SaleCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_CREATED], syncEvents: []) {
+  discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [DiscountError!]!
+  sale: Sale
 }
 
 input SaleInput @doc(category: "Discounts") {
