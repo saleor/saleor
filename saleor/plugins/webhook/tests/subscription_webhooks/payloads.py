@@ -111,9 +111,9 @@ def generate_fulfillment_lines_payload(fulfillment):
     ]
 
 
-def generate_fulfillment_payload(fulfillment):
+def generate_fulfillment_payload(fulfillment, add_notify_customer_field=False):
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.pk)
-    return {
+    payload = {
         "fulfillment": {
             "id": fulfillment_id,
             "fulfillmentOrder": fulfillment.fulfillment_order,
@@ -125,6 +125,9 @@ def generate_fulfillment_payload(fulfillment):
             "id": graphene.Node.to_global_id("Order", fulfillment.order.pk),
         },
     }
+    if add_notify_customer_field:
+        payload["notifyCustomer"] = True
+    return payload
 
 
 def generate_address_payload(address):

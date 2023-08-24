@@ -272,7 +272,6 @@ def async_subscription_webhooks_with_root_objects(
     subscription_invoice_requested_webhook,
     subscription_invoice_deleted_webhook,
     subscription_invoice_sent_webhook,
-    subscription_fulfillment_created_webhook,
     subscription_fulfillment_canceled_webhook,
     subscription_fulfillment_approved_webhook,
     subscription_fulfillment_metadata_updated_webhook,
@@ -468,10 +467,6 @@ def async_subscription_webhooks_with_root_objects(
         events.INVOICE_REQUESTED: [subscription_invoice_requested_webhook, invoice],
         events.INVOICE_DELETED: [subscription_invoice_deleted_webhook, invoice],
         events.INVOICE_SENT: [subscription_invoice_sent_webhook, invoice],
-        events.FULFILLMENT_CREATED: [
-            subscription_fulfillment_created_webhook,
-            fulfillment,
-        ],
         events.FULFILLMENT_CANCELED: [
             subscription_fulfillment_canceled_webhook,
             fulfillment,
