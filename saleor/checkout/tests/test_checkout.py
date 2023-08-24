@@ -20,13 +20,10 @@ from ...discount.models import (
     Voucher,
     VoucherChannelListing,
 )
-from ...discount.utils import generate_sale_discount_objects_for_checkout
+from ...discount.sale_converter import convert_sales_to_promotions
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
-from ...product.models import (
-    ProductVariantChannelListing,
-    VariantChannelListingPromotionRule,
-)
+from ...product.models import VariantChannelListingPromotionRule
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingZone
 from .. import base_calculations, calculations
@@ -1198,43 +1195,45 @@ def test_recalculate_checkout_discount_percentage(
 
 
 def test_recalculate_checkout_discount_with_sale(
-    checkout_with_voucher_percentage,
-    sale,
+    checkout_with_item_on_sale,
+    voucher_percentage,
 ):
     # given
-    checkout = checkout_with_voucher_percentage
+    checkout = checkout_with_item_on_sale
+    checkout.voucher_code = voucher_percentage.code
+    voucher_discount = (
+        voucher_percentage.channel_listings.filter(channel=checkout.channel)
+        .first()
+        .discount_value
+    )
+
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    # To properly apply a sale at checkout, we need to generate discount objects.
-    generate_sale_discount_objects_for_checkout(checkout_info, lines)
-    listings_to_update = []
-    for line in lines:
-        discount = line.discounts[0]
-        line.channel_listing.discounted_price = (
-            line.channel_listing.price - discount.amount
-        )
-        listings_to_update.append(line.channel_listing)
-
-    ProductVariantChannelListing.objects.bulk_update(
-        listings_to_update, ["discounted_price_amount"]
-    )
+    convert_sales_to_promotions()
 
     # when
     recalculate_checkout_discount(manager, checkout_info, lines)
 
     # then
-    assert checkout.discount == Money("1.50", "USD")
+    discounted_subtotal = (
+        lines[0].channel_listing.discounted_price_amount * lines[0].line.quantity
+    )
+    voucher_discount = voucher_discount / 100 * discounted_subtotal
+    assert checkout.discount_amount == voucher_discount
 
     checkout.price_expiration = timezone.now()
     checkout.save()
-    assert calculations.checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout.shipping_address,
-    ).gross == Money("13.50", "USD")
+    assert (
+        calculations.checkout_total(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            address=checkout.shipping_address,
+        ).gross.amount
+        == discounted_subtotal - voucher_discount
+    )
 
 
 def test_recalculate_checkout_discount_with_promotion(
