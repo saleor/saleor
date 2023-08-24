@@ -28,7 +28,7 @@ class WarehouseUpdate(WarehouseMixin, ModelWithExtRefMutation):
         )
         external_reference = graphene.String(
             required=False,
-            description="External reference of an warehouse." + ADDED_IN_315,
+            description="External reference of a warehouse." + ADDED_IN_316,
         )
 
     @classmethod
