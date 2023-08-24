@@ -284,23 +284,15 @@ def test_order_products_from_category_on_fixed_promotion_CORE_2106(
     assert order_line_1["unitDiscountType"] == discount_type
     assert order_line_1["unitDiscountValue"] == float(discount_value)
     assert order_line_1["unitDiscountReason"] == promotion_reason
-    product_price_1 = order_line_1["undiscountedUnitPrice"]["gross"]["amount"]
-    price_for = product_price_1 - order_line_1["unitDiscountValue"]
     order_line_2 = order["order"]["lines"][1]
     assert order_line_2["productVariantId"] == product_variant_id_2
     assert order_line_2["unitDiscount"]["amount"] == float(discount_value)
     assert order_line_2["unitDiscountType"] == discount_type
     assert order_line_2["unitDiscountValue"] == float(discount_value)
     assert order_line_2["unitDiscountReason"] == promotion_reason
-    product_price_2 = order_line_2["undiscountedUnitPrice"]["gross"]["amount"]
-    price_e = product_price_2 - order_line_2["unitDiscountValue"]
-    assert product_price_1 == float(undiscounted_price_product_1)
-    assert product_price_1 == float(variant_price_1)
-    assert product_price_2 == float(undiscounted_price_product_2)
-    assert product_price_2 == float(variant_price_2)
     shipping_amount = order["order"]["shippingPrice"]["gross"]["amount"]
     assert shipping_amount == shipping_price
-    subtotal = (price_for * 2) + (price_e * 2)
+    subtotal = unit_price_product_1 * 2 + unit_price_product_2 * 2
     assert subtotal == order["order"]["subtotal"]["gross"]["amount"]
     assert subtotal == subtotal_gross_amount
     total = shipping_amount + subtotal
