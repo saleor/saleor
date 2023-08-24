@@ -135,6 +135,10 @@ ORDER_BULK_CREATE = """
                     }
                     shippingAddress{
                         postalCode
+                        metadata{
+                            key
+                            value
+                        }
                     }
                     shippingMethodName
                     shippingTaxClass{
@@ -640,6 +644,12 @@ def test_order_bulk_create(
     assert db_order.shipping_address.postal_code == graphql_address_data["postalCode"]
     assert order["billingAddress"]["metadata"] == graphql_address_data["metadata"]
     assert db_order.billing_address.metadata == {
+        graphql_address_data["metadata"][0]["key"]: graphql_address_data["metadata"][0][
+            "value"
+        ]
+    }
+    assert order["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
+    assert db_order.shipping_address.metadata == {
         graphql_address_data["metadata"][0]["key"]: graphql_address_data["metadata"][0][
             "value"
         ]
