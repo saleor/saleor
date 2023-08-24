@@ -346,6 +346,17 @@ def checkout_with_item_on_sale(checkout_with_item):
         channel_listing.price_amount - discount_amount
     )
     channel_listing.save(update_fields=["discounted_price_amount"])
+
+    CheckoutLineDiscount.objects.create(
+        line=line,
+        sale=sale,
+        type=DiscountType.SALE,
+        value_type=sale.type,
+        value=discount_amount,
+        amount_value=discount_amount * line.quantity,
+        currency=channel.currency_code,
+    )
+
     return checkout_with_item
 
 

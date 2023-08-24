@@ -22,7 +22,6 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_voucher_to_checkout
 from ....core.prices import quantize_price
 from ....discount import DiscountValueType, VoucherType
-from ....discount.utils import generate_sale_discount_objects_for_checkout
 from ....payment import TransactionAction
 from ....payment.interface import (
     ListStoredPaymentMethodsRequestData,
@@ -1637,8 +1636,6 @@ def test_checkout_prices_with_sales(
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    # To properly apply a sale at checkout, we need to generate discount objects.
-    generate_sale_discount_objects_for_checkout(checkout_info, lines)
 
     # when
     response = user_api_client.post_graphql(query, variables)
@@ -1675,8 +1672,8 @@ def test_checkout_prices_with_sales(
         lines=lines,
         checkout_line_info=line_info,
     )
-    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == round(
-        line_total_price.gross.amount / line_info.line.quantity, 2
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == float(
+        round(line_total_price.gross.amount / line_info.line.quantity, 2)
     )
     assert (
         data["lines"][0]["totalPrice"]["gross"]["amount"]
