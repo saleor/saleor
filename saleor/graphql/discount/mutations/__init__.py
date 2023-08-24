@@ -1,3 +1,4 @@
+from .promotion.promotion_bulk_delete import PromotionBulkDelete
 from .promotion.promotion_create import PromotionCreate
 from .promotion.promotion_delete import PromotionDelete
 from .promotion.promotion_rule_create import PromotionRuleCreate
@@ -36,4 +37,5 @@ __all__ = [
     "PromotionRuleCreate",
     "PromotionRuleUpdate",
     "PromotionRuleDelete",
+    "PromotionBulkDelete",
 ]
