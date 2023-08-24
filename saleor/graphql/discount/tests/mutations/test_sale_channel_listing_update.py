@@ -5,7 +5,7 @@ import graphene
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule, SaleChannelListing
-from .....discount.sale_converter import (
+from .....discount.tests.sale_converter import (
     convert_sales_to_promotions,
     create_catalogue_predicate_from_sale,
 )

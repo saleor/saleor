@@ -1,7 +1,7 @@
 import graphene
 
 from .....discount.models import Promotion
-from .....discount.sale_converter import convert_sales_to_promotions
+from .....discount.tests.sale_converter import convert_sales_to_promotions
 from . import PRIVATE_KEY, PRIVATE_VALUE, PUBLIC_KEY, PUBLIC_VALUE
 from .test_delete_metadata import (
     execute_clear_public_metadata_for_item,

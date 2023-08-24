@@ -4,10 +4,10 @@ from typing import Dict, List
 import graphene
 from django.db.models import Exists, OuterRef
 
-from ..product.models import Product
-from ..product.utils.variant_prices import update_discounted_prices_for_promotion
-from . import DiscountType
-from .models import (
+from ...product.models import Product
+from ...product.utils.variant_prices import update_discounted_prices_for_promotion
+from .. import DiscountType
+from ..models import (
     CheckoutLineDiscount,
     OrderLineDiscount,
     Promotion,
