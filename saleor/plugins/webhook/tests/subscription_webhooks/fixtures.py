@@ -658,6 +658,14 @@ def subscription_fulfillment_metadata_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_fulfillment_tracking_number_updated(subscription_webhook):
+    return subscription_webhook(
+        queries.FULFILLMENT_TRACKING_NUMBER_UPDATED,
+        WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED,
+    )
+
+
+@pytest.fixture
 def subscription_customer_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.CUSTOMER_CREATED, WebhookEventAsyncType.CUSTOMER_CREATED

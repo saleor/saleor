@@ -1181,6 +1181,15 @@ class FulfillmentBase(AbstractType):
         return fulfillment.order
 
 
+class FulfillmentTrackingNumberUpdated(SubscriptionObjectType, FulfillmentBase):
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+        root_type = "Fulfillment"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when the tracking number is updated." + ADDED_IN_316
+
+
 class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
     notify_customer = graphene.Boolean(
         description=(
@@ -2429,6 +2438,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.INVOICE_DELETED: InvoiceDeleted,
     WebhookEventAsyncType.INVOICE_SENT: InvoiceSent,
     WebhookEventAsyncType.FULFILLMENT_CREATED: FulfillmentCreated,
+    WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED: FulfillmentTrackingNumberUpdated,  # noqa: E501
     WebhookEventAsyncType.FULFILLMENT_CANCELED: FulfillmentCanceled,
     WebhookEventAsyncType.FULFILLMENT_APPROVED: FulfillmentApproved,
     WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED: FulfillmentMetadataUpdated,

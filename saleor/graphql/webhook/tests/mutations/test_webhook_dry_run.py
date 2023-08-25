@@ -275,6 +275,7 @@ def async_subscription_webhooks_with_root_objects(
     subscription_invoice_sent_webhook,
     subscription_fulfillment_canceled_webhook,
     subscription_fulfillment_metadata_updated_webhook,
+    subscription_fulfillment_tracking_number_updated,
     subscription_customer_created_webhook,
     subscription_customer_updated_webhook,
     subscription_customer_deleted_webhook,
@@ -478,6 +479,10 @@ def async_subscription_webhooks_with_root_objects(
         ],
         events.FULFILLMENT_METADATA_UPDATED: [
             subscription_fulfillment_metadata_updated_webhook,
+            fulfillment,
+        ],
+        events.FULFILLMENT_TRACKING_NUMBER_UPDATED: [
+            subscription_fulfillment_tracking_number_updated,
             fulfillment,
         ],
         events.CUSTOMER_CREATED: [subscription_customer_created_webhook, customer_user],

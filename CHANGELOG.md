@@ -26,6 +26,9 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 - Add `GIFT_CARD_EXPORT_COMPLETED` webhook - #13765, by @Air-t
   - Event sent when CSV export is completed.
 
+- Add `FULFILLMENT_TRACKING_NUMBER_UPDATED` webhook - #13708, by @Air-t
+  - Called after `fulfillmentUpdateTracking` or `orderFulfill` mutation if tracking number is updated.
+
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
 
