@@ -13,10 +13,12 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
   - Change in the CSV export. It will now use empty string for empty attribute values instead of a single whitespace value.
 
 ### GraphQL API
+- Adjust where filtering by empty values - explicit treat empty values - #13754 by @IKarbowiak
 - Add `storedPaymentMethodRequestDelete` mutation - #13660 by @korycins
 - Add `PaymentSettings` to `Channel` - #13677 by @korycins
 - Add `externalReference` to `updateWarehouse`. It will allow update warehouse by
   external reference. - #13342 by @Smit-Parmar
+
 
 ### Saleor Apps
 - Add `STORED_PAYMENT_METHOD_DELETE_REQUESTED` webhook event - #13660 by @korycins

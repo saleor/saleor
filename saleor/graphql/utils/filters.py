@@ -39,6 +39,10 @@ def filter_range_field(qs, field, value):
 
 
 def filter_by_id(object_type):
+    """Use only in standard filters.
+
+    Returns entering qs when value is empty.
+    """
     from . import resolve_global_ids_to_primary_keys
 
     def inner(qs, _, value):
@@ -50,16 +54,44 @@ def filter_by_id(object_type):
     return inner
 
 
-def filter_by_string_field(
+def filter_by_ids(object_type):
+    """Use in where filters.
+
+    Returns empty qs when value is empty.
+    """
+    from . import resolve_global_ids_to_primary_keys
+
+    def inner(qs, _, value):
+        _, obj_pks = resolve_global_ids_to_primary_keys(value, object_type)
+        return qs.filter(id__in=obj_pks)
+
+    return inner
+
+
+def filter_where_range_field(qs, field, value):
+    gte, lte = value.get("gte"), value.get("lte")
+    if gte is None and lte is None:
+        return qs.none()
+    if gte is not None:
+        lookup = {f"{field}__gte": gte}
+        qs = qs.filter(**lookup)
+    if lte is not None:
+        lookup = {f"{field}__lte": lte}
+        qs = qs.filter(**lookup)
+    return qs
+
+
+def filter_where_by_string_field(
     qs: "QuerySet", field: str, value: Dict[str, Union[str, List[str]]]
 ):
-    eq = value.get("eq")
-    one_of = value.get("one_of")
-    if eq:
-        qs = qs.filter(**{field: eq})
-    if one_of:
-        qs = qs.filter(**{f"{field}__in": one_of})
-    return qs
+    if value is None:
+        return qs.none()
+    if "eq" in value:
+        # allow filtering by `None` value
+        return qs.filter(**{field: value["eq"]})
+    if one_of := value.get("one_of"):
+        return qs.filter(**{f"{field}__in": one_of})
+    return qs.none()
 
 
 def filter_where_by_id_field(
@@ -71,11 +103,11 @@ def filter_where_by_id_field(
     one_of = value.get("one_of")
     if eq and isinstance(eq, str):
         _, pks = resolve_global_ids_to_primary_keys([eq], type, True)
-        qs = qs.filter(**{field: pks[0]})
+        return qs.filter(**{field: pks[0]})
     if one_of:
         _, pks = resolve_global_ids_to_primary_keys(one_of, type, True)
-        qs = qs.filter(**{f"{field}__in": pks})
-    return qs
+        return qs.filter(**{f"{field}__in": pks})
+    return qs.none()
 
 
 def filter_where_by_numeric_field(
@@ -83,19 +115,22 @@ def filter_where_by_numeric_field(
     field: str,
     value: Dict[str, Union[Number, List[Number], Dict[str, Number]]],
 ):
-    eq = value.get("eq")
     one_of = value.get("one_of")
     range = value.get("range")
 
-    if eq:
-        qs = qs.filter(**{field: eq})
+    if "eq" in value:
+        # allow filtering by `None` value
+        return qs.filter(**{field: value["eq"]})
     if one_of:
-        qs = qs.filter(**{f"{field}__in": one_of})
+        return qs.filter(**{f"{field}__in": one_of})
     if range and isinstance(range, dict):
         lte = range.get("lte")
         gte = range.get("gte")
+        if lte is None and gte is None:
+            return qs.none()
         if lte is not None:
             qs = qs.filter(**{f"{field}__lte": lte})
         if gte is not None:
             qs = qs.filter(**{f"{field}__gte": gte})
-    return qs
+        return qs
+    return qs.none()

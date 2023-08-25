@@ -1,8 +1,10 @@
 import django_filters
 import graphene
 from django.core.exceptions import ValidationError
-from django.forms import CharField, Field, MultipleChoiceField
+from django.db import models
+from django.forms import CharField, Field, MultipleChoiceField, NullBooleanField
 from django_filters import Filter, MultipleChoiceFilter
+from django_filters.filters import FilterMethod
 from graphql_relay import from_global_id
 
 from ..utils.filters import filter_range_field
@@ -176,3 +178,142 @@ class GlobalIDMultipleChoiceFilter(MultipleChoiceFilter):
     def filter(self, qs, value):
         gids = [from_global_id(v)[1] for v in value]
         return super(GlobalIDMultipleChoiceFilter, self).filter(qs, gids)
+
+
+class WhereFilterSet(django_filters.FilterSet):
+    """Implementation of FilterSet for where filtering.
+
+    Should be used for all where FilterSet classes.
+    """
+
+    def filter_queryset(self, queryset):
+        """Filter the queryset.
+
+        Filter the queryset with the underlying form's `cleaned_data`. You must
+        call `is_valid()` or `errors` before calling this method.
+
+        This method should be overridden if additional filtering needs to be
+        applied to the queryset before it is cached.
+        """
+        for name, value in self.form.cleaned_data.items():
+            # Ensure that we not filter by fields that were not provided in the input.
+            # The cleaned_data has all filter fields, but we only want to filter
+            # by those that were specified in the query.
+            if name not in self.form.data:
+                continue
+            queryset = self.filters[name].filter(queryset, value)
+            assert isinstance(
+                queryset, models.QuerySet
+            ), "Expected '%s.%s' to return a QuerySet, but got a %s instead." % (
+                type(self).__name__,
+                name,
+                type(queryset).__name__,
+            )
+        return queryset
+
+
+class MetadataWhereFilterBase(WhereFilterSet):
+    metadata = ListObjectTypeFilter(input_class=MetadataFilter, method=filter_metadata)
+
+    class Meta:
+        abstract = True
+
+
+class WhereFilter(Filter):
+    def method():  # type: ignore
+        # Filter method needs to be lazily resolved, as it may be dependent on
+        # the 'parent' FilterSet.
+
+        def fget(self):
+            return self._method
+
+        def fset(self, value):
+            self._method = value
+
+            # clear existing FilterMethod
+            if isinstance(self.filter, WhereFilterMethod):
+                del self.filter
+
+            # override filter w/ FilterMethod.
+            if value is not None:
+                self.filter = WhereFilterMethod(self)
+
+        return locals()
+
+    method = property(**method())  # type: ignore
+
+    def filter(self, qs, value):
+        if self.distinct:
+            qs = qs.distinct()
+        lookup = "%s__%s" % (self.field_name, self.lookup_expr)
+        qs = self.get_method(qs)(**{lookup: value})
+        return qs
+
+
+class WhereFilterMethod(FilterMethod):
+    def __call__(self, qs, value):
+        """Override the default FilterMethod to allow filtering by empty values."""
+        return self.method(qs, self.f.field_name, value)
+
+
+class ObjectTypeWhereFilter(WhereFilter):
+    def __init__(self, input_class, *args, **kwargs):
+        self.input_class = input_class
+        super().__init__(*args, **kwargs)
+
+
+class OperationObjectTypeWhereFilter(WhereFilter):
+    field_class = DefaultOperationField
+
+    def __init__(self, input_class, *args, **kwargs):
+        self.input_class = input_class
+        super().__init__(*args, **kwargs)
+
+
+class ListObjectTypeWhereFilter(MultipleChoiceFilter, WhereFilter):
+    field_class = DefaultMultipleChoiceField
+
+    def __init__(self, input_class, *args, **kwargs):
+        self.input_class = input_class
+        super().__init__(*args, **kwargs)
+
+
+class BooleanWhereFilter(WhereFilter):
+    field_class = NullBooleanField
+
+
+class CharWhereFilter(WhereFilter):
+    field_class = CharField
+
+
+class EnumWhereFilter(CharWhereFilter):
+    """Wheer filter class for Graphene enum object.
+
+    enum_class needs to be passed explicitly as well as the method.
+    """
+
+    def __init__(self, input_class, *args, **kwargs):
+        assert kwargs.get(
+            "method"
+        ), "Providing exact filter method is required for EnumFilter"
+        self.input_class = input_class
+        super().__init__(*args, **kwargs)
+
+
+class GlobalIDMultipleChoiceWhereFilter(MultipleChoiceFilter, WhereFilter):
+    field_class = GlobalIDMultipleChoiceField
+
+    def filter(self, qs, value):
+        gids = [from_global_id(v)[1] for v in value]
+        return super(GlobalIDMultipleChoiceWhereFilter, self).filter(qs, gids)
+
+
+class GlobalIDWhereFilter(WhereFilter):
+    field_class = GlobalIDFormField
+
+    def filter(self, qs, value):
+        """Convert the filter value to a primary key before filtering."""
+        _id = None
+        if value is not None:
+            _, _id = from_global_id(value)
+        return super(GlobalIDFilter, self).filter(qs, _id)  # type: ignore

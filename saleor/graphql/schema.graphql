@@ -6494,9 +6494,6 @@ Added in Saleor 3.11.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 input AttributeWhereInput @doc(category: "Attributes") {
-  valueRequired: Boolean
-  visibleInStorefront: Boolean
-  filterableInDashboard: Boolean
   metadata: [MetadataFilter!]
   ids: [ID!]
   name: StringFilterInput
@@ -6508,6 +6505,9 @@ input AttributeWhereInput @doc(category: "Attributes") {
   unit: MeasurementUnitsEnumFilterInput
   inCollection: ID
   inCategory: ID
+  valueRequired: Boolean
+  visibleInStorefront: Boolean
+  filterableInDashboard: Boolean
 
   """List of conditions that must be met."""
   AND: [AttributeWhereInput!]

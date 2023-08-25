@@ -423,3 +423,29 @@ def test_collections_where_by_ids(api_client, collection_list, channel_USD):
         collection_list[0].slug,
         collection_list[1].slug,
     }
+
+
+def test_collections_where_by_none_as_ids(api_client, collection_list, channel_USD):
+    # given
+    variables = {"channel": channel_USD.slug, "where": {"AND": [{"ids": None}]}}
+
+    # when
+    response = api_client.post_graphql(COLLECTION_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    collections = data["data"]["collections"]["edges"]
+    assert len(collections) == 0
+
+
+def test_collections_where_by_ids_empty_list(api_client, collection_list, channel_USD):
+    # given
+    variables = {"channel": channel_USD.slug, "where": {"ids": []}}
+
+    # when
+    response = api_client.post_graphql(COLLECTION_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    collections = data["data"]["collections"]["edges"]
+    assert len(collections) == 0
