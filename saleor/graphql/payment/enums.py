@@ -1,3 +1,5 @@
+import graphene
+
 from ...payment import (
     ChargeStatus,
     StorePaymentMethod,
@@ -6,6 +8,7 @@ from ...payment import (
     TransactionEventType,
     TransactionKind,
 )
+from ...payment.interface import StoredPaymentMethodRequestDeleteResult
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.enums import to_enum
 from ..core.types import BaseEnum
@@ -79,4 +82,8 @@ TokenizedPaymentFlowEnum = to_enum(
     TokenizedPaymentFlow,
     type_name="TokenizedPaymentFlowEnum",
     description=TokenizedPaymentFlow.__doc__,
+)
+
+StoredPaymentMethodRequestDeleteResultEnum = graphene.Enum.from_enum(
+    StoredPaymentMethodRequestDeleteResult,
 )

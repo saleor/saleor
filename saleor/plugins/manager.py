@@ -43,6 +43,7 @@ from ..payment.interface import (
     PaymentMethodData,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
+    StoredPaymentMethodRequestDeleteResult,
     TokenConfig,
     TransactionActionData,
     TransactionSessionData,
@@ -1551,7 +1552,8 @@ class PluginsManager(PaymentInterface):
         request_delete_data: "StoredPaymentMethodRequestDeleteData",
     ) -> "StoredPaymentMethodRequestDeleteResponseData":
         default_response = StoredPaymentMethodRequestDeleteResponseData(
-            success=False, message="Payment method request delete failed to deliver."
+            result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
+            error="Payment method request delete failed to deliver.",
         )
         response = self.__run_method_on_plugins(
             "stored_payment_method_request_delete",

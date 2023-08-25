@@ -23201,12 +23201,24 @@ Triggers the following webhook events:
 - STORED_PAYMENT_METHOD_DELETE_REQUESTED (sync): The customer requested to delete a payment method.
 """
 type StoredPaymentMethodRequestDelete @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [STORED_PAYMENT_METHOD_DELETE_REQUESTED]) {
-  """True, if the delete request was processed successfully."""
-  success: Boolean
-
-  """A message returned by payment app."""
-  message: String
+  """The result of deleting a stored payment method."""
+  result: StoredPaymentMethodRequestDeleteResult!
   errors: [PaymentMethodRequestDeleteError!]!
+}
+
+"""
+Result of deleting a stored payment method.
+
+    This enum is used to determine the result of deleting a stored payment method.
+    SUCCESSFULLY_DELETED - The stored payment method was successfully deleted.
+    FAILED_TO_DELETE - The stored payment method was not deleted.
+    FAILED_TO_DELIVER - The request to delete the stored payment method was not
+    delivered.
+"""
+enum StoredPaymentMethodRequestDeleteResult {
+  SUCCESSFULLY_DELETED
+  FAILED_TO_DELETE
+  FAILED_TO_DELIVER
 }
 
 type PaymentMethodRequestDeleteError @doc(category: "Payments") {
@@ -23228,6 +23240,7 @@ enum StoredPaymentMethodRequestDeleteErrorCode @doc(category: "Payments") {
   INVALID
   NOT_FOUND
   CHANNEL_INACTIVE
+  GATEWAY_ERROR
 }
 
 """

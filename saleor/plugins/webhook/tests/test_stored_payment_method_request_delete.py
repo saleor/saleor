@@ -9,6 +9,7 @@ from ....payment.interface import (
     ListStoredPaymentMethodsRequestData,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
+    StoredPaymentMethodRequestDeleteResult,
 )
 from ....settings import WEBHOOK_SYNC_TIMEOUT
 from ....webhook.event_types import WebhookEventSyncType
@@ -35,7 +36,9 @@ subscription {
 
 @pytest.fixture
 def webhook_stored_payment_method_request_delete_response():
-    return {"success": True, "message": "Payment method deleted successfully"}
+    return {
+        "result": StoredPaymentMethodRequestDeleteResult.SUCCESSFULLY_DELETED.name,
+    }
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
@@ -63,7 +66,8 @@ def test_stored_payment_method_request_delete_with_static_payload(
     )
 
     previous_value = StoredPaymentMethodRequestDeleteResponseData(
-        success=False, message="Payment method request delete failed to deliver."
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
+        error="Payment method request delete failed to deliver.",
     )
 
     # when
@@ -83,8 +87,7 @@ def test_stored_payment_method_request_delete_with_static_payload(
     mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
-        success=True,
-        message=webhook_stored_payment_method_request_delete_response["message"],
+        result=StoredPaymentMethodRequestDeleteResult.SUCCESSFULLY_DELETED, error=None
     )
 
 
@@ -117,7 +120,8 @@ def test_stored_payment_method_request_delete_with_subscription_payload(
     )
 
     previous_value = StoredPaymentMethodRequestDeleteResponseData(
-        success=False, message="Payment method request delete failed to deliver."
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
+        error="Payment method request delete failed to deliver.",
     )
 
     # when
@@ -137,13 +141,12 @@ def test_stored_payment_method_request_delete_with_subscription_payload(
     mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
-        success=True,
-        message=webhook_stored_payment_method_request_delete_response["message"],
+        result=StoredPaymentMethodRequestDeleteResult.SUCCESSFULLY_DELETED, error=None
     )
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_stored_payment_method_request_delete_missing_correct_response_from_webhook(
+def test_stored_payment_method_request_delete_missing_response_from_webhook(
     mock_request,
     customer_user,
     webhook_plugin,
@@ -171,7 +174,8 @@ def test_stored_payment_method_request_delete_missing_correct_response_from_webh
     )
 
     previous_value = StoredPaymentMethodRequestDeleteResponseData(
-        success=False, message="Payment method request delete failed to deliver."
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
+        error="Payment method request delete failed to deliver.",
     )
 
     # when
@@ -185,7 +189,106 @@ def test_stored_payment_method_request_delete_missing_correct_response_from_webh
     mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
-        success=False, message="Failed to delivery request."
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
+        error="Failed to delivery request.",
+    )
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_stored_payment_method_request_delete_incorrect_result_response_from_webhook(
+    mock_request,
+    customer_user,
+    webhook_plugin,
+    stored_payment_method_request_delete_app,
+    webhook_stored_payment_method_request_delete_response,
+    channel_USD,
+):
+    # given
+    mock_request.return_value = {"result": "incorrect_result"}
+
+    webhook = stored_payment_method_request_delete_app.webhooks.first()
+    webhook.subscription_query = STORED_PAYMENT_METHOD_DELETE_REQUESTED
+    webhook.save()
+
+    plugin = webhook_plugin()
+
+    payment_method_id = "123"
+
+    request_delete_data = StoredPaymentMethodRequestDeleteData(
+        user=customer_user,
+        payment_method_id=to_payment_app_id(
+            stored_payment_method_request_delete_app, payment_method_id
+        ),
+        channel=channel_USD,
+    )
+
+    previous_value = StoredPaymentMethodRequestDeleteResponseData(
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
+        error="Payment method request delete failed to deliver.",
+    )
+
+    # when
+    response = plugin.stored_payment_method_request_delete(
+        request_delete_data, previous_value
+    )
+
+    # then
+    delivery = EventDelivery.objects.get()
+
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+
+    assert response == StoredPaymentMethodRequestDeleteResponseData(
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
+        error="Missing or incorrect `result` in response.",
+    )
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_stored_payment_method_request_delete_missing_result_in_response_from_webhook(
+    mock_request,
+    customer_user,
+    webhook_plugin,
+    stored_payment_method_request_delete_app,
+    webhook_stored_payment_method_request_delete_response,
+    channel_USD,
+):
+    # given
+    mock_request.return_value = {}
+
+    webhook = stored_payment_method_request_delete_app.webhooks.first()
+    webhook.subscription_query = STORED_PAYMENT_METHOD_DELETE_REQUESTED
+    webhook.save()
+
+    plugin = webhook_plugin()
+
+    payment_method_id = "123"
+
+    request_delete_data = StoredPaymentMethodRequestDeleteData(
+        user=customer_user,
+        payment_method_id=to_payment_app_id(
+            stored_payment_method_request_delete_app, payment_method_id
+        ),
+        channel=channel_USD,
+    )
+
+    previous_value = StoredPaymentMethodRequestDeleteResponseData(
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
+        error="Payment method request delete failed to deliver.",
+    )
+
+    # when
+    response = plugin.stored_payment_method_request_delete(
+        request_delete_data, previous_value
+    )
+
+    # then
+    delivery = EventDelivery.objects.get()
+
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+
+    assert response == StoredPaymentMethodRequestDeleteResponseData(
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
+        error="Missing or incorrect `result` in response.",
     )
 
 
@@ -238,7 +341,8 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     )
 
     previous_value = StoredPaymentMethodRequestDeleteResponseData(
-        success=False, message="Payment method request delete failed to deliver."
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
+        error="Payment method request delete failed to deliver.",
     )
 
     data = ListStoredPaymentMethodsRequestData(
@@ -290,6 +394,5 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     mocked_request.assert_called_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
-        success=True,
-        message=webhook_stored_payment_method_request_delete_response["message"],
+        result=StoredPaymentMethodRequestDeleteResult.SUCCESSFULLY_DELETED, error=None
     )
