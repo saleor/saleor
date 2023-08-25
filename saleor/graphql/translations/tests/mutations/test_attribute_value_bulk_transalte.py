@@ -45,7 +45,7 @@ def test_attribute_value_bulk_translate_creates_translations(
     # given
     value = color_attribute.values.first()
     value_global_id = graphene.Node.to_global_id("AttributeValue", value.id)
-    expected_text = "Nowy Kolor"
+    expected_text = "Nowy Kolor" * 250
     expected_rich_text = json.dumps(dummy_editorjs(expected_text))
 
     assert value.translations.count() == 0

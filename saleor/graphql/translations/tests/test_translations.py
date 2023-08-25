@@ -2277,7 +2277,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_long_text(
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.id
     )
-    expected_base_text = "Nowy Opis. " * 255
+    expected_base_text = "Nowy Opis. " * 250
     expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
 
     # when
@@ -2294,7 +2294,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_long_text(
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
     assert (
-        data["attributeValue"]["translation"]["name"] == expected_base_text[:254] + "…"
+        data["attributeValue"]["translation"]["name"] == expected_base_text[:249] + "…"
     )
     assert data["attributeValue"]["translation"]["richText"] == expected_rich_text
 
@@ -2467,7 +2467,7 @@ def test_plain_text_attribute_value_update_translation_only_plain_text_long_text
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.id
     )
-    expected_base_text = "Nowy Opis. " * 255
+    expected_base_text = "Nowy Opis. " * 250
 
     # when
     response = staff_api_client.post_graphql(
@@ -2483,7 +2483,7 @@ def test_plain_text_attribute_value_update_translation_only_plain_text_long_text
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
     assert (
-        data["attributeValue"]["translation"]["name"] == expected_base_text[:254] + "…"
+        data["attributeValue"]["translation"]["name"] == expected_base_text[:249] + "…"
     )
     assert data["attributeValue"]["translation"]["plainText"] == expected_base_text
 

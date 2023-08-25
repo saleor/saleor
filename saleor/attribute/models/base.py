@@ -112,8 +112,8 @@ AttributeManager = models.Manager.from_queryset(AttributeQuerySet)
 
 
 class Attribute(ModelWithMetadata, ModelWithExternalReference):
-    slug = models.SlugField(max_length=250, unique=True, allow_unicode=True)
-    name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+    name = models.CharField(max_length=250)
     type = models.CharField(max_length=50, choices=AttributeType.CHOICES)
 
     input_type = models.CharField(
@@ -214,7 +214,7 @@ class AttributeTranslation(Translation):
 
 
 class AttributeValue(SortableModel, ModelWithExternalReference):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=250)
     # keeps hex code color value in #RRGGBBAA format
     value = models.CharField(max_length=255, blank=True, default="")
     slug = models.SlugField(max_length=255, allow_unicode=True)
@@ -278,7 +278,7 @@ class AttributeValueTranslation(Translation):
     attribute_value = models.ForeignKey(
         AttributeValue, related_name="translations", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=250)
     rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     plain_text = models.TextField(
         blank=True,

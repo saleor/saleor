@@ -142,8 +142,8 @@ class AttributeValueBulkTranslate(BaseBulkTranslateMutation):
         if input_data.get("name") is None:
             if instance.attribute.input_type == AttributeInputType.RICH_TEXT:
                 input_data["name"] = truncatechars(
-                    clean_editor_js(input_data["rich_text"], to_string=True), 255
+                    clean_editor_js(input_data["rich_text"], to_string=True), 250
                 )
             elif instance.attribute.input_type == AttributeInputType.PLAIN_TEXT:
-                input_data["name"] = truncatechars(input_data["plain_text"], 255)
+                input_data["name"] = truncatechars(input_data["plain_text"], 250)
         return input_data
