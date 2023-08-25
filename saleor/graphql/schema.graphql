@@ -18287,6 +18287,7 @@ type Mutation {
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for account email change.
+  - ACCOUNT_CHANGE_EMAIL_REQUESTED (async): An account email change was requested.
   """
   requestEmailChange(
     """
@@ -18304,7 +18305,7 @@ type Mutation {
     URL of a view where users should be redirected to update the email address. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): RequestEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+  ): RequestEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CHANGE_EMAIL_REQUESTED], syncEvents: [])
 
   """
   Confirm the email change of the logged-in user. 
@@ -18420,6 +18421,7 @@ type Mutation {
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for account delete request.
+  - ACCOUNT_DELETE_REQUESTED (async): An account delete requested.
   """
   accountRequestDeletion(
     """
@@ -18431,7 +18433,7 @@ type Mutation {
     URL of a view where users should be redirected to delete their account. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+  ): AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_DELETE_REQUESTED], syncEvents: [])
 
   """
   Remove user account. 
@@ -28642,8 +28644,9 @@ Requires one of the following permissions: AUTHENTICATED_USER.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for account email change.
+- ACCOUNT_CHANGE_EMAIL_REQUESTED (async): An account email change was requested.
 """
-type RequestEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+type RequestEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CHANGE_EMAIL_REQUESTED], syncEvents: []) {
   """A user instance."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -28819,8 +28822,9 @@ Requires one of the following permissions: AUTHENTICATED_USER.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for account delete request.
+- ACCOUNT_DELETE_REQUESTED (async): An account delete requested.
 """
-type AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+type AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_DELETE_REQUESTED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
 }
