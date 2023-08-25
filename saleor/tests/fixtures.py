@@ -5602,7 +5602,11 @@ def promotion_rule(channel_USD, promotion, product):
         name="Promotion rule name",
         promotion=promotion,
         description=dummy_editorjs("Test description for percentage promotion rule."),
-        catalogue_predicate={"productPredicate": {"ids": [product.id]}},
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", product.id)]
+            }
+        },
         reward_value_type=RewardValueType.PERCENTAGE,
         reward_value=Decimal("25"),
     )

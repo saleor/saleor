@@ -7,7 +7,6 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import add_variant_to_checkout
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
-from ...discount.utils import create_or_update_discount_objects_from_sale_for_checkout
 from ...plugins.manager import get_plugins_manager
 from ...tax.models import TaxClassCountryRate
 from .. import TaxCalculationStrategy
@@ -81,7 +80,7 @@ def test_calculate_checkout_total(
     ],
 )
 def test_calculate_checkout_total_with_sale(
-    checkout_with_item,
+    checkout_with_item_on_promotion,
     address,
     shipping_zone,
     voucher,
@@ -93,7 +92,7 @@ def test_calculate_checkout_total_with_sale(
     channel_USD,
 ):
     # given
-    checkout = checkout_with_item
+    checkout = checkout_with_item_on_promotion
     _enable_flat_rates(checkout, prices_entered_with_tax)
 
     checkout.shipping_address = address
@@ -110,9 +109,6 @@ def test_calculate_checkout_total_with_sale(
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, lines, [discount_info]
-    )
 
     # when
     update_checkout_prices_with_flat_rates(
@@ -251,7 +247,7 @@ def test_calculate_checkout_total_with_shipping_voucher(
     ],
 )
 def test_calculate_checkout_total_with_shipping_voucher_and_sale(
-    checkout_with_item,
+    checkout_with_item_on_promotion,
     address,
     shipping_zone,
     discount_info,
@@ -262,7 +258,7 @@ def test_calculate_checkout_total_with_shipping_voucher_and_sale(
     prices_entered_with_tax,
 ):
     # given
-    checkout = checkout_with_item
+    checkout = checkout_with_item_on_promotion
     _enable_flat_rates(checkout, prices_entered_with_tax)
 
     manager = get_plugins_manager()
@@ -281,9 +277,6 @@ def test_calculate_checkout_total_with_shipping_voucher_and_sale(
 
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, lines, [discount_info]
-    )
 
     # when
     update_checkout_prices_with_flat_rates(
@@ -348,25 +341,15 @@ def test_calculate_checkout_subtotal(
     )
 
 
-@pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
-    [
-        ("20.33", "25.00", True),
-        ("25.00", "30.75", False),
-    ],
-)
-def test_calculate_checkout_subtotal_with_sale(
-    checkout_with_item,
+def test_calculate_checkout_subtotal_with_promotion_prices_entered_with_tax(
+    checkout_with_item_on_promotion,
     address,
     shipping_zone,
-    discount_info,
-    expected_net,
-    expected_gross,
-    prices_entered_with_tax,
     stock,
 ):
     # given
-    checkout = checkout_with_item
+    checkout = checkout_with_item_on_promotion
+    prices_entered_with_tax = True
     _enable_flat_rates(checkout, prices_entered_with_tax)
 
     variant = stock.product_variant
@@ -381,9 +364,6 @@ def test_calculate_checkout_subtotal_with_sale(
     checkout_info = fetch_checkout_info(checkout, [], manager)
     add_variant_to_checkout(checkout_info, variant, 2)
     lines, _ = fetch_checkout_lines(checkout)
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, lines, [discount_info]
-    )
 
     # when
     update_checkout_prices_with_flat_rates(
@@ -395,8 +375,59 @@ def test_calculate_checkout_subtotal_with_sale(
     )
 
     # then
+    subtotal = Decimal("0.00")
+    for line_info in lines:
+        subtotal += (
+            line_info.channel_listing.discounted_price_amount * line_info.line.quantity
+        )
     assert checkout.subtotal == TaxedMoney(
-        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+        net=Money(round(subtotal / Decimal("1.23"), 2), "USD"),
+        gross=Money(subtotal, "USD"),
+    )
+
+
+def test_calculate_checkout_subtotal_with_promotion_prices_not_entered_with_tax(
+    checkout_with_item_on_promotion,
+    address,
+    shipping_zone,
+    stock,
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+    prices_entered_with_tax = False
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+
+    variant = stock.product_variant
+    product = variant.product
+    product.tax_class.country_rates.update_or_create(country=address.country, rate=23)
+
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_zone.shipping_methods.get()
+    checkout.save()
+
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, [], manager)
+    add_variant_to_checkout(checkout_info, variant, 2)
+    lines, _ = fetch_checkout_lines(checkout)
+
+    # when
+    update_checkout_prices_with_flat_rates(
+        checkout,
+        checkout_info,
+        lines,
+        prices_entered_with_tax,
+        address,
+    )
+
+    # then
+    subtotal = Decimal("0.00")
+    for line_info in lines:
+        subtotal += (
+            line_info.channel_listing.discounted_price_amount * line_info.line.quantity
+        )
+    assert checkout.subtotal == TaxedMoney(
+        net=Money(subtotal, "USD"),
+        gross=Money(round(subtotal * Decimal("1.23"), 2), "USD"),
     )
 
 

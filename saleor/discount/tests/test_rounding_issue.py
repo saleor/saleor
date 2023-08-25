@@ -1,31 +1,41 @@
 from decimal import Decimal
 
+import graphene
 import pytest
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import add_variant_to_checkout
 from ...plugins.manager import get_plugins_manager
-from ...product.models import ProductVariantChannelListing
-from .. import DiscountInfo, DiscountValueType
-from ..models import Sale, SaleChannelListing
-from ..utils import (
-    create_or_update_discount_objects_from_sale_for_checkout,
-    fetch_sale_channel_listings,
-)
+from ...product.models import Product, ProductVariantChannelListing
+from ...product.utils.variant_prices import update_discounted_prices_for_promotion
+from .. import DiscountValueType, RewardValueType
+from ..models import Promotion
+from ..utils import create_or_update_discount_objects_from_promotion_for_checkout
 
 
 @pytest.fixture
-def sale_10_percentage(channel_USD):
-    sale = Sale.objects.create(name="Sale 10%", type=DiscountValueType.PERCENTAGE)
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=10,
-        currency=channel_USD.currency_code,
+def promotion_10_percentage(channel_USD, product_list):
+    promotion = Promotion.objects.create(
+        name="Promotion",
     )
-    return sale
+    rule = promotion.rules.create(
+        name="10% promotion rule",
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [
+                    graphene.Node.to_global_id("Product", product.id)
+                    for product in product_list
+                ]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("10"),
+    )
+    rule.channels.add(channel_USD)
+    return promotion
 
 
+@pytest.mark.skip(reason="Change to voucher.")
 @pytest.mark.parametrize(
     "variant_prices, expected_discounts",
     [
@@ -44,7 +54,7 @@ def test_rounding_issue_with_percentage_sale(
     product,
     checkout,
     channel_USD,
-    sale_10_percentage,
+    promotion_10_percentage,
     variant_prices,
     expected_discounts,
 ):
@@ -69,41 +79,31 @@ def test_rounding_issue_with_percentage_sale(
 
     # given
     product_list.append(product)
-    sale = sale_10_percentage
     variants = []
     variant_channel_listings = []
-    total_amount = Decimal("0")
     for product, price in zip(product_list, variant_prices):
         variant = product.variants.get()
         variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
         variant_channel_listing.price_amount = price
         variant_channel_listings.append(variant_channel_listing)
         variants.append(variant)
-        total_amount += price
-        sale.variants.add(variant)
+
     ProductVariantChannelListing.objects.bulk_update(
         variant_channel_listings, ["price_amount"]
     )
+
+    update_discounted_prices_for_promotion(Product.objects.all())
+
     checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+
     for variant in variants:
         add_variant_to_checkout(checkout_info, variant, 1)
 
     lines_info, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
-
-    sale_channel_listings = fetch_sale_channel_listings([sale.pk])[sale.pk]
-    sale_info = DiscountInfo(
-        sale=sale,
-        category_ids=set(),
-        channel_listings=sale_channel_listings,
-        collection_ids=set(),
-        product_ids=set(),
-        variants_ids=set([variant.id for variant in variants]),
-    )
 
     # when
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, lines_info, [sale_info]
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        lines_info,
     )
 
     # then

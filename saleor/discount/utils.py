@@ -18,7 +18,6 @@ from typing import (
 )
 from uuid import UUID
 
-from babel.numbers import get_currency_precision
 from django.conf import settings
 from django.db.models import Exists, F, OuterRef, QuerySet
 from django.utils import timezone
@@ -35,7 +34,6 @@ from .models import (
     PromotionRule,
     Sale,
     SaleChannelListing,
-    SaleTranslation,
     VoucherCustomer,
 )
 
@@ -47,8 +45,6 @@ if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
     from ..product.managers import ProductVariantQueryset
     from ..product.models import (
-        Collection,
-        Product,
         ProductVariantChannelListing,
         VariantChannelListingPromotionRule,
     )
@@ -95,96 +91,6 @@ def release_voucher_usage(voucher: Optional["Voucher"], user_email: Optional[str
         remove_voucher_usage_by_customer(voucher, user_email)
 
 
-def get_product_discount_on_sale(
-    product: "Product",
-    product_collections: Set[int],
-    discount: DiscountInfo,
-    channel: "Channel",
-    variant_id: Optional[int] = None,
-) -> Tuple[int, Callable]:
-    """Return sale id, discount value if product is on sale or raise NotApplicable."""
-    is_product_on_sale = (
-        product.id in discount.product_ids
-        or product.category_id in discount.category_ids
-        or bool(product_collections.intersection(discount.collection_ids))
-    )
-    is_variant_on_sale = variant_id and variant_id in discount.variants_ids
-    if is_product_on_sale or is_variant_on_sale:
-        sale_channel_listing = discount.channel_listings.get(channel.slug)
-        return discount.sale.id, discount.sale.get_discount(sale_channel_listing)
-    raise NotApplicable("Discount not applicable for this product")
-
-
-def get_product_discounts(
-    *,
-    product: "Product",
-    collection_ids: Set[int],
-    discounts: Iterable[DiscountInfo],
-    channel: "Channel",
-    variant_id: Optional[int] = None,
-) -> Iterator[Tuple[int, Callable]]:
-    """Return sale ids, discount values for all discounts applicable to a product."""
-    for discount in discounts:
-        try:
-            yield get_product_discount_on_sale(
-                product, collection_ids, discount, channel, variant_id=variant_id
-            )
-        except NotApplicable:
-            pass
-
-
-def get_sale_id_with_min_price(
-    *,
-    product: "Product",
-    price: Money,
-    collection_ids: Set[int],
-    discounts: Optional[Iterable[DiscountInfo]],
-    channel: "Channel",
-    variant_id: Optional[int] = None,
-) -> Tuple[Optional[int], Money]:
-    """Return a sale_id and minimum product's price."""
-    available_discounts = [
-        (sale_id, discount)
-        for sale_id, discount in get_product_discounts(
-            product=product,
-            collection_ids=collection_ids,
-            discounts=discounts or [],
-            channel=channel,
-            variant_id=variant_id,
-        )
-    ]
-    if not available_discounts:
-        return None, price
-
-    applied_discount = min(
-        [(sale_id, discount(price)) for sale_id, discount in available_discounts],
-        key=lambda d: d[1],  # sort over a min price
-    )
-    return applied_discount
-
-
-def calculate_discounted_price(
-    *,
-    product: "Product",
-    price: Money,
-    collection_ids: Set[int],
-    discounts: Optional[Iterable[DiscountInfo]],
-    channel: "Channel",
-    variant_id: Optional[int] = None,
-) -> Money:
-    """Return minimum product's price of all prices with discounts applied."""
-    if discounts:
-        _, price = get_sale_id_with_min_price(
-            product=product,
-            price=price,
-            collection_ids=collection_ids,
-            discounts=discounts,
-            channel=channel,
-            variant_id=variant_id,
-        )
-    return price
-
-
 def calculate_discounted_price_for_rules(
     *, price: Money, rules: Iterable["PromotionRule"], currency: str
 ):
@@ -198,31 +104,6 @@ def calculate_discounted_price_for_rules(
         total_discount += price - discount(price)
 
     return max(price - total_discount, zero_money(currency))
-
-
-def get_sale_id_applied_as_a_discount(
-    *,
-    product: "Product",
-    price: Money,
-    collections: Iterable["Collection"],
-    discounts: Optional[Iterable[DiscountInfo]],
-    channel: "Channel",
-    variant_id: Optional[int] = None,
-) -> Optional[int]:
-    """Return an ID of Sale applied to product."""
-    if not discounts:
-        return None
-
-    collection_ids = {collection.id for collection in collections}
-    sale_id, _ = get_sale_id_with_min_price(
-        product=product,
-        price=price,
-        collection_ids=collection_ids,
-        discounts=discounts,
-        channel=channel,
-        variant_id=variant_id,
-    )
-    return sale_id
 
 
 def calculate_discounted_price_for_promotions(
@@ -488,28 +369,6 @@ def fetch_sale_channel_listings(
     return channel_listings_map
 
 
-def fetch_discounts(date: datetime.date) -> List[DiscountInfo]:
-    sales = list(Sale.objects.active(date))
-    pks = {s.pk for s in sales}
-    collections = fetch_collections(pks)
-    channel_listings = fetch_sale_channel_listings(pks)
-    products = fetch_products(pks)
-    categories = fetch_categories(pks)
-    variants = fetch_variants(pks)
-
-    return [
-        DiscountInfo(
-            sale=sale,
-            category_ids=categories[sale.pk],
-            channel_listings=channel_listings[sale.pk],
-            collection_ids=collections[sale.pk],
-            product_ids=products[sale.pk],
-            variants_ids=variants[sale.pk],
-        )
-        for sale in sales
-    ]
-
-
 def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
     catalogue_info: CatalogueInfo = defaultdict(set)
     for sale_data in Sale.objects.filter(id=instance.id).values(*CATALOGUE_FIELDS):
@@ -717,96 +576,6 @@ def _apply_fixed_sale_on_lines(
                 }
 
 
-def create_or_update_discount_objects_from_sale_for_checkout(
-    checkout_info: "CheckoutInfo",
-    lines_info: Iterable["CheckoutLineInfo"],
-    sales_info: Iterable[DiscountInfo],
-):
-    line_discounts_to_create = []
-    line_discounts_to_update = []
-    updated_fields = []
-
-    currency_precision = Decimal("0.1") ** get_currency_precision(
-        checkout_info.checkout.currency
-    )
-
-    sales_data_by_line_map: Dict[UUID, dict] = defaultdict(dict)
-
-    for sale_info in sales_info:
-        if sale_info.sale.type == DiscountValueType.FIXED:
-            _apply_fixed_sale_on_lines(lines_info, sale_info, sales_data_by_line_map)
-
-        else:
-            _apply_percentage_sale_on_lines(
-                lines_info, sale_info, sales_data_by_line_map, currency_precision
-            )
-
-    for line_info in lines_info:
-        line = line_info.line
-        sale = sales_data_by_line_map[line.id].get("sale")
-        sale_channel_listing = sales_data_by_line_map[line.id].get(
-            "sale_channel_listing"
-        )
-        discount_amount = sales_data_by_line_map[line.id].get("best_discount_amount")
-
-        if sale and sale_channel_listing and discount_amount:
-            sale = cast(Sale, sale)
-            sale_channel_listing = cast(SaleChannelListing, sale_channel_listing)
-
-            # Fetch Sale translation
-            translation_language_code = checkout_info.checkout.language_code
-            sale_translation = SaleTranslation.objects.filter(
-                sale_id=sale.pk, language_code=translation_language_code
-            ).first()
-            translated_name = None
-            if sale_translation:
-                translated_name = sale_translation.name
-            discount_to_update = line_info.get_sale_discount()
-            if not discount_to_update:
-                line_discount = CheckoutLineDiscount(
-                    line=line,
-                    type=DiscountType.SALE,
-                    value_type=sale.type,
-                    value=sale_channel_listing.discount_value,
-                    amount_value=discount_amount,
-                    currency=line.currency,
-                    name=sale.name,
-                    translated_name=translated_name,
-                    reason=None,
-                    sale=sale,
-                )
-                line_discounts_to_create.append(line_discount)
-                line_info.discounts.append(line_discount)
-            else:
-                if discount_to_update.value_type != sale.type:
-                    discount_to_update.value_type = sale.type
-                    updated_fields.append("value_type")
-                if discount_to_update.value != sale_channel_listing.discount_value:
-                    discount_to_update.value = sale_channel_listing.discount_value
-                    updated_fields.append("value")
-                if discount_to_update.amount_value != discount_amount:
-                    discount_to_update.amount_value = discount_amount
-                    updated_fields.append("amount_value")
-                if discount_to_update.name != sale.name:
-                    discount_to_update.name = sale.name
-                    updated_fields.append("name")
-                if discount_to_update.translated_name != translated_name:
-                    discount_to_update.translated_name = translated_name
-                    updated_fields.append("translated_name")
-                if discount_to_update.sale != sale:
-                    discount_to_update.sale = sale
-                    updated_fields.append("sale")
-
-                line_discounts_to_update.append(discount_to_update)
-
-    if line_discounts_to_create:
-        CheckoutLineDiscount.objects.bulk_create(line_discounts_to_create)
-    if line_discounts_to_update and updated_fields:
-        CheckoutLineDiscount.objects.bulk_update(
-            line_discounts_to_update, updated_fields
-        )
-
-
 def create_or_update_discount_objects_from_promotion_for_checkout(
     lines_info: Iterable["CheckoutLineInfo"],
 ):
@@ -970,16 +739,6 @@ def _update_line_discount(
     if discount_to_update.translated_name != translated_name:
         discount_to_update.translated_name = translated_name
         updated_fields.append("translated_name")
-
-
-def generate_sale_discount_objects_for_checkout(
-    checkout_info: "CheckoutInfo",
-    lines_info: Iterable["CheckoutLineInfo"],
-):
-    sales_info = fetch_active_sales_for_checkout(lines_info)
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, lines_info, sales_info
-    )
 
 
 def fetch_active_promotion_rules(
