@@ -25,6 +25,8 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
 
+- Change error message when denying a permission - #13334 by @rafiwts
+
 # 3.15.0 [Unreleased]
 
 ### Breaking changes
