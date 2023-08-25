@@ -1599,7 +1599,9 @@ class TransactionAction(SubscriptionObjectType, AbstractType):
     amount = PositiveDecimal(
         description="Transaction request amount. Null when action type is VOID.",
     )
-    currency = graphene.String(description="Currency code.")
+    currency = graphene.String(
+        description="Currency code." + ADDED_IN_316, required=True
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS

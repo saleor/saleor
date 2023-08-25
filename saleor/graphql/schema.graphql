@@ -32725,8 +32725,12 @@ type TransactionAction @doc(category: "Payments") {
   """Transaction request amount. Null when action type is VOID."""
   amount: PositiveDecimal
 
-  """Currency code."""
-  currency: String
+  """
+  Currency code.
+
+  Added in Saleor 3.16.
+  """
+  currency: String!
 }
 
 """
