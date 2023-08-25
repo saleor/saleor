@@ -46,7 +46,11 @@ class AccountRequestDeletion(BaseMutation):
             WebhookEventInfo(
                 type=WebhookEventAsyncType.NOTIFY_USER,
                 description="A notification for account delete request.",
-            )
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED,
+                description="An account delete requested.",
+            ),
         ]
 
     @classmethod
