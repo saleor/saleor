@@ -24,6 +24,7 @@ from ..utils import (
     generate_unique_slug,
     get_client_ip,
     get_currency_for_country,
+    prepare_unique_attribute_value_slug,
     random_data,
 )
 
@@ -364,3 +365,28 @@ def test_cleardb_preserves_data(admin_user, app, site_settings, staff_user):
     app.refresh_from_db()
     site_settings.refresh_from_db()
     staff_user.refresh_from_db()
+
+
+def test_prepare_unique_attribute_value_slug(color_attribute):
+    # given
+    value_1 = color_attribute.values.first()
+
+    # when
+    value_2 = AttributeValue(
+        name=value_1.name, attribute=color_attribute, slug=value_1.slug
+    )
+
+    # then
+    result = prepare_unique_attribute_value_slug(value_2.attribute, value_2.slug)
+
+    assert result == f"{value_1.slug}-2"
+
+
+def test_prepare_unique_attribute_value_slug_non_existing_slug(color_attribute):
+    # when
+    non_existing_slug = "non-existing-slug"
+
+    # then
+    result = prepare_unique_attribute_value_slug(color_attribute, non_existing_slug)
+
+    assert result == non_existing_slug
