@@ -12,6 +12,7 @@ from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
+    MetadataWhereFilterBase,
     ObjectTypeFilter,
     OperationObjectTypeFilter,
 )
@@ -21,6 +22,7 @@ from ..utils.filters import (
     filter_by_id,
     filter_range_field,
     filter_where_by_string_field,
+    filter_where_range_field,
 )
 from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
 
@@ -126,7 +128,7 @@ class SaleFilter(MetadataFilterBase):
         fields = ["status", "sale_type", "started", "search"]
 
 
-class PromotionWhere(MetadataFilterBase):
+class PromotionWhere(MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Promotion"))
     name = OperationObjectTypeFilter(
         input_class=StringFilterInput,
@@ -151,11 +153,11 @@ class PromotionWhere(MetadataFilterBase):
 
     @staticmethod
     def filter_end_date_range(qs, _, value):
-        return filter_range_field(qs, "end_date", value)
+        return filter_where_range_field(qs, "end_date", value)
 
     @staticmethod
     def filter_start_date_range(qs, _, value):
-        return filter_range_field(qs, "start_date", value)
+        return filter_where_range_field(qs, "start_date", value)
 
     @staticmethod
     def filter_is_old_sale(qs, _, value):
