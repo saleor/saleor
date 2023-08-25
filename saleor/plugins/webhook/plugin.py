@@ -22,7 +22,9 @@ from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify_events import NotifyEventType
 from ...core.taxes import TaxData, TaxType
+from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import CustomJsonEncoder
+from ...csv.notifications import get_default_export_payload
 from ...graphql.core.context import SaleorContext
 from ...graphql.webhook.subscription_payload import initialize_request
 from ...payment import PaymentError, TransactionKind
@@ -110,6 +112,7 @@ if TYPE_CHECKING:
     from ...account.models import Address, Group, User
     from ...attribute.models import Attribute, AttributeValue
     from ...channel.models import Channel
+    from ...csv.models import ExportFile
     from ...discount.models import Sale, Voucher
     from ...giftcard.models import GiftCard
     from ...invoice.models import Invoice
@@ -615,6 +618,34 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_gift_card_event(
             WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED, gift_card
+        )
+
+    def _trigger_export_gift_cards_event(self, event_type, export: "ExportFile"):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = self._serialize_payload(
+                {
+                    "id": graphene.Node.to_global_id("ExportFile", export.id),
+                    "export": get_default_export_payload(export),
+                    "csv_link": build_absolute_uri(export.content_file.url),
+                    "recipient_email": export.user.email if export.user else None,
+                }
+            )
+            trigger_webhooks_async(
+                payload,
+                event_type,
+                webhooks,
+                export,
+                self.requestor,
+            )
+
+    def gift_card_export_completed(
+        self, export: "ExportFile", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_export_gift_cards_event(
+            WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED,
+            export,
         )
 
     def order_created(self, order: "Order", previous_value: Any) -> Any:

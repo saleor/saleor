@@ -1831,6 +1831,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   GIFT_CARD_METADATA_UPDATED
 
+  """
+  A gift card export is completed.
+  
+  Added in Saleor 3.16.
+  """
+  GIFT_CARD_EXPORT_COMPLETED
+
   """A new menu created."""
   MENU_CREATED
 
@@ -2496,6 +2503,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   GIFT_CARD_METADATA_UPDATED
+
+  """
+  A gift card export is completed.
+  
+  Added in Saleor 3.16.
+  """
+  GIFT_CARD_EXPORT_COMPLETED
 
   """A new menu created."""
   MENU_CREATED
@@ -3440,6 +3454,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   GIFT_CARD_SENT
   GIFT_CARD_STATUS_CHANGED
   GIFT_CARD_METADATA_UPDATED
+  GIFT_CARD_EXPORT_COMPLETED
   MENU_CREATED
   MENU_UPDATED
   MENU_DELETED
@@ -16993,11 +17008,12 @@ type Mutation {
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for the exported file.
+  - GIFT_CARD_EXPORT_COMPLETED (async): A notification for the exported file.
   """
   exportGiftCards(
     """Fields required to export gift cards data."""
     input: ExportGiftCardsInput!
-  ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+  ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: [])
 
   """
   Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -26293,8 +26309,9 @@ Requires one of the following permissions: MANAGE_GIFT_CARD.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for the exported file.
+- GIFT_CARD_EXPORT_COMPLETED (async): A notification for the exported file.
 """
-type ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+type ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: []) {
   """
   The newly created export file job which is responsible for export data.
   """
@@ -30405,6 +30422,28 @@ type GiftCardMetadataUpdated implements Event @doc(category: "Gift cards") {
 
   """The gift card the event relates to."""
   giftCard: GiftCard
+}
+
+"""
+Event sent when gift card export is completed.
+
+Added in Saleor 3.16.
+"""
+type GiftCardExportCompleted implements Event @doc(category: "Gift cards") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The export file for gift cards."""
+  export: ExportFile
 }
 
 """

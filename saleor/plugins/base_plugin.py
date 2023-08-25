@@ -51,6 +51,7 @@ if TYPE_CHECKING:
     from ..core.middleware import Requestor
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxData, TaxType
+    from ..csv.models import ExportFile
     from ..discount.models import Sale, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
@@ -662,6 +663,12 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic after a gift card
     # status is changed.
     gift_card_status_changed: Callable[["GiftCard", None], None]
+
+    # Trigger when gift cards export is completed.
+    #
+    # Overwrite this method if you need to trigger specific logic after a gift cards
+    # export is completed.
+    gift_card_export_completed: Callable[["ExportFile", None], None]
 
     initialize_payment: Callable[
         [dict, Optional[InitializedPaymentResponse]], InitializedPaymentResponse
