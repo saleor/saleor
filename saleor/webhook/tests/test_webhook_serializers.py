@@ -10,9 +10,10 @@ from ...core.prices import quantize_price
 from ...discount import DiscountType
 from ...discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
-    create_or_update_discount_objects_from_sale_for_checkout,
 )
 from ...plugins.manager import get_plugins_manager
+from ...product.models import Product
+from ...product.utils.variant_prices import update_discounted_prices_for_promotion
 from ..serializers import (
     serialize_checkout_lines,
     serialize_checkout_lines_for_tax_calculation,
@@ -217,17 +218,28 @@ def test_serialize_checkout_lines_for_tax_calculation(
     assert len(checkout_lines_data) == len(list(lines))
 
 
-def test_serialize_checkout_lines_for_tax_calculation_with_sale(
-    checkout_with_prices, discount_info
+def test_serialize_checkout_lines_for_tax_calculation_with_promotion(
+    checkout_with_prices, promotion_rule, product_list, product
 ):
     # given
     checkout = checkout_with_prices
+    product_list.append(product)
+    promotion_rule.catalogue_predicate = {
+        "productPredicate": {
+            "ids": [
+                graphene.Node.to_global_id("Product", product.id)
+                for product in product_list
+            ]
+        },
+    }
+    promotion_rule.save(update_fields=["catalogue_predicate"])
+
+    update_discounted_prices_for_promotion(Product.objects.all())
+
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, lines, [discount_info]
-    )
+    create_or_update_discount_objects_from_promotion_for_checkout(lines)
 
     tax_configuration = checkout_info.tax_configuration
     tax_configuration.country_exceptions.all().delete()
@@ -266,8 +278,8 @@ def test_serialize_checkout_lines_for_tax_calculation_with_sale(
         }
 
         discount = line_info.discounts[0]
-        assert discount.type == DiscountType.SALE
-        undiscounted_unit_price = variant.get_price(
+        assert discount.type == DiscountType.PROMOTION
+        undiscounted_unit_price = variant.get_base_price(
             line_info.channel_listing,
             line_info.line.price_override,
         ).amount

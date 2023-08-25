@@ -3,9 +3,8 @@ from unittest.mock import patch
 from freezegun import freeze_time
 from graphql_relay import to_global_id
 
-from saleor.discount.models import Promotion
-from saleor.discount.sale_converter import convert_sales_to_promotions
-
+from ....discount.models import Promotion
+from ....discount.tests.sale_converter import convert_sales_to_promotions
 from ...discount.enums import DiscountValueTypeEnum
 from ...tests.utils import get_graphql_content
 
