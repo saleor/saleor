@@ -479,7 +479,7 @@ class AttributeAssignmentMixin:
 
         if external_ref and attr_value:
             value = cls._get_create_value_instance(attribute, attr_value, external_ref)
-            return value
+            return (value,)
 
         if external_ref:
             value = attribute_models.AttributeValue.objects.get(
