@@ -15913,6 +15913,7 @@ type Mutation {
   Triggers the following webhook events:
   - FULFILLMENT_CREATED (async): A new fulfillment is created.
   - ORDER_FULFILLED (async): Order is fulfilled.
+  - FULFILLMENT_APPROVED (async): A fulfillment is approved.
   """
   orderFulfill(
     """Fields required to create a fulfillment."""
@@ -15920,7 +15921,7 @@ type Mutation {
 
     """ID of the order to be fulfilled."""
     order: ID
-  ): OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED], syncEvents: [])
+  ): OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED, FULFILLMENT_APPROVED], syncEvents: [])
 
   """
   Cancels existing fulfillment and optionally restocks items. 
@@ -15941,6 +15942,9 @@ type Mutation {
   Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - FULFILLMENT_APPROVED (async): Fulfillment is approved.
   """
   orderFulfillmentApprove(
     """True if stock could be exceeded."""
@@ -15951,7 +15955,7 @@ type Mutation {
 
     """True if confirmation email should be send."""
     notifyCustomer: Boolean!
-  ): FulfillmentApprove @doc(category: "Orders")
+  ): FulfillmentApprove @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_APPROVED], syncEvents: [])
 
   """
   Updates a fulfillment for an order. 
@@ -23781,8 +23785,9 @@ Requires one of the following permissions: MANAGE_ORDERS.
 Triggers the following webhook events:
 - FULFILLMENT_CREATED (async): A new fulfillment is created.
 - ORDER_FULFILLED (async): Order is fulfilled.
+- FULFILLMENT_APPROVED (async): A fulfillment is approved.
 """
-type OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED], syncEvents: []) {
+type OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED, FULFILLMENT_APPROVED], syncEvents: []) {
   """List of created fulfillments."""
   fulfillments: [Fulfillment!]
 
@@ -23854,8 +23859,11 @@ Approve existing fulfillment.
 Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- FULFILLMENT_APPROVED (async): Fulfillment is approved.
 """
-type FulfillmentApprove @doc(category: "Orders") {
+type FulfillmentApprove @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_APPROVED], syncEvents: []) {
   """An approved fulfillment."""
   fulfillment: Fulfillment
 
@@ -31469,7 +31477,7 @@ type FulfillmentCreated implements Event @doc(category: "Orders") {
   order: Order
 
   """
-  If true, send an email notification to the customer.
+  If true, the app should send a notification to the customer.
   
   Added in Saleor 3.16.
   """
@@ -31524,6 +31532,13 @@ type FulfillmentApproved implements Event @doc(category: "Orders") {
 
   """The order the fulfillment belongs to."""
   order: Order
+
+  """
+  If true, send a notification to the customer.
+  
+  Added in Saleor 3.16.
+  """
+  notifyCustomer: Boolean!
 }
 
 """
