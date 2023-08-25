@@ -58,7 +58,7 @@ def prepare_product(
     return product_id, channel_id, product_variant_id
 
 
-def promotion_with_rules(
+def prepare_promotion_with_rules(
     e2e_staff_api_client,
     promotion_name,
     discount_type,
@@ -84,8 +84,22 @@ def promotion_with_rules(
     assert product_predicate[0] == product_id
 
 
-@pytest.mark.e2e
+@pytest.mark.parametrize(
+    "variant_price, first_discount_type, first_discount_value, second_discount_type, "
+    "second_discount_value, expected_discount",
+    [
+        ("30", "FIXED", 5.50, "PERCENTAGE", 20, 6.00),
+        ("30", "PERCENTAGE", 11, "PERCENTAGE", 13, 3.90),
+        ("30", "FIXED", 5.99, "FIXED", 6.00, 6.00),
+    ],
+)
 def test_apply_best_promotion_to_product_core_2105(
+    variant_price,
+    first_discount_type,
+    first_discount_value,
+    second_discount_type,
+    second_discount_value,
+    expected_discount,
     e2e_staff_api_client,
     permission_manage_products,
     permission_manage_channels,
@@ -95,7 +109,6 @@ def test_apply_best_promotion_to_product_core_2105(
 ):
     # Before
     channel_slug = "test-channel"
-    variant_price = "30"
 
     permissions = [
         permission_manage_products,
@@ -113,12 +126,10 @@ def test_apply_best_promotion_to_product_core_2105(
     )
 
     # Create first promotion
-    first_promotion_name = "Promotion Fixed"
-    first_discount_value = 5.5
-    first_discount_type = "FIXED"
+    first_promotion_name = "Promotion 1"
     first_rule_name = "rule for product"
 
-    promotion_with_rules(
+    prepare_promotion_with_rules(
         e2e_staff_api_client,
         first_promotion_name,
         first_discount_type,
@@ -129,12 +140,10 @@ def test_apply_best_promotion_to_product_core_2105(
     )
 
     # Create second promotion
-    second_promotion_name = "Promotion Percentage"
-    second_discount_value = 20
-    second_discount_type = "PERCENTAGE"
+    second_promotion_name = "Promotion 2"
     second_rule_name = "rule for product"
 
-    promotion_with_rules(
+    prepare_promotion_with_rules(
         e2e_staff_api_client,
         second_promotion_name,
         second_discount_type,
@@ -148,15 +157,11 @@ def test_apply_best_promotion_to_product_core_2105(
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)
 
     assert product_data["pricing"]["onSale"] is True
-    second_variant_discount = round(
-        float(variant_price) * second_discount_value / 100, 2
-    )
 
     product_variant = product_data["variants"][0]
     assert product_variant["pricing"]["onSale"] is True
     assert (
-        product_variant["pricing"]["discount"]["gross"]["amount"]
-        == second_variant_discount
+        product_variant["pricing"]["discount"]["gross"]["amount"] == expected_discount
     )
     assert product_variant["pricing"]["priceUndiscounted"]["gross"]["amount"] == float(
         variant_price
@@ -181,7 +186,7 @@ def test_apply_best_promotion_to_product_core_2105(
 
     order_line = order_lines["order"]["lines"][0]
     assert order_line["variant"]["id"] == product_variant_id
-    unit_price = float(variant_price) - second_variant_discount
+    unit_price = float(variant_price) - expected_discount
     undiscounted_price = order_line["undiscountedUnitPrice"]["gross"]["amount"]
     assert undiscounted_price == float(variant_price)
     assert order_line["unitPrice"]["gross"]["amount"] == unit_price
