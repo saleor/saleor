@@ -55,6 +55,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add a new `product` field on `AssignedProductAttributeValue`. First part of a simplification of Attribute - Product relation from #12881. by @aniav
 - Lazy legacy webhooks payload generation - #13758 by @maarcingebala
 - Fix NoneType in `prodcutChannelsListingUpdate` - #13694 by @Manoj-gowra
+- Extended `AttributeValueTranslation.name` to 250 characters - #13776 by @aniav
 
 # 3.15.0 [Unreleased]
 
@@ -149,7 +150,6 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Add `CheckoutLine.problems` field
   - Add `CheckoutSettingsInput` to `ChannelCreateInput` & `ChannelUpdateInput`
   - Add `checkoutSettings` field to `Channel`
-- Extended `AttributeValueTranslation.name` to 250 characters - #13776 by @aniav
 
 ### Saleor Apps
 
