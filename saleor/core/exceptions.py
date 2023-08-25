@@ -63,7 +63,8 @@ class PermissionDenied(Exception):
             if permissions:
                 permission_list = ", ".join(p.name for p in permissions)
                 message = (
-                    f"You need one of the following permissions: {permission_list}"
+                    "To access this path, you need one of the "
+                    f"following permissions: {permission_list}"
                 )
             else:
                 message = "You do not have permission to perform this action"

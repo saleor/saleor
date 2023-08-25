@@ -76,6 +76,7 @@ from ..enums import (
     ShopErrorCode,
     StockBulkUpdateErrorCode,
     StockErrorCode,
+    StoredPaymentMethodRequestDeleteErrorCode,
     ThumbnailFormatEnum,
     TimePeriodTypeEnum,
     TransactionCreateErrorCode,
@@ -673,6 +674,15 @@ class PaymentGatewayConfigError(Error):
 
 class PaymentGatewayInitializeError(Error):
     code = PaymentGatewayInitializeErrorCode(
+        description="The error code.", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class PaymentMethodRequestDeleteError(Error):
+    code = StoredPaymentMethodRequestDeleteErrorCode(
         description="The error code.", required=True
     )
 

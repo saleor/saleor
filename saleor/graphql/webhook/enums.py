@@ -8,6 +8,7 @@ from ..core.descriptions import (
     ADDED_IN_313,
     ADDED_IN_314,
     ADDED_IN_315,
+    ADDED_IN_316,
     DEPRECATED_IN_3X_ENUM_VALUE,
     PREVIEW_FEATURE,
 )
@@ -95,6 +96,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: "A gift card status is changed.",
     WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED: (
         "A gift card metadata is updated." + ADDED_IN_38
+    ),
+    WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED: (
+        "A gift card export is completed." + ADDED_IN_316
     ),
     WebhookEventAsyncType.INVOICE_REQUESTED: "An invoice for order requested.",
     WebhookEventAsyncType.INVOICE_DELETED: "An invoice is deleted.",

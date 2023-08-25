@@ -353,6 +353,9 @@ class PluginSample(BasePlugin):
     ):
         return []
 
+    def stored_payment_method_request_delete(self, request_delete_data, previous_value):
+        return previous_value
+
 
 class ChannelPluginSample(PluginSample):
     PLUGIN_ID = "channel.plugin.sample"
