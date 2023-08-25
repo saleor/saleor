@@ -88,3 +88,12 @@ def clean_input_checkout_settings(checkout_settings: dict, cleaned_input: dict):
         cleaned_input["use_legacy_error_flow_for_checkout"] = checkout_settings[
             "use_legacy_error_flow"
         ]
+
+
+def clean_input_payment_settings(payment_settings: dict, cleaned_input: dict):
+    if default_transaction_strategy := payment_settings.get(
+        "default_transaction_flow_strategy"
+    ):
+        cleaned_input[
+            "default_transaction_flow_strategy"
+        ] = default_transaction_strategy

@@ -41,7 +41,7 @@ def to_payment_app_id(app: "App", external_id: str) -> "str":
 
 
 def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
-    splitted_id = app_gateway_id.split(":")
+    splitted_id = app_gateway_id.split(":", maxsplit=2)
     if len(splitted_id) == 3 and splitted_id[0] == APP_ID_PREFIX and all(splitted_id):
         try:
             app_pk = int(splitted_id[1])

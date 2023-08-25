@@ -33,6 +33,8 @@ from ..payment.interface import (
     PaymentData,
     PaymentGateway,
     PaymentMethodData,
+    StoredPaymentMethodRequestDeleteData,
+    StoredPaymentMethodRequestDeleteResponseData,
     TransactionActionData,
     TransactionSessionResult,
 )
@@ -554,7 +556,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic when a fulfillment is
     # created.
-    fulfillment_created: Callable[["Fulfillment", Any], Any]
+    fulfillment_created: Callable[["Fulfillment", bool, Any], Any]
 
     # Trigger when fulfillment is cancelled.
     #
@@ -686,6 +688,14 @@ class BasePlugin:
     list_stored_payment_methods: Callable[
         ["ListStoredPaymentMethodsRequestData", list["PaymentMethodData"]],
         list["PaymentMethodData"],
+    ]
+
+    stored_payment_method_request_delete: Callable[
+        [
+            "StoredPaymentMethodRequestDeleteData",
+            "StoredPaymentMethodRequestDeleteResponseData",
+        ],
+        "StoredPaymentMethodRequestDeleteResponseData",
     ]
 
     # Trigger when menu is created.
@@ -1153,7 +1163,11 @@ class BasePlugin:
         return previous_value
 
     def get_payment_gateways(
-        self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
+        self,
+        currency: Optional[str],
+        checkout_info: Optional["CheckoutInfo"],
+        checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
+        previous_value,
     ) -> List["PaymentGateway"]:
         payment_config = (
             self.get_payment_config(previous_value)

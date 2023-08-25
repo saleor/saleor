@@ -5,14 +5,29 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.16.0 [Unreleased]
 
 ### Breaking changes
+- **Feature preview breaking change**:
+  - Deprecate `OrderSettingsInput.defaultTransactionFlowStrategy`. It will be removed
+in 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
+  - Deprecate `OrderSettings.defaultTransactionFlowStrategy`. It will be removed
+in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 
 ### GraphQL API
 - Adjust where filtering by empty values - explicit treat empty values - #13754 by @IKarbowiak
+- Add `storedPaymentMethodRequestDelete` mutation - #13660 by @korycins
+- Add `PaymentSettings` to `Channel` - #13677 by @korycins
+
 
 ### Saleor Apps
+- Add `STORED_PAYMENT_METHOD_DELETE_REQUESTED` webhook event - #13660 by @korycins
+- Add `NOTIFY_CUSTOMER` flag to `FulfillmentCreated` type - #13620, by @Air-t
+  - Inform apps if customer should be notified when fulfillment is created.
+- Add `NOTIFY_CUSTOMER` flag to `FulfillmentApproved` type - #13637, by @Air-t
+  - Inform apps if customer should be notified when fulfillment is approved.
 
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
+
+- Change error message when denying a permission - #13334 by @rafiwts
 
 # 3.15.0 [Unreleased]
 
@@ -184,6 +199,9 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - `preprocess_order_creation`
 
   This breaking change affect any custom plugins in open-source Saleor, if they override any of the above mentioned methods.
+- The signature of the `list_payment_gateways` manager method has changed. It may affect Saleor open-source users, who maintain plugins overriding this method. Changes:
+  - The `checkout: Checkout` argument was removed
+  - `checkout_info: CheckoutInfo` and `checkout_lines: Iterable[CheckoutLineInfo]` arguments were added instead
 
 ### GraphQL API
 

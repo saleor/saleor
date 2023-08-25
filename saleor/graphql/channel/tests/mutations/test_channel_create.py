@@ -51,6 +51,9 @@ CHANNEL_CREATE_MUTATION = """
                 checkoutSettings {
                     useLegacyErrorFlow
                 }
+                paymentSettings {
+                    defaultTransactionFlowStrategy
+                }
             }
             errors{
                 field
@@ -602,7 +605,7 @@ def test_channel_create_set_order_mark_as_paid(
     )
 
 
-def test_channel_create_set_default_transaction_flow_strategy(
+def test_channel_create_set_default_transaction_flow_strategy_via_order_settings(
     permission_manage_channels,
     staff_api_client,
 ):
@@ -640,6 +643,52 @@ def test_channel_create_set_default_transaction_flow_strategy(
     channel = Channel.objects.get()
     assert (
         channel_data["orderSettings"]["defaultTransactionFlowStrategy"]
+        == TransactionFlowStrategyEnum.AUTHORIZATION.name
+    )
+    assert (
+        channel.default_transaction_flow_strategy
+        == TransactionFlowStrategyEnum.AUTHORIZATION.value
+    )
+
+
+def test_channel_create_set_default_transaction_flow_strategy(
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "paymentSettings": {
+                "defaultTransactionFlowStrategy": (
+                    TransactionFlowStrategyEnum.AUTHORIZATION.name
+                )
+            },
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get()
+    assert (
+        channel_data["paymentSettings"]["defaultTransactionFlowStrategy"]
         == TransactionFlowStrategyEnum.AUTHORIZATION.name
     )
     assert (

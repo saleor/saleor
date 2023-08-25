@@ -1,4 +1,4 @@
-from unittest.mock import ANY, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import graphene
 import pytest
@@ -12,6 +12,7 @@ from .....order.models import Fulfillment, FulfillmentLine
 from .....product.models import ProductVariant
 from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Allocation, Stock
+from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_FULFILL_MUTATION = """
@@ -1484,3 +1485,58 @@ def test_create_digital_fulfillment(
     get_graphql_content(response)
 
     assert mock_email_fulfillment.call_count == 1
+
+
+@patch("saleor.core.utils.events.transaction")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_order_fulfill_fulfillment_created_event_triggered(
+    mocked_webhooks,
+    mocked_transactions,
+    any_webhook,
+    subscription_fulfillment_created_webhook,
+    staff_api_client,
+    staff_user,
+    order_with_lines,
+    permission_group_manage_orders,
+    warehouse,
+    site_settings,
+    settings,
+):
+    # given
+    mocked_transactions.get_connection.return_value = MagicMock(in_atomic_block=False)
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    site_settings.fulfillment_auto_approve = True
+    site_settings.save(update_fields=["fulfillment_auto_approve"])
+    order = order_with_lines
+    query = ORDER_FULFILL_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_line, order_line2 = order.lines.all()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": True,
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 3, "warehouse": warehouse_id}],
+                },
+                {
+                    "orderLineId": order_line2_id,
+                    "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
+                },
+            ],
+            "trackingNumber": "test_tracking_number",
+        },
+    }
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    mocked_webhooks.assert_called_once()
+    assert mocked_webhooks.call_args[0][1] == (
+        WebhookEventAsyncType.FULFILLMENT_CREATED
+    )

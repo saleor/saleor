@@ -4,7 +4,7 @@ import pytest
 
 from ....payment.interface import PaymentGateway
 from ....webhook.event_types import WebhookEventSyncType
-from ..list_stored_payment_methods import (
+from ..stored_payment_methods import (
     get_credit_card_info,
     get_list_stored_payment_methods_from_response,
     get_payment_method_from_response,

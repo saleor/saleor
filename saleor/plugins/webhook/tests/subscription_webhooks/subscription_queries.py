@@ -1341,6 +1341,7 @@ FULFILLMENT_CREATED = (
     subscription{
       event{
         ...on FulfillmentCreated{
+          notifyCustomer
           fulfillment{
             ...FulfillmentDetails
           }
@@ -1371,12 +1372,14 @@ FULFILLMENT_CANCELED = (
 """
 )
 
+
 FULFILLMENT_APPROVED = (
     fragments.FULFILLMENT_DETAILS
     + """
     subscription{
       event{
         ...on FulfillmentApproved{
+          notifyCustomer
           fulfillment{
             ...FulfillmentDetails
           }
