@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 in 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
   - Deprecate `OrderSettings.defaultTransactionFlowStrategy`. It will be removed
 in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
+  - Change in the CSV export. It will now use empty string for empty attribute values instead of a single whitespace value.
 
 ### GraphQL API
 - Add `storedPaymentMethodRequestDelete` mutation - #13660 by @korycins
