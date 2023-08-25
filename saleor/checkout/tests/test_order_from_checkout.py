@@ -196,7 +196,6 @@ def test_create_order_with_many_gift_cards_worth_more_than_total(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
     gift_card_1.refresh_from_db()
     gift_card_2.refresh_from_db()
