@@ -72,7 +72,7 @@ def resolve_product_variants(_info):
 
 
 def resolve_sales(_info):
-    return discount_models.Sale.objects.all()
+    return discount_models.Promotion.objects.all()
 
 
 def resolve_vouchers(_info):

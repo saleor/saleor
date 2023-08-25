@@ -3055,6 +3055,8 @@ def test_shop_translation_validates_values_lengths(
         (TranslatableKinds.SHIPPING_METHOD, "ShippingMethodTranslatableContent"),
         (TranslatableKinds.VOUCHER, "VoucherTranslatableContent"),
         (TranslatableKinds.SALE, "SaleTranslatableContent"),
+        (TranslatableKinds.PROMOTION, "PromotionTranslatableContent"),
+        (TranslatableKinds.PROMOTION_RULE, "PromotionRuleTranslatableContent"),
         (TranslatableKinds.ATTRIBUTE, "AttributeTranslatableContent"),
         (TranslatableKinds.ATTRIBUTE_VALUE, "AttributeValueTranslatableContent"),
         (TranslatableKinds.VARIANT, "ProductVariantTranslatableContent"),
@@ -3067,7 +3069,7 @@ def test_translations_query(
     product,
     published_collection,
     voucher,
-    sale,
+    promotion_converted_from_sale,
     shipping_method,
     page,
     menu_item,
@@ -3503,31 +3505,37 @@ QUERY_TRANSLATION_SALE = """
 """
 
 
-@pytest.mark.parametrize(
-    "perm_codenames, return_sale",
-    [
-        (["manage_translations"], False),
-        (["manage_translations", "manage_discounts"], True),
-    ],
-)
 def test_translation_query_sale(
-    staff_api_client, sale, sale_translation_fr, perm_codenames, return_sale
+    staff_api_client,
+    sale,
+    sale_translation_fr,
+    permission_manage_discounts,
+    permission_manage_translations,
 ):
-    sale_id = graphene.Node.to_global_id("Sale", sale.id)
-    perms = list(Permission.objects.filter(codename__in=perm_codenames))
+    # given
+    convert_sales_to_promotions()
+    promotion = Promotion.objects.first()
+    promotion_transaltion = promotion.translations.first()
+    sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
     variables = {
         "id": sale_id,
         "kind": TranslatableKinds.SALE.name,
         "languageCode": LanguageCodeEnum.FR.name,
     }
+
+    # when
     response = staff_api_client.post_graphql(
-        QUERY_TRANSLATION_SALE, variables, permissions=perms
+        QUERY_TRANSLATION_SALE,
+        variables,
+        permissions=[permission_manage_translations, permission_manage_discounts],
     )
+
+    # then
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
-    assert data["name"] == sale.name
-    assert data["translation"]["name"] == sale_translation_fr.name
+    assert data["name"] == promotion.name
+    assert data["translation"]["name"] == promotion_transaltion.name
 
 
 QUERY_TRANSLATION_VOUCHER = """

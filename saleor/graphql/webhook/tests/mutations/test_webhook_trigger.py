@@ -44,10 +44,20 @@ def test_webhook_trigger_success(
             or event_name not in async_subscription_webhooks_with_root_objects
         ):
             continue
+
         webhook = async_subscription_webhooks_with_root_objects[event_name][0]
         object = async_subscription_webhooks_with_root_objects[event_name][1]
         object_type = object.__class__.__name__
-        object_id = graphene.Node.to_global_id(object_type, object.pk)
+        events = WebhookEventAsyncType
+        if event_name in [
+            events.SALE_CREATED,
+            events.SALE_UPDATED,
+            events.SALE_DELETED,
+            events.SALE_TOGGLE,
+        ]:
+            object_id = graphene.Node.to_global_id("Sale", object.old_sale_id)
+        else:
+            object_id = graphene.Node.to_global_id(object_type, object.pk)
 
         webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
