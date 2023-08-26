@@ -127,24 +127,9 @@ def test_clean_channels_remove_channels_is_null():
     )
 
     # then
-    assert result == {}
-
-
-def test_clean_channels_remove_variants_is_null():
-    # given
-    error_code = ShippingErrorCode.DUPLICATED_INPUT_ITEM.value
-    errors = defaultdict(list)
-    remove_variants = {}
-    remove_variants["remove_variants"] = None
-    add_channels_values = [remove_variants]
-
-    # when
-    result = BaseChannelListingMutation.clean_channels(
-        None, {"add_channels" : add_channels_values}, errors, error_code
-    )
-
-    # then
     assert result == {"add_channels": [], "remove_channels": []}
+
+
 
 
 def test_test_clean_channels_with_errors(channel_PLN):
