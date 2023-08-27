@@ -32890,7 +32890,7 @@ type TransactionAction @doc(category: "Payments") {
 
   """
   Currency code.
-
+  
   Added in Saleor 3.16.
   """
   currency: String!
