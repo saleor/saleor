@@ -1948,7 +1948,7 @@ class StoredPaymentMethodDeleteRequested(SubscriptionObjectType):
 class PaymentGatewayInitializeTokenizationSession(SubscriptionObjectType):
     user = graphene.Field(
         UserType,
-        description=("The user related to the requested payment gateway tokenization."),
+        description="The user related to the requested payment gateway tokenization.",
         required=True,
     )
     channel = graphene.Field(
