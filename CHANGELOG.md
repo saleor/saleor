@@ -50,6 +50,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
 - Add missing currency in action for transaction requests - 13786 by @AjmalPonneth
 - Fix giftcard code description - #13728 by @rafiwts
+- Add a new `page` field on `AssignedPageAttributeValue`. First stage (migration) of a simplification of Attribute - Page relation from #13403. by michal-macioszczyk
+
 - Change error message when denying a permission - #13334 by @rafiwts
 - Add filter by slugs to attribute choices - #13761 by @rafiwts
 - Add a new `product` field on `AssignedProductAttributeValue`. First part of a simplification of Attribute - Product relation from #12881. by @aniav

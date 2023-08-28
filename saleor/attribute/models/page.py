@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
 
 from ...core.models import SortableModel
 from ...page.models import Page, PageType
@@ -16,6 +18,13 @@ class AssignedPageAttributeValue(SortableModel):
         on_delete=models.CASCADE,
         related_name="pagevalueassignment",
     )
+    page = models.ForeignKey(
+        Page,
+        related_name="attributevalues",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         unique_together = (("value", "assignment"),)
@@ -23,6 +32,10 @@ class AssignedPageAttributeValue(SortableModel):
 
     def get_ordering_queryset(self):
         return self.assignment.pagevalueassignment.all()
+
+    def save(self, *args, **kwargs):
+        self.page = self.assignment.page
+        super(AssignedPageAttributeValue, self).save(*args, **kwargs)
 
 
 class AssignedPageAttribute(BaseAssignedAttribute):
@@ -66,3 +79,17 @@ class AttributePage(SortableModel):
 
     def get_ordering_queryset(self):
         return self.page_type.attributepage.all()
+
+
+@receiver(m2m_changed, sender=AssignedPageAttribute.values.through)
+def handle_values_changed(sender, instance, action, **kwargs):
+    if action == "post_add":
+        # Get the newly added AttributeValues
+        added_values = kwargs.get("pk_set", [])
+
+        for value_id in added_values:
+            # Find the corresponding AssignedPageAttributeValue instance
+            apa_value = AssignedPageAttributeValue.objects.get(
+                value_id=value_id, assignment=instance
+            )
+            apa_value.save()
