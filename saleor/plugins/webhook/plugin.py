@@ -1,17 +1,30 @@
 import json
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, DefaultDict, Final, List, Optional, Set, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    DefaultDict,
+    Final,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Union,
+)
 
 import graphene
 
 from ...app.models import App
+from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ...checkout.models import Checkout
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify_events import NotifyEventType
 from ...core.taxes import TaxData, TaxType
+from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import CustomJsonEncoder
+from ...csv.notifications import get_default_export_payload
 from ...graphql.core.context import SaleorContext
 from ...graphql.webhook.subscription_payload import initialize_request
 from ...payment import PaymentError, TransactionKind
@@ -99,6 +112,7 @@ if TYPE_CHECKING:
     from ...account.models import Address, Group, User
     from ...attribute.models import Attribute, AttributeValue
     from ...channel.models import Channel
+    from ...csv.models import ExportFile
     from ...discount.models import Sale, Voucher
     from ...giftcard.models import GiftCard
     from ...invoice.models import Invoice
@@ -606,6 +620,34 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED, gift_card
         )
 
+    def _trigger_export_gift_cards_event(self, event_type, export: "ExportFile"):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = self._serialize_payload(
+                {
+                    "id": graphene.Node.to_global_id("ExportFile", export.id),
+                    "export": get_default_export_payload(export),
+                    "csv_link": build_absolute_uri(export.content_file.url),
+                    "recipient_email": export.user.email if export.user else None,
+                }
+            )
+            trigger_webhooks_async(
+                payload,
+                event_type,
+                webhooks,
+                export,
+                self.requestor,
+            )
+
+    def gift_card_export_completed(
+        self, export: "ExportFile", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_export_gift_cards_event(
+            WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED,
+            export,
+        )
+
     def order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
@@ -958,14 +1000,26 @@ class WebhookPlugin(BasePlugin):
                 fulfillment_data, event_type, webhooks, fulfillment, self.requestor
             )
 
-    def fulfillment_approved(self, fulfillment: "Fulfillment", previous_value):
+    def fulfillment_approved(
+        self,
+        fulfillment: "Fulfillment",
+        notify_customer: Optional[bool] = True,
+        previous_value: Optional[Any] = None,
+    ):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.FULFILLMENT_APPROVED
         if webhooks := get_webhooks_for_event(event_type):
             fulfillment_data = generate_fulfillment_payload(fulfillment, self.requestor)
             trigger_webhooks_async(
-                fulfillment_data, event_type, webhooks, fulfillment, self.requestor
+                fulfillment_data,
+                event_type,
+                webhooks,
+                {
+                    "fulfillment": fulfillment,
+                    "notify_customer": notify_customer,
+                },
+                self.requestor,
             )
 
     def fulfillment_metadata_updated(self, fulfillment: "Fulfillment", previous_value):
@@ -974,6 +1028,16 @@ class WebhookPlugin(BasePlugin):
         self._trigger_metadata_updated_event(
             WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED, fulfillment
         )
+
+    def tracking_number_updated(self, fulfillment: "Fulfillment", previous_value):
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED
+        if webhooks := get_webhooks_for_event(event_type):
+            fulfillment_data = generate_fulfillment_payload(fulfillment, self.requestor)
+            trigger_webhooks_async(
+                fulfillment_data, event_type, webhooks, fulfillment, self.requestor
+            )
 
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         if not self.active:
@@ -2023,11 +2087,15 @@ class WebhookPlugin(BasePlugin):
     def get_payment_gateways(
         self,
         currency: Optional[str],
-        checkout: Optional["Checkout"],
+        checkout_info: Optional["CheckoutInfo"],
+        checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
         previous_value,
         **kwargs
     ) -> List["PaymentGateway"]:
         gateways = []
+        checkout = None
+        if checkout_info:
+            checkout = checkout_info.checkout
         event_type = WebhookEventSyncType.PAYMENT_LIST_GATEWAYS
         webhooks = get_webhooks_for_event(event_type)
         for webhook in webhooks:

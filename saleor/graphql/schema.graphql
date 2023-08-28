@@ -1831,6 +1831,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   GIFT_CARD_METADATA_UPDATED
 
+  """
+  A gift card export is completed.
+  
+  Added in Saleor 3.16.
+  """
+  GIFT_CARD_EXPORT_COMPLETED
+
   """A new menu created."""
   MENU_CREATED
 
@@ -1932,6 +1939,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   FULFILLMENT_METADATA_UPDATED
+  FULFILLMENT_TRACKING_NUMBER_UPDATED
 
   """A draft order is created."""
   DRAFT_ORDER_CREATED
@@ -2497,6 +2505,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   GIFT_CARD_METADATA_UPDATED
 
+  """
+  A gift card export is completed.
+  
+  Added in Saleor 3.16.
+  """
+  GIFT_CARD_EXPORT_COMPLETED
+
   """A new menu created."""
   MENU_CREATED
 
@@ -2598,6 +2613,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   FULFILLMENT_METADATA_UPDATED
+  FULFILLMENT_TRACKING_NUMBER_UPDATED
 
   """A draft order is created."""
   DRAFT_ORDER_CREATED
@@ -3440,6 +3456,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   GIFT_CARD_SENT
   GIFT_CARD_STATUS_CHANGED
   GIFT_CARD_METADATA_UPDATED
+  GIFT_CARD_EXPORT_COMPLETED
   MENU_CREATED
   MENU_UPDATED
   MENU_DELETED
@@ -3462,6 +3479,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   FULFILLMENT_CANCELED
   FULFILLMENT_APPROVED
   FULFILLMENT_METADATA_UPDATED
+  FULFILLMENT_TRACKING_NUMBER_UPDATED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
   DRAFT_ORDER_DELETED
@@ -6476,9 +6494,6 @@ Added in Saleor 3.11.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 input AttributeWhereInput @doc(category: "Attributes") {
-  valueRequired: Boolean
-  visibleInStorefront: Boolean
-  filterableInDashboard: Boolean
   metadata: [MetadataFilter!]
   ids: [ID!]
   name: StringFilterInput
@@ -6490,6 +6505,9 @@ input AttributeWhereInput @doc(category: "Attributes") {
   unit: MeasurementUnitsEnumFilterInput
   inCollection: ID
   inCategory: ID
+  valueRequired: Boolean
+  visibleInStorefront: Boolean
+  filterableInDashboard: Boolean
 
   """List of conditions that must be met."""
   AND: [AttributeWhereInput!]
@@ -10421,7 +10439,9 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   last4CodeChars: String!
 
   """
-  Gift card code. Can be fetched by a staff member with MANAGE_GIFT_CARD when gift card wasn't yet used and by the gift card owner.
+  Gift card code. It can be fetched both by a staff member with 'MANAGE_GIFT_CARD' when gift card hasn't been used yet or a user who bought or issued the gift card.
+  
+  Requires one of the following permissions: MANAGE_GIFT_CARD, OWNER.
   """
   code: String!
   created: DateTime!
@@ -14144,8 +14164,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   updateWarehouse(
+    """
+    External reference of a warehouse.
+    
+    Added in Saleor 3.16.
+    """
+    externalReference: String
+
     """ID of a warehouse to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update warehouse."""
     input: WarehouseUpdateInput!
@@ -15927,6 +15954,8 @@ type Mutation {
   Triggers the following webhook events:
   - FULFILLMENT_CREATED (async): A new fulfillment is created.
   - ORDER_FULFILLED (async): Order is fulfilled.
+  - FULFILLMENT_TRACKING_NUMBER_UPDATED (async): Sent when fulfillment tracking number is updated.
+  - FULFILLMENT_APPROVED (async): A fulfillment is approved.
   """
   orderFulfill(
     """Fields required to create a fulfillment."""
@@ -15934,7 +15963,7 @@ type Mutation {
 
     """ID of the order to be fulfilled."""
     order: ID
-  ): OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED], syncEvents: [])
+  ): OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED, FULFILLMENT_TRACKING_NUMBER_UPDATED, FULFILLMENT_APPROVED], syncEvents: [])
 
   """
   Cancels existing fulfillment and optionally restocks items. 
@@ -15955,6 +15984,9 @@ type Mutation {
   Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - FULFILLMENT_APPROVED (async): Fulfillment is approved.
   """
   orderFulfillmentApprove(
     """True if stock could be exceeded."""
@@ -15965,12 +15997,15 @@ type Mutation {
 
     """True if confirmation email should be send."""
     notifyCustomer: Boolean!
-  ): FulfillmentApprove @doc(category: "Orders")
+  ): FulfillmentApprove @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_APPROVED], syncEvents: [])
 
   """
   Updates a fulfillment for an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - FULFILLMENT_TRACKING_NUMBER_UPDATED (async): Fulfillment tracking number is updated.
   """
   orderFulfillmentUpdateTracking(
     """ID of a fulfillment to update."""
@@ -15978,7 +16013,7 @@ type Mutation {
 
     """Fields required to update a fulfillment."""
     input: FulfillmentUpdateTrackingInput!
-  ): FulfillmentUpdateTracking @doc(category: "Orders")
+  ): FulfillmentUpdateTracking @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_TRACKING_NUMBER_UPDATED], syncEvents: [])
 
   """
   Refund products. 
@@ -17003,11 +17038,12 @@ type Mutation {
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for the exported file.
+  - GIFT_CARD_EXPORT_COMPLETED (async): A notification for the exported file.
   """
   exportGiftCards(
     """Fields required to export gift cards data."""
     input: ExportGiftCardsInput!
-  ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+  ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: [])
 
   """
   Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -23795,8 +23831,10 @@ Requires one of the following permissions: MANAGE_ORDERS.
 Triggers the following webhook events:
 - FULFILLMENT_CREATED (async): A new fulfillment is created.
 - ORDER_FULFILLED (async): Order is fulfilled.
+- FULFILLMENT_TRACKING_NUMBER_UPDATED (async): Sent when fulfillment tracking number is updated.
+- FULFILLMENT_APPROVED (async): A fulfillment is approved.
 """
-type OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED], syncEvents: []) {
+type OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED, FULFILLMENT_TRACKING_NUMBER_UPDATED, FULFILLMENT_APPROVED], syncEvents: []) {
   """List of created fulfillments."""
   fulfillments: [Fulfillment!]
 
@@ -23868,8 +23906,11 @@ Approve existing fulfillment.
 Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- FULFILLMENT_APPROVED (async): Fulfillment is approved.
 """
-type FulfillmentApprove @doc(category: "Orders") {
+type FulfillmentApprove @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_APPROVED], syncEvents: []) {
   """An approved fulfillment."""
   fulfillment: Fulfillment
 
@@ -23883,8 +23924,11 @@ type FulfillmentApprove @doc(category: "Orders") {
 Updates a fulfillment for an order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- FULFILLMENT_TRACKING_NUMBER_UPDATED (async): Fulfillment tracking number is updated.
 """
-type FulfillmentUpdateTracking @doc(category: "Orders") {
+type FulfillmentUpdateTracking @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_TRACKING_NUMBER_UPDATED], syncEvents: []) {
   """A fulfillment with updated tracking."""
   fulfillment: Fulfillment
 
@@ -26299,8 +26343,9 @@ Requires one of the following permissions: MANAGE_GIFT_CARD.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for the exported file.
+- GIFT_CARD_EXPORT_COMPLETED (async): A notification for the exported file.
 """
-type ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+type ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: []) {
   """
   The newly created export file job which is responsible for export data.
   """
@@ -30414,6 +30459,28 @@ type GiftCardMetadataUpdated implements Event @doc(category: "Gift cards") {
 }
 
 """
+Event sent when gift card export is completed.
+
+Added in Saleor 3.16.
+"""
+type GiftCardExportCompleted implements Event @doc(category: "Gift cards") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The export file for gift cards."""
+  export: ExportFile
+}
+
+"""
 Event sent when new menu is created.
 
 Added in Saleor 3.4.
@@ -31483,11 +31550,36 @@ type FulfillmentCreated implements Event @doc(category: "Orders") {
   order: Order
 
   """
-  If true, send an email notification to the customer.
+  If true, the app should send a notification to the customer.
   
   Added in Saleor 3.16.
   """
   notifyCustomer: Boolean!
+}
+
+"""
+Event sent when the tracking number is updated.
+
+Added in Saleor 3.16.
+"""
+type FulfillmentTrackingNumberUpdated implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The fulfillment the event relates to."""
+  fulfillment: Fulfillment
+
+  """The order the fulfillment belongs to."""
+  order: Order
 }
 
 """
@@ -31538,6 +31630,13 @@ type FulfillmentApproved implements Event @doc(category: "Orders") {
 
   """The order the fulfillment belongs to."""
   order: Order
+
+  """
+  If true, send a notification to the customer.
+  
+  Added in Saleor 3.16.
+  """
+  notifyCustomer: Boolean!
 }
 
 """

@@ -51,6 +51,10 @@ class ExportGiftCards(BaseExportMutation):
                 type=WebhookEventAsyncType.NOTIFY_USER,
                 description="A notification for the exported file.",
             ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED,
+                description="A notification for the exported file.",
+            ),
         ]
 
     @classmethod

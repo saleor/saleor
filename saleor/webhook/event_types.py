@@ -63,6 +63,7 @@ class WebhookEventAsyncType:
     GIFT_CARD_SENT = "gift_card_sent"
     GIFT_CARD_STATUS_CHANGED = "gift_card_status_changed"
     GIFT_CARD_METADATA_UPDATED = "gift_card_metadata_updated"
+    GIFT_CARD_EXPORT_COMPLETED = "gift_card_export_completed"
 
     MENU_CREATED = "menu_created"
     MENU_UPDATED = "menu_updated"
@@ -88,6 +89,7 @@ class WebhookEventAsyncType:
     FULFILLMENT_CANCELED = "fulfillment_canceled"
     FULFILLMENT_APPROVED = "fulfillment_approved"
     FULFILLMENT_METADATA_UPDATED = "fulfillment_metadata_updated"
+    FULFILLMENT_TRACKING_NUMBER_UPDATED = "fulfillment_tracking_number_updated"
 
     DRAFT_ORDER_CREATED = "draft_order_created"
     DRAFT_ORDER_UPDATED = "draft_order_updated"
@@ -321,6 +323,10 @@ class WebhookEventAsyncType:
             "name": "Gift card metadata updated",
             "permission": GiftcardPermissions.MANAGE_GIFT_CARD,
         },
+        GIFT_CARD_EXPORT_COMPLETED: {
+            "name": "Gift card export completed",
+            "permission": GiftcardPermissions.MANAGE_GIFT_CARD,
+        },
         MENU_CREATED: {
             "name": "Menu created",
             "permission": MenuPermissions.MANAGE_MENUS,
@@ -407,6 +413,10 @@ class WebhookEventAsyncType:
         },
         FULFILLMENT_METADATA_UPDATED: {
             "name": "Fulfillment metadata updated",
+            "permission": OrderPermissions.MANAGE_ORDERS,
+        },
+        FULFILLMENT_TRACKING_NUMBER_UPDATED: {
+            "name": "Fulfillment tracking number updated.",
             "permission": OrderPermissions.MANAGE_ORDERS,
         },
         DRAFT_ORDER_CREATED: {

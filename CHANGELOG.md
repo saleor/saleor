@@ -10,23 +10,35 @@ All notable, unreleased changes to this project will be documented in this file.
 in 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
   - Deprecate `OrderSettings.defaultTransactionFlowStrategy`. It will be removed
 in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
+  - Change in the CSV export. It will now use empty string for empty attribute values instead of a single whitespace value.
 
 ### GraphQL API
 - Add `customerIpAddress` to `transactionInitialize` and `transactionProcess` mutations - #13718 by @korycins
 - Add `PaymentSettings` to `Channel` - #13677 by @korycins
+- Adjust where filtering by empty values - explicit treat empty values - #13754 by @IKarbowiak
+- Add `storedPaymentMethodRequestDelete` mutation - #13660 by @korycins
+- Add `externalReference` to `updateWarehouse`. It will allow update warehouse by
+  external reference. - #13342 by @Smit-Parmar
+
 
 ### Saleor Apps
 - Add `customerIpAddress` to `TRANSACTION_INITIALIZE_SESSION` and `TRANSACTION_PROCESS_SESSION` webhooks  #13718 by @korycins
-- Add `storedPaymentMethodRequestDelete` mutation - #13660 by @korycins
-- Add `PaymentSettings` to `Channel` - #13677 by @korycins
-
-### Saleor Apps
 - Add `STORED_PAYMENT_METHOD_DELETE_REQUESTED` webhook event - #13660 by @korycins
 - Add `NOTIFY_CUSTOMER` flag to `FulfillmentCreated` type - #13620, by @Air-t
   - Inform apps if customer should be notified when fulfillment is created.
+- Add `NOTIFY_CUSTOMER` flag to `FulfillmentApproved` type - #13637, by @Air-t
+  - Inform apps if customer should be notified when fulfillment is approved.
+- Add `GIFT_CARD_EXPORT_COMPLETED` webhook - #13765, by @Air-t
+  - Event sent when CSV export is completed.
+
+- Add `FULFILLMENT_TRACKING_NUMBER_UPDATED` webhook - #13708, by @Air-t
+  - Called after `fulfillmentUpdateTracking` or `orderFulfill` mutation if tracking number is updated.
 
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
+- Fix giftcard code description - #13728 by @rafiwts
+
+- Change error message when denying a permission - #13334 by @rafiwts
 
 # 3.15.0 [Unreleased]
 
@@ -121,7 +133,6 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Add `CheckoutLine.problems` field
   - Add `CheckoutSettingsInput` to `ChannelCreateInput` & `ChannelUpdateInput`
   - Add `checkoutSettings` field to `Channel`
-
 ### Saleor Apps
 
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
@@ -198,6 +209,9 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - `preprocess_order_creation`
 
   This breaking change affect any custom plugins in open-source Saleor, if they override any of the above mentioned methods.
+- The signature of the `list_payment_gateways` manager method has changed. It may affect Saleor open-source users, who maintain plugins overriding this method. Changes:
+  - The `checkout: Checkout` argument was removed
+  - `checkout_info: CheckoutInfo` and `checkout_lines: Iterable[CheckoutLineInfo]` arguments were added instead
 
 ### GraphQL API
 

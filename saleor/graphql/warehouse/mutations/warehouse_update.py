@@ -4,14 +4,15 @@ from ....permission.enums import ProductPermissions
 from ....warehouse import models
 from ...account.i18n import I18nMixin
 from ...core import ResolveInfo
-from ...core.mutations import ModelMutation
+from ...core.descriptions import ADDED_IN_316
+from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import WarehouseError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Warehouse, WarehouseUpdateInput
 from .base import WarehouseMixin
 
 
-class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
+class WarehouseUpdate(WarehouseMixin, ModelWithExtRefMutation):
     class Meta:
         model = models.Warehouse
         object_type = Warehouse
@@ -21,9 +22,13 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
         error_type_field = "warehouse_errors"
 
     class Arguments:
-        id = graphene.ID(description="ID of a warehouse to update.", required=True)
+        id = graphene.ID(description="ID of a warehouse to update.", required=False)
         input = WarehouseUpdateInput(
             required=True, description="Fields required to update warehouse."
+        )
+        external_reference = graphene.String(
+            required=False,
+            description="External reference of a warehouse." + ADDED_IN_316,
         )
 
     @classmethod
@@ -35,7 +40,7 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
         address = instance.address
         if address_data is None:
             return address
-        address_form = cls.validate_address_form(address_data, instance=address)
+        address_form = I18nMixin.validate_address_form(address_data, instance=address)
         if address_metadata:
             cls.update_metadata(address, address_metadata)
         return address_form.save()

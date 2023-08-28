@@ -7,6 +7,7 @@ import petl as etl
 from django.utils import timezone
 
 from ...giftcard.models import GiftCard
+from ...plugins.manager import get_plugins_manager
 from ...product.models import Product
 from .. import FileTypes
 from ..notifications import send_export_download_link_notification
@@ -87,6 +88,8 @@ def export_gift_cards(
     temporary_file.close()
 
     send_export_download_link_notification(export_file, "gift cards")
+    manager = get_plugins_manager()
+    manager.gift_card_export_completed(export_file)
 
 
 def get_filename(model_name: str, file_type: str) -> str:
@@ -221,7 +224,7 @@ def append_to_file(
     file_type: str,
     delimiter: str,
 ):
-    table = etl.fromdicts(export_data, header=headers, missing=" ")
+    table = etl.fromdicts(export_data, header=headers, missing="")
 
     if file_type == FileTypes.CSV:
         etl.io.csv.appendcsv(table, temporary_file.name, delimiter=delimiter)

@@ -293,6 +293,7 @@ def test_export_products_by_app(
     save_file_mock.assert_called_once_with(app_export_file, mock_file, ANY)
 
 
+@patch("saleor.plugins.manager.PluginsManager.gift_card_export_completed")
 @patch("saleor.csv.utils.export.create_file_with_headers")
 @patch("saleor.csv.utils.export.export_gift_cards_in_batches")
 @patch("saleor.csv.utils.export.send_export_download_link_notification")
@@ -302,6 +303,7 @@ def test_export_gift_cards(
     send_email_mock,
     export_in_batches_mock,
     create_file_with_headers_mock,
+    mocked_gift_card_export_completed,
     user_export_file,
     gift_card,
     gift_card_expiry_date,
@@ -333,6 +335,8 @@ def test_export_gift_cards(
     send_email_mock.assert_called_once_with(user_export_file, "gift cards")
 
     save_file_mock.assert_called_once_with(user_export_file, mock_file, ANY)
+
+    mocked_gift_card_export_completed.assert_called_once_with(user_export_file)
 
 
 @patch("saleor.csv.utils.export.create_file_with_headers")
@@ -580,7 +584,7 @@ def test_append_to_file_for_csv(user_export_file, tmpdir, media_root):
     headers = ["id", "name", "collections"]
     delimiter = ","
 
-    table = etl.fromdicts([{"id": "1", "name": "A"}], header=headers, missing=" ")
+    table = etl.fromdicts([{"id": "1", "name": "A"}], header=headers, missing="")
 
     temp_file = NamedTemporaryFile()
     etl.tocsv(table, temp_file.name, delimiter=delimiter)
@@ -594,7 +598,7 @@ def test_append_to_file_for_csv(user_export_file, tmpdir, media_root):
     file_content = temp_file.read().decode().split("\r\n")
     assert ",".join(headers) in file_content
     assert ",".join(export_data[0].values()) in file_content
-    assert (",".join(export_data[1].values()) + ", ") in file_content
+    assert (",".join(export_data[1].values()) + ",") in file_content
 
     temp_file.close()
     shutil.rmtree(tmpdir)
@@ -607,41 +611,32 @@ def test_append_to_file_for_xlsx(user_export_file, tmpdir, media_root):
         {"id": "345", "name": "test2"},
     ]
     expected_headers = ["id", "name", "collections"]
-    delimiter = ","
 
     table = etl.fromdicts(
-        [{"id": "1", "name": "A"}], header=expected_headers, missing=" "
+        [{"id": "1", "name": "A"}], header=expected_headers, missing=""
     )
 
     temp_file = NamedTemporaryFile(suffix=".xlsx")
     etl.io.xlsx.toxlsx(table, temp_file.name)
 
     # when
-    append_to_file(export_data, expected_headers, temp_file, FileTypes.XLSX, delimiter)
+    append_to_file(export_data, expected_headers, temp_file, FileTypes.XLSX, ",")
 
     # then
     user_export_file.refresh_from_db()
 
-    wb_obj = openpyxl.load_workbook(temp_file)
+    workbook = openpyxl.load_workbook(temp_file)
 
-    sheet_obj = wb_obj.active
-    max_col = sheet_obj.max_column
-    max_row = sheet_obj.max_row
-    expected_headers = expected_headers
-    headers = [sheet_obj.cell(row=1, column=i).value for i in range(1, max_col + 1)]
-    data = []
-    for i in range(2, max_row + 1):
-        row = []
-        for j in range(1, max_col + 1):
-            row.append(sheet_obj.cell(row=i, column=j).value)
-        data.append(row)
-
-    assert headers == expected_headers
-    assert list(export_data[0].values()) in data
-    row2 = list(export_data[1].values())
-    # add string with space for collections column
-    row2.append(" ")
-    assert row2 in data
+    sheet = workbook.worksheets[0]
+    assert sheet.cell(1, 1).value == expected_headers[0]
+    assert sheet.cell(1, 2).value == expected_headers[1]
+    assert sheet.cell(1, 3).value == expected_headers[2]
+    assert sheet.cell(3, 1).value == export_data[0]["id"]
+    assert sheet.cell(3, 2).value == export_data[0]["name"]
+    assert sheet.cell(3, 3).value == export_data[0]["collections"]
+    assert sheet.cell(4, 1).value == export_data[1]["id"]
+    assert sheet.cell(4, 2).value == export_data[1]["name"]
+    assert sheet.cell(4, 3).value is None
 
     temp_file.close()
     shutil.rmtree(tmpdir)
