@@ -2,7 +2,7 @@ import graphene
 import pytest
 
 from .....discount.models import Promotion
-from .....discount.sale_converter import convert_sales_to_promotions
+from .....discount.tests.sale_converter import convert_sales_to_promotions
 from ....core.enums import LanguageCodeEnum
 from ....tests.utils import get_graphql_content
 from ...schema import TranslatableKinds
