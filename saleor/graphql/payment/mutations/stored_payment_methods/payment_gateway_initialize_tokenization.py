@@ -7,10 +7,7 @@ from .....webhook.event_types import WebhookEventSyncType
 from ....channel.utils import validate_channel
 from ....core.descriptions import ADDED_IN_316, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
-from ....core.enums import (
-    PaymentGatewayInitializeTokenizationErrorCode,
-    StoredPaymentMethodRequestDeleteErrorCode,
-)
+from ....core.enums import PaymentGatewayInitializeTokenizationErrorCode
 from ....core.mutations import BaseMutation
 from ....core.scalars import JSON
 from ....core.types.common import PaymentGatewayInitializeTokenizationError
@@ -68,12 +65,6 @@ class PaymentGatewayInitializeTokenization(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, id, channel, data=None):
         user = info.context.user
-        if not user:
-            raise ValidationError(
-                "You need to be authenticated user to initialize payment gateway for "
-                "tokenization.",
-                code=StoredPaymentMethodRequestDeleteErrorCode.INVALID.value,
-            )
         channel = validate_channel(
             channel, PaymentGatewayInitializeTokenizationErrorCode
         )
