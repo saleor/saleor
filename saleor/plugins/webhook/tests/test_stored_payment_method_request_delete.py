@@ -146,6 +146,61 @@ def test_stored_payment_method_request_delete_with_subscription_payload(
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_stored_payment_method_request_delete_failure_from_app(
+    mock_request,
+    customer_user,
+    webhook_plugin,
+    stored_payment_method_request_delete_app,
+    webhook_stored_payment_method_request_delete_response,
+    channel_USD,
+):
+    # given
+    expected_error_msg = "Payment method request delete failed1."
+    mock_request.return_value = {
+        "result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE.name,
+        "error": expected_error_msg,
+    }
+
+    plugin = webhook_plugin()
+
+    payment_method_id = "123"
+
+    request_delete_data = StoredPaymentMethodRequestDeleteData(
+        user=customer_user,
+        payment_method_id=to_payment_app_id(
+            stored_payment_method_request_delete_app, payment_method_id
+        ),
+        channel=channel_USD,
+    )
+
+    previous_value = StoredPaymentMethodRequestDeleteResponseData(
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
+        error="Payment method request delete failed to deliver.",
+    )
+
+    # when
+    response = plugin.stored_payment_method_request_delete(
+        request_delete_data, previous_value
+    )
+
+    # then
+    delivery = EventDelivery.objects.get()
+    assert delivery.payload.payload == json.dumps(
+        {
+            "payment_method_id": payment_method_id,
+            "user_id": graphene.Node.to_global_id("User", customer_user.pk),
+            "channel_slug": channel_USD.slug,
+        }
+    )
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+
+    assert response == StoredPaymentMethodRequestDeleteResponseData(
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
+        error=expected_error_msg,
+    )
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_stored_payment_method_request_delete_missing_response_from_webhook(
     mock_request,
     customer_user,

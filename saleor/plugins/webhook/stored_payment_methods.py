@@ -156,7 +156,7 @@ def get_response_for_stored_payment_method_request_delete(
         try:
             response_result = response_data.get("result") or ""
             result = StoredPaymentMethodRequestDeleteResult[response_result]
-            error = None
+            error = response_data.get("error", None)
         except KeyError:
             result = StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE
             error = "Missing or incorrect `result` in response."
