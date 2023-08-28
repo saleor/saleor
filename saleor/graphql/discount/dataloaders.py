@@ -5,7 +5,6 @@ from django.db.models import Exists, F, OuterRef
 from promise import Promise
 
 from ...channel.models import Channel
-from ...discount import DiscountInfo
 from ...discount.interface import VoucherInfo
 from ...discount.models import (
     CheckoutLineDiscount,
@@ -13,65 +12,12 @@ from ...discount.models import (
     Promotion,
     PromotionEvent,
     PromotionRule,
-    Sale,
     SaleChannelListing,
     Voucher,
     VoucherChannelListing,
 )
-from ...discount.utils import (
-    fetch_categories,
-    fetch_collections,
-    fetch_products,
-    fetch_sale_channel_listings,
-    fetch_variants,
-)
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
-
-
-class DiscountsByDateTimeLoader(DataLoader):
-    context_key = "discounts"
-
-    def batch_load(self, keys):
-        sales_map = {
-            datetime: list(
-                Sale.objects.using(self.database_connection_name)
-                .active(datetime)
-                .order_by("id")
-            )
-            for datetime in keys
-        }
-        pks = {s.pk for d, ss in sales_map.items() for s in ss}
-        collections = fetch_collections(
-            pks, database_connection_name=self.database_connection_name
-        )
-        channel_listings = fetch_sale_channel_listings(
-            pks, self.database_connection_name
-        )
-        products = fetch_products(
-            pks, database_connection_name=self.database_connection_name
-        )
-        categories = fetch_categories(
-            pks, database_connection_name=self.database_connection_name
-        )
-        variants = fetch_variants(
-            pks, database_connection_name=self.database_connection_name
-        )
-
-        return [
-            [
-                DiscountInfo(
-                    sale=sale,
-                    channel_listings=channel_listings[sale.pk],
-                    category_ids=categories[sale.pk],
-                    collection_ids=collections[sale.pk],
-                    product_ids=products[sale.pk],
-                    variants_ids=variants[sale.pk],
-                )
-                for sale in sales_map[datetime]
-            ]
-            for datetime in keys
-        ]
 
 
 class SaleChannelListingBySaleIdAndChanneSlugLoader(DataLoader):
@@ -245,10 +191,6 @@ class OrderDiscountsByOrderIDLoader(DataLoader):
         for discount in discounts:
             discount_map[discount.order_id].append(discount)
         return [discount_map.get(order_id, []) for order_id in keys]
-
-
-def load_discounts(request):
-    return DiscountsByDateTimeLoader(request).load(request.request_time).get()
 
 
 class CheckoutLineDiscountsByCheckoutLineIdLoader(DataLoader):

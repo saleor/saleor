@@ -2,9 +2,8 @@ import pytest
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....plugins.manager import get_plugins_manager
-from ... import DiscountInfo, DiscountValueType
+from ... import DiscountValueType
 from ...models import Sale, SaleChannelListing
-from ...utils import fetch_sale_channel_listings
 
 
 @pytest.fixture
@@ -54,20 +53,6 @@ def checkout_lines_with_multiple_quantity_info(
 
     lines_info, _ = fetch_checkout_lines(checkout_with_items)
     return lines_info
-
-
-@pytest.fixture
-def discount_info_for_new_sale(new_sale):
-    channel_listings = fetch_sale_channel_listings([new_sale.pk])[new_sale.pk]
-
-    return DiscountInfo(
-        sale=new_sale,
-        category_ids=set(),
-        channel_listings=channel_listings,
-        collection_ids=set(),
-        product_ids=set(),
-        variants_ids=set(),
-    )
 
 
 @pytest.fixture
