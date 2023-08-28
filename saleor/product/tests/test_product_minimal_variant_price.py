@@ -201,6 +201,56 @@ def test_update_discounted_price_for_promotion_discount_multiple_applicable_rule
     )
 
 
+def test_update_discounted_price_for_promotion_1_cent_variant_on_10_percentage_discount(
+    product, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
+
+    # Set product price to 0.01 USD
+    variant_price = Decimal("0.01")
+    variant_channel_listing.price_amount = variant_price
+    variant_channel_listing.discounted_price_amount = variant_price
+    variant_channel_listing.save()
+
+    product_channel_listing.refresh_from_db()
+
+    reward_value = Decimal("10.00")
+    promotion = Promotion.objects.create(
+        name="Promotion",
+    )
+    rule = promotion.rules.create(
+        name="Percentage promotion rule",
+        promotion=promotion,
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=reward_value,
+    )
+    rule.channels.add(variant_channel_listing.channel)
+
+    # when
+    update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
+
+    # then
+    expected_price_amount = round(variant_price - variant_price * reward_value / 100, 2)
+    product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
+    assert product_channel_listing.discounted_price_amount == expected_price_amount
+    assert variant_channel_listing.discounted_price_amount == expected_price_amount
+    assert variant_channel_listing.promotion_rules.first() == rule
+    assert variant_channel_listing.promotion_rules.first()
+    assert (
+        variant_channel_listing.variantlistingpromotionrule.first().discount_amount
+        == variant_price - expected_price_amount
+    )
+
+
 def test_update_discounted_price_for_promotion_promotion_not_applicable_for_channel(
     product, channel_USD, channel_PLN
 ):

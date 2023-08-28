@@ -1,9 +1,9 @@
 from decimal import Decimal
 
-import pytest
 from prices import Money, TaxedMoney
 
-from ...discount import DiscountValueType, VoucherType
+from ...discount import DiscountValueType, RewardValueType, VoucherType
+from ...discount.models import PromotionRule
 from ...discount.tests.sale_converter import convert_sales_to_promotions
 from ...plugins.manager import get_plugins_manager
 from ...tax.utils import calculate_tax_rate
@@ -477,24 +477,36 @@ def test_calculate_base_line_total_price_with_variant_on_promotion(
     assert total_price == checkout_line_info.channel_listing.discounted_price * quantity
 
 
-@pytest.mark.skip(
-    reason="TODO: test this scenario by the method that recalculating discounted prices"
-)
-def test_calculate_base_line_total_price_with_1_cent_variant_on_10_percentage_sale(
-    checkout_with_item_on_sale, discount_info, category
+def test_calculate_base_line_total_price_with_1_cent_variant_on_10_percentage_discount(
+    checkout_with_item_on_promotion,
 ):
     # given
     quantity = 10
-    checkout = checkout_with_item_on_sale
-    checkout_line = checkout_with_item_on_sale.lines.first()
+    checkout = checkout_with_item_on_promotion
+    checkout_line = checkout.lines.first()
     checkout_line.quantity = quantity
     checkout_line.save()
+
+    rule = PromotionRule.objects.first()
+    rule.reward_value = Decimal("10")
+    rule.reward_value_type = RewardValueType.PERCENTAGE
 
     # Set product price to 0.01 USD
     variant = checkout_line.variant
     variant_channel_listing = variant.channel_listings.get()
     variant_channel_listing.price_amount = Decimal("0.01")
+    variant_channel_listing.discounted_price_amount = Decimal("0.01")
     variant_channel_listing.save()
+
+    listing_rule = variant_channel_listing.variantlistingpromotionrule.first()
+    listing_rule.discount_amount = (
+        rule.reward_value * variant_channel_listing.price_amount / 100
+    )
+    listing_rule.save(update_fields=["discount_amount"])
+
+    discount = checkout_line.discounts.first()
+    discount.amount_value = listing_rule.discount_amount * quantity
+    discount.save(update_fields=["amount_value"])
 
     checkout_lines_info, _ = fetch_checkout_lines(checkout)
     checkout_line_info = checkout_lines_info[0]
@@ -504,7 +516,6 @@ def test_calculate_base_line_total_price_with_1_cent_variant_on_10_percentage_sa
 
     # then
     variant_channel_listing.refresh_from_db()
-    # assert sale_channel_listing.discount_value == Decimal(10)
     assert variant_channel_listing.price_amount == Decimal("0.01")
     assert total_price == Money(Decimal("0.09"), checkout_line.currency)
 
