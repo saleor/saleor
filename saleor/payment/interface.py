@@ -157,6 +157,25 @@ class TransactionSessionResult:
 
 
 @dataclass
+class PaymentGatewayInitializeTokenizationRequestData:
+    """Dataclass for storing the request information for payment app."""
+
+    app_identifier: str
+    channel: "Channel"
+    user: "User"
+    data: Optional[dict] = None
+
+
+@dataclass
+class PaymentGatewayInitializeTokenizationResponseData:
+    """Dataclass for storing the response information from payment app."""
+
+    success: bool
+    message: Optional[str] = None
+    data: Optional[dict] = None
+
+
+@dataclass
 class PaymentMethodInfo:
     """Uniform way to represent payment method information."""
 

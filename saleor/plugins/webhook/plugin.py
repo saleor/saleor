@@ -21,6 +21,8 @@ from ...payment.interface import (
     PaymentData,
     PaymentGateway,
     PaymentGatewayData,
+    PaymentGatewayInitializeTokenizationRequestData,
+    PaymentGatewayInitializeTokenizationResponseData,
     PaymentMethodData,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
@@ -71,6 +73,7 @@ from .shipping import (
 from .stored_payment_methods import (
     get_list_stored_payment_methods_data_dict,
     get_list_stored_payment_methods_from_response,
+    get_response_for_payment_gateway_initialize_tokenization,
     get_response_for_stored_payment_method_request_delete,
     invalidate_cache_for_stored_payment_methods,
 )
@@ -1742,6 +1745,40 @@ class WebhookPlugin(BasePlugin):
                         )
                     )
         return previous_value
+
+    def payment_gateway_initialize_tokenization(
+        self,
+        request_data: "PaymentGatewayInitializeTokenizationRequestData",
+        previous_value: "PaymentGatewayInitializeTokenizationResponseData",
+    ) -> "PaymentGatewayInitializeTokenizationResponseData":
+        if not self.active:
+            return previous_value
+
+        event_type = (
+            WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION
+        )
+        webhook = get_webhooks_for_event(
+            event_type, apps_identifier=[request_data.app_identifier]
+        ).first()
+
+        if not webhook:
+            return previous_value
+
+        payload = self._serialize_payload(
+            {
+                "user_id": graphene.Node.to_global_id("User", request_data.user.id),
+                "channel_slug": request_data.channel.slug,
+                "data": request_data.data,
+            }
+        )
+        response_data = trigger_webhook_sync(
+            event_type,
+            payload,
+            webhook,
+            subscribable_object=request_data,
+            timeout=WEBHOOK_SYNC_TIMEOUT,
+        )
+        return get_response_for_payment_gateway_initialize_tokenization(response_data)
 
     def _request_transaction_action(
         self,

@@ -21,6 +21,8 @@ from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentGateway,
     PaymentGatewayData,
+    PaymentGatewayInitializeTokenizationRequestData,
+    PaymentGatewayInitializeTokenizationResponseData,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
     TransactionProcessActionData,
@@ -1387,4 +1389,37 @@ def test_stored_payment_method_request_delete(
     # then
     mocked_stored_payment_method_request_delete.assert_called_once_with(
         request_delete_data, previous_value=previous_response
+    )
+
+
+@patch(
+    "saleor.plugins.tests.sample_plugins.PluginSample."
+    "payment_gateway_initialize_tokenization"
+)
+def test_payment_gateway_initialize_tokenization(
+    mocked_payment_gateway_initialize_tokenization, customer_user, channel_USD, app
+):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    request_data = PaymentGatewayInitializeTokenizationRequestData(
+        user=customer_user,
+        app_identifier=app.identifier,
+        channel=channel_USD,
+        data={"data": "ABC"},
+    )
+    previous_response = PaymentGatewayInitializeTokenizationResponseData(
+        success=False,
+        message="Payment gateway initialize tokenization failed to deliver.",
+    )
+
+    # when
+    manager.payment_gateway_initialize_tokenization(request_data=request_data)
+
+    # then
+    mocked_payment_gateway_initialize_tokenization.assert_called_once_with(
+        request_data, previous_value=previous_response
     )

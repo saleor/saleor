@@ -8,6 +8,7 @@ from ...app.models import App
 from ...payment import TokenizedPaymentFlow
 from ...payment.interface import (
     PaymentGateway,
+    PaymentGatewayInitializeTokenizationResponseData,
     PaymentMethodCreditCardInfo,
     PaymentMethodData,
     StoredPaymentMethodRequestDeleteResponseData,
@@ -173,3 +174,14 @@ def invalidate_cache_for_stored_payment_methods(
             cache_data, webhook.target_url, event_type, webhook.app_id
         )
         cache.delete(cache_key)
+
+
+def get_response_for_payment_gateway_initialize_tokenization(
+    response_data: Optional[dict],
+) -> "PaymentGatewayInitializeTokenizationResponseData":
+    response_data = response_data or {"message": "Failed to delivery request."}
+    return PaymentGatewayInitializeTokenizationResponseData(
+        success=response_data.get("success", False),
+        message=response_data.get("message", None),
+        data=response_data.get("data", None),
+    )

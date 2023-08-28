@@ -1,0 +1,180 @@
+import json
+
+import graphene
+import mock
+import pytest
+
+from ....core.models import EventDelivery
+from ....payment.interface import (
+    PaymentGatewayInitializeTokenizationRequestData,
+    PaymentGatewayInitializeTokenizationResponseData,
+)
+from ....settings import WEBHOOK_SYNC_TIMEOUT
+
+PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION = """
+subscription {
+  event {
+    ... on PaymentGatewayInitializeTokenizationSession{
+      user{
+        id
+      }
+      channel{
+        id
+      }
+      data
+    }
+  }
+}
+"""
+
+
+@pytest.fixture
+def webhook_payment_gateway_initialize_tokenization_response():
+    return {"success": True, "message": "OK", "data": {"foo": "bar"}}
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_payment_gateway_initialize_tokenization_with_static_payload(
+    mock_request,
+    customer_user,
+    webhook_plugin,
+    payment_gateway_initialize_tokenization_app,
+    webhook_payment_gateway_initialize_tokenization_response,
+    channel_USD,
+):
+    # given
+    mock_request.return_value = webhook_payment_gateway_initialize_tokenization_response
+
+    plugin = webhook_plugin()
+
+    expected_data = {"foo": "bar"}
+    request_data = PaymentGatewayInitializeTokenizationRequestData(
+        user=customer_user,
+        app_identifier=payment_gateway_initialize_tokenization_app.identifier,
+        channel=channel_USD,
+        data=expected_data,
+    )
+
+    previous_value = PaymentGatewayInitializeTokenizationResponseData(
+        success=False,
+        message="Payment gateway initialize tokenization failed to deliver.",
+    )
+
+    # when
+    response = plugin.payment_gateway_initialize_tokenization(
+        request_data, previous_value
+    )
+
+    # then
+    delivery = EventDelivery.objects.get()
+    assert json.loads(delivery.payload.payload) == {
+        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
+        "channel_slug": channel_USD.slug,
+        "data": expected_data,
+    }
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+
+    assert response == PaymentGatewayInitializeTokenizationResponseData(
+        success=True,
+        message=webhook_payment_gateway_initialize_tokenization_response["message"],
+        data=webhook_payment_gateway_initialize_tokenization_response["data"],
+    )
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_payment_gateway_initialize_tokenization_with_subscription_payload(
+    mock_request,
+    customer_user,
+    webhook_plugin,
+    payment_gateway_initialize_tokenization_app,
+    webhook_payment_gateway_initialize_tokenization_response,
+    channel_USD,
+):
+    # given
+    mock_request.return_value = webhook_payment_gateway_initialize_tokenization_response
+
+    webhook = payment_gateway_initialize_tokenization_app.webhooks.first()
+    webhook.subscription_query = PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION
+    webhook.save()
+
+    plugin = webhook_plugin()
+
+    expected_data = {"foo": "bar"}
+
+    request_data = PaymentGatewayInitializeTokenizationRequestData(
+        user=customer_user,
+        app_identifier=payment_gateway_initialize_tokenization_app.identifier,
+        channel=channel_USD,
+        data=expected_data,
+    )
+
+    previous_value = PaymentGatewayInitializeTokenizationResponseData(
+        success=False,
+        message="Payment gateway initialize tokenization failed to deliver.",
+    )
+
+    # when
+    response = plugin.payment_gateway_initialize_tokenization(
+        request_data, previous_value
+    )
+
+    # then
+    delivery = EventDelivery.objects.get()
+    assert json.loads(delivery.payload.payload) == {
+        "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
+        "data": expected_data,
+        "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
+    }
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+
+    assert response == PaymentGatewayInitializeTokenizationResponseData(
+        success=True,
+        message=webhook_payment_gateway_initialize_tokenization_response["message"],
+        data=webhook_payment_gateway_initialize_tokenization_response["data"],
+    )
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_payment_gateway_initialize_tokenization_missing_correct_response_from_webhook(
+    mock_request,
+    customer_user,
+    webhook_plugin,
+    payment_gateway_initialize_tokenization_app,
+    channel_USD,
+):
+    # given
+    mock_request.return_value = None
+
+    webhook = payment_gateway_initialize_tokenization_app.webhooks.first()
+    webhook.subscription_query = PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION
+    webhook.save()
+
+    plugin = webhook_plugin()
+
+    expected_data = {"foo": "bar"}
+
+    request_data = PaymentGatewayInitializeTokenizationRequestData(
+        user=customer_user,
+        app_identifier=payment_gateway_initialize_tokenization_app.identifier,
+        channel=channel_USD,
+        data=expected_data,
+    )
+
+    previous_value = PaymentGatewayInitializeTokenizationResponseData(
+        success=False,
+        message="Payment gateway initialize tokenization failed to deliver.",
+    )
+
+    # when
+    response = plugin.payment_gateway_initialize_tokenization(
+        request_data, previous_value
+    )
+
+    # then
+    delivery = EventDelivery.objects.get()
+
+    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+
+    assert response == PaymentGatewayInitializeTokenizationResponseData(
+        success=False, message="Failed to delivery request.", data=None
+    )
