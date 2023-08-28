@@ -15597,6 +15597,13 @@ type Mutation {
     """
     amount: PositiveDecimal
 
+    """
+    The customer's IP address. If not provided Saleor will try to determine the customer's IP address on its own. The customer's IP address will be passed to the payment app. The IP should be in ipv4 or ipv6 format. The field can be used only by an app that has `HANDLE_PAYMENTS` permission.
+    
+    Added in Saleor 3.16.
+    """
+    customerIpAddress: String
+
     """The ID of the checkout or order."""
     id: ID!
 
@@ -15612,6 +15619,13 @@ type Mutation {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   transactionProcess(
+    """
+    The customer's IP address. If not provided Saleor will try to determine the customer's IP address on its own. The customer's IP address will be passed to the payment app. The IP should be in ipv4 or ipv6 format. The field can be used only by an app that has `HANDLE_PAYMENTS` permission.
+    
+    Added in Saleor 3.16.
+    """
+    customerIpAddress: String
+
     """The data that will be passed to the payment gateway."""
     data: JSON
 
@@ -33179,11 +33193,18 @@ type TransactionInitializeSession implements Event @doc(category: "Payments") {
   """Checkout or order"""
   sourceObject: OrderOrCheckout!
 
-  """Payment gateway data in JSON format, recieved from storefront."""
+  """Payment gateway data in JSON format, received from storefront."""
   data: JSON
 
   """Merchant reference assigned to this payment."""
   merchantReference: String!
+
+  """
+  The customer's IP address. If not provided as a parameter in the mutation, Saleor will try to determine the customer's IP address on its own.
+  
+  Added in Saleor 3.16.
+  """
+  customerIpAddress: String
 
   """Action to proceed for the transaction"""
   action: TransactionProcessAction!
@@ -33224,11 +33245,18 @@ type TransactionProcessSession implements Event @doc(category: "Payments") {
   """Checkout or order"""
   sourceObject: OrderOrCheckout!
 
-  """Payment gateway data in JSON format, recieved from storefront."""
+  """Payment gateway data in JSON format, received from storefront."""
   data: JSON
 
   """Merchant reference assigned to this payment."""
   merchantReference: String!
+
+  """
+  The customer's IP address. If not provided as a parameter in the mutation, Saleor will try to determine the customer's IP address on its own.
+  
+  Added in Saleor 3.16.
+  """
+  customerIpAddress: String
 
   """Action to proceed for the transaction"""
   action: TransactionProcessAction!

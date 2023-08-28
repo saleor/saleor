@@ -1800,10 +1800,17 @@ class TransactionSessionBase(SubscriptionObjectType, AbstractType):
     )
     data = graphene.Field(
         JSON,
-        description="Payment gateway data in JSON format, recieved from storefront.",
+        description="Payment gateway data in JSON format, received from storefront.",
     )
     merchant_reference = graphene.String(
         description="Merchant reference assigned to this payment.", required=True
+    )
+    customer_ip_address = graphene.String(
+        description=(
+            "The customer's IP address. If not provided as a parameter in the "
+            "mutation, Saleor will try to determine the customer's IP address on its "
+            "own." + ADDED_IN_316
+        ),
     )
     action = graphene.Field(
         TransactionProcessAction,
@@ -1846,6 +1853,13 @@ class TransactionSessionBase(SubscriptionObjectType, AbstractType):
     ):
         _, transaction_session_data = root
         return transaction_session_data.action
+
+    @classmethod
+    def resolve_customer_ip_address(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        _, transaction_session_data = root
+        return transaction_session_data.customer_ip_address
 
 
 class TransactionInitializeSession(TransactionSessionBase):

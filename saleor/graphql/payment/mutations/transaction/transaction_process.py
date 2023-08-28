@@ -17,13 +17,14 @@ from .....payment.utils import (
     get_final_session_statuses,
     handle_transaction_process_session,
 )
-from ....core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_313, ADDED_IN_316, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.scalars import JSON
 from ....core.types import common as common_types
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionEvent, TransactionItem
+from .utils import clean_customer_ip_address
 
 if TYPE_CHECKING:
     pass
@@ -48,6 +49,16 @@ class TransactionProcess(BaseMutation):
         )
         data = graphene.Argument(
             JSON, description="The data that will be passed to the payment gateway."
+        )
+        customer_ip_address = graphene.String(
+            description=(
+                "The customer's IP address. If not provided Saleor will try to "
+                "determine the customer's IP address on its own. "
+                "The customer's IP address will be passed to the payment app. "
+                "The IP should be in ipv4 or ipv6 format. "
+                "The field can be used only by an app that has `HANDLE_PAYMENTS` "
+                "permission." + ADDED_IN_316
+            )
         )
 
     class Meta:
@@ -150,7 +161,7 @@ class TransactionProcess(BaseMutation):
         return app
 
     @classmethod
-    def perform_mutation(cls, root, info, *, id, data=None):
+    def perform_mutation(cls, root, info, *, id, data=None, customer_ip_address=None):
         transaction_item = cls.get_node_or_error(
             info, id, only_type="TransactionItem", field="token"
         )
@@ -168,6 +179,12 @@ class TransactionProcess(BaseMutation):
         app_identifier = app.identifier
         app_identifier = cast(str, app_identifier)
         action = cls.get_action(request_event, source_object.channel)
+        customer_ip_address = clean_customer_ip_address(
+            info,
+            customer_ip_address,
+            error_code=TransactionProcessErrorCode.INVALID.value,
+        )
+
         manager = get_plugin_manager_promise(info.context).get()
         event, data = handle_transaction_process_session(
             transaction_item=transaction_item,
@@ -177,6 +194,7 @@ class TransactionProcess(BaseMutation):
             ),
             app=app,
             action=action,
+            customer_ip_address=customer_ip_address,
             manager=manager,
             request_event=request_event,
         )

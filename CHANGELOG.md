@@ -13,14 +13,16 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
   - Change in the CSV export. It will now use empty string for empty attribute values instead of a single whitespace value.
 
 ### GraphQL API
+- Add `customerIpAddress` to `transactionInitialize` and `transactionProcess` mutations - #13718 by @korycins
+- Add `PaymentSettings` to `Channel` - #13677 by @korycins
 - Adjust where filtering by empty values - explicit treat empty values - #13754 by @IKarbowiak
 - Add `storedPaymentMethodRequestDelete` mutation - #13660 by @korycins
-- Add `PaymentSettings` to `Channel` - #13677 by @korycins
 - Add `externalReference` to `updateWarehouse`. It will allow update warehouse by
   external reference. - #13342 by @Smit-Parmar
 
 
 ### Saleor Apps
+- Add `customerIpAddress` to `TRANSACTION_INITIALIZE_SESSION` and `TRANSACTION_PROCESS_SESSION` webhooks  #13718 by @korycins
 - Add `STORED_PAYMENT_METHOD_DELETE_REQUESTED` webhook event - #13660 by @korycins
 - Add `NOTIFY_CUSTOMER` flag to `FulfillmentCreated` type - #13620, by @Air-t
   - Inform apps if customer should be notified when fulfillment is created.
