@@ -2311,6 +2311,9 @@ class WebhookPlugin(BasePlugin):
             "stored_payment_method_request_delete": (
                 WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED
             ),
+            "payment_gateway_initialize_tokenization": (
+                WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION
+            ),
         }
 
         if event in map_event:

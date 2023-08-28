@@ -15615,6 +15615,29 @@ type Mutation {
   ): StoredPaymentMethodRequestDelete @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [STORED_PAYMENT_METHOD_DELETE_REQUESTED])
 
   """
+  Initializes payment gateway for tokenizing payment method session.
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION (sync): The customer requested to initialize payment gateway for tokenization.
+  """
+  paymentGatewayInitializeTokenization(
+    """Slug of a channel related to delete request."""
+    channel: String!
+
+    """The data that will be passed to the payment gateway."""
+    data: JSON
+
+    """The identifier of the payment gateway app to initialize tokenization."""
+    id: String!
+  ): PaymentGatewayInitializeTokenization @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION])
+
+  """
   Creates a new page. 
   
   Requires one of the following permissions: MANAGE_PAGES.
@@ -23222,6 +23245,51 @@ type PaymentMethodRequestDeleteError @doc(category: "Payments") {
 
 """An enumeration."""
 enum StoredPaymentMethodRequestDeleteErrorCode @doc(category: "Payments") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  CHANNEL_INACTIVE
+}
+
+"""
+Initializes payment gateway for tokenizing payment method session.
+
+Added in Saleor 3.16.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION (sync): The customer requested to initialize payment gateway for tokenization.
+"""
+type PaymentGatewayInitializeTokenization @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION]) {
+  """True, if the request was processed successfully."""
+  success: Boolean
+
+  """A message returned by payment app."""
+  message: String
+
+  """A data returned by payment app."""
+  data: JSON
+  errors: [PaymentGatewayInitializeTokenizationError!]!
+}
+
+type PaymentGatewayInitializeTokenizationError @doc(category: "Payments") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PaymentGatewayInitializeTokenizationErrorCode!
+}
+
+"""An enumeration."""
+enum PaymentGatewayInitializeTokenizationErrorCode @doc(category: "Payments") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND

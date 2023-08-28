@@ -97,3 +97,10 @@ class StoredPaymentMethodRequestDeleteErrorCode(Enum):
     INVALID = "invalid"
     NOT_FOUND = "not_found"
     CHANNEL_INACTIVE = "channel_inactive"
+
+
+class PaymentGatewayInitializeTokenizationErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    CHANNEL_INACTIVE = "channel_inactive"
