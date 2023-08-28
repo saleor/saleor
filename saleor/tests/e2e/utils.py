@@ -12,3 +12,7 @@ def assign_permissions(api_client, permissions):
         )
         group.permissions.add(*permissions)
         user.groups.add(group)
+    else:
+        app = api_client.app
+        if app:
+            app.permissions.add(*permissions)

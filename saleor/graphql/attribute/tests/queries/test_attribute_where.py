@@ -49,6 +49,32 @@ def test_attributes_filter_by_ids(api_client, product_type_attribute_list):
     }
 
 
+def test_attributes_filter_by_none_as_ids(api_client, product_type_attribute_list):
+    # given
+    variables = {"where": {"ids": None}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    attributes = data["data"]["attributes"]["edges"]
+    assert len(attributes) == 0
+
+
+def test_attributes_filter_by_ids_empty_list(api_client, product_type_attribute_list):
+    # given
+    variables = {"where": {"ids": []}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    attributes = data["data"]["attributes"]["edges"]
+    assert len(attributes) == 0
+
+
 @pytest.mark.parametrize(
     "where, indexes",
     [
@@ -56,6 +82,11 @@ def test_attributes_filter_by_ids(api_client, product_type_attribute_list):
         ({"eq": "test"}, []),
         ({"oneOf": ["Color", "Text"]}, [0, 2]),
         ({"oneOf": ["a", "acd"]}, []),
+        ({"oneOf": []}, []),
+        ({"oneOf": None}, []),
+        ({"eq": ""}, []),
+        ({"eq": None}, []),
+        (None, []),
     ],
 )
 def test_attributes_filter_by_name(
@@ -83,6 +114,11 @@ def test_attributes_filter_by_name(
         ({"eq": "test"}, []),
         ({"oneOf": ["color", "text"]}, [0, 2]),
         ({"oneOf": ["a", "acd"]}, []),
+        ({"oneOf": []}, []),
+        ({"oneOf": None}, []),
+        ({"eq": ""}, []),
+        ({"eq": None}, []),
+        (None, []),
     ],
 )
 def test_attributes_filter_by_slug(
@@ -103,7 +139,7 @@ def test_attributes_filter_by_slug(
     assert returned_attrs == {attributes[index].slug for index in indexes}
 
 
-@pytest.mark.parametrize("value, indexes", [(True, [0]), (False, [1, 2])])
+@pytest.mark.parametrize("value, indexes", [(True, [0]), (False, [1, 2]), (None, [])])
 def test_attributes_filter_by_with_choices(
     value, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
 ):
@@ -145,6 +181,10 @@ def test_attributes_filter_by_with_choices(
             },
             [],
         ),
+        ({"oneOf": []}, []),
+        ({"oneOf": None}, []),
+        ({"eq": None}, []),
+        (None, []),
     ],
 )
 def test_attributes_filter_by_input_type(
@@ -187,6 +227,10 @@ def test_attributes_filter_by_input_type(
             },
             [],
         ),
+        ({"oneOf": []}, []),
+        ({"oneOf": None}, []),
+        ({"eq": None}, [0]),
+        (None, []),
     ],
 )
 def test_attributes_filter_by_entity_type(
@@ -203,6 +247,9 @@ def test_attributes_filter_by_entity_type(
         product_type_page_reference_attribute,
         page_type_variant_reference_attribute,
     ]
+    color_attribute.entity_type = None
+    color_attribute.save(update_fields=["entity_type"])
+
     variables = {"where": {"entityType": where}}
 
     # when
@@ -238,6 +285,9 @@ def test_attributes_filter_by_entity_type(
             },
             [],
         ),
+        ({"oneOf": []}, []),
+        ({"oneOf": None}, []),
+        ({"eq": None}, []),
     ],
 )
 def test_attributes_filter_by_type(
@@ -287,6 +337,9 @@ def test_attributes_filter_by_type(
             },
             [],
         ),
+        ({"oneOf": []}, []),
+        ({"oneOf": None}, []),
+        ({"eq": None}, [0, 3]),
     ],
 )
 def test_attributes_filter_by_unit(
@@ -325,7 +378,7 @@ def test_attributes_filter_by_unit(
     assert returned_attrs == {attributes[index].slug for index in indexes}
 
 
-@pytest.mark.parametrize("value, indexes", [(True, [0, 1]), (False, [2])])
+@pytest.mark.parametrize("value, indexes", [(True, [0, 1]), (False, [2]), (None, [])])
 def test_attributes_filter_by_value_required(
     value, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
 ):
@@ -351,7 +404,7 @@ def test_attributes_filter_by_value_required(
     assert returned_attrs == {attributes[index].slug for index in indexes}
 
 
-@pytest.mark.parametrize("value, indexes", [(True, [0, 1]), (False, [2])])
+@pytest.mark.parametrize("value, indexes", [(True, [0, 1]), (False, [2]), (None, [])])
 def test_attributes_filter_by_visible_in_storefront(
     value,
     indexes,
@@ -386,7 +439,7 @@ def test_attributes_filter_by_visible_in_storefront(
     assert returned_attrs == {attributes[index].slug for index in indexes}
 
 
-@pytest.mark.parametrize("value, indexes", [(True, [0]), (False, [1, 2])])
+@pytest.mark.parametrize("value, indexes", [(True, [0]), (False, [1, 2]), (None, [])])
 def test_attributes_filter_by_filterable_in_dashboard(
     value, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
 ):
@@ -778,6 +831,54 @@ def test_attributes_filter_attributes_in_collection_object_with_given_id_does_no
     # then
     content = get_graphql_content(response)
     assert content["data"]["attributes"]["edges"] == []
+
+
+def test_attributes_filter_in_collection_empty_value(
+    staff_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    collection,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(is_published=False)
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    variables = {
+        "where": {
+            "inCollection": None,
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == 0
 
 
 def test_attributes_filter_in_category_not_visible_in_listings_by_customer(
@@ -1309,6 +1410,50 @@ def test_attributes_filter_in_category_object_with_given_id_does_not_exist(
     # then
     content = get_graphql_content(response)
     assert content["data"]["attributes"]["edges"] == []
+
+
+def test_attributes_filter_in_category_empty_value(
+    staff_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    variables = {
+        "where": {
+            "inCategory": None,
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == 0
 
 
 def test_attributes_filter_and_where_both_used(api_client, product_type_attribute_list):

@@ -374,6 +374,17 @@ fragment GiftCardDetails on GiftCard{
 }
 """
 
+GIFT_CARD_EXPORT_DETAILS = """
+fragment GiftCardExportDetails on ExportFile{
+  id
+  createdAt
+  updatedAt
+  status
+  url
+  message
+}
+"""
+
 
 VOUCHER_DETAILS = """
 fragment VoucherDetails on Voucher{

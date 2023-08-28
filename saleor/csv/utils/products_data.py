@@ -22,9 +22,9 @@ if TYPE_CHECKING:
 def get_products_data(
     queryset: "QuerySet",
     export_fields: Set[str],
-    attribute_ids: Optional[List[int]],
-    warehouse_ids: Optional[List[int]],
-    channel_ids: Optional[List[int]],
+    attribute_ids: Optional[List[str]],
+    warehouse_ids: Optional[List[str]],
+    channel_ids: Optional[List[str]],
 ) -> List[Dict[str, Union[str, bool]]]:
     """Create data list of products and their variants with fields values.
 
@@ -100,8 +100,8 @@ def get_products_data(
 def get_products_relations_data(
     queryset: "QuerySet",
     export_fields: Set[str],
-    attribute_ids: Optional[List[int]],
-    channel_ids: Optional[List[int]],
+    attribute_ids: Optional[List[str]],
+    channel_ids: Optional[List[str]],
 ) -> Dict[int, Dict[str, str]]:
     """Get data about product relations fields.
 
@@ -124,8 +124,8 @@ def get_products_relations_data(
 def prepare_products_relations_data(
     queryset: "QuerySet",
     fields: Set[str],
-    attribute_ids: Optional[List[int]],
-    channel_ids: Optional[List[int]],
+    attribute_ids: Optional[List[str]],
+    channel_ids: Optional[List[str]],
 ) -> Dict[int, Dict[str, str]]:
     """Prepare data about products relation fields for given queryset.
 
@@ -179,9 +179,9 @@ def prepare_products_relations_data(
 def get_variants_relations_data(
     queryset: "QuerySet",
     export_fields: Set[str],
-    attribute_ids: Optional[List[int]],
-    warehouse_ids: Optional[List[int]],
-    channel_ids: Optional[List[int]],
+    attribute_ids: Optional[List[str]],
+    warehouse_ids: Optional[List[str]],
+    channel_ids: Optional[List[str]],
 ) -> Dict[int, Dict[str, str]]:
     """Get data about variants relations fields.
 
@@ -204,9 +204,9 @@ def get_variants_relations_data(
 def prepare_variants_relations_data(
     queryset: "QuerySet",
     fields: Set[str],
-    attribute_ids: Optional[List[int]],
-    warehouse_ids: Optional[List[int]],
-    channel_ids: Optional[List[int]],
+    attribute_ids: Optional[List[str]],
+    warehouse_ids: Optional[List[str]],
+    channel_ids: Optional[List[str]],
 ) -> Dict[int, Dict[str, str]]:
     """Prepare data about variants relation fields for given queryset.
 
@@ -323,7 +323,7 @@ class AttributeData:
 def handle_attribute_data(
     pk: int,
     data: dict,
-    attribute_ids: Optional[List[int]],
+    attribute_ids: Optional[List[str]],
     result_data: Dict[int, dict],
     attribute_fields: dict,
     attribute_owner: str,
@@ -348,7 +348,7 @@ def handle_attribute_data(
 def handle_channel_data(
     pk: int,
     data: dict,
-    channel_ids: Optional[List[int]],
+    channel_ids: Optional[List[str]],
     result_data: Dict[int, dict],
     pk_lookup: str,
     slug_lookup: str,
@@ -374,7 +374,7 @@ def handle_channel_data(
 def handle_warehouse_data(
     pk: int,
     data: dict,
-    warehouse_ids: Optional[List[int]],
+    warehouse_ids: Optional[List[str]],
     result_data: Dict[int, dict],
     warehouse_fields: dict,
 ):

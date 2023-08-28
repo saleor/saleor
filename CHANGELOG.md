@@ -2,11 +2,48 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+# 3.16.0 [Unreleased]
+
+### Breaking changes
+- **Feature preview breaking change**:
+  - Deprecate `OrderSettingsInput.defaultTransactionFlowStrategy`. It will be removed
+in 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
+  - Deprecate `OrderSettings.defaultTransactionFlowStrategy`. It will be removed
+in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
+  - Change in the CSV export. It will now use empty string for empty attribute values instead of a single whitespace value.
+
+### GraphQL API
+- Adjust where filtering by empty values - explicit treat empty values - #13754 by @IKarbowiak
+- Add `storedPaymentMethodRequestDelete` mutation - #13660 by @korycins
+- Add `PaymentSettings` to `Channel` - #13677 by @korycins
+- Add `externalReference` to `updateWarehouse`. It will allow update warehouse by
+  external reference. - #13342 by @Smit-Parmar
+
+
+### Saleor Apps
+- Add `STORED_PAYMENT_METHOD_DELETE_REQUESTED` webhook event - #13660 by @korycins
+- Add `NOTIFY_CUSTOMER` flag to `FulfillmentCreated` type - #13620, by @Air-t
+  - Inform apps if customer should be notified when fulfillment is created.
+- Add `NOTIFY_CUSTOMER` flag to `FulfillmentApproved` type - #13637, by @Air-t
+  - Inform apps if customer should be notified when fulfillment is approved.
+- Add `GIFT_CARD_EXPORT_COMPLETED` webhook - #13765, by @Air-t
+  - Event sent when CSV export is completed.
+
+- Add `FULFILLMENT_TRACKING_NUMBER_UPDATED` webhook - #13708, by @Air-t
+  - Called after `fulfillmentUpdateTracking` or `orderFulfill` mutation if tracking number is updated.
+
+### Other changes
+- Fix error in variant available stock calculation - 13593 by @awaisdar001
+- Fix giftcard code description - #13728 by @rafiwts
+
+- Change error message when denying a permission - #13334 by @rafiwts
 
 # 3.15.0 [Unreleased]
 
 ### Breaking changes
+
 - Remove input and fields related to transaction API and deprecated in 3.13 - #13020 by @korycins
+
   - `WebhookEventTypeEnum.TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
   - `WebhookEventTypeAsyncEnum.TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
   - `WebhookSampleEventTypeEnum.TRANSACTION_ACTION_REQUEST`
@@ -19,10 +56,10 @@ All notable, unreleased changes to this project will be documented in this file.
   - `OrderEvent.status` - Use `TransactionEvent` to track the status of `TransactionItem`.
   - `OrderEventsEnum`:
     - `TRANSACTION_CAPTURE_REQUESTED` - Use `TRANSACTION_CHARGE_REQUESTED` instead.
-    - `TRANSACTION_VOID_REQUESTED` -  Use `TRANSACTION_CANCEL_REQUESTED` instead.
+    - `TRANSACTION_VOID_REQUESTED` - Use `TRANSACTION_CANCEL_REQUESTED` instead.
   - `TransactionStatus`
   - `TransactionEvent`:
-    - `status` -  Use `type` instead.
+    - `status` - Use `type` instead.
     - `reference` - Use `pspReference` instead.
     - `name` - Use `message` instead.
   - `TransactionCreateInput`:
@@ -52,13 +89,14 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change order of resolving country code in checkout - #13159 by @jakubkuc
   - Until now, checkout mutations were ignoring provided shipping address when shipping was not required. After this change, the shipping address is always set when supplied in the input. It might be breaking, as the shipping address affects the country code used for tax calculation.
   - The order of resolving the checkout country code is always as follows:
-      1. Shipping address
-      2. Billing address
-      3. Channel's default country
-
+    1. Shipping address
+    2. Billing address
+    3. Channel's default country
 
 ### GraphQL API
-Shipping methods can be removed by the user after it has been assigned to a checkout; `shippingMethodId` is now a nullable input in the `checkoutShippingMethodUpdate` mutation.  - #13068 by @FremahA
+
+Shipping methods can be removed by the user after it has been assigned to a checkout; `shippingMethodId` is now a nullable input in the `checkoutShippingMethodUpdate` mutation. - #13068 by @FremahA
+
 - Add `lines` to `OrderGrantedRefund` - #13014 by @korycins
 - Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
 - Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
@@ -70,14 +108,14 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
 - Add metadata support for channels. #13230 by @Smit-Parmar
 - Remove `Preview feature` label from `metafield`, `metafields`, `metadata`,
-`privateMetafield`, `privateMetafields` and `privateMetadata` fields - #13245 by @korycins
+  `privateMetafield`, `privateMetafields` and `privateMetadata` fields - #13245 by @korycins
 - [Preview] Add possibility to completeCheckout without payment in transaction flow - #13339 by @kadewu:
   - New field `allowUnpaidOrders` in `OrderSettings` for `Channel`
 - Add `search` to `giftCards` query - #13173 by @zedzior
 - Add `ProductBulkTranslate` mutation - #13329 by @SzymJ
 - Add `ProductVariantBulkTranslate` mutation - #13329 by @SzymJ
 - Add `AttributeBulkCreate` mutation - #13398 by @SzymJ
-- Deprecate `WebhookEventTypeAsyncEnum.ANY_EVENTS` and `WebhookEventTypeEnum.ANY_EVENTS`; instead listeners should subscribe to specific webhook events -  #13452 by @maarcingebala
+- Deprecate `WebhookEventTypeAsyncEnum.ANY_EVENTS` and `WebhookEventTypeEnum.ANY_EVENTS`; instead listeners should subscribe to specific webhook events - #13452 by @maarcingebala
 - Add ability to update `warehouse` address with `MANAGE_PRODUCTS` permissions: - #13248 by @Air-t
 - Add ability to update `site` address with `MANAGE_SETTINGS` permissions: - #13248 by @Air-t
 - Add the ability to set address public metadata in the following mutations: - #13248 by @Air-t
@@ -114,6 +152,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Called after `requestPasswordReset` or `customerCreate` mutation for staff users.
 
 ### Other changes
+
 - Add possibility to log without confirming email - #13059 by @kadewu
   - New mutation `sendConfirmationEmail` to send an email with confirmation link
   - New environment variable `CONFIRMATION_EMAIL_LOCK_TIME` to control lock time between new email confirmations
@@ -152,7 +191,6 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add missing descriptions to payment module - #13546 by @devilsautumn
 - Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
 
-
 # 3.14.0
 
 ### Breaking changes
@@ -171,6 +209,9 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - `preprocess_order_creation`
 
   This breaking change affect any custom plugins in open-source Saleor, if they override any of the above mentioned methods.
+- The signature of the `list_payment_gateways` manager method has changed. It may affect Saleor open-source users, who maintain plugins overriding this method. Changes:
+  - The `checkout: Checkout` argument was removed
+  - `checkout_info: CheckoutInfo` and `checkout_lines: Iterable[CheckoutLineInfo]` arguments were added instead
 
 ### GraphQL API
 

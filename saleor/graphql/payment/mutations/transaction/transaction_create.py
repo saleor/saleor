@@ -247,6 +247,9 @@ class TransactionCreate(BaseMutation):
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier
+        transaction_input["available_actions"] = list(
+            set(transaction_input.get("available_actions", []))
+        )
         transaction = payment_models.TransactionItem(
             token=uuid.uuid4(),
             use_old_id=True,

@@ -15,6 +15,7 @@ from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
 from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
+    StoredPaymentMethodRequestDeleteData,
     TransactionActionData,
     TransactionSessionData,
 )
@@ -46,6 +47,7 @@ from ..core.descriptions import (
     ADDED_IN_313,
     ADDED_IN_314,
     ADDED_IN_315,
+    ADDED_IN_316,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -735,6 +737,25 @@ class GiftCardMetadataUpdated(SubscriptionObjectType, GiftCardBase):
         description = "Event sent when gift card metadata is updated." + ADDED_IN_38
 
 
+class GiftCardExportCompleted(SubscriptionObjectType):
+    export = graphene.Field(
+        "saleor.graphql.csv.types.ExportFile",
+        description="The export file for gift cards.",
+    )
+
+    class Meta:
+        root_type = "ExportFile"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when gift card export is completed." + ADDED_IN_316
+        doc_category = DOC_CATEGORY_GIFT_CARDS
+
+    @staticmethod
+    def resolve_export(root, info: ResolveInfo):
+        _, export_file = root
+        return export_file
+
+
 class MenuBase(AbstractType):
     menu = graphene.Field(
         "saleor.graphql.menu.types.Menu",
@@ -1160,12 +1181,45 @@ class FulfillmentBase(AbstractType):
         return fulfillment.order
 
 
-class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
+class FulfillmentTrackingNumberUpdated(SubscriptionObjectType, FulfillmentBase):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         root_type = "Fulfillment"
         enable_dry_run = True
         interfaces = (Event,)
+        description = "Event sent when the tracking number is updated." + ADDED_IN_316
+
+
+class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
+    notify_customer = graphene.Boolean(
+        description=(
+            "If true, the app should send a notification to the customer."
+            + ADDED_IN_316
+        ),
+        required=True,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+        root_type = "Fulfillment"
+        enable_dry_run = False
+        interfaces = (Event,)
         description = "Event sent when new fulfillment is created." + ADDED_IN_34
+
+    @staticmethod
+    def resolve_fulfillment(root, info: ResolveInfo):
+        _, data = root
+        return data["fulfillment"]
+
+    @staticmethod
+    def resolve_order(root, info: ResolveInfo):
+        _, data = root
+        return data["fulfillment"].order
+
+    @staticmethod
+    def resolve_notify_customer(root, _info: ResolveInfo):
+        _, data = root
+        return data["notify_customer"]
 
 
 class FulfillmentCanceled(SubscriptionObjectType, FulfillmentBase):
@@ -1177,11 +1231,32 @@ class FulfillmentCanceled(SubscriptionObjectType, FulfillmentBase):
 
 
 class FulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
+    notify_customer = graphene.Boolean(
+        description="If true, send a notification to the customer." + ADDED_IN_316,
+        required=True,
+    )
+
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         root_type = "Fulfillment"
-        enable_dry_run = True
+        enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when fulfillment is approved." + ADDED_IN_37
+
+    @staticmethod
+    def resolve_fulfillment(root, info: ResolveInfo):
+        _, data = root
+        return data["fulfillment"]
+
+    @staticmethod
+    def resolve_order(root, info: ResolveInfo):
+        _, data = root
+        return data["fulfillment"].order
+
+    @staticmethod
+    def resolve_notify_customer(root, _info: ResolveInfo):
+        _, data = root
+        return data["notify_customer"]
 
 
 class FulfillmentMetadataUpdated(SubscriptionObjectType, FulfillmentBase):
@@ -1862,6 +1937,63 @@ class TransactionItemMetadataUpdated(SubscriptionObjectType):
         return transaction_item
 
 
+class StoredPaymentMethodDeleteRequested(SubscriptionObjectType):
+    user = graphene.Field(
+        UserType,
+        description=(
+            "The user for which the app should proceed with payment method delete "
+            "request."
+        ),
+        required=True,
+    )
+    payment_method_id = graphene.Field(
+        graphene.String,
+        description=(
+            "The ID of the payment method that should be deleted by the payment "
+            "gateway."
+        ),
+        required=True,
+    )
+
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description="Channel related to the requested delete action.",
+        required=True,
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user requests to delete a payment method."
+            + ADDED_IN_316
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+    @classmethod
+    def resolve_user(
+        cls, root: tuple[str, StoredPaymentMethodRequestDeleteData], _info: ResolveInfo
+    ):
+        _, payment_method_data = root
+        return payment_method_data.user
+
+    @classmethod
+    def resolve_payment_method_id(
+        cls, root: tuple[str, StoredPaymentMethodRequestDeleteData], _info: ResolveInfo
+    ):
+        _, payment_method_data = root
+        return payment_method_data.payment_method_id
+
+    @classmethod
+    def resolve_channel(
+        cls, root: tuple[str, StoredPaymentMethodRequestDeleteData], _info: ResolveInfo
+    ):
+        _, payment_method_data = root
+        return payment_method_data.channel
+
+
 class TranslationTypes(Union):
     class Meta:
         types = tuple(TRANSLATIONS_TYPES_MAP.values())
@@ -2260,6 +2392,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.GIFT_CARD_SENT: GiftCardSent,
     WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: GiftCardStatusChanged,
     WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED: GiftCardMetadataUpdated,
+    WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED: GiftCardExportCompleted,
     WebhookEventAsyncType.MENU_CREATED: MenuCreated,
     WebhookEventAsyncType.MENU_UPDATED: MenuUpdated,
     WebhookEventAsyncType.MENU_DELETED: MenuDeleted,
@@ -2305,6 +2438,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.INVOICE_DELETED: InvoiceDeleted,
     WebhookEventAsyncType.INVOICE_SENT: InvoiceSent,
     WebhookEventAsyncType.FULFILLMENT_CREATED: FulfillmentCreated,
+    WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED: FulfillmentTrackingNumberUpdated,  # noqa: E501
     WebhookEventAsyncType.FULFILLMENT_CANCELED: FulfillmentCanceled,
     WebhookEventAsyncType.FULFILLMENT_APPROVED: FulfillmentApproved,
     WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED: FulfillmentMetadataUpdated,
@@ -2365,7 +2499,7 @@ WEBHOOK_TYPES_MAP = {
     ),
     WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED: TransactionChargeRequested,
     WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED: TransactionRefundRequested,
-    WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: (OrderFilterShippingMethods),
+    WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: OrderFilterShippingMethods,
     WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
         CheckoutFilterShippingMethods
     ),
@@ -2381,4 +2515,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
     WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
     WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS: ListStoredPaymentMethods,
+    WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED: (
+        StoredPaymentMethodDeleteRequested
+    ),
 }

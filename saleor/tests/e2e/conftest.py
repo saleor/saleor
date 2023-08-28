@@ -5,6 +5,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.test.client import MULTIPART_CONTENT, Client
 
 from ...account.models import User
+from ...app.models import App
 from ...graphql.tests.fixtures import BaseApiClient
 from ..utils import flush_post_commit_hooks
 
@@ -71,3 +72,13 @@ def e2e_logged_api_client():
 @pytest.fixture
 def e2e_not_logged_api_client():
     return E2eApiClient()
+
+
+@pytest.fixture
+def e2e_app_api_client():
+    e2e_app = App.objects.create(
+        name="e2e app",
+        is_active=True,
+        identifier="saleor.e2e.app.test",
+    )
+    return E2eApiClient(app=e2e_app)

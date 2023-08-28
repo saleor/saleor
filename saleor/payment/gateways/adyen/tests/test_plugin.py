@@ -54,13 +54,16 @@ def test_process_additional_action(
 
 @pytest.mark.vcr
 def test_get_payment_gateway_for_checkout(
-    adyen_plugin, checkout_with_single_item, address
+    adyen_plugin, checkout_with_single_item, checkout_info, address, checkout_lines_info
 ):
     checkout_with_single_item.billing_address = address
     checkout_with_single_item.save()
     adyen_plugin = adyen_plugin()
     response = adyen_plugin.get_payment_gateways(
-        currency=None, checkout=checkout_with_single_item, previous_value=None
+        currency=None,
+        checkout_info=checkout_info,
+        checkout_lines=checkout_lines_info,
+        previous_value=None,
     )[0]
     assert response.id == adyen_plugin.PLUGIN_ID
     assert response.name == adyen_plugin.PLUGIN_NAME
