@@ -1651,7 +1651,8 @@ class TransactionAction(SubscriptionObjectType, AbstractType):
         description="Transaction request amount. Null when action type is VOID.",
     )
     currency = graphene.String(
-        description="Currency code." + ADDED_IN_316, required=True,
+        description="Currency code." + ADDED_IN_316,
+        required=True,
     )
 
     class Meta:
