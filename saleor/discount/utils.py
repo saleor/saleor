@@ -20,12 +20,12 @@ from uuid import UUID
 
 from django.conf import settings
 from django.db.models import Exists, F, OuterRef, QuerySet
-from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..core.taxes import zero_money
-from . import DiscountInfo, DiscountType, PromotionRuleInfo
+from ..discount.models import VoucherCustomer
+from . import DiscountType, PromotionRuleInfo
 from .models import (
     CheckoutLineDiscount,
     DiscountValueType,
@@ -33,8 +33,6 @@ from .models import (
     Promotion,
     PromotionRule,
     Sale,
-    SaleChannelListing,
-    VoucherCustomer,
 )
 
 if TYPE_CHECKING:
@@ -353,22 +351,6 @@ def fetch_variants(
     return variants_map
 
 
-def fetch_sale_channel_listings(
-    sale_pks: Iterable[str],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
-    channel_listings = (
-        SaleChannelListing.objects.using(database_connection_name)
-        .filter(sale_id__in=sale_pks)
-        .annotate(channel_slug=F("channel__slug"))
-    )
-    channel_listings_map: Dict[int, Dict[str, SaleChannelListing]] = defaultdict(dict)
-    for channel_listing in channel_listings:
-        sale_id_row = channel_listings_map[channel_listing.sale_id]
-        sale_id_row[channel_listing.channel_slug] = channel_listing
-    return channel_listings_map
-
-
 def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
     catalogue_info: CatalogueInfo = defaultdict(set)
     for sale_data in Sale.objects.filter(id=instance.id).values(*CATALOGUE_FIELDS):
@@ -397,183 +379,6 @@ def apply_discount_to_value(
         **discount_kwargs,
     )
     return discount(price_to_discount)
-
-
-def fetch_active_sales_for_checkout(
-    lines_info: Iterable["CheckoutLineInfo"],
-) -> Iterable[DiscountInfo]:
-    """Return list of `DiscountInfo` applicable for list of `CheckoutLineInfo`.
-
-    Return list of `DiscountInfo` applicable for list of `CheckoutLineInfo`.
-    This function returns only a list of `DiscountInfo` for `Sale` which
-    are able to be applied on specified lines. When the function receives empty
-    lines in input we return an empty list of applicable `DiscountInfo`.
-    """
-    if not lines_info:
-        return []
-
-    sales = list(Sale.objects.active(timezone.now()))
-
-    pks = {s.pk for s in sales}
-    channel_listings = fetch_sale_channel_listings(pks)
-    product_pks_by_sale_pk_map = fetch_products(pks, lines_info)
-    variant_pks_by_sale_pk_map = fetch_variants(pks, lines_info)
-    category_pks_by_sale_pk_map = fetch_categories(pks, lines_info)
-    collection_pks_by_sale_pk_map = fetch_collections(pks, lines_info)
-
-    discounts_info = []
-    for sale in sales:
-        category_ids = category_pks_by_sale_pk_map[sale.pk]
-        collection_ids = collection_pks_by_sale_pk_map[sale.pk]
-        product_ids = product_pks_by_sale_pk_map[sale.pk]
-        variants_ids = variant_pks_by_sale_pk_map[sale.pk]
-        if category_ids or collection_ids or product_ids or variants_ids:
-            discounts_info.append(
-                DiscountInfo(
-                    sale=sale,
-                    category_ids=category_ids,
-                    channel_listings=channel_listings[sale.pk],
-                    collection_ids=collection_ids,
-                    product_ids=product_ids,
-                    variants_ids=variants_ids,
-                )
-            )
-
-    return discounts_info
-
-
-def is_sale_applicable_on_line(
-    line_info: "CheckoutLineInfo",
-    discount: DiscountInfo,
-) -> bool:
-    collection_ids = set(collection.id for collection in line_info.collections)
-    is_product_on_sale = line_info.product.id in discount.product_ids
-    is_variant_on_sale = line_info.variant.id in discount.variants_ids
-    is_category_on_sale = line_info.product.category_id in discount.category_ids
-    is_collection_on_sale = bool(collection_ids.intersection(discount.collection_ids))
-    return (
-        is_product_on_sale
-        or is_variant_on_sale
-        or is_category_on_sale
-        or is_collection_on_sale
-    )
-
-
-def _apply_percentage_sale_on_lines(
-    lines_info: Iterable["CheckoutLineInfo"],
-    sale_info: DiscountInfo,
-    sales_data_by_line_map: Dict[UUID, dict],
-    currency_precision: Decimal,
-):
-    """Calculate discount amounts for percentage sales.
-
-    This function calculates the discount amount for the sale. If the calculated
-    discount amount is greater than the currently applied discount, the function
-    saves the sale as the best sale for the calculated lines. All data are stored
-    in the `sales_data_by_line_map`.
-    """
-    sale = sale_info.sale
-    qualified_lines = []
-    base_line_total_price_by_line_id_map = defaultdict(Decimal)
-    remaining_total_amount = Decimal(0)
-    for line_info in lines_info:
-        if is_sale_applicable_on_line(line_info, sale_info):
-            qualified_lines.append(line_info)
-            line = line_info.line
-            quantity = line.quantity
-            base_unit_price = line_info.variant.get_base_price(
-                line_info.channel_listing, line.price_override
-            )
-            base_unit_price = cast(Money, base_unit_price)
-            base_line_total_price = base_unit_price * quantity
-            base_line_total_amount = base_line_total_price.amount
-
-            remaining_total_amount += base_line_total_amount
-            base_line_total_price_by_line_id_map[line.id] = base_line_total_amount
-
-    sale_channel_listing = sale_info.channel_listings.get(line_info.channel.slug)
-    if sale_channel_listing and remaining_total_amount != Decimal(0):
-        currency = sale_channel_listing.currency
-        discounted_amount = apply_discount_to_value(
-            sale_channel_listing.discount_value,
-            sale.type,
-            currency,
-            Money(remaining_total_amount, currency),
-        ).amount
-        remaining_discount_amount = remaining_total_amount - discounted_amount
-        for line_info in qualified_lines:
-            line = line_info.line
-            base_line_total_amount = base_line_total_price_by_line_id_map[line.pk]
-            line_discount_amount = Decimal(
-                base_line_total_amount
-                * remaining_discount_amount
-                / remaining_total_amount
-            ).quantize(currency_precision, ROUND_HALF_UP)
-            remaining_discount_amount -= line_discount_amount
-            remaining_total_amount -= base_line_total_amount
-            if (
-                sales_data_by_line_map[line.id].get(
-                    "best_discount_amount",
-                    Decimal("-Inf"),
-                )
-                < line_discount_amount
-            ):
-                sales_data_by_line_map[line.id] = {
-                    "sale": sale,
-                    "sale_channel_listing": sale_channel_listing,
-                    "best_discount_amount": line_discount_amount,
-                }
-
-
-def _apply_fixed_sale_on_lines(
-    lines_info: Iterable["CheckoutLineInfo"],
-    sale_info: DiscountInfo,
-    sales_data_by_line_map: Dict[UUID, dict],
-):
-    """Calculate discount amounts for for fixed sales.
-
-    This function calculates the discount amount for the sale. If the calculated
-    discount amount is greater than the currently applied discount, the function
-    saves the sale as the best sale for the calculated lines. All data are stored
-    in the `sales_data_by_line_map`.
-    """
-    sale = sale_info.sale
-    for line_info in lines_info:
-        if is_sale_applicable_on_line(line_info, sale_info):
-            line = line_info.line
-            quantity = line.quantity
-            base_unit_price = line_info.variant.get_base_price(
-                line_info.channel_listing, line.price_override
-            )
-            base_unit_price = cast(Money, base_unit_price)
-
-            channel_listing = sale_info.channel_listings.get(line_info.channel.slug)
-            if not channel_listing:
-                continue
-            unit_price_with_applied_sale = apply_discount_to_value(
-                channel_listing.discount_value,
-                sale.type,
-                channel_listing.currency,
-                base_unit_price,
-            )
-            unit_price_with_applied_sale = cast(Money, unit_price_with_applied_sale)
-            unit_discount = min(
-                base_unit_price - unit_price_with_applied_sale,
-                base_unit_price,
-            )
-            total_discount = unit_discount * quantity
-            discount_amount = total_discount.amount
-            if (
-                sales_data_by_line_map[line.id].get(
-                    "best_discount_amount", Decimal("-Inf")
-                )
-                < discount_amount
-            ):
-                sales_data_by_line_map[line.id] = {
-                    "sale": sale,
-                    "sale_channel_listing": channel_listing,
-                    "best_discount_amount": discount_amount,
-                }
 
 
 def create_or_update_discount_objects_from_promotion_for_checkout(

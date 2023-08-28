@@ -21,7 +21,6 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
-from ...discount.dataloaders import load_discounts
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
@@ -136,7 +135,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             raise ValidationError(error)
 
     @staticmethod
-    def add_lines_to_order(order, lines_data, user, app, manager, discounts):
+    def add_lines_to_order(order, lines_data, user, app, manager):
         added_lines: List[OrderLine] = []
         try:
             for line_data in lines_data:
@@ -178,7 +177,6 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         cls.validate_variants(order, variants)
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
-        discounts = load_discounts(info.context)
         with traced_atomic_transaction():
             added_lines = cls.add_lines_to_order(
                 order,
@@ -186,7 +184,6 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                 info.context.user,
                 app,
                 manager,
-                discounts,
             )
 
             # Create the products added event
