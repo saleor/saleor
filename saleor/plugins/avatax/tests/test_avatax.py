@@ -4515,26 +4515,25 @@ def test_get_order_request_data_confirmed_order_with_voucher(
     assert lines_data[-1]["discounted"] is False
 
 
-def test_get_order_request_data_confirmed_order_with_sale(
-    order_with_lines, shipping_zone, sale, avatax_config
+def test_get_order_request_data_confirmed_order_with_promotion(
+    order_line_on_promotion, shipping_zone, avatax_config
 ):
     # given
-    tax_configuration = order_with_lines.channel.tax_configuration
+    order = order_line_on_promotion.order
+    tax_configuration = order.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = True
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
     tax_configuration.country_exceptions.all().delete()
 
     method = shipping_zone.shipping_methods.get()
-    line = order_with_lines.lines.first()
+    line = order.lines.first()
     line.unit_price_gross_amount = line.unit_price_net_amount
     line.save()
 
-    sale.variants.add(line.variant)
-
-    order_with_lines.status = OrderStatus.UNFULFILLED
-    order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
-    order_set_shipping_method(order_with_lines, method)
-    order_with_lines.save(
+    order.status = OrderStatus.UNFULFILLED
+    order.shipping_address = order.billing_address.get_copy()
+    order_set_shipping_method(order, method)
+    order.save(
         update_fields=[
             "status",
             "shipping_address",
@@ -4548,13 +4547,13 @@ def test_get_order_request_data_confirmed_order_with_sale(
     )
 
     # when
-    request_data = get_order_request_data(order_with_lines, avatax_config)
+    request_data = get_order_request_data(order, avatax_config)
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
 
     # extra one from shipping data
-    assert len(lines_data) == order_with_lines.lines.count() + 1
+    assert len(lines_data) == order.lines.count() + 1
 
 
 def test_get_order_request_data_draft_order_with_voucher(
@@ -4728,27 +4727,28 @@ def test_get_order_request_data_draft_order_shipping_voucher_amount_too_high(
         assert line_data["discounted"] is False
 
 
-def test_get_order_request_data_draft_order_with_sale(
-    order_with_lines, shipping_zone, sale, avatax_config
+def test_get_order_request_data_draft_order_on_promotion(
+    order_line_on_promotion, shipping_zone, sale, avatax_config
 ):
     # given
-    tax_configuration = order_with_lines.channel.tax_configuration
+    order = order_line_on_promotion.order
+    tax_configuration = order.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = True
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
     tax_configuration.country_exceptions.all().delete()
 
     method = shipping_zone.shipping_methods.get()
-    line = order_with_lines.lines.first()
+    line = order.lines.first()
     line.base_unit_price_amount = line.unit_price_net_amount
     line.undiscounted_base_unit_price_amount = line.unit_price_gross_amount
     line.save()
 
     sale.variants.add(line.variant)
 
-    order_with_lines.status = OrderStatus.DRAFT
-    order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
-    order_set_shipping_method(order_with_lines, method)
-    order_with_lines.save(
+    order.status = OrderStatus.DRAFT
+    order.shipping_address = order.billing_address.get_copy()
+    order_set_shipping_method(order, method)
+    order.save(
         update_fields=[
             "status",
             "shipping_address",
@@ -4762,13 +4762,13 @@ def test_get_order_request_data_draft_order_with_sale(
     )
 
     # when
-    request_data = get_order_request_data(order_with_lines, avatax_config)
+    request_data = get_order_request_data(order, avatax_config)
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
 
     # lines + one line for shipping data
-    assert len(lines_data) == order_with_lines.lines.count() + 1
+    assert len(lines_data) == order.lines.count() + 1
 
 
 @patch("saleor.plugins.avatax.get_order_request_data")
