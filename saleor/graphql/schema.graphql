@@ -12460,7 +12460,7 @@ Represents possible tokenized payment flows that can be used to process payment.
     INTERACTIVE - Payment method can be used for 1 click checkout - it's prefilled in
     checkout form (might require additional authentication from user)
 """
-enum TokenizedPaymentFlowEnum {
+enum TokenizedPaymentFlowEnum @doc(category: "Payments") {
   INTERACTIVE
 }
 
@@ -23215,7 +23215,7 @@ Result of deleting a stored payment method.
     FAILED_TO_DELIVER - The request to delete the stored payment method was not
     delivered.
 """
-enum StoredPaymentMethodRequestDeleteResult {
+enum StoredPaymentMethodRequestDeleteResult @doc(category: "Payments") {
   SUCCESSFULLY_DELETED
   FAILED_TO_DELETE
   FAILED_TO_DELIVER
