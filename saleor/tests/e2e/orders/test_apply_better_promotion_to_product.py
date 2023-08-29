@@ -85,6 +85,7 @@ def prepare_promotion_with_rules(
     assert product_predicate[0] == product_id
 
 
+@pytest.mark.e2e
 @pytest.mark.parametrize(
     "variant_price, first_discount_type, first_discount_value, second_discount_type, "
     "second_discount_value, expected_discount",
