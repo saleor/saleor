@@ -47,9 +47,9 @@ def associate_attribute_values_to_instance(
     # copy the assigned product to AssignedProductAttributeValue
     # where it will live after issue #12881 will be implemented
     if isinstance(instance, Product):
-        AssignedProductAttributeValue.objects.filter(assignment_id=assignment.pk).update(
-            product_id=instance.pk
-        )
+        AssignedProductAttributeValue.objects.filter(
+            assignment_id=assignment.pk
+        ).update(product_id=instance.pk)
 
     sort_assigned_attribute_values(instance, assignment, values)
 
