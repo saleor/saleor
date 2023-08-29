@@ -10,8 +10,8 @@ from . import (
 
 def prepare_product(
     e2e_staff_api_client,
-    warehouse_id=None,
-    channel_id=None,
+    warehouse_id,
+    channel_id,
 ):
     product_type_data = create_product_type(
         e2e_staff_api_client,
