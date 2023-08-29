@@ -14,10 +14,11 @@ from ..utils import create_or_update_discount_objects_from_promotion_for_checkou
 
 
 @pytest.fixture
-def promotion_10_percentage(channel_USD, product_list):
+def promotion_10_percentage(channel_USD, product_list, product):
     promotion = Promotion.objects.create(
         name="Promotion",
     )
+    product_list.append(product)
     rule = promotion.rules.create(
         name="10% promotion rule",
         catalogue_predicate={
@@ -35,21 +36,20 @@ def promotion_10_percentage(channel_USD, product_list):
     return promotion
 
 
-@pytest.mark.skip(reason="Change to voucher.")
 @pytest.mark.parametrize(
     "variant_prices, expected_discounts",
     [
         (
             [Decimal("1.06"), Decimal("2.06"), Decimal("3.06"), Decimal("4.06")],
-            [Decimal("0.11"), Decimal("0.2"), Decimal("0.31"), Decimal("0.4")],
+            [Decimal("0.11"), Decimal("0.21"), Decimal("0.31"), Decimal("0.41")],
         ),
         (
             [Decimal("1.04"), Decimal("2.04"), Decimal("3.04"), Decimal("4.04")],
-            [Decimal("0.1"), Decimal("0.21"), Decimal("0.3"), Decimal("0.41")],
+            [Decimal("0.1"), Decimal("0.2"), Decimal("0.3"), Decimal("0.4")],
         ),
     ],
 )
-def test_rounding_issue_with_percentage_sale(
+def test_rounding_issue_with_percentage_promotion(
     product_list,
     product,
     checkout,
@@ -60,21 +60,25 @@ def test_rounding_issue_with_percentage_sale(
 ):
     """Test checking that a rounding issue may appear in calculations.
 
-    We want to test a scenario where a percentage sale is applied to each line
+    We want to test a scenario where a percentage promotion is applied to each line
     separately, resulting in a total discount that is different from applying
     the same percentage sale to the sum of qualified lines.
 
-    If we calculate 10% discount for first example we got:
-    +-------+-------------+----------+----------+
-    | Line  | Line total  | New flow | Old flow |
-    +-------+-------------+----------+----------+
-    | Line1 | 1.06        | 0.11     | 0.11     |
-    | Line2 | 2.06        | 0.2      | 0.21     |
-    | Line3 | 3.06        | 0.31     | 0.31     |
-    | Line4 | 4.06        | 0.4      | 0.41     |
-    +-------+-------------+----------+----------+
-    | Sum   | 10.24       | 1.02     | 1.04     |
-    +-------+-------------+----------+----------+
+    In the current solution the discount from promotion is applied on the variant price,
+    and then the prices for each line are summed up
+
+    If we calculate 10% discount we got:
+    +-------+-------------+------------------+----------------------+
+    | Line  | Line total  | Discount applied | Discount applied on  |
+    |       |             | on total price   | each line separately |
+    +-------+-------------+------------------+----------------------+
+    | Line1 | 1.06        | 0.11             | 0.11                 |
+    | Line2 | 2.06        | 0.2              | 0.21                 |
+    | Line3 | 3.06        | 0.31             | 0.31                 |
+    | Line4 | 4.06        | 0.4              | 0.41                 |
+    +-------+-------------+------------------+----------------------+
+    | Sum   | 10.24       | 1.02             | 1.04                 |
+    +-------+-------------+------------------+----------------------+
     """
 
     # given
@@ -85,6 +89,7 @@ def test_rounding_issue_with_percentage_sale(
         variant = product.variants.get()
         variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
         variant_channel_listing.price_amount = price
+        variant_channel_listing.discounted_price_amount = price
         variant_channel_listings.append(variant_channel_listing)
         variants.append(variant)
 
