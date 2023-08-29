@@ -29567,7 +29567,7 @@ type PermissionGroupDelete @doc(category: "Users") @webhookEventsInfo(asyncEvent
   group: Group
 }
 
-type Subscription {
+type Subscription @doc(category: "Miscellaneous") {
   """
   Look up subscription event.
   
@@ -29709,7 +29709,7 @@ Event sent when account email is changed.
 
 Added in Saleor 3.15.
 """
-type AccountEmailChanged implements Event {
+type AccountEmailChanged implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29746,7 +29746,7 @@ Event sent when setting a new password is requested.
 
 Added in Saleor 3.15.
 """
-type AccountSetPasswordRequested implements Event {
+type AccountSetPasswordRequested implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29780,7 +29780,7 @@ Event sent when account is confirmed.
 
 Added in Saleor 3.15.
 """
-type AccountConfirmed implements Event {
+type AccountConfirmed implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29848,7 +29848,7 @@ Event sent when account is deleted.
 
 Added in Saleor 3.15.
 """
-type AccountDeleted implements Event {
+type AccountDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -30908,7 +30908,7 @@ Added in Saleor 3.14.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderBulkCreated implements Event {
+type OrderBulkCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -32425,7 +32425,7 @@ Event sent when setting a new password for staff is requested.
 
 Added in Saleor 3.15.
 """
-type StaffSetPasswordRequested implements Event {
+type StaffSetPasswordRequested implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -32481,7 +32481,7 @@ Event sent when new translation is created.
 
 Added in Saleor 3.2.
 """
-type TranslationCreated implements Event {
+type TranslationCreated implements Event @doc(category: "Miscellaneous") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -32505,7 +32505,7 @@ Event sent when translation is updated.
 
 Added in Saleor 3.2.
 """
-type TranslationUpdated implements Event {
+type TranslationUpdated implements Event @doc(category: "Miscellaneous") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -32715,7 +32715,7 @@ Event sent when thumbnail is created.
 
 Added in Saleor 3.12.
 """
-type ThumbnailCreated implements Event {
+type ThumbnailCreated implements Event @doc(category: "Miscellaneous") {
   """Time of the event."""
   issuedAt: DateTime
 
