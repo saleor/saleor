@@ -148,6 +148,74 @@ def test_create_order_with_gift_card_partial_use(
     )
 
 
+def test_create_order_with_many_gift_cards_worth_more_than_total(
+    checkout_with_items_and_shipping,
+    gift_card_created_by_staff,
+    gift_card,
+    customer_user,
+    shipping_method,
+    app,
+):
+    # given
+    gift_card_1 = gift_card_created_by_staff
+    gift_card_2 = gift_card
+    checkout = checkout_with_items_and_shipping
+    checkout.user = customer_user
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    price_without_gift_card = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    gift_card_2_old_balance = gift_card_2.current_balance.amount
+    gift_card_2_balance_halved = gift_card_2_old_balance / 2
+    gift_card_2_new_balance = (
+        price_without_gift_card.gross.amount - gift_card_2_balance_halved
+    )
+
+    gift_card_2.current_balance_amount = gift_card_2_new_balance
+    gift_card_2.initial_balance_amount = gift_card_2_new_balance
+    gift_card_2.save()
+    gift_cards_balance_before_order = (
+        gift_card_1.current_balance.amount + gift_card_2.current_balance.amount
+    )
+    checkout.gift_cards.add(gift_card_2, gift_card_1)
+    checkout.save()
+    checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
+
+    # when
+    order = create_order_from_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        user=None,
+        app=app,
+    )
+    gift_card_1.refresh_from_db()
+    gift_card_2.refresh_from_db()
+    zero_price = zero_money(gift_card.currency)
+
+    # then
+    assert order.gift_cards.count() == 2
+    assert gift_card_1.current_balance == zero_price
+    assert gift_card_2.current_balance.amount == gift_card_2_balance_halved
+    assert price_without_gift_card.gross.amount == (
+        gift_cards_balance_before_order - gift_card_2_balance_halved
+    )
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card_created_by_staff, type=GiftCardEvents.USED_IN_ORDER
+    )
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
+    )
+
+
 def test_create_order_with_many_gift_cards(
     checkout_with_item,
     gift_card_created_by_staff,

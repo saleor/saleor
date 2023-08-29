@@ -4,6 +4,7 @@ import graphene
 from django.utils import timezone
 
 from ..... import __version__
+from .....core.utils import build_absolute_uri
 from .....graphql.attribute.enums import AttributeInputTypeEnum, AttributeTypeEnum
 from .....graphql.shop.types import SHOP_ID
 from .....product.models import Product
@@ -422,6 +423,21 @@ def generate_gift_card_payload(gift_card, card_global_id):
                 "isActive": gift_card.is_active,
                 "code": gift_card.code,
                 "createdBy": {"email": gift_card.created_by.email},
+            }
+        }
+    )
+
+
+def generate_export_payload(export_file, export_global_id):
+    return json.dumps(
+        {
+            "export": {
+                "id": export_global_id,
+                "createdAt": export_file.created_at.isoformat(),
+                "updatedAt": export_file.updated_at.isoformat(),
+                "status": export_file.status.upper(),
+                "url": build_absolute_uri(export_file.content_file.url),
+                "message": export_file.message,
             }
         }
     )

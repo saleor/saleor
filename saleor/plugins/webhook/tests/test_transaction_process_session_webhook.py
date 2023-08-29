@@ -163,6 +163,7 @@ def test_transaction_process_checkout_without_request_data_and_static_payload(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
+            customer_ip_address=None,
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
@@ -231,6 +232,7 @@ def test_transaction_process_checkout_with_request_data_and_static_payload(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
+            customer_ip_address=None,
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
@@ -299,6 +301,7 @@ def test_transaction_process_checkout_without_request_data(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
+            customer_ip_address=None,
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
@@ -368,6 +371,7 @@ def test_transaction_process_checkout_with_request_data(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
+            customer_ip_address=None,
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
@@ -437,6 +441,7 @@ def test_transaction_process_session_skips_app_without_identifier(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
+            customer_ip_address=None,
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
@@ -499,6 +504,7 @@ def test_transaction_process_order_without_request_data_and_static_payload(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
+            customer_ip_address=None,
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
@@ -567,6 +573,7 @@ def test_transaction_process_order_with_request_data_and_static_payload(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
+            customer_ip_address=None,
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
@@ -635,6 +642,7 @@ def test_transaction_process_order_without_request_data(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
+            customer_ip_address=None,
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
@@ -704,6 +712,7 @@ def test_transaction_process_order_with_request_data(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
+            customer_ip_address=None,
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),

@@ -1,4 +1,4 @@
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
@@ -73,9 +73,11 @@ def test_order_fulfill_with_out_of_stock_webhook(
 
 
 @pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
+@patch("saleor.plugins.manager.PluginsManager.tracking_number_updated")
 @patch("saleor.graphql.order.mutations.order_fulfill.create_fulfillments")
 def test_order_fulfill(
     mock_create_fulfillments,
+    mocked_fulfillment_tracking_number_updated_event,
     fulfillment_auto_approve,
     staff_api_client,
     staff_user,
@@ -133,6 +135,7 @@ def test_order_fulfill(
         approved=fulfillment_auto_approve,
         tracking_number="",
     )
+    mocked_fulfillment_tracking_number_updated_event.assert_not_called()
 
 
 def test_order_fulfill_no_channel_access(
@@ -1487,12 +1490,11 @@ def test_create_digital_fulfillment(
     assert mock_email_fulfillment.call_count == 1
 
 
-@patch("saleor.core.utils.events.transaction")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_order_fulfill_fulfillment_created_event_triggered(
+def test_order_fulfill_tracking_number_updated_event_triggered(
     mocked_webhooks,
-    mocked_transactions,
     any_webhook,
+    subscription_fulfillment_tracking_number_updated,
     subscription_fulfillment_created_webhook,
     staff_api_client,
     staff_user,
@@ -1503,7 +1505,6 @@ def test_order_fulfill_fulfillment_created_event_triggered(
     settings,
 ):
     # given
-    mocked_transactions.get_connection.return_value = MagicMock(in_atomic_block=False)
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     site_settings.fulfillment_auto_approve = True
@@ -1534,9 +1535,15 @@ def test_order_fulfill_fulfillment_created_event_triggered(
     }
     # when
     staff_api_client.post_graphql(query, variables)
+    flush_post_commit_hooks()
 
     # then
-    mocked_webhooks.assert_called_once()
-    assert mocked_webhooks.call_args[0][1] == (
-        WebhookEventAsyncType.FULFILLMENT_CREATED
+    assert mocked_webhooks.call_count == 2
+    mocked_tracking_updated = mocked_webhooks.call_args_list[0]
+    mocked_fulfillment_created = mocked_webhooks.call_args_list[1]
+
+    assert (
+        mocked_tracking_updated[0][1]
+        == WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED
     )
+    assert mocked_fulfillment_created[0][1] == WebhookEventAsyncType.FULFILLMENT_CREATED

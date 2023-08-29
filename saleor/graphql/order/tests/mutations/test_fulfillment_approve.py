@@ -10,6 +10,7 @@ from .....order.fetch import OrderLineInfo
 from .....order.models import OrderLine
 from .....plugins.manager import get_plugins_manager
 from .....product.models import Product
+from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 APPROVE_FULFILLMENT_MUTATION = """
@@ -67,7 +68,7 @@ def test_fulfillment_approve(
     event = events[0]
     assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
     assert event.user == staff_api_client.user
-    mock_fulfillment_approved.assert_called_once_with(fulfillment)
+    mock_fulfillment_approved.assert_called_once_with(fulfillment, True)
 
 
 def test_fulfillment_approve_by_user_no_channel_access(
@@ -133,7 +134,7 @@ def test_fulfillment_approve_by_app(
     assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
     assert event.app == app_api_client.app
     assert event.user is None
-    mock_fulfillment_approved.assert_called_once_with(fulfillment)
+    mock_fulfillment_approved.assert_called_once_with(fulfillment, True)
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
@@ -433,7 +434,9 @@ def test_fulfillment_approve_partial_order_fulfill(
     assert fulfillment_awaiting_approval.status == FulfillmentStatus.FULFILLED
 
     assert mock_email_fulfillment.call_count == 0
-    mock_fulfillment_approved.assert_called_once_with(fulfillment_awaiting_approval)
+    mock_fulfillment_approved.assert_called_once_with(
+        fulfillment_awaiting_approval, False
+    )
 
 
 def test_fulfillment_approve_invalid_status(
@@ -498,3 +501,35 @@ def test_fulfillment_approve_preorder(
     error = data["errors"][0]
     assert error["field"] == "orderLineId"
     assert error["code"] == OrderErrorCode.FULFILL_ORDER_LINE.name
+
+
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_fulfillment_approve_trigger_webhook_event(
+    mocked_trigger_async,
+    staff_api_client,
+    fulfillment,
+    permission_group_manage_orders,
+    settings,
+    subscription_fulfillment_approved_webhook,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.save(update_fields=["status"])
+    query = APPROVE_FULFILLMENT_MUTATION
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
+    variables = {"id": fulfillment_id, "notifyCustomer": True}
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    mocked_trigger_async.assert_called_once()
+    assert mocked_trigger_async.call_args[0][1] == (
+        WebhookEventAsyncType.FULFILLMENT_APPROVED
+    )
+    assert mocked_trigger_async.call_args[0][3] == {
+        "fulfillment": fulfillment,
+        "notify_customer": True,
+    }

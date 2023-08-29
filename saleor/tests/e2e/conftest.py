@@ -53,6 +53,7 @@ def e2e_staff_api_client():
         is_staff=True,
         is_active=True,
     )
+
     return E2eApiClient(user=e2e_staff_user)
 
 

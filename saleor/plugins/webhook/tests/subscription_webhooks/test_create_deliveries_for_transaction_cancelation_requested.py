@@ -25,6 +25,7 @@ subscription {
       action {
         actionType
         amount
+        currency
       }
     }
   }
@@ -93,5 +94,5 @@ def test_transaction_cancel_request(order, webhook_app, permission_manage_paymen
             "pspReference": "PSP ref",
             "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
-        "action": {"actionType": "CANCEL", "amount": None},
+        "action": {"actionType": "CANCEL", "amount": None, "currency": "USD"},
     }

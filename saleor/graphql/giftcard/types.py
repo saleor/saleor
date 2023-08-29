@@ -236,9 +236,12 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     )
     code = graphene.String(
         description=(
-            "Gift card code. Can be fetched by a staff member with "
-            f"{GiftcardPermissions.MANAGE_GIFT_CARD.name} when gift card wasn't yet "
-            "used and by the gift card owner."
+            "Gift card code. It can be fetched both by a staff member with "
+            f"'{GiftcardPermissions.MANAGE_GIFT_CARD.name}' when gift card "
+            "hasn't been used yet or a user who bought or issued the gift card."
+            + "\n\nRequires one of the following permissions: "
+            f"{GiftcardPermissions.MANAGE_GIFT_CARD.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
         required=True,
     )
