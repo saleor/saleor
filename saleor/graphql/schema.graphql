@@ -14225,10 +14225,10 @@ input PromotionWhereInput @doc(category: "Discounts") {
   name: StringFilterInput
 
   """Filter promotions by end date."""
-  endDate: DateTimeRangeInput
+  endDate: DateTimeFilterInput
 
   """Filter promotions by start date."""
-  startDate: DateTimeRangeInput
+  startDate: DateTimeFilterInput
   isOldSale: Boolean
 
   """List of conditions that must be met."""
@@ -14236,6 +14236,24 @@ input PromotionWhereInput @doc(category: "Discounts") {
 
   """A list of conditions of which at least one must be met."""
   OR: [PromotionWhereInput!]
+}
+
+"""
+Define the filtering options for date time fields.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input DateTimeFilterInput {
+  """The value equal to."""
+  eq: DateTime
+
+  """The value included in."""
+  oneOf: [DateTime!]
+
+  """The value in range."""
+  range: DateTimeRangeInput
 }
 
 input PromotionSortingInput @doc(category: "Discounts") {

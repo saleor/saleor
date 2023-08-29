@@ -9,17 +9,26 @@ from ...discount import DiscountValueType
 from ...discount.models import PromotionRule, Sale, Voucher, VoucherQueryset
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.filters import (
+    BooleanWhereFilter,
     GlobalIDMultipleChoiceFilter,
+    GlobalIDMultipleChoiceWhereFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
     MetadataWhereFilterBase,
     ObjectTypeFilter,
-    OperationObjectTypeFilter,
+    ObjectTypeWhereFilter,
+    OperationObjectTypeWhereFilter,
 )
-from ..core.types import DateTimeRangeInput, IntRangeInput, StringFilterInput
+from ..core.types import (
+    DateTimeFilterInput,
+    DateTimeRangeInput,
+    IntRangeInput,
+    StringFilterInput,
+)
 from ..core.types.filter_input import WhereInputObjectType
 from ..utils.filters import (
     filter_by_id,
+    filter_by_ids,
     filter_range_field,
     filter_where_by_string_field,
     filter_where_range_field,
@@ -129,23 +138,23 @@ class SaleFilter(MetadataFilterBase):
 
 
 class PromotionWhere(MetadataWhereFilterBase):
-    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Promotion"))
-    name = OperationObjectTypeFilter(
+    ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Promotion"))
+    name = OperationObjectTypeWhereFilter(
         input_class=StringFilterInput,
         method="filter_promotion_name",
         help_text="Filter by promotion name.",
     )
-    end_date = ObjectTypeFilter(
-        input_class=DateTimeRangeInput,
+    end_date = ObjectTypeWhereFilter(
+        input_class=DateTimeFilterInput,
         method="filter_end_date_range",
         help_text="Filter promotions by end date.",
     )
-    start_date = ObjectTypeFilter(
-        input_class=DateTimeRangeInput,
+    start_date = ObjectTypeWhereFilter(
+        input_class=DateTimeFilterInput,
         method="filter_start_date_range",
         help_text="Filter promotions by start date.",
     )
-    is_old_sale = django_filters.BooleanFilter(method="filter_is_old_sale")
+    is_old_sale = BooleanWhereFilter(method="filter_is_old_sale")
 
     @staticmethod
     def filter_promotion_name(qs, _, value):
