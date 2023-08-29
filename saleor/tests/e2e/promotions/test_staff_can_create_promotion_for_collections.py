@@ -88,7 +88,6 @@ def test_create_promotion_for_collection_core_2109(
     permission_manage_discounts,
 ):
     # Before
-
     channel_slug = "promotion_collections_channel"
     variant_price = "9.99"
     product_id, channel_id, collection_id = prepare_product(
@@ -102,7 +101,6 @@ def test_create_promotion_for_collection_core_2109(
     )
 
     # Step 1 Crate percentage promotion for collection
-
     promotion_name = "Promotion PERCENTAGE"
     discount_value = 3
     discount_type = "PERCENTAGE"
