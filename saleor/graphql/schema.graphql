@@ -6402,6 +6402,7 @@ enum AttributeChoicesSortField @doc(category: "Attributes") {
 input AttributeValueFilterInput @doc(category: "Attributes") {
   search: String
   ids: [ID!]
+  slugs: [String!]
 }
 
 type AttributeTranslation implements Node @doc(category: "Attributes") {
