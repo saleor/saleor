@@ -22,13 +22,18 @@ mutation CreatePromotion($input: PromotionCreateInput!) {
 def create_promotion(
     staff_api_client,
     promotion_name,
+    start_date=None,
+    end_date=None,
 ):
-    variables = {"input": {"name": promotion_name}}
+    variables = {
+        "input": {"name": promotion_name, "startDate": start_date, "endDate": end_date}
+    }
 
     response = staff_api_client.post_graphql(
         PROMOTION_CREATE_MUTATION,
         variables,
     )
+
     content = get_graphql_content(response)
 
     assert content["data"]["promotionCreate"]["errors"] == []
