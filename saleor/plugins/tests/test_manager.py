@@ -21,6 +21,8 @@ from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentGateway,
     PaymentGatewayData,
+    StoredPaymentMethodRequestDeleteData,
+    StoredPaymentMethodRequestDeleteResponseData,
     TransactionProcessActionData,
     TransactionSessionData,
     TransactionSessionResult,
@@ -1213,6 +1215,7 @@ def test_manager_transaction_initialize_session(
             currency=transaction.currency,
             action_type=action_type,
         ),
+        customer_ip_address="127.0.0.1",
         payment_gateway_data=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=None, error=None
         ),
@@ -1254,6 +1257,7 @@ def test_manager_transaction_process_session(
             currency=transaction.currency,
             action_type=action_type,
         ),
+        customer_ip_address="127.0.0.1",
         payment_gateway_data=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=None, error=None
         ),
@@ -1356,3 +1360,33 @@ def test_list_stored_payment_methods(
 
     # then
     mocked_list_stored_payment_methods.assert_called_once()
+
+
+@patch(
+    "saleor.plugins.tests.sample_plugins.PluginSample.stored_payment_method_request_delete"
+)
+def test_stored_payment_method_request_delete(
+    mocked_stored_payment_method_request_delete, customer_user, channel_USD
+):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    request_delete_data = StoredPaymentMethodRequestDeleteData(
+        user=customer_user, payment_method_id="123", channel=channel_USD
+    )
+    previous_response = StoredPaymentMethodRequestDeleteResponseData(
+        success=False, message="Payment method request delete failed to deliver."
+    )
+
+    # when
+    manager.stored_payment_method_request_delete(
+        request_delete_data=request_delete_data
+    )
+
+    # then
+    mocked_stored_payment_method_request_delete.assert_called_once_with(
+        request_delete_data, previous_value=previous_response
+    )

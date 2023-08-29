@@ -69,7 +69,6 @@ def test_export_gift_cards_mutation(
     query = EXPORT_GIFT_CARDS_MUTATION
     user = staff_api_client.user
     variables = {"input": input}
-
     response = staff_api_client.post_graphql(
         query,
         variables=variables,

@@ -21,6 +21,23 @@ JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
 
 @dataclass
+class StoredPaymentMethodRequestDeleteResponseData:
+    """Dataclass for storing the response information from payment app."""
+
+    success: bool
+    message: Optional[str] = None
+
+
+@dataclass
+class StoredPaymentMethodRequestDeleteData:
+    """Dataclass for storing the request information for payment app."""
+
+    payment_method_id: str
+    user: "User"
+    channel: "Channel"
+
+
+@dataclass
 class PaymentGateway:
     """Dataclass for storing information about a payment gateway."""
 
@@ -130,6 +147,7 @@ class TransactionSessionData:
     source_object: Union["Checkout", "Order"]
     action: TransactionProcessActionData
     payment_gateway_data: PaymentGatewayData
+    customer_ip_address: Optional[str]
 
 
 @dataclass

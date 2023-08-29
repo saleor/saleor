@@ -224,6 +224,7 @@ def async_subscription_webhooks_with_root_objects(
     subscription_gift_card_sent_webhook,
     subscription_gift_card_status_changed_webhook,
     subscription_gift_card_metadata_updated_webhook,
+    subscription_gift_card_export_completed_webhook,
     subscription_menu_created_webhook,
     subscription_menu_updated_webhook,
     subscription_menu_deleted_webhook,
@@ -240,6 +241,7 @@ def async_subscription_webhooks_with_root_objects(
     subscription_product_updated_webhook,
     subscription_product_created_webhook,
     subscription_product_deleted_webhook,
+    subscription_product_export_completed_webhook,
     subscription_product_media_updated_webhook,
     subscription_product_media_created_webhook,
     subscription_product_media_deleted_webhook,
@@ -272,10 +274,9 @@ def async_subscription_webhooks_with_root_objects(
     subscription_invoice_requested_webhook,
     subscription_invoice_deleted_webhook,
     subscription_invoice_sent_webhook,
-    subscription_fulfillment_created_webhook,
     subscription_fulfillment_canceled_webhook,
-    subscription_fulfillment_approved_webhook,
     subscription_fulfillment_metadata_updated_webhook,
+    subscription_fulfillment_tracking_number_updated,
     subscription_customer_created_webhook,
     subscription_customer_updated_webhook,
     subscription_customer_deleted_webhook,
@@ -338,6 +339,7 @@ def async_subscription_webhooks_with_root_objects(
     translated_attribute,
     transaction_item_created_by_app,
     product_media_image,
+    user_export_file,
 ):
     events = WebhookEventAsyncType
     attr = numeric_attribute
@@ -394,6 +396,10 @@ def async_subscription_webhooks_with_root_objects(
             subscription_gift_card_metadata_updated_webhook,
             gift_card,
         ],
+        events.GIFT_CARD_EXPORT_COMPLETED: [
+            subscription_gift_card_export_completed_webhook,
+            user_export_file,
+        ],
         events.MENU_CREATED: [subscription_menu_created_webhook, menu],
         events.MENU_UPDATED: [subscription_menu_updated_webhook, menu],
         events.MENU_DELETED: [subscription_menu_deleted_webhook, menu],
@@ -421,6 +427,10 @@ def async_subscription_webhooks_with_root_objects(
         events.PRODUCT_CREATED: [subscription_product_created_webhook, product],
         events.PRODUCT_UPDATED: [subscription_product_updated_webhook, product],
         events.PRODUCT_DELETED: [subscription_product_deleted_webhook, product],
+        events.PRODUCT_EXPORT_COMPLETED: [
+            subscription_product_export_completed_webhook,
+            user_export_file,
+        ],
         events.PRODUCT_MEDIA_CREATED: [
             subscription_product_media_created_webhook,
             product_media_image,
@@ -468,20 +478,16 @@ def async_subscription_webhooks_with_root_objects(
         events.INVOICE_REQUESTED: [subscription_invoice_requested_webhook, invoice],
         events.INVOICE_DELETED: [subscription_invoice_deleted_webhook, invoice],
         events.INVOICE_SENT: [subscription_invoice_sent_webhook, invoice],
-        events.FULFILLMENT_CREATED: [
-            subscription_fulfillment_created_webhook,
-            fulfillment,
-        ],
         events.FULFILLMENT_CANCELED: [
             subscription_fulfillment_canceled_webhook,
             fulfillment,
         ],
-        events.FULFILLMENT_APPROVED: [
-            subscription_fulfillment_approved_webhook,
-            fulfillment,
-        ],
         events.FULFILLMENT_METADATA_UPDATED: [
             subscription_fulfillment_metadata_updated_webhook,
+            fulfillment,
+        ],
+        events.FULFILLMENT_TRACKING_NUMBER_UPDATED: [
+            subscription_fulfillment_tracking_number_updated,
             fulfillment,
         ],
         events.CUSTOMER_CREATED: [subscription_customer_created_webhook, customer_user],

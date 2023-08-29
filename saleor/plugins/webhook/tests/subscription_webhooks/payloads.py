@@ -4,6 +4,7 @@ import graphene
 from django.utils import timezone
 
 from ..... import __version__
+from .....core.utils import build_absolute_uri
 from .....graphql.attribute.enums import AttributeInputTypeEnum, AttributeTypeEnum
 from .....graphql.shop.types import SHOP_ID
 from .....product.models import Product
@@ -111,9 +112,9 @@ def generate_fulfillment_lines_payload(fulfillment):
     ]
 
 
-def generate_fulfillment_payload(fulfillment):
+def generate_fulfillment_payload(fulfillment, add_notify_customer_field=False):
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.pk)
-    return {
+    payload = {
         "fulfillment": {
             "id": fulfillment_id,
             "fulfillmentOrder": fulfillment.fulfillment_order,
@@ -125,6 +126,9 @@ def generate_fulfillment_payload(fulfillment):
             "id": graphene.Node.to_global_id("Order", fulfillment.order.pk),
         },
     }
+    if add_notify_customer_field:
+        payload["notifyCustomer"] = True
+    return payload
 
 
 def generate_address_payload(address):
@@ -419,6 +423,21 @@ def generate_gift_card_payload(gift_card, card_global_id):
                 "isActive": gift_card.is_active,
                 "code": gift_card.code,
                 "createdBy": {"email": gift_card.created_by.email},
+            }
+        }
+    )
+
+
+def generate_export_payload(export_file, export_global_id):
+    return json.dumps(
+        {
+            "export": {
+                "id": export_global_id,
+                "createdAt": export_file.created_at.isoformat(),
+                "updatedAt": export_file.updated_at.isoformat(),
+                "status": export_file.status.upper(),
+                "url": build_absolute_uri(export_file.content_file.url),
+                "message": export_file.message,
             }
         }
     )

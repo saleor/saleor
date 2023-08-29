@@ -459,6 +459,21 @@ GIFT_CARD_METADATA_UPDATED = (
 """
 )
 
+GIFT_CARD_EXPORT_COMPLETED = (
+    fragments.GIFT_CARD_EXPORT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on GiftCardExportCompleted{
+          export{
+            ...GiftCardExportDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 VOUCHER_CREATED = (
     fragments.VOUCHER_DETAILS
     + """
@@ -905,6 +920,21 @@ PRODUCT_METADATA_UPDATED = """
     }
 """
 
+PRODUCT_EXPORT_COMPLETED = (
+    fragments.PRODUCT_EXPORT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on ProductExportCompleted{
+          export{
+            ...ProductExportDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 PRODUCT_MEDIA_CREATED = """
     subscription{
       event{
@@ -1341,6 +1371,7 @@ FULFILLMENT_CREATED = (
     subscription{
       event{
         ...on FulfillmentCreated{
+          notifyCustomer
           fulfillment{
             ...FulfillmentDetails
           }
@@ -1371,12 +1402,14 @@ FULFILLMENT_CANCELED = (
 """
 )
 
+
 FULFILLMENT_APPROVED = (
     fragments.FULFILLMENT_DETAILS
     + """
     subscription{
       event{
         ...on FulfillmentApproved{
+          notifyCustomer
           fulfillment{
             ...FulfillmentDetails
           }
@@ -1396,6 +1429,24 @@ FULFILLMENT_METADATA_UPDATED = (
     subscription{
       event{
         ...on FulfillmentMetadataUpdated{
+          fulfillment{
+            ...FulfillmentDetails
+          }
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+)
+
+FULFILLMENT_TRACKING_NUMBER_UPDATED = (
+    fragments.FULFILLMENT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on FulfillmentTrackingNumberUpdated{
           fulfillment{
             ...FulfillmentDetails
           }

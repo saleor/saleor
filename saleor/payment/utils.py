@@ -1435,6 +1435,7 @@ def handle_transaction_initialize_session(
     payment_gateway_data: PaymentGatewayData,
     amount: Decimal,
     action: str,
+    customer_ip_address: Optional[str],
     app: App,
     manager: PluginsManager,
 ):
@@ -1448,6 +1449,7 @@ def handle_transaction_initialize_session(
         action=TransactionProcessActionData(
             action_type=action, currency=source_object.currency, amount=amount
         ),
+        customer_ip_address=customer_ip_address,
     )
 
     request_event = transaction_item.events.create(
@@ -1478,6 +1480,7 @@ def handle_transaction_process_session(
     payment_gateway_data: PaymentGatewayData,
     action: str,
     app: App,
+    customer_ip_address: Optional[str],
     manager: PluginsManager,
     request_event: TransactionEvent,
 ):
@@ -1490,6 +1493,7 @@ def handle_transaction_process_session(
             currency=source_object.currency,
             amount=request_event.amount_value,
         ),
+        customer_ip_address=customer_ip_address,
     )
 
     result = manager.transaction_process_session(session_data)

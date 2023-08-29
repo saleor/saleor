@@ -306,7 +306,7 @@ def test_add_gift_cards_to_order(
 
     # when
     add_gift_cards_to_order(
-        checkout_info, order, Money(20, gift_card.currency), staff_user, None
+        checkout_info, order, Money(30, gift_card.currency), staff_user, None
     )
 
     # then
@@ -347,6 +347,33 @@ def test_add_gift_cards_to_order(
     }
 
 
+def test_add_gift_cards_to_order_with_more_than_total(
+    checkout_with_item, gift_card, gift_card_expiry_date, order, staff_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = staff_user
+    checkout.gift_cards.add(gift_card_expiry_date, gift_card)
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    add_gift_cards_to_order(
+        checkout_info, order, Money(25, gift_card.currency), staff_user, None
+    )
+
+    # then
+    gift_card.refresh_from_db()
+    gift_card_expiry_date.refresh_from_db()
+    assert gift_card.current_balance_amount == Decimal(5)
+    assert gift_card_expiry_date.current_balance_amount == 0
+    assert gift_card.used_by == staff_user
+    assert gift_card.used_by_email == staff_user.email
+    assert gift_card_expiry_date.used_by == staff_user
+    assert gift_card_expiry_date.used_by_email == staff_user.email
+
+
 def test_add_gift_cards_to_order_no_checkout_user(
     checkout_with_item, gift_card, gift_card_expiry_date, order, staff_user
 ):
@@ -363,7 +390,7 @@ def test_add_gift_cards_to_order_no_checkout_user(
 
     # when
     add_gift_cards_to_order(
-        checkout_info, order, Money(20, gift_card.currency), staff_user, None
+        checkout_info, order, Money(30, gift_card.currency), staff_user, None
     )
 
     # then

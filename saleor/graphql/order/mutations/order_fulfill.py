@@ -11,13 +11,14 @@ from ....order import models as order_models
 from ....order.actions import OrderFulfillmentLineInfo, create_fulfillments
 from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_36
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
-from ...core.utils import get_duplicated_values
+from ...core.utils import WebhookEventInfo, get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ...warehouse.types import Warehouse
@@ -105,6 +106,24 @@ class OrderFulfill(BaseMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.FULFILLMENT_CREATED,
+                description="A new fulfillment is created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_FULFILLED,
+                description="Order is fulfilled.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED,
+                description="Sent when fulfillment tracking number is updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.FULFILLMENT_APPROVED,
+                description="A fulfillment is approved.",
+            ),
+        ]
 
     @classmethod
     def clean_lines(cls, order_lines, quantities_for_lines):

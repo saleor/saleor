@@ -26,12 +26,14 @@ mutation TransactionInitialize(
   $amount: PositiveDecimal,
   $id: ID!,
   $paymentGateway: PaymentGatewayToInitialize!
+  $customerIpAddress: String
 ) {
   transactionInitialize(
     action: $action
     amount: $amount
     id: $id
     paymentGateway: $paymentGateway
+    customerIpAddress: $customerIpAddress
   ) {
     data
     transaction {
@@ -167,6 +169,7 @@ def _assert_fields(
                 amount=expected_amount,
                 currency=source_object.currency,
             ),
+            customer_ip_address="127.0.0.1",
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=app_identifier, data=None, error=None
             ),
@@ -824,7 +827,6 @@ def test_app_with_action_field_and_handle_payments(
     checkout_with_prices,
     webhook_app,
     transaction_session_response,
-    transaction_item_generator,
     permission_manage_payments,
     plugins_manager,
 ):
@@ -1062,7 +1064,6 @@ def test_checkout_doesnt_exist(
     checkout_with_prices,
     webhook_app,
     transaction_session_response,
-    transaction_item_generator,
     permission_manage_payments,
 ):
     # given
@@ -1097,7 +1098,6 @@ def test_order_doesnt_exists(
     order_with_lines,
     webhook_app,
     transaction_session_response,
-    transaction_item_generator,
     permission_manage_payments,
 ):
     # given
@@ -1177,3 +1177,268 @@ def test_checkout_fully_paid(
     mocked_fully_paid.assert_called_once_with(checkout)
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+
+
+def test_user_missing_permission_for_customer_ip_address(
+    user_api_client,
+    order_with_lines,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    order = order_with_lines
+
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    variables = {
+        "action": None,
+        "amount": None,
+        "id": to_global_id_or_none(order),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "customerIpAddress": "127.0.0.1",
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_app_missing_permission_for_customer_ip_address(
+    app_api_client,
+    order_with_lines,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    order = order_with_lines
+
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    variables = {
+        "action": None,
+        "amount": None,
+        "id": to_global_id_or_none(order),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "customerIpAddress": "127.0.0.1",
+    }
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_with_customer_ip_address(
+    mocked_initialize,
+    app_api_client,
+    order_with_lines,
+    webhook_app,
+    transaction_session_response,
+    permission_manage_payments,
+):
+    # given
+    order = order_with_lines
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = TransactionEventType.CHARGE_REQUEST.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+    app_api_client.app.permissions.set([permission_manage_payments])
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(order),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "customerIpAddress": "127.0.0.2",
+    }
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    get_graphql_content(response)
+
+    transaction = order.payment_transactions.last()
+    mocked_initialize.assert_called_with(
+        TransactionSessionData(
+            transaction=transaction,
+            source_object=order,
+            action=TransactionProcessActionData(
+                action_type=TransactionFlowStrategy.CHARGE,
+                amount=expected_amount,
+                currency=order.currency,
+            ),
+            customer_ip_address="127.0.0.2",
+            payment_gateway_data=PaymentGatewayData(
+                app_identifier=webhook_app.identifier, data=None, error=None
+            ),
+        )
+    )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_sets_customer_ip_address_when_not_provided(
+    mocked_initialize,
+    app_api_client,
+    order_with_lines,
+    webhook_app,
+    transaction_session_response,
+    permission_manage_payments,
+):
+    # given
+    order = order_with_lines
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = TransactionEventType.CHARGE_REQUEST.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+    app_api_client.app.permissions.set([permission_manage_payments])
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(order),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_INITIALIZE, variables, REMOTE_ADDR="127.0.0.2"
+    )
+
+    # then
+    get_graphql_content(response)
+
+    transaction = order.payment_transactions.last()
+    mocked_initialize.assert_called_with(
+        TransactionSessionData(
+            transaction=transaction,
+            source_object=order,
+            action=TransactionProcessActionData(
+                action_type=TransactionFlowStrategy.CHARGE,
+                amount=expected_amount,
+                currency=order.currency,
+            ),
+            customer_ip_address="127.0.0.2",
+            payment_gateway_data=PaymentGatewayData(
+                app_identifier=webhook_app.identifier, data=None, error=None
+            ),
+        )
+    )
+
+
+def test_customer_ip_address_wrong_format(
+    app_api_client,
+    order_with_lines,
+    webhook_app,
+    transaction_session_response,
+    permission_manage_payments,
+):
+    # given
+    order = order_with_lines
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+
+    app_api_client.app.permissions.set([permission_manage_payments])
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(order),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "customerIpAddress": "127.0.02",
+    }
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    errors = content["data"]["transactionInitialize"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "customerIpAddress"
+    assert errors[0]["code"] == TransactionInitializeErrorCode.INVALID.name
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_customer_ip_address_ipv6(
+    mocked_initialize,
+    app_api_client,
+    order_with_lines,
+    webhook_app,
+    transaction_session_response,
+    permission_manage_payments,
+):
+    # given
+    order = order_with_lines
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = TransactionEventType.CHARGE_REQUEST.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+    app_api_client.app.permissions.set([permission_manage_payments])
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(order),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "customerIpAddress": "::1",
+    }
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    get_graphql_content(response)
+
+    transaction = order.payment_transactions.last()
+    mocked_initialize.assert_called_with(
+        TransactionSessionData(
+            transaction=transaction,
+            source_object=order,
+            action=TransactionProcessActionData(
+                action_type=TransactionFlowStrategy.CHARGE,
+                amount=expected_amount,
+                currency=order.currency,
+            ),
+            customer_ip_address="::1",
+            payment_gateway_data=PaymentGatewayData(
+                app_identifier=webhook_app.identifier, data=None, error=None
+            ),
+        )
+    )

@@ -1831,6 +1831,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   GIFT_CARD_METADATA_UPDATED
 
+  """
+  A gift card export is completed.
+  
+  Added in Saleor 3.16.
+  """
+  GIFT_CARD_EXPORT_COMPLETED
+
   """A new menu created."""
   MENU_CREATED
 
@@ -1932,6 +1939,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   FULFILLMENT_METADATA_UPDATED
+  FULFILLMENT_TRACKING_NUMBER_UPDATED
 
   """A draft order is created."""
   DRAFT_ORDER_CREATED
@@ -2010,6 +2018,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   PRODUCT_METADATA_UPDATED
+
+  """
+  A product export is completed.
+  
+  Added in Saleor 3.16.
+  """
+  PRODUCT_EXPORT_COMPLETED
 
   """
   A new product media is created.
@@ -2276,6 +2291,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
   LIST_STORED_PAYMENT_METHODS
+  STORED_PAYMENT_METHOD_DELETE_REQUESTED
 }
 
 """Synchronous webhook event."""
@@ -2363,6 +2379,7 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
   LIST_STORED_PAYMENT_METHODS
+  STORED_PAYMENT_METHOD_DELETE_REQUESTED
 }
 
 """Asynchronous webhook event."""
@@ -2495,6 +2512,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   GIFT_CARD_METADATA_UPDATED
 
+  """
+  A gift card export is completed.
+  
+  Added in Saleor 3.16.
+  """
+  GIFT_CARD_EXPORT_COMPLETED
+
   """A new menu created."""
   MENU_CREATED
 
@@ -2596,6 +2620,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   FULFILLMENT_METADATA_UPDATED
+  FULFILLMENT_TRACKING_NUMBER_UPDATED
 
   """A draft order is created."""
   DRAFT_ORDER_CREATED
@@ -2674,6 +2699,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   PRODUCT_METADATA_UPDATED
+
+  """
+  A product export is completed.
+  
+  Added in Saleor 3.16.
+  """
+  PRODUCT_EXPORT_COMPLETED
 
   """
   A new product media is created.
@@ -3438,6 +3470,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   GIFT_CARD_SENT
   GIFT_CARD_STATUS_CHANGED
   GIFT_CARD_METADATA_UPDATED
+  GIFT_CARD_EXPORT_COMPLETED
   MENU_CREATED
   MENU_UPDATED
   MENU_DELETED
@@ -3460,6 +3493,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   FULFILLMENT_CANCELED
   FULFILLMENT_APPROVED
   FULFILLMENT_METADATA_UPDATED
+  FULFILLMENT_TRACKING_NUMBER_UPDATED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
   DRAFT_ORDER_DELETED
@@ -3482,6 +3516,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_UPDATED
   PRODUCT_DELETED
   PRODUCT_METADATA_UPDATED
+  PRODUCT_EXPORT_COMPLETED
   PRODUCT_MEDIA_CREATED
   PRODUCT_MEDIA_UPDATED
   PRODUCT_MEDIA_DELETED
@@ -4965,6 +5000,17 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
   """
   checkoutSettings: CheckoutSettings!
+
+  """
+  Channel-specific payment settings.
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS, HANDLE_PAYMENTS.
+  """
+  paymentSettings: PaymentSettings!
 }
 
 """
@@ -5398,7 +5444,7 @@ type OrderSettings {
   
   Added in Saleor 3.13.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.This preview feature field will be removed in Saleor 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
 
@@ -5468,6 +5514,18 @@ type CheckoutSettings {
   Added in Saleor 3.15.This field will be removed in Saleor 4.0.
   """
   useLegacyErrorFlow: Boolean!
+}
+
+"""Represents the channel-specific payment settings."""
+type PaymentSettings {
+  """
+  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
 }
 
 """Represents shipping method postal code rule."""
@@ -6452,9 +6510,6 @@ Added in Saleor 3.11.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 input AttributeWhereInput @doc(category: "Attributes") {
-  valueRequired: Boolean
-  visibleInStorefront: Boolean
-  filterableInDashboard: Boolean
   metadata: [MetadataFilter!]
   ids: [ID!]
   name: StringFilterInput
@@ -6466,6 +6521,9 @@ input AttributeWhereInput @doc(category: "Attributes") {
   unit: MeasurementUnitsEnumFilterInput
   inCollection: ID
   inCategory: ID
+  valueRequired: Boolean
+  visibleInStorefront: Boolean
+  filterableInDashboard: Boolean
 
   """List of conditions that must be met."""
   AND: [AttributeWhereInput!]
@@ -10397,7 +10455,9 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   last4CodeChars: String!
 
   """
-  Gift card code. Can be fetched by a staff member with MANAGE_GIFT_CARD when gift card wasn't yet used and by the gift card owner.
+  Gift card code. It can be fetched both by a staff member with 'MANAGE_GIFT_CARD' when gift card hasn't been used yet or a user who bought or issued the gift card.
+  
+  Requires one of the following permissions: MANAGE_GIFT_CARD, OWNER.
   """
   code: String!
   created: DateTime!
@@ -14120,8 +14180,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   updateWarehouse(
+    """
+    External reference of a warehouse.
+    
+    Added in Saleor 3.16.
+    """
+    externalReference: String
+
     """ID of a warehouse to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update warehouse."""
     input: WarehouseUpdateInput!
@@ -15546,6 +15613,13 @@ type Mutation {
     """
     amount: PositiveDecimal
 
+    """
+    The customer's IP address. If not provided Saleor will try to determine the customer's IP address on its own. The customer's IP address will be passed to the payment app. The IP should be in ipv4 or ipv6 format. The field can be used only by an app that has `HANDLE_PAYMENTS` permission.
+    
+    Added in Saleor 3.16.
+    """
+    customerIpAddress: String
+
     """The ID of the checkout or order."""
     id: ID!
 
@@ -15561,12 +15635,39 @@ type Mutation {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   transactionProcess(
+    """
+    The customer's IP address. If not provided Saleor will try to determine the customer's IP address on its own. The customer's IP address will be passed to the payment app. The IP should be in ipv4 or ipv6 format. The field can be used only by an app that has `HANDLE_PAYMENTS` permission.
+    
+    Added in Saleor 3.16.
+    """
+    customerIpAddress: String
+
     """The data that will be passed to the payment gateway."""
     data: JSON
 
     """The ID of the transaction to process."""
     id: ID!
   ): TransactionProcess @doc(category: "Payments")
+
+  """
+  Request to delete a stored payment method on payment provider side.
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - STORED_PAYMENT_METHOD_DELETE_REQUESTED (sync): The customer requested to delete a payment method.
+  """
+  storedPaymentMethodRequestDelete(
+    """Slug of a channel related to delete request."""
+    channel: String!
+
+    """The ID of the payment method."""
+    id: ID!
+  ): StoredPaymentMethodRequestDelete @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [STORED_PAYMENT_METHOD_DELETE_REQUESTED])
 
   """
   Creates a new page. 
@@ -15865,6 +15966,12 @@ type Mutation {
   Creates new fulfillments for an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - FULFILLMENT_CREATED (async): A new fulfillment is created.
+  - ORDER_FULFILLED (async): Order is fulfilled.
+  - FULFILLMENT_TRACKING_NUMBER_UPDATED (async): Sent when fulfillment tracking number is updated.
+  - FULFILLMENT_APPROVED (async): A fulfillment is approved.
   """
   orderFulfill(
     """Fields required to create a fulfillment."""
@@ -15872,7 +15979,7 @@ type Mutation {
 
     """ID of the order to be fulfilled."""
     order: ID
-  ): OrderFulfill @doc(category: "Orders")
+  ): OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED, FULFILLMENT_TRACKING_NUMBER_UPDATED, FULFILLMENT_APPROVED], syncEvents: [])
 
   """
   Cancels existing fulfillment and optionally restocks items. 
@@ -15893,6 +16000,9 @@ type Mutation {
   Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - FULFILLMENT_APPROVED (async): Fulfillment is approved.
   """
   orderFulfillmentApprove(
     """True if stock could be exceeded."""
@@ -15903,12 +16013,15 @@ type Mutation {
 
     """True if confirmation email should be send."""
     notifyCustomer: Boolean!
-  ): FulfillmentApprove @doc(category: "Orders")
+  ): FulfillmentApprove @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_APPROVED], syncEvents: [])
 
   """
   Updates a fulfillment for an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - FULFILLMENT_TRACKING_NUMBER_UPDATED (async): Fulfillment tracking number is updated.
   """
   orderFulfillmentUpdateTracking(
     """ID of a fulfillment to update."""
@@ -15916,7 +16029,7 @@ type Mutation {
 
     """Fields required to update a fulfillment."""
     input: FulfillmentUpdateTrackingInput!
-  ): FulfillmentUpdateTracking @doc(category: "Orders")
+  ): FulfillmentUpdateTracking @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_TRACKING_NUMBER_UPDATED], syncEvents: [])
 
   """
   Refund products. 
@@ -16926,11 +17039,12 @@ type Mutation {
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for the exported file.
+  - PRODUCT_EXPORT_COMPLETED (async): A notification for the exported file.
   """
   exportProducts(
     """Fields required to export product data."""
     input: ExportProductsInput!
-  ): ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+  ): ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, PRODUCT_EXPORT_COMPLETED], syncEvents: [])
 
   """
   Export gift cards to csv file.
@@ -16941,11 +17055,12 @@ type Mutation {
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for the exported file.
+  - GIFT_CARD_EXPORT_COMPLETED (async): A notification for the exported file.
   """
   exportGiftCards(
     """Fields required to export gift cards data."""
     input: ExportGiftCardsInput!
-  ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+  ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: [])
 
   """
   Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -17587,7 +17702,9 @@ type Mutation {
   Update a channel.
   
   Requires one of the following permissions: MANAGE_CHANNELS.
-  Requires one of the following permissions when updating only `orderSettings` field: MANAGE_CHANNELS, MANAGE_ORDERS.Requires one of the following permissions when updating only `checkoutSettings` field: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
+  Requires one of the following permissions when updating only `orderSettings` field: `MANAGE_CHANNELS`, `MANAGE_ORDERS`.
+  Requires one of the following permissions when updating only `checkoutSettings` field: `MANAGE_CHANNELS`, `MANAGE_CHECKOUTS`.
+  Requires one of the following permissions when updating only `paymentSettings` field: `MANAGE_CHANNELS`, `HANDLE_PAYMENTS`.
   
   Triggers the following webhook events:
   - CHANNEL_UPDATED (async): A channel was updated.
@@ -18233,6 +18350,7 @@ type Mutation {
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for account email change.
+  - ACCOUNT_CHANGE_EMAIL_REQUESTED (async): An account email change was requested.
   """
   requestEmailChange(
     """
@@ -18250,7 +18368,7 @@ type Mutation {
     URL of a view where users should be redirected to update the email address. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): RequestEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+  ): RequestEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CHANGE_EMAIL_REQUESTED], syncEvents: [])
 
   """
   Confirm the email change of the logged-in user. 
@@ -18366,6 +18484,7 @@ type Mutation {
   
   Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for account delete request.
+  - ACCOUNT_DELETE_REQUESTED (async): An account delete requested.
   """
   accountRequestDeletion(
     """
@@ -18377,7 +18496,7 @@ type Mutation {
     URL of a view where users should be redirected to delete their account. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+  ): AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_DELETE_REQUESTED], syncEvents: [])
 
   """
   Remove user account. 
@@ -23135,6 +23254,48 @@ enum TransactionProcessErrorCode @doc(category: "Payments") {
 }
 
 """
+Request to delete a stored payment method on payment provider side.
+
+Added in Saleor 3.16.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- STORED_PAYMENT_METHOD_DELETE_REQUESTED (sync): The customer requested to delete a payment method.
+"""
+type StoredPaymentMethodRequestDelete @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [STORED_PAYMENT_METHOD_DELETE_REQUESTED]) {
+  """True, if the delete request was processed successfully."""
+  success: Boolean
+
+  """A message returned by payment app."""
+  message: String
+  errors: [PaymentMethodRequestDeleteError!]!
+}
+
+type PaymentMethodRequestDeleteError @doc(category: "Payments") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: StoredPaymentMethodRequestDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum StoredPaymentMethodRequestDeleteErrorCode @doc(category: "Payments") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  CHANNEL_INACTIVE
+}
+
+"""
 Creates a new page. 
 
 Requires one of the following permissions: MANAGE_PAGES.
@@ -23685,8 +23846,14 @@ type OrderConfirm @doc(category: "Orders") {
 Creates new fulfillments for an order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- FULFILLMENT_CREATED (async): A new fulfillment is created.
+- ORDER_FULFILLED (async): Order is fulfilled.
+- FULFILLMENT_TRACKING_NUMBER_UPDATED (async): Sent when fulfillment tracking number is updated.
+- FULFILLMENT_APPROVED (async): A fulfillment is approved.
 """
-type OrderFulfill @doc(category: "Orders") {
+type OrderFulfill @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_CREATED, ORDER_FULFILLED, FULFILLMENT_TRACKING_NUMBER_UPDATED, FULFILLMENT_APPROVED], syncEvents: []) {
   """List of created fulfillments."""
   fulfillments: [Fulfillment!]
 
@@ -23758,8 +23925,11 @@ Approve existing fulfillment.
 Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- FULFILLMENT_APPROVED (async): Fulfillment is approved.
 """
-type FulfillmentApprove @doc(category: "Orders") {
+type FulfillmentApprove @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_APPROVED], syncEvents: []) {
   """An approved fulfillment."""
   fulfillment: Fulfillment
 
@@ -23773,8 +23943,11 @@ type FulfillmentApprove @doc(category: "Orders") {
 Updates a fulfillment for an order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- FULFILLMENT_TRACKING_NUMBER_UPDATED (async): Fulfillment tracking number is updated.
 """
-type FulfillmentUpdateTracking @doc(category: "Orders") {
+type FulfillmentUpdateTracking @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [FULFILLMENT_TRACKING_NUMBER_UPDATED], syncEvents: []) {
   """A fulfillment with updated tracking."""
   fulfillment: Fulfillment
 
@@ -26086,8 +26259,9 @@ Requires one of the following permissions: MANAGE_PRODUCTS.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for the exported file.
+- PRODUCT_EXPORT_COMPLETED (async): A notification for the exported file.
 """
-type ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+type ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, PRODUCT_EXPORT_COMPLETED], syncEvents: []) {
   """
   The newly created export file job which is responsible for export data.
   """
@@ -26189,8 +26363,9 @@ Requires one of the following permissions: MANAGE_GIFT_CARD.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for the exported file.
+- GIFT_CARD_EXPORT_COMPLETED (async): A notification for the exported file.
 """
-type ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+type ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: []) {
   """
   The newly created export file job which is responsible for export data.
   """
@@ -26926,6 +27101,15 @@ input ChannelCreateInput @doc(category: "Channels") {
   """
   checkoutSettings: CheckoutSettingsInput
 
+  """
+  The channel payment settings
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  paymentSettings: PaymentSettingsInput
+
   """Name of the channel."""
   name: String!
 
@@ -26996,11 +27180,13 @@ input OrderSettingsInput @doc(category: "Orders") {
   Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  DEPRECATED: this preview feature field will be removed in Saleor 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
 
   """
-  Determine if it is possible to place unpdaid order by calling `checkoutComplete` mutation.
+  Determine if it is possible to place unpaid order by calling `checkoutComplete` mutation.
   
   Added in Saleor 3.15.
   
@@ -27020,11 +27206,24 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   useLegacyErrorFlow: Boolean
 }
 
+input PaymentSettingsInput @doc(category: "Payments") {
+  """
+  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
+}
+
 """
 Update a channel.
 
 Requires one of the following permissions: MANAGE_CHANNELS.
-Requires one of the following permissions when updating only `orderSettings` field: MANAGE_CHANNELS, MANAGE_ORDERS.Requires one of the following permissions when updating only `checkoutSettings` field: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
+Requires one of the following permissions when updating only `orderSettings` field: `MANAGE_CHANNELS`, `MANAGE_ORDERS`.
+Requires one of the following permissions when updating only `checkoutSettings` field: `MANAGE_CHANNELS`, `MANAGE_CHECKOUTS`.
+Requires one of the following permissions when updating only `paymentSettings` field: `MANAGE_CHANNELS`, `HANDLE_PAYMENTS`.
 
 Triggers the following webhook events:
 - CHANNEL_UPDATED (async): A channel was updated.
@@ -27086,6 +27285,15 @@ input ChannelUpdateInput @doc(category: "Channels") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   checkoutSettings: CheckoutSettingsInput
+
+  """
+  The channel payment settings
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  paymentSettings: PaymentSettingsInput
 
   """Name of the channel."""
   name: String
@@ -28505,8 +28713,9 @@ Requires one of the following permissions: AUTHENTICATED_USER.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for account email change.
+- ACCOUNT_CHANGE_EMAIL_REQUESTED (async): An account email change was requested.
 """
-type RequestEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+type RequestEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CHANGE_EMAIL_REQUESTED], syncEvents: []) {
   """A user instance."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -28682,8 +28891,9 @@ Requires one of the following permissions: AUTHENTICATED_USER.
 
 Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for account delete request.
+- ACCOUNT_DELETE_REQUESTED (async): An account delete requested.
 """
-type AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+type AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_DELETE_REQUESTED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
 }
@@ -29358,7 +29568,7 @@ type PermissionGroupDelete @doc(category: "Users") @webhookEventsInfo(asyncEvent
   group: Group
 }
 
-type Subscription {
+type Subscription @doc(category: "Miscellaneous") {
   """
   Look up subscription event.
   
@@ -29500,7 +29710,7 @@ Event sent when account email is changed.
 
 Added in Saleor 3.15.
 """
-type AccountEmailChanged implements Event {
+type AccountEmailChanged implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29537,7 +29747,7 @@ Event sent when setting a new password is requested.
 
 Added in Saleor 3.15.
 """
-type AccountSetPasswordRequested implements Event {
+type AccountSetPasswordRequested implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29571,7 +29781,7 @@ Event sent when account is confirmed.
 
 Added in Saleor 3.15.
 """
-type AccountConfirmed implements Event {
+type AccountConfirmed implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29639,7 +29849,7 @@ Event sent when account is deleted.
 
 Added in Saleor 3.15.
 """
-type AccountDeleted implements Event {
+type AccountDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -30271,6 +30481,28 @@ type GiftCardMetadataUpdated implements Event @doc(category: "Gift cards") {
 }
 
 """
+Event sent when gift card export is completed.
+
+Added in Saleor 3.16.
+"""
+type GiftCardExportCompleted implements Event @doc(category: "Gift cards") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The export file for gift cards."""
+  export: ExportFile
+}
+
+"""
 Event sent when new menu is created.
 
 Added in Saleor 3.4.
@@ -30677,7 +30909,7 @@ Added in Saleor 3.14.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderBulkCreated implements Event {
+type OrderBulkCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -30870,6 +31102,28 @@ type ProductMetadataUpdated implements Event @doc(category: "Products") {
 
   """The category of the product."""
   category: Category
+}
+
+"""
+Event sent when product export is completed.
+
+Added in Saleor 3.16.
+"""
+type ProductExportCompleted implements Event @doc(category: "Products") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The export file for products."""
+  export: ExportFile
 }
 
 """
@@ -31338,6 +31592,38 @@ type FulfillmentCreated implements Event @doc(category: "Orders") {
 
   """The order the fulfillment belongs to."""
   order: Order
+
+  """
+  If true, the app should send a notification to the customer.
+  
+  Added in Saleor 3.16.
+  """
+  notifyCustomer: Boolean!
+}
+
+"""
+Event sent when the tracking number is updated.
+
+Added in Saleor 3.16.
+"""
+type FulfillmentTrackingNumberUpdated implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The fulfillment the event relates to."""
+  fulfillment: Fulfillment
+
+  """The order the fulfillment belongs to."""
+  order: Order
 }
 
 """
@@ -31388,6 +31674,13 @@ type FulfillmentApproved implements Event @doc(category: "Orders") {
 
   """The order the fulfillment belongs to."""
   order: Order
+
+  """
+  If true, send a notification to the customer.
+  
+  Added in Saleor 3.16.
+  """
+  notifyCustomer: Boolean!
 }
 
 """
@@ -32133,7 +32426,7 @@ Event sent when setting a new password for staff is requested.
 
 Added in Saleor 3.15.
 """
-type StaffSetPasswordRequested implements Event {
+type StaffSetPasswordRequested implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -32189,7 +32482,7 @@ Event sent when new translation is created.
 
 Added in Saleor 3.2.
 """
-type TranslationCreated implements Event {
+type TranslationCreated implements Event @doc(category: "Miscellaneous") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -32213,7 +32506,7 @@ Event sent when translation is updated.
 
 Added in Saleor 3.2.
 """
-type TranslationUpdated implements Event {
+type TranslationUpdated implements Event @doc(category: "Miscellaneous") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -32423,7 +32716,7 @@ Event sent when thumbnail is created.
 
 Added in Saleor 3.12.
 """
-type ThumbnailCreated implements Event {
+type ThumbnailCreated implements Event @doc(category: "Miscellaneous") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -32944,11 +33237,18 @@ type TransactionInitializeSession implements Event @doc(category: "Payments") {
   """Checkout or order"""
   sourceObject: OrderOrCheckout!
 
-  """Payment gateway data in JSON format, recieved from storefront."""
+  """Payment gateway data in JSON format, received from storefront."""
   data: JSON
 
   """Merchant reference assigned to this payment."""
   merchantReference: String!
+
+  """
+  The customer's IP address. If not provided as a parameter in the mutation, Saleor will try to determine the customer's IP address on its own.
+  
+  Added in Saleor 3.16.
+  """
+  customerIpAddress: String
 
   """Action to proceed for the transaction"""
   action: TransactionProcessAction!
@@ -32989,11 +33289,18 @@ type TransactionProcessSession implements Event @doc(category: "Payments") {
   """Checkout or order"""
   sourceObject: OrderOrCheckout!
 
-  """Payment gateway data in JSON format, recieved from storefront."""
+  """Payment gateway data in JSON format, received from storefront."""
   data: JSON
 
   """Merchant reference assigned to this payment."""
   merchantReference: String!
+
+  """
+  The customer's IP address. If not provided as a parameter in the mutation, Saleor will try to determine the customer's IP address on its own.
+  
+  Added in Saleor 3.16.
+  """
+  customerIpAddress: String
 
   """Action to proceed for the transaction"""
   action: TransactionProcessAction!
@@ -33047,6 +33354,40 @@ type ListStoredPaymentMethods implements Event @doc(category: "Payments") {
   """
   Channel in context which was used to fetch the list of payment methods.
   """
+  channel: Channel!
+}
+
+"""
+Event sent when user requests to delete a payment method.
+
+Added in Saleor 3.16.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type StoredPaymentMethodDeleteRequested implements Event @doc(category: "Payments") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The user for which the app should proceed with payment method delete request.
+  """
+  user: User!
+
+  """
+  The ID of the payment method that should be deleted by the payment gateway.
+  """
+  paymentMethodId: String!
+
+  """Channel related to the requested delete action."""
   channel: Channel!
 }
 

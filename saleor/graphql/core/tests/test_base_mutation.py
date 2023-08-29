@@ -362,7 +362,10 @@ def test_mutation_calls_plugin_perform_mutation_after_permission_checks(
         mutation_query, variables=variables, context_value=schema_context
     )
     assert len(result.errors) == 1, result.to_dict()
-    assert "You need one of the following permissions" in result.errors[0].message
+    assert (
+        "To access this path, you need one of the following permissions"
+        in result.errors[0].message
+    )
 
     # When permission is not missing, the execution of the plugin should happen
     staff_user.user_permissions.set([permission_manage_products])

@@ -35,4 +35,9 @@ class SubscriptionObjectType(BaseObjectType):
         ):
             options["doc_category"] = DOC_CATEGORY_MODEL_MAP[root_type]
 
+        if "doc_category" not in options and root_type is None:
+            raise NotImplementedError(
+                f"SubscriptionObjectType {cls.__name__} must have a root_type defined."
+            )
+
         super().__init_subclass_with_meta__(_meta=_meta, **options)
