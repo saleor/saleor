@@ -29,7 +29,7 @@ def create_promotion_rule(
     promotion_id,
     catalogue_predicate,
     reward_value_type="PERCENTAGE",
-    reward_value=5,
+    reward_value=5.00,
     promotion_rule_name="Test rule",
     channel_id=None,
 ):
