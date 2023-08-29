@@ -127,7 +127,9 @@ def test_query_promotions_pagination(
         },
         "where": {
             "endDate": {
-                "gte": timezone.now() + timedelta(days=15),
+                "range": {
+                    "gte": timezone.now() + timedelta(days=15),
+                }
             }
         },
     }
