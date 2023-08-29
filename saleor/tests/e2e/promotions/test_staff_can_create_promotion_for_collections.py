@@ -80,7 +80,7 @@ def prepare_product(
 
 
 @pytest.mark.e2e
-def test_create_promotion_for_collections_core_2100(
+def test_create_promotion_for_collection_core_2109(
     e2e_staff_api_client,
     permission_manage_products,
     permission_manage_channels,
@@ -116,11 +116,11 @@ def test_create_promotion_for_collections_core_2100(
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
         promotion_id,
+        predicate_input,
         discount_type,
         discount_value,
         promotion_rule_name,
         channel_id,
-        predicate_input,
     )
 
     collection_predicate = promotion_rule["cataloguePredicate"]["collectionPredicate"]
