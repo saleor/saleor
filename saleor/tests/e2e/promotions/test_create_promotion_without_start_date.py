@@ -66,7 +66,6 @@ def test_create_promotion_without_start_date(
 ):
     # Before
     channel_slug = "test-channel"
-
     permissions = [
         permission_manage_products,
         permission_manage_channels,

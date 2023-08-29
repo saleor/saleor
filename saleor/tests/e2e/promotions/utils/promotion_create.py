@@ -27,7 +27,6 @@ def create_promotion(staff_api_client, promotion_name, start_date=None):
         variables,
     )
     content = get_graphql_content(response)
-
     assert content["data"]["promotionCreate"]["errors"] == []
 
     data = content["data"]["promotionCreate"]["promotion"]
