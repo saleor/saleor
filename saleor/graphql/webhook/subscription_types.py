@@ -1677,6 +1677,10 @@ class TransactionAction(SubscriptionObjectType, AbstractType):
     amount = PositiveDecimal(
         description="Transaction request amount. Null when action type is VOID.",
     )
+    currency = graphene.String(
+        description="Currency code." + ADDED_IN_316,
+        required=True,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
@@ -1686,6 +1690,10 @@ class TransactionAction(SubscriptionObjectType, AbstractType):
         if root.action_value:
             return quantize_price(root.action_value, root.transaction.currency)
         return None
+
+    @staticmethod
+    def resolve_currency(root: TransactionActionData, _info: ResolveInfo):
+        return root.transaction.currency
 
 
 class TransactionActionBase(AbstractType):

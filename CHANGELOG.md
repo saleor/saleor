@@ -38,6 +38,7 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
+- Add missing currency in action for transaction requests - 13786 by @AjmalPonneth
 - Fix giftcard code description - #13728 by @rafiwts
 - Change error message when denying a permission - #13334 by @rafiwts
 - Add filter by slugs to attribute choices - #13761 by @rafiwts
