@@ -983,6 +983,12 @@ class BasePlugin:
     # variant metadata is updated.
     product_variant_metadata_updated: Callable[["ProductVariant", Any], Any]
 
+    # Trigger when a product export is completed.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product
+    # export is completed.
+    product_export_completed: Callable[["ExportFile", None], None]
+
     refund_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     # Trigger when sale is created.

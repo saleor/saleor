@@ -620,7 +620,7 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED, gift_card
         )
 
-    def _trigger_export_gift_cards_event(self, event_type, export: "ExportFile"):
+    def _trigger_export_event(self, event_type: str, export: "ExportFile"):
         if webhooks := get_webhooks_for_event(event_type):
             payload = self._serialize_payload(
                 {
@@ -643,7 +643,7 @@ class WebhookPlugin(BasePlugin):
     ) -> None:
         if not self.active:
             return previous_value
-        self._trigger_export_gift_cards_event(
+        self._trigger_export_event(
             WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED,
             export,
         )
@@ -1138,8 +1138,19 @@ class WebhookPlugin(BasePlugin):
     def product_metadata_updated(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
+
         self._trigger_metadata_updated_event(
             WebhookEventAsyncType.PRODUCT_METADATA_UPDATED, product
+        )
+
+    def product_export_completed(
+        self, export: "ExportFile", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_export_event(
+            WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED,
+            export,
         )
 
     def product_deleted(

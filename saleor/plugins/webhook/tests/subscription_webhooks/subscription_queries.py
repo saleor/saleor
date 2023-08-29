@@ -920,6 +920,21 @@ PRODUCT_METADATA_UPDATED = """
     }
 """
 
+PRODUCT_EXPORT_COMPLETED = (
+    fragments.PRODUCT_EXPORT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on ProductExportCompleted{
+          export{
+            ...ProductExportDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 PRODUCT_MEDIA_CREATED = """
     subscription{
       event{

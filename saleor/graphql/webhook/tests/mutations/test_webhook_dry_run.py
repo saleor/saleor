@@ -241,6 +241,7 @@ def async_subscription_webhooks_with_root_objects(
     subscription_product_updated_webhook,
     subscription_product_created_webhook,
     subscription_product_deleted_webhook,
+    subscription_product_export_completed_webhook,
     subscription_product_media_updated_webhook,
     subscription_product_media_created_webhook,
     subscription_product_media_deleted_webhook,
@@ -426,6 +427,10 @@ def async_subscription_webhooks_with_root_objects(
         events.PRODUCT_CREATED: [subscription_product_created_webhook, product],
         events.PRODUCT_UPDATED: [subscription_product_updated_webhook, product],
         events.PRODUCT_DELETED: [subscription_product_deleted_webhook, product],
+        events.PRODUCT_EXPORT_COMPLETED: [
+            subscription_product_export_completed_webhook,
+            user_export_file,
+        ],
         events.PRODUCT_MEDIA_CREATED: [
             subscription_product_media_created_webhook,
             product_media_image,

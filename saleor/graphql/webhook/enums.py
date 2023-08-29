@@ -187,6 +187,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED: (
         "A product variant stock is updated"
     ),
+    WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED: (
+        "A product export is completed." + ADDED_IN_316
+    ),
     WebhookEventAsyncType.SHIPPING_PRICE_CREATED: "A new shipping price is created.",
     WebhookEventAsyncType.SHIPPING_PRICE_UPDATED: "A shipping price is updated.",
     WebhookEventAsyncType.SHIPPING_PRICE_DELETED: "A shipping price is deleted.",

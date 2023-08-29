@@ -57,6 +57,9 @@ def export_products(
     temporary_file.close()
 
     send_export_download_link_notification(export_file, "products")
+    manager = get_plugins_manager()
+
+    manager.product_export_completed(export_file)
 
 
 def export_gift_cards(

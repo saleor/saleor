@@ -35,6 +35,7 @@ from ...utils.export import (
     "file_type",
     [FileTypes.CSV, FileTypes.XLSX],
 )
+@patch("saleor.plugins.manager.PluginsManager.product_export_completed")
 @patch("saleor.csv.utils.export.create_file_with_headers")
 @patch("saleor.csv.utils.export.export_products_in_batches")
 @patch("saleor.csv.utils.export.send_export_download_link_notification")
@@ -44,6 +45,7 @@ def test_export_products(
     send_email_mock,
     export_products_in_batches_mock,
     create_file_with_headers_mock,
+    mocked_product_export_completed,
     product_list,
     user_export_file,
     file_type,
@@ -87,6 +89,7 @@ def test_export_products(
     )
     send_email_mock.assert_called_once_with(user_export_file, "products")
     save_file_mock.assert_called_once_with(user_export_file, mock_file, ANY)
+    mocked_product_export_completed.assert_called_once_with(user_export_file)
 
 
 @patch("saleor.csv.utils.export.create_file_with_headers")
