@@ -392,6 +392,9 @@ type Query {
 
     """Slug of the category"""
     slug: String
+
+    """The date and time when the category was last updated."""
+    updatedAt: DateTime
   ): Category @doc(category: "Products")
 
   """
@@ -12796,6 +12799,9 @@ input CategoryFilterInput @doc(category: "Products") {
   metadata: [MetadataFilter!]
   ids: [ID!]
   slugs: [String!]
+
+  """Filter by when was the most recent update."""
+  updatedAt: DateTimeRangeInput
 }
 
 input CategoryWhereInput @doc(category: "Products") {

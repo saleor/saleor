@@ -62,6 +62,7 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     description_plaintext = TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
     )

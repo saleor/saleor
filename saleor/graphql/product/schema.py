@@ -181,6 +181,10 @@ class ProductQueries(graphene.ObjectType):
         Category,
         id=graphene.Argument(graphene.ID, description="ID of the category."),
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
+        updatedAt=graphene.Argument(
+            graphene.DateTime,
+            description="The date and time when the category was last updated.",
+        ),
         description="Look up a category by ID or slug.",
         doc_category=DOC_CATEGORY_PRODUCTS,
     )

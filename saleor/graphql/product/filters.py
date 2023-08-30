@@ -1258,6 +1258,11 @@ class CategoryFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="category_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
     slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
+    updated_at = ObjectTypeFilter(
+        input_class=DateTimeRangeInput,
+        method=filter_updated_at_range,
+        help_text="Filter by when was the most recent update.",
+    )
 
     class Meta:
         model = Category
