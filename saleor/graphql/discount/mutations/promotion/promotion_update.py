@@ -10,12 +10,14 @@ from .....discount import events, models
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
 from .....product.tasks import update_products_discounted_prices_of_promotion_task
+from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.types import Error
+from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PromotionUpdateErrorCode
@@ -51,6 +53,20 @@ class PromotionUpdate(ModelMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = PromotionUpdateError
         doc_category = DOC_CATEGORY_DISCOUNTS
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PROMOTION_UPDATED,
+                description="A promotion was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PROMOTION_STARTED,
+                description="Optionally called if promotion was started.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PROMOTION_ENDED,
+                description="Optionally called if promotion was ended.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):

@@ -39,6 +39,7 @@ from .payloads import (
     generate_page_type_payload,
     generate_permission_group_payload,
     generate_promotion_payload,
+    generate_promotion_rule_payload,
     generate_sale_payload,
     generate_shipping_method_payload,
     generate_shop_payload,
@@ -1731,6 +1732,63 @@ def test_promotion_ended(promotion, subscription_promotion_ended_webhook):
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, promotion, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_promotion_rule_created(
+    promotion_rule, subscription_promotion_rule_created_webhook
+):
+    # given
+    webhooks = [subscription_promotion_rule_created_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_RULE_CREATED
+    expected_payload = generate_promotion_rule_payload(promotion_rule)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, promotion_rule, webhooks
+    )
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_promotion_rule_updated(
+    promotion_rule, subscription_promotion_rule_updated_webhook
+):
+    # given
+    webhooks = [subscription_promotion_rule_updated_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_RULE_UPDATED
+    expected_payload = generate_promotion_rule_payload(promotion_rule)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, promotion_rule, webhooks
+    )
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_promotion_rule_deleted(
+    promotion_rule, subscription_promotion_rule_deleted_webhook
+):
+    # given
+    webhooks = [subscription_promotion_rule_deleted_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_RULE_DELETED
+    expected_payload = generate_promotion_rule_payload(promotion_rule)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, promotion_rule, webhooks
+    )
 
     # then
     assert deliveries[0].payload.payload == json.dumps(expected_payload)

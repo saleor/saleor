@@ -648,6 +648,27 @@ def subscription_promotion_ended_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_promotion_rule_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PROMOTION_RULE_CREATED, WebhookEventAsyncType.PROMOTION_RULE_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_promotion_rule_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PROMOTION_RULE_UPDATED, WebhookEventAsyncType.PROMOTION_RULE_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_promotion_rule_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PROMOTION_RULE_DELETED, WebhookEventAsyncType.PROMOTION_RULE_DELETED
+    )
+
+
+@pytest.fixture
 def subscription_invoice_requested_webhook(subscription_webhook):
     return subscription_webhook(
         queries.INVOICE_REQUESTED, WebhookEventAsyncType.INVOICE_REQUESTED
