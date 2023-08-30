@@ -5,12 +5,15 @@ from django.db import transaction
 from .....discount import RewardValueType, events, models
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.types import Error, NonNullList
+from ....core.utils import WebhookEventInfo
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils.validators import check_for_duplicates
 from ...enums import PromotionRuleUpdateErrorCode
 from ...inputs import PromotionRuleBaseInput
@@ -59,6 +62,12 @@ class PromotionRuleUpdate(ModelMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = PromotionRuleUpdateError
         doc_category = DOC_CATEGORY_DISCOUNTS
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PROMOTION_RULE_UPDATED,
+                description="A promotion rule was updated.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
@@ -72,8 +81,7 @@ class PromotionRuleUpdate(ModelMutation):
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
-        clear_promotion_old_sale_id(instance.promotion, save=True)
-        cls.post_save_action(info, instance, previous_product_ids)
+        cls.post_save_actions(info, instance, previous_product_ids)
 
         return cls.success_response(instance)
 
@@ -184,12 +192,15 @@ class PromotionRuleUpdate(ModelMutation):
                 instance.channels.add(*add_channels)
 
     @classmethod
-    def post_save_action(cls, info, instance, previous_product_ids):
+    def post_save_actions(cls, info: ResolveInfo, instance, previous_product_ids):
         products = get_products_for_rule(instance)
         product_ids = set(products.values_list("id", flat=True)) | previous_product_ids
         if product_ids:
             update_products_discounted_prices_for_promotion_task.delay(
                 list(product_ids)
             )
+        clear_promotion_old_sale_id(instance.promotion, save=True)
         app = get_app_promise(info.context).get()
         events.rule_updated_event(info.context.user, app, [instance])
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.promotion_rule_updated, instance)

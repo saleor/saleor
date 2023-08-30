@@ -34,11 +34,13 @@ PROMOTION_RULE_DELETE_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.promotion_rule_deleted")
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
 def test_promotion_rule_delete_by_staff_user(
     update_products_discounted_prices_for_promotion_task_mock,
+    promotion_rule_deleted_mock,
     staff_api_client,
     permission_group_manage_discounts,
     promotion,
@@ -62,6 +64,7 @@ def test_promotion_rule_delete_by_staff_user(
     update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
         [product.id]
     )
+    promotion_rule_deleted_mock.assert_called_once_with(rule)
 
 
 @patch(
