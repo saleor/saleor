@@ -17,6 +17,14 @@ class AssignedProductAttributeValue(SortableModel):
         related_name="productvalueassignment",
     )
 
+    product = models.ForeignKey(
+        Product,
+        related_name="attributevalues",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         unique_together = (("value", "assignment"),)
         ordering = ("sort_order", "pk")
