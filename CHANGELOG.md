@@ -40,6 +40,7 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
   - Dry runs enabled: `AccountConfirmed`, `AccountConfirmationRequested`, `AccountChangeEmailRequested`
   - `AccountEmailChanged`, `AccountSetPasswordRequested`, `AccountDeleteRequested`, `GiftCardSent`,
   - `FulfillmentCreated`, `FulfillmentApproved`, `StaffSetPasswordRequested`
+- Add missing `FULFILLMENT_CREATED` event call to `automatically_fulfill_digital_lines_with_fulfillment_created` action. - #13823, by @Air-t
 
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
