@@ -19,7 +19,7 @@ def data_migration(apps, _schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("page", "0028_add_default_page_type"),
-        ("attribute", "0029_alter_attribute_unit"),
+        ("attribute", "0030_assignedproductattributevalue_product"),
     ]
 
     operations = [
