@@ -7,12 +7,12 @@ from ....attribute import AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.utils import generate_unique_slug
-from ....permission.enums import ProductPermissions
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
+from ..utils import check_permissions_for_attribute
 from .attribute_create import AttributeValueCreateInput
 from .mixins import AttributeMixin
 from .validators import validate_value_is_unique
@@ -34,10 +34,22 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         )
 
     class Meta:
+        auto_permission_message = False
         model = models.AttributeValue
         object_type = AttributeValue
-        description = "Creates a value for an attribute."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        description = (
+            "Creates a value for an attribute.\n\n"
+            "Depending on the attribute type, "
+            "it requires different permissions to create:\n"
+            "-`PRODUCT_TYPE`: Requires one of the following permissions: "
+            "`MANAGE_PRODUCTS` or `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.\n"
+            "-`PAGE_TYPE`: `MANAGE_PRODUCTS` or `MANAGE_PAGES` or "
+            "`MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`.\n"
+            "\n\nDEPRECATED in Saleor 4.0, for attribute type:\n"
+            " - `PAGE_TYPE`, `MANAGE_PAGES` permission will be required,\n"
+            " - `PRODUCT_TYPE`, `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permission will "
+            "be required.\n"
+        )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
 
@@ -86,6 +98,7 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
     ):
         attribute = cls.get_node_or_error(info, attribute_id, only_type=Attribute)
         instance = models.AttributeValue(attribute=attribute)
+        check_permissions_for_attribute(info.context, attribute, "create")
         cleaned_input = cls.clean_input(info, instance, input)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)

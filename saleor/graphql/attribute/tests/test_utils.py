@@ -1,15 +1,25 @@
+from unittest.mock import Mock, patch
+
 import graphene
 import pytest
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
+from saleor.permission.enums import (
+    PagePermissions,
+    ProductPermissions,
+    ProductTypePermissions,
+)
+
 from ....attribute import AttributeInputType
 from ....page.error_codes import PageErrorCode
 from ....product.error_codes import ProductErrorCode
+from ..enums import AttributeTypeEnum
 from ..utils import (
     AttributeAssignmentMixin,
     AttrValuesForSelectableFieldInput,
     AttrValuesInput,
+    check_permissions_for_attribute,
     prepare_attribute_values,
     validate_attributes_input,
 )
@@ -2159,3 +2169,53 @@ def test_prepare_attribute_values_that_gives_the_same_slug(color_attribute):
     assert result[0] == existing_value
     assert result[1].name == new_value
     assert result[2].name == new_value_2
+
+
+def test_check_permissions_for_attribute_unknown_type():
+    # given
+    mock_attribute = Mock(type="test type")
+
+    # then
+    with pytest.raises(KeyError):
+        check_permissions_for_attribute(Mock(), mock_attribute, "update")
+
+
+@pytest.mark.parametrize(
+    "attribute_type, expected_permissions",
+    (
+        (
+            AttributeTypeEnum.PRODUCT_TYPE.value,
+            (
+                ProductPermissions.MANAGE_PRODUCTS,
+                ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+            ),
+        ),
+        (
+            AttributeTypeEnum.PAGE_TYPE.value,
+            (
+                PagePermissions.MANAGE_PAGES,
+                ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+            ),
+        ),
+    ),
+)
+@patch("saleor.graphql.attribute.utils.has_one_of_permissions")
+@patch("saleor.graphql.attribute.utils.get_user_or_app_from_context")
+def test_check_permissions_for_attribute_product_type_fallback_to_default(
+    mock_has_one_of_permissions,
+    mock_get_user_or_app_from_context,
+    attribute_type,
+    expected_permissions,
+):
+    # given
+    mock_attribute = Mock(type=attribute_type)
+    mock_get_user_or_app_from_context.return_value = "test context"
+
+    # when
+    check_permissions_for_attribute("test context", mock_attribute, "unknown action")
+
+    # then
+    mock_get_user_or_app_from_context.asset_called_once_with("test context")
+    mock_has_one_of_permissions.asset_called_once_with(
+        "test context", expected_permissions
+    )
