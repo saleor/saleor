@@ -5,10 +5,12 @@ from .....discount import models
 from .....graphql.core.mutations import ModelDeleteMutation
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import Error
+from ....core.utils import WebhookEventInfo
 from ....discount.utils import get_products_for_promotion
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PromotionDeleteErrorCode
@@ -32,6 +34,12 @@ class PromotionDelete(ModelDeleteMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = PromotionDeleteError
         doc_category = DOC_CATEGORY_DISCOUNTS
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PROMOTION_DELETED,
+                description="A promotion was deleted.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
