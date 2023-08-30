@@ -15,19 +15,7 @@ from .utils import raw_checkout_create
 
 def prepare_unavailable_product(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
 ):
-    permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_product_types_and_attributes,
-        permission_manage_shipping,
-    ]
-
-    assign_permissions(e2e_staff_api_client, permissions)
     result_warehouse_id, result_channel_id, result_channel_slug, _ = prepare_shop(
         e2e_staff_api_client
     )
@@ -89,13 +77,18 @@ def test_should_not_be_able_to_buy_unavailable_product_core_0108(
     permission_manage_shipping,
 ):
     # Before
-    variant_id, channel_slug = prepare_unavailable_product(
-        e2e_staff_api_client,
+    permissions = [
         permission_manage_products,
         permission_manage_channels,
         permission_manage_product_types_and_attributes,
         permission_manage_shipping,
+    ]
+
+    assign_permissions(e2e_staff_api_client, permissions)
+    variant_id, channel_slug = prepare_unavailable_product(
+        e2e_staff_api_client,
     )
+
     # Step 1 - Create checkout with non available for purchase product
     lines = [
         {"variantId": variant_id, "quantity": 1},

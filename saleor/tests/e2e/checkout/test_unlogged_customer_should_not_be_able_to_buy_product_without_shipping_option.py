@@ -10,19 +10,7 @@ from .utils import checkout_create, raw_checkout_dummy_payment_create
 
 def prepare_shop_with_no_shipping_method(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
 ):
-    permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_product_types_and_attributes,
-        permission_manage_shipping,
-    ]
-
-    assign_permissions(e2e_staff_api_client, permissions)
     warehouse_data = create_warehouse(e2e_staff_api_client)
     warehouse_id = warehouse_data["id"]
     warehouse_ids = [warehouse_id]
@@ -58,16 +46,20 @@ def test_unlogged_customer_unable_to_buy_product_without_shipping_option_CORE_01
     permission_manage_shipping,
 ):
     # Before
+    permissions = [
+        permission_manage_products,
+        permission_manage_channels,
+        permission_manage_product_types_and_attributes,
+        permission_manage_shipping,
+    ]
+
+    assign_permissions(e2e_staff_api_client, permissions)
     (
         channel_id,
         channel_slug,
         warehouse_id,
     ) = prepare_shop_with_no_shipping_method(
         e2e_staff_api_client,
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_product_types_and_attributes,
-        permission_manage_shipping,
     )
     variant_price = 10
 

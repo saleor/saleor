@@ -14,17 +14,7 @@ from .utils import (
 
 def prepare_shop_click_and_collect(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_product_types_and_attributes,
 ):
-    permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_product_types_and_attributes,
-    ]
-
-    assign_permissions(e2e_staff_api_client, permissions)
     warehouse_data = create_warehouse(e2e_staff_api_client)
     warehouse_id = warehouse_data["id"]
     update_warehouse(
@@ -49,11 +39,15 @@ def test_unlogged_customer_buy_by_click_and_collect_CORE_0105(
     permission_manage_product_types_and_attributes,
 ):
     # Before
-    channel_id, channel_slug, warehouse_id = prepare_shop_click_and_collect(
-        e2e_staff_api_client,
+    permissions = [
         permission_manage_products,
         permission_manage_channels,
         permission_manage_product_types_and_attributes,
+    ]
+
+    assign_permissions(e2e_staff_api_client, permissions)
+    channel_id, channel_slug, warehouse_id = prepare_shop_click_and_collect(
+        e2e_staff_api_client,
     )
 
     variant_price = 10
