@@ -45,6 +45,31 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
         isPrivate
         clickAndCollectOption
       }
+      lines {
+        id
+        totalPrice {
+          gross {
+            amount
+          }
+          net {
+            amount
+          }
+          tax {
+            amount
+          }
+        }
+        undiscountedTotalPrice {
+          amount
+        }
+        unitPrice {
+          gross {
+            amount
+          }
+        }
+        undiscountedUnitPrice {
+          amount
+        }
+      }
     }
   }
 }
