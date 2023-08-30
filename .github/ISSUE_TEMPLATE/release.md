@@ -30,3 +30,4 @@ This issue tracks the release progress of Saleor <X.Y.Z>.
 - [ ] Inform about approved release PR to the sandbox  - @michalina-graczyk
 - [ ] Merge release PR to the sandbox - @cmiacz
 - [ ] Inform about the stable release (sandbox) - @cmiacz
+- [ ] Bump saleor-platform
