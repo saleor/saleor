@@ -80,6 +80,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extended `AttributeValueTranslation.name` to 250 characters - #13776 by @aniav
 - Add a new `page` field on `AssignedPageAttributeValue`. First stage (migration) of a simplification of Attribute - Page relation from #13403. by michal-macioszczyk
 - Update workflow actions with poetry dependencies - #13736 by @rafiwts
+- Add a new `updatedAt` field and a filter for product categories. - #13825 by @rafiwts
 
 # 3.15.0
 
