@@ -5665,7 +5665,7 @@ def page(db, page_type):
 
 
 @pytest.fixture
-def two_pages(page):
+def second_page(page):
     data = {
         "slug": "test-url-2",
         "title": "Test page 2",
@@ -5681,6 +5681,24 @@ def two_pages(page):
 
     associate_attribute_values_to_instance(page2, page_attr, page_attr_value)
 
+    attribute = Attribute.objects.create(
+        slug="test-attribute",
+        name="Test Attribute",
+        type="some_attribute_type",
+        input_type=AttributeInputType.DROPDOWN,
+    )
+    attribute.page_types.add(page.page_type)
+
+    attribute_values = []
+    for i in range(10):
+        attribute_values.append(
+            AttributeValue.objects.create(
+                attribute=attribute,
+                name=f"Test-name-attribute-value-{i}",
+                slug=f"test-slug-attribute-value-{i}",
+            )
+        )
+    associate_attribute_values_to_instance(page2, attribute, *attribute_values)
     return page, page2
 
 
