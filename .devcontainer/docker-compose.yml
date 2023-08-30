@@ -32,23 +32,10 @@ services:
       - POSTGRES_PASSWORD=saleor
 
   redis:
-    image: library/redis:5.0-alpine
+    image: library/redis:7.0-alpine
     restart: unless-stopped
     volumes:
       - saleor-redis:/data
-
-  worker:
-    image: saleor
-    command: celery -A saleor --app=saleor.celeryconf:app worker --loglevel=info -B
-    restart: unless-stopped
-    env_file:
-      - common.env
-      - backend.env
-    depends_on:
-      - db
-      - redis
-    volumes:
-      - ..:/app
 
   mailpit:
     image: axllent/mailpit
