@@ -9,6 +9,7 @@ from ...payment import TokenizedPaymentFlow
 from ...payment.interface import (
     PaymentGateway,
     PaymentGatewayInitializeTokenizationResponseData,
+    PaymentGatewayInitializeTokenizationResult,
     PaymentMethodCreditCardInfo,
     PaymentMethodData,
     StoredPaymentMethodRequestDeleteResponseData,
@@ -179,9 +180,20 @@ def invalidate_cache_for_stored_payment_methods(
 def get_response_for_payment_gateway_initialize_tokenization(
     response_data: Optional[dict],
 ) -> "PaymentGatewayInitializeTokenizationResponseData":
-    response_data = response_data or {"message": "Failed to delivery request."}
+    data = None
+    if response_data is None:
+        result = PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER
+        error = "Failed to delivery request."
+    else:
+        try:
+            response_result = response_data.get("result") or ""
+            result = PaymentGatewayInitializeTokenizationResult[response_result]
+            error = response_data.get("error", None)
+            data = response_data.get("data", None)
+        except KeyError:
+            result = PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE
+            error = "Missing or incorrect `result` in response."
+
     return PaymentGatewayInitializeTokenizationResponseData(
-        success=response_data.get("success", False),
-        message=response_data.get("message", None),
-        data=response_data.get("data", None),
+        result=result, error=error, data=data
     )

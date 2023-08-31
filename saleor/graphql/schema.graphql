@@ -23264,15 +23264,26 @@ Triggers the following webhook events:
 - PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION (sync): The customer requested to initialize payment gateway for tokenization.
 """
 type PaymentGatewayInitializeTokenization @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION]) {
-  """True, if the request was processed successfully."""
-  success: Boolean
-
-  """A message returned by payment app."""
-  message: String
+  """A status of the payment gateway initialization."""
+  result: PaymentGatewayInitializeTokenizationResult!
 
   """A data returned by payment app."""
   data: JSON
   errors: [PaymentGatewayInitializeTokenizationError!]!
+}
+
+"""
+Result of initialize payment gateway for tokenization of payment method.
+
+    The result of initialize payment gateway for tokenization of payment method.
+    SUCCESSFULLY_INITIALIZED - The payment gateway was successfully initialized.
+    FAILED_TO_INITIALIZE - The payment gateway was not initialized.
+    FAILED_TO_DELIVER - The request to initialize payment gateway was not delivered.
+"""
+enum PaymentGatewayInitializeTokenizationResult @doc(category: "Payments") {
+  SUCCESSFULLY_INITIALIZED
+  FAILED_TO_INITIALIZE
+  FAILED_TO_DELIVER
 }
 
 type PaymentGatewayInitializeTokenizationError @doc(category: "Payments") {
@@ -23294,6 +23305,7 @@ enum PaymentGatewayInitializeTokenizationErrorCode @doc(category: "Payments") {
   INVALID
   NOT_FOUND
   CHANNEL_INACTIVE
+  GATEWAY_ERROR
 }
 
 """

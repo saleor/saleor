@@ -13,14 +13,12 @@ from ....core.scalars import JSON
 from ....core.types.common import PaymentGatewayInitializeTokenizationError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ...enums import PaymentGatewayInitializeTokenizationResultEnum
 
 
 class PaymentGatewayInitializeTokenization(BaseMutation):
-    success = graphene.Boolean(
-        description="True, if the request was processed successfully.",
-    )
-    message = graphene.String(
-        description="A message returned by payment app.",
+    result = PaymentGatewayInitializeTokenizationResultEnum(
+        description="A status of the payment gateway initialization.", required=True
     )
     data = JSON(
         description="A data returned by payment app.",
@@ -63,7 +61,7 @@ class PaymentGatewayInitializeTokenization(BaseMutation):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
-    def perform_mutation(cls, root, info, id, channel, data=None):
+    def _perform_mutation(cls, root, info, id, channel, data=None):
         user = info.context.user
         channel = validate_channel(
             channel, PaymentGatewayInitializeTokenizationErrorCode
@@ -88,6 +86,28 @@ class PaymentGatewayInitializeTokenization(BaseMutation):
                 app_identifier=id, user=user, channel=channel, data=data
             )
         )
-        return cls(
-            success=response.success, message=response.message, data=response.data
-        )
+        errors = []
+        result_enum = PaymentGatewayInitializeTokenizationResultEnum
+        if response.result != result_enum.SUCCESSFULLY_INITIALIZED.value:
+            error_code = (
+                PaymentGatewayInitializeTokenizationErrorCode.GATEWAY_ERROR.value
+            )
+            errors.append(
+                {
+                    "message": response.error,
+                    "code": error_code,
+                }
+            )
+
+        return cls(result=response.result, data=response.data, errors=errors)
+
+    @classmethod
+    def perform_mutation(cls, root, info, id, channel, data=None):
+        try:
+            return cls._perform_mutation(root, info, id, channel, data)
+        except ValidationError as error:
+            error_response = cls.handle_errors(error)
+            error_response.result = (
+                PaymentGatewayInitializeTokenizationResultEnum.FAILED_TO_DELIVER.value
+            )
+            return error_response

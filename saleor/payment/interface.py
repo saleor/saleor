@@ -166,12 +166,26 @@ class PaymentGatewayInitializeTokenizationRequestData:
     data: Optional[dict] = None
 
 
+class PaymentGatewayInitializeTokenizationResult(str, Enum):
+    """Result of initialize payment gateway for tokenization of payment method.
+
+    The result of initialize payment gateway for tokenization of payment method.
+    SUCCESSFULLY_INITIALIZED - The payment gateway was successfully initialized.
+    FAILED_TO_INITIALIZE - The payment gateway was not initialized.
+    FAILED_TO_DELIVER - The request to initialize payment gateway was not delivered.
+    """
+
+    SUCCESSFULLY_INITIALIZED = "successfully_initialized"
+    FAILED_TO_INITIALIZE = "failed_to_initialize"
+    FAILED_TO_DELIVER = "failed_to_deliver"
+
+
 @dataclass
 class PaymentGatewayInitializeTokenizationResponseData:
     """Dataclass for storing the response information from payment app."""
 
-    success: bool
-    message: Optional[str] = None
+    result: PaymentGatewayInitializeTokenizationResult
+    error: Optional[str] = None
     data: Optional[dict] = None
 
 
