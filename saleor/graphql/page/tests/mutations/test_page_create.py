@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from functools import partial
 from unittest import mock
 
 import graphene
@@ -7,12 +8,12 @@ from django.conf import settings
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
+from mock import ANY
 
 from .....page.error_codes import PageErrorCode
 from .....page.models import Page, PageType
 from .....tests.utils import dummy_editorjs
 from .....webhook.event_types import WebhookEventAsyncType
-from .....webhook.payloads import generate_page_payload
 from ....tests.utils import get_graphql_content
 
 CREATE_PAGE_MUTATION = """
@@ -214,14 +215,17 @@ def test_page_create_trigger_page_webhook(
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["pageType"]["id"] == page_type_id
     page = Page.objects.first()
-    expected_data = generate_page_payload(page, staff_api_client.user)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data,
+        None,
         WebhookEventAsyncType.PAGE_CREATED,
         [any_webhook],
         page,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 

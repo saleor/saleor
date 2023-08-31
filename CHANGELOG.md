@@ -2,6 +2,203 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+# 3.16.0 [Unreleased]
+
+### Breaking changes
+- **Feature preview breaking change**:
+  - Deprecate `OrderSettingsInput.defaultTransactionFlowStrategy`. It will be removed
+in 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
+  - Deprecate `OrderSettings.defaultTransactionFlowStrategy`. It will be removed
+in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
+  - Change in the CSV export. It will now use empty string for empty attribute values instead of a single whitespace value.
+
+### GraphQL API
+- Add `customerIpAddress` to `transactionInitialize` and `transactionProcess` mutations - #13718 by @korycins
+- Add `PaymentSettings` to `Channel` - #13677 by @korycins
+- Adjust where filtering by empty values - explicit treat empty values - #13754 by @IKarbowiak
+- Add `storedPaymentMethodRequestDelete` mutation - #13660 by @korycins
+- Add `externalReference` to `updateWarehouse`. It will allow update warehouse by
+  external reference. - #13342 by @Smit-Parmar
+
+
+### Saleor Apps
+- Add `customerIpAddress` to `TRANSACTION_INITIALIZE_SESSION` and `TRANSACTION_PROCESS_SESSION` webhooks  #13718 by @korycins
+- Add `STORED_PAYMENT_METHOD_DELETE_REQUESTED` webhook event - #13660 by @korycins
+- Add `NOTIFY_CUSTOMER` flag to `FulfillmentCreated` type - #13620, by @Air-t
+  - Inform apps if customer should be notified when fulfillment is created.
+- Add `NOTIFY_CUSTOMER` flag to `FulfillmentApproved` type - #13637, by @Air-t
+  - Inform apps if customer should be notified when fulfillment is approved.
+- Add `GIFT_CARD_EXPORT_COMPLETED` webhook - #13765, by @Air-t
+  - Event sent when CSV export for gift cards is completed.
+- Add `PRODUCT_EXPORT_COMPLETED` webhook - #13787, by @Air-t
+  - Event sent when CSV export for products is completed.
+- Add `FULFILLMENT_TRACKING_NUMBER_UPDATED` webhook - #13708, by @Air-t
+  - Called after `fulfillmentUpdateTracking` or `orderFulfill` mutation if tracking number is updated.
+- Enable webhook dry runs - #13816, by @Air-t
+  - Dry runs enabled: `AccountConfirmed`, `AccountConfirmationRequested`, `AccountChangeEmailRequested`
+  - `AccountEmailChanged`, `AccountSetPasswordRequested`, `AccountDeleteRequested`, `GiftCardSent`,
+  - `FulfillmentCreated`, `FulfillmentApproved`, `StaffSetPasswordRequested`
+
+### Other changes
+- Fix error in variant available stock calculation - 13593 by @awaisdar001
+- Add missing currency in action for transaction requests - 13786 by @AjmalPonneth
+- Fix giftcard code description - #13728 by @rafiwts
+- Change error message when denying a permission - #13334 by @rafiwts
+- Add filter by slugs to attribute choices - #13761 by @rafiwts
+- Add a new `product` field on `AssignedProductAttributeValue`. First part of a simplification of Attribute - Product relation from #12881. by @aniav
+- Lazy legacy webhooks payload generation - #13758 by @maarcingebala
+
+# 3.15.0 [Unreleased]
+
+### Breaking changes
+
+- Remove input and fields related to transaction API and deprecated in 3.13 - #13020 by @korycins
+
+  - `WebhookEventTypeEnum.TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+  - `WebhookEventTypeAsyncEnum.TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+  - `WebhookSampleEventTypeEnum.TRANSACTION_ACTION_REQUEST`
+  - `TransactionItem`:
+    - `voidedAmount` - Use `canceledAmount` instead.
+    - `status` - The amounts can be used to define the current status of transactions.
+    - `type` - Use `name` or `message`.
+    - `reference` - Use `pspReference` instead.
+  - `TransactionActionEnum.VOID` - Use `CANCEL` instead.
+  - `OrderEvent.status` - Use `TransactionEvent` to track the status of `TransactionItem`.
+  - `OrderEventsEnum`:
+    - `TRANSACTION_CAPTURE_REQUESTED` - Use `TRANSACTION_CHARGE_REQUESTED` instead.
+    - `TRANSACTION_VOID_REQUESTED` - Use `TRANSACTION_CANCEL_REQUESTED` instead.
+  - `TransactionStatus`
+  - `TransactionEvent`:
+    - `status` - Use `type` instead.
+    - `reference` - Use `pspReference` instead.
+    - `name` - Use `message` instead.
+  - `TransactionCreateInput`:
+    - `status` - The amounts can be used to define the current status of transactions.
+    - `type` - Use `name` or `message`.
+    - `reference` - Use `pspReference` instead.
+    - `voidedAmount` - Use `canceledAmount` instead.
+  - `TransactionEventInput`:
+    - `status` - Status will be calculated by Saleor.
+    - `reference` - Use `pspReference` instead.
+    - `name` - Use `message` instead.
+  - `TransactionUpdateInput`:
+    - `status` - The amounts can be used to define the current status of transactions.
+    - `type` - Use `name` or `message`.
+    - `reference` - Use `pspReference` instead.
+    - `voidedAmount` - Use `canceledAmount` instead.
+  - `TransactionActionRequest` - Use `TransactionChargeRequested`, `TransactionRefundRequested`, `TransactionCancelationRequested` instead.
+
+- Remove `OrderBulkCreateInput.trackingClientId` field - #13146 by @SzymJ
+- Drop backend integration with Open Exchange Rates API - #13175 by @maarcingebala
+  - Note: this changes doesn't affect Saleor Cloud users, as the integration was never enabled there.
+  - After this change, the following fields in API alway return `null` values:
+    - `ProductPricingInfo.discountLocalCurrency`
+    - `ProductPricingInfo.priceRangeLocalCurrency`
+    - `VariantPricingInfo.discountLocalCurrency`
+    - `VariantPricingInfo.priceLocalCurrency`
+- Change order of resolving country code in checkout - #13159 by @jakubkuc
+  - Until now, checkout mutations were ignoring provided shipping address when shipping was not required. After this change, the shipping address is always set when supplied in the input. It might be breaking, as the shipping address affects the country code used for tax calculation.
+  - The order of resolving the checkout country code is always as follows:
+    1. Shipping address
+    2. Billing address
+    3. Channel's default country
+
+### GraphQL API
+
+Shipping methods can be removed by the user after it has been assigned to a checkout; `shippingMethodId` is now a nullable input in the `checkoutShippingMethodUpdate` mutation. - #13068 by @FremahA
+
+- Add `lines` to `OrderGrantedRefund` - #13014 by @korycins
+- Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
+- Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
+- Add ability to use metadata in the `Shop` type - #13128 by @Smit-Parmar, #13364 by @maarcingebala
+  - Add `metadata` and `privateMetadata` in `ShopSettingsInput`.
+  - Add `Shop.id` field.
+  - Add support for modifying metadata via generic metadata API.
+- Fix error "Cannot return null for non-nullable field Webhook.name" - #12989 by @Smit-Parmar
+- Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
+- Add metadata support for channels. #13230 by @Smit-Parmar
+- Remove `Preview feature` label from `metafield`, `metafields`, `metadata`,
+  `privateMetafield`, `privateMetafields` and `privateMetadata` fields - #13245 by @korycins
+- [Preview] Add possibility to completeCheckout without payment in transaction flow - #13339 by @kadewu:
+  - New field `allowUnpaidOrders` in `OrderSettings` for `Channel`
+- Add `search` to `giftCards` query - #13173 by @zedzior
+- Add `ProductBulkTranslate` mutation - #13329 by @SzymJ
+- Add `ProductVariantBulkTranslate` mutation - #13329 by @SzymJ
+- Add `AttributeBulkCreate` mutation - #13398 by @SzymJ
+- Deprecate `WebhookEventTypeAsyncEnum.ANY_EVENTS` and `WebhookEventTypeEnum.ANY_EVENTS`; instead listeners should subscribe to specific webhook events - #13452 by @maarcingebala
+- Add ability to update `warehouse` address with `MANAGE_PRODUCTS` permissions: - #13248 by @Air-t
+- Add ability to update `site` address with `MANAGE_SETTINGS` permissions: - #13248 by @Air-t
+- Add the ability to set address public metadata in the following mutations: - #13248 by @Air-t
+  - `accountUpdate`, `accountAddressCreate`, `accountAddressUpdate`, `addressCreate`, `AccountAddressUpdate`,
+  - `checkoutShippingAddressUpdate`, `checkoutBillingAddressUpdate`, `shopAddressUpdate`, `warehouseUpdate`
+  - Add `metadata` to `AddressInput` field
+- Add support for unhandled field `Shop.trackInventoryByDefault` for `productVariantCreate` and `productVariantBulkCreate` - #13492 by @Smit-Parmar
+- Add `storedPaymentMethods` field to `User` and `Checkout` type - #13581
+- - Add `AttributeBulkUpdate` mutation - #13532 by @SzymJ
+
+- Better checkout error feedback - #13458 by @korycins
+  - Add `Checkout.problems` field
+  - Add `CheckoutLine.problems` field
+  - Add `CheckoutSettingsInput` to `ChannelCreateInput` & `ChannelUpdateInput`
+  - Add `checkoutSettings` field to `Channel`
+### Saleor Apps
+
+- Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
+- Add `SHOP_METADATA_UPDATED` webhook - #13364, #13388 by @maarcingebala
+  - Called when metadata is changed for the Shop object via the generic metadata API or the `shopSettingsUpdate` mutation.
+- Add `CHANNEL_METADATA_UPDATED` webhook - #13448, by @Air-t
+  - Called when metadata is changed for the Channel object via the generic metadata API or the `channelUpdate` mutation.
+- Add `ACCOUNT_CONFIRMED` webhook - #13471, by @Air-t
+  - Called when user confirm an account with `confirmAccount` mutation.
+- Add `ACCOUNT_DELETED` webhook - #13471, by @Air-t
+  - Called after account deletion is confirmed with `accountDelete` mutation.
+- Add `ACCOUNT_EMAIL_CHANGED` webhook - #13537, by @Air-t
+  - Called when `confirmEmailChange` mutation is triggered.
+- Add `ACCOUNT_SET_PASSWORD_REQUESTED` webhook - #13486, by @Air-t
+  - Called after `requestPasswordReset` or `customerCreate` mutation.
+- Add `STAFF_SET_PASSWORD_REQUESTED` webhook - #13486, by @Air-t
+  - Called after `requestPasswordReset` or `customerCreate` mutation for staff users.
+
+### Other changes
+
+- Add possibility to log without confirming email - #13059 by @kadewu
+  - New mutation `sendConfirmationEmail` to send an email with confirmation link
+  - New environment variable `CONFIRMATION_EMAIL_LOCK_TIME` to control lock time between new email confirmations
+  - Type `User` gets new field `is_confirmed`
+  - `CustomerInput` gets new field `is_confirmed`
+- Use public key thumbprint as KID in JWKS.json #13442 by @cmiacz
+- Add POC of Core API tests - #13034 by @fowczarek
+
+- Expand metric units to support more types of products. - #13043 by @FremahA
+- Remove unused `django-versatileimagefield` package - #13148 by @SzymJ
+- Remove unused `google-measurement-protocol` package - #13146 by @SzymJ
+- Add missing descriptions to App module. - #13163 by @fowczarek
+- Drop TranslationProxy and replace `translated` model property with `get_translation` function where needed. - #13156 by @zedzior
+- Add missing descriptions to account module. - #13155 by @fowczarek
+- Add missing descriptions to channel module. - #13166 by @fowczarek
+- Add missing descriptions to checkout module. - #13167 by @fowczarek
+- Add missing descriptions to attribute module. - #13165 by @fowczarek
+- Add missing descriptions to csv module. - #13184 by @fowczarek
+- Add missing descriptions to Account module. - #13155 by @fowczarek
+- Add `ACCOUNT_CONFIRMATION_REQUESTED` async event - #13162 by @SzymJ
+- Add `ACCOUNT_DELETE_REQUESTED` async event - #13170 by @SzymJ
+- Add `ACCOUNT_CHANGE_EMAIL_REQUESTED` async event - #13233 by @SzymJ
+- Add missing descriptions to Webhook module - #13262 by @Smit-Parmar
+- Add missing descriptions to Shop module. - #13295 by @Smit-Parmar
+- Add missing descriptions to Warehouse module. - #13264 by @Smit-Parmar
+- Add missing descriptions to Product module. - #13259 by @FremahA
+- Add missing description for Invoice module - #13265 by @DevilsAutumn
+- Add missing descriptions to Discount module - #13261 by @devilsautumn
+- Fix deleting event payloads by adding batches - #13368 by @jakubkuc
+- Add missing descriptions to Shipping module. - #13372 by @Smit-Parmar
+- Fix error handling in the permission check for `Query.webhook` - #13378 by @patrys
+- Add missing descriptions to Translation module. - #13410 by @Smit-Parmar
+- Add missing descriptions to menu module - #13409 by @devilsautumn
+- Add missing descriptions to page module - #13536 by @devilsautumn
+- Fix seo field to accept null value - #13512 by @ssuraliya
+- Add missing descriptions to payment module - #13546 by @devilsautumn
+- Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
+
 # 3.14.0
 
 ### Breaking changes

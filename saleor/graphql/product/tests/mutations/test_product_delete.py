@@ -1,9 +1,11 @@
+from functools import partial
 from unittest.mock import patch
 
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
+from mock import ANY
 from prices import Money, TaxedMoney
 
 from .....attribute.models import AttributeValue
@@ -12,7 +14,6 @@ from .....graphql.tests.utils import get_graphql_content
 from .....order import OrderEvents, OrderStatus
 from .....order.models import OrderEvent, OrderLine
 from .....webhook.event_types import WebhookEventAsyncType
-from .....webhook.payloads import generate_product_deleted_payload
 
 DELETE_PRODUCT_MUTATION = """
     mutation DeleteProduct($id: ID!) {
@@ -124,7 +125,6 @@ def test_delete_product_trigger_webhook(
 
     query = DELETE_PRODUCT_MUTATION
     node_id = graphene.Node.to_global_id("Product", product.id)
-    variants_id = list(product.variants.all().values_list("id", flat=True))
     variables = {"id": node_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -135,15 +135,16 @@ def test_delete_product_trigger_webhook(
     with pytest.raises(product._meta.model.DoesNotExist):
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
-    expected_data = generate_product_deleted_payload(
-        product, variants_id, staff_api_client.user
-    )
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data,
+        None,
         WebhookEventAsyncType.PRODUCT_DELETED,
         [any_webhook],
         product,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
     mocked_recalculate_orders_task.assert_not_called()
 

@@ -91,7 +91,7 @@ def test_page_type_bulk_delete_trigger_webhooks(
 
     assert not data["errors"]
     assert data["count"] == page_type_count
-    mocked_webhook_trigger.call_count == page_type_count
+    assert mocked_webhook_trigger.call_count == page_type_count
 
 
 def test_page_type_bulk_delete_by_staff_no_perm(
