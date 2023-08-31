@@ -157,6 +157,63 @@ def test_get_variants_for_collection_predicate(
         assert variant not in variants
 
 
+def test_get_variants_for_variant_and_empty_list_of_other_predicates(
+    product_with_two_variants, variant
+):
+    # given
+    catalogue_predicate = {
+        "variantPredicate": {
+            "ids": [
+                graphene.Node.to_global_id("ProductVariant", v.id)
+                for v in product_with_two_variants.variants.all()
+            ]
+        },
+        "collectionPredicate": {"ids": []},
+        "productPredicate": {"ids": []},
+        "categoryPredicate": {"ids": []},
+    }
+
+    # when
+    variants = get_variants_for_predicate(catalogue_predicate)
+
+    # then
+    assert len(variants) == 0
+
+
+def test_get_variants_for_variant_or_operator_and_empty_list_of_other_predicates(
+    product_with_two_variants, variant
+):
+    # given:
+    catalogue_predicate = {
+        "OR": [
+            {
+                "variantPredicate": {
+                    "ids": [
+                        graphene.Node.to_global_id("ProductVariant", v.id)
+                        for v in product_with_two_variants.variants.all()
+                    ]
+                },
+            },
+            {
+                "collectionPredicate": {"ids": []},
+            },
+            {
+                "productPredicate": {"ids": []},
+            },
+            {
+                "categoryPredicate": {"ids": []},
+            },
+        ],
+    }
+
+    # when
+    variants = get_variants_for_predicate(catalogue_predicate)
+
+    # then
+    assert len(variants) == product_with_two_variants.variants.count()
+    assert variant not in variants
+
+
 def test_get_variants_for_predicate_with_nested_conditions(
     product_list, collection, variant
 ):
