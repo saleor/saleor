@@ -46,7 +46,13 @@ jobs:
           --health-retries 5
 
     steps:
-       - name: Install and configure poetry
+      - uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: |
+          apt-get install -y libpq-dev
+
+      - name: Install and configure poetry
         run: |
           pipx install poetry==1.5.0
 
