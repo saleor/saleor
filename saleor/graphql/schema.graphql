@@ -8129,6 +8129,7 @@ type WarehouseCountableEdge @doc(category: "Products") {
 
 input WarehouseFilterInput @doc(category: "Products") {
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum
+  metadata: [MetadataFilter!]
   search: String
   ids: [ID!]
   isPrivate: Boolean
