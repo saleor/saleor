@@ -18,23 +18,9 @@ from .utils import (
 
 def create_shop_for_orders_without_payments(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
-    permission_manage_orders,
-    permission_manage_checkouts,
 ):
     channel_slug = "test-test"
-    permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_product_types_and_attributes,
-        permission_manage_orders,
-        permission_manage_checkouts,
-    ]
-    assign_permissions(e2e_staff_api_client, permissions)
+
     warehouse_data = create_warehouse(e2e_staff_api_client)
     warehouse_id = warehouse_data["id"]
 
@@ -78,20 +64,21 @@ def test_should_be_able_to_create_order_with_no_payment_CORE_0111(
     permission_manage_checkouts,
 ):
     # Before
+    permissions = [
+        permission_manage_products,
+        permission_manage_channels,
+        permission_manage_shipping,
+        permission_manage_product_types_and_attributes,
+        permission_manage_orders,
+        permission_manage_checkouts,
+    ]
+    assign_permissions(e2e_staff_api_client, permissions)
     (
         channel_slug,
         warehouse_id,
         channel_id,
         shipping_method_id,
-    ) = create_shop_for_orders_without_payments(
-        e2e_staff_api_client,
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_product_types_and_attributes,
-        permission_manage_shipping,
-        permission_manage_orders,
-        permission_manage_checkouts,
-    )
+    ) = create_shop_for_orders_without_payments(e2e_staff_api_client)
 
     variant_price = 10
 
