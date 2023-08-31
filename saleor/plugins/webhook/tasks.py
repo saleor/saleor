@@ -209,7 +209,7 @@ def trigger_webhooks_async(
         if legacy_data_generator:
             data = legacy_data_generator()
         elif data is None:
-            raise ValueError("No payload was provided for regular webhooks.")
+            raise NotImplementedError("No payload was provided for regular webhooks.")
 
         payload = EventPayload.objects.create(payload=data)
         deliveries.extend(
