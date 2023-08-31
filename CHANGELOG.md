@@ -32,9 +32,12 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
   - Event sent when CSV export for gift cards is completed.
 - Add `PRODUCT_EXPORT_COMPLETED` webhook - #13787, by @Air-t
   - Event sent when CSV export for products is completed.
-
 - Add `FULFILLMENT_TRACKING_NUMBER_UPDATED` webhook - #13708, by @Air-t
   - Called after `fulfillmentUpdateTracking` or `orderFulfill` mutation if tracking number is updated.
+- Enable webhook dry runs - #13816, by @Air-t
+  - Dry runs enabled: `AccountConfirmed`, `AccountConfirmationRequested`, `AccountChangeEmailRequested`
+  - `AccountEmailChanged`, `AccountSetPasswordRequested`, `AccountDeleteRequested`, `GiftCardSent`,
+  - `FulfillmentCreated`, `FulfillmentApproved`, `StaffSetPasswordRequested`
 
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
