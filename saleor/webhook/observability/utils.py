@@ -9,12 +9,12 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, Optional
 
 from asgiref.local import Local
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.core.cache import cache
 from django.utils import timezone
 from graphql import GraphQLDocument
 from pytimeparse import parse
 
+from ...core.utils import get_domain
 from ..event_types import WebhookEventAsyncType
 from ..utils import get_webhooks_for_event
 from .buffers import get_buffer
@@ -66,7 +66,7 @@ def get_webhooks(timeout=CACHE_TIMEOUT) -> List[WebhookData]:
         if webhooks_data is None:
             webhooks_data = []
             if webhooks := get_webhooks_for_event(WebhookEventAsyncType.OBSERVABILITY):
-                domain = Site.objects.get_current().domain
+                domain = get_domain()
                 for webhook in webhooks:
                     webhooks_data.append(
                         WebhookData(
