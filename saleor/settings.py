@@ -416,17 +416,6 @@ DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 
 COUNTRIES_OVERRIDE = {"EU": "European Union"}
 
-
-def get_host():
-    from django.contrib.sites.models import Site
-
-    return Site.objects.get_current().domain
-
-
-PAYMENT_HOST = get_host
-
-PAYMENT_MODEL = "order.Payment"
-
 MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
 
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
