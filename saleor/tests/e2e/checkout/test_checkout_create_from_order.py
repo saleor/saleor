@@ -29,6 +29,8 @@ def test_checkout_create_from_order_core_0104(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
+    price = 10
+
     (
         result_warehouse_id,
         result_channel_id,
@@ -36,8 +38,8 @@ def test_checkout_create_from_order_core_0104(
         _,
     ) = prepare_shop(e2e_staff_api_client)
 
-    product_variant_id = prepare_product(
-        e2e_staff_api_client, result_warehouse_id, result_channel_id
+    _, result_product_variant_id, _ = prepare_product(
+        e2e_staff_api_client, result_warehouse_id, result_channel_id, price
     )
 
     # Step 1 - Create checkout from order
@@ -48,7 +50,9 @@ def test_checkout_create_from_order_core_0104(
 
     order_id = data["order"]["id"]
     assert order_id is not None
-    order_lines = [{"variantId": product_variant_id, "quantity": 1, "price": 100}]
+    order_lines = [
+        {"variantId": result_product_variant_id, "quantity": 1, "price": 100}
+    ]
     order_data = order_lines_create(e2e_staff_api_client, order_id, order_lines)
     order_product_variant_id = order_data["order"]["lines"][0]["variant"]
     order_product_quantity = order_data["order"]["lines"][0]["quantity"]

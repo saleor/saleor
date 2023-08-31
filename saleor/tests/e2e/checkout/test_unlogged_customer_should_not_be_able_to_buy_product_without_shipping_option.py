@@ -69,11 +69,18 @@ def test_unlogged_customer_unable_to_buy_product_without_shipping_option_CORE_01
         permission_manage_product_types_and_attributes,
         permission_manage_shipping,
     )
-    product_variant_id = prepare_product(e2e_staff_api_client, warehouse_id, channel_id)
+    variant_price = 10
+
+    _, result_product_variant_id, _ = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        variant_price,
+    )
 
     # Step 1 - Create checkout with no shipping method
     lines = [
-        {"variantId": product_variant_id, "quantity": 1},
+        {"variantId": result_product_variant_id, "quantity": 1},
     ]
     checkout_data = checkout_create(
         e2e_not_logged_api_client,

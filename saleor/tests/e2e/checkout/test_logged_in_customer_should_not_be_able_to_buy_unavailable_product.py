@@ -73,9 +73,7 @@ def prepare_unavailable_product(
     variant_id = variant_data["id"]
 
     create_product_variant_channel_listing(
-        e2e_staff_api_client,
-        variant_id,
-        result_channel_id,
+        e2e_staff_api_client, variant_id, result_channel_id, price=10
     )
 
     return variant_id, result_channel_slug

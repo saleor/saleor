@@ -101,12 +101,20 @@ def test_should_be_able_to_create_partially_paid_order_core_0112(
     )
     app_permissions = [permission_manage_payments]
     assign_permissions(e2e_app_api_client, app_permissions)
-    product_variant_id = prepare_product(e2e_staff_api_client, warehouse_id, channel_id)
+
+    variant_price = 10
+
+    _, result_product_variant_id, _ = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        variant_price,
+    )
 
     assert shipping_method_id is not None
     # Step 1 - Create checkout.
     lines = [
-        {"variantId": product_variant_id, "quantity": 1},
+        {"variantId": result_product_variant_id, "quantity": 1},
     ]
     checkout_data = checkout_create(
         e2e_not_logged_api_client,
