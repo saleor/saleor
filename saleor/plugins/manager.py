@@ -44,6 +44,9 @@ from ..payment.interface import (
     PaymentGatewayInitializeTokenizationResponseData,
     PaymentGatewayInitializeTokenizationResult,
     PaymentMethodData,
+    PaymentMethodInitializeTokenizationRequestData,
+    PaymentMethodInitializeTokenizationResponseData,
+    PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
     TokenConfig,
@@ -1567,10 +1570,28 @@ class PluginsManager(PaymentInterface):
         default_response = PaymentGatewayInitializeTokenizationResponseData(
             result=PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER,
             error="Payment gateway initialize tokenization failed to deliver.",
+            data=None,
         )
 
         response = self.__run_method_on_plugins(
             "payment_gateway_initialize_tokenization",
+            default_response,
+            request_data,
+        )
+        return response
+
+    def payment_method_initialize_tokenization(
+        self,
+        request_data: "PaymentMethodInitializeTokenizationRequestData",
+    ) -> "PaymentMethodInitializeTokenizationResponseData":
+        default_response = PaymentMethodInitializeTokenizationResponseData(
+            result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
+            error="Payment method initialize tokenization failed to deliver.",
+            data=None,
+        )
+
+        response = self.__run_method_on_plugins(
+            "payment_method_initialize_tokenization",
             default_response,
             request_data,
         )

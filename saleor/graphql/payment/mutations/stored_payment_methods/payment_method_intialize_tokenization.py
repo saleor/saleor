@@ -1,34 +1,36 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from .....payment.interface import PaymentGatewayInitializeTokenizationRequestData
+from .....payment.interface import PaymentMethodInitializeTokenizationRequestData
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventSyncType
 from ....channel.utils import validate_channel
 from ....core.descriptions import ADDED_IN_316, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
-from ....core.enums import PaymentGatewayInitializeTokenizationErrorCode
+from ....core.enums import PaymentMethodInitializeTokenizationErrorCode
 from ....core.mutations import BaseMutation
 from ....core.scalars import JSON
-from ....core.types.common import PaymentGatewayInitializeTokenizationError
+from ....core.types.common import PaymentMethodInitializeTokenizationError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ...enums import PaymentGatewayInitializeTokenizationResultEnum
+from ...enums import PaymentMethodTokenizationResultEnum
 
 
-class PaymentGatewayInitializeTokenization(BaseMutation):
-    result = PaymentGatewayInitializeTokenizationResultEnum(
-        description="A status of the payment gateway initialization.", required=True
+class PaymentMethodInitializeTokenization(BaseMutation):
+    result = PaymentMethodTokenizationResultEnum(
+        description="A status of the payment method tokenization.", required=True
     )
+    id = graphene.String(description="The identifier of the payment method.")
     data = JSON(
-        description="A data returned by payment app.",
+        description="A data returned by the payment app.",
     )
 
     class Arguments:
         id = graphene.String(
             required=True,
             description=(
-                "The identifier of the payment gateway app to initialize tokenization."
+                "The identifier of the payment gateway app to initialize payment "
+                "method tokenization."
             ),
         )
         channel = graphene.String(
@@ -42,56 +44,50 @@ class PaymentGatewayInitializeTokenization(BaseMutation):
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
-        description = (
-            "Initializes payment gateway for tokenizing payment method session."
-            + ADDED_IN_316
-            + PREVIEW_FEATURE
-        )
+        description = "Tokenize payment method." + ADDED_IN_316 + PREVIEW_FEATURE
         webhook_events_info = [
             WebhookEventInfo(
                 type=(
-                    WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION
+                    WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
                 ),
-                description=(
-                    "The customer requested to initialize payment gateway for "
-                    "tokenization."
-                ),
+                description=("The customer requested to tokenize payment method."),
             ),
         ]
-        error_type_class = PaymentGatewayInitializeTokenizationError
+        error_type_class = PaymentMethodInitializeTokenizationError
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
     def _perform_mutation(cls, root, info, id, channel, data=None):
         user = info.context.user
         channel = validate_channel(
-            channel, PaymentGatewayInitializeTokenizationErrorCode
+            channel, PaymentMethodInitializeTokenizationErrorCode
         )
 
         manager = get_plugin_manager_promise(info.context).get()
         is_active = manager.is_event_active_for_any_plugin(
-            "payment_gateway_initialize_tokenization"
+            "payment_method_initialize_tokenization"
         )
 
         if not is_active:
             raise ValidationError(
-                (
-                    "No active payment app that could initialize payment gateway for "
-                    "tokenization."
-                ),
-                code=PaymentGatewayInitializeTokenizationErrorCode.NOT_FOUND.value,
+                ("No active payment app to handle requested action."),
+                code=PaymentMethodInitializeTokenizationErrorCode.NOT_FOUND.value,
             )
 
-        response = manager.payment_gateway_initialize_tokenization(
-            request_data=PaymentGatewayInitializeTokenizationRequestData(
+        response = manager.payment_method_initialize_tokenization(
+            request_data=PaymentMethodInitializeTokenizationRequestData(
                 app_identifier=id, user=user, channel=channel, data=data
             )
         )
         errors = []
-        result_enum = PaymentGatewayInitializeTokenizationResultEnum
-        if response.result != result_enum.SUCCESSFULLY_INITIALIZED.value:
+        result_enum = PaymentMethodTokenizationResultEnum
+        result_without_error = [
+            result_enum.SUCCESSFULLY_TOKENIZED,
+            result_enum.ADDITIONAL_ACTION_REQUIRED,
+        ]
+        if response.result not in result_without_error:
             error_code = (
-                PaymentGatewayInitializeTokenizationErrorCode.GATEWAY_ERROR.value
+                PaymentMethodInitializeTokenizationErrorCode.GATEWAY_ERROR.value
             )
             errors.append(
                 {
@@ -100,7 +96,9 @@ class PaymentGatewayInitializeTokenization(BaseMutation):
                 }
             )
 
-        return cls(result=response.result, data=response.data, errors=errors)
+        return cls(
+            result=response.result, data=response.data, errors=errors, id=response.id
+        )
 
     @classmethod
     def perform_mutation(cls, root, info, id, channel, data=None):
@@ -109,6 +107,6 @@ class PaymentGatewayInitializeTokenization(BaseMutation):
         except ValidationError as error:
             error_response = cls.handle_errors(error)
             error_response.result = (
-                PaymentGatewayInitializeTokenizationResultEnum.FAILED_TO_DELIVER.value
+                PaymentMethodTokenizationResultEnum.FAILED_TO_DELIVER.value
             )
             return error_response

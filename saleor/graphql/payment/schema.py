@@ -14,6 +14,7 @@ from .mutations import (
     PaymentGatewayInitialize,
     PaymentGatewayInitializeTokenization,
     PaymentInitialize,
+    PaymentMethodInitializeTokenization,
     PaymentRefund,
     PaymentVoid,
     StoredPaymentMethodRequestDelete,
@@ -104,3 +105,4 @@ class PaymentMutations(graphene.ObjectType):
     payment_gateway_initialize_tokenization = (
         PaymentGatewayInitializeTokenization.Field()
     )
+    payment_method_initialize_tokenization = PaymentMethodInitializeTokenization.Field()

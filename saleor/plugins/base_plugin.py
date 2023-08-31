@@ -35,6 +35,8 @@ from ..payment.interface import (
     PaymentGatewayInitializeTokenizationRequestData,
     PaymentGatewayInitializeTokenizationResponseData,
     PaymentMethodData,
+    PaymentMethodInitializeTokenizationRequestData,
+    PaymentMethodInitializeTokenizationResponseData,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
     TransactionActionData,
@@ -706,6 +708,14 @@ class BasePlugin:
             "PaymentGatewayInitializeTokenizationResponseData",
         ],
         "PaymentGatewayInitializeTokenizationResponseData",
+    ]
+
+    payment_method_initialize_tokenization: Callable[
+        [
+            "PaymentMethodInitializeTokenizationRequestData",
+            "PaymentMethodInitializeTokenizationResponseData",
+        ],
+        "PaymentMethodInitializeTokenizationResponseData",
     ]
 
     # Trigger when menu is created.

@@ -64,6 +64,7 @@ from ..enums import (
     PaymentGatewayConfigErrorCode,
     PaymentGatewayInitializeErrorCode,
     PaymentGatewayInitializeTokenizationErrorCode,
+    PaymentMethodInitializeTokenizationErrorCode,
     PermissionEnum,
     PermissionGroupErrorCode,
     PluginErrorCode,
@@ -693,6 +694,15 @@ class PaymentMethodRequestDeleteError(Error):
 
 class PaymentGatewayInitializeTokenizationError(Error):
     code = PaymentGatewayInitializeTokenizationErrorCode(
+        description="The error code.", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class PaymentMethodInitializeTokenizationError(Error):
+    code = PaymentMethodInitializeTokenizationErrorCode(
         description="The error code.", required=True
     )
 

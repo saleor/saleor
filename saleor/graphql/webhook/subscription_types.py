@@ -15,7 +15,7 @@ from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
 from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
-    PaymentGatewayInitializeTokenizationRequestData,
+    PaymentMethodTokenizationBaseRequestData,
     StoredPaymentMethodRequestDeleteData,
     TransactionActionData,
     TransactionSessionData,
@@ -1945,15 +1945,15 @@ class StoredPaymentMethodDeleteRequested(SubscriptionObjectType):
         return payment_method_data.channel
 
 
-class PaymentGatewayInitializeTokenizationSession(SubscriptionObjectType):
+class PaymentMethodTokenizationBase(AbstractType):
     user = graphene.Field(
         UserType,
-        description=("The user related to the requested payment gateway tokenization."),
+        description="The user related to the requested action.",
         required=True,
     )
     channel = graphene.Field(
         "saleor.graphql.channel.types.Channel",
-        description="Channel related to the requested delete action.",
+        description="Channel related to the requested action.",
         required=True,
     )
     data = graphene.Field(
@@ -1961,6 +1961,37 @@ class PaymentGatewayInitializeTokenizationSession(SubscriptionObjectType):
         description="Payment gateway data in JSON format, received from storefront.",
     )
 
+    @classmethod
+    def resolve_channel(
+        cls,
+        root: tuple[str, PaymentMethodTokenizationBaseRequestData],
+        _info: ResolveInfo,
+    ):
+        _, payment_method_data = root
+        return payment_method_data.channel
+
+    @classmethod
+    def resolve_user(
+        cls,
+        root: tuple[str, PaymentMethodTokenizationBaseRequestData],
+        _info: ResolveInfo,
+    ):
+        _, payment_method_data = root
+        return payment_method_data.user
+
+    @classmethod
+    def resolve_data(
+        cls,
+        root: tuple[str, PaymentMethodTokenizationBaseRequestData],
+        _info: ResolveInfo,
+    ):
+        _, payment_method_data = root
+        return payment_method_data.data
+
+
+class PaymentGatewayInitializeTokenizationSession(
+    SubscriptionObjectType, PaymentMethodTokenizationBase
+):
     class Meta:
         root_type = None
         enable_dry_run = False
@@ -1971,32 +2002,20 @@ class PaymentGatewayInitializeTokenizationSession(SubscriptionObjectType):
         )
         doc_category = DOC_CATEGORY_PAYMENTS
 
-    @classmethod
-    def resolve_channel(
-        cls,
-        root: tuple[str, PaymentGatewayInitializeTokenizationRequestData],
-        _info: ResolveInfo,
-    ):
-        _, payment_method_data = root
-        return payment_method_data.channel
 
-    @classmethod
-    def resolve_user(
-        cls,
-        root: tuple[str, PaymentGatewayInitializeTokenizationRequestData],
-        _info: ResolveInfo,
-    ):
-        _, payment_method_data = root
-        return payment_method_data.user
-
-    @classmethod
-    def resolve_data(
-        cls,
-        root: tuple[str, PaymentGatewayInitializeTokenizationRequestData],
-        _info: ResolveInfo,
-    ):
-        _, payment_method_data = root
-        return payment_method_data.data
+class PaymentMethodInitializeTokenizationSession(
+    SubscriptionObjectType, PaymentMethodTokenizationBase
+):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user requests a tokenization of payment method."
+            + ADDED_IN_316
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TranslationTypes(Union):
@@ -2523,5 +2542,8 @@ WEBHOOK_TYPES_MAP = {
     ),
     WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION: (
         PaymentGatewayInitializeTokenizationSession
+    ),
+    WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION: (
+        PaymentMethodInitializeTokenizationSession
     ),
 }
