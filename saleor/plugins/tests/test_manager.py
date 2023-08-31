@@ -23,6 +23,7 @@ from ...payment.interface import (
     PaymentGatewayData,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
+    StoredPaymentMethodRequestDeleteResult,
     TransactionProcessActionData,
     TransactionSessionData,
     TransactionSessionResult,
@@ -1378,9 +1379,9 @@ def test_stored_payment_method_request_delete(
         user=customer_user, payment_method_id="123", channel=channel_USD
     )
     previous_response = StoredPaymentMethodRequestDeleteResponseData(
-        success=False, message="Payment method request delete failed to deliver."
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
+        error="Payment method request delete failed to deliver.",
     )
-
     # when
     manager.stored_payment_method_request_delete(
         request_delete_data=request_delete_data
