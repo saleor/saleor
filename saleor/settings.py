@@ -5,6 +5,7 @@ import os.path
 import warnings
 from datetime import timedelta
 from typing import List
+from urllib.parse import urlparse
 
 import dj_database_url
 import dj_email_url
@@ -137,6 +138,14 @@ EMAIL_USE_TLS: bool = email_config.get("EMAIL_USE_TLS", False)
 EMAIL_USE_SSL: bool = email_config.get("EMAIL_USE_SSL", False)
 
 ENABLE_SSL = get_bool_from_env("ENABLE_SSL", False)
+
+# URL on which Saleor is hosted (e.g., https://api.example.com/). This has precedence
+# over ENABLE_SSL and Shop.domain when generating URLs pointing to itself.
+PUBLIC_URL = os.environ.get("PUBLIC_URL")
+if PUBLIC_URL:
+    if os.environ.get("ENABLE_SSL") is not None:
+        warnings.warn("ENABLE_SSL is ignored on URL generation if PUBLIC_URL is set.")
+    ENABLE_SSL = urlparse(PUBLIC_URL).scheme.lower() == "https"
 
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
