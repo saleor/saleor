@@ -31,12 +31,18 @@ def test_should_not_be_able_to_make_purchase_with_no_payment_CORE_0113(
     warehouse_id, channel_id, channel_slug, shipping_method_id = prepare_shop(
         e2e_staff_api_client
     )
+    variant_price = 10
 
-    product_variant_id = prepare_product(e2e_staff_api_client, warehouse_id, channel_id)
+    _, result_product_variant_id, _ = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        variant_price,
+    )
 
     # Step 1 - Create checkout.
     lines = [
-        {"variantId": product_variant_id, "quantity": 1},
+        {"variantId": result_product_variant_id, "quantity": 1},
     ]
     checkout_data = checkout_create(
         e2e_not_logged_api_client,

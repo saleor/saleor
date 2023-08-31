@@ -66,9 +66,7 @@ def prepare_product(
     product_variant_id = product_variant_data["id"]
 
     create_product_variant_channel_listing(
-        e2e_staff_api_client,
-        product_variant_id,
-        result_channel_id,
+        e2e_staff_api_client, product_variant_id, result_channel_id, price=10
     )
 
     create_digital_content(e2e_staff_api_client, product_variant_id)

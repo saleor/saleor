@@ -55,11 +55,19 @@ def test_unlogged_customer_buy_by_click_and_collect_CORE_0105(
         permission_manage_channels,
         permission_manage_product_types_and_attributes,
     )
-    product_variant_id = prepare_product(e2e_staff_api_client, warehouse_id, channel_id)
+
+    variant_price = 10
+
+    _, result_product_variant_id, _ = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        variant_price,
+    )
 
     # Step 1 - Create checkout and check collection point
     lines = [
-        {"variantId": product_variant_id, "quantity": 1},
+        {"variantId": result_product_variant_id, "quantity": 1},
     ]
     checkout_data = checkout_create(
         e2e_not_logged_api_client,

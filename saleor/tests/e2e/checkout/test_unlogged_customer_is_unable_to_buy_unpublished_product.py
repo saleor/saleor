@@ -67,6 +67,7 @@ def prepare_unpublished_product(
         e2e_staff_api_client,
         product_variant_id,
         result_channel_id,
+        price=10,
     )
 
     return product_variant_id, result_channel_slug

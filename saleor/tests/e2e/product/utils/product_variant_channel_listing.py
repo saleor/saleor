@@ -31,7 +31,7 @@ def create_product_variant_channel_listing(
     staff_api_client,
     product_variant_id,
     channel_id,
-    price="9.99",
+    price,
 ):
     variables = {
         "productVariantId": product_variant_id,
