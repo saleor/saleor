@@ -69,16 +69,20 @@ def filter_by_ids(object_type):
 
 
 def filter_where_range_field(qs, field, value):
-    gte, lte = value.get("gte"), value.get("lte")
-    if gte is None and lte is None:
+    if value is None:
         return qs.none()
-    if gte is not None:
-        lookup = {f"{field}__gte": gte}
-        qs = qs.filter(**lookup)
-    if lte is not None:
-        lookup = {f"{field}__lte": lte}
-        qs = qs.filter(**lookup)
-    return qs
+    range = value.get("range")
+    if range:
+        gte, lte = range.get("gte"), range.get("lte")
+        if gte is None and lte is None:
+            return qs.none()
+        return filter_range_field(qs, field, range)
+    if "eq" in value:
+        # allow filtering by `None` value
+        return qs.filter(**{field: value["eq"]})
+    if one_of := value.get("one_of"):
+        return qs.filter(**{f"{field}__in": one_of})
+    return qs.none()
 
 
 def filter_where_by_string_field(
