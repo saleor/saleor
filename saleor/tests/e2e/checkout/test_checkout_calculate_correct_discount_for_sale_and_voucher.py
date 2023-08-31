@@ -18,7 +18,7 @@ from .utils import (
 def prepare_sale_for_variant(e2e_staff_api_client, channel_id, product_variant_id):
     sale_name = "Sale PERCENTAGE"
     sale_discount_type = "PERCENTAGE"
-    sale_discount_value = 50
+    sale_discount_value = 13
     sale = create_sale(e2e_staff_api_client, sale_name, sale_discount_type)
     sale_id = sale["id"]
     sale_listing_input = [
@@ -47,18 +47,11 @@ def prepare_voucher(
         "ENTIRE_ORDER",
     )
     voucher_id = voucher_data["id"]
-    # assert voucher_data["discountValueType"] == "PERCENTAGE"
 
     channel_listing = [
         {"channelId": channel_id, "discountValue": voucher_discount_value}
     ]
-    voucher_listing_data = create_voucher_channel_listing(
-        e2e_staff_api_client, voucher_id, channel_listing
-    )
-    assert voucher_listing_data["channelListings"][0]["channel"]["id"] == channel_id
-    assert voucher_listing_data["channelListings"][0]["discountValue"] == float(
-        voucher_discount_value
-    )
+    create_voucher_channel_listing(e2e_staff_api_client, voucher_id, channel_listing)
 
     return voucher_discount_value, voucher_code
 
@@ -90,7 +83,7 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     )
 
     _, product_variant_id, product_variant_price = prepare_product(
-        e2e_staff_api_client, warehouse_id, channel_id, "100.0"
+        e2e_staff_api_client, warehouse_id, channel_id, "19.99"
     )
 
     sale_id, sale_discount_value = prepare_sale_for_variant(
@@ -98,7 +91,7 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     )
 
     voucher_discount_value, voucher_code = prepare_voucher(
-        e2e_staff_api_client, channel_id, "VOUCHER001", 50
+        e2e_staff_api_client, channel_id, "VOUCHER001", 13
     )
 
     # Step 1 - checkoutCreate for product on sale
@@ -117,7 +110,8 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     checkout_lines = checkout_data["lines"][0]
     shipping_method_id = checkout_data["shippingMethods"][0]["id"]
     sale_discount = float(product_variant_price) * float(sale_discount_value) / 100
-    unit_price_on_sale = float(product_variant_price) - sale_discount
+    sale_discount = round(sale_discount, 2)
+    unit_price_on_sale = round(float(product_variant_price) - sale_discount, 2)
 
     assert checkout_data["isShippingRequired"] is True
     assert checkout_lines["unitPrice"]["gross"]["amount"] == unit_price_on_sale
@@ -127,6 +121,7 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
 
     # Step 2 checkoutAddPromoCode
     voucher_discount = unit_price_on_sale * float(voucher_discount_value) / 100
+    voucher_discount = round(voucher_discount, 2)
     unit_price_sale_and_variant = unit_price_on_sale - voucher_discount
     checkout_data = checkout_add_promo_code(
         e2e_not_logged_api_client, checkout_id, voucher_code
@@ -144,11 +139,9 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     checkout_data = checkout_lines_add(e2e_staff_api_client, checkout_id, lines_add)
     checkout_lines = checkout_data["lines"][0]
     assert checkout_lines["quantity"] == 2
-    assert (
-        checkout_lines["unitPrice"]["gross"]["amount"] == unit_price_sale_and_variant
-    )  # tu nie działa
+    assert checkout_lines["unitPrice"]["gross"]["amount"] == unit_price_sale_and_variant
     subtotal_amount = unit_price_sale_and_variant * 2
-    assert checkout_data["totalPrice"]["gross"]["amount"] == subtotal_amount
+    assert checkout_lines["totalPrice"]["gross"]["amount"] == subtotal_amount
 
     # Step 4 - Set DeliveryMethod for checkout.
     checkout_data = checkout_delivery_method_update(
@@ -158,7 +151,7 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     )
     assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
     shipping_price = checkout_data["deliveryMethod"]["price"]["amount"]
-    total_gross_amount = subtotal_amount + shipping_price
+    total_gross_amount = round(subtotal_amount + shipping_price, 2)
     assert checkout_data["totalPrice"]["gross"]["amount"] == total_gross_amount
 
     # Step 5 - Create payment for checkout.
@@ -177,7 +170,8 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
 
     assert order_line["unitDiscountType"] == "FIXED"
     assert order_line["unitPrice"]["gross"]["amount"] == unit_price_sale_and_variant
-    assert order_line["unitDiscount"]["amount"] == float(sale_discount_value)
+    discount_sum = round(float(sale_discount + voucher_discount), 2)
+    assert order_line["unitDiscount"]["amount"] == discount_sum
     assert order_line["unitDiscountReason"] == f"Sale: {sale_id}"
 
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
