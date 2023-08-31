@@ -14,6 +14,9 @@ from django_prices_openexchangerates import exchange_currency
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from text_unidecode import unidecode
 
+if TYPE_CHECKING:
+    from ...attribute.models import Attribute
+
 task_logger = get_task_logger(__name__)
 
 
@@ -145,3 +148,10 @@ def prepare_unique_slug(slug: str, slug_values: Iterable):
         unique_slug = f"{slug}-{extension}"
 
     return unique_slug
+
+
+def prepare_unique_attribute_value_slug(attribute: "Attribute", slug: str):
+    value_slugs = attribute.values.filter(slug__startswith=slug).values_list(
+        "slug", flat=True
+    )
+    return prepare_unique_slug(slug, value_slugs)
