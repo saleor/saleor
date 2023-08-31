@@ -106,16 +106,16 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     )
     product_variant_id = variant_data["id"]
 
-    variant_price = "30.0"
+    variant_price = "100.0"
     create_product_variant_channel_listing(
         e2e_staff_api_client,
         product_variant_id,
         channel_id,
         variant_price,
     )
-    sale_name = "Sale Fixed"
-    sale_discount_type = "FIXED"
-    sale_discount_value = 5
+    sale_name = "Sale PERCENTAGE"
+    sale_discount_type = "PERCENTAGE"
+    sale_discount_value = 50
     sale = create_sale(e2e_staff_api_client, sale_name, sale_discount_type)
     sale_id = sale["id"]
     sale_listing_input = [
@@ -130,7 +130,7 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     catalogue_input = {"variants": [product_variant_id]}
     sale_catalogues_add(e2e_staff_api_client, sale_id, catalogue_input)
     voucher_code = "VOUCHER001"
-    voucher_discount_value = "30"
+    voucher_discount_value = 50
 
     voucher_data = create_voucher(
         e2e_staff_api_client,
@@ -167,7 +167,8 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     checkout_id = checkout_data["id"]
     checkout_lines = checkout_data["lines"][0]
     shipping_method_id = checkout_data["shippingMethods"][0]["id"]
-    unit_price_on_sale = float(variant_price) - sale_discount_value
+    sale_discount = float(variant_price) * float(sale_discount_value) / 100
+    unit_price_on_sale = float(variant_price) - sale_discount
 
     assert checkout_data["isShippingRequired"] is True
     assert checkout_lines["unitPrice"]["gross"]["amount"] == unit_price_on_sale
@@ -192,9 +193,11 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     checkout_data = checkout_lines_add(e2e_staff_api_client, checkout_id, lines_add)
     checkout_lines = checkout_data["lines"][0]
     assert checkout_lines["quantity"] == 2
-    assert checkout_lines["totalPrice"]["gross"]["amount"] == float(
-        2 * unit_price_sale_and_variant
-    )
+    assert (
+        checkout_lines["unitPrice"]["gross"]["amount"] == unit_price_sale_and_variant
+    )  # tu nie działa
+    subtotal_amount = unit_price_sale_and_variant * 2
+    assert checkout_data["totalPrice"]["gross"]["amount"] == subtotal_amount
 
     # Step 4 - Set DeliveryMethod for checkout.
     checkout_data = checkout_delivery_method_update(
@@ -203,8 +206,9 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
         shipping_method_id,
     )
     assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
-    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
-    # subtotal_gross_amount = checkout_data["subtotalPrice"]["gross"]["amount"]
+    shipping_price = checkout_data["deliveryMethod"]["price"]["amount"]
+    total_gross_amount = subtotal_amount + shipping_price
+    assert checkout_data["totalPrice"]["gross"]["amount"] == total_gross_amount
 
     # Step 5 - Create payment for checkout.
     checkout_dummy_payment_create(
@@ -214,14 +218,19 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     # Step 6 - Complete checkout.
     order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
 
-    _order_line = order_data["lines"][0]
+    order_line = order_data["lines"][0]
     assert order_data["status"] == "UNFULFILLED"
-    # assert order_data["total"]["gross"]["amount"] == total_gross_amount
-    # assert order_data["subtotal"]["gross"]["amount"] == subtotal_gross_amount
-    # assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == float(
-    #     variant_price
-    # )
-    # assert order_line["unitDiscountType"] == "FIXED"
-    # assert order_line["unitPrice"]["gross"]["amount"] == unit_price
-    # assert order_line["unitDiscount"]["amount"] == float(sale_discount_value)
-    # assert order_line["unitDiscountReason"] == f"Sale: {sale_id}"
+    assert order_data["discounts"][0]["value"] == 2 * voucher_discount
+    assert order_data["discounts"][0]["type"] == "VOUCHER"
+    assert order_data["voucher"]["code"] == voucher_code
+
+    assert order_line["unitDiscountType"] == "FIXED"
+    assert order_line["unitPrice"]["gross"]["amount"] == unit_price_sale_and_variant
+    assert order_line["unitDiscount"]["amount"] == float(sale_discount_value)
+    assert order_line["unitDiscountReason"] == f"Sale: {sale_id}"
+
+    assert order_data["total"]["gross"]["amount"] == total_gross_amount
+    assert order_data["subtotal"]["gross"]["amount"] == subtotal_amount
+    assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == float(
+        variant_price
+    )

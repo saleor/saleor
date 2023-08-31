@@ -57,6 +57,13 @@ mutation CheckoutComplete($checkoutId: ID!) {
           }
         }
       }
+      discounts {
+        type
+        value
+      }
+      voucher {
+        code
+      }
     }
   }
 }
