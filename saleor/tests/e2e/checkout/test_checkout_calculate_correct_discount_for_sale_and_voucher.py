@@ -92,8 +92,6 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     expected_unit_price,
 ):
     # Before
-    channel_slug = "test-channel"
-
     permissions = [
         permission_manage_products,
         permission_manage_channels,
