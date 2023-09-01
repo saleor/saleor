@@ -17,7 +17,6 @@ from .....checkout.utils import (
 )
 from .....discount import DiscountValueType
 from .....discount.models import Sale, SaleChannelListing
-from .....discount.utils import generate_sale_discount_objects_for_checkout
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductChannelListing
 from .....warehouse import WarehouseClickAndCollectOption
@@ -176,7 +175,6 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     # create checkout discount objects for checkout lines
     lines_infos, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines_infos, manager)
-    generate_sale_discount_objects_for_checkout(checkout_info, lines_infos)
     recalculate_checkout_discount(manager, checkout_info, lines_infos)
 
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
