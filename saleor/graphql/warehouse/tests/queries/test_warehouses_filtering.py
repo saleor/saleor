@@ -15,6 +15,10 @@ query Warehouses($filters: WarehouseFilterInput) {
                 name
                 companyName
                 email
+                metadata {
+                    key
+                    value
+                }
             }
         }
     }
@@ -306,3 +310,27 @@ def test_query_warehouses_with_filtering(
     content = get_graphql_content(response)
     pages_nodes = content["data"]["warehouses"]["edges"]
     assert len(pages_nodes) == pages_count
+
+
+def test_query_warehouses_with_filters_metadata(
+    staff_api_client, permission_manage_products, warehouse
+):
+    # given
+    warehouse.metadata = {"foo": "bar"}
+    warehouse.save(update_fields=["metadata"])
+    metadata_filter = {"filters": {"metadata": [{"key": "foo"}]}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_WITH_FILTERS,
+        variables=metadata_filter,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["warehouses"]
+    total_count = data["totalCount"]
+    assert not total_count == 0
+    assert data["edges"][0]["node"]["metadata"][0]["key"] == "foo"
+    assert data["edges"][0]["node"]["metadata"][0]["value"] == "bar"

@@ -9,35 +9,41 @@ mutation OrderDraftCreate($input: DraftOrderCreateInput!) {
       code
     }
     order {
-      id
-      billingAddress {
-        streetAddress1
-      }
-      shippingAddress {
-        streetAddress1
-      }
-      shippingMethods {
         id
-      }
-      lines {
-        productVariantId
-        quantity
-        undiscountedUnitPrice {
-          gross {
-            amount
-          }
+        created
+        discounts {
+            amount {
+                amount
+            }
         }
-        unitPrice {
-          gross {
-            amount
-          }
+        billingAddress {
+        streetAddress1
         }
-        totalPrice {
-          gross {
-            amount
-          }
+        shippingAddress {
+            streetAddress1
         }
-      }
+        shippingMethods {
+            id
+        }
+        lines {
+            productVariantId
+            quantity
+            undiscountedUnitPrice {
+                gross {
+                amount
+                }
+            }
+            unitPrice {
+                gross {
+                    amount
+                }
+            }
+            totalPrice {
+                gross {
+                    amount
+                }
+            }
+        }
     }
   }
 }

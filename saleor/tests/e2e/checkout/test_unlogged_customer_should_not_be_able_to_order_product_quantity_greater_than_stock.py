@@ -15,19 +15,7 @@ from .utils import raw_checkout_create
 
 def prepare_product(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
 ):
-    permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_product_types_and_attributes,
-        permission_manage_shipping,
-    ]
-    assign_permissions(e2e_staff_api_client, permissions)
-
     (
         result_warehouse_id,
         result_channel_id,
@@ -73,6 +61,7 @@ def prepare_product(
         e2e_staff_api_client,
         product_variant_id,
         result_channel_id,
+        price=10,
     )
 
     return product_variant_id, product_variant_name, result_channel_slug, stock_quantity
@@ -88,6 +77,13 @@ def test_unlogged_customer_cannot_buy_product_in_quantity_grater_than_stock_core
     permission_manage_shipping,
 ):
     # Before
+    permissions = [
+        permission_manage_products,
+        permission_manage_channels,
+        permission_manage_product_types_and_attributes,
+        permission_manage_shipping,
+    ]
+    assign_permissions(e2e_staff_api_client, permissions)
     (
         product_variant_id,
         product_variant_name,
@@ -95,10 +91,6 @@ def test_unlogged_customer_cannot_buy_product_in_quantity_grater_than_stock_core
         stock_quantity,
     ) = prepare_product(
         e2e_staff_api_client,
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_product_types_and_attributes,
-        permission_manage_shipping,
     )
     # Step 1 - Create checkout with product quantity greater than the available stock
     lines = [

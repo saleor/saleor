@@ -375,6 +375,7 @@ def test_sale_channel_listing_add_update_remove_channels(
     }
 
     # when
+    # when
     response = staff_api_client.post_graphql(
         SALE_CHANNEL_LISTING_UPDATE_MUTATION,
         variables=variables,
@@ -383,6 +384,24 @@ def test_sale_channel_listing_add_update_remove_channels(
     content = get_graphql_content(response)
 
     # then
+    assert not content["data"]["saleChannelListingUpdate"]["errors"]
+    data = content["data"]["saleChannelListingUpdate"]["sale"]
+    assert data["name"] == sale.name
+    channel_listings = data["channelListings"]
+    assert len(channel_listings) == 2
+    assert all(
+        [
+            listing["channel"]["slug"] in [channel_USD.slug, channel_JPY.slug]
+            for listing in channel_listings
+        ]
+    )
+    assert all([listing["discountValue"] == discounted for listing in channel_listings])
+
+    promotion = Promotion.objects.get(old_sale_id=sale.pk)
+    rules = promotion.rules.all()
+    assert len(rules) == 2
+    for rule in rules:
+        assert len(rule.channels.all()) == 1
     assert not content["data"]["saleChannelListingUpdate"]["errors"]
     data = content["data"]["saleChannelListingUpdate"]["sale"]
     assert data["name"] == sale.name
@@ -728,6 +747,17 @@ def test_invalidate_data_sale_channel_listings_update(
     assert old_rule.channels.first() is None
     assert new_rule.channels.first().id == channel_USD.id
     assert len(new_rule.channels.all()) == 1
+    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    rules = promotion.rules.all()
+    assert len(rules) == 2
+    old_rule = rules.get(old_channel_listing_id__isnull=True)
+    new_rule = rules.get(old_channel_listing_id__isnull=False)
+    assert old_rule.reward_value is None
+    assert new_rule.reward_value == discount_value
+
+    assert old_rule.channels.first() is None
+    assert new_rule.channels.first().id == channel_USD.id
+    assert len(new_rule.channels.all()) == 1
 
     sale_errors = content["data"]["saleUpdate"]["errors"]
     channel_listings_errors = content["data"]["saleChannelListingUpdate"]["errors"]
@@ -745,57 +775,3 @@ def test_invalidate_data_sale_channel_listings_update(
     mock_update_products_discounted_prices_of_promotion_task.delay.assert_called_once_with(
         promotion.pk,
     )
-
-
-@patch(
-    "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
-    ".update_products_discounted_prices_of_promotion_task"
-)
-def test_sale_channel_listing_remove_all_channels_multiple_times(
-    mock_update_products_discounted_prices_of_promotion_task,
-    staff_api_client,
-    sale,
-    permission_manage_discounts,
-    channel_PLN,
-    channel_USD,
-):
-    # Despite removing the promotion from all channels, we ensure at least one rule
-    # is assigned to promotion in order to determine old sale's type and catalogue.
-    # This test checks if only one rule remains when all channels are removed multiple
-    # times.
-
-    # given
-    sale_id = graphene.Node.to_global_id("Sale", sale.pk)
-    channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    discounted = 2
-    convert_sales_to_promotions()
-    staff_api_client.user.user_permissions.add(permission_manage_discounts)
-    query = SALE_CHANNEL_LISTING_UPDATE_MUTATION
-    mock_update_products_discounted_prices_of_promotion_task.return_value = None
-
-    variables_add = {
-        "id": sale_id,
-        "input": {
-            "addChannels": [
-                {"channelId": channel_usd_id, "discountValue": discounted},
-                {"channelId": channel_pln_id, "discountValue": discounted},
-            ]
-        },
-    }
-    variables_remove = {
-        "id": sale_id,
-        "input": {"removeChannels": [channel_usd_id, channel_pln_id]},
-    }
-
-    # when
-    staff_api_client.post_graphql(query, variables=variables_add)
-    staff_api_client.post_graphql(query, variables=variables_remove)
-    staff_api_client.post_graphql(query, variables=variables_add)
-    staff_api_client.post_graphql(query, variables=variables_remove)
-
-    # then
-    promotion = Promotion.objects.get(old_sale_id=sale.pk)
-    rules = promotion.rules.all()
-    assert len(rules) == 1
-    assert not rules[0].channels.first()

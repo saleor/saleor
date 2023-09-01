@@ -121,8 +121,11 @@ class WebhookDryRun(BaseMutation):
         event_type, object, query = cls.validate_input(info, **data)
         payload = None
         if all([event_type, object, query]):
+            subscription_context = WEBHOOK_TYPES_MAP[
+                event_type
+            ].get_subscription_context(object)
             request = info.context
             payload = generate_payload_from_subscription(
-                event_type, object, query, request
+                event_type, subscription_context, query, request
             )
         return WebhookDryRun(payload=payload)

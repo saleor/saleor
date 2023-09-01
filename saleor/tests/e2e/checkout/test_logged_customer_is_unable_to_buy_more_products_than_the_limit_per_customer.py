@@ -13,21 +13,7 @@ from ..utils import assign_permissions
 from .utils import checkout_create, checkout_lines_update
 
 
-def prepare_product_with_limit(
-    e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
-    permission_manage_product_types_and_attributes,
-):
-    permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_product_types_and_attributes,
-    ]
-    assign_permissions(e2e_staff_api_client, permissions)
-
+def prepare_product_with_limit(e2e_staff_api_client):
     result_warehouse_id, result_channel_id, result_channel_slug, _ = prepare_shop(
         e2e_staff_api_client
     )
@@ -67,6 +53,7 @@ def prepare_product_with_limit(
         e2e_staff_api_client,
         product_variant_id,
         result_channel_id,
+        price=10,
     )
 
     return (
@@ -87,6 +74,13 @@ def test_checkout_with_product_quantity_exceeding_the_limit_per_customer_core_01
     permission_manage_product_types_and_attributes,
 ):
     # Before
+    permissions = [
+        permission_manage_products,
+        permission_manage_channels,
+        permission_manage_shipping,
+        permission_manage_product_types_and_attributes,
+    ]
+    assign_permissions(e2e_staff_api_client, permissions)
     (
         product_variant_id,
         product_variant_name,
@@ -94,10 +88,6 @@ def test_checkout_with_product_quantity_exceeding_the_limit_per_customer_core_01
         result_channel_slug,
     ) = prepare_product_with_limit(
         e2e_staff_api_client,
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_product_types_and_attributes,
     )
 
     # Step 1 - Create checkout.

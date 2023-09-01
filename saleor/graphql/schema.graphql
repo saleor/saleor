@@ -7072,7 +7072,7 @@ input ProductWhereInput @doc(category: "Products") {
   hasPreorderedVariants: Boolean
 
   """Filter by when was the most recent update."""
-  updatedAt: DateTimeRangeInput
+  updatedAt: DateTimeFilterInput
 
   """List of conditions that must be met."""
   AND: [ProductWhereInput!]
@@ -7128,6 +7128,24 @@ input DecimalRangeInput {
 
   """Decimal value less than or equal to."""
   lte: Decimal
+}
+
+"""
+Define the filtering options for date time fields.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input DateTimeFilterInput {
+  """The value equal to."""
+  eq: DateTime
+
+  """The value included in."""
+  oneOf: [DateTime!]
+
+  """The value in range."""
+  range: DateTimeRangeInput
 }
 
 input ProductOrder @doc(category: "Products") {
@@ -8239,6 +8257,7 @@ type WarehouseCountableEdge @doc(category: "Products") {
 
 input WarehouseFilterInput @doc(category: "Products") {
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum
+  metadata: [MetadataFilter!]
   search: String
   ids: [ID!]
   isPrivate: Boolean
@@ -12757,7 +12776,7 @@ Represents possible tokenized payment flows that can be used to process payment.
     INTERACTIVE - Payment method can be used for 1 click checkout - it's prefilled in
     checkout form (might require additional authentication from user)
 """
-enum TokenizedPaymentFlowEnum {
+enum TokenizedPaymentFlowEnum @doc(category: "Payments") {
   INTERACTIVE
 }
 
@@ -14225,10 +14244,10 @@ input PromotionWhereInput @doc(category: "Discounts") {
   name: StringFilterInput
 
   """Filter promotions by end date."""
-  endDate: DateTimeRangeInput
+  endDate: DateTimeFilterInput
 
   """Filter promotions by start date."""
-  startDate: DateTimeRangeInput
+  startDate: DateTimeFilterInput
   isOldSale: Boolean
 
   """List of conditions that must be met."""
@@ -24135,12 +24154,24 @@ Triggers the following webhook events:
 - STORED_PAYMENT_METHOD_DELETE_REQUESTED (sync): The customer requested to delete a payment method.
 """
 type StoredPaymentMethodRequestDelete @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [STORED_PAYMENT_METHOD_DELETE_REQUESTED]) {
-  """True, if the delete request was processed successfully."""
-  success: Boolean
-
-  """A message returned by payment app."""
-  message: String
+  """The result of deleting a stored payment method."""
+  result: StoredPaymentMethodRequestDeleteResult!
   errors: [PaymentMethodRequestDeleteError!]!
+}
+
+"""
+Result of deleting a stored payment method.
+
+    This enum is used to determine the result of deleting a stored payment method.
+    SUCCESSFULLY_DELETED - The stored payment method was successfully deleted.
+    FAILED_TO_DELETE - The stored payment method was not deleted.
+    FAILED_TO_DELIVER - The request to delete the stored payment method was not
+    delivered.
+"""
+enum StoredPaymentMethodRequestDeleteResult @doc(category: "Payments") {
+  SUCCESSFULLY_DELETED
+  FAILED_TO_DELETE
+  FAILED_TO_DELIVER
 }
 
 type PaymentMethodRequestDeleteError @doc(category: "Payments") {
@@ -24162,6 +24193,7 @@ enum StoredPaymentMethodRequestDeleteErrorCode @doc(category: "Payments") {
   INVALID
   NOT_FOUND
   CHANNEL_INACTIVE
+  GATEWAY_ERROR
 }
 
 """

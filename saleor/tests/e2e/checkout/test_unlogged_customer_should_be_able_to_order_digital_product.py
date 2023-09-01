@@ -21,18 +21,7 @@ from .utils import (
 
 def prepare_product(
     e2e_staff_api_client,
-    permission_manage_product_types_and_attributes,
-    permission_manage_channels,
-    permission_manage_products,
-    permission_manage_shipping,
 ):
-    permissions = [
-        permission_manage_product_types_and_attributes,
-        permission_manage_channels,
-        permission_manage_products,
-        permission_manage_shipping,
-    ]
-    assign_permissions(e2e_staff_api_client, permissions)
     result_warehouse_id, result_channel_id, result_channel_slug, _ = prepare_shop(
         e2e_staff_api_client
     )
@@ -66,9 +55,7 @@ def prepare_product(
     product_variant_id = product_variant_data["id"]
 
     create_product_variant_channel_listing(
-        e2e_staff_api_client,
-        product_variant_id,
-        result_channel_id,
+        e2e_staff_api_client, product_variant_id, result_channel_id, price=10
     )
 
     create_digital_content(e2e_staff_api_client, product_variant_id)
@@ -85,12 +72,15 @@ def test_process_checkout_with_digital_product_CORE_0101(
     permission_manage_shipping,
 ):
     # Before
-    product_variant_id, result_channel_slug = prepare_product(
-        e2e_staff_api_client,
+    permissions = [
         permission_manage_product_types_and_attributes,
         permission_manage_channels,
         permission_manage_products,
         permission_manage_shipping,
+    ]
+    assign_permissions(e2e_staff_api_client, permissions)
+    product_variant_id, result_channel_slug = prepare_product(
+        e2e_staff_api_client,
     )
 
     # Step 1  - Create checkout.

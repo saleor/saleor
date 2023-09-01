@@ -19,6 +19,8 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 - Add `storedPaymentMethodRequestDelete` mutation - #13660 by @korycins
 - Add `externalReference` to `updateWarehouse`. It will allow update warehouse by
   external reference. - #13342 by @Smit-Parmar
+- Add Filter warehouses by metadata - #13345 by @Smit-Parmar
+
 
 
 ### Saleor Apps
@@ -32,9 +34,12 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
   - Event sent when CSV export for gift cards is completed.
 - Add `PRODUCT_EXPORT_COMPLETED` webhook - #13787, by @Air-t
   - Event sent when CSV export for products is completed.
-
 - Add `FULFILLMENT_TRACKING_NUMBER_UPDATED` webhook - #13708, by @Air-t
   - Called after `fulfillmentUpdateTracking` or `orderFulfill` mutation if tracking number is updated.
+- Enable webhook dry runs - #13816, by @Air-t
+  - Dry runs enabled: `AccountConfirmed`, `AccountConfirmationRequested`, `AccountChangeEmailRequested`
+  - `AccountEmailChanged`, `AccountSetPasswordRequested`, `AccountDeleteRequested`, `GiftCardSent`,
+  - `FulfillmentCreated`, `FulfillmentApproved`, `StaffSetPasswordRequested`
 
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
@@ -42,6 +47,8 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 - Fix giftcard code description - #13728 by @rafiwts
 - Change error message when denying a permission - #13334 by @rafiwts
 - Add filter by slugs to attribute choices - #13761 by @rafiwts
+- Add a new `product` field on `AssignedProductAttributeValue`. First part of a simplification of Attribute - Product relation from #12881. by @aniav
+- Lazy legacy webhooks payload generation - #13758 by @maarcingebala
 
 # 3.15.0 [Unreleased]
 
@@ -136,6 +143,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - Add `CheckoutLine.problems` field
   - Add `CheckoutSettingsInput` to `ChannelCreateInput` & `ChannelUpdateInput`
   - Add `checkoutSettings` field to `Channel`
+
 ### Saleor Apps
 
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada

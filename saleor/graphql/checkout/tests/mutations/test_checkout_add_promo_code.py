@@ -124,6 +124,7 @@ def test_checkout_add_already_applied_voucher_for_entire_order(
     channel = checkout_with_item.channel
     channel_listing = variant.channel_listings.get(channel=channel)
     net = variant.get_price(channel_listing) * checkout_with_item.lines.first().quantity
+    net = variant.get_price(channel_listing) * checkout_with_item.lines.first().quantity
 
     voucher_channel_listing = voucher.channel_listings.get(channel=channel)
     voucher_channel_listing.discount_value = net.amount
@@ -287,6 +288,7 @@ def test_checkout_add_voucher_code_checkout_with_sale(
 ):
     # given
     checkout = checkout_with_item_on_sale
+    checkout = checkout_with_item_on_sale
     manager = get_plugins_manager()
     address = checkout.shipping_address
 
@@ -385,6 +387,7 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
     api_client, checkout_with_item_on_sale, voucher_percentage, channel_USD
 ):
     # given
+    checkout = checkout_with_item_on_sale
     checkout = checkout_with_item_on_sale
     product = checkout.lines.first().variant.product
     voucher = voucher_percentage
@@ -713,6 +716,10 @@ def test_checkout_add_collection_voucher_code_checkout_on_promotion(
         lines=lines,
         address=checkout.shipping_address,
     )
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "promoCode": voucher.code,
+    }
 
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -770,6 +777,7 @@ def test_checkout_add_category_code_checkout_on_promotion(
 
     checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
+
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
@@ -790,6 +798,11 @@ def test_checkout_add_category_code_checkout_on_promotion(
     )
     voucher_discount = voucher_discount_value / 100 * discounted_subtotal
 
+    discounted_subtotal = (
+        lines[0].channel_listing.discounted_price_amount * lines[0].line.quantity
+    )
+    voucher_discount = voucher_discount_value / 100 * discounted_subtotal
+
     checkout.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout)
     subtotal_with_voucher = calculations.checkout_subtotal(
@@ -799,6 +812,9 @@ def test_checkout_add_category_code_checkout_on_promotion(
         address=checkout.shipping_address,
     )
     assert not data["errors"]
+    assert subtotal_discounted == subtotal_with_voucher + Money(
+        voucher_discount, checkout.currency
+    )
     assert subtotal_discounted == subtotal_with_voucher + Money(
         voucher_discount, checkout.currency
     )
@@ -832,7 +848,13 @@ def test_checkout_add_variant_voucher_code_apply_once_per_order(
     variant_2_listing.discounted_price_amount = variant_2_price
     variant_3_listing.discounted_price_amount = variant_3_price
 
+    variant_1_listing.price_amount = variant_1_price
+    variant_2_listing.discounted_price_amount = variant_2_price
+    variant_3_listing.discounted_price_amount = variant_3_price
+
     ProductVariantChannelListing.objects.bulk_update(
+        [variant_1_listing, variant_2_listing, variant_3_listing],
+        ["price_amount", "discounted_price_amount"],
         [variant_1_listing, variant_2_listing, variant_3_listing],
         ["price_amount", "discounted_price_amount"],
     )
