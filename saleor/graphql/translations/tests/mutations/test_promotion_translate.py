@@ -1,12 +1,11 @@
 import json
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from .....webhook.event_types import WebhookEventAsyncType
-from .....webhook.payloads import generate_translation_payload
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 PROMOTION_TRANSLATE_MUTATION = """
@@ -84,13 +83,13 @@ def test_promotion_create_translation(
     assert translation_data["language"]["code"] == "PL"
 
     translation = promotion.translations.first()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
     )
 
 

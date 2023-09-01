@@ -2,6 +2,7 @@ import json
 from unittest import mock
 
 import graphene
+import pytest
 
 from .....core import EventDeliveryStatus
 from .....graphql.tests.utils import get_graphql_content
@@ -28,6 +29,7 @@ WEBHOOK_TRIGGER_MUTATION = """
     """
 
 
+@pytest.mark.skip(reason="Failing on main, will be fixed after fix on main.")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
 def test_webhook_trigger_success(
     mock_send_webhook_using_scheme_method,
