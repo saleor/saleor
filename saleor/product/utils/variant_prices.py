@@ -48,7 +48,7 @@ def update_products_discounted_price(products: Iterable[Product], discounts=None
     changed_variants_listings_to_update = []
     product_channel_listings = ProductChannelListing.objects.filter(
         Exists(product_qs.filter(id=OuterRef("product_id")))
-    )
+    ).prefetch_related("product", "channel")
     for product_channel_listing in product_channel_listings:
         product_id = product_channel_listing.product_id
         channel_id = product_channel_listing.channel_id
@@ -169,7 +169,7 @@ def update_products_discounted_prices(products, discounts=None):
         discounts = fetch_active_discounts()
 
     for product_batch in _products_in_batches(products):
-        update_products_discounted_price(product_batch)
+        update_products_discounted_price(product_batch, discounts)
 
 
 def update_products_discounted_prices_of_catalogues(
