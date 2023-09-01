@@ -2046,7 +2046,7 @@ def category(db):  # pylint: disable=W0613
 @pytest.fixture
 def category_with_image(db, image, media_root):  # pylint: disable=W0613
     return Category.objects.create(
-        name="Default", slug="default", background_image=image
+        name="Default2", slug="default2", background_image=image
     )
 
 

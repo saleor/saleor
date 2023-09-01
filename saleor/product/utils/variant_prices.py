@@ -189,7 +189,8 @@ def update_products_discounted_prices_of_catalogues(
         )
         lookup |= Q(Exists(collection_products.filter(product_id=OuterRef("id"))))
     if variant_ids:
-        lookup |= Q(Exists(ProductVariant.objects.filter(product_id=OuterRef("id"))))
+        variants = ProductVariant.objects.filter(id__in=variant_ids)
+        lookup |= Q(Exists(variants.filter(product_id=OuterRef("id"))))
 
     if lookup:
         products = Product.objects.filter(lookup)
