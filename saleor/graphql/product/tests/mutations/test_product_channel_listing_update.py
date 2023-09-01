@@ -1224,7 +1224,6 @@ def test_product_channel_listing_remove_variant_as_app(
 ):
     # given
     variant = product.variants.first()
-    print(variant)
     ProductVariantChannelListing.objects.create(channel=channel_PLN, variant=variant)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
