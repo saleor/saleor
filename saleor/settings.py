@@ -19,6 +19,7 @@ from celery.schedules import crontab
 from django.conf import global_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
+from django.core.validators import URLValidator
 from graphql.execution import executor
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
@@ -44,6 +45,15 @@ def get_bool_from_env(name, default_value):
         except ValueError as e:
             raise ValueError("{} is an invalid value for {}".format(value, name)) from e
     return default_value
+
+
+def get_url_from_env(name, *, schemes=None) -> Optional[str]:
+    if name in os.environ:
+        value = os.environ[name]
+        message = f"{value} is an invalid value for {name}"
+        URLValidator(schemes=schemes, message=message)(value)
+        return value
+    return None
 
 
 DEBUG = get_bool_from_env("DEBUG", True)
@@ -141,7 +151,7 @@ ENABLE_SSL: bool = get_bool_from_env("ENABLE_SSL", False)
 
 # URL on which Saleor is hosted (e.g., https://api.example.com/). This has precedence
 # over ENABLE_SSL and Shop.domain when generating URLs pointing to itself.
-PUBLIC_URL: Optional[str] = os.environ.get("PUBLIC_URL")
+PUBLIC_URL: Optional[str] = get_url_from_env("PUBLIC_URL", schemes=["http", "https"])
 if PUBLIC_URL:
     if os.environ.get("ENABLE_SSL") is not None:
         warnings.warn("ENABLE_SSL is ignored on URL generation if PUBLIC_URL is set.")
