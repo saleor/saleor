@@ -1,7 +1,10 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from .....payment.interface import StoredPaymentMethodRequestDeleteData
+from .....payment.interface import (
+    StoredPaymentMethodRequestDeleteData,
+    StoredPaymentMethodRequestDeleteResult,
+)
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventSyncType
 from ....channel.utils import validate_channel
@@ -12,14 +15,12 @@ from ....core.mutations import BaseMutation
 from ....core.types.common import PaymentMethodRequestDeleteError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ...enums import StoredPaymentMethodRequestDeleteResultEnum
 
 
 class StoredPaymentMethodRequestDelete(BaseMutation):
-    success = graphene.Boolean(
-        description="True, if the delete request was processed successfully.",
-    )
-    message = graphene.String(
-        description="A message returned by payment app.",
+    result = StoredPaymentMethodRequestDeleteResultEnum(
+        required=True, description="The result of deleting a stored payment method."
     )
 
     class Arguments:
@@ -50,6 +51,17 @@ class StoredPaymentMethodRequestDelete(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, channel):
+        try:
+            return cls._perform_mutation(root, info, id, channel)
+        except ValidationError as error:
+            error_response = cls.handle_errors(error)
+            error_response.result = (
+                StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER
+            )
+            return error_response
+
+    @classmethod
+    def _perform_mutation(cls, root, info, id, channel):
         user = info.context.user
         if not user:
             raise ValidationError(
@@ -75,4 +87,16 @@ class StoredPaymentMethodRequestDelete(BaseMutation):
                 channel=channel,
             )
         )
-        return cls(success=response.success, message=response.message)
+        errors = []
+        if (
+            response.result
+            != StoredPaymentMethodRequestDeleteResultEnum.SUCCESSFULLY_DELETED.value
+        ):
+            error_code = StoredPaymentMethodRequestDeleteErrorCode.GATEWAY_ERROR.value
+            errors.append(
+                {
+                    "message": response.error,
+                    "code": error_code,
+                }
+            )
+        return cls(result=response.result, errors=errors)

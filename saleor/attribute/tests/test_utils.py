@@ -71,7 +71,7 @@ def test_associate_attribute_to_product_instance_multiple_values(
     assert new_assignment.pk == old_assignment.pk
     assert new_assignment.values.count() == 2
     assert list(
-        new_assignment.productvalueassignment.values_list("value__pk", "sort_order")
+        new_assignment.productvalueassignment.values_list("value_id", "sort_order")
     ) == [(values[1].pk, 0), (values[0].pk, 1)]
 
 
@@ -93,7 +93,7 @@ def test_associate_attribute_to_page_instance_multiple_values(page):
     assert new_assignment.pk == old_assignment.pk
     assert new_assignment.values.count() == 2
     assert list(
-        new_assignment.pagevalueassignment.values_list("value__pk", "sort_order")
+        new_assignment.pagevalueassignment.values_list("value_id", "sort_order")
     ) == [(values[1].pk, 0), (values[0].pk, 1)]
 
 
@@ -116,5 +116,28 @@ def test_associate_attribute_to_variant_instance_multiple_values(
     # Ensure the new assignment was created and ordered correctly
     assert new_assignment.values.count() == 2
     assert list(
-        new_assignment.variantvalueassignment.values_list("value__pk", "sort_order")
+        new_assignment.variantvalueassignment.values_list("value_id", "sort_order")
     ) == [(values[0].pk, 0), (values[1].pk, 1)]
+
+
+def test_associate_attribute_to_product_copies_data_over_to_new_field(
+    product, color_attribute
+):
+    """Ensure data is double writed.
+
+    Part of implementation of the #12881 issue. We need to check that the
+    value of AssignedProductAttribute.product is copied over to
+    AssignedProductAttributeValue.product.
+    """
+    values = color_attribute.values.all()
+
+    # Assign new values
+    new_assignment = associate_attribute_values_to_instance(
+        product, color_attribute, values[0], values[1]
+    )
+
+    # Ensure the new assignment was created
+    assert new_assignment.values.count() == 2
+    assert list(
+        new_assignment.productvalueassignment.values_list("value_id", "product_id")
+    ) == [(values[0].pk, product.id), (values[1].pk, product.id)]

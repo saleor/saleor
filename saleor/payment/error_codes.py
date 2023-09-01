@@ -97,3 +97,4 @@ class StoredPaymentMethodRequestDeleteErrorCode(Enum):
     INVALID = "invalid"
     NOT_FOUND = "not_found"
     CHANNEL_INACTIVE = "channel_inactive"
+    GATEWAY_ERROR = "gateway_error"
