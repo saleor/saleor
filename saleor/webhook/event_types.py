@@ -741,6 +741,9 @@ class WebhookEventSyncType:
     PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION = (
         "payment_method_initialize_tokenization_session"
     )
+    PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION = (
+        "payment_method_process_tokenization_session"
+    )
 
     EVENT_MAP: dict[str, dict[str, Any]] = {
         PAYMENT_LIST_GATEWAYS: {
@@ -829,6 +832,10 @@ class WebhookEventSyncType:
         },
         PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION: {
             "name": "Initialize payment method tokenization session.",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION: {
+            "name": "Process payment method tokenization.",
             "permission": PaymentPermissions.HANDLE_PAYMENTS,
         },
     }

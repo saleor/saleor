@@ -9,6 +9,7 @@ from .payment import (
 from .stored_payment_methods import (
     PaymentGatewayInitializeTokenization,
     PaymentMethodInitializeTokenization,
+    PaymentMethodProcessTokenization,
     StoredPaymentMethodRequestDelete,
 )
 from .transaction import (
@@ -31,6 +32,7 @@ __all__ = [
     "PaymentRefund",
     "PaymentVoid",
     "PaymentGatewayInitializeTokenization",
+    "PaymentMethodProcessTokenization",
     "StoredPaymentMethodRequestDelete",
     "PaymentMethodInitializeTokenization",
     "TransactionCreate",

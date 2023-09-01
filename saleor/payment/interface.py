@@ -210,6 +210,15 @@ class PaymentMethodInitializeTokenizationRequestData(
     app_identifier: str
 
 
+@dataclass
+class PaymentMethodProcessTokenizationRequestData(
+    PaymentMethodTokenizationBaseRequestData
+):
+    """Dataclass for storing the request information for payment app."""
+
+    id: str
+
+
 class PaymentMethodTokenizationResult(str, Enum):
     """Result of tokenization of payment method.
 
@@ -227,9 +236,7 @@ class PaymentMethodTokenizationResult(str, Enum):
 
 
 @dataclass
-class PaymentMethodInitializeTokenizationResponseData(
-    PaymentMethodTokenizationBaseResponseData
-):
+class PaymentMethodTokenizationResponseData(PaymentMethodTokenizationBaseResponseData):
     """Dataclass for storing the response information from payment app."""
 
     result: PaymentMethodTokenizationResult

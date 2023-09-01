@@ -44,8 +44,8 @@ from ..payment.interface import (
     PaymentGatewayInitializeTokenizationResponseData,
     PaymentGatewayInitializeTokenizationResult,
     PaymentMethodData,
-    PaymentMethodInitializeTokenizationRequestData,
-    PaymentMethodInitializeTokenizationResponseData,
+    PaymentMethodProcessTokenizationRequestData,
+    PaymentMethodTokenizationResponseData,
     PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
@@ -1582,9 +1582,9 @@ class PluginsManager(PaymentInterface):
 
     def payment_method_initialize_tokenization(
         self,
-        request_data: "PaymentMethodInitializeTokenizationRequestData",
-    ) -> "PaymentMethodInitializeTokenizationResponseData":
-        default_response = PaymentMethodInitializeTokenizationResponseData(
+        request_data: "PaymentMethodProcessTokenizationRequestData",
+    ) -> "PaymentMethodTokenizationResponseData":
+        default_response = PaymentMethodTokenizationResponseData(
             result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
             error="Payment method initialize tokenization failed to deliver.",
             data=None,
@@ -1592,6 +1592,23 @@ class PluginsManager(PaymentInterface):
 
         response = self.__run_method_on_plugins(
             "payment_method_initialize_tokenization",
+            default_response,
+            request_data,
+        )
+        return response
+
+    def payment_method_process_tokenization(
+        self,
+        request_data: "PaymentMethodProcessTokenizationRequestData",
+    ) -> "PaymentMethodTokenizationResponseData":
+        default_response = PaymentMethodTokenizationResponseData(
+            result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
+            error="Payment method process tokenization failed to deliver.",
+            data=None,
+        )
+
+        response = self.__run_method_on_plugins(
+            "payment_method_process_tokenization",
             default_response,
             request_data,
         )

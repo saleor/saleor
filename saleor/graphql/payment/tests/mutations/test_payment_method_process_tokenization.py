@@ -3,20 +3,19 @@ from unittest.mock import patch
 import pytest
 
 from .....payment.interface import (
-    PaymentMethodInitializeTokenizationRequestData,
+    PaymentMethodProcessTokenizationRequestData,
     PaymentMethodTokenizationResponseData,
     PaymentMethodTokenizationResult,
 )
 from .....plugins.manager import PluginsManager
-from .....plugins.webhook.utils import to_payment_app_id
-from ....core.enums import PaymentMethodInitializeTokenizationErrorCode
+from ....core.enums import PaymentMethodProcessTokenizationErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import PaymentMethodTokenizationResultEnum
 
-PAYMENT_METHOD_INITIALIZE_TOKENIZATION = """
-mutation PaymentMethodInitializeTokenization(
+PAYMENT_METHOD_PROCESS_TOKENIZATION = """
+mutation PaymentMethodProcessTokenization(
 $id: String!, $channel: String!, $data: JSON){
-  paymentMethodInitializeTokenization(id: $id, channel: $channel, data: $data){
+  paymentMethodProcessTokenization(id: $id, channel: $channel, data: $data){
     result
     data
     id
@@ -39,11 +38,11 @@ $id: String!, $channel: String!, $data: JSON){
         ({"foo": "bar3"}, {"foo": "bar4"}),
     ],
 )
-@patch.object(PluginsManager, "payment_method_initialize_tokenization")
+@patch.object(PluginsManager, "payment_method_process_tokenization")
 @patch.object(PluginsManager, "is_event_active_for_any_plugin")
-def test_payment_method_initialize_tokenization(
+def test_payment_method_process_tokenization(
     mocked_is_event_active_for_any_plugin,
-    mocked_payment_method_initialize_tokenization,
+    mocked_payment_method_process_tokenization,
     expected_input_data,
     expected_output_data,
     user_api_client,
@@ -51,9 +50,9 @@ def test_payment_method_initialize_tokenization(
     app,
 ):
     # given
-    expected_payment_method_id = to_payment_app_id(app, "test_id")
+    expected_payment_method_id = "test_id"
     mocked_is_event_active_for_any_plugin.return_value = True
-    mocked_payment_method_initialize_tokenization.return_value = (
+    mocked_payment_method_process_tokenization.return_value = (
         PaymentMethodTokenizationResponseData(
             result=PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED,
             id=expected_payment_method_id,
@@ -61,11 +60,12 @@ def test_payment_method_initialize_tokenization(
             data=expected_output_data,
         )
     )
+
     expected_id = "test_id"
 
     # when
     response = user_api_client.post_graphql(
-        PAYMENT_METHOD_INITIALIZE_TOKENIZATION,
+        PAYMENT_METHOD_PROCESS_TOKENIZATION,
         variables={
             "id": expected_id,
             "channel": channel_USD.slug,
@@ -75,39 +75,41 @@ def test_payment_method_initialize_tokenization(
 
     # then
     content = get_graphql_content(response)
-    response_data = content["data"]["paymentMethodInitializeTokenization"]
+
+    response_data = content["data"]["paymentMethodProcessTokenization"]
     assert response_data["result"] == (
         PaymentMethodTokenizationResultEnum.SUCCESSFULLY_TOKENIZED.name
     )
     assert response_data["data"] == expected_output_data
     assert response_data["id"] == expected_payment_method_id
     mocked_is_event_active_for_any_plugin.assert_called_once_with(
-        "payment_method_initialize_tokenization"
+        "payment_method_process_tokenization"
     )
-    mocked_payment_method_initialize_tokenization.assert_called_once_with(
-        request_data=PaymentMethodInitializeTokenizationRequestData(
+    mocked_payment_method_process_tokenization.assert_called_once_with(
+        request_data=PaymentMethodProcessTokenizationRequestData(
             user=user_api_client.user,
             channel=channel_USD,
-            app_identifier=expected_id,
+            id=expected_id,
             data=expected_input_data,
         )
     )
 
 
-@patch.object(PluginsManager, "payment_method_initialize_tokenization")
+@patch.object(PluginsManager, "payment_method_process_tokenization")
 @patch.object(PluginsManager, "is_event_active_for_any_plugin")
-def test_payment_method_initialize_tokenization_called_by_anonymous_user(
+def test_payment_method_process_tokenization_called_by_anonymous_user(
     mocked_is_event_active_for_any_plugin,
-    mocked_payment_method_initialize_tokenization,
+    mocked_payment_method_process_tokenization,
     api_client,
     channel_USD,
+    app,
 ):
     # given
     expected_id = "test_id"
 
     # when
     response = api_client.post_graphql(
-        PAYMENT_METHOD_INITIALIZE_TOKENIZATION,
+        PAYMENT_METHOD_PROCESS_TOKENIZATION,
         variables={"id": expected_id, "channel": channel_USD.slug},
     )
 
@@ -115,23 +117,24 @@ def test_payment_method_initialize_tokenization_called_by_anonymous_user(
     assert_no_permission(response)
 
     assert not mocked_is_event_active_for_any_plugin.called
-    assert not mocked_payment_method_initialize_tokenization.called
+    assert not mocked_payment_method_process_tokenization.called
 
 
-@patch.object(PluginsManager, "payment_method_initialize_tokenization")
+@patch.object(PluginsManager, "payment_method_process_tokenization")
 @patch.object(PluginsManager, "is_event_active_for_any_plugin")
-def test_payment_method_initialize_tokenization_called_by_app(
+def test_payment_method_process_tokenization_called_by_app(
     mocked_is_event_active_for_any_plugin,
-    mocked_payment_method_initialize_tokenization,
+    mocked_payment_method_process_tokenization,
     app_api_client,
     channel_USD,
+    app,
 ):
     # given
     expected_id = "test_id"
 
     # when
     response = app_api_client.post_graphql(
-        PAYMENT_METHOD_INITIALIZE_TOKENIZATION,
+        PAYMENT_METHOD_PROCESS_TOKENIZATION,
         variables={"id": expected_id, "channel": channel_USD.slug},
     )
 
@@ -139,16 +142,17 @@ def test_payment_method_initialize_tokenization_called_by_app(
     assert_no_permission(response)
 
     assert not mocked_is_event_active_for_any_plugin.called
-    assert not mocked_payment_method_initialize_tokenization.called
+    assert not mocked_payment_method_process_tokenization.called
 
 
-@patch.object(PluginsManager, "payment_method_initialize_tokenization")
+@patch.object(PluginsManager, "payment_method_process_tokenization")
 @patch.object(PluginsManager, "is_event_active_for_any_plugin")
-def test_payment_method_initialize_tokenization_not_app_or_plugin_subscribed_to_event(
+def test_payment_method_process_tokenization_not_app_or_plugin_subscribed_to_event(
     mocked_is_event_active_for_any_plugin,
-    mocked_payment_method_initialize_tokenization,
+    mocked_payment_method_process_tokenization,
     user_api_client,
     channel_USD,
+    app,
 ):
     # given
     mocked_is_event_active_for_any_plugin.return_value = False
@@ -157,70 +161,72 @@ def test_payment_method_initialize_tokenization_not_app_or_plugin_subscribed_to_
 
     # when
     response = user_api_client.post_graphql(
-        PAYMENT_METHOD_INITIALIZE_TOKENIZATION,
+        PAYMENT_METHOD_PROCESS_TOKENIZATION,
         variables={"id": expected_id, "channel": channel_USD.slug},
     )
 
     # then
     content = get_graphql_content(response)
-    assert len(content["data"]["paymentMethodInitializeTokenization"]["errors"]) == 1
+    assert len(content["data"]["paymentMethodProcessTokenization"]["errors"]) == 1
     assert (
-        content["data"]["paymentMethodInitializeTokenization"]["errors"][0]["code"]
-        == PaymentMethodInitializeTokenizationErrorCode.NOT_FOUND.name
+        content["data"]["paymentMethodProcessTokenization"]["errors"][0]["code"]
+        == PaymentMethodProcessTokenizationErrorCode.NOT_FOUND.name
     )
-    assert content["data"]["paymentMethodInitializeTokenization"]["result"] == (
+    assert content["data"]["paymentMethodProcessTokenization"]["result"] == (
         PaymentMethodTokenizationResultEnum.FAILED_TO_DELIVER.name
     )
 
     mocked_is_event_active_for_any_plugin.assert_called_once_with(
-        "payment_method_initialize_tokenization"
+        "payment_method_process_tokenization"
     )
-    assert not mocked_payment_method_initialize_tokenization.called
+    assert not mocked_payment_method_process_tokenization.called
 
 
-@patch.object(PluginsManager, "payment_method_initialize_tokenization")
+@patch.object(PluginsManager, "payment_method_process_tokenization")
 @patch.object(PluginsManager, "is_event_active_for_any_plugin")
-def test_payment_method_initialize_tokenization_incorrect_channel(
+def test_payment_method_process_tokenization_incorrect_channel(
     mocked_is_event_active_for_any_plugin,
-    mocked_payment_method_initialize_tokenization,
+    mocked_payment_method_process_tokenization,
     user_api_client,
+    app,
 ):
     # given
     expected_id = "test_id"
 
     # when
     response = user_api_client.post_graphql(
-        PAYMENT_METHOD_INITIALIZE_TOKENIZATION,
+        PAYMENT_METHOD_PROCESS_TOKENIZATION,
         variables={"id": expected_id, "channel": "non-exiting-channel"},
     )
 
     # then
     content = get_graphql_content(response)
-    assert len(content["data"]["paymentMethodInitializeTokenization"]["errors"]) == 1
+    assert len(content["data"]["paymentMethodProcessTokenization"]["errors"]) == 1
     assert (
-        content["data"]["paymentMethodInitializeTokenization"]["errors"][0]["code"]
-        == PaymentMethodInitializeTokenizationErrorCode.NOT_FOUND.name
+        content["data"]["paymentMethodProcessTokenization"]["errors"][0]["code"]
+        == PaymentMethodProcessTokenizationErrorCode.NOT_FOUND.name
     )
-    assert content["data"]["paymentMethodInitializeTokenization"]["result"] == (
+    assert content["data"]["paymentMethodProcessTokenization"]["result"] == (
         PaymentMethodTokenizationResultEnum.FAILED_TO_DELIVER.name
     )
 
     assert not mocked_is_event_active_for_any_plugin.called
-    assert not mocked_payment_method_initialize_tokenization.called
+    assert not mocked_payment_method_process_tokenization.called
 
 
-@patch.object(PluginsManager, "payment_method_initialize_tokenization")
+@patch.object(PluginsManager, "payment_method_process_tokenization")
 @patch.object(PluginsManager, "is_event_active_for_any_plugin")
-def test_payment_method_initialize_tokenization_failure_from_app(
+def test_payment_method_process_tokenization_failure_from_app(
     mocked_is_event_active_for_any_plugin,
-    mocked_payment_method_initialize_tokenization,
+    mocked_payment_method_process_tokenization,
     user_api_client,
     channel_USD,
+    app,
 ):
     # given
     error_message = "Error message"
     mocked_is_event_active_for_any_plugin.return_value = True
-    mocked_payment_method_initialize_tokenization.return_value = (
+    mocked_payment_method_process_tokenization.return_value = (
         PaymentMethodTokenizationResponseData(
             result=PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE,
             error=error_message,
@@ -231,7 +237,7 @@ def test_payment_method_initialize_tokenization_failure_from_app(
 
     # when
     response = user_api_client.post_graphql(
-        PAYMENT_METHOD_INITIALIZE_TOKENIZATION,
+        PAYMENT_METHOD_PROCESS_TOKENIZATION,
         variables={
             "id": expected_id,
             "channel": channel_USD.slug,
@@ -241,24 +247,22 @@ def test_payment_method_initialize_tokenization_failure_from_app(
 
     # then
     content = get_graphql_content(response)
-    assert content["data"]["paymentMethodInitializeTokenization"]["result"] == (
+    assert content["data"]["paymentMethodProcessTokenization"]["result"] == (
         PaymentMethodTokenizationResultEnum.FAILED_TO_TOKENIZE.name
     )
-    assert len(content["data"]["paymentMethodInitializeTokenization"]["errors"]) == 1
-    error = content["data"]["paymentMethodInitializeTokenization"]["errors"][0]
-    assert (
-        error["code"] == PaymentMethodInitializeTokenizationErrorCode.GATEWAY_ERROR.name
-    )
+    assert len(content["data"]["paymentMethodProcessTokenization"]["errors"]) == 1
+    error = content["data"]["paymentMethodProcessTokenization"]["errors"][0]
+    assert error["code"] == PaymentMethodProcessTokenizationErrorCode.GATEWAY_ERROR.name
     assert error["message"] == error_message
 
     mocked_is_event_active_for_any_plugin.assert_called_once_with(
-        "payment_method_initialize_tokenization"
+        "payment_method_process_tokenization"
     )
-    mocked_payment_method_initialize_tokenization.assert_called_once_with(
-        request_data=PaymentMethodInitializeTokenizationRequestData(
+    mocked_payment_method_process_tokenization.assert_called_once_with(
+        request_data=PaymentMethodProcessTokenizationRequestData(
             user=user_api_client.user,
             channel=channel_USD,
-            app_identifier=expected_id,
+            id=expected_id,
             data=None,
         )
     )

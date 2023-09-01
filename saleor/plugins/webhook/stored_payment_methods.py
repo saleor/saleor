@@ -12,7 +12,7 @@ from ...payment.interface import (
     PaymentGatewayInitializeTokenizationResult,
     PaymentMethodCreditCardInfo,
     PaymentMethodData,
-    PaymentMethodInitializeTokenizationResponseData,
+    PaymentMethodTokenizationResponseData,
     PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteResponseData,
 )
@@ -203,7 +203,7 @@ def get_response_for_payment_gateway_initialize_tokenization(
 
 def get_response_for_payment_method_tokenization(
     response_data: Optional[dict], app: "App"
-) -> "PaymentMethodInitializeTokenizationResponseData":
+) -> "PaymentMethodTokenizationResponseData":
     data = None
     payment_method_id = None
     if response_data is None:
@@ -227,6 +227,6 @@ def get_response_for_payment_method_tokenization(
                 result = PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE
                 error = "Missing payment method `id` in response."
 
-    return PaymentMethodInitializeTokenizationResponseData(
+    return PaymentMethodTokenizationResponseData(
         result=result, error=error, data=data, id=payment_method_id
     )
