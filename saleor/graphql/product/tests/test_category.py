@@ -610,6 +610,7 @@ MUTATION_CATEGORY_UPDATE_MUTATION = """
                 id
                 name
                 description
+                updatedAt
                 parent {
                     id
                 }
@@ -687,6 +688,41 @@ def test_category_update_mutation(
     assert data["category"]["backgroundImage"]["alt"] == image_alt
     assert category.metadata == {metadata_key: metadata_value, **old_meta}
     assert category.private_metadata == {metadata_key: metadata_value, **old_meta}
+
+
+@freeze_time("2023-09-01 12:00:00")
+def test_category_update_mutation_with_update_at_field(
+    monkeypatch, staff_api_client, category, permission_manage_products, media_root
+):
+    query = MUTATION_CATEGORY_UPDATE_MUTATION
+
+    # create child category and test that the update mutation won't change
+    # it's parent
+    child_category = category.children.create(name="child")
+
+    category_name = "Updated name"
+    description = "description"
+    category_slug = slugify(category_name)
+    category_description = dummy_editorjs(description, True)
+
+    category_id = graphene.Node.to_global_id("Category", child_category.pk)
+    variables = {
+        "name": category_name,
+        "description": category_description,
+        "id": category_id,
+        "slug": category_slug,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["categoryUpdate"]
+
+    assert data["category"]["id"] == category_id
+    assert data["category"]["name"] == category_name
+    assert data["category"]["description"] == category_description
+    assert data["category"]["updatedAt"] == "2023-09-01T12:00:00+00:00"
 
 
 @freeze_time("2022-05-12 12:00:00")

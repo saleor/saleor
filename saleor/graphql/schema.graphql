@@ -6673,6 +6673,13 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 
+  """
+  The date and time when the product was last updated.
+  
+  Added in Saleor 3.16.
+  """
+  updatedAt: DateTime!
+
   """List of ancestors of the category."""
   ancestors(
     """Return the elements in the list that come before the specified cursor."""
@@ -12800,7 +12807,11 @@ input CategoryFilterInput @doc(category: "Products") {
   ids: [ID!]
   slugs: [String!]
 
-  """Filter by when was the most recent update."""
+  """
+  Filter by when was the most recent update. 
+  
+  Added in Saleor 3.16.
+  """
   updatedAt: DateTimeRangeInput
 }
 
