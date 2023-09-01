@@ -115,7 +115,7 @@ def test_clean_channels_remove_channels(channel_PLN):
     assert errors["input"] == []
 
 
-def test_clean_channels_remove_channels_is_null():
+def test_clean_channels_remove_channels_is_null(channel_PLN):
     # given
     channel_id = None
     error_code = ShippingErrorCode.DUPLICATED_INPUT_ITEM.value
@@ -128,8 +128,7 @@ def test_clean_channels_remove_channels_is_null():
 
     # then
     assert result == {"add_channels": [], "remove_channels": []}
-
-
+    assert errors["input"] == []
 
 
 def test_test_clean_channels_with_errors(channel_PLN):
@@ -165,4 +164,3 @@ def test_test_clean_channels_invalid_object_type(channel_PLN):
         error.value.error_dict["remove_channels"][0].message
         == f"Must receive Channel id: {channel_id}."
     )
-
