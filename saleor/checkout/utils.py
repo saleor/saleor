@@ -19,6 +19,7 @@ from ..discount import VoucherType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
+    generate_sale_discount_objects_for_checkout,
     get_products_voucher_discount,
     validate_voucher_for_checkout,
 )
@@ -63,6 +64,7 @@ def invalidate_checkout_prices(
     checkout = checkout_info.checkout
 
     if recalculate_discount:
+        generate_sale_discount_objects_for_checkout(checkout_info, lines)
         recalculate_checkout_discount(manager, checkout_info, lines)
 
     checkout.price_expiration = timezone.now()
