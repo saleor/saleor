@@ -68,7 +68,7 @@ class Domain(graphene.ObjectType):
     url = graphene.String(description="Shop's absolute URL.", required=True)
 
     class Meta:
-        description = "Represents shop's domain."
+        description = "Represents API domain."
 
 
 class OrderSettings(ModelObjectType[site_models.SiteSettings]):

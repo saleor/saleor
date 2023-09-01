@@ -9838,7 +9838,7 @@ input CountryFilterInput {
   attachedToShippingZones: Boolean
 }
 
-"""Represents shop's domain."""
+"""Represents API domain."""
 type Domain {
   """The host name of the domain."""
   host: String!
