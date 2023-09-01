@@ -25,7 +25,11 @@ class ShopDomainUpdate(BaseMutation):
         input = SiteDomainInput(description="Fields required to update site.")
 
     class Meta:
-        description = "Updates site domain of the shop." + DEPRECATED_IN_3X_MUTATION
+        description = (
+            "Updates site domain of the shop."
+            + DEPRECATED_IN_3X_MUTATION
+            + " Use `PUBLIC_URL` environment variable instead."
+        )
         doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError

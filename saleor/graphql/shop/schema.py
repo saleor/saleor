@@ -82,6 +82,7 @@ class ShopMutations(graphene.ObjectType):
 
     shop_domain_update = ShopDomainUpdate.Field(
         deprecation_reason=DEPRECATED_IN_3X_MUTATION
+        + " Use `PUBLIC_URL` environment variable instead."
     )
     shop_settings_update = ShopSettingsUpdate.Field()
     shop_fetch_tax_rates = ShopFetchTaxRates.Field(
