@@ -15,10 +15,14 @@ from .utils import (
 )
 
 
-def prepare_sale_for_variant(e2e_staff_api_client, channel_id, product_variant_id):
-    sale_name = "Sale PERCENTAGE"
-    sale_discount_type = "PERCENTAGE"
-    sale_discount_value = 13
+def prepare_sale_for_variant(
+    e2e_staff_api_client,
+    channel_id,
+    product_variant_id,
+    sale_discount_type,
+    sale_discount_value,
+):
+    sale_name = "Sale"
     sale = create_sale(e2e_staff_api_client, sale_name, sale_discount_type)
     sale_id = sale["id"]
     sale_listing_input = [
@@ -37,12 +41,16 @@ def prepare_sale_for_variant(e2e_staff_api_client, channel_id, product_variant_i
 
 
 def prepare_voucher(
-    e2e_staff_api_client, channel_id, voucher_code, voucher_discount_value
+    e2e_staff_api_client,
+    channel_id,
+    voucher_code,
+    voucher_discount_type,
+    voucher_discount_value,
 ):
     voucher_code = "VOUCHER001"
     voucher_data = create_voucher(
         e2e_staff_api_client,
-        "PERCENTAGE",
+        voucher_discount_type,
         voucher_code,
         "ENTIRE_ORDER",
     )
@@ -87,14 +95,14 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     )
 
     sale_id, sale_discount_value = prepare_sale_for_variant(
-        e2e_staff_api_client, channel_id, product_variant_id
+        e2e_staff_api_client, channel_id, product_variant_id, "PERCENTAGE", 13
     )
 
     voucher_discount_value, voucher_code = prepare_voucher(
-        e2e_staff_api_client, channel_id, "VOUCHER001", 13
+        e2e_staff_api_client, channel_id, "VOUCHER001", "PERCENTAGE", 13
     )
 
-    # Step 1 - checkoutCreate for product on sale
+    # Step 1 - Create checkout for product on sale
     lines = [
         {"variantId": product_variant_id, "quantity": 1},
     ]
@@ -119,7 +127,7 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
         product_variant_price
     )
 
-    # Step 2 checkoutAddPromoCode
+    # Step 2 Add voucher code to checkout
     voucher_discount = unit_price_on_sale * float(voucher_discount_value) / 100
     voucher_discount = round(voucher_discount, 2)
     unit_price_sale_and_variant = unit_price_on_sale - voucher_discount
@@ -132,7 +140,7 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
         == unit_price_sale_and_variant
     )
 
-    # Step 3 checkoutLinesAdd
+    # Step 3 Add variant to the checkout
     lines_add = [
         {"variantId": product_variant_id, "quantity": 1},
     ]
