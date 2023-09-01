@@ -20,10 +20,12 @@ if TYPE_CHECKING:
     from django.utils.safestring import SafeText
 
 
-def get_domain(domain: Optional[str] = None) -> str:
+def get_domain(site: Optional[Site] = None) -> str:
     if settings.PUBLIC_URL:
         return urlparse(settings.PUBLIC_URL).netloc
-    return domain or Site.objects.get_current().domain
+    if site is None:
+        site = Site.objects.get_current()
+    return site.domain
 
 
 def get_public_url(domain: Optional[str] = None) -> str:

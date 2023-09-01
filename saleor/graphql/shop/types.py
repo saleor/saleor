@@ -428,7 +428,7 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_domain(_, _info, site):
         return Domain(
-            host=get_domain(site.domain),
+            host=get_domain(site),
             ssl_enabled=is_ssl_enabled(),
             url=build_absolute_uri("/"),
         )
