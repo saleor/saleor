@@ -263,11 +263,12 @@ def migrate_checkout_line_discounts(
                 channel_id = checkout_line.checkout.channel_id
                 sale_id = checkout_line_discount.sale_id
                 lookup = f"{channel_id}_{sale_id}"
+                checkout_line_discount.type = "promotion"
                 if promotion_rule := rule_by_channel_and_sale.get(lookup):
                     checkout_line_discount.promotion_rule = promotion_rule
 
         CheckoutLineDiscount.objects.bulk_update(
-            checkout_line_discounts, ["promotion_rule_id"]
+            checkout_line_discounts, ["promotion_rule_id", "type"]
         )
 
 
@@ -283,11 +284,12 @@ def migrate_order_line_discounts(
                 channel_id = order_line.order.channel_id
                 sale_id = order_line_discount.sale_id
                 lookup = f"{channel_id}_{sale_id}"
+                order_line_discount.type = "promotion"
                 if promotion_rule := rule_by_channel_and_sale.get(lookup):
                     order_line_discount.promotion_rule = promotion_rule
 
         OrderLineDiscount.objects.bulk_update(
-            order_line_discounts, ["promotion_rule_id"]
+            order_line_discounts, ["promotion_rule_id", "type"]
         )
 
 
