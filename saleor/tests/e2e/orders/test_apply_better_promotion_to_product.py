@@ -1,61 +1,12 @@
 import pytest
 
 from .. import DEFAULT_ADDRESS
-from ..channel.utils import create_channel
-from ..product.utils import (
-    create_category,
-    create_product,
-    create_product_channel_listing,
-    create_product_type,
-    create_product_variant,
-    create_product_variant_channel_listing,
-    get_product,
-)
+from ..product.utils import get_product
+from ..product.utils.preparing_product import prepare_product
 from ..promotions.utils import create_promotion, create_promotion_rule
+from ..shop.utils.preparing_shop import prepare_shop
 from ..utils import assign_permissions
 from .utils import draft_order_create, order_lines_create
-
-
-def prepare_product(
-    e2e_staff_api_client,
-    channel_slug,
-    variant_price,
-):
-    channel_data = create_channel(
-        e2e_staff_api_client,
-        slug=channel_slug,
-    )
-    channel_id = channel_data["id"]
-
-    product_type_data = create_product_type(
-        e2e_staff_api_client,
-    )
-    product_type_id = product_type_data["id"]
-
-    category_data = create_category(
-        e2e_staff_api_client,
-    )
-    category_id = category_data["id"]
-
-    product_data = create_product(
-        e2e_staff_api_client,
-        product_type_id,
-        category_id,
-    )
-    product_id = product_data["id"]
-    create_product_channel_listing(e2e_staff_api_client, product_id, channel_id)
-
-    variant_data = create_product_variant(e2e_staff_api_client, product_id)
-    product_variant_id = variant_data["id"]
-
-    create_product_variant_channel_listing(
-        e2e_staff_api_client,
-        product_variant_id,
-        channel_id,
-        variant_price,
-    )
-
-    return product_id, channel_id, product_variant_id
 
 
 def prepare_promotion_with_rules(
@@ -108,22 +59,29 @@ def test_apply_best_promotion_to_product_core_2105(
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
     permission_manage_orders,
+    permission_manage_shipping,
 ):
     # Before
-    channel_slug = "test-channel"
-
     permissions = [
         permission_manage_products,
         permission_manage_channels,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
         permission_manage_orders,
+        permission_manage_shipping,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
+    (
+        result_warehouse_id,
+        result_channel_id,
+        result_channel_slug,
+        _,
+    ) = prepare_shop(e2e_staff_api_client)
 
-    product_id, channel_id, product_variant_id = prepare_product(
+    product_id, product_variant_id, product_variant_price = prepare_product(
         e2e_staff_api_client,
-        channel_slug,
+        result_warehouse_id,
+        result_channel_id,
         variant_price,
     )
 
@@ -137,7 +95,7 @@ def test_apply_best_promotion_to_product_core_2105(
         first_discount_type,
         first_discount_value,
         first_rule_name,
-        channel_id,
+        result_channel_id,
         product_id,
     )
 
@@ -151,12 +109,12 @@ def test_apply_best_promotion_to_product_core_2105(
         second_discount_type,
         second_discount_value,
         second_rule_name,
-        channel_id,
+        result_channel_id,
         product_id,
     )
 
     # Step 1 - Get product and check if it is on promotion
-    product_data = get_product(e2e_staff_api_client, product_id, channel_slug)
+    product_data = get_product(e2e_staff_api_client, product_id, result_channel_slug)
 
     assert product_data["pricing"]["onSale"] is True
 
@@ -166,12 +124,12 @@ def test_apply_best_promotion_to_product_core_2105(
         product_variant["pricing"]["discount"]["gross"]["amount"] == expected_discount
     )
     assert product_variant["pricing"]["priceUndiscounted"]["gross"]["amount"] == float(
-        variant_price
+        product_variant_price
     )
 
     # Step 2 - Create draft order
     input = {
-        "channelId": channel_id,
+        "channelId": result_channel_id,
         "billingAddress": DEFAULT_ADDRESS,
         "shippingAddress": DEFAULT_ADDRESS,
     }
@@ -188,9 +146,9 @@ def test_apply_best_promotion_to_product_core_2105(
 
     order_line = order_lines["order"]["lines"][0]
     assert order_line["variant"]["id"] == product_variant_id
-    unit_price = float(variant_price) - expected_discount
+    unit_price = float(product_variant_price) - expected_discount
     undiscounted_price = order_line["undiscountedUnitPrice"]["gross"]["amount"]
-    assert undiscounted_price == float(variant_price)
+    assert undiscounted_price == float(product_variant_price)
     assert order_line["unitPrice"]["gross"]["amount"] == unit_price
     promotion_reason = order_line["unitDiscountReason"]
     assert (

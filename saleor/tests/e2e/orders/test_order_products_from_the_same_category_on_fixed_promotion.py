@@ -42,16 +42,6 @@ def prepare_product(
     discount_type,
     promotion_rule_name,
 ):
-    permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_product_types_and_attributes,
-        permission_manage_discounts,
-        permission_manage_orders,
-    ]
-    assign_permissions(e2e_staff_api_client, permissions)
-
     warehouse_data = create_warehouse(e2e_staff_api_client)
     warehouse_id = warehouse_data["id"]
     update_warehouse(
@@ -188,6 +178,16 @@ def test_order_products_from_category_on_fixed_promotion_CORE_2106(
     permission_manage_orders,
 ):
     # Before
+    permissions = [
+        permission_manage_products,
+        permission_manage_channels,
+        permission_manage_shipping,
+        permission_manage_product_types_and_attributes,
+        permission_manage_discounts,
+        permission_manage_orders,
+    ]
+    assign_permissions(e2e_staff_api_client, permissions)
+
     channel_slug = "test-channel"
     variant_price_1 = "20"
     variant_price_2 = "10"
