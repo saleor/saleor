@@ -24,6 +24,11 @@ mutation CheckoutComplete($checkoutId: ID!) {
       statusDisplay
       status
       isPaid
+      subtotal {
+        gross {
+          amount
+        }
+      }
       checkoutId
       deliveryMethod {
         ... on ShippingMethod {
@@ -32,6 +37,32 @@ mutation CheckoutComplete($checkoutId: ID!) {
         ... on Warehouse {
           id
         }
+      }
+      lines {
+        id
+        unitPrice {
+          gross {
+            amount
+          }
+        }
+        unitDiscount {
+          amount
+        }
+        unitDiscountType
+        unitDiscountReason
+        unitDiscountValue
+        undiscountedUnitPrice {
+          gross {
+            amount
+          }
+        }
+      }
+      discounts {
+        type
+        value
+      }
+      voucher {
+        code
       }
     }
   }
