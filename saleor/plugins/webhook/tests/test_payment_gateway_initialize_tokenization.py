@@ -64,6 +64,7 @@ def test_payment_gateway_initialize_tokenization_with_static_payload(
     previous_value = PaymentGatewayInitializeTokenizationResponseData(
         result=PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER,
         error="Payment gateway initialize tokenization failed to deliver.",
+        data=None,
     )
 
     # when
@@ -117,6 +118,7 @@ def test_payment_gateway_initialize_tokenization_with_subscription_payload(
     previous_value = PaymentGatewayInitializeTokenizationResponseData(
         result=PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER,
         error="Payment gateway initialize tokenization failed to deliver.",
+        data=None,
     )
 
     # when
@@ -169,6 +171,7 @@ def test_payment_gateway_initialize_tokenization_missing_correct_response_from_w
     previous_value = PaymentGatewayInitializeTokenizationResponseData(
         result=PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER,
         error="Payment gateway initialize tokenization failed to deliver.",
+        data=None,
     )
 
     # when
@@ -217,6 +220,7 @@ def test_payment_gateway_initialize_tokenization_failure_from_app(
     previous_value = PaymentGatewayInitializeTokenizationResponseData(
         result=PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER,
         error="Payment gateway initialize tokenization failed to deliver.",
+        data=None,
     )
 
     # when

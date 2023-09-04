@@ -8,7 +8,10 @@ from ...payment import (
     TransactionEventType,
     TransactionKind,
 )
-from ...payment.interface import PaymentGatewayInitializeTokenizationResult
+from ...payment.interface import (
+    PaymentGatewayInitializeTokenizationResult,
+    PaymentMethodTokenizationResult,
+)
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.enums import to_enum
 from ..core.types import BaseEnum
@@ -89,3 +92,8 @@ PaymentGatewayInitializeTokenizationResultEnum = graphene.Enum.from_enum(
     PaymentGatewayInitializeTokenizationResult,
 )
 PaymentGatewayInitializeTokenizationResultEnum.doc_category = DOC_CATEGORY_PAYMENTS
+
+PaymentMethodTokenizationResultEnum = graphene.Enum.from_enum(
+    PaymentMethodTokenizationResult
+)
+PaymentMethodTokenizationResultEnum.doc_category = DOC_CATEGORY_PAYMENTS

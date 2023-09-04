@@ -157,13 +157,25 @@ class TransactionSessionResult:
 
 
 @dataclass
-class PaymentGatewayInitializeTokenizationRequestData:
+class PaymentMethodTokenizationBaseRequestData:
+    channel: "Channel"
+    user: "User"
+    data: Optional[dict]
+
+
+@dataclass
+class PaymentMethodTokenizationBaseResponseData:
+    error: Optional[str]
+    data: Optional[dict]
+
+
+@dataclass
+class PaymentGatewayInitializeTokenizationRequestData(
+    PaymentMethodTokenizationBaseRequestData
+):
     """Dataclass for storing the request information for payment app."""
 
     app_identifier: str
-    channel: "Channel"
-    user: "User"
-    data: Optional[dict] = None
 
 
 class PaymentGatewayInitializeTokenizationResult(str, Enum):
@@ -181,12 +193,47 @@ class PaymentGatewayInitializeTokenizationResult(str, Enum):
 
 
 @dataclass
-class PaymentGatewayInitializeTokenizationResponseData:
+class PaymentGatewayInitializeTokenizationResponseData(
+    PaymentMethodTokenizationBaseResponseData
+):
     """Dataclass for storing the response information from payment app."""
 
     result: PaymentGatewayInitializeTokenizationResult
-    error: Optional[str] = None
-    data: Optional[dict] = None
+
+
+@dataclass
+class PaymentMethodInitializeTokenizationRequestData(
+    PaymentMethodTokenizationBaseRequestData
+):
+    """Dataclass for storing the request information for payment app."""
+
+    app_identifier: str
+
+
+class PaymentMethodTokenizationResult(str, Enum):
+    """Result of tokenization of payment method.
+
+    SUCCESSFULLY_TOKENIZED - The payment method was successfully tokenized.
+    ADDITIONAL_ACTION_REQUIRED - The additional action is required to tokenize payment
+    method.
+    FAILED_TO_TOKENIZE - The payment method was not tokenized.
+    FAILED_TO_DELIVER - The request to tokenize payment method was not delivered.
+    """
+
+    SUCCESSFULLY_TOKENIZED = "successfully_tokenized"
+    ADDITIONAL_ACTION_REQUIRED = "additional_action_required"
+    FAILED_TO_TOKENIZE = "failed_to_tokenize"
+    FAILED_TO_DELIVER = "failed_to_deliver"
+
+
+@dataclass
+class PaymentMethodInitializeTokenizationResponseData(
+    PaymentMethodTokenizationBaseResponseData
+):
+    """Dataclass for storing the response information from payment app."""
+
+    result: PaymentMethodTokenizationResult
+    id: Optional[str] = None
 
 
 @dataclass

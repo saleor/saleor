@@ -359,6 +359,9 @@ class PluginSample(BasePlugin):
     def payment_gateway_initialize_tokenization(self, request_data, previous_value):
         return previous_value
 
+    def payment_method_initialize_tokenization(self, request_data, previous_value):
+        return previous_value
+
 
 class ChannelPluginSample(PluginSample):
     PLUGIN_ID = "channel.plugin.sample"

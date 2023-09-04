@@ -305,6 +305,11 @@ PaymentGatewayInitializeTokenizationErrorCode = graphene.Enum.from_enum(
 )
 PaymentGatewayInitializeTokenizationErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
+PaymentMethodInitializeTokenizationErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.PaymentMethodInitializeTokenizationErrorCode
+)
+PaymentMethodInitializeTokenizationErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
+
 PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )
