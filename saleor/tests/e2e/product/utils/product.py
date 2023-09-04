@@ -44,7 +44,7 @@ def create_product(
 ):
     if not attributes:
         attributes = []
-  
+
     if not collection_ids:
         collection_ids = []
 
