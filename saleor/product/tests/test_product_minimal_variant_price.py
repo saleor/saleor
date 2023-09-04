@@ -102,6 +102,77 @@ def test_update_products_discounted_prices_of_catalogues_for_product(
     assert variant_channel_listing.discounted_price == variant_channel_listing.price
 
 
+@patch("saleor.product.utils.variant_prices.update_products_discounted_prices")
+def test_update_products_discounted_prices_of_catalogues_via_products(
+    mock_update_products_discounted_prices, product, product_list
+):
+    # given
+
+    # when
+    update_products_discounted_prices_of_catalogues(
+        product_ids=[product.pk, product_list[0].pk]
+    )
+
+    # then
+    mock_update_products_discounted_prices.assert_called_once()
+    args, _kwargs = mock_update_products_discounted_prices.call_args
+    assert set(args[0].values_list("pk", flat=True)) == {product.pk, product_list[0].pk}
+
+
+@patch("saleor.product.utils.variant_prices.update_products_discounted_prices")
+def test_update_products_discounted_prices_of_catalogues_via_category(
+    mock_update_products_discounted_prices,
+    product,
+    product_list,
+    category_with_image,
+    category,
+):
+    # given
+    assert category.pk != category_with_image.pk
+    product.category = category_with_image
+    product.save()
+
+    # when
+    update_products_discounted_prices_of_catalogues(category_ids=[category.pk])
+
+    # then
+    mock_update_products_discounted_prices.assert_called_once()
+    args, _kwargs = mock_update_products_discounted_prices.call_args
+    assert set(args[0].values_list("pk", flat=True)) == {p.pk for p in product_list}
+
+
+@patch("saleor.product.utils.variant_prices.update_products_discounted_prices")
+def test_update_products_discounted_prices_of_catalogues_via_collection(
+    mock_update_products_discounted_prices, product, product_list, collection
+):
+    # given
+    collection.products.add(*product_list)
+
+    # when
+    update_products_discounted_prices_of_catalogues(collection_ids=[collection.pk])
+
+    # then
+    mock_update_products_discounted_prices.assert_called_once()
+    args, _kwargs = mock_update_products_discounted_prices.call_args
+    assert set(args[0].values_list("pk", flat=True)) == {p.pk for p in product_list}
+
+
+@patch("saleor.product.utils.variant_prices.update_products_discounted_prices")
+def test_update_products_discounted_prices_of_catalogues_via_variants(
+    mock_update_products_discounted_prices, product, product_list
+):
+    # given
+    variant_ids = [p.variants.first().pk for p in product_list]
+
+    # when
+    update_products_discounted_prices_of_catalogues(variant_ids=variant_ids)
+
+    # then
+    mock_update_products_discounted_prices.assert_called_once()
+    args, _kwargs = mock_update_products_discounted_prices.call_args
+    assert set(args[0].values_list("pk", flat=True)) == {p.pk for p in product_list}
+
+
 def test_update_products_discounted_prices_of_catalogues_for_category(
     category, product, channel_USD
 ):
