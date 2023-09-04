@@ -57,7 +57,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix NoneType in `prodcutChannelsListingUpdate` - #13694 by @Manoj-gowra
 - Extended `AttributeValueTranslation.name` to 250 characters - #13776 by @aniav
 
-# 3.15.0 [Unreleased]
+# 3.15.0
 
 ### Breaking changes
 
