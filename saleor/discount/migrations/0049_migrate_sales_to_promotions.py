@@ -2,13 +2,19 @@
 from django.db import migrations
 from dataclasses import dataclass
 from typing import Dict, List
+from django.apps import apps as registry
+from django.db.models.signals import post_migrate
+
+from ...product.tasks import update_products_discounted_prices_for_promotion_task
+from ...celeryconf import app
 
 import graphene
-from django.db.models import Exists, OuterRef
-
+from django.db.models import Exists, OuterRef, F
 
 # The batch of size 100 takes ~0.9 second and consumes ~30MB memory at peak
 BATCH_SIZE = 100
+# Results in update time ~2s for 500 promotions
+PRICE_UPDATE_BATCH_SIZE = 500
 
 
 def run_migration(apps, _schema_editor):
@@ -82,9 +88,6 @@ def run_migration(apps, _schema_editor):
         migrate_translations(
             SaleTranslation, PromotionTranslation, sales_batch_pks, saleid_promotion_map
         )
-
-    # TODO: In separate PR:
-    # we need to also create VariantChannelListingPromotionRule objects
 
 
 def migrate_sales_to_promotions(Sale, Promotion, sales_pks, saleid_promotion_map):
@@ -299,9 +302,52 @@ def queryset_in_batches(queryset):
         start_pk = pks[-1]
 
 
+@app.task
+def update_discounted_prices_task(
+    ProductVariantChannelListing, Product, ProductVariant
+):
+    variant_ids = (
+        ProductVariantChannelListing.objects.annotate(
+            discount=F("price_amount") - F("discounted_price_amount")
+        )
+        .filter(discount__gt=0, promotion_rules__isnull=True)[:PRICE_UPDATE_BATCH_SIZE]
+        .values_list("variant_id", flat=True)
+    )
+    variant_ids = set(variant_ids)
+
+    variants = ProductVariant.objects.filter(id__in=variant_ids)
+    products = Product.objects.filter(
+        Exists(variants.filter(product_id=OuterRef("id")))
+    )
+    ids = products.values_list("id", flat=True)
+    update_products_discounted_prices_for_promotion_task(ids)
+    if len(ids) == PRICE_UPDATE_BATCH_SIZE:
+        update_discounted_prices_task()
+
+
+def update_discounted_prices(apps, _schema_editor):
+    def on_migrations_complete(sender=None, **kwargs):
+        ProductVariantChannelListing = apps.get_model(
+            "product", "ProductVariantChannelListing"
+        )
+        Product = apps.get_model("product", "Product")
+        ProductVariant = apps.get_model("product", "ProductVariant")
+        update_discounted_prices_task.delay(
+            ProductVariantChannelListing, Product, ProductVariant
+        )
+
+    sender = registry.get_app_config("discount")
+    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("discount", "0048_promotiontranslation"),
     ]
 
-    operations = [migrations.RunPython(run_migration, migrations.RunPython.noop)]
+    operations = [
+        migrations.RunPython(run_migration, migrations.RunPython.noop),
+        migrations.RunPython(
+            update_discounted_prices, reverse_code=migrations.RunPython.noop
+        ),
+    ]
