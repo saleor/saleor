@@ -10,7 +10,6 @@ from ..core.prices import quantize_price
 from ..core.taxes import TaxData, zero_money, zero_taxed_money
 from ..discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
-    generate_sale_discount_objects_for_checkout,
 )
 from ..payment.models import TransactionItem
 from ..tax import TaxCalculationStrategy
@@ -247,8 +246,6 @@ def _fetch_checkout_prices_if_expired(
     should_charge_tax = charge_taxes and not checkout.tax_exemption
 
     create_or_update_discount_objects_from_promotion_for_checkout(lines)
-    # TODO: to remove promotion CRUD
-    generate_sale_discount_objects_for_checkout(checkout_info, lines)
 
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to

@@ -58,12 +58,6 @@ class CheckoutLineInfo:
     tax_class: Optional["TaxClass"] = None
     voucher: Optional["Voucher"] = None
 
-    def get_sale_discount(self) -> Optional["CheckoutLineDiscount"]:
-        for discount in self.discounts:
-            if discount.type == DiscountType.SALE:
-                return discount
-        return None
-
     def get_promotion_discounts(self) -> List["CheckoutLineDiscount"]:
         return [
             discount

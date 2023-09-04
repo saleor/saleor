@@ -5,7 +5,7 @@ import pytest
 
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule
-from .....discount.sale_converter import convert_sales_to_promotions
+from .....discount.tests.sale_converter import convert_sales_to_promotions
 from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...mutations.utils import convert_catalogue_info_to_global_ids

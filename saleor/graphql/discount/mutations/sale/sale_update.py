@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.sale_converter import create_catalogue_predicate
+from .....discount.tests.sale_converter import create_catalogue_predicate
 from .....discount.utils import CATALOGUE_FIELDS
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_for_promotion_task

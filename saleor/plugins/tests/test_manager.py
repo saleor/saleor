@@ -12,10 +12,7 @@ from ...channel import TransactionFlowStrategy
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.taxes import TaxType, zero_money, zero_taxed_money
-from ...discount.utils import (
-    create_or_update_discount_objects_from_sale_for_checkout,
-    fetch_catalogue_info,
-)
+from ...discount.utils import fetch_catalogue_info
 from ...graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
 from ...payment import TokenizedPaymentFlow
 from ...payment.interface import (
@@ -172,17 +169,20 @@ def test_manager_get_active_plugins_without_channel_slug(
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
 )
 def test_manager_calculates_checkout_total(
-    checkout_with_item, discount_info, plugins, total_amount
+    checkout_with_item_on_promotion, plugins, total_amount
 ):
-    currency = checkout_with_item.currency
+    # given
+    checkout = checkout_with_item_on_promotion
+    currency = checkout.currency
     expected_total = Money(total_amount, currency)
     manager = PluginsManager(plugins=plugins)
-    lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, lines, [discount_info]
-    )
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
     taxed_total = manager.calculate_checkout_total(checkout_info, lines, None)
+
+    # then
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
 
@@ -191,19 +191,22 @@ def test_manager_calculates_checkout_total(
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
 )
 def test_manager_calculates_checkout_subtotal(
-    checkout_with_item, discount_info, plugins, subtotal_amount
+    checkout_with_item_on_promotion, plugins, subtotal_amount
 ):
-    currency = checkout_with_item.currency
+    # given
+    checkout = checkout_with_item_on_promotion
+    currency = checkout.currency
     expected_subtotal = Money(subtotal_amount, currency)
     manager = PluginsManager(plugins=plugins)
-    lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, lines, [discount_info]
-    )
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
     taxed_subtotal = PluginsManager(plugins=plugins).calculate_checkout_subtotal(
         checkout_info, lines, None
     )
+
+    # then
     assert TaxedMoney(expected_subtotal, expected_subtotal) == taxed_subtotal
 
 
@@ -250,23 +253,27 @@ def test_manager_calculates_order_shipping(order_with_lines, plugins, shipping_a
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
 )
 def test_manager_calculates_checkout_line_total(
-    checkout_with_item, discount_info, plugins, amount
+    checkout_with_item_on_promotion, discount_info, plugins, amount
 ):
-    currency = checkout_with_item.currency
+    # given
+    checkout = checkout_with_item_on_promotion
+    currency = checkout.currency
     expected_total = Money(amount, currency)
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, lines, [discount_info]
-    )
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
     checkout_line_info = lines[0]
+
+    # when
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
         checkout_info,
         lines,
         checkout_line_info,
-        checkout_with_item.shipping_address,
+        checkout.shipping_address,
     )
+
+    # then
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
 
