@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
+from .....discount.sale_converter import create_promotion_for_new_sale
 from .....discount.utils import fetch_catalogue_info
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_of_sale_task
@@ -102,16 +103,16 @@ class SaleCreate(ModelMutation):
             response = super().perform_mutation(_root, info, **data)
             instance = getattr(response, cls._meta.return_field_name).node
             manager = get_plugin_manager_promise(info.context).get()
-            cls.send_sale_notifications(manager, instance)
+            current_catalogue = convert_catalogue_info_to_global_ids(
+                fetch_catalogue_info(instance)
+            )
+            create_promotion_for_new_sale(instance, current_catalogue)
+            cls.send_sale_notifications(manager, instance, current_catalogue)
             update_products_discounted_prices_of_sale_task.delay(instance.pk)
         return response
 
     @classmethod
-    def send_sale_notifications(cls, manager, instance):
-        current_catalogue = convert_catalogue_info_to_global_ids(
-            fetch_catalogue_info(instance)
-        )
-
+    def send_sale_notifications(cls, manager, instance, current_catalogue):
         cls.call_event(manager.sale_created, instance, current_catalogue)
         cls.send_sale_toggle_notification(manager, instance, current_catalogue)
 

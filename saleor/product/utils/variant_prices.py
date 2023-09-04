@@ -135,6 +135,7 @@ def _get_discounted_variants_prices(
             variant_id=variant_listing.variant_id,
         )
         if variant_listing.discounted_price != discounted_variant_price:
+            # TODO: we should create here `VariantChannelListingPromotionRule`
             variant_listing.discounted_price_amount = discounted_variant_price.amount
             variants_listings_to_update.append(variant_listing)
         discounted_variants_price.append(discounted_variant_price)
