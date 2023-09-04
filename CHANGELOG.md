@@ -20,6 +20,7 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 - Add `externalReference` to `updateWarehouse`. It will allow update warehouse by
   external reference. - #13342 by @Smit-Parmar
 - Add Filter warehouses by metadata - #13345 by @Smit-Parmar
+- Add API for tokenizing payment methods - #13879 by @korycins
 
 
 
@@ -40,6 +41,7 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
   - Dry runs enabled: `AccountConfirmed`, `AccountConfirmationRequested`, `AccountChangeEmailRequested`
   - `AccountEmailChanged`, `AccountSetPasswordRequested`, `AccountDeleteRequested`, `GiftCardSent`,
   - `FulfillmentCreated`, `FulfillmentApproved`, `StaffSetPasswordRequested`
+- Add support for tokenizing payment methods via sync webhooks - #13879 by @korycins
 
 ### Other changes
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
