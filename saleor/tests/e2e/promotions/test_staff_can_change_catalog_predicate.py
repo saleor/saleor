@@ -1,74 +1,21 @@
 import pytest
 
-from ..channel.utils import create_channel
 from ..product.utils import (
-    create_category,
     create_collection,
     create_collection_channel_listing,
-    create_product,
-    create_product_channel_listing,
-    create_product_type,
     create_product_variant,
     create_product_variant_channel_listing,
     get_product,
 )
+from ..product.utils.collection_add_products import add_product_to_collection
+from ..product.utils.preparing_product import prepare_product
 from ..promotions.utils import (
     create_promotion,
     create_promotion_rule,
     update_promotion_rule,
 )
+from ..shop.utils.preparing_shop import prepare_shop
 from ..utils import assign_permissions
-
-
-def prepare_product(
-    e2e_staff_api_client,
-    channel_slug,
-    variant_price,
-):
-    channel_data = create_channel(
-        e2e_staff_api_client,
-        slug=channel_slug,
-    )
-    channel_id = channel_data["id"]
-
-    product_type_data = create_product_type(
-        e2e_staff_api_client,
-    )
-    product_type_id = product_type_data["id"]
-
-    category_data = create_category(
-        e2e_staff_api_client,
-    )
-    category_id = category_data["id"]
-
-    collection_data = create_collection(e2e_staff_api_client)
-    collection_id = collection_data["id"]
-    collection_list = [collection_id]
-
-    create_collection_channel_listing(e2e_staff_api_client, collection_id, channel_id)
-    product_data = create_product(
-        e2e_staff_api_client,
-        product_type_id,
-        category_id,
-        collection_ids=collection_list,
-    )
-    product_id = product_data["id"]
-    create_product_channel_listing(e2e_staff_api_client, product_id, channel_id)
-
-    variant_data = create_product_variant(
-        e2e_staff_api_client,
-        product_id,
-    )
-    product_variant_id = variant_data["id"]
-
-    create_product_variant_channel_listing(
-        e2e_staff_api_client,
-        product_variant_id,
-        channel_id,
-        variant_price,
-    )
-
-    return product_id, channel_id, collection_id
 
 
 def prepare_promotion(
@@ -106,6 +53,7 @@ def test_create_promotion_for_collection_core_2109(
     permission_manage_channels,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
+    permission_manage_shipping,
 ):
     # Before
     permissions = [
@@ -113,16 +61,20 @@ def test_create_promotion_for_collection_core_2109(
         permission_manage_channels,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
+        permission_manage_shipping,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    channel_slug = "promotion_collections_channel"
-    variant_price = "7.99"
-    product_id, channel_id, collection_id = prepare_product(
-        e2e_staff_api_client,
-        channel_slug,
-        variant_price,
+    warehouse_id, channel_id, channel_slug, _ = prepare_shop(e2e_staff_api_client)
+
+    product_id, product_variant_id, _ = prepare_product(
+        e2e_staff_api_client, warehouse_id, channel_id, "7.99"
     )
+
+    collection_data = create_collection(e2e_staff_api_client)
+    collection_id = collection_data["id"]
+    create_collection_channel_listing(e2e_staff_api_client, collection_id, channel_id)
+    add_product_to_collection(e2e_staff_api_client, collection_id, [product_id])
 
     promotion_rule_id, discount_value = prepare_promotion(
         e2e_staff_api_client,
@@ -139,11 +91,12 @@ def test_create_promotion_for_collection_core_2109(
     )
     second_product_variant_id = variant_data["id"]
 
+    second_variant_price = "20.99"
     create_product_variant_channel_listing(
         e2e_staff_api_client,
         second_product_variant_id,
         channel_id,
-        variant_price,
+        second_variant_price,
     )
 
     # Step 2 Update promotion rule of new variant
@@ -156,18 +109,19 @@ def test_create_promotion_for_collection_core_2109(
     # Step 3 Check if promotion is applied to new variant
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)
     first_variant = product_data["variants"][0]
+    assert first_variant["id"] == product_variant_id
     second_variant = product_data["variants"][1]
-
-    assert product_data["pricing"]["onSale"] is True
+    assert second_variant["id"] == second_product_variant_id
+    assert product_data["pricing"]["onSale"] is False
     assert first_variant["pricing"]["onSale"] is False
     assert second_variant["pricing"]["onSale"] is True
-    calculated_variant_discount = round(
-        float(variant_price) * (discount_value / 100), 2
+    calculated_second_variant_discount = round(
+        float(second_variant_price) * (discount_value / 100), 2
     )
     assert (
         second_variant["pricing"]["discount"]["gross"]["amount"]
-        == calculated_variant_discount
+        == calculated_second_variant_discount
     )
     assert second_variant["pricing"]["priceUndiscounted"]["gross"]["amount"] == float(
-        variant_price
+        second_variant_price
     )
