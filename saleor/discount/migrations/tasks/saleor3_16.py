@@ -29,6 +29,8 @@ class RuleInfo:
 
 @app.task
 def migrate_sales_to_promotions_task():
+    # TODO: to update - needs to create `VariantChannelListingPromotionRule` instances
+
     sales = Sale.objects.exclude(
         Exists(Promotion.objects.filter(old_sale_id=OuterRef("pk")))
     ).order_by("pk")
@@ -272,6 +274,7 @@ def migrate_checkout_line_discounts(
 def migrate_order_line_discounts(
     OrderLineDiscount, sales_pks, rule_by_channel_and_sale
 ):
+    # TODO: to update - should be created based on `OrderLine.sale_id`
     if order_line_discounts := OrderLineDiscount.objects.filter(
         sale_id__in=sales_pks
     ).select_related("line__order"):
