@@ -17,9 +17,15 @@ class DiscountValueType:
 
 class DiscountType:
     SALE = "sale"
+    PROMOTION = "promotion"
     VOUCHER = "voucher"
     MANUAL = "manual"
-    CHOICES = [(SALE, "Sale"), (VOUCHER, "Voucher"), (MANUAL, "Manual")]
+    CHOICES = [
+        (SALE, "Sale"),
+        (VOUCHER, "Voucher"),
+        (MANUAL, "Manual"),
+        (PROMOTION, "Promotion"),
+    ]
 
 
 class VoucherType:
@@ -31,6 +37,16 @@ class VoucherType:
         (ENTIRE_ORDER, "Entire order"),
         (SHIPPING, "Shipping"),
         (SPECIFIC_PRODUCT, "Specific products, collections and categories"),
+    ]
+
+
+class RewardValueType:
+    FIXED = "fixed"
+    PERCENTAGE = "percentage"
+
+    CHOICES = [
+        (FIXED, "fixed"),
+        (PERCENTAGE, "%"),
     ]
 
 
