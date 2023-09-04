@@ -20,6 +20,12 @@ if TYPE_CHECKING:
 task_logger = get_task_logger(__name__)
 
 
+# DEPRECATED: To remove in 3.18
+@app.task
+def handle_sale_toggle():
+    pass
+
+
 @app.task
 def handle_promotion_toggle():
     """Send the notification about promotion toggle and recalculate discounted prices.

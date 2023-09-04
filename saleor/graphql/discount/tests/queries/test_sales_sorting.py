@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from .....discount import DiscountValueType
 from .....discount.models import Promotion, Sale, SaleChannelListing
-from .....discount.sale_converter import convert_sales_to_promotions
+from .....discount.tests.sale_converter import convert_sales_to_promotions
 from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 

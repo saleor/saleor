@@ -15,9 +15,7 @@ from .....checkout.utils import (
     invalidate_checkout_prices,
     recalculate_checkout_discount,
 )
-from .....discount import DiscountValueType
-from .....discount.models import Sale, SaleChannelListing
-from .....discount.utils import generate_sale_discount_objects_for_checkout
+from .....discount import RewardValueType
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductChannelListing
 from .....warehouse import WarehouseClickAndCollectOption
@@ -144,6 +142,7 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     stock,
     voucher_percentage,
     channel_USD,
+    promotion_without_rules,
 ):
     # given
 
@@ -158,25 +157,42 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     variant_unit_price = Decimal(100)
     line = checkout.lines.first()
     variant = line.variant
-    variant.channel_listings.update(price_amount=variant_unit_price)
 
-    manager = get_plugins_manager()
+    # prepare promotion with 50% discount
 
-    # prepare sale with 50% discount
-    sale_percentage_value = 50
-    sale = Sale.objects.create(name="Sale", type=DiscountValueType.PERCENTAGE)
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=sale_percentage_value,
+    reward_value = Decimal("50.00")
+    rule = promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel_USD)
+
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+
+    variant_channel_listing.price_amount = variant_unit_price
+    discount_amount = variant_unit_price * reward_value / 100
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - discount_amount
+    )
+    variant_channel_listing.save(
+        update_fields=["discounted_price_amount", "price_amount"]
+    )
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=discount_amount,
         currency=channel_USD.currency_code,
     )
-    sale.variants.add(variant)
 
     # create checkout discount objects for checkout lines
+    manager = get_plugins_manager()
     lines_infos, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines_infos, manager)
-    generate_sale_discount_objects_for_checkout(checkout_info, lines_infos)
     recalculate_checkout_discount(manager, checkout_info, lines_infos)
 
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)

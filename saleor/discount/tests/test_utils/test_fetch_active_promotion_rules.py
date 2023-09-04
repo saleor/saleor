@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.utils import timezone
 
+from ....discount.models import Promotion
 from ....product.models import ProductVariant
 from ...utils import fetch_active_promotion_rules
 
@@ -33,6 +34,20 @@ def test_fetch_active_promotion_rules(promotion, product, channel_USD):
         variant for variant in variants
     }
     assert percentage_rule_info.channel_ids == [channel_USD.id]
+
+
+def test_fetch_active_promotion_rules_from_different_promotions(
+    promotion_list, product, collection
+):
+    # given
+    Promotion.objects.update(start_date=timezone.now() - timedelta(days=1))
+    variants = ProductVariant.objects.all()
+
+    # when
+    rules_per_promotion = fetch_active_promotion_rules(variants)
+
+    # then
+    assert len(rules_per_promotion) == len(promotion_list)
 
 
 def test_fetch_active_promotion_rules_no_active_rules(product):

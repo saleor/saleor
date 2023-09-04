@@ -83,6 +83,9 @@ def run_migration(apps, _schema_editor):
             SaleTranslation, PromotionTranslation, sales_batch_pks, saleid_promotion_map
         )
 
+    # TODO: In separate PR:
+    # we need to also create VariantChannelListingPromotionRule objects
+
 
 def migrate_sales_to_promotions(Sale, Promotion, sales_pks, saleid_promotion_map):
     if sales := Sale.objects.filter(pk__in=sales_pks).order_by("pk"):
@@ -229,11 +232,12 @@ def migrate_checkout_line_discounts(
                 channel_id = checkout_line.checkout.channel_id
                 sale_id = checkout_line_discount.sale_id
                 lookup = f"{channel_id}_{sale_id}"
+                checkout_line_discount.type = "promotion"
                 if promotion_rule := rule_by_channel_and_sale.get(lookup):
                     checkout_line_discount.promotion_rule = promotion_rule
 
         CheckoutLineDiscount.objects.bulk_update(
-            checkout_line_discounts, ["promotion_rule_id"]
+            checkout_line_discounts, ["promotion_rule_id", "type"]
         )
 
 
@@ -248,11 +252,12 @@ def migrate_order_line_discounts(
                 channel_id = order_line.order.channel_id
                 sale_id = order_line_discount.sale_id
                 lookup = f"{channel_id}_{sale_id}"
+                order_line_discount.type = "promotion"
                 if promotion_rule := rule_by_channel_and_sale.get(lookup):
                     order_line_discount.promotion_rule = promotion_rule
 
         OrderLineDiscount.objects.bulk_update(
-            order_line_discounts, ["promotion_rule_id"]
+            order_line_discounts, ["promotion_rule_id", "type"]
         )
 
 
