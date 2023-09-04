@@ -109,7 +109,13 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.MENU_ITEM_CREATED: "A new menu item created.",
     WebhookEventAsyncType.MENU_ITEM_UPDATED: "A menu item is updated.",
     WebhookEventAsyncType.MENU_ITEM_DELETED: "A menu item is deleted.",
-    WebhookEventAsyncType.NOTIFY_USER: "User notification triggered.",
+    WebhookEventAsyncType.NOTIFY_USER: (
+        "User notification triggered."
+        + DEPRECATED_IN_3X_ENUM_VALUE
+        + " See the docs for more details about migrating from NOTIFY_USER to other "
+        "events: "
+        + "https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation"
+    ),
     WebhookEventAsyncType.ORDER_CREATED: "A new order is placed.",
     WebhookEventAsyncType.ORDER_CONFIRMED: order_confirmed_event_enum_description,
     WebhookEventAsyncType.ORDER_PAID: (
