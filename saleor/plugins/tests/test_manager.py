@@ -25,7 +25,8 @@ from ...payment.interface import (
     PaymentGatewayInitializeTokenizationResponseData,
     PaymentGatewayInitializeTokenizationResult,
     PaymentMethodInitializeTokenizationRequestData,
-    PaymentMethodInitializeTokenizationResponseData,
+    PaymentMethodProcessTokenizationRequestData,
+    PaymentMethodTokenizationResponseData,
     PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
@@ -1449,7 +1450,7 @@ def test_payment_method_initialize_tokenization(
         channel=channel_USD,
         data={"data": "ABC"},
     )
-    previous_response = PaymentMethodInitializeTokenizationResponseData(
+    previous_response = PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
         error="Payment method initialize tokenization failed to deliver.",
         data=None,
@@ -1460,5 +1461,42 @@ def test_payment_method_initialize_tokenization(
 
     # then
     mocked_payment_method_initialize_tokenization.assert_called_once_with(
+        request_data, previous_value=previous_response
+    )
+
+
+@patch(
+    "saleor.plugins.tests.sample_plugins.PluginSample."
+    "payment_method_process_tokenization"
+)
+def test_payment_method_process_tokenization(
+    mocked_payment_method_process_tokenization, customer_user, channel_USD, app
+):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+
+    expected_id = "test_id"
+
+    request_data = PaymentMethodProcessTokenizationRequestData(
+        user=customer_user,
+        id=expected_id,
+        channel=channel_USD,
+        data={"data": "ABC"},
+    )
+    previous_response = PaymentMethodTokenizationResponseData(
+        result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
+        error="Payment method process tokenization failed to deliver.",
+        data=None,
+    )
+
+    # when
+    manager.payment_method_process_tokenization(request_data=request_data)
+
+    # then
+    mocked_payment_method_process_tokenization.assert_called_once_with(
         request_data, previous_value=previous_response
     )

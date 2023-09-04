@@ -2279,6 +2279,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   STORED_PAYMENT_METHOD_DELETE_REQUESTED
   PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION
   PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
+  PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION
 }
 
 """Synchronous webhook event."""
@@ -2369,6 +2370,7 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   STORED_PAYMENT_METHOD_DELETE_REQUESTED
   PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION
   PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
+  PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION
 }
 
 """Asynchronous webhook event."""
@@ -15665,6 +15667,31 @@ type Mutation {
   ): PaymentMethodInitializeTokenization @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION])
 
   """
+  Tokenize payment method.
+  
+  Added in Saleor 3.16.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION (sync): The customer continues payment method tokenization.
+  """
+  paymentMethodProcessTokenization(
+    """Slug of a channel related to tokenization request."""
+    channel: String!
+
+    """The data that will be passed to the payment gateway."""
+    data: JSON
+
+    """
+    The identifier of the payment gateway app to process payment method tokenization.
+    """
+    id: String!
+  ): PaymentMethodProcessTokenization @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION])
+
+  """
   Creates a new page. 
   
   Requires one of the following permissions: MANAGE_PAGES.
@@ -23390,6 +23417,52 @@ type PaymentMethodInitializeTokenizationError @doc(category: "Payments") {
 
 """An enumeration."""
 enum PaymentMethodInitializeTokenizationErrorCode @doc(category: "Payments") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  CHANNEL_INACTIVE
+  GATEWAY_ERROR
+}
+
+"""
+Tokenize payment method.
+
+Added in Saleor 3.16.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION (sync): The customer continues payment method tokenization.
+"""
+type PaymentMethodProcessTokenization @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION]) {
+  """A status of the payment method tokenization."""
+  result: PaymentMethodTokenizationResult!
+
+  """The identifier of the payment method."""
+  id: String
+
+  """A data returned by the payment app."""
+  data: JSON
+  errors: [PaymentMethodProcessTokenizationError!]!
+}
+
+type PaymentMethodProcessTokenizationError @doc(category: "Payments") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PaymentMethodProcessTokenizationErrorCode!
+}
+
+"""An enumeration."""
+enum PaymentMethodProcessTokenizationErrorCode @doc(category: "Payments") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -33449,6 +33522,41 @@ type PaymentMethodInitializeTokenizationSession implements Event @doc(category: 
 
   """Payment gateway data in JSON format, received from storefront."""
   data: JSON
+}
+
+"""
+Event sent when user continues a tokenization of payment method.
+
+Added in Saleor 3.16.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PaymentMethodProcessTokenizationSession implements Event @doc(category: "Payments") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The user related to the requested action."""
+  user: User!
+
+  """Channel related to the requested action."""
+  channel: Channel!
+
+  """Payment gateway data in JSON format, received from storefront."""
+  data: JSON
+
+  """
+  The ID returned by app from `PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION` webhook.
+  """
+  id: String!
 }
 
 """_Any value scalar as defined by Federation spec."""

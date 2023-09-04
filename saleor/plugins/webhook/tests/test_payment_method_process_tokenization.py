@@ -7,7 +7,7 @@ import pytest
 from ....core.models import EventDelivery
 from ....payment.interface import (
     ListStoredPaymentMethodsRequestData,
-    PaymentMethodInitializeTokenizationRequestData,
+    PaymentMethodProcessTokenizationRequestData,
     PaymentMethodTokenizationResponseData,
     PaymentMethodTokenizationResult,
 )
@@ -17,10 +17,10 @@ from ....webhook.models import Webhook
 from ..const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ..utils import generate_cache_key_for_webhook, to_payment_app_id
 
-PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION = """
+PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION = """
 subscription{
   event{
-    ...on PaymentMethodInitializeTokenizationSession{
+    ...on PaymentMethodProcessTokenizationSession{
       user{
         id
       }
@@ -35,46 +35,49 @@ subscription{
 
 
 @pytest.fixture
-def webhook_payment_method_initialize_tokenization_response():
+def webhook_payment_method_process_tokenization_response():
     return {
-        "result": (PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name),
+        "result": PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name,
         "id": "payment-method-id",
         "data": {"foo": "bar"},
     }
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_payment_method_initialize_tokenization_with_static_payload(
+def test_payment_method_process_tokenization_with_static_payload(
     mock_request,
     customer_user,
     webhook_plugin,
-    payment_method_initialize_tokenization_app,
-    webhook_payment_method_initialize_tokenization_response,
+    payment_method_process_tokenization_app,
+    webhook_payment_method_process_tokenization_response,
     channel_USD,
+    app,
 ):
     # given
-    mock_request.return_value = webhook_payment_method_initialize_tokenization_response
+    mock_request.return_value = webhook_payment_method_process_tokenization_response
 
     plugin = webhook_plugin()
 
+    expected_id = to_payment_app_id(
+        payment_method_process_tokenization_app, "payment-method-id"
+    )
+
     expected_data = {"foo": "bar"}
-    request_data = PaymentMethodInitializeTokenizationRequestData(
+    request_data = PaymentMethodProcessTokenizationRequestData(
         user=customer_user,
-        app_identifier=payment_method_initialize_tokenization_app.identifier,
+        id=expected_id,
         channel=channel_USD,
         data=expected_data,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
-        error="Payment method initialize tokenization failed to deliver.",
+        error="Payment method process tokenization failed to deliver.",
         data=None,
     )
 
     # when
-    response = plugin.payment_method_initialize_tokenization(
-        request_data, previous_value
-    )
+    response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
     delivery = EventDelivery.objects.get()
@@ -88,51 +91,53 @@ def test_payment_method_initialize_tokenization_with_static_payload(
     assert response == PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED,
         id=to_payment_app_id(
-            payment_method_initialize_tokenization_app,
-            webhook_payment_method_initialize_tokenization_response["id"],
+            payment_method_process_tokenization_app,
+            webhook_payment_method_process_tokenization_response["id"],
         ),
         error=None,
-        data=webhook_payment_method_initialize_tokenization_response["data"],
+        data=webhook_payment_method_process_tokenization_response["data"],
     )
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_payment_method_initialize_tokenization_with_subscription_payload(
+def test_payment_method_process_tokenization_with_subscription_payload(
     mock_request,
     customer_user,
     webhook_plugin,
-    payment_method_initialize_tokenization_app,
-    webhook_payment_method_initialize_tokenization_response,
+    payment_method_process_tokenization_app,
+    webhook_payment_method_process_tokenization_response,
     channel_USD,
+    app,
 ):
     # given
-    mock_request.return_value = webhook_payment_method_initialize_tokenization_response
+    mock_request.return_value = webhook_payment_method_process_tokenization_response
 
-    webhook = payment_method_initialize_tokenization_app.webhooks.first()
-    webhook.subscription_query = PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
+    webhook = payment_method_process_tokenization_app.webhooks.first()
+    webhook.subscription_query = PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION
     webhook.save()
 
     plugin = webhook_plugin()
 
+    expected_id = to_payment_app_id(
+        payment_method_process_tokenization_app, "payment-method-id"
+    )
     expected_data = {"foo": "bar"}
 
-    request_data = PaymentMethodInitializeTokenizationRequestData(
+    request_data = PaymentMethodProcessTokenizationRequestData(
         user=customer_user,
-        app_identifier=payment_method_initialize_tokenization_app.identifier,
+        id=expected_id,
         channel=channel_USD,
         data=expected_data,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
-        error="Payment method initialize tokenization failed to deliver.",
+        error="Payment method process tokenization failed to deliver.",
         data=None,
     )
 
     # when
-    response = plugin.payment_method_initialize_tokenization(
-        request_data, previous_value
-    )
+    response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
     delivery = EventDelivery.objects.get()
@@ -146,50 +151,52 @@ def test_payment_method_initialize_tokenization_with_subscription_payload(
     assert response == PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED,
         id=to_payment_app_id(
-            payment_method_initialize_tokenization_app,
-            webhook_payment_method_initialize_tokenization_response["id"],
+            payment_method_process_tokenization_app,
+            webhook_payment_method_process_tokenization_response["id"],
         ),
         error=None,
-        data=webhook_payment_method_initialize_tokenization_response["data"],
+        data=webhook_payment_method_process_tokenization_response["data"],
     )
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_payment_method_initialize_tokenization_missing_correct_response_from_webhook(
+def test_payment_method_process_tokenization_missing_correct_response_from_webhook(
     mock_request,
     customer_user,
     webhook_plugin,
-    payment_method_initialize_tokenization_app,
+    payment_method_process_tokenization_app,
     channel_USD,
+    app,
 ):
     # given
     mock_request.return_value = None
 
-    webhook = payment_method_initialize_tokenization_app.webhooks.first()
-    webhook.subscription_query = PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
+    webhook = payment_method_process_tokenization_app.webhooks.first()
+    webhook.subscription_query = PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION
     webhook.save()
 
     plugin = webhook_plugin()
 
+    expected_id = to_payment_app_id(
+        payment_method_process_tokenization_app, "payment-method-id"
+    )
     expected_data = {"foo": "bar"}
 
-    request_data = PaymentMethodInitializeTokenizationRequestData(
+    request_data = PaymentMethodProcessTokenizationRequestData(
         user=customer_user,
-        app_identifier=payment_method_initialize_tokenization_app.identifier,
+        id=expected_id,
         channel=channel_USD,
         data=expected_data,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
-        error="Payment method initialize tokenization failed to deliver.",
+        error="Payment method process tokenization failed to deliver.",
         data=None,
     )
 
     # when
-    response = plugin.payment_method_initialize_tokenization(
-        request_data, previous_value
-    )
+    response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
     delivery = EventDelivery.objects.get()
@@ -205,12 +212,13 @@ def test_payment_method_initialize_tokenization_missing_correct_response_from_we
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_payment_method_initialize_tokenization_failure_from_app(
+def test_payment_method_process_tokenization_failure_from_app(
     mock_request,
     customer_user,
     webhook_plugin,
-    payment_method_initialize_tokenization_app,
+    payment_method_process_tokenization_app,
     channel_USD,
+    app,
 ):
     # given
     expected_error_msg = "Expected error msg."
@@ -222,24 +230,25 @@ def test_payment_method_initialize_tokenization_failure_from_app(
 
     plugin = webhook_plugin()
 
+    expected_id = to_payment_app_id(
+        payment_method_process_tokenization_app, "payment-method-id"
+    )
     expected_data = {"foo": "bar"}
-    request_data = PaymentMethodInitializeTokenizationRequestData(
+    request_data = PaymentMethodProcessTokenizationRequestData(
         user=customer_user,
-        app_identifier=payment_method_initialize_tokenization_app.identifier,
+        id=expected_id,
         channel=channel_USD,
         data=expected_data,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
-        error="Payment method initialize tokenization failed to deliver.",
+        error="Payment method process tokenization failed to deliver.",
         data=None,
     )
 
     # when
-    response = plugin.payment_method_initialize_tokenization(
-        request_data, previous_value
-    )
+    response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
     delivery = EventDelivery.objects.get()
@@ -259,12 +268,13 @@ def test_payment_method_initialize_tokenization_failure_from_app(
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_payment_method_initialize_tokenization_additional_action_required(
+def test_payment_method_process_tokenization_additional_action_required(
     mock_request,
     customer_user,
     webhook_plugin,
-    payment_method_initialize_tokenization_app,
+    payment_method_process_tokenization_app,
     channel_USD,
+    app,
 ):
     # given
     expected_payment_method_id = "payment_method_id"
@@ -277,24 +287,25 @@ def test_payment_method_initialize_tokenization_additional_action_required(
 
     plugin = webhook_plugin()
 
+    expected_id = to_payment_app_id(
+        payment_method_process_tokenization_app, "payment-method-id"
+    )
     expected_data = {"foo": "bar"}
-    request_data = PaymentMethodInitializeTokenizationRequestData(
+    request_data = PaymentMethodProcessTokenizationRequestData(
         user=customer_user,
-        app_identifier=payment_method_initialize_tokenization_app.identifier,
+        id=expected_id,
         channel=channel_USD,
         data=expected_data,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
-        error="Payment method initialize tokenization failed to deliver.",
+        error="Payment method process tokenization failed to deliver.",
         data=None,
     )
 
     # when
-    response = plugin.payment_method_initialize_tokenization(
-        request_data, previous_value
-    )
+    response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
     delivery = EventDelivery.objects.get()
@@ -308,7 +319,7 @@ def test_payment_method_initialize_tokenization_additional_action_required(
     assert response == PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.ADDITIONAL_ACTION_REQUIRED,
         id=to_payment_app_id(
-            payment_method_initialize_tokenization_app, expected_payment_method_id
+            payment_method_process_tokenization_app, expected_payment_method_id
         ),
         data=expected_additiona_data,
         error=None,
@@ -316,12 +327,13 @@ def test_payment_method_initialize_tokenization_additional_action_required(
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_payment_method_initialize_tokenization_missing_required_id(
+def test_payment_method_process_tokenization_missing_required_id(
     mock_request,
     customer_user,
     webhook_plugin,
-    payment_method_initialize_tokenization_app,
+    payment_method_process_tokenization_app,
     channel_USD,
+    app,
 ):
     # given
     expected_error_msg = "Missing payment method `id` in response."
@@ -332,24 +344,25 @@ def test_payment_method_initialize_tokenization_missing_required_id(
 
     plugin = webhook_plugin()
 
+    expected_id = to_payment_app_id(
+        payment_method_process_tokenization_app, "payment-method-id"
+    )
     expected_data = {"foo": "bar"}
-    request_data = PaymentMethodInitializeTokenizationRequestData(
+    request_data = PaymentMethodProcessTokenizationRequestData(
         user=customer_user,
-        app_identifier=payment_method_initialize_tokenization_app.identifier,
+        id=expected_id,
         channel=channel_USD,
         data=expected_data,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
-        error="Payment method initialize tokenization failed to deliver.",
+        error="Payment method process tokenization failed to deliver.",
         data=None,
     )
 
     # when
-    response = plugin.payment_method_initialize_tokenization(
-        request_data, previous_value
-    )
+    response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
     delivery = EventDelivery.objects.get()
@@ -379,16 +392,17 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     mocked_cache_delete,
     customer_user,
     webhook_plugin,
-    payment_method_initialize_tokenization_app,
-    webhook_payment_method_initialize_tokenization_response,
+    payment_method_process_tokenization_app,
+    webhook_payment_method_process_tokenization_response,
     channel_USD,
+    app,
 ):
     # given
     mocked_cache_get.return_value = None
 
     webhook = Webhook.objects.create(
         name="list_stored_payment_methods",
-        app=payment_method_initialize_tokenization_app,
+        app=payment_method_process_tokenization_app,
         target_url="http://localhost:8000/endpoint/",
     )
     webhook.events.create(
@@ -397,27 +411,30 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     list_stored_payment_methods_response = {"paymentMethods": []}
     mocked_request.side_effect = [
         list_stored_payment_methods_response,
-        webhook_payment_method_initialize_tokenization_response,
+        webhook_payment_method_process_tokenization_response,
     ]
 
-    webhook = payment_method_initialize_tokenization_app.webhooks.first()
-    webhook.subscription_query = PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
+    webhook = payment_method_process_tokenization_app.webhooks.first()
+    webhook.subscription_query = PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION
     webhook.save()
 
     plugin = webhook_plugin()
 
+    expected_id = to_payment_app_id(
+        payment_method_process_tokenization_app, "payment-method-id"
+    )
     expected_data = {"foo": "bar"}
 
-    request_data = PaymentMethodInitializeTokenizationRequestData(
+    request_data = PaymentMethodProcessTokenizationRequestData(
         user=customer_user,
-        app_identifier=payment_method_initialize_tokenization_app.identifier,
+        id=expected_id,
         channel=channel_USD,
         data=expected_data,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
-        error="Payment method initialize tokenization failed to deliver.",
+        error="Payment method process tokenization failed to deliver.",
         data=None,
     )
 
@@ -433,7 +450,7 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
         expected_payload,
         webhook.target_url,
         WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
-        payment_method_initialize_tokenization_app.id,
+        payment_method_process_tokenization_app.id,
     )
 
     # call mocked list_stored_payment_methods to call mocked cache logic
@@ -449,13 +466,11 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     )
 
     # when
-    response = plugin.payment_method_initialize_tokenization(
-        request_data, previous_value
-    )
+    response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
     delivery = EventDelivery.objects.filter(
-        event_type=WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
+        event_type=WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION
     ).first()
     assert json.loads(delivery.payload.payload) == {
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
@@ -471,9 +486,9 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     assert response == PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED,
         id=to_payment_app_id(
-            payment_method_initialize_tokenization_app,
-            webhook_payment_method_initialize_tokenization_response["id"],
+            payment_method_process_tokenization_app,
+            webhook_payment_method_process_tokenization_response["id"],
         ),
         error=None,
-        data=webhook_payment_method_initialize_tokenization_response["data"],
+        data=webhook_payment_method_process_tokenization_response["data"],
     )
