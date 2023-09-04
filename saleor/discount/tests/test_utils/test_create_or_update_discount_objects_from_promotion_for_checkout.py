@@ -694,6 +694,98 @@ def test_two_promotions_applied_to_two_different_lines(
     )
 
 
+@freeze_time("2020-12-12 12:00:00")
+def test_create_percentage_discount_1_cent_variant_on_10_percentage_discount(
+    checkout_lines_info, promotion_without_rules
+):
+    # given
+    line_info1 = checkout_lines_info[0]
+    quantity = 10
+    line_info1.line.quantity = quantity
+    line_info1.line.save(update_fields=["quantity"])
+
+    product_line1 = line_info1.product
+
+    reward_value = Decimal("10")
+    rule = promotion_without_rules.rules.create(
+        name="Percentage promotion rule",
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", product_line1.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=reward_value,
+    )
+    rule.channels.add(line_info1.channel)
+
+    listing = line_info1.channel_listing
+
+    # Set product price to 0.01 USD
+    variant_price = Decimal("0.01")
+    listing.price_amount = variant_price
+    listing.discounted_price_amount = variant_price
+    listing.save()
+
+    discount_amount = reward_value / 100 * listing.price.amount
+    discounted_price = listing.price.amount - discount_amount
+    listing.discounted_price_amount = discounted_price
+    listing.save(update_fields=["discounted_price_amount"])
+
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=listing,
+        promotion_rule=rule,
+        discount_amount=discount_amount,
+        currency=line_info1.channel.currency_code,
+    )
+
+    line_info1.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=promotion_without_rules,
+            promotion_translation=None,
+            rule_translation=None,
+        )
+    ]
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines_info)
+
+    # then
+    assert len(line_info1.discounts) == 1
+    now = timezone.now()
+    discount_from_info = line_info1.discounts[0]
+    discount_from_db = line_info1.line.discounts.get()
+    assert discount_from_info.line == discount_from_db.line == line_info1.line
+    assert discount_from_info.created_at == discount_from_db.created_at == now
+    assert discount_from_info.type == discount_from_db.type == DiscountType.PROMOTION
+    assert (
+        discount_from_info.value_type
+        == discount_from_db.value_type
+        == RewardValueType.PERCENTAGE
+    )
+    assert discount_from_info.value == discount_from_db.value == rule.reward_value
+    assert (
+        discount_from_info.amount_value
+        == discount_from_db.amount_value
+        == discount_amount * quantity
+    )
+    assert discount_from_info.currency == discount_from_db.currency == "USD"
+    assert (
+        discount_from_info.name
+        == discount_from_db.name
+        == f"{promotion_without_rules.name}: {rule.name}"
+    )
+    assert discount_from_info.reason == discount_from_db.reason is None
+    assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
+    assert discount_from_info.voucher == discount_from_db.voucher is None
+    assert discount_from_info.sale == discount_from_db.sale is None
+
+    for checkout_line_info in checkout_lines_info[1:]:
+        assert not checkout_line_info.discounts
+
+
 def test_promotion_not_valid_anymore(checkout_lines_info, promotion_without_rules):
     # given
     line_info1 = checkout_lines_info[0]

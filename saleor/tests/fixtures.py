@@ -346,6 +346,17 @@ def checkout_with_item_on_sale(checkout_with_item):
         channel_listing.price_amount - discount_amount
     )
     channel_listing.save(update_fields=["discounted_price_amount"])
+
+    CheckoutLineDiscount.objects.create(
+        line=line,
+        sale=sale,
+        type=DiscountType.SALE,
+        value_type=sale.type,
+        value=discount_amount,
+        amount_value=discount_amount * line.quantity,
+        currency=channel.currency_code,
+    )
+
     return checkout_with_item
 
 
@@ -5591,7 +5602,11 @@ def promotion_rule(channel_USD, promotion, product):
         name="Promotion rule name",
         promotion=promotion,
         description=dummy_editorjs("Test description for percentage promotion rule."),
-        catalogue_predicate={"productPredicate": {"ids": [product.id]}},
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", product.id)]
+            }
+        },
         reward_value_type=RewardValueType.PERCENTAGE,
         reward_value=Decimal("25"),
     )
@@ -5624,7 +5639,7 @@ def rule_info(
 
 @pytest.fixture
 def promotion_converted_from_sale(sale):
-    from ..discount.sale_converter import convert_sales_to_promotions
+    from ..discount.tests.sale_converter import convert_sales_to_promotions
 
     convert_sales_to_promotions()
     return Promotion.objects.filter(old_sale_id=sale.id).last()
@@ -5632,7 +5647,7 @@ def promotion_converted_from_sale(sale):
 
 @pytest.fixture
 def promotion_converted_from_sale_with_empty_predicate():
-    from ..discount.sale_converter import convert_sales_to_promotions
+    from ..discount.tests.sale_converter import convert_sales_to_promotions
 
     sale = Sale.objects.create(name="Sale with no rules", type=DiscountValueType.FIXED)
     convert_sales_to_promotions()

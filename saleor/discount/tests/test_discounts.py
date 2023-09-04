@@ -7,8 +7,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ...discount.interface import VariantPromotionRuleInfo
-from ...product.models import Product, ProductVariant, ProductVariantChannelListing
-from .. import DiscountInfo, DiscountValueType, RewardValueType, VoucherType
+from .. import DiscountValueType, RewardValueType, VoucherType
 from ..models import (
     NotApplicable,
     Sale,
@@ -23,7 +22,6 @@ from ..utils import (
     fetch_catalogue_info,
     get_discount_name,
     get_discount_translated_name,
-    get_product_discount_on_sale,
     increase_voucher_usage,
     remove_voucher_usage_by_customer,
     validate_voucher,
@@ -189,60 +187,6 @@ def test_voucher_queryset_active_in_other_channel(voucher, channel_PLN):
         date=timezone.now(), channel_slug=channel_PLN.slug
     )
     assert active_vouchers.count() == 0
-
-
-def test_sale_applies_to_correct_products(product_type, category, channel_USD):
-    product = Product.objects.create(
-        name="Test Product",
-        slug="test-product",
-        description={},
-        product_type=product_type,
-        category=category,
-    )
-    variant = ProductVariant.objects.create(product=product, sku="firstvar")
-    variant_channel_listing = ProductVariantChannelListing.objects.create(
-        variant=variant,
-        channel=channel_USD,
-        price_amount=Decimal(10),
-        currency=channel_USD.currency_code,
-    )
-    product2 = Product.objects.create(
-        name="Second product",
-        slug="second-product",
-        description={},
-        product_type=product_type,
-        category=category,
-    )
-    sec_variant = ProductVariant.objects.create(product=product2, sku="secvar")
-    ProductVariantChannelListing.objects.create(
-        variant=sec_variant,
-        channel=channel_USD,
-        price_amount=Decimal(10),
-        currency=channel_USD.currency_code,
-    )
-    sale = Sale.objects.create(name="Test sale", type=DiscountValueType.FIXED)
-    sale_channel_listing = SaleChannelListing.objects.create(
-        sale=sale,
-        currency=channel_USD.currency_code,
-        channel=channel_USD,
-        discount_value=3,
-    )
-    discount = DiscountInfo(
-        sale=sale,
-        channel_listings={channel_USD.slug: sale_channel_listing},
-        product_ids={product.id},
-        category_ids=set(),
-        collection_ids=set(),
-        variants_ids=set(),
-    )
-    _, product_discount = get_product_discount_on_sale(
-        variant.product, set(), discount, channel_USD
-    )
-
-    discounted_price = product_discount(variant_channel_listing.price)
-    assert discounted_price == Money(7, "USD")
-    with pytest.raises(NotApplicable):
-        get_product_discount_on_sale(sec_variant.product, set(), discount, channel_USD)
 
 
 def test_increase_voucher_usage(channel_USD):

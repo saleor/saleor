@@ -8,7 +8,7 @@ from freezegun import freeze_time
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion
-from .....discount.sale_converter import convert_sales_to_promotions
+from .....discount.tests.sale_converter import convert_sales_to_promotions
 from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...enums import DiscountValueTypeEnum

@@ -5,6 +5,7 @@ from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ....product.types import Category, Collection, Product, ProductVariant
 from ...types import Voucher
 from .voucher_add_catalogues import VoucherBaseCatalogueMutation
 
@@ -36,3 +37,23 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
             cls.call_event(manager.voucher_updated, voucher)
 
         return VoucherRemoveCatalogues(voucher=voucher)
+
+    @classmethod
+    def remove_catalogues_from_node(cls, node, input):
+        products = input.get("products", [])
+        if products:
+            products = cls.get_nodes_or_error(products, "products", Product)
+            node.products.remove(*products)
+        categories = input.get("categories", [])
+        if categories:
+            categories = cls.get_nodes_or_error(categories, "categories", Category)
+            node.categories.remove(*categories)
+        collections = input.get("collections", [])
+        if collections:
+            collections = cls.get_nodes_or_error(collections, "collections", Collection)
+            node.collections.remove(*collections)
+        variants = input.get("variants", [])
+        if variants:
+            variants = cls.get_nodes_or_error(variants, "variants", ProductVariant)
+            node.variants.remove(*variants)
+        # Updated the db entries, recalculating discounts of affected products

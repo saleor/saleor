@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from .....discount import DiscountValueType
 from .....discount.models import Promotion, Sale, SaleChannelListing
-from .....discount.sale_converter import convert_sales_to_promotions
+from .....discount.tests.sale_converter import convert_sales_to_promotions
 from ....tests.utils import get_graphql_content
 
 QUERY_SALES_WITH_FILTER = """

@@ -4,7 +4,10 @@ from typing import Dict, List
 import graphene
 from django.db.models import Exists, OuterRef
 
-from .models import (
+from ...product.models import Product
+from ...product.utils.variant_prices import update_discounted_prices_for_promotion
+from .. import DiscountType
+from ..models import (
     CheckoutLineDiscount,
     OrderLineDiscount,
     Promotion,
@@ -66,6 +69,9 @@ def convert_sales_to_promotions():
         _migrate_sales_to_promotions(sales_batch_pks, saleid_promotion_map)
         _migrate_sales_to_promotion_rules(sales_batch_pks, saleid_promotion_map)
         _migrate_translations(sales_batch_pks, saleid_promotion_map)
+
+    # call price recalculation to create VariantChannelListingPromotionRule objects
+    update_discounted_prices_for_promotion(Product.objects.all())
 
 
 def _migrate_sales_to_promotions(sales_pks, saleid_promotion_map):
@@ -206,9 +212,10 @@ def _migrate_checkout_line_discounts(sales_pks, rule_by_channel_and_sale):
                 lookup = f"{channel_id}_{sale_id}"
                 if promotion_rule := rule_by_channel_and_sale.get(lookup):
                     checkout_line_discount.promotion_rule = promotion_rule
+                    checkout_line_discount.type = DiscountType.PROMOTION
 
         CheckoutLineDiscount.objects.bulk_update(
-            checkout_line_discounts, ["promotion_rule_id"]
+            checkout_line_discounts, ["promotion_rule_id", "type"]
         )
 
 
@@ -223,9 +230,10 @@ def _migrate_order_line_discounts(sales_pks, rule_by_channel_and_sale):
                 lookup = f"{channel_id}_{sale_id}"
                 if promotion_rule := rule_by_channel_and_sale.get(lookup):
                     order_line_discount.promotion_rule = promotion_rule
+                    order_line_discount.type = DiscountType.PROMOTION
 
         OrderLineDiscount.objects.bulk_update(
-            order_line_discounts, ["promotion_rule_id"]
+            order_line_discounts, ["promotion_rule_id", "type"]
         )
 
 
