@@ -1,14 +1,7 @@
 import pytest
 
 from ..channel.utils import create_channel
-from ..product.utils import (
-    create_category,
-    create_product,
-    create_product_channel_listing,
-    create_product_type,
-    create_product_variant,
-    create_product_variant_channel_listing,
-)
+from ..product.utils.preparing_product import prepare_product
 from ..shipping_zone.utils import (
     create_shipping_method,
     create_shipping_method_channel_listing,
@@ -23,21 +16,10 @@ from .utils import (
 )
 
 
-def prepare_product(
+def create_shop_for_orders_without_payments(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
-    permission_manage_product_types_and_attributes,
-    channel_slug,
 ):
-    permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_product_types_and_attributes,
-    ]
-    assign_permissions(e2e_staff_api_client, permissions)
+    channel_slug = "test-test"
 
     warehouse_data = create_warehouse(e2e_staff_api_client)
     warehouse_id = warehouse_data["id"]
@@ -68,64 +50,50 @@ def prepare_product(
     create_shipping_method_channel_listing(
         e2e_staff_api_client, shipping_method_id, channel_id
     )
-
-    product_type_data = create_product_type(
-        e2e_staff_api_client,
-    )
-    product_type_id = product_type_data["id"]
-
-    category_data = create_category(e2e_staff_api_client)
-    category_id = category_data["id"]
-
-    product_data = create_product(e2e_staff_api_client, product_type_id, category_id)
-    product_id = product_data["id"]
-
-    create_product_channel_listing(e2e_staff_api_client, product_id, channel_id)
-
-    stocks = [
-        {
-            "warehouse": warehouse_id,
-            "quantity": 5,
-        }
-    ]
-    product_variant_data = create_product_variant(
-        e2e_staff_api_client,
-        product_id,
-        stocks=stocks,
-    )
-    product_variant_id = product_variant_data["id"]
-
-    create_product_variant_channel_listing(
-        e2e_staff_api_client,
-        product_variant_id,
-        channel_id,
-    )
-
-    return product_variant_id
+    return channel_slug, warehouse_id, channel_id, shipping_method_id
 
 
 @pytest.mark.e2e
-def test_should_be_able_to_create_order_with_no_payment(
+def test_should_be_able_to_create_order_with_no_payment_CORE_0111(
     e2e_staff_api_client,
     permission_manage_products,
     permission_manage_channels,
-    permission_manage_shipping,
     permission_manage_product_types_and_attributes,
+    permission_manage_shipping,
+    permission_manage_orders,
+    permission_manage_checkouts,
 ):
     # Before
-    channel_slug = "test-channel"
-    product_variant_id = prepare_product(
-        e2e_staff_api_client,
+    permissions = [
         permission_manage_products,
         permission_manage_channels,
         permission_manage_shipping,
         permission_manage_product_types_and_attributes,
+        permission_manage_orders,
+        permission_manage_checkouts,
+    ]
+    assign_permissions(e2e_staff_api_client, permissions)
+    (
         channel_slug,
+        warehouse_id,
+        channel_id,
+        shipping_method_id,
+    ) = create_shop_for_orders_without_payments(e2e_staff_api_client)
+
+    variant_price = 10
+
+    _, result_product_variant_id, _ = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        variant_price,
     )
+
+    assert shipping_method_id is not None
 
     # Step 1 - Create checkout.
     lines = [
-        {"variantId": product_variant_id, "quantity": 1},
+        {"variantId": result_product_variant_id, "quantity": 1},
     ]
     checkout_data = checkout_create(
         e2e_staff_api_client,
@@ -153,6 +121,7 @@ def test_should_be_able_to_create_order_with_no_payment(
     # Step 3 - Checkout complete results in the order creation
     data = raw_checkout_complete(e2e_staff_api_client, checkout_id)
     order_data = data["order"]
+    assert order_data is not None
     assert order_data["id"] is not None
     assert order_data["isShippingRequired"] is True
     assert order_data["paymentStatus"] == "NOT_CHARGED"

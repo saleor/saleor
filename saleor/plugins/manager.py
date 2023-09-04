@@ -49,6 +49,7 @@ from ..payment.interface import (
     PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
+    StoredPaymentMethodRequestDeleteResult,
     TokenConfig,
     TransactionActionData,
     TransactionSessionData,
@@ -65,6 +66,7 @@ if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
+    from ..csv.models import ExportFile
     from ..discount.models import Sale, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
@@ -705,6 +707,12 @@ class PluginsManager(PaymentInterface):
             "product_variant_metadata_updated", default_value, product_variant
         )
 
+    def product_export_completed(self, export: "ExportFile"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_export_completed", default_value, export
+        )
+
     def order_created(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -881,13 +889,16 @@ class PluginsManager(PaymentInterface):
             channel_slug=fulfillment.order.channel.slug,
         )
 
-    def fulfillment_approved(self, fulfillment: "Fulfillment"):
+    def fulfillment_approved(
+        self, fulfillment: "Fulfillment", notify_customer: Optional[bool] = True
+    ):
         default_value = None
         return self.__run_method_on_plugins(
             "fulfillment_approved",
             default_value,
             fulfillment,
             channel_slug=fulfillment.order.channel.slug,
+            notify_customer=notify_customer,
         )
 
     def fulfillment_metadata_updated(self, fulfillment: "Fulfillment"):
@@ -1286,6 +1297,12 @@ class PluginsManager(PaymentInterface):
             "gift_card_metadata_updated", default_value, gift_card
         )
 
+    def gift_card_export_completed(self, export: "ExportFile"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "gift_card_export_completed", default_value, export
+        )
+
     def menu_created(self, menu: "Menu"):
         default_value = None
         return self.__run_method_on_plugins("menu_created", default_value, menu)
@@ -1554,7 +1571,8 @@ class PluginsManager(PaymentInterface):
         request_delete_data: "StoredPaymentMethodRequestDeleteData",
     ) -> "StoredPaymentMethodRequestDeleteResponseData":
         default_response = StoredPaymentMethodRequestDeleteResponseData(
-            success=False, message="Payment method request delete failed to deliver."
+            result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
+            error="Payment method request delete failed to deliver.",
         )
         response = self.__run_method_on_plugins(
             "stored_payment_method_request_delete",
@@ -1642,11 +1660,12 @@ class PluginsManager(PaymentInterface):
     def list_payment_gateways(
         self,
         currency: Optional[str] = None,
-        checkout: Optional["Checkout"] = None,
+        checkout_info: Optional["CheckoutInfo"] = None,
+        checkout_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
         channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> List["PaymentGateway"]:
-        channel_slug = checkout.channel.slug if checkout else channel_slug
+        channel_slug = checkout_info.channel.slug if checkout_info else channel_slug
         plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
         payment_plugins = [
             plugin for plugin in plugins if "process_payment" in type(plugin).__dict__
@@ -1657,7 +1676,10 @@ class PluginsManager(PaymentInterface):
         for plugin in payment_plugins:
             gateways.extend(
                 plugin.get_payment_gateways(
-                    currency=currency, checkout=checkout, previous_value=None
+                    currency=currency,
+                    checkout_info=checkout_info,
+                    checkout_lines=checkout_lines,
+                    previous_value=None,
                 )
             )
         return gateways

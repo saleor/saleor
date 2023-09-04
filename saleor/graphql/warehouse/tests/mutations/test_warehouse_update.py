@@ -464,3 +464,109 @@ def test_update_click_and_collect_option_invalid_input(
 
     assert warehouse.is_private == warehouse_is_private
     assert warehouse.click_and_collect_option == warehouse_click_and_collect
+
+
+MUTATION_UPDATE_WAREHOUSE_BY_EXTERNAL_REFERENCE = """
+    mutation updateWarehouse($input: WarehouseUpdateInput!,
+            $id: ID, $externalReference: String) {
+    updateWarehouse(id: $id, input: $input, externalReference: $externalReference) {
+    errors {
+      message
+      field
+      code
+    }
+    warehouse {
+      name
+      slug
+      externalReference
+    }
+  }
+}
+"""
+
+
+def test_mutation_update_warehouse_by_external_reference(
+    staff_api_client, warehouse, permission_manage_products
+):
+    # given
+    external_reference = "test-ext-ref"
+    warehouse.external_reference = external_reference
+    warehouse.save(update_fields=["external_reference"])
+    variables = {
+        "externalReference": external_reference,
+        "input": {
+            "name": "New name",
+            "externalReference": external_reference,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_WAREHOUSE_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    warehouse.refresh_from_db()
+    data = content["data"]["updateWarehouse"]["warehouse"]
+    assert data["name"] == "New name"
+    assert warehouse.name == "New name"
+    assert warehouse.external_reference == external_reference
+
+
+def test_update_warehouse_by_both_id_and_external_reference(
+    staff_api_client, warehouse, permission_manage_products
+):
+    # given
+    external_reference = "test-ext-ref"
+    warehouse.external_reference = external_reference
+    warehouse.save(update_fields=["external_reference"])
+    variables = {
+        "externalReference": external_reference,
+        "id": warehouse.id,
+        "input": {"name": "New name"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_WAREHOUSE_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["updateWarehouse"]
+    # then
+    assert data["errors"]
+    assert (
+        data["errors"][0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_update_product_external_reference_not_existing(
+    staff_api_client, permission_manage_products
+):
+    # given
+    external_reference = "non-existing-ext-ref"
+    variables = {
+        "externalReference": external_reference,
+        "input": {},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_WAREHOUSE_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["updateWarehouse"]
+
+    # then
+    assert data["errors"]
+    assert (
+        data["errors"][0]["message"]
+        == f"Couldn't resolve to a node: {external_reference}"
+    )

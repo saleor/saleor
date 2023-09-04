@@ -30,6 +30,7 @@ from ...payment.interface import (
     PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
+    StoredPaymentMethodRequestDeleteResult,
     TransactionProcessActionData,
     TransactionSessionData,
     TransactionSessionResult,
@@ -1222,6 +1223,7 @@ def test_manager_transaction_initialize_session(
             currency=transaction.currency,
             action_type=action_type,
         ),
+        customer_ip_address="127.0.0.1",
         payment_gateway_data=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=None, error=None
         ),
@@ -1263,6 +1265,7 @@ def test_manager_transaction_process_session(
             currency=transaction.currency,
             action_type=action_type,
         ),
+        customer_ip_address="127.0.0.1",
         payment_gateway_data=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=None, error=None
         ),
@@ -1383,9 +1386,9 @@ def test_stored_payment_method_request_delete(
         user=customer_user, payment_method_id="123", channel=channel_USD
     )
     previous_response = StoredPaymentMethodRequestDeleteResponseData(
-        success=False, message="Payment method request delete failed to deliver."
+        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
+        error="Payment method request delete failed to deliver.",
     )
-
     # when
     manager.stored_payment_method_request_delete(
         request_delete_data=request_delete_data

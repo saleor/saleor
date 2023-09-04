@@ -11,6 +11,7 @@ from ...payment import (
 from ...payment.interface import (
     PaymentGatewayInitializeTokenizationResult,
     PaymentMethodTokenizationResult,
+    StoredPaymentMethodRequestDeleteResult,
 )
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.enums import to_enum
@@ -97,3 +98,11 @@ PaymentMethodTokenizationResultEnum = graphene.Enum.from_enum(
     PaymentMethodTokenizationResult
 )
 PaymentMethodTokenizationResultEnum.doc_category = DOC_CATEGORY_PAYMENTS
+
+
+TokenizedPaymentFlowEnum.doc_category = DOC_CATEGORY_PAYMENTS
+
+StoredPaymentMethodRequestDeleteResultEnum = graphene.Enum.from_enum(
+    StoredPaymentMethodRequestDeleteResult,
+)
+StoredPaymentMethodRequestDeleteResultEnum.doc_category = DOC_CATEGORY_PAYMENTS

@@ -73,6 +73,23 @@ def test_search_attributes_value(
     assert values[0]["node"]["slug"] == filter_value
 
 
+@pytest.mark.parametrize(
+    "filter_by, attributes_count",
+    [({"slugs": ["red", "blue"]}, 2), ({"slugs": ["red"]}, 1), ({"slugs": []}, 2)],
+)
+def test_atribute_values_with_filtering_slugs(
+    filter_by, api_client, attributes_count, color_attribute, size_attribute
+):
+    variables = {"filters": filter_by}
+
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTES_VALUE_FILTER_QUERY, variables)
+    )["data"]["attributes"]
+
+    slugs = attributes["edges"][0]["node"]["choices"]["edges"]
+    assert len(slugs) == attributes_count
+
+
 def test_filter_attributes_if_filterable_in_dashboard(
     api_client, color_attribute, size_attribute
 ):

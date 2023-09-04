@@ -268,6 +268,17 @@ fragment BasicProductFields on Product {
 }
 """
 
+PRODUCT_EXPORT_DETAILS = """
+fragment ProductExportDetails on ExportFile{
+  id
+  createdAt
+  updatedAt
+  status
+  url
+  message
+}
+"""
+
 
 COLLECTION = (
     BASIC_PRODUCT_FIELDS
@@ -371,6 +382,17 @@ fragment GiftCardDetails on GiftCard{
   createdBy {
     email
   }
+}
+"""
+
+GIFT_CARD_EXPORT_DETAILS = """
+fragment GiftCardExportDetails on ExportFile{
+  id
+  createdAt
+  updatedAt
+  status
+  url
+  message
 }
 """
 

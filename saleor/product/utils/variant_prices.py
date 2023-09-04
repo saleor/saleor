@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Dict, Iterable, List, Set, Tuple
 
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, QuerySet
 from django.db.models.query_utils import Q
 from prices import Money
 
@@ -37,19 +37,19 @@ def update_products_discounted_price(products: Iterable[Product], discounts=None
     product_to_collection_ids_map = defaultdict(set)
     for collection_id, product_id in collection_products.values_list(
         "collection_id", "product_id"
-    ):
+    ).iterator():
         product_to_collection_ids_map[product_id].add(collection_id)
 
     product_to_variant_listings_per_channel_map = (
-        _get_product_to_variant_channel_listings_per_channel_map(product_ids)
+        _get_product_to_variant_channel_listings_per_channel_map(product_qs)
     )
 
     changed_products_listings_to_update = []
     changed_variants_listings_to_update = []
     product_channel_listings = ProductChannelListing.objects.filter(
         Exists(product_qs.filter(id=OuterRef("product_id")))
-    )
-    for product_channel_listing in product_channel_listings:
+    ).prefetch_related("product", "channel")
+    for product_channel_listing in product_channel_listings.iterator():
         product_id = product_channel_listing.product_id
         channel_id = product_channel_listing.channel_id
         variant_listings = product_to_variant_listings_per_channel_map[product_id][
@@ -90,9 +90,8 @@ def update_products_discounted_price(products: Iterable[Product], discounts=None
 
 
 def _get_product_to_variant_channel_listings_per_channel_map(
-    product_ids: Iterable[int],
+    products: QuerySet[Product],
 ):
-    products = Product.objects.filter(id__in=product_ids)
     variants = ProductVariant.objects.filter(
         Exists(products.filter(id=OuterRef("product_id")))
     )
@@ -101,16 +100,18 @@ def _get_product_to_variant_channel_listings_per_channel_map(
     )
     variant_to_product_id = {
         variant_id: product_id
-        for variant_id, product_id in variants.values_list("id", "product_id")
+        for variant_id, product_id in variants.values_list(
+            "id", "product_id"
+        ).iterator()
     }
 
     price_data: Dict[int, Dict[int, List[Money]]] = defaultdict(
         lambda: defaultdict(list)
     )
-    for variant_channel_listings in variant_channel_listings:
-        product_id = variant_to_product_id[variant_channel_listings.variant_id]
-        price_data[product_id][variant_channel_listings.channel_id].append(
-            variant_channel_listings
+    for variant_channel_listing in variant_channel_listings.iterator():
+        product_id = variant_to_product_id[variant_channel_listing.variant_id]
+        price_data[product_id][variant_channel_listing.channel_id].append(
+            variant_channel_listing
         )
     return price_data
 
@@ -170,7 +171,7 @@ def update_products_discounted_prices(products, discounts=None):
         discounts = fetch_active_discounts()
 
     for product_batch in _products_in_batches(products):
-        update_products_discounted_price(product_batch)
+        update_products_discounted_price(product_batch, discounts)
 
 
 def update_products_discounted_prices_of_catalogues(
@@ -188,7 +189,8 @@ def update_products_discounted_prices_of_catalogues(
         )
         lookup |= Q(Exists(collection_products.filter(product_id=OuterRef("id"))))
     if variant_ids:
-        lookup |= Q(Exists(ProductVariant.objects.filter(product_id=OuterRef("id"))))
+        variants = ProductVariant.objects.filter(id__in=variant_ids)
+        lookup |= Q(Exists(variants.filter(product_id=OuterRef("id"))))
 
     if lookup:
         products = Product.objects.filter(lookup)

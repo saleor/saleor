@@ -6,8 +6,8 @@ The following releases of Saleor are currently supported.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| ≥ 3.7   | :white_check_mark: |
-| < 3.7   | :x:                |
+| ≥ 3.11  | :white_check_mark: |
+| < 3.11  | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -16,6 +16,8 @@ Please DO NOT report security vulnerabilities using a public GitHub issue. If yo
 - https://huntr.dev/repos/saleor/saleor
 - Alternatively, through our mailing list: security@saleor.io
 
-At this time we do not have a bounty program in place so we are not able to offer monetary rewards for any problems reported.
+We do not currently have a bounty program in place, so we cannot offer monetary rewards for any reported problems.
+
 You can claim bounty rewards by reporting vulnerabilities using Huntr: https://huntr.dev.
+
 Whichever method you choose, you will be credited as the reporter once the announcement is published.

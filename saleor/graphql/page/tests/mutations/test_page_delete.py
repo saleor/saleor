@@ -1,14 +1,15 @@
+from functools import partial
 from unittest import mock
 
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
+from mock import ANY
 
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....webhook.event_types import WebhookEventAsyncType
-from .....webhook.payloads import generate_page_payload
 from ....tests.utils import get_graphql_content
 
 PAGE_DELETE_MUTATION = """
@@ -63,13 +64,16 @@ def test_page_delete_trigger_webhook(
     assert data["page"]["title"] == page.title
     with pytest.raises(page._meta.model.DoesNotExist):
         page.refresh_from_db()
-    expected_data = generate_page_payload(page, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data,
+        None,
         WebhookEventAsyncType.PAGE_DELETED,
         [any_webhook],
         page,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 

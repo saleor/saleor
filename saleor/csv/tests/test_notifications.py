@@ -11,9 +11,17 @@ from ..notifications import get_default_export_payload
 
 
 @freeze_time("2018-05-31 12:00:01")
+@mock.patch("saleor.plugins.manager.PluginsManager.gift_card_export_completed")
+@mock.patch("saleor.plugins.manager.PluginsManager.product_export_completed")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_export_download_link_notification(
-    mocked_notify, site_settings, user_export_file, tmpdir, media_root
+    mocked_notify,
+    mocked_product_export_completed,
+    mocked_gift_card_export_completed,
+    site_settings,
+    user_export_file,
+    tmpdir,
+    media_root,
 ):
     # given
     file_mock = mock.MagicMock(spec=File)
@@ -25,7 +33,6 @@ def test_send_export_download_link_notification(
 
     # when
     notifications.send_export_download_link_notification(user_export_file, data_type)
-
     # then
     expected_payload = {
         "export": get_default_export_payload(user_export_file),
@@ -34,16 +41,25 @@ def test_send_export_download_link_notification(
         "data_type": data_type,
         **get_site_context(),
     }
-
     mocked_notify.assert_called_once_with(
         AdminNotifyEvent.CSV_EXPORT_SUCCESS, expected_payload
     )
+    mocked_gift_card_export_completed.assert_not_called()
+    mocked_product_export_completed.assert_called_with(user_export_file)
 
 
 @freeze_time("2018-05-31 12:00:01")
+@mock.patch("saleor.plugins.manager.PluginsManager.gift_card_export_completed")
+@mock.patch("saleor.plugins.manager.PluginsManager.product_export_completed")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_export_failed_info(
-    mocked_notify, site_settings, user_export_file, tmpdir, media_root
+    mocked_notify,
+    mocked_product_export_completed,
+    mocked_gift_card_export_completed,
+    site_settings,
+    user_export_file,
+    tmpdir,
+    media_root,
 ):
     # given
     file_mock = mock.MagicMock(spec=File)
@@ -67,3 +83,5 @@ def test_send_export_failed_info(
     mocked_notify.assert_called_once_with(
         AdminNotifyEvent.CSV_EXPORT_FAILED, expected_payload
     )
+    mocked_gift_card_export_completed.assert_called_once_with(user_export_file)
+    mocked_product_export_completed.assert_not_called()

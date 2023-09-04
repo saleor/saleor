@@ -21,11 +21,27 @@ JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
 
 @dataclass
+class StoredPaymentMethodRequestDeleteResult(str, Enum):
+    """Result of deleting a stored payment method.
+
+    This enum is used to determine the result of deleting a stored payment method.
+    SUCCESSFULLY_DELETED - The stored payment method was successfully deleted.
+    FAILED_TO_DELETE - The stored payment method was not deleted.
+    FAILED_TO_DELIVER - The request to delete the stored payment method was not
+    delivered.
+    """
+
+    SUCCESSFULLY_DELETED = "successfully_deleted"
+    FAILED_TO_DELETE = "failed_to_delete"
+    FAILED_TO_DELIVER = "failed_to_deliver"
+
+
+@dataclass
 class StoredPaymentMethodRequestDeleteResponseData:
     """Dataclass for storing the response information from payment app."""
 
-    success: bool
-    message: Optional[str] = None
+    result: StoredPaymentMethodRequestDeleteResult
+    error: Optional[str] = None
 
 
 @dataclass
@@ -147,6 +163,7 @@ class TransactionSessionData:
     source_object: Union["Checkout", "Order"]
     action: TransactionProcessActionData
     payment_gateway_data: PaymentGatewayData
+    customer_ip_address: Optional[str]
 
 
 @dataclass

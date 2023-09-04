@@ -15,6 +15,7 @@ from ...payment.interface import (
     PaymentMethodTokenizationResponseData,
     PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteResponseData,
+    StoredPaymentMethodRequestDeleteResult,
 )
 from ...webhook.event_types import WebhookEventSyncType
 from ...webhook.utils import get_webhooks_for_event
@@ -152,10 +153,21 @@ def get_list_stored_payment_methods_from_response(
 def get_response_for_stored_payment_method_request_delete(
     response_data: Optional[dict],
 ) -> "StoredPaymentMethodRequestDeleteResponseData":
-    response_data = response_data or {"message": "Failed to delivery request."}
+    if response_data is None:
+        result = StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER
+        error = "Failed to delivery request."
+    else:
+        try:
+            response_result = response_data.get("result") or ""
+            result = StoredPaymentMethodRequestDeleteResult[response_result]
+            error = response_data.get("error", None)
+        except KeyError:
+            result = StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE
+            error = "Missing or incorrect `result` in response."
+
     return StoredPaymentMethodRequestDeleteResponseData(
-        success=response_data.get("success", False),
-        message=response_data.get("message", None),
+        result=result,
+        error=error,
     )
 
 

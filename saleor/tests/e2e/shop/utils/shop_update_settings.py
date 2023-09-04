@@ -1,4 +1,4 @@
-from ..utils import get_graphql_content
+from ...utils import get_graphql_content
 
 SHOP_SETTING_UPDATE_MUTATION = """
 mutation ShopSettingsUpdate($input: ShopSettingsInput!) {

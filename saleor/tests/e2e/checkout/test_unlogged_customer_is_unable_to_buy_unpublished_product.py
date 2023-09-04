@@ -1,6 +1,5 @@
 import pytest
 
-from ..channel.utils import create_channel
 from ..product.utils import (
     create_category,
     create_product,
@@ -9,33 +8,17 @@ from ..product.utils import (
     create_product_variant_channel_listing,
     raw_create_product_channel_listing,
 )
+from ..shop.utils.preparing_shop import prepare_shop
 from ..utils import assign_permissions
-from ..warehouse.utils import create_warehouse
 from .utils import raw_checkout_create
 
 
-def prepare_product(
+def prepare_unpublished_product(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_product_types_and_attributes,
-    channel_slug,
 ):
-    permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_product_types_and_attributes,
-    ]
-    assign_permissions(e2e_staff_api_client, permissions)
-
-    warehouse_data = create_warehouse(e2e_staff_api_client)
-    warehouse_id = warehouse_data["id"]
-
-    warehouse_ids = [warehouse_id]
-    channel_data = create_channel(
-        e2e_staff_api_client, slug=channel_slug, warehouse_ids=warehouse_ids
+    result_warehouse_id, result_channel_id, result_channel_slug, _ = prepare_shop(
+        e2e_staff_api_client
     )
-    channel_id = channel_data["id"]
 
     product_type_data = create_product_type(
         e2e_staff_api_client,
@@ -51,14 +34,14 @@ def prepare_product(
     raw_create_product_channel_listing(
         e2e_staff_api_client,
         product_id,
-        channel_id,
+        result_channel_id,
         is_published=False,
         is_available_for_purchase=True,
     )
 
     stocks = [
         {
-            "warehouse": warehouse_id,
+            "warehouse": result_warehouse_id,
             "quantity": 5,
         }
     ]
@@ -72,10 +55,11 @@ def prepare_product(
     create_product_variant_channel_listing(
         e2e_staff_api_client,
         product_variant_id,
-        channel_id,
+        result_channel_id,
+        price=10,
     )
 
-    return product_variant_id, channel_id, product_id, permissions
+    return product_variant_id, result_channel_slug
 
 
 @pytest.mark.e2e
@@ -85,15 +69,18 @@ def test_unlogged_customer_is_unable_to_buy_unpublished_product_core_0109(
     permission_manage_products,
     permission_manage_channels,
     permission_manage_product_types_and_attributes,
+    permission_manage_shipping,
 ):
     # Before
-    channel_slug = "test-channel222"
-    product_variant_id, channel_id, product_id, permissions = prepare_product(
-        e2e_staff_api_client,
+    permissions = [
         permission_manage_products,
         permission_manage_channels,
         permission_manage_product_types_and_attributes,
-        channel_slug,
+        permission_manage_shipping,
+    ]
+    assign_permissions(e2e_staff_api_client, permissions)
+    product_variant_id, result_channel_slug = prepare_unpublished_product(
+        e2e_staff_api_client,
     )
 
     # Step 1 - Create checkout with unpublished product variant
@@ -104,7 +91,7 @@ def test_unlogged_customer_is_unable_to_buy_unpublished_product_core_0109(
     checkout_data = raw_checkout_create(
         e2e_not_logged_api_client,
         lines,
-        channel_slug,
+        result_channel_slug,
         email="testEmail@example.com",
         set_default_billing_address=True,
     )
