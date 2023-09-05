@@ -5,7 +5,7 @@ from .models import Promotion, PromotionRule
 from .utils import fetch_catalogue_info
 
 
-def create_promotion_for_new_sale(sale, catalogue_data):
+def create_promotion_for_new_sale(sale, catalogue_data=None):
     promotion = create_promotion(sale)
     create_promotion_rule(promotion, sale, catalogue_data)
 
