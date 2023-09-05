@@ -38,7 +38,7 @@ jobs:
 
       - name: Install and configure poetry
         run: |
-          pipx install poetry==1.5.0
+          python -m pip install poetry==1.5.0
 
       - name: Cache the venv
         id: cached-poetry-dependencies
@@ -49,7 +49,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install --no-root
+          python -m poetry install --no-root
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
 
       - name: Migrate
