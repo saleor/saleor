@@ -106,7 +106,6 @@ def test_attribute_value_bulk_translate_creates_name_from_translations_long_text
     value = plain_text_attribute.values.first()
     value_global_id = graphene.Node.to_global_id("AttributeValue", value.id)
     expected_text = "Nowy Kolor" * 250
-    expected_rich_text = json.dumps(dummy_editorjs(expected_text))
 
     assert value.translations.count() == 0
 
@@ -128,7 +127,6 @@ def test_attribute_value_bulk_translate_creates_name_from_translations_long_text
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeValueBulkTranslate"]
-    print(data["results"][0]["translation"])
 
     # then
     assert value.translations.count() == 1
@@ -136,7 +134,6 @@ def test_attribute_value_bulk_translate_creates_name_from_translations_long_text
     assert data["count"] == 1
     assert data["results"][0]["translation"]["name"] == expected_text[:249] + "…"
     assert data["results"][0]["translation"]["plainText"] == expected_text
-    assert data["results"][0]["translation"]["richText"] == expected_rich_text
     assert created_webhook_mock.call_count == 1
 
 

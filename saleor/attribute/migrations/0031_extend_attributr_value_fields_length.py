@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("attribute", "0029_alter_attribute_unit"),
+        ("attribute", "0030_assignedproductattributevalue_product"),
     ]
 
     operations = [
