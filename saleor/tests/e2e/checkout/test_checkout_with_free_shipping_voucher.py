@@ -81,7 +81,7 @@ def test_checkout_use_free_shipping_voucher_0903(
         min_amount_spent=75,
     )
 
-    # Step 1 - Create checkout for product on sale
+    # Step 1 - Create checkout for product
     lines = [
         {"variantId": product_variant_id, "quantity": 1},
     ]
@@ -109,7 +109,7 @@ def test_checkout_use_free_shipping_voucher_0903(
     )
     assert checkout_data["errors"][0]["code"] == "VOUCHER_NOT_APPLICABLE"
 
-    # Step 3 Add variant to the checkout
+    # Step 3 Add lines to the checkout to increase the total amount
     lines_add = [
         {"variantId": product_variant_id, "quantity": 2},
     ]
