@@ -40,7 +40,7 @@ def prepare_free_shipping_voucher(
     ]
     create_voucher_channel_listing(e2e_staff_api_client, voucher_id, channel_listing)
 
-    return voucher_discount_value, voucher_code
+    return voucher_code
 
 
 @pytest.mark.e2e
@@ -71,7 +71,7 @@ def test_checkout_use_free_shipping_voucher_0903(
         e2e_staff_api_client, warehouse_id, channel_id, variant_price=25
     )
 
-    _voucher_discount_value, voucher_code = prepare_free_shipping_voucher(
+    voucher_code = prepare_free_shipping_voucher(
         e2e_staff_api_client,
         channel_id,
         voucher_code="FREESHIPPING",
