@@ -65,7 +65,7 @@ class Domain(graphene.ObjectType):
     ssl_enabled = graphene.Boolean(
         description="Inform if SSL is enabled.", required=True
     )
-    url = graphene.String(description="Shop's absolute URL.", required=True)
+    url = graphene.String(description="The absolute URL of the API.", required=True)
 
     class Meta:
         description = "Represents API domain."
