@@ -49,6 +49,7 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 - Add filter by slugs to attribute choices - #13761 by @rafiwts
 - Add a new `product` field on `AssignedProductAttributeValue`. First part of a simplification of Attribute - Product relation from #12881. by @aniav
 - Lazy legacy webhooks payload generation - #13758 by @maarcingebala
+- Add IP filter feature to backend HTTP requests - #13891 by @NyanKiyoshi
 
 # 3.15.0 [Unreleased]
 
