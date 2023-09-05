@@ -294,6 +294,11 @@ class DiscountError(ProductWithoutVariantError):
         description="List of channels IDs which causes the error.",
         required=False,
     )
+    voucher_codes = NonNullList(
+        graphene.String,
+        description="List of voucher codes which causes the error.",
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS

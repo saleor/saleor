@@ -3,7 +3,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from .....discount import DiscountValueType, VoucherType
-from .....discount.models import Voucher, VoucherChannelListing
+from .....discount.models import Voucher, VoucherChannelListing, VoucherCode
 from ....tests.utils import get_graphql_content
 
 
@@ -14,46 +14,44 @@ def vouchers_for_pagination(db, channel_USD):
     vouchers = Voucher.objects.bulk_create(
         [
             Voucher(
-                code="Code1",
                 name="Voucher1",
                 start_date=now + timezone.timedelta(hours=4),
                 end_date=now + timezone.timedelta(hours=14),
                 discount_value_type=DiscountValueType.PERCENTAGE,
-                usage_limit=10,
                 type=VoucherType.SPECIFIC_PRODUCT,
             ),
             Voucher(
-                code="Code2",
                 name="Voucher2",
                 end_date=now + timezone.timedelta(hours=1),
-                usage_limit=1000,
-                used=10,
                 type=VoucherType.ENTIRE_ORDER,
             ),
             Voucher(
-                code="Code3",
                 name="Voucher3",
                 end_date=now + timezone.timedelta(hours=2),
                 discount_value_type=DiscountValueType.PERCENTAGE,
-                usage_limit=100,
-                used=35,
                 type=VoucherType.ENTIRE_ORDER,
             ),
             Voucher(
-                code="Code4",
                 name="Voucher4",
                 end_date=now + timezone.timedelta(hours=1),
-                usage_limit=100,
                 type=VoucherType.SPECIFIC_PRODUCT,
             ),
             Voucher(
-                code="Code15",
                 name="Voucher15",
                 start_date=now + timezone.timedelta(hours=1),
                 end_date=now + timezone.timedelta(hours=5),
                 discount_value_type=DiscountValueType.PERCENTAGE,
-                usage_limit=10,
             ),
+        ]
+    )
+
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="Code1", voucher=vouchers[0], usage_limit=10),
+            VoucherCode(code="Code2", used=10, usage_limit=1000, voucher=vouchers[1]),
+            VoucherCode(code="Code3", used=35, usage_limit=100, voucher=vouchers[2]),
+            VoucherCode(code="Code4", usage_limit=100, voucher=vouchers[3]),
+            VoucherCode(code="Code15", usage_limit=10, voucher=vouchers[4]),
         ]
     )
     VoucherChannelListing.objects.bulk_create(

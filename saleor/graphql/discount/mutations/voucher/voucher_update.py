@@ -33,6 +33,6 @@ class VoucherUpdate(VoucherCreate):
         ]
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, code):
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.voucher_updated, instance)
+        cls.call_event(manager.voucher_updated, instance, code)

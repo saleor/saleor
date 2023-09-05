@@ -43,22 +43,22 @@ if TYPE_CHECKING:
     from ..order.models import Order
     from ..plugins.manager import PluginsManager
     from ..product.models import Collection, Product
-    from .models import Voucher
+    from .models import Voucher, VoucherCode
 
 CatalogueInfo = DefaultDict[str, Set[Union[int, str]]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
-def increase_voucher_usage(voucher: "Voucher") -> None:
-    """Increase voucher uses by 1."""
-    voucher.used = F("used") + 1
-    voucher.save(update_fields=["used"])
+def increase_voucher_code_usage(code: "VoucherCode") -> None:
+    """Increase voucher code uses by 1."""
+    code.used = F("used") + 1
+    code.save(update_fields=["used"])
 
 
-def decrease_voucher_usage(voucher: "Voucher") -> None:
-    """Decrease voucher uses by 1."""
-    voucher.used = F("used") - 1
-    voucher.save(update_fields=["used"])
+def decrease_voucher_code_usage(code: "VoucherCode") -> None:
+    """Decrease voucher code uses by 1."""
+    code.used = F("used") - 1
+    code.save(update_fields=["used"])
 
 
 def add_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
@@ -77,13 +77,13 @@ def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) ->
         voucher_customer.delete()
 
 
-def release_voucher_usage(voucher: Optional["Voucher"], user_email: Optional[str]):
-    if not voucher:
+def release_voucher_usage(code: Optional["VoucherCode"], user_email: Optional[str]):
+    if not code:
         return
-    if voucher.usage_limit:
-        decrease_voucher_usage(voucher)
+    if code.usage_limit:
+        decrease_voucher_code_usage(code)
     if user_email:
-        remove_voucher_usage_by_customer(voucher, user_email)
+        remove_voucher_usage_by_customer(code.voucher, user_email)
 
 
 def get_product_discount_on_sale(

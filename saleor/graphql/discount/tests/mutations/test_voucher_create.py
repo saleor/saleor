@@ -17,22 +17,13 @@ from ....tests.utils import get_graphql_content
 from ...enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 CREATE_VOUCHER_MUTATION = """
-mutation  voucherCreate(
-    $type: VoucherTypeEnum, $name: String, $code: String,
-    $discountValueType: DiscountValueTypeEnum, $usageLimit: Int,
-    $minCheckoutItemsQuantity: Int, $startDate: DateTime, $endDate: DateTime,
-    $applyOncePerOrder: Boolean, $applyOncePerCustomer: Boolean) {
-        voucherCreate(input: {
-                name: $name, type: $type, code: $code,
-                discountValueType: $discountValueType,
-                minCheckoutItemsQuantity: $minCheckoutItemsQuantity,
-                startDate: $startDate, endDate: $endDate, usageLimit: $usageLimit
-                applyOncePerOrder: $applyOncePerOrder,
-                applyOncePerCustomer: $applyOncePerCustomer}) {
+mutation voucherCreate($input: VoucherInput!) {
+        voucherCreate(input: $input) {
             errors {
                 field
                 code
                 message
+                voucherCodes
             }
             voucher {
                 type
@@ -51,35 +42,117 @@ mutation  voucherCreate(
 
 
 def test_create_voucher(staff_api_client, permission_manage_discounts):
+    # given
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
+
     variables = {
-        "name": "test voucher",
-        "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-        "code": "testcode123",
-        "discountValueType": DiscountValueTypeEnum.FIXED.name,
-        "minCheckoutItemsQuantity": 10,
-        "startDate": start_date.isoformat(),
-        "endDate": end_date.isoformat(),
-        "applyOncePerOrder": True,
-        "applyOncePerCustomer": True,
-        "usageLimit": 3,
+        "input": {
+            "name": "test voucher",
+            "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+            "codes": [{"code": "testcode123"}, {"code": "testcode456"}],
+            "discountValueType": DiscountValueTypeEnum.FIXED.name,
+            "minCheckoutItemsQuantity": 10,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "applyOncePerOrder": True,
+            "applyOncePerCustomer": True,
+            "usageLimit": 3,
+        }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
-    get_graphql_content(response)
+    content = get_graphql_content(response)
+    data = content["data"]["voucherCreate"]
     voucher = Voucher.objects.get()
+    codes = voucher.codes.all()
+
+    # then
+    assert not data["errors"]
     assert voucher.type == VoucherType.ENTIRE_ORDER
     assert voucher.name == "test voucher"
-    assert voucher.code == "testcode123"
     assert voucher.discount_value_type == DiscountValueType.FIXED
     assert voucher.start_date == start_date
     assert voucher.end_date == end_date
     assert voucher.apply_once_per_order
     assert voucher.apply_once_per_customer
     assert voucher.usage_limit == 3
+    assert len(codes) == 2
+
+
+def test_create_voucher_return_error_when_code_and_codes_args_combined(
+    staff_api_client, permission_manage_discounts
+):
+    # given
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
+
+    variables = {
+        "input": {
+            "name": "test voucher",
+            "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+            "code": "testcode123",
+            "codes": [{"code": "testcode123"}, {"code": "testcode456"}],
+            "discountValueType": DiscountValueTypeEnum.FIXED.name,
+            "minCheckoutItemsQuantity": 10,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "applyOncePerOrder": True,
+            "applyOncePerCustomer": True,
+            "usageLimit": 3,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["voucherCreate"]
+
+    # then
+    message = "Argument 'code' cannot be combined with 'codes'"
+    assert data["errors"]
+    assert data["errors"][0]["code"] == DiscountErrorCode.GRAPHQL_ERROR.name
+    assert data["errors"][0]["message"] == message
+
+
+def test_create_voucher_return_error_when_code_or_codes_arg_not_in_input(
+    staff_api_client, permission_manage_discounts
+):
+    # given
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
+
+    variables = {
+        "input": {
+            "name": "test voucher",
+            "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+            "discountValueType": DiscountValueTypeEnum.FIXED.name,
+            "minCheckoutItemsQuantity": 10,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "applyOncePerOrder": True,
+            "applyOncePerCustomer": True,
+            "usageLimit": 3,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["voucherCreate"]
+
+    # then
+    message = "At least one of arguments is required: 'code', 'codes'."
+    assert data["errors"]
+    assert data["errors"][0]["code"] == DiscountErrorCode.GRAPHQL_ERROR.name
+    assert data["errors"][0]["message"] == message
 
 
 @freeze_time("2022-05-12 12:00:00")
@@ -99,17 +172,23 @@ def test_create_voucher_trigger_webhook(
 
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
+
+    code_1 = "testcode123"
+    code_2 = "testcode456"
+
     variables = {
-        "name": "test voucher",
-        "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-        "code": "testcode123",
-        "discountValueType": DiscountValueTypeEnum.FIXED.name,
-        "minCheckoutItemsQuantity": 10,
-        "startDate": start_date.isoformat(),
-        "endDate": end_date.isoformat(),
-        "applyOncePerOrder": True,
-        "applyOncePerCustomer": True,
-        "usageLimit": 3,
+        "input": {
+            "name": "test voucher",
+            "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+            "codes": [{"code": code_1}, {"code": code_2}],
+            "discountValueType": DiscountValueTypeEnum.FIXED.name,
+            "minCheckoutItemsQuantity": 10,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "applyOncePerOrder": True,
+            "applyOncePerCustomer": True,
+            "usageLimit": 3,
+        }
     }
 
     # when
@@ -120,13 +199,13 @@ def test_create_voucher_trigger_webhook(
     voucher = Voucher.objects.last()
 
     # then
-    assert content["data"]["voucherCreate"]["voucher"]
+    assert content["data"]["voucherCreate"]
     mocked_webhook_trigger.assert_called_once_with(
         json.dumps(
             {
                 "id": graphene.Node.to_global_id("Voucher", voucher.id),
                 "name": voucher.name,
-                "code": voucher.code,
+                "code": code_1,
                 "meta": generate_meta(
                     requestor_data=generate_requestor(
                         SimpleLazyObject(lambda: staff_api_client.user)
@@ -143,107 +222,165 @@ def test_create_voucher_trigger_webhook(
 
 
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):
+    # given
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
     variables = {
-        "name": "test voucher",
-        "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-        "code": "",
-        "discountValueType": DiscountValueTypeEnum.FIXED.name,
-        "discountValue": 10.12,
-        "minAmountSpent": 1.12,
-        "startDate": start_date.isoformat(),
-        "endDate": end_date.isoformat(),
-        "usageLimit": None,
+        "input": {
+            "name": "test voucher",
+            "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+            "codes": [{"code": ""}],
+            "discountValueType": DiscountValueTypeEnum.FIXED.name,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "usageLimit": None,
+        }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
     data = content["data"]["voucherCreate"]["voucher"]
-    assert data["name"] == variables["name"]
+
+    # then
+    assert data["name"] == variables["input"]["name"]
     assert data["code"] != ""
+
+
+def test_create_voucher_with_duplicated_codes(
+    staff_api_client, permission_manage_discounts
+):
+    # given
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
+    variables = {
+        "input": {
+            "name": "test voucher",
+            "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+            "codes": [{"code": "CODE"}, {"code": "CODE"}],
+            "discountValueType": DiscountValueTypeEnum.FIXED.name,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "usageLimit": None,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["voucherCreate"]
+    errors = data["errors"]
+
+    # then
+    assert errors
+    assert len(errors) == 1
+    assert errors[0]["field"] == "codes"
+    assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert errors[0]["voucherCodes"] == ["CODE"]
 
 
 def test_create_voucher_with_existing_gift_card_code(
     staff_api_client, gift_card, permission_manage_discounts
 ):
+    # given
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
     variables = {
-        "name": "test voucher",
-        "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-        "code": gift_card.code,
-        "discountValueType": DiscountValueTypeEnum.FIXED.name,
-        "discountValue": 10.12,
-        "minAmountSpent": 1.12,
-        "startDate": start_date.isoformat(),
-        "endDate": end_date.isoformat(),
-        "usageLimit": 3,
+        "input": {
+            "name": "test voucher",
+            "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+            "codes": [{"code": gift_card.code}],
+            "discountValueType": DiscountValueTypeEnum.FIXED.name,
+            "minCheckoutItemsQuantity": 10,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "applyOncePerOrder": True,
+            "applyOncePerCustomer": True,
+            "usageLimit": 3,
+        }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
-    assert content["data"]["voucherCreate"]["errors"]
     errors = content["data"]["voucherCreate"]["errors"]
+
+    # when
+    assert errors
     assert len(errors) == 1
-    assert errors[0]["field"] == "code"
+    assert errors[0]["field"] == "codes"
     assert errors[0]["code"] == DiscountErrorCode.ALREADY_EXISTS.name
+    assert errors[0]["voucherCodes"] == [gift_card.code]
 
 
 def test_create_voucher_with_existing_voucher_code(
     staff_api_client, voucher_shipping_type, permission_manage_discounts
 ):
+    # given
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
+    code = voucher_shipping_type.codes.first().code
     variables = {
-        "name": "test voucher",
-        "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-        "code": voucher_shipping_type.code,
-        "discountValueType": DiscountValueTypeEnum.FIXED.name,
-        "discountValue": 10.12,
-        "minAmountSpent": 1.12,
-        "startDate": start_date.isoformat(),
-        "endDate": end_date.isoformat(),
-        "usageLimit": 3,
+        "input": {
+            "name": "test voucher",
+            "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+            "codes": [{"code": code}],
+            "discountValueType": DiscountValueTypeEnum.FIXED.name,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "usageLimit": 3,
+        }
     }
+
+    # when
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
-    assert content["data"]["voucherCreate"]["errors"]
     errors = content["data"]["voucherCreate"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["field"] == "code"
+
+    # then
     assert errors
+    assert len(errors) == 1
+    assert errors[0]["field"] == "codes"
+    assert errors[0]["voucherCodes"] == [code]
 
 
 def test_create_voucher_with_enddate_before_startdate(
-    staff_api_client, voucher_shipping_type, permission_manage_discounts
+    staff_api_client, permission_manage_discounts
 ):
+    # given
     start_date = timezone.now() + timedelta(days=365)
     end_date = timezone.now() - timedelta(days=365)
+
     variables = {
-        "name": "test voucher",
-        "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-        "code": "FUTURE",
-        "discountValueType": DiscountValueTypeEnum.FIXED.name,
-        "discountValue": 10.12,
-        "minAmountSpent": 1.12,
-        "startDate": start_date.isoformat(),
-        "endDate": end_date.isoformat(),
-        "usageLimit": 3,
+        "input": {
+            "name": "test voucher",
+            "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+            "codes": [{"code": "testcode123"}],
+            "discountValueType": DiscountValueTypeEnum.FIXED.name,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "usageLimit": 3,
+        }
     }
+
+    # when
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
-    assert content["data"]["voucherCreate"]["errors"]
-    errors = content["data"]["voucherCreate"]["errors"]
+    data = content["data"]["voucherCreate"]
+
+    # then
+    errors = data["errors"]
+    assert errors
     assert len(errors) == 1
     assert errors[0]["field"] == "endDate"
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
-    assert errors

@@ -8981,13 +8981,22 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """The name of the voucher."""
   name: String
 
-  """The code of the voucher."""
-  code: String!
+  """
+  List of codes available for this voucher.
+  
+  Added in Saleor 3.15.
+  """
+  codes: [VoucherCode]
 
-  """The number of times a voucher can be used."""
+  """The code of the voucher.This field will be removed in Saleor 4.0."""
+  code: String
+
+  """
+  The number of times a voucher can be used.This field will be removed in Saleor 4.0.
+  """
   usageLimit: Int
 
-  """Usage count of the voucher."""
+  """Usage count of the voucher.This field will be removed in Saleor 4.0."""
   used: Int!
 
   """The start date and time of voucher."""
@@ -9132,6 +9141,22 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
   channelListings: [VoucherChannelListing!]
+}
+
+"""
+Represents voucher code.
+
+Added in Saleor 3.15.
+"""
+type VoucherCode {
+  """Code to use the voucher."""
+  code: String
+
+  """Number of times a code has been used."""
+  used: Int
+
+  """The number of times a voucher code can be used."""
+  usageLimit: Int
 }
 
 enum DiscountValueTypeEnum @doc(category: "Discounts") {
@@ -25908,6 +25933,9 @@ type DiscountError @doc(category: "Discounts") {
 
   """List of channels IDs which causes the error."""
   channels: [ID!]
+
+  """List of voucher codes which causes the error."""
+  voucherCodes: [String!]
 }
 
 """An enumeration."""
@@ -26101,8 +26129,15 @@ input VoucherInput @doc(category: "Discounts") {
   """Voucher name."""
   name: String
 
-  """Code to use the voucher."""
+  """Code to use the voucher.This field will be removed in Saleor 4.0."""
   code: String
+
+  """
+  Codes to use the voucher.
+  
+  Added in Saleor 3.16.
+  """
+  codes: [VoucherCodeInput!]
 
   """Start date of the voucher in ISO 8601 format."""
   startDate: DateTime
@@ -26145,6 +26180,19 @@ input VoucherInput @doc(category: "Discounts") {
   onlyForStaff: Boolean
 
   """Limit number of times this voucher can be used in total."""
+  usageLimit: Int
+}
+
+"""
+Represents voucher code data.
+
+Added in Saleor 3.16.
+"""
+input VoucherCodeInput @doc(category: "Discounts") {
+  """Code to use the voucher."""
+  code: String
+
+  """Code use limit."""
   usageLimit: Int
 }
 

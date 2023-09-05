@@ -691,7 +691,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             | Q(external_reference__in=identifiers.variant_external_references.keys)
         )
         channels = Channel.objects.filter(slug__in=identifiers.channel_slugs.keys)
-        vouchers = Voucher.objects.filter(code__in=identifiers.voucher_codes.keys)
+        vouchers = Voucher.objects.filter(
+            codes__code__in=identifiers.voucher_codes.keys
+        )
         warehouses = Warehouse.objects.filter(pk__in=identifiers.warehouse_ids.keys)
         shipping_methods = ShippingMethod.objects.filter(
             pk__in=identifiers.shipping_method_ids.keys

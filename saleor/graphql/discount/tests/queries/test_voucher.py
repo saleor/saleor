@@ -25,7 +25,7 @@ def test_staff_query_voucher(staff_api_client, voucher, permission_manage_discou
     )
     content = get_graphql_content(response)
     assert content["data"]["voucher"]["name"] == voucher.name
-    assert content["data"]["voucher"]["code"] == voucher.code
+    assert content["data"]["voucher"]["code"] == voucher.codes.first().code
 
 
 def test_query_voucher_by_app(app_api_client, voucher, permission_manage_discounts):
@@ -35,7 +35,7 @@ def test_query_voucher_by_app(app_api_client, voucher, permission_manage_discoun
     )
     content = get_graphql_content(response)
     assert content["data"]["voucher"]["name"] == voucher.name
-    assert content["data"]["voucher"]["code"] == voucher.code
+    assert content["data"]["voucher"]["code"] == voucher.codes.first().code
 
 
 def test_query_voucher_by_customer(api_client, voucher, permission_manage_discounts):

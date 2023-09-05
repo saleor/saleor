@@ -58,6 +58,7 @@ from ..discount.models import (
     SaleTranslation,
     Voucher,
     VoucherChannelListing,
+    VoucherCode,
     VoucherCustomer,
     VoucherTranslation,
 )
@@ -351,7 +352,11 @@ def checkout_with_item_and_voucher_specific_products(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     add_voucher_to_checkout(
-        manager, checkout_info, lines, voucher_specific_product_type
+        manager,
+        checkout_info,
+        lines,
+        voucher_specific_product_type,
+        voucher_specific_product_type.codes.first(),
     )
     checkout_with_item.refresh_from_db()
     return checkout_with_item
@@ -364,7 +369,9 @@ def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
     checkout_with_item.refresh_from_db()
     return checkout_with_item
 
@@ -374,7 +381,9 @@ def checkout_with_item_and_voucher(checkout_with_item, voucher):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
     checkout_with_item.refresh_from_db()
     return checkout_with_item
 
@@ -675,7 +684,13 @@ def checkout_with_voucher_free_shipping(
     checkout_info = fetch_checkout_info(
         checkout_with_items_and_shipping, lines, manager
     )
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher_free_shipping)
+    add_voucher_to_checkout(
+        manager,
+        checkout_info,
+        lines,
+        voucher_free_shipping,
+        voucher_free_shipping.codes.first(),
+    )
     return checkout_with_items_and_shipping
 
 
@@ -3800,7 +3815,9 @@ def product_with_images(
 
 @pytest.fixture
 def voucher_without_channel(db):
-    return Voucher.objects.create(code="mirumee")
+    voucher = Voucher.objects.create()
+    VoucherCode.objects.create(code="mirumee", voucher=voucher)
+    return voucher
 
 
 @pytest.fixture
@@ -3826,9 +3843,9 @@ def voucher_with_many_channels(voucher, channel_PLN):
 @pytest.fixture
 def voucher_percentage(channel_USD):
     voucher = Voucher.objects.create(
-        code="saleor",
         discount_value_type=DiscountValueType.PERCENTAGE,
     )
+    VoucherCode.objects.create(code="saleor", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -3848,7 +3865,8 @@ def voucher_specific_product_type(voucher_percentage, product):
 
 @pytest.fixture
 def voucher_with_high_min_spent_amount(channel_USD):
-    voucher = Voucher.objects.create(code="mirumee")
+    voucher = Voucher.objects.create()
+    VoucherCode.objects.create(code="mirumee", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -3860,9 +3878,8 @@ def voucher_with_high_min_spent_amount(channel_USD):
 
 @pytest.fixture
 def voucher_shipping_type(channel_USD):
-    voucher = Voucher.objects.create(
-        code="mirumee", type=VoucherType.SHIPPING, countries="IS"
-    )
+    voucher = Voucher.objects.create(type=VoucherType.SHIPPING, countries="IS")
+    VoucherCode.objects.create(code="mirumee", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,

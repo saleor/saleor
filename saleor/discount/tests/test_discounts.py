@@ -13,14 +13,15 @@ from ..models import (
     SaleChannelListing,
     Voucher,
     VoucherChannelListing,
+    VoucherCode,
     VoucherCustomer,
 )
 from ..utils import (
     add_voucher_usage_by_customer,
-    decrease_voucher_usage,
+    decrease_voucher_code_usage,
     fetch_catalogue_info,
     get_product_discount_on_sale,
-    increase_voucher_usage,
+    increase_voucher_code_usage,
     remove_voucher_usage_by_customer,
     validate_voucher,
 )
@@ -28,10 +29,10 @@ from ..utils import (
 
 def test_valid_voucher_min_spent_amount(channel_USD):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=DiscountValueType.FIXED,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -45,10 +46,10 @@ def test_valid_voucher_min_spent_amount(channel_USD):
 
 def test_valid_voucher_min_spent_amount_not_reached(channel_USD):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=DiscountValueType.FIXED,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -65,10 +66,10 @@ def test_valid_voucher_min_spent_amount_voucher_not_assigned_to_channel(
     channel_USD, channel_PLN
 ):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=DiscountValueType.FIXED,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -408,39 +409,42 @@ def test_sale_applies_to_correct_products(product_type, category, channel_USD):
         get_product_discount_on_sale(sec_variant.product, set(), discount, channel_USD)
 
 
-def test_increase_voucher_usage(channel_USD):
+def test_increase_voucher_code_usage(channel_USD):
+    code = "unique"
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.FIXED,
-        usage_limit=100,
+    )
+    code_instance = VoucherCode.objects.create(
+        code=code, usage_limit=100, voucher=voucher
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
         discount=Money(10, channel_USD.currency_code),
     )
-    increase_voucher_usage(voucher)
-    voucher.refresh_from_db()
-    assert voucher.used == 1
+    increase_voucher_code_usage(code_instance)
+    code_instance.refresh_from_db(fields=["used"])
+    assert code_instance.used == 1
 
 
 def test_decrease_voucher_usage(channel_USD):
+    code = "unique"
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.FIXED,
-        usage_limit=100,
-        used=10,
+    )
+    code_instance = VoucherCode.objects.create(
+        code=code, voucher=voucher, usage_limit=100, used=10
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
         discount=Money(10, channel_USD.currency_code),
     )
-    decrease_voucher_usage(voucher)
-    voucher.refresh_from_db()
-    assert voucher.used == 9
+    decrease_voucher_code_usage(code_instance)
+    code_instance.refresh_from_db(fields=["used"])
+    assert code_instance.used == 9
 
 
 def test_add_voucher_usage_by_customer(voucher, customer_user):
@@ -490,11 +494,11 @@ def test_validate_voucher(
     channel_USD,
 ):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -511,11 +515,11 @@ def test_validate_staff_voucher_for_anonymous(
     channel_USD,
 ):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.PERCENTAGE,
         only_for_staff=True,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -529,11 +533,11 @@ def test_validate_staff_voucher_for_anonymous(
 
 def test_validate_staff_voucher_for_normal_customer(channel_USD, customer_user):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.PERCENTAGE,
         only_for_staff=True,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -549,11 +553,11 @@ def test_validate_staff_voucher_for_normal_customer(channel_USD, customer_user):
 
 def test_validate_staff_voucher_for_staff_customer(channel_USD, staff_user):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.PERCENTAGE,
         only_for_staff=True,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -584,11 +588,11 @@ def test_validate_voucher_not_applicable(
     channel_USD,
 ):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,

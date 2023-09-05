@@ -3,7 +3,7 @@ import pytest
 from django.utils import timezone
 
 from .....discount import DiscountValueType, VoucherType
-from .....discount.models import Voucher, VoucherChannelListing
+from .....discount.models import Voucher, VoucherChannelListing, VoucherCode
 from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 
@@ -12,39 +12,37 @@ def vouchers_for_sorting_with_channels(db, channel_USD, channel_PLN):
     vouchers = Voucher.objects.bulk_create(
         [
             Voucher(
-                code="Code1",
                 name="Voucher1",
                 discount_value_type=DiscountValueType.PERCENTAGE,
-                usage_limit=10,
                 type=VoucherType.SPECIFIC_PRODUCT,
             ),
             Voucher(
-                code="Code2",
                 name="Voucher2",
-                usage_limit=1000,
-                used=10,
                 type=VoucherType.ENTIRE_ORDER,
             ),
             Voucher(
-                code="Code3",
                 name="Voucher3",
                 discount_value_type=DiscountValueType.PERCENTAGE,
-                usage_limit=100,
-                used=35,
                 type=VoucherType.ENTIRE_ORDER,
             ),
             Voucher(
-                code="Code4",
                 name="Voucher4",
-                usage_limit=100,
                 type=VoucherType.SPECIFIC_PRODUCT,
             ),
             Voucher(
-                code="Code15",
                 name="Voucher15",
                 discount_value_type=DiscountValueType.PERCENTAGE,
-                usage_limit=10,
             ),
+        ]
+    )
+
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="Code1", usage_limit=10, voucher=vouchers[0]),
+            VoucherCode(code="Code2", used=10, usage_limit=1000, voucher=vouchers[1]),
+            VoucherCode(code="Code3", used=35, usage_limit=100, voucher=vouchers[2]),
+            VoucherCode(code="Code4", usage_limit=100, voucher=vouchers[3]),
+            VoucherCode(code="Code15", usage_limit=10, voucher=vouchers[4]),
         ]
     )
     VoucherChannelListing.objects.bulk_create(
@@ -408,18 +406,15 @@ QUERY_VOUCHER_WITH_SORT = """
 def test_query_vouchers_with_sort(
     voucher_sort, result_order, staff_api_client, permission_manage_discounts
 ):
-    Voucher.objects.bulk_create(
+    vouchers = Voucher.objects.bulk_create(
         [
             Voucher(
                 name="Voucher1",
-                code="abc",
                 discount_value_type=DiscountValueType.FIXED,
                 type=VoucherType.ENTIRE_ORDER,
-                usage_limit=10,
             ),
             Voucher(
                 name="Voucher2",
-                code="123",
                 discount_value_type=DiscountValueType.FIXED,
                 type=VoucherType.ENTIRE_ORDER,
                 start_date=timezone.now().replace(year=2012, month=1, day=5),
@@ -427,13 +422,19 @@ def test_query_vouchers_with_sort(
             ),
             Voucher(
                 name="FreeShipping",
-                code="xyz",
                 discount_value_type=DiscountValueType.PERCENTAGE,
                 type=VoucherType.SHIPPING,
                 start_date=timezone.now().replace(year=2011, month=1, day=5),
                 end_date=timezone.now().replace(year=2015, month=12, day=31),
-                usage_limit=1000,
             ),
+        ]
+    )
+
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="abc", usage_limit=10, voucher=vouchers[0]),
+            VoucherCode(code="123", voucher=vouchers[1]),
+            VoucherCode(code="xyz", usage_limit=1000, voucher=vouchers[2]),
         ]
     )
     variables = {"sort_by": voucher_sort}

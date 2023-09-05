@@ -37,7 +37,7 @@ from ..discount import DiscountType, DiscountValueType
 from ..discount.models import NotApplicable
 from ..discount.utils import (
     add_voucher_usage_by_customer,
-    increase_voucher_usage,
+    increase_voucher_code_usage,
     release_voucher_usage,
 )
 from ..graphql.checkout.utils import (
@@ -108,17 +108,17 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     :raises NotApplicable: When the voucher is not applicable in the current checkout.
     """
     checkout = checkout_info.checkout
-    voucher = get_voucher_for_checkout_info(checkout_info, with_lock=True)
+    voucher, code = get_voucher_for_checkout_info(checkout_info, with_lock=True)
 
-    if checkout.voucher_code and not voucher:
+    if checkout.voucher_code and not code:
         msg = "Voucher expired in meantime. Order placement aborted."
         raise NotApplicable(msg)
 
-    if not voucher:
+    if not code or not voucher:
         return {}
 
-    if voucher.usage_limit:
-        increase_voucher_usage(voucher)
+    if code.usage_limit:
+        increase_voucher_code_usage(code)
     if voucher.apply_once_per_customer:
         customer_email = cast(str, checkout_info.get_customer_email())
         add_voucher_usage_by_customer(voucher, customer_email)
@@ -477,7 +477,16 @@ def _prepare_order_data(
     try:
         manager.preprocess_order_creation(checkout_info, lines)
     except TaxError:
-        release_voucher_usage(order_data.get("voucher"), order_data.get("user_email"))
+        code = None
+        if voucher := order_data.get("voucher"):
+            code = voucher.codes.filter(
+                code=checkout_info.checkout.voucher_code
+            ).first()
+
+        release_voucher_usage(
+            code,
+            order_data.get("user_email"),
+        )
         raise
 
     return order_data
@@ -767,6 +776,7 @@ def _process_payment(
     order_data: dict,
     manager: "PluginsManager",
     channel_slug: str,
+    voucher_code: Optional[str] = None,
 ) -> Transaction:
     """Process the payment assigned to checkout."""
     try:
@@ -792,7 +802,10 @@ def _process_payment(
         if not txn.is_success:
             raise PaymentError(txn.error)
     except PaymentError as e:
-        release_voucher_usage(order_data.get("voucher"), order_data.get("user_email"))
+        code = None
+        if voucher := order_data.get("voucher"):
+            code = voucher.codes.filter(code=voucher_code).first()
+        release_voucher_usage(code, order_data.get("user_email"))
         raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
     return txn
 
@@ -859,6 +872,11 @@ def complete_checkout_post_payment_part(
 ) -> Tuple[Optional[Order], bool, dict]:
     action_required = False
     action_data: Dict[str, str] = {}
+    code = None
+    voucher = order_data.get("voucher")
+
+    if voucher and checkout_info.checkout.voucher_code:
+        code = voucher.codes.filter(code=checkout_info.checkout.voucher_code).first()
 
     if payment and txn:
         if txn.customer_id and user:
@@ -868,7 +886,8 @@ def complete_checkout_post_payment_part(
         if action_required:
             action_data = txn.action_required_data
             release_voucher_usage(
-                order_data.get("voucher"), order_data.get("user_email")
+                code,
+                order_data.get("user_email"),
             )
 
     order = None
@@ -889,7 +908,8 @@ def complete_checkout_post_payment_part(
             checkout_info.checkout.delete()
         except InsufficientStock as e:
             release_voucher_usage(
-                order_data.get("voucher"), order_data.get("user_email")
+                code,
+                order_data.get("user_email"),
             )
             gateway.payment_refund_or_void(
                 payment, manager, channel_slug=checkout_info.channel.slug
@@ -897,9 +917,7 @@ def complete_checkout_post_payment_part(
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
         except GiftCardNotApplicable as e:
-            release_voucher_usage(
-                order_data.get("voucher"), order_data.get("user_email")
-            )
+            release_voucher_usage(code, order_data.get("user_email"))
             gateway.payment_refund_or_void(
                 payment, manager, channel_slug=checkout_info.channel.slug
             )
@@ -929,16 +947,18 @@ def _is_refund_ongoing(payment):
 
 def _increase_voucher_usage(checkout_info: "CheckoutInfo"):
     """Increase a voucher usage applied to the checkout."""
-    voucher = get_voucher_for_checkout_info(checkout_info, with_lock=True)
-    if not voucher:
+    voucher, code = get_voucher_for_checkout_info(checkout_info, with_lock=True)
+    if not voucher or not code:
         return None
 
     if voucher.apply_once_per_customer:
         customer_email = cast(str, checkout_info.get_customer_email())
         add_voucher_usage_by_customer(voucher, customer_email)
 
-    if voucher.usage_limit:
-        increase_voucher_usage(voucher)
+    if code.usage_limit:
+        increase_voucher_code_usage(code)
+
+    return code
 
 
 def _create_order_lines_from_checkout_lines(
@@ -1239,10 +1259,11 @@ def create_order_from_checkout(
     :raises: InsufficientStock, GiftCardNotApplicable
     """
 
-    voucher = None
+    code = None
+
     if voucher := checkout_info.voucher:
         with transaction.atomic():
-            _increase_voucher_usage(checkout_info=checkout_info)
+            code = _increase_voucher_usage(checkout_info=checkout_info)
 
     with transaction.atomic():
         checkout_pk = checkout_info.checkout.pk
@@ -1274,13 +1295,12 @@ def create_order_from_checkout(
             return order
         except InsufficientStock:
             release_voucher_usage(
-                checkout_info.voucher, checkout_info.checkout.get_customer_email()
+                code,
+                checkout_info.checkout.get_customer_email(),
             )
             raise
         except GiftCardNotApplicable:
-            release_voucher_usage(
-                checkout_info.voucher, checkout_info.checkout.get_customer_email()
-            )
+            release_voucher_usage(code, checkout_info.checkout.get_customer_email())
             raise
 
 
@@ -1451,6 +1471,7 @@ def complete_checkout_with_payment(
             order_data=order_data,
             manager=manager,
             channel_slug=channel_slug,
+            voucher_code=checkout_info.checkout.voucher_code,
         )
 
         # As payment processing might take a while, we need to check if the payment
@@ -1479,7 +1500,6 @@ def complete_checkout_with_payment(
         lines, _ = fetch_checkout_lines(checkout, skip_recalculation=True)
         checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-        checkout_info.checkout.voucher_code = None
         order, action_required, action_data = complete_checkout_post_payment_part(
             manager=manager,
             checkout_info=checkout_info,

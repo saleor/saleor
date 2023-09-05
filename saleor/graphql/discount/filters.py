@@ -79,7 +79,7 @@ def filter_sale_search(qs, _, value):
 
 
 def filter_voucher_search(qs, _, value):
-    return qs.filter(Q(name__ilike=value) | Q(code__ilike=value))
+    return qs.filter(Q(name__ilike=value) | Q(codes__code__ilike=value))
 
 
 def filter_updated_at_range(qs, _, value):

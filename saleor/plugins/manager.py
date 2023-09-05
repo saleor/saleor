@@ -1427,17 +1427,23 @@ class PluginsManager(PaymentInterface):
             "warehouse_metadata_updated", default_value, warehouse
         )
 
-    def voucher_created(self, voucher: "Voucher"):
+    def voucher_created(self, voucher: "Voucher", code: str):
         default_value = None
-        return self.__run_method_on_plugins("voucher_created", default_value, voucher)
+        return self.__run_method_on_plugins(
+            "voucher_created", default_value, voucher, code
+        )
 
-    def voucher_updated(self, voucher: "Voucher"):
+    def voucher_updated(self, voucher: "Voucher", code: str):
         default_value = None
-        return self.__run_method_on_plugins("voucher_updated", default_value, voucher)
+        return self.__run_method_on_plugins(
+            "voucher_updated", default_value, voucher, code
+        )
 
-    def voucher_deleted(self, voucher: "Voucher"):
+    def voucher_deleted(self, voucher: "Voucher", code: str):
         default_value = None
-        return self.__run_method_on_plugins("voucher_deleted", default_value, voucher)
+        return self.__run_method_on_plugins(
+            "voucher_deleted", default_value, voucher, code
+        )
 
     def voucher_metadata_updated(self, voucher: "Voucher"):
         default_value = None
