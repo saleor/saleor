@@ -17,7 +17,7 @@ def migrate_sales_to_promotions(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0048_promotiontranslation"),
+        ("discount", "0045_promotions"),
     ]
 
     operations = [
