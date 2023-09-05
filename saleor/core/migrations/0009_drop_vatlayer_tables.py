@@ -8,7 +8,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("core", "0008_auto_20230905_1101"),
+        ("core", "0008_drop_openexchangerates_table"),
     ]
 
     operations = [
