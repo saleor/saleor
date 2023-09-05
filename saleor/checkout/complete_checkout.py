@@ -38,7 +38,7 @@ from ..discount.models import NotApplicable
 from ..discount.utils import (
     add_voucher_usage_by_customer,
     increase_voucher_code_usage,
-    release_voucher_usage,
+    release_voucher_code_usage,
 )
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
@@ -483,7 +483,7 @@ def _prepare_order_data(
                 code=checkout_info.checkout.voucher_code
             ).first()
 
-        release_voucher_usage(
+        release_voucher_code_usage(
             code,
             order_data.get("user_email"),
         )
@@ -805,7 +805,7 @@ def _process_payment(
         code = None
         if voucher := order_data.get("voucher"):
             code = voucher.codes.filter(code=voucher_code).first()
-        release_voucher_usage(code, order_data.get("user_email"))
+        release_voucher_code_usage(code, order_data.get("user_email"))
         raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
     return txn
 
@@ -885,7 +885,7 @@ def complete_checkout_post_payment_part(
         action_required = txn.action_required
         if action_required:
             action_data = txn.action_required_data
-            release_voucher_usage(
+            release_voucher_code_usage(
                 code,
                 order_data.get("user_email"),
             )
@@ -907,7 +907,7 @@ def complete_checkout_post_payment_part(
             # remove checkout after order is successfully created
             checkout_info.checkout.delete()
         except InsufficientStock as e:
-            release_voucher_usage(
+            release_voucher_code_usage(
                 code,
                 order_data.get("user_email"),
             )
@@ -917,7 +917,7 @@ def complete_checkout_post_payment_part(
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
         except GiftCardNotApplicable as e:
-            release_voucher_usage(code, order_data.get("user_email"))
+            release_voucher_code_usage(code, order_data.get("user_email"))
             gateway.payment_refund_or_void(
                 payment, manager, channel_slug=checkout_info.channel.slug
             )
@@ -945,7 +945,7 @@ def _is_refund_ongoing(payment):
     )
 
 
-def _increase_voucher_usage(checkout_info: "CheckoutInfo"):
+def _increase_voucher_code_usage(checkout_info: "CheckoutInfo"):
     """Increase a voucher usage applied to the checkout."""
     voucher, code = get_voucher_for_checkout_info(checkout_info, with_lock=True)
     if not voucher or not code:
@@ -1263,7 +1263,7 @@ def create_order_from_checkout(
 
     if voucher := checkout_info.voucher:
         with transaction.atomic():
-            code = _increase_voucher_usage(checkout_info=checkout_info)
+            code = _increase_voucher_code_usage(checkout_info=checkout_info)
 
     with transaction.atomic():
         checkout_pk = checkout_info.checkout.pk
@@ -1294,13 +1294,15 @@ def create_order_from_checkout(
                 checkout_info.checkout.delete()
             return order
         except InsufficientStock:
-            release_voucher_usage(
+            release_voucher_code_usage(
                 code,
                 checkout_info.checkout.get_customer_email(),
             )
             raise
         except GiftCardNotApplicable:
-            release_voucher_usage(code, checkout_info.checkout.get_customer_email())
+            release_voucher_code_usage(
+                code, checkout_info.checkout.get_customer_email()
+            )
             raise
 
 
