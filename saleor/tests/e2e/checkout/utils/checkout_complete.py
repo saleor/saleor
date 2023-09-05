@@ -33,9 +33,17 @@ mutation CheckoutComplete($checkoutId: ID!) {
       deliveryMethod {
         ... on ShippingMethod {
           id
+          price {
+            amount
+          }
         }
         ... on Warehouse {
           id
+        }
+      }
+      shippingPrice {
+        gross {
+          amount
         }
       }
       lines {
