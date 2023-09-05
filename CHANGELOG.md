@@ -43,6 +43,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Dry runs enabled: `AccountConfirmed`, `AccountConfirmationRequested`, `AccountChangeEmailRequested`
   - `AccountEmailChanged`, `AccountSetPasswordRequested`, `AccountDeleteRequested`, `GiftCardSent`,
   - `FulfillmentCreated`, `FulfillmentApproved`, `StaffSetPasswordRequested`
+- Add missing `FULFILLMENT_CREATED` event call to `automatically_fulfill_digital_lines_with_fulfillment_created` action. - #13823, by @Air-t
 
 ### Other changes
 
