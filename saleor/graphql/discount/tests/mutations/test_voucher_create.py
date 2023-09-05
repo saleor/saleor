@@ -29,7 +29,9 @@ mutation voucherCreate($input: VoucherInput!) {
                 type
                 minCheckoutItemsQuantity
                 name
-                code
+                codes{
+                    code
+                }
                 discountValueType
                 startDate
                 endDate
@@ -246,7 +248,8 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
 
     # then
     assert data["name"] == variables["input"]["name"]
-    assert data["code"] != ""
+    assert len(data["codes"]) == 1
+    assert data["codes"][0]["code"] != ""
 
 
 def test_create_voucher_with_duplicated_codes(

@@ -13,7 +13,7 @@ from ...channel.types import (
 )
 from ...core import ResolveInfo, types
 from ...core.connection import CountableConnection, create_connection_slice
-from ...core.descriptions import ADDED_IN_31, ADDED_IN_315, DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import ADDED_IN_31, ADDED_IN_316, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
 from ...core.types import ModelObjectType, Money, NonNullList
@@ -68,7 +68,7 @@ class VoucherCode(ModelObjectType[models.VoucherCode]):
     )
 
     class Meta:
-        description = "Represents voucher code." + ADDED_IN_315
+        description = "Represents voucher code." + ADDED_IN_316
         model = models.VoucherCode
 
 
@@ -77,7 +77,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     name = graphene.String(description="The name of the voucher.")
     codes = graphene.List(
         VoucherCode,
-        description="List of codes available for this voucher." + ADDED_IN_315,
+        description="List of codes available for this voucher." + ADDED_IN_316,
     )
     code = graphene.String(
         description="The code of the voucher." + DEPRECATED_IN_3X_FIELD
@@ -188,6 +188,10 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     def resolve_usage_limit(root: ChannelContext[models.Voucher], info: ResolveInfo):
         code_instance = root.node.codes.last()
         return code_instance.usage_limit if code_instance else None
+
+    @staticmethod
+    def resolve_codes(root: ChannelContext[models.Voucher], info: ResolveInfo):
+        return root.node.codes.all()
 
     @staticmethod
     def resolve_categories(
