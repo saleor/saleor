@@ -77,7 +77,9 @@ def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) ->
         voucher_customer.delete()
 
 
-def release_voucher_usage(code: Optional["VoucherCode"], user_email: Optional[str]):
+def release_voucher_code_usage(
+    code: Optional["VoucherCode"], user_email: Optional[str]
+):
     if not code:
         return
     if code.usage_limit:
