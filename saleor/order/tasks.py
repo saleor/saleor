@@ -9,7 +9,7 @@ from ..celeryconf import app
 from ..channel.models import Channel
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.events import call_event
-from ..discount.models import Voucher, VoucherCustomer
+from ..discount.models import VoucherCustomer
 from ..payment.models import Payment, TransactionItem
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_orders
@@ -45,20 +45,20 @@ def send_order_updated(order_ids):
 
 
 def _bulk_release_voucher_usage(order_ids):
-    voucher_orders = Order.objects.filter(
-        voucher=OuterRef("pk"),
-        id__in=order_ids,
-    )
-    count_orders = voucher_orders.annotate(
-        count=Func(F("pk"), function="Count")
-    ).values("count")
+    # voucher_orders = Order.objects.filter(
+    #     voucher=OuterRef("pk"),
+    #     id__in=order_ids,
+    # )
+    # count_orders = voucher_orders.annotate(
+    #     count=Func(F("pk"), function="Count")
+    # ).values("count")
 
-    Voucher.objects.filter(
-        Exists(voucher_orders),
-        usage_limit__isnull=False,
-    ).annotate(
-        order_count=Subquery(count_orders)
-    ).update(used=F("used") - F("order_count"))
+    # Voucher.objects.filter(
+    #     Exists(voucher_orders),
+    #     usage_limit__isnull=False,
+    # ).annotate(
+    #     order_count=Subquery(count_orders)
+    # ).update(used=F("used") - F("order_count"))
 
     voucher_customer_orders = Order.objects.filter(
         voucher=OuterRef("voucher__id"),
