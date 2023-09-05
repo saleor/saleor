@@ -201,6 +201,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Fix seo field to accept null value - #13512 by @ssuraliya
 - Add missing descriptions to payment module - #13546 by @devilsautumn
 - Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
+- Add Index for 'Created' field of the Order Model - #13682 by @ritanjandawn
 
 # 3.14.0
 
