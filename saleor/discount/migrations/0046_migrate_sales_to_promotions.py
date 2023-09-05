@@ -301,7 +301,7 @@ def queryset_in_batches(queryset):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0048_promotiontranslation"),
+        ("discount", "0045_promotions"),
     ]
 
     operations = [migrations.RunPython(run_migration, migrations.RunPython.noop)]
