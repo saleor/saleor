@@ -60,6 +60,10 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
       shippingMethods {
         id
       }
+      channel {
+        id
+        name
+      }
       deliveryMethod {
         __typename
         ... on ShippingMethod {
