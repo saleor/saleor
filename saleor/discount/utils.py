@@ -164,8 +164,9 @@ def calculate_discounted_price(
     variant_id: Optional[int] = None,
 ) -> Money:
     """Return minimum product's price of all prices with discounts applied."""
+    sale_id = None
     if discounts:
-        _, price = get_sale_id_with_min_price(
+        sale_id, price = get_sale_id_with_min_price(
             product=product,
             price=price,
             collection_ids=collection_ids,
@@ -173,7 +174,7 @@ def calculate_discounted_price(
             channel=channel,
             variant_id=variant_id,
         )
-    return price
+    return sale_id, price
 
 
 def get_sale_id_applied_as_a_discount(
