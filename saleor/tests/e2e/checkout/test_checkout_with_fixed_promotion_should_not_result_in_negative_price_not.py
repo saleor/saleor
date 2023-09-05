@@ -100,7 +100,7 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
     assert checkout_id is not None
     checkout_lines = checkout_data["lines"][0]
     unit_price = float(product_variant_price) - discount_value
-    assert checkout_lines["unitPrice"]["gross"]["amount"] != unit_price
+    assert unit_price < 0
     assert checkout_lines["unitPrice"]["gross"]["amount"] == 0
     assert checkout_lines["undiscountedUnitPrice"]["amount"] == float(
         product_variant_price
