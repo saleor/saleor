@@ -146,9 +146,11 @@ def test_checkout_use_free_shipping_voucher_0903(
     order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["discounts"][0]["type"] == "VOUCHER"
+    assert order_data["discounts"][0]["value"] == shipping_price
     assert order_data["voucher"]["code"] == voucher_code
     assert order_data["total"]["gross"]["amount"] == subtotal_amount
     assert order_data["deliveryMethod"]["id"] == shipping_method_id
     assert order_data["deliveryMethod"]["price"]["amount"] == shipping_price
+    assert order_data["shippingPrice"]["gross"]["amount"] == 0
     order_line = order_data["lines"][0]
     assert order_line["unitPrice"]["gross"]["amount"] == float(product_variant_price)

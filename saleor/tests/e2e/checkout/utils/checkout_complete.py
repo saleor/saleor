@@ -41,6 +41,11 @@ mutation CheckoutComplete($checkoutId: ID!) {
           id
         }
       }
+      shippingPrice {
+        gross {
+          amount
+        }
+      }
       lines {
         id
         unitPrice {
