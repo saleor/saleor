@@ -8998,7 +8998,7 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """
   List of codes available for this voucher.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.16.
   """
   codes: [VoucherCode]
 
@@ -9160,7 +9160,7 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
 """
 Represents voucher code.
 
-Added in Saleor 3.15.
+Added in Saleor 3.16.
 """
 type VoucherCode {
   """Code to use the voucher."""
