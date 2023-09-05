@@ -170,10 +170,7 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
     # Step 4 - Complete the order
     order = raw_draft_order_complete(e2e_staff_api_client, order_id)
     assert order["errors"] != []
-
-    # [
-    #     {
-    #         "message": "Shipping method not available in the given channel.",
-    #         "field": "shippingMethod",
-    #     }
-    # ]
+    assert (
+        order["errors"][0]["message"]
+        == "Shipping method is not valid for chosen shipping address"
+    )
