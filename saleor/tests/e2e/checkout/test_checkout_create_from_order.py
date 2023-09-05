@@ -1,7 +1,6 @@
 import pytest
 
-from ..orders.utils.draft_order_create import draft_order_create
-from ..orders.utils.order_lines_create import order_lines_create
+from ..orders.utils import draft_order_create, order_lines_create
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_shop
 from ..utils import assign_permissions
