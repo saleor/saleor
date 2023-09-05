@@ -34,5 +34,6 @@ The release coordinator(s) for this version: <name> & <name>
 - [ ] Merge release PR to the production - @saleor/cloud
 - [ ] Inform about the stable release (sandbox and production) - @saleor/core
 - [ ] Make the new version public in Saleor Cloud - @saleor/cloud
-- [ ] Bump saleor-platform
+- [ ] Bump core version in saleor-platform - @saleor/core
+- [ ] Bump dashboard version in saleor-platform - @saleor/dashboard
 - [ ] Merge docs PRs related to release - @saleor/devtools
