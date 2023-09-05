@@ -98,7 +98,9 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
     )
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
     assert checkout_with_item.voucher_code == voucher.code
 
     line = checkout_with_item.lines.first()

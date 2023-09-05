@@ -87,4 +87,4 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
         for voucher in vouchers:
-            manager.voucher_deleted(voucher)
+            manager.voucher_deleted(voucher, "Qwer1234")

@@ -49,13 +49,13 @@ class SaleSortingInput(ChannelSortInputObjectType):
 
 
 class VoucherSortField(graphene.Enum):
-    CODE = ["code"]
-    START_DATE = ["start_date", "name", "code"]
-    END_DATE = ["end_date", "name", "code"]
-    VALUE = ["discount_value", "name", "code"]
-    TYPE = ["type", "name", "code"]
-    USAGE_LIMIT = ["usage_limit", "name", "code"]
-    MINIMUM_SPENT_AMOUNT = ["min_spent_amount", "name", "code"]
+    CODE = ["codes__code"]
+    START_DATE = ["start_date", "name", "codes__code"]
+    END_DATE = ["end_date", "name", "codes__code"]
+    VALUE = ["discount_value", "name", "codes__code"]
+    TYPE = ["type", "name", "codes__code"]
+    USAGE_LIMIT = ["codes__usage_limit", "name", "codes__code"]
+    MINIMUM_SPENT_AMOUNT = ["min_spent_amount", "name", "codes__code"]
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS

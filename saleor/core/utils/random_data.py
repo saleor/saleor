@@ -47,7 +47,13 @@ from ...checkout.models import Checkout
 from ...checkout.utils import add_variant_to_checkout
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
-from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
+from ...discount.models import (
+    Sale,
+    SaleChannelListing,
+    Voucher,
+    VoucherChannelListing,
+    VoucherCode,
+)
 from ...discount.utils import fetch_discounts
 from ...giftcard import events as gift_card_events
 from ...giftcard.models import GiftCard, GiftCardTag
@@ -1397,13 +1403,13 @@ def create_warehouses():
 def create_vouchers():
     channels = list(Channel.objects.all())
     voucher, created = Voucher.objects.get_or_create(
-        code="FREESHIPPING",
+        name="Free shipping",
         defaults={
             "type": VoucherType.SHIPPING,
-            "name": "Free shipping",
             "discount_value_type": DiscountValueType.PERCENTAGE,
         },
     )
+    VoucherCode.objects.get_or_create(voucher=voucher, code="FREESHIPPING")
     for channel in channels:
         VoucherChannelListing.objects.get_or_create(
             voucher=voucher,
@@ -1416,13 +1422,14 @@ def create_vouchers():
         yield "Shipping voucher already exists"
 
     voucher, created = Voucher.objects.get_or_create(
-        code="DISCOUNT",
+        name="Big order discount",
         defaults={
             "type": VoucherType.ENTIRE_ORDER,
-            "name": "Big order discount",
             "discount_value_type": DiscountValueType.FIXED,
         },
     )
+    VoucherCode.objects.get_or_create(voucher=voucher, code="DISCOUNT")
+
     for channel in channels:
         discount_value = 25
         min_spent_amount = 200
@@ -1444,12 +1451,14 @@ def create_vouchers():
         yield "Value voucher already exists"
 
     voucher, created = Voucher.objects.get_or_create(
-        code="VCO9KV98LC",
+        name="Percentage order discount",
         defaults={
             "type": VoucherType.ENTIRE_ORDER,
             "discount_value_type": DiscountValueType.PERCENTAGE,
         },
     )
+    VoucherCode.objects.get_or_create(voucher=voucher, code="VCO9KV98LC")
+
     for channel in channels:
         VoucherChannelListing.objects.get_or_create(
             voucher=voucher,

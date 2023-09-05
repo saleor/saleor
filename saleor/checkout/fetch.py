@@ -304,7 +304,7 @@ def fetch_checkout_lines(
 
     if not skip_recalculation and checkout.voucher_code and lines_info:
         if not voucher:
-            voucher = get_voucher_for_checkout(
+            voucher, _ = get_voucher_for_checkout(
                 checkout, channel_slug=channel.slug, with_prefetch=True
             )
         if not voucher:
@@ -435,7 +435,7 @@ def fetch_checkout_info(
     if shipping_channel_listings is None:
         shipping_channel_listings = channel.shipping_method_listings.all()
     if not voucher:
-        voucher = get_voucher_for_checkout(checkout, channel_slug=channel.slug)
+        voucher, _ = get_voucher_for_checkout(checkout, channel_slug=channel.slug)
 
     delivery_method_info = get_delivery_method_info(None, shipping_address)
     checkout_info = CheckoutInfo(

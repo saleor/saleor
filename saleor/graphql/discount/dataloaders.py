@@ -12,6 +12,7 @@ from ...discount.models import (
     SaleChannelListing,
     Voucher,
     VoucherChannelListing,
+    VoucherCode,
 )
 from ...discount.utils import (
     fetch_categories,
@@ -113,12 +114,12 @@ class VoucherByCodeLoader(DataLoader):
     context_key = "voucher_by_code"
 
     def batch_load(self, keys):
-        vouchers = (
-            Voucher.objects.using(self.database_connection_name)
-            .filter(code__in=keys)
-            .in_bulk(field_name="code")
+        vouchers = list(
+            Voucher.objects.using(self.database_connection_name).filter(
+                codes__code__in=keys
+            )
         )
-        return [vouchers.get(code) for code in keys]
+        return vouchers
 
 
 class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):
@@ -167,17 +168,18 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
     context_key = "voucher_info_by_voucher_code"
 
     def batch_load(self, keys):
-        vouchers_map = (
-            Voucher.objects.using(self.database_connection_name)
-            # FIXME dataloader should not operate on prefetched data. The channel
-            #  listings are used in Voucher's model to calculate a discount amount.
-            #  This is a workaround that we should solve by fetching channel_listings
-            #  via data loader and passing it to calculate a discount amount.
-            .prefetch_related("channel_listings")
+        # FIXME dataloader should not operate on prefetched data. The channel
+        #  listings are used in Voucher's model to calculate a discount amount.
+        #  This is a workaround that we should solve by fetching channel_listings
+        #  via data loader and passing it to calculate a discount amount.
+        voucher_codes_map = (
+            VoucherCode.objects.using(self.database_connection_name)
+            .prefetch_related("voucher__channel_listings")
             .filter(code__in=keys)
             .in_bulk(field_name="code")
         )
-        vouchers = vouchers_map.values()
+
+        vouchers = set([code.voucher for code in voucher_codes_map.values()])
         voucher_products = (
             Voucher.products.through.objects.using(self.database_connection_name)
             .filter(voucher__in=vouchers)
@@ -211,18 +213,19 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
         for voucher_id, collection_id in voucher_collections:
             collection_pks_map[voucher_id].append(collection_id)
         voucher_infos: List[Optional[VoucherInfo]] = []
+
         for code in keys:
-            voucher = vouchers_map.get(code)
-            if not voucher:
+            voucher_code = voucher_codes_map.get(code)
+            if not voucher_code:
                 voucher_infos.append(None)
                 continue
             voucher_infos.append(
                 VoucherInfo(
-                    voucher=voucher,
-                    product_pks=product_pks_map.get(voucher.id, []),
-                    variant_pks=variant_pks_map.get(voucher.id, []),
-                    category_pks=category_pks_map.get(voucher.id, []),
-                    collection_pks=collection_pks_map.get(voucher.id, []),
+                    voucher=voucher_code.voucher,
+                    product_pks=product_pks_map.get(voucher_code.voucher_id, []),
+                    variant_pks=variant_pks_map.get(voucher_code.voucher_id, []),
+                    category_pks=category_pks_map.get(voucher_code.voucher_id, []),
+                    collection_pks=collection_pks_map.get(voucher_code.voucher_id, []),
                 )
             )
         return voucher_infos

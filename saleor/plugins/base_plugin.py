@@ -1147,19 +1147,19 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a voucher is
     # created.
-    voucher_created: Callable[["Voucher", None], None]
+    voucher_created: Callable[["Voucher", str, None], None]
 
     # Trigger when voucher is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a voucher is
     # deleted.
-    voucher_deleted: Callable[["Voucher", None], None]
+    voucher_deleted: Callable[["Voucher", str, None], None]
 
     # Trigger when voucher is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a voucher is
     # updated.
-    voucher_updated: Callable[["Voucher", None], None]
+    voucher_updated: Callable[["Voucher", str, None], None]
 
     # Trigger when voucher metadata is updated.
     #

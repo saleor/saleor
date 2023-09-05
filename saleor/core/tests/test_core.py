@@ -11,7 +11,13 @@ from ...account.models import Address, User
 from ...account.utils import create_superuser
 from ...attribute.models import AttributeValue
 from ...channel.models import Channel
-from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
+from ...discount.models import (
+    Sale,
+    SaleChannelListing,
+    Voucher,
+    VoucherChannelListing,
+    VoucherCode,
+)
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.models import Order
 from ...product import ProductTypeKind
@@ -164,6 +170,7 @@ def test_create_vouchers(db):
     for _ in random_data.create_vouchers():
         pass
     assert Voucher.objects.all().count() == voucher_count
+    assert VoucherCode.objects.all().count() == voucher_count
     assert VoucherChannelListing.objects.all().count() == voucher_count * channel_count
 
 

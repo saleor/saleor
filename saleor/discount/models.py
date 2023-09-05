@@ -8,7 +8,7 @@ import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import Q, Sum
 from django.utils import timezone
 from django_countries.fields import CountryField
 from django_prices.models import MoneyField
@@ -43,7 +43,6 @@ class NotApplicable(ValueError):
 class VoucherQueryset(models.QuerySet["Voucher"]):
     def active(self, date):
         return self.filter(
-            Q(usage_limit__isnull=True) | Q(used__lt=F("usage_limit")),
             Q(end_date__isnull=True) | Q(end_date__gte=date),
             start_date__lte=date,
         )
@@ -55,12 +54,26 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
         )
 
     def expired(self, date):
-        return self.filter(
-            Q(used__gte=F("usage_limit")) | Q(end_date__lt=date), start_date__lt=date
+        return self.filter(end_date__lt=date, start_date__lt=date)
+
+
+class VoucherManager(models.Manager):
+    def get_queryset(self):
+        return VoucherQueryset(self.model, using=self._db).annotate(
+            used=Sum("codes__used")
         )
 
+    def active(self):
+        return self.get_queryset().active()
 
-VoucherManager = models.Manager.from_queryset(VoucherQueryset)
+    def active_in_channel(self, date, channel_slug: str):
+        return self.get_queryset().active_in_channel(date, channel_slug)
+
+    def expired(self, date):
+        return self.get_queryset().expired(date)
+
+
+# VoucherManager = models.Manager.from_queryset(VoucherQueryset)
 
 
 class Voucher(ModelWithMetadata):
@@ -68,9 +81,6 @@ class Voucher(ModelWithMetadata):
         max_length=20, choices=VoucherType.CHOICES, default=VoucherType.ENTIRE_ORDER
     )
     name = models.CharField(max_length=255, null=True, blank=True)
-    code = models.CharField(max_length=255, unique=True, db_index=True)
-    usage_limit = models.PositiveIntegerField(null=True, blank=True)
-    used = models.PositiveIntegerField(default=0, editable=False)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
     # this field indicates if discount should be applied per order or
@@ -97,7 +107,19 @@ class Voucher(ModelWithMetadata):
     objects = VoucherManager()
 
     class Meta:
-        ordering = ("code",)
+        ordering = ("name",)
+
+    @property
+    def code(self):
+        # this function should be removed after field `code` will be deprecated
+        code_instance = self.codes.last()
+        return code_instance.code if code_instance else None
+
+    @property
+    def usage_limit(self):
+        # this function should be removed after field `usage_limit` will be deprecated
+        code_instance = self.codes.last()
+        return code_instance.usage_limit if code_instance else None
 
     def get_discount(self, channel: Channel):
         """Return proper discount amount for given channel.
@@ -169,6 +191,13 @@ class Voucher(ModelWithMetadata):
         if not customer or not customer.is_staff:
             msg = "This offer is valid only for staff customers."
             raise NotApplicable(msg)
+
+
+class VoucherCode(models.Model):
+    code = models.CharField(max_length=255, unique=True, db_index=True)
+    used = models.PositiveIntegerField(default=0)
+    voucher = models.ForeignKey(Voucher, related_name="codes", on_delete=models.CASCADE)
+    usage_limit = models.PositiveIntegerField(null=True, blank=True)
 
 
 class VoucherChannelListing(models.Model):
