@@ -1187,6 +1187,38 @@ def test_product_channel_listing_remove_variant_as_staff_user(
     assert len(variant.channel_listings.all()) == 1
 
 
+def test_product_channel_listing_remove_variant_is_None_as_staff_user(
+    staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
+):
+    # given
+    variant = product.variants.first()
+    ProductVariantChannelListing.objects.create(channel=channel_PLN, variant=variant)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": product_id,
+        "input": {
+            "updateChannels": [{"channelId": channel_id, "removeVariants": None}]
+        },
+    }
+
+    assert len(variant.channel_listings.all()) == 2
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productChannelListingUpdate"]
+    assert not data["errors"]
+
+    assert len(variant.channel_listings.all()) == 2
+
+
 def test_product_channel_listing_remove_variant_as_app(
     app_api_client, product, permission_manage_products, channel_USD, channel_PLN
 ):
@@ -1220,6 +1252,38 @@ def test_product_channel_listing_remove_variant_as_app(
     assert not data["errors"]
 
     assert len(variant.channel_listings.all()) == 1
+
+
+def test_product_channel_listing_remove_variant_is_None_as_app(
+    app_api_client, product, permission_manage_products, channel_USD, channel_PLN
+):
+    # given
+    variant = product.variants.first()
+    ProductVariantChannelListing.objects.create(channel=channel_PLN, variant=variant)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": product_id,
+        "input": {
+            "updateChannels": [{"channelId": channel_id, "removeVariants": None}]
+        },
+    }
+
+    assert len(variant.channel_listings.all()) == 2
+    # when
+    response = app_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productChannelListingUpdate"]
+    assert not data["errors"]
+
+    assert len(variant.channel_listings.all()) == 2
 
 
 def test_product_channel_listing_remove_variant_removes_checkout_lines(
