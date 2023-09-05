@@ -4,7 +4,6 @@ from django.db import migrations
 
 # Drop tables that were used by packages that are no longer used:
 # - `django-prices-openexchangerates` - removed in https://github.com/saleor/saleor/pull/13175/
-# - `django-prices-vatlayer` - removed in https://github.com/saleor/saleor/pull/13179/
 
 
 class Migration(migrations.Migration):
@@ -15,14 +14,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             sql="DROP TABLE IF EXISTS django_prices_openexchangerates_conversionrate;",
-            reverse_sql=migrations.RunSQL.noop,
-        ),
-        migrations.RunSQL(
-            sql="DROP TABLE IF EXISTS django_prices_vatlayer_ratetypes",
-            reverse_sql=migrations.RunSQL.noop,
-        ),
-        migrations.RunSQL(
-            sql="DROP TABLE IF EXISTS django_prices_vatlayer_vat;",
             reverse_sql=migrations.RunSQL.noop,
         ),
     ]
