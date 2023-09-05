@@ -1,5 +1,6 @@
 from .category import create_category
 from .collection import create_collection
+from .collection_add_products import add_product_to_collection
 from .collection_listing_update import create_collection_channel_listing
 from .digital_content import create_digital_content
 from .product import create_product
@@ -32,4 +33,5 @@ __all__ = [
     "create_collection",
     "create_collection_channel_listing",
     "get_product",
+    "add_product_to_collection",
 ]
