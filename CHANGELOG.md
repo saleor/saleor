@@ -5,14 +5,16 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.16.0 [Unreleased]
 
 ### Breaking changes
+
 - **Feature preview breaking change**:
   - Deprecate `OrderSettingsInput.defaultTransactionFlowStrategy`. It will be removed
-in 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
+    in 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
   - Deprecate `OrderSettings.defaultTransactionFlowStrategy`. It will be removed
-in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
+    in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
   - Change in the CSV export. It will now use empty string for empty attribute values instead of a single whitespace value.
 
 ### GraphQL API
+
 - Add `customerIpAddress` to `transactionInitialize` and `transactionProcess` mutations - #13718 by @korycins
 - Add `PaymentSettings` to `Channel` - #13677 by @korycins
 - Adjust where filtering by empty values - explicit treat empty values - #13754 by @IKarbowiak
@@ -20,11 +22,12 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 - Add `externalReference` to `updateWarehouse`. It will allow update warehouse by
   external reference. - #13342 by @Smit-Parmar
 - Add Filter warehouses by metadata - #13345 by @Smit-Parmar
-
-
+- Deprecate the `NOTIFY_USER` webhook and the `externalNotificationTrigger` mutation - #13881 by @maarcingebala
+  - See the docs for more details about migrating from the `NOTIFY_USER` webhook to other events: https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation
 
 ### Saleor Apps
-- Add `customerIpAddress` to `TRANSACTION_INITIALIZE_SESSION` and `TRANSACTION_PROCESS_SESSION` webhooks  #13718 by @korycins
+
+- Add `customerIpAddress` to `TRANSACTION_INITIALIZE_SESSION` and `TRANSACTION_PROCESS_SESSION` webhooks #13718 by @korycins
 - Add `STORED_PAYMENT_METHOD_DELETE_REQUESTED` webhook event - #13660 by @korycins
 - Add `NOTIFY_CUSTOMER` flag to `FulfillmentCreated` type - #13620, by @Air-t
   - Inform apps if customer should be notified when fulfillment is created.
@@ -40,8 +43,10 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
   - Dry runs enabled: `AccountConfirmed`, `AccountConfirmationRequested`, `AccountChangeEmailRequested`
   - `AccountEmailChanged`, `AccountSetPasswordRequested`, `AccountDeleteRequested`, `GiftCardSent`,
   - `FulfillmentCreated`, `FulfillmentApproved`, `StaffSetPasswordRequested`
+- Add missing `FULFILLMENT_CREATED` event call to `automatically_fulfill_digital_lines_with_fulfillment_created` action. - #13823, by @Air-t
 
 ### Other changes
+
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
 - Add missing currency in action for transaction requests - 13786 by @AjmalPonneth
 - Fix giftcard code description - #13728 by @rafiwts
@@ -49,6 +54,7 @@ in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 - Add filter by slugs to attribute choices - #13761 by @rafiwts
 - Add a new `product` field on `AssignedProductAttributeValue`. First part of a simplification of Attribute - Product relation from #12881. by @aniav
 - Lazy legacy webhooks payload generation - #13758 by @maarcingebala
+- Fix NoneType in `prodcutChannelsListingUpdate` - #13694 by @Manoj-gowra
 
 # 3.15.0 [Unreleased]
 
@@ -201,6 +207,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Fix seo field to accept null value - #13512 by @ssuraliya
 - Add missing descriptions to payment module - #13546 by @devilsautumn
 - Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
+- Add Index for 'Created' field of the Order Model - #13682 by @ritanjandawn
 
 # 3.14.0
 
@@ -220,6 +227,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
   - `preprocess_order_creation`
 
   This breaking change affect any custom plugins in open-source Saleor, if they override any of the above mentioned methods.
+
 - The signature of the `list_payment_gateways` manager method has changed. It may affect Saleor open-source users, who maintain plugins overriding this method. Changes:
   - The `checkout: Checkout` argument was removed
   - `checkout_info: CheckoutInfo` and `checkout_lines: Iterable[CheckoutLineInfo]` arguments were added instead

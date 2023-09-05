@@ -6,7 +6,6 @@ import jwt
 import pytest
 from django.core.serializers import serialize
 from google.cloud.pubsub_v1 import PublisherClient
-from kombu.asynchronous.aws.sqs.connection import AsyncSQSConnection
 
 from ....webhook.event_types import WebhookEventAsyncType
 from ...webhook import signature_for_payload
@@ -27,7 +26,7 @@ def test_trigger_webhooks_with_aws_sqs(
     permission_manage_products,
     monkeypatch,
 ):
-    mocked_client = MagicMock(spec=AsyncSQSConnection)
+    mocked_client = MagicMock()
     mocked_client.send_message.return_value = {"example": "response"}
     mocked_client_constructor = MagicMock(spec=boto3.client, return_value=mocked_client)
 
@@ -93,7 +92,7 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
     secret_key,
     unquoted_secret,
 ):
-    mocked_client = MagicMock(spec=AsyncSQSConnection)
+    mocked_client = MagicMock()
     mocked_client.send_message.return_value = {"example": "response"}
     mocked_client_constructor = MagicMock(spec=boto3.client, return_value=mocked_client)
 

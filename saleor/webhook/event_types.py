@@ -138,7 +138,7 @@ class WebhookEventAsyncType:
     CHECKOUT_FULLY_PAID = "checkout_fully_paid"
     CHECKOUT_METADATA_UPDATED = "checkout_metadata_updated"
 
-    NOTIFY_USER = "notify_user"
+    NOTIFY_USER = "notify_user"  # deprecated
 
     PAGE_CREATED = "page_created"
     PAGE_UPDATED = "page_updated"

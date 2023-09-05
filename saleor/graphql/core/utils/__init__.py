@@ -37,7 +37,9 @@ def get_duplicates_items(first_list, second_list):
 
 def get_duplicated_values(values):
     """Return set of duplicated values."""
-    return {value for value in values if values.count(value) > 1}
+    if values:
+        return {value for value in values if values.count(value) > 1}
+    return {}
 
 
 @overload
