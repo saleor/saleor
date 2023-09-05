@@ -28,11 +28,21 @@ def update_promotion_rule(
     staff_api_client,
     promotion_id,
     catalogue_predicate,
+    add_channels=None,
+    remove_channels=None,
 ):
+    if not add_channels:
+        add_channels = []
+
+    if not remove_channels:
+        remove_channels = []
+
     variables = {
         "id": promotion_id,
         "input": {
             "cataloguePredicate": catalogue_predicate,
+            "addChannels": add_channels,
+            "removeChannels": remove_channels,
         },
     }
 
@@ -45,4 +55,5 @@ def update_promotion_rule(
     assert content["data"]["promotionRuleUpdate"]["errors"] == []
 
     data = content["data"]["promotionRuleUpdate"]["promotionRule"]
+    print(data)
     return data

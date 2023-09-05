@@ -47,7 +47,7 @@ def prepare_promotion(
 
 
 @pytest.mark.e2e
-def test_create_promotion_for_collection_core_2109(
+def test_staff_can_change_catalogue_predicate_core_2112(
     e2e_staff_api_client,
     permission_manage_products,
     permission_manage_channels,
