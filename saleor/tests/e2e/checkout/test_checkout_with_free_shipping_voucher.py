@@ -44,7 +44,7 @@ def prepare_free_shipping_voucher(
 
 
 @pytest.mark.e2e
-def test_checkout_use_free_shipping_voucher_0903(
+def test_checkout_use_free_shipping_voucher_with_min_spent_amount_0903(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     permission_manage_products,
