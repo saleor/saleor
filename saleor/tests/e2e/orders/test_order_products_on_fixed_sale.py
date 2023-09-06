@@ -103,11 +103,14 @@ def test_order_products_on_fixed_sale_CORE_1001(
     draft_update = draft_order_update(e2e_staff_api_client, order_id, input)
 
     order_shipping_id = draft_update["order"]["deliveryMethod"]["id"]
-    shipping_price = draft_update["order"]["shippingPrice"]["gross"]["amount"]
     assert order_shipping_id is not None
+    shipping_price = draft_update["order"]["shippingPrice"]["gross"]["amount"]
 
     # Step 4 - Complete the draft order
     order = draft_order_complete(e2e_staff_api_client, order_id)
+    assert order["order"]["status"] == "UNFULFILLED"
+    total = order["order"]["total"]["gross"]["amount"]
+    assert total == round(float(shipping_price + unit_price), 2)
 
     order_line = order["order"]["lines"][0]
     assert order_line["unitDiscount"]["amount"] == sale_discount_value
@@ -116,6 +119,3 @@ def test_order_products_on_fixed_sale_CORE_1001(
     assert draft_line["unitDiscountReason"] == f"Sale: {sale_id}"
     product_price = order_line["undiscountedUnitPrice"]["gross"]["amount"]
     assert product_price == undiscounted_price
-    total = order["order"]["total"]["gross"]["amount"]
-    assert total == round(float(shipping_price + unit_price), 2)
-    assert order["order"]["status"] == "UNFULFILLED"

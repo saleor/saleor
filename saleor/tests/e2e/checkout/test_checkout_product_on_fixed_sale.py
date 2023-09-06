@@ -113,11 +113,11 @@ def test_checkout_products_on_fixed_sale_core_1002(
 
     # Step 5 - Complete checkout.
     order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
-
-    order_line = order_data["lines"][0]
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
     assert order_data["subtotal"]["gross"]["amount"] == subtotal_gross_amount
+
+    order_line = order_data["lines"][0]
     assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == float(
         product_variant_price
     )

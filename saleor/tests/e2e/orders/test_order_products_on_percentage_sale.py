@@ -109,6 +109,9 @@ def test_order_products_on_percentage_sale_CORE_1003(
 
     # Step 4 - Complete the draft order
     order = draft_order_complete(e2e_staff_api_client, order_id)
+    assert order["order"]["status"] == "UNFULFILLED"
+    total = order["order"]["total"]["gross"]["amount"]
+    assert total == round(float(shipping_price + unit_price), 2)
 
     order_line = order["order"]["lines"][0]
     assert order_line["unitDiscount"]["amount"] == discount
@@ -117,6 +120,3 @@ def test_order_products_on_percentage_sale_CORE_1003(
     assert draft_line["unitDiscountReason"] == f"Sale: {sale_id}"
     product_price = order_line["undiscountedUnitPrice"]["gross"]["amount"]
     assert product_price == undiscounted_price
-    total = order["order"]["total"]["gross"]["amount"]
-    assert total == round(float(shipping_price + unit_price), 2)
-    assert order["order"]["status"] == "UNFULFILLED"
