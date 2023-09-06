@@ -94,6 +94,49 @@ def test_attribute_value_bulk_translate_creates_translations(
     assert created_webhook_mock.call_count == 2
 
 
+@patch("saleor.plugins.manager.PluginsManager.translation_created")
+def test_attribute_value_bulk_translate_creates_name_from_translations_long_text(
+    created_webhook_mock,
+    staff_api_client,
+    plain_text_attribute,
+    permission_manage_translations,
+    settings,
+):
+    # given
+    value = plain_text_attribute.values.first()
+    value_global_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    expected_text = "Nowy Kolor" * 250
+
+    assert value.translations.count() == 0
+
+    translations = [
+        {
+            "id": value_global_id,
+            "languageCode": LanguageCodeEnum.PL.name,
+            "translationFields": {
+                "plainText": expected_text,
+            },
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_translations)
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_BULK_TRANSLATE_MUTATION,
+        {"translations": translations},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeValueBulkTranslate"]
+
+    # then
+    assert value.translations.count() == 1
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    assert data["results"][0]["translation"]["name"] == expected_text[:249] + "…"
+    assert data["results"][0]["translation"]["plainText"] == expected_text
+    assert created_webhook_mock.call_count == 1
+
+
 @patch("saleor.plugins.manager.PluginsManager.translation_updated")
 def test_attribute_value_bulk_translate_updates_translations(
     updated_webhook_mock,

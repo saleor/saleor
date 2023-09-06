@@ -42,8 +42,8 @@ class AttributeValueTranslate(BaseTranslateMutation):
         if "name" not in input_data.keys() or input_data["name"] is None:
             if instance.attribute.input_type == AttributeInputType.RICH_TEXT:
                 input_data["name"] = truncatechars(
-                    clean_editor_js(input_data["rich_text"], to_string=True), 100
+                    clean_editor_js(input_data["rich_text"], to_string=True), 250
                 )
             elif instance.attribute.input_type == AttributeInputType.PLAIN_TEXT:
-                input_data["name"] = truncatechars(input_data["plain_text"], 100)
+                input_data["name"] = truncatechars(input_data["plain_text"], 250)
         return input_data
