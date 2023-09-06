@@ -27,6 +27,7 @@ mutation createShipping($input: ShippingZoneCreateInput!) {
 def create_shipping_zone(
     staff_api_client,
     name="Test shipping zone",
+    countries="US",
     warehouse_ids=None,
     channel_ids=None,
 ):
@@ -38,7 +39,7 @@ def create_shipping_zone(
     variables = {
         "input": {
             "name": name,
-            "countries": "US",
+            "countries": [countries],
             "addWarehouses": warehouse_ids,
             "addChannels": channel_ids,
         }
