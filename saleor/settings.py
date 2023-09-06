@@ -735,12 +735,16 @@ PLUGINS = BUILTIN_PLUGINS + EXTERNAL_PLUGINS
 WEBHOOK_TIMEOUT = 10
 WEBHOOK_SYNC_TIMEOUT = 20
 
-# Whether to allow connecting to localhost during external calls (such as
-# but not limited to webhooks).
-HTTP_IP_FILTER_ALLOW_LOCALHOST: bool = get_bool_from_env(
-    "HTTP_IP_FILTER_ALLOW_LOCALHOST", False
+# When `True`, HTTP requests made from arbitrary URLs will be rejected (e.g., webhooks).
+# if they try to access private IP address ranges, and loopback ranges (unless
+# `HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS=False`).
+HTTP_IP_FILTER_ENABLED: bool = get_bool_from_env("HTTP_IP_FILTER_ENABLED", True)
+
+# When `False` it rejects loopback IPs during external calls.
+# Refer to `HTTP_IP_FILTER_ENABLED` for more details.
+HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS: bool = get_bool_from_env(
+    "HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS", False
 )
-HTTP_IP_FILTER_ENABLED: bool = get_bool_from_env("HTTP_IP_FILTER_ENABLED", False)
 
 # Since we split checkout complete logic into two separate transactions, in order to
 # mimic stock lock, we apply short reservation for the stocks. The value represents

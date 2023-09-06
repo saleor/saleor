@@ -5,7 +5,7 @@ from requests_hardened.ip_filter import InvalidIPAddress
 from saleor.core.http_client import HTTPClient
 
 
-def test_external_logout_missing_logout_url(openid_plugin, id_token, rf, monkeypatch):
+def test_rejects_private_ips(openid_plugin, id_token, rf, monkeypatch):
     """
     Ensure non-public IP addresses are rejected in HTTP calls in the OAuth plugin.
     """

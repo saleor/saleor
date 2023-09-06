@@ -16,6 +16,7 @@ from django.core.cache import cache
 from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
+from requests_hardened.ip_filter import InvalidIPAddress
 
 from ...app.headers import AppHeaders, DeprecatedAppHeaders
 from ...celeryconf import app
@@ -416,19 +417,23 @@ def send_webhook_using_http(
         )
     except RequestException as e:
         if e.response:
-            result = WebhookResponse(
+            return WebhookResponse(
                 content=e.response.text,
                 status=EventDeliveryStatus.FAILED,
                 request_headers=headers,
                 response_headers=dict(e.response.headers),
                 response_status_code=e.response.status_code,
             )
+
+        if isinstance(e, InvalidIPAddress):
+            message = "Invalid IP address"
         else:
-            result = WebhookResponse(
-                content=str(e),
-                status=EventDeliveryStatus.FAILED,
-                request_headers=headers,
-            )
+            message = str(e)
+        result = WebhookResponse(
+            content=message,
+            status=EventDeliveryStatus.FAILED,
+            request_headers=headers,
+        )
         return result
 
     return WebhookResponse(
