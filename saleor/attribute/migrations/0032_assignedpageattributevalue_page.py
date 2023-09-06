@@ -2,24 +2,16 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-from django.db.models.signals import post_migrate
-from django.apps import apps as registry
-
-from .tasks.saleor3_16 import assign_pages_to_attribute_values_task
-
-
-def data_migration(apps, _schema_editor):
-    def on_migrations_complete(sender=None, **kwargs):
-        assign_pages_to_attribute_values_task.delay()
-
-    sender = registry.get_app_config("attribute")
-    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
+from django.contrib.postgres.operations import AddIndexConcurrently
+from django.contrib.postgres.indexes import BTreeIndex
 
 
 class Migration(migrations.Migration):
+    atomic = False
+
     dependencies = [
         ("page", "0028_add_default_page_type"),
-        ("attribute", "0030_assignedproductattributevalue_product"),
+        ("attribute", "0031_extend_attributr_value_fields_length"),
     ]
 
     operations = [
@@ -32,7 +24,11 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="attributevalues",
                 to="page.page",
+                db_index=False,
             ),
         ),
-        migrations.RunPython(data_migration, migrations.RunPython.noop),
+        AddIndexConcurrently(
+            model_name="assignedpageattributevalue",
+            index=BTreeIndex(fields=["page"], name="assignedpageattrvalue_page_idx"),
+        ),
     ]
