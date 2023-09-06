@@ -6,7 +6,7 @@ authors = [ "Saleor Commerce <hello@saleor.io>" ]
 license = "BSD-3-Clause"
 readme = "README.md"
 homepage = "https://saleor.io/"
-repository = "https://github.com/mirumee/saleor"
+repository = "https://github.com/saleor/saleor"
 documentation = "https://docs.saleor.io/"
 
   [tool.poetry.dependencies]
