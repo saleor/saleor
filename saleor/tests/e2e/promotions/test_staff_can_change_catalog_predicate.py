@@ -100,11 +100,19 @@ def test_staff_can_change_catalogue_predicate_core_2112(
     )
 
     # Step 2 Update promotion rule of new variant
-    catalogue_predicate = {
-        "productPredicate": {},
-        "variantPredicate": {"ids": [second_product_variant_id]},
+    input = {
+        "cataloguePredicate": {
+            "collectionPredicate": {},
+        }
     }
-    update_promotion_rule(e2e_staff_api_client, promotion_rule_id, catalogue_predicate)
+    update_promotion_rule(e2e_staff_api_client, promotion_rule_id, input)
+
+    input = {
+        "cataloguePredicate": {
+            "variantPredicate": {"ids": [second_product_variant_id]},
+        }
+    }
+    update_promotion_rule(e2e_staff_api_client, promotion_rule_id, input)
 
     # Step 3 Check if promotion is applied to new variant
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)
@@ -112,7 +120,7 @@ def test_staff_can_change_catalogue_predicate_core_2112(
     assert first_variant["id"] == product_variant_id
     second_variant = product_data["variants"][1]
     assert second_variant["id"] == second_product_variant_id
-    assert product_data["pricing"]["onSale"] is False
+    assert product_data["pricing"]["onSale"] is True
     assert first_variant["pricing"]["onSale"] is False
     assert second_variant["pricing"]["onSale"] is True
     calculated_second_variant_discount = round(

@@ -46,7 +46,7 @@ def prepare_promotion(
 def prepare_second_channel_and_listing(
     e2e_staff_api_client, warehouse_id, product_id, product_variant_id
 ):
-    second_channel_slug = "channel_gbp"
+    second_channel_slug = "channel_pln"
     channel_data = create_channel(
         e2e_staff_api_client,
         warehouse_ids=[warehouse_id],
@@ -100,7 +100,7 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
         e2e_staff_api_client, warehouse_id, channel_id, "7.99"
     )
 
-    predicate_input = {"productPredicate": {"ids": product_id}}
+    predicate_input = {"productPredicate": {"ids": [product_id]}}
     promotion_rule_id = prepare_promotion(
         e2e_staff_api_client,
         50,
@@ -113,13 +113,15 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
         e2e_staff_api_client, warehouse_id, product_id, product_variant_id
     )
 
-    # Step 1 Update promotion rule add new channel remove first channel
+    # Step 1 Update promotion rule switch channels
     update_promotion_rule(
         e2e_staff_api_client,
         promotion_rule_id,
-        predicate_input,
-        add_channels=[second_channel_id],
-        remove_channels=[channel_id],
+        input={
+            "addChannels": [second_channel_id],
+            "removeChannels": [channel_id],
+            "cataloguePredicate": {"productPredicate": {"ids": [product_id]}},
+        },
     )
 
     # Step 2 Check if promotion is applied for product on second channel
@@ -127,7 +129,11 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
         e2e_staff_api_client, product_id, second_channel_slug
     )
     assert product_data_channel_2["pricing"]["onSale"] is True
-
+    assert product_data_channel_2["variants"][0]["pricing"]["onSale"] is True
+    assert (
+        product_data_channel_2["variants"][0]["pricing"]["discount"]["gross"]["amount"]
+        == 49.5
+    )
     # Step 3 Check if promotion is not applied for product on first channel
     product_data_channel_1 = get_product(e2e_staff_api_client, product_id, channel_slug)
     assert product_data_channel_1["pricing"]["onSale"] is False
