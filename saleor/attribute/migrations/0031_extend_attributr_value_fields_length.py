@@ -10,16 +10,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name="attribute",
-            name="name",
-            field=models.CharField(max_length=250),
-        ),
-        migrations.AlterField(
-            model_name="attribute",
-            name="slug",
-            field=models.SlugField(allow_unicode=True, max_length=255, unique=True),
-        ),
-        migrations.AlterField(
             model_name="attributetranslation",
             name="name",
             field=models.CharField(max_length=255),

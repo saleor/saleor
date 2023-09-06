@@ -112,8 +112,8 @@ AttributeManager = models.Manager.from_queryset(AttributeQuerySet)
 
 
 class Attribute(ModelWithMetadata, ModelWithExternalReference):
-    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    name = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=250, unique=True, allow_unicode=True)
+    name = models.CharField(max_length=255)
     type = models.CharField(max_length=50, choices=AttributeType.CHOICES)
 
     input_type = models.CharField(
