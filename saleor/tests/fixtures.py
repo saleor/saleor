@@ -6306,7 +6306,7 @@ def description_json():
         ],
         "entityMap": {
             "0": {
-                "data": {"href": "https://github.com/saleor/saleor"},
+                "data": {"href": "https://github.com/mirumee/saleor"},
                 "type": "LINK",
                 "mutability": "MUTABLE",
             }
