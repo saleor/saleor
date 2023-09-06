@@ -163,8 +163,6 @@ def _get_discounted_variants_prices(
             variant_listing.price_amount  # type: ignore
             - variant_listing.discounted_price_amount
         )
-        # TODO: we should also remove the VariantChannelListingPromotionRule
-        # when the discount is not valid anymore
         if discount_amount:
             (
                 rule_listing_to_update,
