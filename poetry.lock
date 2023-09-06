@@ -4174,21 +4174,6 @@ files = [
 ]
 
 [[package]]
-name = "trustme"
-version = "1.1.0"
-description = "#1 quality TLS certs while you wait, for the discerning tester"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "trustme-1.1.0-py3-none-any.whl", hash = "sha256:ce105b68fb9f6d7ac7a9ee6e95bb2347a22ce4d3be78ef9a6494d5ef890e1e16"},
-    {file = "trustme-1.1.0.tar.gz", hash = "sha256:5375ad7fb427074bec956592e0d4ee2a4cf4da68934e1ba4bcf4217126bc45e6"},
-]
-
-[package.dependencies]
-cryptography = ">=3.1"
-idna = ">=2.0"
-
-[[package]]
 name = "types-certifi"
 version = "2021.10.8.3"
 description = "Typing stubs for certifi"
@@ -4910,4 +4895,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "992a0d710319f41de1b0c47d8ac6d2aeda8666833a82911a9c07acb7364b926c"
+content-hash = "fe41089a647dfcc895c7960f07ae18604490f4327b84f06122caa041053c6dda"
