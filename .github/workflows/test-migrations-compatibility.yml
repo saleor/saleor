@@ -49,7 +49,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m poetry install --no-root
+          python -m poetry install
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
 
       - name: Migrate
