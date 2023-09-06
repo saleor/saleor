@@ -18,7 +18,7 @@ def data_migration(apps, _schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("page", "0028_add_default_page_type"),
-        ("attribute", "0032_assignedpageattributevalue_page"),
+        ("attribute", "0033_assignedpageattributevalue_page_add_index"),
     ]
 
     operations = [
