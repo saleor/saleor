@@ -9,6 +9,7 @@ from mock import patch
 from prices import Money, TaxedMoney
 
 from ...channel import TransactionFlowStrategy
+from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.taxes import TaxType, zero_money, zero_taxed_money
@@ -461,7 +462,6 @@ def test_manager_calculates_checkout_line_unit_price(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     checkout_line_info = lines[0]
-
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_unit_price(
         checkout_info,
         lines,
@@ -476,6 +476,49 @@ def test_manager_calculates_checkout_line_unit_price(
         amount=total_line_price.gross.amount / quantity, currency=currency
     )
     assert TaxedMoney(net=expected_net, gross=expected_gross) == taxed_total
+
+
+def test_manager_calculate_unit_price_correct_default_taxed_value(
+    checkout_with_voucher_percentage, address
+):
+
+    # given
+    # no tax plugins are configured
+    plugins = []
+    manager = PluginsManager(plugins=plugins)
+    lines, _ = fetch_checkout_lines(checkout_with_voucher_percentage)
+    checkout_info = fetch_checkout_info(
+        checkout_with_voucher_percentage, lines, manager
+    )
+    checkout_line_info = lines[0]
+
+    quantity = checkout_line_info.line.quantity
+    default_value = base_calculations.calculate_base_line_unit_price(
+        checkout_line_info, checkout_info.channel
+    )
+
+    total_value = base_calculations.apply_checkout_discount_on_checkout_line(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        default_value * quantity,
+    )
+
+    # expected unit default taxed value without plugins
+    expected_default_taxed_value = TaxedMoney(
+            net=total_value / quantity, gross=total_value / quantity
+        )
+
+    # when
+    result = PluginsManager(plugins=plugins).calculate_checkout_line_unit_price(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        address,
+    )
+
+    # then
+    assert result == expected_default_taxed_value
 
 
 @pytest.mark.parametrize(
