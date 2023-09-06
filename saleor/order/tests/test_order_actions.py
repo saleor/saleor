@@ -89,7 +89,9 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
 @patch(
     "saleor.order.actions.send_payment_confirmation", wraps=send_payment_confirmation
 )
+@patch("saleor.plugins.manager.PluginsManager.fulfillment_created")
 def test_handle_fully_paid_order_digital_lines(
+    mock_fulfillment_created,
     mock_send_payment_confirmation,
     send_fulfillment_confirmation_to_customer,
     order_with_digital_line,
@@ -117,6 +119,7 @@ def test_handle_fully_paid_order_digital_lines(
 
     order.refresh_from_db()
     assert order.status == OrderStatus.FULFILLED
+    mock_fulfillment_created.assert_called_once_with(fulfillment)
 
 
 @patch("saleor.order.actions.send_payment_confirmation")
@@ -613,8 +616,13 @@ def test_fulfill_order_lines_without_inventory_tracking(order_with_lines):
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")
 @patch("saleor.order.utils.get_default_digital_content_settings")
+@patch("saleor.plugins.manager.PluginsManager.fulfillment_created")
 def test_fulfill_digital_lines(
-    mock_digital_settings, mock_email_fulfillment, order_with_lines, media_root
+    mock_fulfillment_created,
+    mock_digital_settings,
+    mock_email_fulfillment,
+    order_with_lines,
+    media_root,
 ):
     mock_digital_settings.return_value = {"automatic_fulfillment": True}
     line = order_with_lines.lines.all()[0]
@@ -648,12 +656,18 @@ def test_fulfill_digital_lines(
     assert fulfillment_lines.count() == 1
     assert line.digital_content_url
     assert mock_email_fulfillment.called
+    mock_fulfillment_created.assert_called_once_with(fulfillment)
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")
 @patch("saleor.order.utils.get_default_digital_content_settings")
+@patch("saleor.plugins.manager.PluginsManager.fulfillment_created")
 def test_fulfill_digital_lines_no_allocation(
-    mock_digital_settings, mock_email_fulfillment, order_with_lines, media_root
+    mock_fulfillment_created,
+    mock_digital_settings,
+    mock_email_fulfillment,
+    order_with_lines,
+    media_root,
 ):
     # given
     mock_digital_settings.return_value = {"automatic_fulfillment": True}
@@ -694,6 +708,7 @@ def test_fulfill_digital_lines_no_allocation(
     assert fulfillment_lines.count() == 1
     assert line.digital_content_url
     assert mock_email_fulfillment.called
+    mock_fulfillment_created.assert_called_once_with(fulfillment)
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")

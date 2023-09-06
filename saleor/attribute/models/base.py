@@ -189,7 +189,7 @@ class AttributeTranslation(Translation):
     attribute = models.ForeignKey(
         Attribute, related_name="translations", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
 
     class Meta:
         unique_together = (("language_code", "attribute"),)
@@ -216,7 +216,7 @@ class AttributeTranslation(Translation):
 class AttributeValue(SortableModel, ModelWithExternalReference):
     name = models.CharField(max_length=250)
     # keeps hex code color value in #RRGGBBAA format
-    value = models.CharField(max_length=100, blank=True, default="")
+    value = models.CharField(max_length=255, blank=True, default="")
     slug = models.SlugField(max_length=255, allow_unicode=True)
     file_url = models.URLField(null=True, blank=True)
     content_type = models.CharField(max_length=50, null=True, blank=True)
@@ -278,7 +278,7 @@ class AttributeValueTranslation(Translation):
     attribute_value = models.ForeignKey(
         AttributeValue, related_name="translations", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=250)
     rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     plain_text = models.TextField(
         blank=True,
