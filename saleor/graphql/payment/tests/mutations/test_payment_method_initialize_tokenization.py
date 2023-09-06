@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
+from .....payment import TokenizedPaymentFlow
 from .....payment.interface import (
     PaymentMethodInitializeTokenizationRequestData,
     PaymentMethodTokenizationResponseData,
@@ -11,12 +12,15 @@ from .....plugins.manager import PluginsManager
 from .....plugins.webhook.utils import to_payment_app_id
 from ....core.enums import PaymentMethodInitializeTokenizationErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import PaymentMethodTokenizationResultEnum
+from ...enums import PaymentMethodTokenizationResultEnum, TokenizedPaymentFlowEnum
 
 PAYMENT_METHOD_INITIALIZE_TOKENIZATION = """
 mutation PaymentMethodInitializeTokenization(
-$id: String!, $channel: String!, $data: JSON){
-  paymentMethodInitializeTokenization(id: $id, channel: $channel, data: $data){
+$id: String!, $channel: String!, $data: JSON,
+$paymentFlowToSupport: TokenizedPaymentFlowEnum!){
+  paymentMethodInitializeTokenization(
+    id: $id, channel: $channel, data: $data, paymentFlowToSupport: $paymentFlowToSupport
+  ){
     result
     data
     id
@@ -70,6 +74,7 @@ def test_payment_method_initialize_tokenization(
             "id": expected_id,
             "channel": channel_USD.slug,
             "data": expected_input_data,
+            "paymentFlowToSupport": TokenizedPaymentFlowEnum.INTERACTIVE.name,
         },
     )
 
@@ -90,6 +95,7 @@ def test_payment_method_initialize_tokenization(
             channel=channel_USD,
             app_identifier=expected_id,
             data=expected_input_data,
+            payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
         )
     )
 
@@ -108,7 +114,11 @@ def test_payment_method_initialize_tokenization_called_by_anonymous_user(
     # when
     response = api_client.post_graphql(
         PAYMENT_METHOD_INITIALIZE_TOKENIZATION,
-        variables={"id": expected_id, "channel": channel_USD.slug},
+        variables={
+            "id": expected_id,
+            "channel": channel_USD.slug,
+            "paymentFlowToSupport": TokenizedPaymentFlowEnum.INTERACTIVE.name,
+        },
     )
 
     # then
@@ -132,7 +142,11 @@ def test_payment_method_initialize_tokenization_called_by_app(
     # when
     response = app_api_client.post_graphql(
         PAYMENT_METHOD_INITIALIZE_TOKENIZATION,
-        variables={"id": expected_id, "channel": channel_USD.slug},
+        variables={
+            "id": expected_id,
+            "channel": channel_USD.slug,
+            "paymentFlowToSupport": TokenizedPaymentFlowEnum.INTERACTIVE.name,
+        },
     )
 
     # then
@@ -158,7 +172,11 @@ def test_payment_method_initialize_tokenization_not_app_or_plugin_subscribed_to_
     # when
     response = user_api_client.post_graphql(
         PAYMENT_METHOD_INITIALIZE_TOKENIZATION,
-        variables={"id": expected_id, "channel": channel_USD.slug},
+        variables={
+            "id": expected_id,
+            "channel": channel_USD.slug,
+            "paymentFlowToSupport": TokenizedPaymentFlowEnum.INTERACTIVE.name,
+        },
     )
 
     # then
@@ -191,7 +209,11 @@ def test_payment_method_initialize_tokenization_incorrect_channel(
     # when
     response = user_api_client.post_graphql(
         PAYMENT_METHOD_INITIALIZE_TOKENIZATION,
-        variables={"id": expected_id, "channel": "non-exiting-channel"},
+        variables={
+            "id": expected_id,
+            "channel": "non-exiting-channel",
+            "paymentFlowToSupport": TokenizedPaymentFlowEnum.INTERACTIVE.name,
+        },
     )
 
     # then
@@ -236,6 +258,7 @@ def test_payment_method_initialize_tokenization_failure_from_app(
             "id": expected_id,
             "channel": channel_USD.slug,
             "data": None,
+            "paymentFlowToSupport": TokenizedPaymentFlowEnum.INTERACTIVE.name,
         },
     )
 
@@ -260,5 +283,6 @@ def test_payment_method_initialize_tokenization_failure_from_app(
             channel=channel_USD,
             app_identifier=expected_id,
             data=None,
+            payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
         )
     )

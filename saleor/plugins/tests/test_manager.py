@@ -17,6 +17,7 @@ from ...discount.utils import (
     fetch_catalogue_info,
 )
 from ...graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
+from ...payment import TokenizedPaymentFlow
 from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentGateway,
@@ -1452,6 +1453,7 @@ def test_payment_method_initialize_tokenization(
         app_identifier=app.identifier,
         channel=channel_USD,
         data={"data": "ABC"},
+        payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
     )
     previous_response = PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,

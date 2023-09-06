@@ -2,6 +2,7 @@ import json
 
 import graphene
 
+from .....payment import TokenizedPaymentFlow
 from .....payment.interface import PaymentMethodInitializeTokenizationRequestData
 from .....webhook.event_types import WebhookEventSyncType
 from ...tasks import create_deliveries_for_subscriptions
@@ -10,6 +11,7 @@ PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION = """
 subscription{
   event{
     ...on PaymentMethodInitializeTokenizationSession{
+      paymentFlowToSupport
       user{
         id
       }
@@ -36,6 +38,7 @@ def test_payment_method_initialize_tokenization_without_data(
         app_identifier=payment_method_initialize_tokenization_app.identifier,
         channel=channel_USD,
         data=None,
+        payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
     )
 
     event_type = WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
@@ -52,6 +55,7 @@ def test_payment_method_initialize_tokenization_without_data(
         "data": None,
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
+        "paymentFlowToSupport": "INTERACTIVE",
     }
 
 
@@ -70,6 +74,7 @@ def test_payment_method_initialize_tokenization_with_data(
         app_identifier=payment_method_initialize_tokenization_app.identifier,
         channel=channel_USD,
         data=expected_data,
+        payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
     )
 
     event_type = WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
@@ -86,4 +91,5 @@ def test_payment_method_initialize_tokenization_with_data(
         "data": expected_data,
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
+        "paymentFlowToSupport": "INTERACTIVE",
     }

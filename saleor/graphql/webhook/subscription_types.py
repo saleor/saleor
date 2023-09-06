@@ -15,6 +15,7 @@ from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
 from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
+    PaymentMethodInitializeTokenizationRequestData,
     PaymentMethodProcessTokenizationRequestData,
     PaymentMethodTokenizationBaseRequestData,
     StoredPaymentMethodRequestDeleteData,
@@ -68,7 +69,7 @@ from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
 from ..order.dataloaders import OrderByIdLoader
 from ..order.types import Order, OrderGrantedRefund
-from ..payment.enums import TransactionActionEnum
+from ..payment.enums import TokenizedPaymentFlowEnum, TransactionActionEnum
 from ..payment.types import TransactionItem
 from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..product.dataloaders import ProductVariantByIdLoader
@@ -2185,6 +2186,13 @@ class PaymentGatewayInitializeTokenizationSession(
 class PaymentMethodInitializeTokenizationSession(
     SubscriptionObjectType, PaymentMethodTokenizationBase
 ):
+    payment_flow_to_support = TokenizedPaymentFlowEnum(
+        description=(
+            "The payment flow that the tokenized payment method should support."
+        ),
+        required=True,
+    )
+
     class Meta:
         root_type = None
         enable_dry_run = False
@@ -2195,6 +2203,15 @@ class PaymentMethodInitializeTokenizationSession(
             + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_PAYMENTS
+
+    @classmethod
+    def resolve_payment_flow_to_support(
+        cls,
+        root: tuple[str, PaymentMethodInitializeTokenizationRequestData],
+        _info: ResolveInfo,
+    ):
+        _, payment_method_data = root
+        return payment_method_data.payment_flow_to_support
 
 
 class PaymentMethodProcessTokenizationSession(
@@ -2219,6 +2236,7 @@ class PaymentMethodProcessTokenizationSession(
         )
         doc_category = DOC_CATEGORY_PAYMENTS
 
+    @classmethod
     def resolve_id(
         cls,
         root: tuple[str, PaymentMethodProcessTokenizationRequestData],

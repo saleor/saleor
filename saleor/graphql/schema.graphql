@@ -10192,7 +10192,9 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   updatedAt: DateTime!
   lastChange: DateTime! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `updatedAt` instead.")
 
-  """The user assigned to the checkout."""
+  """
+  The user assigned to the checkout. Requires one of the following permissions: MANAGE_USERS, HANDLE_PAYMENTS, OWNER.
+  """
   user: User
 
   """The channel for which checkout was created."""
@@ -11003,7 +11005,7 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   status: OrderStatus!
 
   """
-  User who placed the order. This field is set only for orders placed by authenticated users. Can be fetched for orders created in Saleor 3.2 and later, for other orders requires one of the following permissions: MANAGE_USERS, MANAGE_ORDERS, OWNER.
+  User who placed the order. This field is set only for orders placed by authenticated users. Can be fetched for orders created in Saleor 3.2 and later, for other orders requires one of the following permissions: MANAGE_USERS, MANAGE_ORDERS, HANDLE_PAYMENTS, OWNER.
   """
   user: User
 
@@ -15722,6 +15724,9 @@ type Mutation {
     The identifier of the payment gateway app to initialize payment method tokenization.
     """
     id: String!
+
+    """The payment flow that the tokenized payment method should support."""
+    paymentFlowToSupport: TokenizedPaymentFlowEnum!
   ): PaymentMethodInitializeTokenization @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION])
 
   """
@@ -23475,11 +23480,13 @@ Result of tokenization of payment method.
     SUCCESSFULLY_TOKENIZED - The payment method was successfully tokenized.
     ADDITIONAL_ACTION_REQUIRED - The additional action is required to tokenize payment
     method.
+    PENDING - The payment method is pending tokenization.
     FAILED_TO_TOKENIZE - The payment method was not tokenized.
     FAILED_TO_DELIVER - The request to tokenize payment method was not delivered.
 """
 enum PaymentMethodTokenizationResult @doc(category: "Payments") {
   SUCCESSFULLY_TOKENIZED
+  PENDING
   ADDITIONAL_ACTION_REQUIRED
   FAILED_TO_TOKENIZE
   FAILED_TO_DELIVER
@@ -33714,6 +33721,9 @@ type PaymentMethodInitializeTokenizationSession implements Event @doc(category: 
 
   """Payment gateway data in JSON format, received from storefront."""
   data: JSON
+
+  """The payment flow that the tokenized payment method should support."""
+  paymentFlowToSupport: TokenizedPaymentFlowEnum!
 }
 
 """
