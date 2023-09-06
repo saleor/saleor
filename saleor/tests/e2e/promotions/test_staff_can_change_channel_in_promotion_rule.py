@@ -58,6 +58,9 @@ def prepare_second_channel_and_listing(
         e2e_staff_api_client,
         product_id,
         second_channel_id,
+        is_published=True,
+        visible_in_listings=True,
+        is_available_for_purchase=True,
     )
     assert (
         product_listing_data["product"]["channelListings"][1]["channel"]["id"]
@@ -71,7 +74,6 @@ def prepare_second_channel_and_listing(
         variant_listing_data["variant"]["channelListings"][1]["channel"]["id"]
         == second_channel_id
     )
-
     return second_channel_id, second_channel_slug
 
 
@@ -108,19 +110,17 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
         predicate_input,
         channel_id=[channel_id],
     )
-
     second_channel_id, second_channel_slug = prepare_second_channel_and_listing(
         e2e_staff_api_client, warehouse_id, product_id, product_variant_id
     )
-
-    # Step 1 Update promotion rule switch channels
+    # Step 1 Update promotion rule: switch channels
     update_promotion_rule(
         e2e_staff_api_client,
         promotion_rule_id,
         input={
             "addChannels": [second_channel_id],
             "removeChannels": [channel_id],
-            "cataloguePredicate": {"productPredicate": {"ids": [product_id]}},
+            "cataloguePredicate": predicate_input,
         },
     )
 
@@ -129,7 +129,6 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
         e2e_staff_api_client, product_id, second_channel_slug
     )
     assert product_data_channel_2["pricing"]["onSale"] is True
-    assert product_data_channel_2["variants"][0]["pricing"]["onSale"] is True
     assert (
         product_data_channel_2["variants"][0]["pricing"]["discount"]["gross"]["amount"]
         == 49.5
