@@ -10,7 +10,7 @@ from authorizenet.apicontrollers import (
 from lxml import etree
 from lxml.objectify import ObjectifiedElement
 
-from saleor.core.http_client import HTTPClient
+from ....core.http_client import HTTPClient
 
 from ... import TransactionKind
 from ...interface import (

@@ -2,7 +2,7 @@ import pytest
 from django.core import signing
 from requests_hardened.ip_filter import InvalidIPAddress
 
-from saleor.core.http_client import HTTPClient
+from ....core.http_client import HTTPClient
 
 
 def test_rejects_private_ips(openid_plugin, id_token, rf, monkeypatch):

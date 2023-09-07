@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 
 import requests
 
-from saleor.core.http_client import HTTPClient
+from .....core.http_client import HTTPClient
 
 from .... import PaymentError
 
