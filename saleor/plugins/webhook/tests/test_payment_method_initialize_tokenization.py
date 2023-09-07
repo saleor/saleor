@@ -326,9 +326,17 @@ def test_payment_method_initialize_tokenization_additional_action_required(
     )
 
 
+@pytest.mark.parametrize(
+    "result",
+    [
+        PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name,
+        PaymentMethodTokenizationResult.ADDITIONAL_ACTION_REQUIRED.name,
+    ],
+)
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_payment_method_initialize_tokenization_missing_required_id(
     mock_request,
+    result,
     customer_user,
     webhook_plugin,
     payment_method_initialize_tokenization_app,
@@ -337,7 +345,7 @@ def test_payment_method_initialize_tokenization_missing_required_id(
     # given
     expected_error_msg = "Missing payment method `id` in response."
     mock_request.return_value = {
-        "result": PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name,
+        "result": result,
         "data": None,
     }
 
