@@ -414,7 +414,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
             collection_ids=collection_ids,
             channel=channel,
             variant_id=self.id,
-        )
+        )[1]
 
     def get_weight(self):
         return self.weight or self.product.weight or self.product.product_type.weight
