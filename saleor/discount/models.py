@@ -73,9 +73,6 @@ class VoucherManager(models.Manager):
         return self.get_queryset().expired(date)
 
 
-# VoucherManager = models.Manager.from_queryset(VoucherQueryset)
-
-
 class Voucher(ModelWithMetadata):
     type = models.CharField(
         max_length=20, choices=VoucherType.CHOICES, default=VoucherType.ENTIRE_ORDER

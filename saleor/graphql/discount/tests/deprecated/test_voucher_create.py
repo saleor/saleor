@@ -51,6 +51,7 @@ mutation  voucherCreate(
 
 
 def test_create_voucher(staff_api_client, permission_manage_discounts):
+    # given
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
     variables = {
@@ -66,11 +67,14 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
         "usageLimit": 3,
     }
 
+    # when
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     get_graphql_content(response)
     voucher = Voucher.objects.get()
+
+    # then
     assert voucher.type == VoucherType.ENTIRE_ORDER
     assert voucher.name == "test voucher"
     assert voucher.code == "testcode123"
@@ -143,6 +147,7 @@ def test_create_voucher_trigger_webhook(
 
 
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):
+    # given
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
     variables = {
@@ -157,11 +162,14 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
         "usageLimit": None,
     }
 
+    # when
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
     data = content["data"]["voucherCreate"]["voucher"]
+
+    # then
     assert data["name"] == variables["name"]
     assert data["code"] != ""
 
@@ -169,6 +177,7 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
 def test_create_voucher_with_existing_gift_card_code(
     staff_api_client, gift_card, permission_manage_discounts
 ):
+    # given
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
     variables = {
@@ -183,10 +192,13 @@ def test_create_voucher_with_existing_gift_card_code(
         "usageLimit": 3,
     }
 
+    # when
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
+
+    # then
     assert content["data"]["voucherCreate"]["errors"]
     errors = content["data"]["voucherCreate"]["errors"]
     assert len(errors) == 1
@@ -197,6 +209,7 @@ def test_create_voucher_with_existing_gift_card_code(
 def test_create_voucher_with_existing_voucher_code(
     staff_api_client, voucher_shipping_type, permission_manage_discounts
 ):
+    # given
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
     variables = {
@@ -210,10 +223,14 @@ def test_create_voucher_with_existing_voucher_code(
         "endDate": end_date.isoformat(),
         "usageLimit": 3,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
+
+    # then
     assert content["data"]["voucherCreate"]["errors"]
     errors = content["data"]["voucherCreate"]["errors"]
     assert len(errors) == 1
@@ -224,6 +241,7 @@ def test_create_voucher_with_existing_voucher_code(
 def test_create_voucher_with_enddate_before_startdate(
     staff_api_client, voucher_shipping_type, permission_manage_discounts
 ):
+    # given
     start_date = timezone.now() + timedelta(days=365)
     end_date = timezone.now() - timedelta(days=365)
     variables = {
@@ -237,10 +255,14 @@ def test_create_voucher_with_enddate_before_startdate(
         "endDate": end_date.isoformat(),
         "usageLimit": 3,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
+
+    # then
     assert content["data"]["voucherCreate"]["errors"]
     errors = content["data"]["voucherCreate"]["errors"]
     assert len(errors) == 1
