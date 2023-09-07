@@ -78,7 +78,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          pytest \
+          python -m poetry run pytest \
             -m "not e2e" \
             --cov \
             --junitxml=junit/test-results.xml \
@@ -118,5 +118,5 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          pytest \
+          python -m poetry run pytest \
             -m "e2e"
