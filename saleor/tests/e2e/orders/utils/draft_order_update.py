@@ -36,6 +36,18 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
           amount
         }
       }
+    billingAddress {
+        firstName
+        lastName
+        companyName
+        streetAddress1
+        streetAddress2
+        postalCode
+        country{ code }
+        city
+        countryArea
+        phone
+      }
       shippingAddress {
         firstName
         lastName
@@ -64,6 +76,7 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
         id
         name
       }
+      userEmail
       deliveryMethod {
         __typename
         ... on ShippingMethod {
