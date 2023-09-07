@@ -73,7 +73,7 @@ jobs:
       - name: Run Linters and Checks
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          python -m pre_commit run --all
+          python -m poetry run pre-commit run --all
         if: ${{ always() }}
 
       - name: Run unit tests
