@@ -955,7 +955,7 @@ def test_product_create_translation_validates_name_length(
     product_id = graphene.Node.to_global_id("Product", product.id)
     variables = {
         "productId": product_id,
-        "input": {"description": None, "name": "Long" * 100},
+        "input": {"description": None, "name": "Long" * 255},
     }
     response = staff_api_client.post_graphql(
         PRODUCT_TRANSLATE_MUTATION,
@@ -1171,7 +1171,7 @@ def test_product_variant_translation_mutation_validates_inputs_length(
         PRODUCT_VARIANT_TRANSLATE_MUTATION,
         {
             "productVariantId": translatable_content_id,
-            "input": {"name": "Wariant PL" * 100},
+            "input": {"name": "Wariant PL" * 255},
         },
         permissions=[permission_manage_translations],
     )
@@ -1356,7 +1356,7 @@ def test_collection_translation_mutation_validates_inputs_length(
         COLLECTION_TRANSLATE_MUTATION,
         {
             "collectionId": collection_id,
-            "input": {"description": description, "name": "long" * 100},
+            "input": {"description": description, "name": "long" * 255},
         },
         permissions=[permission_manage_translations],
     )
@@ -2277,7 +2277,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_long_text(
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.id
     )
-    expected_base_text = "Nowy Opis. " * 100
+    expected_base_text = "Nowy Opis. " * 250
     expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
 
     # when
@@ -2294,7 +2294,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_long_text(
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
     assert (
-        data["attributeValue"]["translation"]["name"] == expected_base_text[:99] + "…"
+        data["attributeValue"]["translation"]["name"] == expected_base_text[:249] + "…"
     )
     assert data["attributeValue"]["translation"]["richText"] == expected_rich_text
 
@@ -2467,7 +2467,7 @@ def test_plain_text_attribute_value_update_translation_only_plain_text_long_text
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.id
     )
-    expected_base_text = "Nowy Opis. " * 100
+    expected_base_text = "Nowy Opis. " * 250
 
     # when
     response = staff_api_client.post_graphql(
@@ -2483,7 +2483,7 @@ def test_plain_text_attribute_value_update_translation_only_plain_text_long_text
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
     assert (
-        data["attributeValue"]["translation"]["name"] == expected_base_text[:99] + "…"
+        data["attributeValue"]["translation"]["name"] == expected_base_text[:249] + "…"
     )
     assert data["attributeValue"]["translation"]["plainText"] == expected_base_text
 
@@ -2975,7 +2975,7 @@ def test_shop_translation_validates_values_lengths(
 
     response = staff_api_client.post_graphql(
         SHOP_SETTINGS_TRANSLATE_MUTATION,
-        {"input": {"headerText": "Nagłówek PL" * 100}},
+        {"input": {"headerText": "Nagłówek PL" * 255}},
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["shopSettingsTranslate"]

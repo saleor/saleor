@@ -5,25 +5,30 @@ mutation AddCheckoutPromoCode($checkoutId: ID!, $promoCode: String!) {
   checkoutAddPromoCode(id: $checkoutId, promoCode: $promoCode) {
     checkout {
       id
-      discount{
+      totalPrice {
+        gross {
+          amount
+        }
+      }
+      discount {
         amount
       }
       discountName
-      lines{
-        totalPrice{
-          gross{
+      lines {
+        totalPrice {
+          gross {
             amount
           }
         }
-        undiscountedTotalPrice{
+        undiscountedTotalPrice {
           amount
         }
-        unitPrice{
-          gross{
+        unitPrice {
+          gross {
             amount
           }
         }
-        undiscountedUnitPrice{
+        undiscountedUnitPrice {
           amount
         }
       }
@@ -38,7 +43,7 @@ mutation AddCheckoutPromoCode($checkoutId: ID!, $promoCode: String!) {
 """
 
 
-def checkout_add_promo_code(
+def raw_checkout_add_promo_code(
     staff_api_client,
     checkout_id,
     code,
@@ -47,12 +52,28 @@ def checkout_add_promo_code(
         "checkoutId": checkout_id,
         "promoCode": code,
     }
-
     response = staff_api_client.post_graphql(
-        CHECKOUT_ADD_PROMO_CODE_MUTATION, variables
+        CHECKOUT_ADD_PROMO_CODE_MUTATION,
+        variables=variables,
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["checkoutAddPromoCode"]["errors"] == []
+    raw_data = content["data"]["checkoutAddPromoCode"]
 
-    return content["data"]["checkoutAddPromoCode"]["checkout"]
+    return raw_data
+
+
+def checkout_add_promo_code(
+    staff_api_client,
+    checkout_id,
+    code,
+):
+    checkout_response = raw_checkout_add_promo_code(
+        staff_api_client,
+        checkout_id,
+        code,
+    )
+
+    assert checkout_response["errors"] == []
+
+    return checkout_response["checkout"]

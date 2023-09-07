@@ -41,7 +41,3 @@ class SubscriptionObjectType(BaseObjectType):
             )
 
         super().__init_subclass_with_meta__(_meta=_meta, **options)
-
-    @classmethod
-    def get_subscription_context(cls, db_object, **kwargs):
-        return db_object

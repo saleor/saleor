@@ -730,7 +730,7 @@ def automatically_fulfill_digital_lines(
     with traced_atomic_transaction():
         if not digital_lines_data:
             return
-        fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
+        fulfillment, created = Fulfillment.objects.get_or_create(order=order)
 
         fulfillments = []
         lines_info = []
@@ -766,6 +766,8 @@ def automatically_fulfill_digital_lines(
         send_fulfillment_confirmation_to_customer(
             order, fulfillment, user=order.user, app=None, manager=manager
         )
+        if created:
+            manager.fulfillment_created(fulfillment)
         update_order_status(order)
 
 

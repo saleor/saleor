@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install system dependencies
         run: apt-get install -y libpq-dev
@@ -56,7 +56,7 @@ jobs:
           ./manage.py migrate
 
       - name: Checkout base
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github['base_ref'] }}
 

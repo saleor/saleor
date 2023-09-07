@@ -2088,7 +2088,11 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   CHECKOUT_METADATA_UPDATED
 
-  """User notification triggered."""
+  """
+  User notification triggered.
+  
+  DEPRECATED: this value will be removed in Saleor 4.0. See the docs for more details about migrating from NOTIFY_USER to other events: https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation
+  """
   NOTIFY_USER
 
   """A new page is created."""
@@ -2775,7 +2779,11 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   CHECKOUT_METADATA_UPDATED
 
-  """User notification triggered."""
+  """
+  User notification triggered.
+  
+  DEPRECATED: this value will be removed in Saleor 4.0. See the docs for more details about migrating from NOTIFY_USER to other events: https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation
+  """
   NOTIFY_USER
 
   """A new page is created."""
@@ -16883,7 +16891,7 @@ type Mutation {
 
     """The ID of notification plugin."""
     pluginId: String
-  ): ExternalNotificationTrigger
+  ): ExternalNotificationTrigger @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0.")
 
   """
   Creates a new sale. 

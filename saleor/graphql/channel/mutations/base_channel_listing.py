@@ -77,7 +77,6 @@ class BaseChannelListingMutation(BaseMutation):
         cls.validate_duplicated_channel_values(
             remove_channels_ids, "remove_channels", errors, error_code
         )
-
         if errors:
             return {}
         channels_to_add: List["models.Channel"] = []
@@ -85,16 +84,18 @@ class BaseChannelListingMutation(BaseMutation):
             channels_to_add = cls.get_nodes_or_error(
                 add_channels_ids, "channel_id", Channel
             )
-        remove_channels_pks = cls.get_global_ids_or_error(
-            remove_channels_ids, Channel, field="remove_channels"
-        )
+        if remove_channels_ids:
+            remove_channels_pks = cls.get_global_ids_or_error(
+                remove_channels_ids, Channel, field="remove_channels"
+            )
+        else:
+            remove_channels_pks = []
 
         cleaned_input = {input_source: [], "remove_channels": remove_channels_pks}
 
         for channel_listing, channel in zip(add_channels, channels_to_add):
             channel_listing["channel"] = channel
             cleaned_input[input_source].append(channel_listing)
-
         return cleaned_input
 
     @classmethod

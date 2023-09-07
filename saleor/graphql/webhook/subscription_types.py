@@ -188,36 +188,23 @@ class AccountOperationBase(AbstractType):
 
 class AccountConfirmed(SubscriptionObjectType, AccountOperationBase):
     class Meta:
-        root_type = "User"
-        enable_dry_run = True
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account is confirmed." + ADDED_IN_315
         doc_category = DOC_CATEGORY_USERS
-
-    @classmethod
-    def get_subscription_context(cls, db_object, **kwargs):
-        return {"user": db_object}
 
 
 class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = "User"
-        enable_dry_run = True
+        enable_dry_run = False
         interfaces = (Event,)
         description = (
             "Event sent when account confirmation requested. This event is always sent."
             " enableAccountConfirmationByEmail flag set to True is not required."
             + ADDED_IN_315
         )
-
-    @classmethod
-    def get_subscription_context(cls, db_object, **kwargs):
-        return {
-            "user": db_object,
-            "channel_slug": kwargs.get("channel_slug", "c-pln"),
-            "token": kwargs.get("token", "token"),
-            "redirect_url": kwargs.get("redirect_url", "http://localhost:3000"),
-        }
 
 
 class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
@@ -227,25 +214,16 @@ class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
 
     class Meta:
         root_type = "User"
-        enable_dry_run = True
+        enable_dry_run = False
         interfaces = (Event,)
         description = (
             "Event sent when account change email is requested." + ADDED_IN_315
         )
 
-    @classmethod
-    def get_subscription_context(cls, db_object, **kwargs):
-        return {
-            "user": db_object,
-            "channel_slug": kwargs.get("channel_slug", "c-pln"),
-            "token": kwargs.get("token", "token"),
-            "redirect_url": kwargs.get("redirect_url", "http://localhost:3000"),
-        }
-
     @staticmethod
     def resolve_new_email(root, _info: ResolveInfo):
         _, data = root
-        return data.get("new_email")
+        return data["new_email"]
 
 
 class AccountEmailChanged(SubscriptionObjectType, AccountOperationBase):
@@ -254,65 +232,39 @@ class AccountEmailChanged(SubscriptionObjectType, AccountOperationBase):
     )
 
     class Meta:
-        root_type = "User"
-        enable_dry_run = True
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account email is changed." + ADDED_IN_315
         doc_category = DOC_CATEGORY_USERS
 
-    @classmethod
-    def get_subscription_context(cls, db_object, **kwargs):
-        return {"user": db_object}
-
 
 class AccountSetPasswordRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
-        root_type = "User"
-        enable_dry_run = True
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = (
             "Event sent when setting a new password is requested." + ADDED_IN_315
         )
         doc_category = DOC_CATEGORY_USERS
 
-    @classmethod
-    def get_subscription_context(cls, db_object, **kwargs):
-        return {
-            "user": db_object,
-            "channel_slug": kwargs.get("channel_slug", "c-pln"),
-            "token": kwargs.get("token", "token"),
-            "redirect_url": kwargs.get("redirect_url", "http://localhost:3000"),
-        }
-
 
 class AccountDeleteRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = "User"
-        enable_dry_run = True
+        enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account delete is requested." + ADDED_IN_315
-
-    @classmethod
-    def get_subscription_context(cls, db_object, **kwargs):
-        return {
-            "user": db_object,
-            "channel_slug": kwargs.get("channel_slug", "c-pln"),
-            "token": kwargs.get("token", "token"),
-            "redirect_url": kwargs.get("redirect_url", "http://localhost:3000"),
-        }
 
 
 class AccountDeleted(SubscriptionObjectType, AccountOperationBase):
     class Meta:
-        root_type = "User"
-        enable_dry_run = True
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account is deleted." + ADDED_IN_315
         doc_category = DOC_CATEGORY_USERS
-
-    @classmethod
-    def get_subscription_context(cls, db_object, **kwargs):
-        return {"user": db_object}
 
 
 class AddressBase(AbstractType):
@@ -755,21 +707,13 @@ class GiftCardSent(SubscriptionObjectType, GiftCardBase):
     )
 
     class Meta:
-        root_type = "GiftCard"
-        enable_dry_run = True
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = (
             "Event sent when gift card is e-mailed." + ADDED_IN_313 + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_GIFT_CARDS
-
-    @classmethod
-    def get_subscription_context(cls, db_object, **kwargs):
-        return {
-            "gift_card": db_object,
-            "channel_slug": kwargs.get("channel_slug", "c-pln"),
-            "sent_to_email": kwargs.get("sent_to_email", "example@example.com"),
-        }
 
     @staticmethod
     def resolve_gift_card(root, info: ResolveInfo):
@@ -1287,16 +1231,9 @@ class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
         root_type = "Fulfillment"
-        enable_dry_run = True
+        enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when new fulfillment is created." + ADDED_IN_34
-
-    @classmethod
-    def get_subscription_context(cls, db_object, **kwargs):
-        return {
-            "fulfillment": db_object,
-            "notify_customer": kwargs.get("notify_customer", True),
-        }
 
     @staticmethod
     def resolve_fulfillment(root, info: ResolveInfo):
@@ -1331,16 +1268,9 @@ class FulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
         root_type = "Fulfillment"
-        enable_dry_run = True
+        enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when fulfillment is approved." + ADDED_IN_37
-
-    @classmethod
-    def get_subscription_context(cls, db_object, **kwargs):
-        return {
-            "fulfillment": db_object,
-            "notify_customer": kwargs.get("notify_customer", True),
-        }
 
     @staticmethod
     def resolve_fulfillment(root, info: ResolveInfo):
@@ -1731,23 +1661,14 @@ class StaffDeleted(SubscriptionObjectType, UserBase):
 
 class StaffSetPasswordRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
-        root_type = "User"
-        enable_dry_run = True
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = (
             "Event sent when setting a new password for staff is requested."
             + ADDED_IN_315
         )
         doc_category = DOC_CATEGORY_USERS
-
-    @classmethod
-    def get_subscription_context(cls, db_object, **kwargs):
-        return {
-            "user": db_object,
-            "channel_slug": kwargs.get("channel_slug", "c-pln"),
-            "token": kwargs.get("token", "token"),
-            "redirect_url": kwargs.get("redirect_url", "http://localhost:3000"),
-        }
 
 
 class TransactionAction(SubscriptionObjectType, AbstractType):
