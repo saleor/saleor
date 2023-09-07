@@ -132,3 +132,21 @@ def test_sort_order_by_rank_without_search(
         content["errors"][0]["message"]
         == "Sorting by RANK is available only when using a search filter."
     )
+
+
+def test_sort_order_by_rank_with_nonetype_search(
+    staff_api_client, permission_group_manage_orders
+):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    variables = {
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "search": None,
+    }
+    response = staff_api_client.post_graphql(SEARCH_ORDERS_QUERY, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+
+    errors = content["errors"]
+    expected_message = "Sorting by RANK is available only when using a search filter."
+    assert len(errors) == 1
+    assert errors[0]["message"] == expected_message
