@@ -55,7 +55,7 @@ jobs:
       - name: Migrate
         run: |
           export DJANGO_SETTINGS_MODULE=saleor.tests.settings
-          ./manage.py migrate
+          python -m poetry run python manage.py migrate
 
       - name: Checkout base
         uses: actions/checkout@v4
@@ -65,4 +65,4 @@ jobs:
       - name: Run tests
         run: |
           export PYTEST_DB_URL=$DATABASE_URL
-          pytest -n 0 --reuse-db
+          python -m poetry run pytest -n 0 --reuse-db
