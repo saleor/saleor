@@ -45,6 +45,9 @@ def send_order_updated(order_ids):
 
 
 def _bulk_release_voucher_usage(order_ids):
+    # code commented to fix mypy issue, this will be fixed in separate PR with
+    # expire_orders_task adjustments
+
     # voucher_orders = Order.objects.filter(
     #     voucher=OuterRef("pk"),
     #     id__in=order_ids,
