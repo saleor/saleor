@@ -39,6 +39,31 @@ repos:
         language: system
         exclude: tests/
 
+  - repo: https://github.com/returntocorp/semgrep
+    rev: v1.39.0
+    hooks:
+    - id: semgrep
+      language_version: python3.9
+      exclude_types:
+        - yaml
+      exclude: "^.semgrep/"
+      args:
+        - scan
+        - --config
+        - .semgrep/
+        # Do not try to scan '.semgrep/' directories as they contain test files.
+        - --exclude=.semgrep/
+        # Set the exit code to non-zero if there are findings.
+        - --error
+        # Do not check for version update as we are inside a CI.
+        - --disable-version-check
+        # Do not append directory names to the rules, otherwise
+        # it may misbehave.
+        - --no-rewrite-rule-ids
+        # Quiet mode to no pollute the pre-commit outputs.
+        # Replace --quiet with --verbose to debug issues.
+        - --quiet
+
   - repo: local
     hooks:
       - id: migrations-check
