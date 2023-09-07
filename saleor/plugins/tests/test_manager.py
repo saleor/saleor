@@ -481,7 +481,6 @@ def test_manager_calculates_checkout_line_unit_price(
 def test_manager_calculate_unit_price_correct_default_taxed_value(
     checkout_with_voucher_percentage, address
 ):
-
     # given
     # no tax plugins are configured
     plugins = []
@@ -506,8 +505,8 @@ def test_manager_calculate_unit_price_correct_default_taxed_value(
 
     # expected unit default taxed value without plugins
     expected_default_taxed_value = TaxedMoney(
-            net=total_value / quantity, gross=total_value / quantity
-        )
+        net=total_value / quantity, gross=total_value / quantity
+    )
 
     # when
     result = PluginsManager(plugins=plugins).calculate_checkout_line_unit_price(
