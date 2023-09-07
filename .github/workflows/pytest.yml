@@ -65,7 +65,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m poetry install
+          python -m poetry install --no-root
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
 
       # Run linters and Django related checks
@@ -73,7 +73,7 @@ jobs:
       - name: Run Linters and Checks
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          python -m pre-commit run --all
+          python -m pre_commit run --all
         if: ${{ always() }}
 
       - name: Run unit tests
