@@ -11,7 +11,6 @@ from lxml import etree
 from lxml.objectify import ObjectifiedElement
 
 from ....core.http_client import HTTPClient
-
 from ... import TransactionKind
 from ...interface import (
     CustomerSource,

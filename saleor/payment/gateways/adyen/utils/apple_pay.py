@@ -6,7 +6,6 @@ from urllib.parse import urlsplit
 import requests
 
 from .....core.http_client import HTTPClient
-
 from .... import PaymentError
 
 # https://developer.apple.com/documentation/apple_pay_on_the_web/
