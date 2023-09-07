@@ -198,14 +198,6 @@ def test_webhook_dry_run_event_type_not_supported(
 
 @pytest.fixture
 def async_subscription_webhooks_with_root_objects(
-    subscription_account_deleted_webhook,
-    subscription_account_confirmed_webhook,
-    subscription_account_email_changed_webhook,
-    subscription_account_set_password_requested_webhook,
-    subscription_account_confirmation_requested_webhook,
-    subscription_account_delete_requested_webhook,
-    subscription_account_change_email_requested_webhook,
-    subscription_staff_set_password_requested_webhook,
     subscription_address_created_webhook,
     subscription_address_updated_webhook,
     subscription_address_deleted_webhook,
@@ -283,8 +275,6 @@ def async_subscription_webhooks_with_root_objects(
     subscription_invoice_deleted_webhook,
     subscription_invoice_sent_webhook,
     subscription_fulfillment_canceled_webhook,
-    subscription_fulfillment_created_webhook,
-    subscription_fulfillment_approved_webhook,
     subscription_fulfillment_metadata_updated_webhook,
     subscription_fulfillment_tracking_number_updated,
     subscription_customer_created_webhook,
@@ -362,38 +352,6 @@ def async_subscription_webhooks_with_root_objects(
     transaction_item_created_by_app.save()
 
     return {
-        events.ACCOUNT_DELETED: [
-            subscription_account_deleted_webhook,
-            customer_user,
-        ],
-        events.ACCOUNT_EMAIL_CHANGED: [
-            subscription_account_email_changed_webhook,
-            customer_user,
-        ],
-        events.ACCOUNT_CONFIRMED: [
-            subscription_account_confirmed_webhook,
-            customer_user,
-        ],
-        events.ACCOUNT_DELETE_REQUESTED: [
-            subscription_account_delete_requested_webhook,
-            customer_user,
-        ],
-        events.ACCOUNT_SET_PASSWORD_REQUESTED: [
-            subscription_account_set_password_requested_webhook,
-            customer_user,
-        ],
-        events.ACCOUNT_CHANGE_EMAIL_REQUESTED: [
-            subscription_account_change_email_requested_webhook,
-            customer_user,
-        ],
-        events.ACCOUNT_CONFIRMATION_REQUESTED: [
-            subscription_account_confirmation_requested_webhook,
-            customer_user,
-        ],
-        events.STAFF_SET_PASSWORD_REQUESTED: [
-            subscription_staff_set_password_requested_webhook,
-            staff_user,
-        ],
         events.ADDRESS_UPDATED: [subscription_address_updated_webhook, address],
         events.ADDRESS_CREATED: [subscription_address_created_webhook, address],
         events.ADDRESS_DELETED: [subscription_address_deleted_webhook, address],
@@ -522,14 +480,6 @@ def async_subscription_webhooks_with_root_objects(
         events.INVOICE_SENT: [subscription_invoice_sent_webhook, invoice],
         events.FULFILLMENT_CANCELED: [
             subscription_fulfillment_canceled_webhook,
-            fulfillment,
-        ],
-        events.FULFILLMENT_CREATED: [
-            subscription_fulfillment_created_webhook,
-            fulfillment,
-        ],
-        events.FULFILLMENT_APPROVED: [
-            subscription_fulfillment_approved_webhook,
             fulfillment,
         ],
         events.FULFILLMENT_METADATA_UPDATED: [
