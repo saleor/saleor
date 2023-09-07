@@ -225,6 +225,7 @@ class PaymentMethodInitializeTokenizationRequestData(
     """Dataclass for storing the request information for payment app."""
 
     app_identifier: str
+    payment_flow_to_support: str
 
 
 @dataclass
@@ -242,11 +243,13 @@ class PaymentMethodTokenizationResult(str, Enum):
     SUCCESSFULLY_TOKENIZED - The payment method was successfully tokenized.
     ADDITIONAL_ACTION_REQUIRED - The additional action is required to tokenize payment
     method.
+    PENDING - The payment method is pending tokenization.
     FAILED_TO_TOKENIZE - The payment method was not tokenized.
     FAILED_TO_DELIVER - The request to tokenize payment method was not delivered.
     """
 
     SUCCESSFULLY_TOKENIZED = "successfully_tokenized"
+    PENDING = "pending"
     ADDITIONAL_ACTION_REQUIRED = "additional_action_required"
     FAILED_TO_TOKENIZE = "failed_to_tokenize"
     FAILED_TO_DELIVER = "failed_to_deliver"

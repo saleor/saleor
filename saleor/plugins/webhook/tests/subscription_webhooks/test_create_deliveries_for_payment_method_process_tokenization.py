@@ -10,6 +10,7 @@ PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION = """
 subscription{
   event{
     ...on PaymentMethodProcessTokenizationSession{
+      id
       user{
         id
       }
@@ -33,7 +34,7 @@ def test_payment_method_process_tokenization_without_data(
 
     expected_id = "test_id"
 
-    request_delete_data = PaymentMethodProcessTokenizationRequestData(
+    request_data = PaymentMethodProcessTokenizationRequestData(
         user=customer_user,
         id=expected_id,
         channel=channel_USD,
@@ -43,9 +44,9 @@ def test_payment_method_process_tokenization_without_data(
     event_type = WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION
 
     # when
-    delivery = create_deliveries_for_subscriptions(
-        event_type, request_delete_data, [webhook]
-    )[0]
+    delivery = create_deliveries_for_subscriptions(event_type, request_data, [webhook])[
+        0
+    ]
 
     # then
     assert delivery.payload
@@ -54,6 +55,7 @@ def test_payment_method_process_tokenization_without_data(
         "data": None,
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
+        "id": expected_id,
     }
 
 
@@ -68,7 +70,7 @@ def test_payment_method_process_tokenization_with_data(
     expected_data = {"data": {"foo": "bar"}}
     expected_id = "test_id"
 
-    request_delete_data = PaymentMethodProcessTokenizationRequestData(
+    request_data = PaymentMethodProcessTokenizationRequestData(
         user=customer_user,
         id=expected_id,
         channel=channel_USD,
@@ -78,9 +80,9 @@ def test_payment_method_process_tokenization_with_data(
     event_type = WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION
 
     # when
-    delivery = create_deliveries_for_subscriptions(
-        event_type, request_delete_data, [webhook]
-    )[0]
+    delivery = create_deliveries_for_subscriptions(event_type, request_data, [webhook])[
+        0
+    ]
 
     # then
     assert delivery.payload
@@ -89,4 +91,5 @@ def test_payment_method_process_tokenization_with_data(
         "data": expected_data,
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
+        "id": expected_id,
     }

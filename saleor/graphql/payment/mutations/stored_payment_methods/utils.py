@@ -31,6 +31,7 @@ def handle_payment_method_action(
     result_without_error = [
         result_enum.SUCCESSFULLY_TOKENIZED,
         result_enum.ADDITIONAL_ACTION_REQUIRED,
+        result_enum.PENDING,
     ]
     if response.result not in result_without_error:
         error_code = error_type_class.GATEWAY_ERROR.value

@@ -14,6 +14,7 @@ from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.taxes import zero_money, zero_taxed_money
 from ...core.utils.lazyobjects import unwrap_lazy
 from ...payment.interface import ListStoredPaymentMethodsRequestData
+from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import (
     AccountPermissions,
     CheckoutPermissions,
@@ -477,7 +478,13 @@ class Checkout(ModelObjectType[models.Checkout]):
     )
     user = graphene.Field(
         "saleor.graphql.account.types.User",
-        description="The user assigned to the checkout.",
+        description=(
+            "The user assigned to the checkout. Requires one of the following "
+            "permissions: "
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{PaymentPermissions.HANDLE_PAYMENTS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
+        ),
     )
     channel = graphene.Field(
         Channel,
@@ -803,7 +810,10 @@ class Checkout(ModelObjectType[models.Checkout]):
             return None
         requestor = get_user_or_app_from_context(info.context)
         check_is_owner_or_has_one_of_perms(
-            requestor, root.user, AccountPermissions.MANAGE_USERS
+            requestor,
+            root.user,
+            AccountPermissions.MANAGE_USERS,
+            PaymentPermissions.HANDLE_PAYMENTS,
         )
         return root.user
 

@@ -87,7 +87,7 @@ TokenizedPaymentFlowEnum = to_enum(
     type_name="TokenizedPaymentFlowEnum",
     description=TokenizedPaymentFlow.__doc__,
 )
-
+TokenizedPaymentFlowEnum.doc_category = DOC_CATEGORY_PAYMENTS
 
 PaymentGatewayInitializeTokenizationResultEnum = graphene.Enum.from_enum(
     PaymentGatewayInitializeTokenizationResult,
@@ -98,9 +98,6 @@ PaymentMethodTokenizationResultEnum = graphene.Enum.from_enum(
     PaymentMethodTokenizationResult
 )
 PaymentMethodTokenizationResultEnum.doc_category = DOC_CATEGORY_PAYMENTS
-
-
-TokenizedPaymentFlowEnum.doc_category = DOC_CATEGORY_PAYMENTS
 
 StoredPaymentMethodRequestDeleteResultEnum = graphene.Enum.from_enum(
     StoredPaymentMethodRequestDeleteResult,

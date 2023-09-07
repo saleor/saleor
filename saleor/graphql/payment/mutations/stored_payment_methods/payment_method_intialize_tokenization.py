@@ -12,7 +12,7 @@ from ....core.mutations import BaseMutation
 from ....core.scalars import JSON
 from ....core.types.common import PaymentMethodInitializeTokenizationError
 from ....core.utils import WebhookEventInfo
-from ...enums import PaymentMethodTokenizationResultEnum
+from ...enums import PaymentMethodTokenizationResultEnum, TokenizedPaymentFlowEnum
 from .utils import handle_payment_method_action
 
 
@@ -37,6 +37,12 @@ class PaymentMethodInitializeTokenization(BaseMutation):
             description="Slug of a channel related to tokenization request.",
             required=True,
         )
+        payment_flow_to_support = TokenizedPaymentFlowEnum(
+            description=(
+                "The payment flow that the tokenized payment method should support."
+            ),
+            required=True,
+        )
 
         data = graphene.Argument(
             JSON, description="The data that will be passed to the payment gateway."
@@ -57,7 +63,9 @@ class PaymentMethodInitializeTokenization(BaseMutation):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
-    def _perform_mutation(cls, root, info, id, channel, data=None):
+    def _perform_mutation(
+        cls, root, info, id, channel, payment_flow_to_support, data=None
+    ):
         user = info.context.user
         channel = validate_channel(
             channel, PaymentMethodInitializeTokenizationErrorCode
@@ -67,7 +75,11 @@ class PaymentMethodInitializeTokenization(BaseMutation):
             info,
             "payment_method_initialize_tokenization",
             PaymentMethodInitializeTokenizationRequestData(
-                app_identifier=id, user=user, channel=channel, data=data
+                app_identifier=id,
+                user=user,
+                channel=channel,
+                data=data,
+                payment_flow_to_support=payment_flow_to_support,
             ),
             PaymentMethodInitializeTokenizationErrorCode,
         )
@@ -77,9 +89,13 @@ class PaymentMethodInitializeTokenization(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, id, channel, data=None):
+    def perform_mutation(
+        cls, root, info, id, channel, payment_flow_to_support, data=None
+    ):
         try:
-            return cls._perform_mutation(root, info, id, channel, data)
+            return cls._perform_mutation(
+                root, info, id, channel, payment_flow_to_support, data
+            )
         except ValidationError as error:
             error_response = cls.handle_errors(error)
             error_response.result = (

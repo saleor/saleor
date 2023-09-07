@@ -5,6 +5,7 @@ import mock
 import pytest
 
 from ....core.models import EventDelivery
+from ....payment import TokenizedPaymentFlow
 from ....payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentMethodInitializeTokenizationRequestData,
@@ -24,6 +25,7 @@ subscription{
       user{
         id
       }
+      paymentFlowToSupport
       channel{
         id
       }
@@ -63,6 +65,7 @@ def test_payment_method_initialize_tokenization_with_static_payload(
         app_identifier=payment_method_initialize_tokenization_app.identifier,
         channel=channel_USD,
         data=expected_data,
+        payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
@@ -82,6 +85,7 @@ def test_payment_method_initialize_tokenization_with_static_payload(
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,
+        "payment_flow_to_support": "interactive",
     }
     mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
@@ -121,6 +125,7 @@ def test_payment_method_initialize_tokenization_with_subscription_payload(
         app_identifier=payment_method_initialize_tokenization_app.identifier,
         channel=channel_USD,
         data=expected_data,
+        payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
@@ -140,6 +145,7 @@ def test_payment_method_initialize_tokenization_with_subscription_payload(
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "data": expected_data,
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
+        "paymentFlowToSupport": "INTERACTIVE",
     }
     mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
@@ -178,6 +184,7 @@ def test_payment_method_initialize_tokenization_missing_correct_response_from_we
         app_identifier=payment_method_initialize_tokenization_app.identifier,
         channel=channel_USD,
         data=expected_data,
+        payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
@@ -228,6 +235,7 @@ def test_payment_method_initialize_tokenization_failure_from_app(
         app_identifier=payment_method_initialize_tokenization_app.identifier,
         channel=channel_USD,
         data=expected_data,
+        payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
@@ -247,6 +255,7 @@ def test_payment_method_initialize_tokenization_failure_from_app(
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,
+        "payment_flow_to_support": "interactive",
     }
     mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
@@ -283,6 +292,7 @@ def test_payment_method_initialize_tokenization_additional_action_required(
         app_identifier=payment_method_initialize_tokenization_app.identifier,
         channel=channel_USD,
         data=expected_data,
+        payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
@@ -302,6 +312,7 @@ def test_payment_method_initialize_tokenization_additional_action_required(
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,
+        "payment_flow_to_support": "interactive",
     }
     mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
@@ -338,6 +349,7 @@ def test_payment_method_initialize_tokenization_missing_required_id(
         app_identifier=payment_method_initialize_tokenization_app.identifier,
         channel=channel_USD,
         data=expected_data,
+        payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
@@ -357,6 +369,7 @@ def test_payment_method_initialize_tokenization_missing_required_id(
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,
+        "payment_flow_to_support": "interactive",
     }
     mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
@@ -368,15 +381,23 @@ def test_payment_method_initialize_tokenization_missing_required_id(
     )
 
 
+@pytest.mark.parametrize(
+    "result",
+    [
+        PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED,
+        PaymentMethodTokenizationResult.PENDING,
+    ],
+)
 @mock.patch("saleor.plugins.webhook.tasks.cache.delete")
 @mock.patch("saleor.plugins.webhook.tasks.cache.set")
 @mock.patch("saleor.plugins.webhook.tasks.cache.get")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_stored_payment_method_request_delete_invalidates_cache_for_app(
+def test_expected_result_invalidates_cache_for_app(
     mocked_request,
     mocked_cache_get,
     mocked_cache_set,
     mocked_cache_delete,
+    result,
     customer_user,
     webhook_plugin,
     payment_method_initialize_tokenization_app,
@@ -395,9 +416,11 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
         event_type=WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
     )
     list_stored_payment_methods_response = {"paymentMethods": []}
+    response = webhook_payment_method_initialize_tokenization_response
+    response["result"] = result.name
     mocked_request.side_effect = [
         list_stored_payment_methods_response,
-        webhook_payment_method_initialize_tokenization_response,
+        response,
     ]
 
     webhook = payment_method_initialize_tokenization_app.webhooks.first()
@@ -413,6 +436,7 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
         app_identifier=payment_method_initialize_tokenization_app.identifier,
         channel=channel_USD,
         data=expected_data,
+        payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
     )
 
     previous_value = PaymentMethodTokenizationResponseData(
@@ -461,6 +485,7 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "data": expected_data,
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
+        "paymentFlowToSupport": "INTERACTIVE",
     }
 
     # delete the same cache key as created when fetching stored payment methods
@@ -469,7 +494,7 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     mocked_request.assert_called_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == PaymentMethodTokenizationResponseData(
-        result=PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED,
+        result=result,
         id=to_payment_app_id(
             payment_method_initialize_tokenization_app,
             webhook_payment_method_initialize_tokenization_response["id"],
