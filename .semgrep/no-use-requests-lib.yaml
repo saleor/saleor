@@ -37,7 +37,7 @@ rules:
       # Output:
       #   safe_requests_generic("get", arg1, arg2)
       regex: (\s*)[a-z]+\.([a-z]+)\(((.|\n)*)\)
-      replacement: \1safe_requests_generic("\2",\3)
+      replacement: \1HTTPClient.send_request("\2",\3)
     languages:
       - python
     severity: ERROR
