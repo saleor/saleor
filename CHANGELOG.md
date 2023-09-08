@@ -42,10 +42,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Event sent when CSV export for products is completed.
 - Add `FULFILLMENT_TRACKING_NUMBER_UPDATED` webhook - #13708, by @Air-t
   - Called after `fulfillmentUpdateTracking` or `orderFulfill` mutation if tracking number is updated.
-- Enable webhook dry runs - #13816, by @Air-t
-  - Dry runs enabled: `AccountConfirmed`, `AccountConfirmationRequested`, `AccountChangeEmailRequested`
-  - `AccountEmailChanged`, `AccountSetPasswordRequested`, `AccountDeleteRequested`, `GiftCardSent`,
-  - `FulfillmentCreated`, `FulfillmentApproved`, `StaffSetPasswordRequested`
 - Add support for tokenizing payment methods via sync webhooks - #13879 by @korycins
 - Add missing `FULFILLMENT_CREATED` event call to `automatically_fulfill_digital_lines_with_fulfillment_created` action. - #13823, by @Air-t
 
