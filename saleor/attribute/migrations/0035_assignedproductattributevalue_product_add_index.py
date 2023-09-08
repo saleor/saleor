@@ -13,7 +13,8 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             """
-                CREATE INDEX IF NOT EXISTS attribute_assignedproductattributevalue_product_id_805656f1
+                CREATE INDEX CONCURRENTLY IF NOT EXISTS
+                attribute_assignedproductattributevalue_product_id_805656f1
                 ON attribute_assignedproductattributevalue USING btree
                 (product_id ASC NULLS LAST);
             """
