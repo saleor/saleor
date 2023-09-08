@@ -869,6 +869,79 @@ def test_sort_product_by_rank_without_search(
     assert content["errors"][0]["message"] == message
 
 
+def test_products_query_by_rank_returns_error_with_filter_nontype_search(
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    variables = {
+        "filters": {"search": None},
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SEARCH_PRODUCTS_QUERY,
+        variables=variables,
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+
+    assert "errors" in content
+    errors = content["errors"]
+    expected_message = (
+        "Sorting by RANK is available only when using a search filter "
+        "or search argument."
+    )
+    assert len(errors) == 1
+    assert errors[0]["message"] == expected_message
+
+
+def test_products_query_by_rank_returns_error_with_nontype_search(
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    query = """
+    query($search: String, $sortBy: ProductOrder, $channel: String) {
+      products(first: 5, search: $search, sortBy: $sortBy, channel: $channel) {
+        edges {
+          node {
+            name
+            slug
+          }
+        }
+      }
+    }
+    """
+
+    variables = {
+        "search": None,
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+
+    assert "errors" in content
+    errors = content["errors"]
+    expected_message = (
+        "Sorting by RANK is available only when using a search filter "
+        "or search argument."
+    )
+    assert len(errors) == 1
+    assert errors[0]["message"] == expected_message
+
+
 def test_search_product_by_description_and_name_without_sort_by(
     user_api_client, product_list, product, channel_USD
 ):
