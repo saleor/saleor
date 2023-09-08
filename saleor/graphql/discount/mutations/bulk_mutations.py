@@ -83,8 +83,11 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
-        vouchers = list(queryset)
-        queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
-        for voucher in vouchers:
-            manager.voucher_deleted(voucher, "Qwer1234")
+        vouchers = list(queryset)
+        codes = [voucher.code for voucher in vouchers]
+
+        queryset.delete()
+
+        for voucher, code in zip(vouchers, codes):
+            manager.voucher_deleted(voucher, code)

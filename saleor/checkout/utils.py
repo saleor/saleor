@@ -701,15 +701,21 @@ def add_voucher_code_to_checkout(
 
     Raise InvalidPromoCode() if voucher of given type cannot be applied.
     """
-    try:
-        voucher = Voucher.objects.active_in_channel(
+
+    if (
+        Voucher.objects.active_in_channel(
             date=timezone.now(), channel_slug=checkout_info.channel.slug
-        ).get(codes__code=voucher_code)
-        code_instance = voucher.codes.get(code=voucher_code)
-    except Voucher.DoesNotExist:
+        )
+        .filter(codes__code=voucher_code)
+        .exists()
+    ):
+        code_instance = VoucherCode.objects.get(code=voucher_code)
+    else:
         raise InvalidPromoCode()
     try:
-        add_voucher_to_checkout(manager, checkout_info, lines, voucher, code_instance)
+        add_voucher_to_checkout(
+            manager, checkout_info, lines, code_instance.voucher, code_instance
+        )
     except NotApplicable:
         raise ValidationError(
             {
@@ -726,7 +732,7 @@ def add_voucher_to_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
-    code_instance: VoucherCode,
+    voucher_code: VoucherCode,
 ):
     """Add voucher data to checkout.
 
@@ -741,7 +747,7 @@ def add_voucher_to_checkout(
         lines,
         address,
     )
-    checkout.voucher_code = code_instance.code
+    checkout.voucher_code = voucher_code.code
     checkout.discount_name = voucher.name
 
     language_code = checkout.language_code
@@ -761,6 +767,7 @@ def add_voucher_to_checkout(
         ]
     )
     checkout_info.voucher = voucher
+    checkout_info.voucher_code = voucher_code
 
 
 def remove_promo_code_from_checkout(
