@@ -17,6 +17,7 @@ from graphql import GraphQLDocument, get_default_backend
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
+from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
@@ -59,7 +60,13 @@ class GraphQLView(View):
     middleware = None
     root_value = None
 
-    HANDLED_EXCEPTIONS = (GraphQLError, PyJWTError, ReadOnlyException, PermissionDenied)
+    HANDLED_EXCEPTIONS = (
+        GraphQLError,
+        PyJWTError,
+        ReadOnlyException,
+        PermissionDenied,
+        InvalidIPAddress,
+    )
 
     def __init__(
         self,

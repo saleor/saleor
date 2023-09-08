@@ -3,9 +3,10 @@ from unittest.mock import Mock, patch
 
 import pytest
 import requests
+from requests_hardened import HTTPSession
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_process_payment_authorized(
     mocked_request, np_atobarai_plugin, np_payment_data
 ):
@@ -38,7 +39,7 @@ def test_process_payment_authorized(
     assert not gateway_response.error
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_process_payment_refused(mocked_request, np_atobarai_plugin, np_payment_data):
     # given
     plugin = np_atobarai_plugin()
@@ -68,7 +69,7 @@ def test_process_payment_refused(mocked_request, np_atobarai_plugin, np_payment_
     assert not gateway_response.is_success
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_process_payment_error(mocked_request, np_atobarai_plugin, np_payment_data):
     # given
     plugin = np_atobarai_plugin()

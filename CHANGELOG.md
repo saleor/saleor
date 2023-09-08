@@ -13,6 +13,13 @@ All notable, unreleased changes to this project will be documented in this file.
     in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
   - Change in the CSV export. It will now use empty string for empty attribute values instead of a single whitespace value.
 
+- Add IP filter feature to backend HTTP requests - #13891 by @NyanKiyoshi
+
+  This rejects server-side HTTP requests (webhooks, OIDC, etc.) if they try to communicate
+  with private or loopback IP addresses, to change the default behavior,
+  refer to `HTTP_IP_FILTER_ENABLED`, and `HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS` settings
+  for more details.
+
 ### GraphQL API
 
 - Add `customerIpAddress` to `transactionInitialize` and `transactionProcess` mutations - #13718 by @korycins

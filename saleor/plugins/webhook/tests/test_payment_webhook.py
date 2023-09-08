@@ -7,6 +7,7 @@ import pytest
 from django.conf import settings
 from django.contrib.sites.models import Site
 from requests import RequestException, TooManyRedirects
+from requests_hardened import HTTPSession
 
 from ....app.models import App
 from ....core import EventDeliveryStatus
@@ -80,7 +81,7 @@ def test_trigger_webhook_sync_with_subscription(
 
 
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_send_webhook_request_sync_failed_attempt(
     mock_post, mock_observability, app, event_delivery
 ):
@@ -112,7 +113,7 @@ def test_send_webhook_request_sync_failed_attempt(
 
 
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 @mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
 def test_send_webhook_request_sync_successful_attempt(
     mock_clear_delivery, mock_post, mock_observability, app, event_delivery
@@ -147,7 +148,7 @@ def test_send_webhook_request_sync_successful_attempt(
 
 
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post", side_effect=RequestException)
+@mock.patch.object(HTTPSession, "request", side_effect=RequestException)
 def test_send_webhook_request_sync_request_exception(
     mock_post, mock_observability, app, event_delivery
 ):
@@ -179,7 +180,7 @@ def test_send_webhook_request_sync_request_exception(
 
 
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_send_webhook_request_sync_when_exception_with_response(
     mock_post, mock_observability, app, event_delivery
 ):
@@ -200,7 +201,7 @@ def test_send_webhook_request_sync_when_exception_with_response(
 
 
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_send_webhook_request_sync_json_parsing_error(
     mock_post, mock_observability, app, event_delivery
 ):
@@ -231,7 +232,7 @@ def test_send_webhook_request_sync_json_parsing_error(
     mock_observability.assert_called_once_with(attempt)
 
 
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_send_webhook_request_with_proper_timeout(mock_post, event_delivery, app):
     mock_post().text = '{"key": "response_text"}'
     mock_post().headers = {"header_key": "header_val"}

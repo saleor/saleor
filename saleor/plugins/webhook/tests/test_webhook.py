@@ -18,6 +18,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 from kombu.asynchronous.aws.sqs.connection import AsyncSQSConnection
 from requests import RequestException
+from requests_hardened import HTTPSession
 
 from .... import __version__
 from ....account.notifications import (
@@ -1976,7 +1977,7 @@ def test_send_webhook_request_async_when_delivery_attempt_failed(
     mocked_observability.assert_called_once_with(attempt, None)
 
 
-@mock.patch("saleor.plugins.webhook.tasks.requests.post", side_effect=RequestException)
+@mock.patch.object(HTTPSession, "request", side_effect=RequestException)
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
 def test_send_webhook_request_async_with_request_exception(
     mocked_observability, mocked_post, event_delivery, webhook_response_failed

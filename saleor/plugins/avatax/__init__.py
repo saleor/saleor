@@ -15,6 +15,7 @@ from requests.auth import HTTPBasicAuth
 from ...account.models import Address
 from ...checkout import base_calculations
 from ...checkout.utils import is_shipping_required
+from ...core.http_client import HTTPClient
 from ...core.taxes import TaxError
 from ...discount import DiscountType, VoucherType
 from ...order import base_calculations as base_order_calculations
@@ -97,7 +98,8 @@ def api_post_request(
     response = None
     try:
         auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
-        response = requests.post(
+        response = HTTPClient.send_request(
+            "POST",
             url,
             auth=auth,
             data=json.dumps(data),
@@ -106,7 +108,7 @@ def api_post_request(
         )
         logger.debug("Hit to Avatax to calculate taxes %s", url)
         json_response = response.json()
-        if "error" in response:  # type: ignore
+        if "error" in response:
             logger.exception("Avatax response contains errors %s", json_response)
             return json_response
     except requests.exceptions.RequestException:
@@ -129,7 +131,9 @@ def api_get_request(
     response = None
     try:
         auth = HTTPBasicAuth(username_or_account, password_or_license)
-        response = requests.get(url, auth=auth, timeout=TIMEOUT, allow_redirects=False)
+        response = HTTPClient.send_request(
+            "GET", url, auth=auth, timeout=TIMEOUT, allow_redirects=False
+        )
         json_response = response.json()
         logger.debug("[GET] Hit to %s", url)
         if "error" in json_response:
