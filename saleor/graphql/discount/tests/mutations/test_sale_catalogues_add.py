@@ -4,13 +4,10 @@ import graphene
 
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion
-from .....discount.sale_converter import (
-    convert_migrated_sale_predicate_to_catalogue_info,
-    create_promotion_for_new_sale,
-)
 from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...mutations.utils import convert_catalogue_info_to_global_ids
+from .utils import convert_migrated_sale_predicate_to_catalogue_info
 
 SALE_CATALOGUES_ADD_MUTATION = """
     mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
@@ -56,7 +53,7 @@ def test_sale_add_catalogues(
         graphene.Node.to_global_id("ProductVariant", variant.id)
         for variant in product_variant_list
     ]
-    create_promotion_for_new_sale(sale, previous_catalogue)
+
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
         "input": {
@@ -115,7 +112,6 @@ def test_sale_add_no_catalogues(
 ):
     # given
     query = SALE_CATALOGUES_ADD_MUTATION
-    create_promotion_for_new_sale(new_sale)
     variables = {
         "id": graphene.Node.to_global_id("Sale", new_sale.id),
         "input": {"products": [], "collections": [], "categories": [], "variants": []},
@@ -165,7 +161,6 @@ def test_sale_remove_no_catalogues(
     sale.collections.add(collection)
     sale.categories.add(category)
     sale.variants.add(*product_variant_list)
-    create_promotion_for_new_sale(sale)
 
     query = SALE_CATALOGUES_ADD_MUTATION
     variables = {
@@ -216,7 +211,6 @@ def test_sale_add_catalogues_with_product_without_variants(
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
-    create_promotion_for_new_sale(sale)
 
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
