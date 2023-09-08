@@ -39,10 +39,13 @@ class SaleDelete(ModelDeleteMutation):
         cls, root, info: ResolveInfo, /, *, id: str
     ):
         instance = cls.get_node_or_error(info, id, only_type=Sale)
+        promotion = cls.get_promotion(instance)
         previous_catalogue = fetch_catalogue_info(instance)
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             response = super().perform_mutation(root, info, id=id)
+            if promotion:
+                promotion.delete()
             cls.call_event(
                 lambda: manager.sale_deleted(
                     instance, convert_catalogue_info_to_global_ids(previous_catalogue)
@@ -57,3 +60,7 @@ class SaleDelete(ModelDeleteMutation):
         response.sale = ChannelContext(node=instance, channel_slug=None)
 
         return response
+
+    @classmethod
+    def get_promotion(cls, sale):
+        return models.Promotion.objects.filter(old_sale_id=sale.pk).first()
