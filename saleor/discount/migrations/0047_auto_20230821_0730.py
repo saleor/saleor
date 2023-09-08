@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name="voucher",
-            options={"ordering": ("name",)},
+            options={"ordering": ("name", "pk")},
         ),
         migrations.RemoveField(
             model_name="voucher",

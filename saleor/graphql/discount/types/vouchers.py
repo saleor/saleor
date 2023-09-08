@@ -29,7 +29,7 @@ from ...translations.types import VoucherTranslation
 from ..dataloaders import (
     VoucherChannelListingByVoucherIdAndChanneSlugLoader,
     VoucherChannelListingByVoucherIdLoader,
-    VoucherCodesLoader,
+    VoucherCodesByVoucherIDLoader,
 )
 from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 
@@ -192,7 +192,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
 
     @staticmethod
     def resolve_codes(root: ChannelContext[models.Voucher], info: ResolveInfo):
-        return VoucherCodesLoader(info.context).load(root.node.id)
+        return VoucherCodesByVoucherIDLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_categories(

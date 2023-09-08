@@ -25,7 +25,7 @@ from ...types import Voucher
 
 class VoucherCodeInput(BaseInputObjectType):
     code = graphene.String(description="Code to use the voucher.", required=False)
-    usage_limit = graphene.Int(description="Code use limit.", required=False)
+    usage_limit = graphene.Int(description="Code usage limit.", required=False)
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS

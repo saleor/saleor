@@ -26192,7 +26192,7 @@ input VoucherCodeInput @doc(category: "Discounts") {
   """Code to use the voucher."""
   code: String
 
-  """Code use limit."""
+  """Code usage limit."""
   usageLimit: Int
 }
 

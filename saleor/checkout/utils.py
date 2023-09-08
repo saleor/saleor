@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import prefetch_related_objects
+from django.db.models import Exists, OuterRef, prefetch_related_objects
 from django.utils import timezone
 from prices import Money
 
@@ -536,7 +536,7 @@ def get_voucher_for_checkout(
     channel_slug: str,
     with_lock: bool = False,
     with_prefetch: bool = False,
-):
+) -> Tuple[Optional[Voucher], Optional[VoucherCode]]:
     """Return voucher assigned to checkout."""
     if checkout.voucher_code is not None:
         try:
@@ -706,7 +706,11 @@ def add_voucher_code_to_checkout(
         Voucher.objects.active_in_channel(
             date=timezone.now(), channel_slug=checkout_info.channel.slug
         )
-        .filter(codes__code=voucher_code)
+        .filter(
+            Exists(
+                VoucherCode.objects.filter(code=voucher_code, voucher_id=OuterRef("id"))
+            )
+        )
         .exists()
     ):
         code_instance = VoucherCode.objects.get(code=voucher_code)
