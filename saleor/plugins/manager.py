@@ -40,7 +40,13 @@ from ..payment.interface import (
     PaymentData,
     PaymentGateway,
     PaymentGatewayData,
+    PaymentGatewayInitializeTokenizationRequestData,
+    PaymentGatewayInitializeTokenizationResponseData,
+    PaymentGatewayInitializeTokenizationResult,
     PaymentMethodData,
+    PaymentMethodProcessTokenizationRequestData,
+    PaymentMethodTokenizationResponseData,
+    PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
     StoredPaymentMethodRequestDeleteResult,
@@ -1572,6 +1578,57 @@ class PluginsManager(PaymentInterface):
             "stored_payment_method_request_delete",
             default_response,
             request_delete_data,
+        )
+        return response
+
+    def payment_gateway_initialize_tokenization(
+        self,
+        request_data: "PaymentGatewayInitializeTokenizationRequestData",
+    ) -> "PaymentGatewayInitializeTokenizationResponseData":
+        default_response = PaymentGatewayInitializeTokenizationResponseData(
+            result=PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER,
+            error="Payment gateway initialize tokenization failed to deliver.",
+            data=None,
+        )
+
+        response = self.__run_method_on_plugins(
+            "payment_gateway_initialize_tokenization",
+            default_response,
+            request_data,
+        )
+        return response
+
+    def payment_method_initialize_tokenization(
+        self,
+        request_data: "PaymentMethodProcessTokenizationRequestData",
+    ) -> "PaymentMethodTokenizationResponseData":
+        default_response = PaymentMethodTokenizationResponseData(
+            result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
+            error="Payment method initialize tokenization failed to deliver.",
+            data=None,
+        )
+
+        response = self.__run_method_on_plugins(
+            "payment_method_initialize_tokenization",
+            default_response,
+            request_data,
+        )
+        return response
+
+    def payment_method_process_tokenization(
+        self,
+        request_data: "PaymentMethodProcessTokenizationRequestData",
+    ) -> "PaymentMethodTokenizationResponseData":
+        default_response = PaymentMethodTokenizationResponseData(
+            result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
+            error="Payment method process tokenization failed to deliver.",
+            data=None,
+        )
+
+        response = self.__run_method_on_plugins(
+            "payment_method_process_tokenization",
+            default_response,
+            request_data,
         )
         return response
 

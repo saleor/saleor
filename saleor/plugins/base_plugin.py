@@ -32,7 +32,12 @@ from ..payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentData,
     PaymentGateway,
+    PaymentGatewayInitializeTokenizationRequestData,
+    PaymentGatewayInitializeTokenizationResponseData,
     PaymentMethodData,
+    PaymentMethodInitializeTokenizationRequestData,
+    PaymentMethodProcessTokenizationRequestData,
+    PaymentMethodTokenizationResponseData,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
     TransactionActionData,
@@ -703,6 +708,30 @@ class BasePlugin:
             "StoredPaymentMethodRequestDeleteResponseData",
         ],
         "StoredPaymentMethodRequestDeleteResponseData",
+    ]
+
+    payment_gateway_initialize_tokenization: Callable[
+        [
+            "PaymentGatewayInitializeTokenizationRequestData",
+            "PaymentGatewayInitializeTokenizationResponseData",
+        ],
+        "PaymentGatewayInitializeTokenizationResponseData",
+    ]
+
+    payment_method_initialize_tokenization: Callable[
+        [
+            "PaymentMethodInitializeTokenizationRequestData",
+            "PaymentMethodTokenizationResponseData",
+        ],
+        "PaymentMethodTokenizationResponseData",
+    ]
+
+    payment_method_process_tokenization: Callable[
+        [
+            "PaymentMethodProcessTokenizationRequestData",
+            "PaymentMethodTokenizationResponseData",
+        ],
+        "PaymentMethodTokenizationResponseData",
     ]
 
     # Trigger when menu is created.

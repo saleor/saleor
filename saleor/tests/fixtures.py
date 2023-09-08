@@ -6562,6 +6562,69 @@ def stored_payment_method_request_delete_app(db, permission_manage_payments):
 
 
 @pytest.fixture
+def payment_gateway_initialize_tokenization_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment method request delete",
+        is_active=True,
+        identifier="saleor.payment.app.payment.gateway.initialize.tokenization",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment_gateway_initialize_tokenization",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION,
+    )
+    return app
+
+
+@pytest.fixture
+def payment_method_initialize_tokenization_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment method initialize tokenization",
+        is_active=True,
+        identifier="saleor.payment.app.payment.method.initialize.tokenization",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment_method_initialize_tokenization",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION,
+    )
+    return app
+
+
+@pytest.fixture
+def payment_method_process_tokenization_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment method process tokenization",
+        is_active=True,
+        identifier="saleor.payment.app.payment.method.process.tokenization",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment_method_process_tokenization",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION,
+    )
+    return app
+
+
+@pytest.fixture
 def tax_app(db, permission_handle_taxes):
     app = App.objects.create(name="Tax App", is_active=True)
     app.permissions.add(permission_handle_taxes)

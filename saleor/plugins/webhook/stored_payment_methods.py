@@ -8,8 +8,12 @@ from ...app.models import App
 from ...payment import TokenizedPaymentFlow
 from ...payment.interface import (
     PaymentGateway,
+    PaymentGatewayInitializeTokenizationResponseData,
+    PaymentGatewayInitializeTokenizationResult,
     PaymentMethodCreditCardInfo,
     PaymentMethodData,
+    PaymentMethodTokenizationResponseData,
+    PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteResponseData,
     StoredPaymentMethodRequestDeleteResult,
 )
@@ -185,3 +189,59 @@ def invalidate_cache_for_stored_payment_methods(
             cache_data, webhook.target_url, event_type, webhook.app_id
         )
         cache.delete(cache_key)
+
+
+def get_response_for_payment_gateway_initialize_tokenization(
+    response_data: Optional[dict],
+) -> "PaymentGatewayInitializeTokenizationResponseData":
+    data = None
+    if response_data is None:
+        result = PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER
+        error = "Failed to delivery request."
+    else:
+        try:
+            response_result = response_data.get("result") or ""
+            result = PaymentGatewayInitializeTokenizationResult[response_result]
+            error = response_data.get("error", None)
+            data = response_data.get("data", None)
+        except KeyError:
+            result = PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE
+            error = "Missing or incorrect `result` in response."
+
+    return PaymentGatewayInitializeTokenizationResponseData(
+        result=result, error=error, data=data
+    )
+
+
+def get_response_for_payment_method_tokenization(
+    response_data: Optional[dict], app: "App"
+) -> "PaymentMethodTokenizationResponseData":
+    data = None
+    payment_method_id = None
+    if response_data is None:
+        result = PaymentMethodTokenizationResult.FAILED_TO_DELIVER
+        error = "Failed to delivery request."
+    else:
+        try:
+            response_result = response_data.get("result") or ""
+            result = PaymentMethodTokenizationResult[response_result]
+            error = response_data.get("error", None)
+            data = response_data.get("data", None)
+        except KeyError:
+            result = PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE
+            error = "Missing or incorrect `result` in response."
+
+        try:
+            payment_method_id = response_data["id"]
+            payment_method_id = to_payment_app_id(app, payment_method_id)
+        except KeyError:
+            if result in [
+                PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED,
+                PaymentMethodTokenizationResult.ADDITIONAL_ACTION_REQUIRED,
+            ]:
+                result = PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE
+                error = "Missing payment method `id` in response."
+
+    return PaymentMethodTokenizationResponseData(
+        result=result, error=error, data=data, id=payment_method_id
+    )
