@@ -47,7 +47,7 @@ def prepare_promotion(
 
 
 @pytest.mark.e2e
-def test_create_promotion_for_collection_core_2109(
+def test_staff_can_change_catalogue_predicate_core_2112(
     e2e_staff_api_client,
     permission_manage_products,
     permission_manage_channels,
@@ -100,11 +100,13 @@ def test_create_promotion_for_collection_core_2109(
     )
 
     # Step 2 Update promotion rule of new variant
-    catalogue_predicate = {
-        "productPredicate": {},
-        "variantPredicate": {"ids": [second_product_variant_id]},
+    input = {
+        "cataloguePredicate": {
+            "collectionPredicate": {},
+            "variantPredicate": {"ids": [second_product_variant_id]},
+        }
     }
-    update_promotion_rule(e2e_staff_api_client, promotion_rule_id, catalogue_predicate)
+    update_promotion_rule(e2e_staff_api_client, promotion_rule_id, input)
 
     # Step 3 Check if promotion is applied to new variant
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)
