@@ -34,6 +34,6 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
 
             if input_data:
                 manager = get_plugin_manager_promise(info.context).get()
-                cls.call_event(manager.voucher_updated, voucher, voucher.codes)
+                cls.call_event(manager.voucher_updated, voucher, voucher.code)
 
         return VoucherRemoveCatalogues(voucher=voucher)

@@ -63,8 +63,8 @@ class VoucherManager(models.Manager):
             used=Sum("codes__used")
         )
 
-    def active(self):
-        return self.get_queryset().active()
+    def active(self, date):
+        return self.get_queryset().active(date)
 
     def active_in_channel(self, date, channel_slug: str):
         return self.get_queryset().active_in_channel(date, channel_slug)
@@ -104,7 +104,7 @@ class Voucher(ModelWithMetadata):
     objects = VoucherManager()
 
     class Meta:
-        ordering = ("name",)
+        ordering = ("name", "pk")
 
     @property
     def code(self):
@@ -195,6 +195,9 @@ class VoucherCode(models.Model):
     used = models.PositiveIntegerField(default=0)
     voucher = models.ForeignKey(Voucher, related_name="codes", on_delete=models.CASCADE)
     usage_limit = models.PositiveIntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ("pk",)
 
 
 class VoucherChannelListing(models.Model):
