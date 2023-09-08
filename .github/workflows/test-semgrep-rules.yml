@@ -4,6 +4,10 @@ on:
     paths:
       - .semgrep/**
       - .github/workflows/test-semgrep-rules.yml
+  pull_request:
+    paths:
+      - .semgrep/**
+      - .github/workflows/test-semgrep-rules.yml
 
 jobs:
   main:
