@@ -137,13 +137,18 @@ def test_sort_order_by_rank_without_search(
 def test_sort_order_by_rank_with_nonetype_search(
     staff_api_client, permission_group_manage_orders
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     variables = {
         "sortBy": {"field": "RANK", "direction": "DESC"},
         "search": None,
     }
+
+    # when
     response = staff_api_client.post_graphql(SEARCH_ORDERS_QUERY, variables)
+
+    # then
     content = get_graphql_content(response, ignore_errors=True)
 
     errors = content["errors"]
