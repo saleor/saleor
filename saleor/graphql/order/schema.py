@@ -66,9 +66,8 @@ from .types import Order, OrderCountableConnection, OrderEventCountableConnectio
 
 
 def search_string_in_kwargs(kwargs: dict) -> bool:
-    filter_search = kwargs.get("filter", {}).get("search", "")
-    filter_search = "" if filter_search is None else filter_search.strip()
-    return bool(filter_search)
+    filter_search = kwargs.get("filter", {}).get("search", "") or ""
+    return bool(filter_search.strip())
 
 
 def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
