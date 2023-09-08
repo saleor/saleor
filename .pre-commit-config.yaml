@@ -51,16 +51,17 @@ repos:
         - scan
         - --config
         - .semgrep/
-        # Do not try to scan '.semgrep/' directories as they contain test files.
+        # Do not try to scan '.semgrep/' directories as they contain test files
+        # thus they will trigger findings.
         - --exclude=.semgrep/
         # Set the exit code to non-zero if there are findings.
         - --error
-        # Do not check for version update as we are inside a CI.
+        # Do not check for version updates, it slows down the execution.
         - --disable-version-check
         # Do not append directory names to the rules, otherwise
         # it may misbehave.
         - --no-rewrite-rule-ids
-        # Quiet mode to no pollute the pre-commit outputs.
+        # Quiet mode in order to not pollute the pre-commit outputs.
         # Replace --quiet with --verbose to debug issues.
         - --quiet
 
