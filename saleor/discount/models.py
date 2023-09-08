@@ -8,7 +8,7 @@ import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.db.models import Q, Sum
+from django.db.models import Exists, OuterRef, Q, Sum
 from django.utils import timezone
 from django_countries.fields import CountryField
 from django_prices.models import MoneyField
@@ -48,9 +48,15 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
         )
 
     def active_in_channel(self, date, channel_slug: str):
+        channels = Channel.objects.filter(
+            slug=str(channel_slug), is_active=True
+        ).values("id")
+        channel_listings = VoucherChannelListing.objects.filter(
+            Exists(channels.filter(pk=OuterRef("channel_id"))),
+        ).values("id")
+
         return self.active(date).filter(
-            channel_listings__channel__slug=channel_slug,
-            channel_listings__channel__is_active=True,
+            Exists(channel_listings.filter(voucher_id=OuterRef("pk")))
         )
 
     def expired(self, date):
