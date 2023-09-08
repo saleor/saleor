@@ -2,6 +2,11 @@ from unittest.mock import patch
 
 import graphene
 
+from .....discount.models import Promotion
+from .....discount.sale_converter import (
+    convert_migrated_sale_predicate_to_catalogue_info,
+    create_promotion_for_new_sale,
+)
 from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...mutations.utils import convert_catalogue_info_to_global_ids
@@ -38,6 +43,7 @@ def test_sale_remove_catalogues(
     permission_manage_discounts,
 ):
     # given
+    initial_variant = sale.variants.first()
     sale.products.add(product)
     sale.collections.add(collection)
     sale.categories.add(category)
@@ -54,6 +60,7 @@ def test_sale_remove_catalogues(
         graphene.Node.to_global_id("ProductVariant", variant.id)
         for variant in product_variant_list
     ]
+    create_promotion_for_new_sale(sale, previous_catalogue)
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
         "input": {
@@ -92,3 +99,12 @@ def test_sale_remove_catalogues(
     assert set(kwargs["variant_ids"]) == {
         variant.id for variant in product_variant_list
     }
+
+    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    predicate = promotion.rules.first().catalogue_predicate
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
+
+    assert not current_catalogue.get("collections")
+    assert not current_catalogue.get("categories")
+    assert not current_catalogue.get("products")
+    assert current_catalogue.get("variants") == {initial_variant.id}

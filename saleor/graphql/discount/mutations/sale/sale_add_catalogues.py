@@ -1,9 +1,8 @@
-from typing import List, cast
+from typing import cast
 
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
-from .....discount.models import Promotion, PromotionRule
-from .....discount.sale_converter import create_catalogue_predicate_from_catalogue_data
+from .....discount.models import Promotion
 from .....discount.utils import fetch_catalogue_info
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
@@ -65,10 +64,3 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
             cls.call_event(sale_update_event)
 
         return SaleAddCatalogues(sale=ChannelContext(node=sale, channel_slug=None))
-
-    @classmethod
-    def update_promotion_rules_predicate(cls, rules, new_catalogue):
-        new_predicate = create_catalogue_predicate_from_catalogue_data(new_catalogue)
-        for rule in rules:
-            rule.catalogue_predicate = new_predicate
-        PromotionRule.objects.bulk_update(rules, ["catalogue_predicate"])
