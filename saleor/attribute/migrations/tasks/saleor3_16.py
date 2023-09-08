@@ -5,7 +5,7 @@ from django.db import transaction, connection
 
 # batch size to make sure that task is completed in 1 second
 # and we don't use too much memory
-BATCH_SIZE = 1000
+PRODUCT_BATCH_SIZE = 1000
 PAGE_BATCH_SIZE = 5000
 
 
@@ -27,12 +27,13 @@ def update_product_assignment():
             )
             WHERE id IN (
                 SELECT ID FROM attribute_assignedproductattributevalue
+                WHERE product_id IS NULL
                 ORDER BY ID DESC
                 FOR UPDATE
                 LIMIT %s
             );
             """,  # noqa
-            [BATCH_SIZE],
+            [PRODUCT_BATCH_SIZE],
         )
 
 
