@@ -12,9 +12,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
-            '''
+            """
                 CREATE INDEX CONCURRENTLY "assignedproductattrvalue_product_idx"
                 ON assignedproductattributevalue("product") using btree;
-            '''
+            """
         )
     ]
