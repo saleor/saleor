@@ -8,7 +8,7 @@ import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.db.models import Exists, OuterRef, Q, Sum
+from django.db.models import Exists, F, OuterRef, Q, Sum
 from django.utils import timezone
 from django_countries.fields import CountryField
 from django_prices.models import MoneyField
@@ -43,6 +43,14 @@ class NotApplicable(ValueError):
 class VoucherQueryset(models.QuerySet["Voucher"]):
     def active(self, date):
         return self.filter(
+            Q(
+                Exists(
+                    VoucherCode.objects.filter(
+                        Q(used__lt=F("usage_limit")) | Q(usage_limit__isnull=True),
+                        voucher_id=OuterRef("pk"),
+                    )
+                ),
+            ),
             Q(end_date__isnull=True) | Q(end_date__gte=date),
             start_date__lte=date,
         )
@@ -60,7 +68,18 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
         )
 
     def expired(self, date):
-        return self.filter(end_date__lt=date, start_date__lt=date)
+        return self.filter(
+            Q(
+                ~Exists(
+                    VoucherCode.objects.filter(
+                        Q(used__lt=F("usage_limit")) | Q(usage_limit__isnull=True),
+                        voucher_id=OuterRef("pk"),
+                    )
+                )
+            )
+            | Q(end_date__lt=date),
+            start_date__lt=date,
+        )
 
 
 class VoucherManager(models.Manager):
