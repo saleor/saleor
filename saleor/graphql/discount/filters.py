@@ -6,7 +6,13 @@ from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from ...discount import DiscountValueType
-from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherQueryset
+from ...discount.models import (
+    Sale,
+    SaleChannelListing,
+    Voucher,
+    VoucherCode,
+    VoucherQueryset,
+)
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
@@ -79,7 +85,14 @@ def filter_sale_search(qs, _, value):
 
 
 def filter_voucher_search(qs, _, value):
-    return qs.filter(Q(name__ilike=value) | Q(codes__code__ilike=value))
+    return qs.filter(
+        Q(name__ilike=value)
+        | Q(
+            Exists(
+                VoucherCode.objects.filter(code__ilike=value, voucher_id=OuterRef("pk"))
+            )
+        )
+    )
 
 
 def filter_updated_at_range(qs, _, value):
