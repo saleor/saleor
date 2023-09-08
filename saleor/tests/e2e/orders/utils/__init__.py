@@ -1,6 +1,7 @@
 from .draft_order_complete import draft_order_complete
 from .draft_order_create import draft_order_create
 from .draft_order_update import draft_order_update
+from .order_discount_add import order_discount_add
 from .order_lines_create import order_lines_create
 
 __all__ = [
@@ -8,4 +9,5 @@ __all__ = [
     "order_lines_create",
     "draft_order_complete",
     "draft_order_update",
+    "order_discount_add",
 ]
