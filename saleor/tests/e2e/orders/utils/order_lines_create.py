@@ -9,6 +9,11 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]! ){
         variant {
           id
         }
+        unitPrice {
+          gross {
+            amount
+          }
+        }
       }
     }
     errors {
