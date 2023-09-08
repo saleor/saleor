@@ -27,14 +27,9 @@ mutation promotionRuleCreate($id: ID!, $input: PromotionRuleUpdateInput!) {
 def update_promotion_rule(
     staff_api_client,
     promotion_id,
-    catalogue_predicate,
+    input,
 ):
-    variables = {
-        "id": promotion_id,
-        "input": {
-            "cataloguePredicate": catalogue_predicate,
-        },
-    }
+    variables = {"id": promotion_id, "input": input}
 
     response = staff_api_client.post_graphql(
         PROMOTION_RULE_UPDATE_MUTATION,
