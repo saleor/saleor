@@ -194,7 +194,7 @@ class AccountConfirmed(SubscriptionObjectType, AccountOperationBase):
 
 class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
-        root_type = "User"
+        root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = (
@@ -202,6 +202,7 @@ class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase)
             " enableAccountConfirmationByEmail flag set to True is not required."
             + ADDED_IN_315
         )
+        doc_category = DOC_CATEGORY_USERS
 
 
 class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
@@ -210,12 +211,13 @@ class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
     )
 
     class Meta:
-        root_type = "User"
+        root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = (
             "Event sent when account change email is requested." + ADDED_IN_315
         )
+        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_new_email(root, _info: ResolveInfo):
@@ -249,10 +251,11 @@ class AccountSetPasswordRequested(SubscriptionObjectType, AccountOperationBase):
 
 class AccountDeleteRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
-        root_type = "User"
+        root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account delete is requested." + ADDED_IN_315
+        doc_category = DOC_CATEGORY_USERS
 
 
 class AccountDeleted(SubscriptionObjectType, AccountOperationBase):
@@ -1209,11 +1212,11 @@ class FulfillmentBase(AbstractType):
 
 class FulfillmentTrackingNumberUpdated(SubscriptionObjectType, FulfillmentBase):
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         root_type = "Fulfillment"
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when the tracking number is updated." + ADDED_IN_316
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
@@ -1226,11 +1229,11 @@ class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
-        root_type = "Fulfillment"
+        root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when new fulfillment is created." + ADDED_IN_34
+        doc_category = DOC_CATEGORY_ORDERS
 
     @staticmethod
     def resolve_fulfillment(root, info: ResolveInfo):
@@ -1263,11 +1266,11 @@ class FulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
-        root_type = "Fulfillment"
+        root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when fulfillment is approved." + ADDED_IN_37
+        doc_category = DOC_CATEGORY_ORDERS
 
     @staticmethod
     def resolve_fulfillment(root, info: ResolveInfo):
