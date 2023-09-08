@@ -872,11 +872,6 @@ def complete_checkout_post_payment_part(
 ) -> Tuple[Optional[Order], bool, dict]:
     action_required = False
     action_data: Dict[str, str] = {}
-    code = None
-    voucher = order_data.get("voucher")
-
-    if voucher and checkout_info.checkout.voucher_code:
-        code = voucher.codes.filter(code=checkout_info.checkout.voucher_code).first()
 
     if payment and txn:
         if txn.customer_id and user:
@@ -886,7 +881,7 @@ def complete_checkout_post_payment_part(
         if action_required:
             action_data = txn.action_required_data
             release_voucher_code_usage(
-                code,
+                checkout_info.voucher_code,
                 order_data.get("user_email"),
             )
 
@@ -908,7 +903,7 @@ def complete_checkout_post_payment_part(
             checkout_info.checkout.delete()
         except InsufficientStock as e:
             release_voucher_code_usage(
-                code,
+                checkout_info.voucher_code,
                 order_data.get("user_email"),
             )
             gateway.payment_refund_or_void(
@@ -917,7 +912,9 @@ def complete_checkout_post_payment_part(
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
         except GiftCardNotApplicable as e:
-            release_voucher_code_usage(code, order_data.get("user_email"))
+            release_voucher_code_usage(
+                checkout_info.voucher_code, order_data.get("user_email")
+            )
             gateway.payment_refund_or_void(
                 payment, manager, channel_slug=checkout_info.channel.slug
             )
