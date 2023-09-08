@@ -143,9 +143,9 @@ from .types import (
 
 
 def search_string_in_kwargs(kwargs: dict) -> bool:
-    return bool(kwargs.get("filter", {}).get("search", "").strip()) or bool(
-        kwargs.get("search", "").strip()
-    )
+    filter_search = kwargs.get("filter", {}).get("search", "") or ""
+    search = kwargs.get("search", "") or ""
+    return bool(filter_search.strip()) or bool(search.strip())
 
 
 def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
