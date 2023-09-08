@@ -1,4 +1,5 @@
-from typing import Dict, List
+from collections import defaultdict
+from typing import DefaultDict, Dict, List, Set, Union
 
 from ..graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
 from .models import Promotion, PromotionRule
@@ -65,3 +66,30 @@ def create_catalogue_predicate_from_catalogue_data(catalogue_data):
 def create_catalogue_predicate_from_sale(sale):
     catalogue_data = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
     return create_catalogue_predicate_from_catalogue_data(catalogue_data)
+
+
+CatalogueInfo = DefaultDict[str, Set[Union[int, str]]]
+PREDICATE_TO_CATALOGUE_INFO_MAP = {
+    "collectionPredicate": "collections",
+    "categoryPredicate": "categories",
+    "productPredicate": "products",
+    "variantPredicate": "variants",
+}
+
+
+def convert_migrated_sale_predicate_to_catalogue_info(
+    catalogue_predicate,
+) -> CatalogueInfo:
+    catalogue_info: CatalogueInfo = defaultdict(set)
+    for field in PREDICATE_TO_CATALOGUE_INFO_MAP.values():
+        catalogue_info[field] = set()
+
+    if catalogue_predicate.get("OR"):
+        predicates = {
+            list(item.keys())[0]: list(item.values())[0]["ids"]
+            for item in catalogue_predicate["OR"]
+        }
+        for predicate_name, field in PREDICATE_TO_CATALOGUE_INFO_MAP.items():
+            catalogue_info[field] = set(predicates.get(predicate_name, {}))
+
+    return catalogue_info
