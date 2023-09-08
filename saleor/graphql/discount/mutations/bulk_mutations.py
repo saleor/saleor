@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 import graphene
+from django.db.models import Exists, OuterRef
 
 from ....discount import models
 from ....discount.utils import CATALOGUE_FIELDS, fetch_catalogue_info
@@ -41,7 +42,8 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
         sales_and_catalogue_infos = [
             (sale, fetch_catalogue_info(sale)) for sale in queryset
         ]
-
+        promotions = cls.get_promotions(queryset)
+        promotions.delete()
         queryset.delete()
 
         catalogues_to_recalculate = defaultdict(set)
@@ -58,6 +60,12 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
             category_ids=list(catalogues_to_recalculate["categories"]),
             collection_ids=list(catalogues_to_recalculate["collections"]),
             variant_ids=list(catalogues_to_recalculate["variants"]),
+        )
+
+    @classmethod
+    def get_promotions(cls, sales):
+        return models.Promotion.objects.filter(
+            Exists(sales.filter(id=OuterRef("old_sale_id")))
         )
 
 
