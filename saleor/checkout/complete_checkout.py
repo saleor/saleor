@@ -310,6 +310,8 @@ def _create_line_for_order(
         # Currently only one promotion can be applied on the single line.
         # This is temporary solution until the discount API is implemented.
         # Ultimately, this info should be taken from the orderLineDiscount instances.
+
+        # TODO: this should be old_sale_id for old sales
         line.sale_id = graphene.Node.to_global_id(
             "Promotion", checkout_line_info.rules_info[0].promotion.pk
         )
