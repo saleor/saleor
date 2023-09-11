@@ -7,7 +7,7 @@ from ..shipping_zone.utils import (
     create_shipping_method_channel_listing,
     create_shipping_zone,
 )
-from ..transactions.utils import create_transaction
+from ..transactions.utils.transaction_create import create_transaction
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse
 from .utils import (

@@ -39,6 +39,8 @@ query OrderDetails($id:ID!) {
       streetAddress2
     }
     statusDisplay
+    status
+    paymentStatus
   }
 }
 """
