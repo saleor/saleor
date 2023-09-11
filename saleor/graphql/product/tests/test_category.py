@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, Mock, patch
 import graphene
 import pytest
 from django.core.files import File
+from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -694,6 +695,7 @@ def test_category_update_mutation(
 def test_category_update_mutation_with_update_at_field(
     monkeypatch, staff_api_client, category, permission_manage_products, media_root
 ):
+    # given
     query = MUTATION_CATEGORY_UPDATE_MUTATION
 
     # create child category and test that the update mutation won't change
@@ -712,6 +714,8 @@ def test_category_update_mutation_with_update_at_field(
         "id": category_id,
         "slug": category_slug,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -719,10 +723,11 @@ def test_category_update_mutation_with_update_at_field(
     content = get_graphql_content(response)
     data = content["data"]["categoryUpdate"]
 
+    # then
     assert data["category"]["id"] == category_id
     assert data["category"]["name"] == category_name
     assert data["category"]["description"] == category_description
-    assert data["category"]["updatedAt"] == "2023-09-01T12:00:00+00:00"
+    assert data["category"]["updatedAt"] == timezone.now().isoformat()
 
 
 @freeze_time("2022-05-12 12:00:00")

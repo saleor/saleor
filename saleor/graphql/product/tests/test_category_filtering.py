@@ -111,6 +111,7 @@ def test_order_query_with_filter_updated_at(
     categories_count,
     staff_api_client,
 ):
+    # given
     with freeze_time("2012-01-14 11:00:00"):
         Category.objects.create(
             name="Category1",
@@ -143,6 +144,7 @@ def test_order_query_with_filter_updated_at(
 
     variables = {"filter": filter_by}
 
+    # when
     response = staff_api_client.post_graphql(
         QUERY_CATEGORIES_WITH_FILTERING,
         variables,
@@ -150,6 +152,7 @@ def test_order_query_with_filter_updated_at(
 
     content = get_graphql_content(response)
     categories_nodes = content["data"]["categories"]["edges"]
+    # then
     assert len(categories_nodes) == categories_count
 
 

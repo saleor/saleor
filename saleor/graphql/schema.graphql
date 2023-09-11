@@ -392,9 +392,6 @@ type Query {
 
     """Slug of the category"""
     slug: String
-
-    """The date and time when the category was last updated."""
-    updatedAt: DateTime
   ): Category @doc(category: "Products")
 
   """
