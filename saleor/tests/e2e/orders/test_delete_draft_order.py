@@ -4,11 +4,13 @@ from .. import DEFAULT_ADDRESS
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_shop
 from ..utils import assign_permissions
-from .utils.draft_order_create import draft_order_create
-from .utils.draft_order_delete import draft_order_delete
-from .utils.draft_order_update import draft_order_update
-from .utils.order_lines_create import order_lines_create
-from .utils.order_query import order_query
+from .utils import (
+    draft_order_create,
+    draft_order_delete,
+    draft_order_update,
+    order_lines_create,
+    order_query,
+)
 
 
 @pytest.mark.e2e
@@ -46,6 +48,9 @@ def test_delete_draft_order_CORE_0205(
     # Step 1 - Create draft order
     draft_order_input = {
         "channelId": result_channel_id,
+        "userEmail": "test_user@test.com",
+        "shippingAddress": DEFAULT_ADDRESS,
+        "billingAddress": DEFAULT_ADDRESS,
     }
     data = draft_order_create(
         e2e_staff_api_client,
@@ -60,24 +65,13 @@ def test_delete_draft_order_CORE_0205(
     order_product_variant_id = order_lines["order"]["lines"][0]["variant"]["id"]
     assert order_product_variant_id == result_product_variant_id
 
-    # Step 3 - Update order's addresses and email
-    input = {
-        "userEmail": "test_user@test.com",
-        "shippingAddress": DEFAULT_ADDRESS,
-        "billingAddress": DEFAULT_ADDRESS,
-    }
-    draft_order = draft_order_update(e2e_staff_api_client, order_id, input)
-    assert draft_order["order"]["userEmail"] == "test_user@test.com"
-    assert draft_order["order"]["shippingAddress"] is not None
-    assert draft_order["order"]["billingAddress"] is not None
-
-    # Step 4 - Update order's shipping method
+    # Step 3 - Update order's shipping method
     input = {"shippingMethod": result_shipping_method_id}
     draft_order = draft_order_update(e2e_staff_api_client, order_id, input)
     order_shipping_id = draft_order["order"]["deliveryMethod"]["id"]
     assert order_shipping_id is not None
 
-    # Step 5 - Cancel the order
+    # Step 4 - Delete the order
     cancelled_order = draft_order_delete(e2e_staff_api_client, order_id)
     assert cancelled_order["order"]["status"] is not None
     order = order_query(e2e_staff_api_client, order_id)
