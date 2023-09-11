@@ -353,6 +353,7 @@ def create_order_line_discounts(
 
 
 def prepare_promotion_discount_reason(line_discounts: Iterable["OrderLineDiscount"]):
+    # TODO: for old sales it should be in format: "Sale: global_id"
     unit_discount_reason = "Promotion rules discounts: " + ", ".join(
         [
             discount.name
