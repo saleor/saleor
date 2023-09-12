@@ -8,7 +8,7 @@ import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.db.models import Exists, F, OuterRef, Q, Sum
+from django.db.models import Exists, F, OuterRef, Q
 from django.utils import timezone
 from django_countries.fields import CountryField
 from django_prices.models import MoneyField
@@ -84,9 +84,7 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
 
 class VoucherManager(models.Manager):
     def get_queryset(self):
-        return VoucherQueryset(self.model, using=self._db).annotate(
-            used=Sum("codes__used")
-        )
+        return VoucherQueryset(self.model, using=self._db)
 
     def active(self, date):
         return self.get_queryset().active(date)

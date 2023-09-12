@@ -2,7 +2,7 @@ import decimal
 from typing import List
 
 import django_filters
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef, Q, Sum
 from django.utils import timezone
 
 from ...discount import DiscountValueType
@@ -41,6 +41,7 @@ def filter_status(
 
 
 def filter_times_used(qs, _, value):
+    qs = qs.annotate(used=Sum("codes__used"))
     return filter_range_field(qs, "used", value)
 
 
