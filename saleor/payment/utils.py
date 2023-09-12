@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, Union, cast, overload
 import graphene
 from aniso8601 import parse_datetime
 from babel.numbers import get_currency_precision
+from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 from django.db.models import Q
@@ -781,7 +782,10 @@ def parse_transaction_event_data(
     amount_data = event_data.get("amount")
     if amount_data is not None:
         try:
-            parsed_event_data["amount"] = decimal.Decimal(amount_data)
+            amount = decimal.Decimal(amount_data).quantize(
+                decimal.Decimal(10) ** (-settings.DEFAULT_DECIMAL_PLACES)
+            )
+            parsed_event_data["amount"] = amount
         except decimal.DecimalException:
             logger.warning(invalid_msg, "amount", amount_data)
             error_field_msg.append(invalid_msg % ("amount", amount_data))
@@ -981,6 +985,7 @@ def deduplicate_event(
     already_existing_event = get_already_existing_event(event)
     if already_existing_event:
         if already_existing_event.amount != event.amount:
+            # FIXME: add amounts and psp reference
             error_message = (
                 "The transaction with provided `pspReference` and "
                 "`type` already exists with different amount."
