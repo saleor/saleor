@@ -901,6 +901,53 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
     assert event.pk == existing_authorize_success.pk
 
 
+@pytest.mark.parametrize(
+    "event_amount",
+    [None, "NaN", "-Inf", "Inf", "One"],
+)
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_handle_incorrect_values(
+    transaction_item_generator,
+    event_amount,
+    app,
+):
+    # given
+    expected_psp_reference = "psp:122:222"
+    event_amount = event_amount
+    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+
+    transaction = transaction_item_generator()
+
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        amount_value=Decimal(10),
+        currency="USD",
+        transaction_id=transaction.id,
+        psp_reference=expected_psp_reference,
+    )
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+    }
+
+    # when
+    event = create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    assert event.type == TransactionEventType.AUTHORIZATION_FAILURE
+    assert TransactionEvent.objects.count() == 2
+    request_event.refresh_from_db()
+    assert request_event.psp_reference == expected_psp_reference
+
+
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_different_amount(
     transaction_item_generator,
