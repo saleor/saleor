@@ -31,6 +31,16 @@ class CategoryByIdLoader(DataLoader[int, Category]):
         return [categories.get(category_id) for category_id in keys]
 
 
+class CategoryBySlugLoader(DataLoader[str, Category]):
+    context_key = "category_by_slug"
+
+    def batch_load(self, keys):
+        categories = Category.objects.using(self.database_connection_name).in_bulk(
+            keys, field_name="slug"
+        )
+        return [categories.get(category_id) for category_id in keys]
+
+
 class ProductByIdLoader(DataLoader[int, Product]):
     context_key = "product_by_id"
 
