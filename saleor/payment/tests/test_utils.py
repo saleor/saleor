@@ -941,14 +941,20 @@ def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
     assert failed_event.type == TransactionEventType.AUTHORIZATION_FAILURE
 
 
+@pytest.mark.parametrize(
+    "first_event_amount, second_event_amount",
+    [(12.02, 12.02), ("12.02", 12.02), (12.02, "12.02"), ("12.02", "12.02")],
+)
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_same_event(
     transaction_item_generator,
+    first_event_amount,
+    second_event_amount,
     app,
 ):
     # given
     expected_psp_reference = "psp:122:222"
-    event_amount = 12.00
+    event_amount = first_event_amount
     event_type = TransactionEventType.AUTHORIZATION_SUCCESS
     event_time = "2022-11-18T13:25:58.169685+00:00"
     event_url = "http://localhost:3000/event/ref123"
@@ -963,14 +969,14 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
 
     request_event = TransactionEvent.objects.create(
         type=TransactionEventType.AUTHORIZATION_REQUEST,
-        amount_value=event_amount,
+        amount_value=second_event_amount,
         currency="USD",
         transaction_id=transaction.id,
     )
 
     response_data = {
         "pspReference": expected_psp_reference,
-        "amount": event_amount,
+        "amount": second_event_amount,
         "result": event_type.upper(),
         "time": event_time,
         "externalUrl": event_url,
