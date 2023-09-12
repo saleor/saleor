@@ -7,6 +7,8 @@ query OrderDetails($id:ID!) {
       id
       active
     }
+    paymentStatus
+    isPaid
     channel {
         id
         name
@@ -40,7 +42,9 @@ query OrderDetails($id:ID!) {
     }
     statusDisplay
     status
-    paymentStatus
+    transactions {
+        id
+    }
   }
 }
 """

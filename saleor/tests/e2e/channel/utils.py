@@ -37,6 +37,7 @@ def create_channel(
     automatically_fulfill_non_shippable_giftcard=False,
     allow_unpaid_orders=False,
     automatically_confirm_all_new_orders=True,
+    mark_as_paid_strategy="PAYMENT_FLOW",
 ):
     if not warehouse_ids:
         warehouse_ids = []
@@ -50,6 +51,7 @@ def create_channel(
             "isActive": is_active,
             "addWarehouses": warehouse_ids,
             "orderSettings": {
+                "markAsPaidStrategy": mark_as_paid_strategy,
                 "automaticallyFulfillNonShippableGiftCard": (
                     automatically_fulfill_non_shippable_giftcard
                 ),
