@@ -781,12 +781,20 @@ def parse_transaction_event_data(
 
     amount_data = event_data.get("amount")
     if amount_data is not None:
+        amount_valid = True
+        amount = None
         try:
             amount = decimal.Decimal(amount_data).quantize(
                 decimal.Decimal(10) ** (-settings.DEFAULT_DECIMAL_PLACES)
             )
             parsed_event_data["amount"] = amount
         except decimal.DecimalException:
+            amount_valid = False
+
+        if amount and not amount.is_finite():
+            amount_valid = False
+
+        if not amount_valid:
             logger.warning(invalid_msg, "amount", amount_data)
             error_field_msg.append(invalid_msg % ("amount", amount_data))
     else:
