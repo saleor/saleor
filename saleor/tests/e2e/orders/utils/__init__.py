@@ -14,4 +14,5 @@ __all__ = [
     "draft_order_update",
     "order_query",
     "mark_order_paid",
+    "draft_order_delete",
 ]
