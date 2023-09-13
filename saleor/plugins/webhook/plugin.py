@@ -35,7 +35,14 @@ from ...payment.interface import (
     PaymentData,
     PaymentGateway,
     PaymentGatewayData,
+    PaymentGatewayInitializeTokenizationRequestData,
+    PaymentGatewayInitializeTokenizationResponseData,
     PaymentMethodData,
+    PaymentMethodInitializeTokenizationRequestData,
+    PaymentMethodProcessTokenizationRequestData,
+    PaymentMethodTokenizationBaseRequestData,
+    PaymentMethodTokenizationResponseData,
+    PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
     TransactionActionData,
@@ -85,6 +92,8 @@ from .shipping import (
 from .stored_payment_methods import (
     get_list_stored_payment_methods_data_dict,
     get_list_stored_payment_methods_from_response,
+    get_response_for_payment_gateway_initialize_tokenization,
+    get_response_for_payment_method_tokenization,
     get_response_for_stored_payment_method_request_delete,
     invalidate_cache_for_stored_payment_methods,
 )
@@ -2119,6 +2128,134 @@ class WebhookPlugin(BasePlugin):
                     )
         return previous_value
 
+    def _handle_payment_tokenization_request(
+        self,
+        webhook: "Webhook",
+        event_type: str,
+        request_data: PaymentMethodTokenizationBaseRequestData,
+        additional_legacy_payload_data: Optional[dict] = None,
+    ) -> Optional[dict]:
+        payload_data = {
+            "user_id": graphene.Node.to_global_id("User", request_data.user.id),
+            "channel_slug": request_data.channel.slug,
+            "data": request_data.data,
+        }
+        if additional_legacy_payload_data:
+            payload_data.update(additional_legacy_payload_data)
+
+        payload = self._serialize_payload(payload_data)
+        response_data = trigger_webhook_sync(
+            event_type,
+            payload,
+            webhook,
+            subscribable_object=request_data,
+            timeout=WEBHOOK_SYNC_TIMEOUT,
+        )
+        return response_data
+
+    def payment_gateway_initialize_tokenization(
+        self,
+        request_data: "PaymentGatewayInitializeTokenizationRequestData",
+        previous_value: "PaymentGatewayInitializeTokenizationResponseData",
+    ) -> "PaymentGatewayInitializeTokenizationResponseData":
+        if not self.active:
+            return previous_value
+
+        event_type = (
+            WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION
+        )
+        webhook = get_webhooks_for_event(
+            event_type, apps_identifier=[request_data.app_identifier]
+        ).first()
+
+        if not webhook:
+            return previous_value
+
+        response_data = self._handle_payment_tokenization_request(
+            event_type=event_type, webhook=webhook, request_data=request_data
+        )
+        return get_response_for_payment_gateway_initialize_tokenization(response_data)
+
+    def _handle_payment_method_tokenization(
+        self,
+        app_identifier: str,
+        event_type: str,
+        request_data: PaymentMethodTokenizationBaseRequestData,
+        previous_value: "PaymentMethodTokenizationResponseData",
+        additional_legacy_payload_data: Optional[dict] = None,
+    ):
+        webhook = get_webhooks_for_event(
+            event_type, apps_identifier=[app_identifier]
+        ).first()
+
+        if not webhook:
+            return previous_value
+
+        response_data = self._handle_payment_tokenization_request(
+            event_type=event_type,
+            webhook=webhook,
+            request_data=request_data,
+            additional_legacy_payload_data=additional_legacy_payload_data,
+        )
+
+        response = get_response_for_payment_method_tokenization(
+            response_data, webhook.app
+        )
+        if response.result in [
+            PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED,
+            PaymentMethodTokenizationResult.PENDING,
+        ]:
+            invalidate_cache_for_stored_payment_methods(
+                request_data.user.id,
+                request_data.channel.slug,
+                app_identifier,
+            )
+        return response
+
+    def payment_method_initialize_tokenization(
+        self,
+        request_data: "PaymentMethodInitializeTokenizationRequestData",
+        previous_value: "PaymentMethodTokenizationResponseData",
+    ) -> "PaymentMethodTokenizationResponseData":
+        if not self.active:
+            return previous_value
+
+        event_type = WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
+
+        return self._handle_payment_method_tokenization(
+            app_identifier=request_data.app_identifier,
+            event_type=event_type,
+            request_data=request_data,
+            previous_value=previous_value,
+            additional_legacy_payload_data={
+                "payment_flow_to_support": request_data.payment_flow_to_support
+            },
+        )
+
+    def payment_method_process_tokenization(
+        self,
+        request_data: "PaymentMethodProcessTokenizationRequestData",
+        previous_value: "PaymentMethodTokenizationResponseData",
+    ) -> "PaymentMethodTokenizationResponseData":
+        if not self.active:
+            return previous_value
+
+        app_data = from_payment_app_id(request_data.id)
+
+        if not app_data or not app_data.app_identifier:
+            return previous_value
+
+        request_data.id = app_data.name
+
+        event_type = WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION
+        return self._handle_payment_method_tokenization(
+            app_identifier=app_data.app_identifier,
+            event_type=event_type,
+            request_data=request_data,
+            previous_value=previous_value,
+            additional_legacy_payload_data={"id": request_data.id},
+        )
+
     def _request_transaction_action(
         self,
         transaction_data: "TransactionActionData",
@@ -2653,6 +2790,15 @@ class WebhookPlugin(BasePlugin):
             "invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED,
             "stored_payment_method_request_delete": (
                 WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED
+            ),
+            "payment_gateway_initialize_tokenization": (
+                WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION
+            ),
+            "payment_method_initialize_tokenization": (
+                WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
+            ),
+            "payment_method_process_tokenization": (
+                WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION
             ),
         }
 

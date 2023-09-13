@@ -17,10 +17,18 @@ from ...discount.utils import (
     fetch_catalogue_info,
 )
 from ...graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
+from ...payment import TokenizedPaymentFlow
 from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentGateway,
     PaymentGatewayData,
+    PaymentGatewayInitializeTokenizationRequestData,
+    PaymentGatewayInitializeTokenizationResponseData,
+    PaymentGatewayInitializeTokenizationResult,
+    PaymentMethodInitializeTokenizationRequestData,
+    PaymentMethodProcessTokenizationRequestData,
+    PaymentMethodTokenizationResponseData,
+    PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteData,
     StoredPaymentMethodRequestDeleteResponseData,
     StoredPaymentMethodRequestDeleteResult,
@@ -1390,4 +1398,110 @@ def test_stored_payment_method_request_delete(
     # then
     mocked_stored_payment_method_request_delete.assert_called_once_with(
         request_delete_data, previous_value=previous_response
+    )
+
+
+@patch(
+    "saleor.plugins.tests.sample_plugins.PluginSample."
+    "payment_gateway_initialize_tokenization"
+)
+def test_payment_gateway_initialize_tokenization(
+    mocked_payment_gateway_initialize_tokenization, customer_user, channel_USD, app
+):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    request_data = PaymentGatewayInitializeTokenizationRequestData(
+        user=customer_user,
+        app_identifier=app.identifier,
+        channel=channel_USD,
+        data={"data": "ABC"},
+    )
+    previous_response = PaymentGatewayInitializeTokenizationResponseData(
+        result=PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER,
+        error="Payment gateway initialize tokenization failed to deliver.",
+        data=None,
+    )
+
+    # when
+    manager.payment_gateway_initialize_tokenization(request_data=request_data)
+
+    # then
+    mocked_payment_gateway_initialize_tokenization.assert_called_once_with(
+        request_data, previous_value=previous_response
+    )
+
+
+@patch(
+    "saleor.plugins.tests.sample_plugins.PluginSample."
+    "payment_method_initialize_tokenization"
+)
+def test_payment_method_initialize_tokenization(
+    mocked_payment_method_initialize_tokenization, customer_user, channel_USD, app
+):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    request_data = PaymentMethodInitializeTokenizationRequestData(
+        user=customer_user,
+        app_identifier=app.identifier,
+        channel=channel_USD,
+        data={"data": "ABC"},
+        payment_flow_to_support=TokenizedPaymentFlow.INTERACTIVE,
+    )
+    previous_response = PaymentMethodTokenizationResponseData(
+        result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
+        error="Payment method initialize tokenization failed to deliver.",
+        data=None,
+    )
+
+    # when
+    manager.payment_method_initialize_tokenization(request_data=request_data)
+
+    # then
+    mocked_payment_method_initialize_tokenization.assert_called_once_with(
+        request_data, previous_value=previous_response
+    )
+
+
+@patch(
+    "saleor.plugins.tests.sample_plugins.PluginSample."
+    "payment_method_process_tokenization"
+)
+def test_payment_method_process_tokenization(
+    mocked_payment_method_process_tokenization, customer_user, channel_USD, app
+):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+
+    expected_id = "test_id"
+
+    request_data = PaymentMethodProcessTokenizationRequestData(
+        user=customer_user,
+        id=expected_id,
+        channel=channel_USD,
+        data={"data": "ABC"},
+    )
+    previous_response = PaymentMethodTokenizationResponseData(
+        result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
+        error="Payment method process tokenization failed to deliver.",
+        data=None,
+    )
+
+    # when
+    manager.payment_method_process_tokenization(request_data=request_data)
+
+    # then
+    mocked_payment_method_process_tokenization.assert_called_once_with(
+        request_data, previous_value=previous_response
     )

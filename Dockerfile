@@ -57,7 +57,7 @@ ARG COMMIT_ID
 ARG PROJECT_VERSION
 ENV PROJECT_VERSION="${PROJECT_VERSION}"
 
-LABEL org.opencontainers.image.title="mirumee/saleor"                                  \
+LABEL org.opencontainers.image.title="saleor/saleor"                                  \
       org.opencontainers.image.description="\
 A modular, high performance, headless e-commerce platform built with Python, \
 GraphQL, Django, and ReactJS."                                                         \

@@ -2,6 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 from requests import RequestException
+from requests_hardened import HTTPSession
 
 from ...core import JobStatus
 from ..installation_utils import AppInstallationError
@@ -35,7 +36,7 @@ def test_install_app_task_wrong_format_of_target_token_url():
 @pytest.mark.vcr
 def test_install_app_task_request_timeout(monkeypatch, app_installation):
     mocked_post = Mock(side_effect=RequestException("Timeout"))
-    monkeypatch.setattr("saleor.app.installation_utils.requests.post", mocked_post)
+    monkeypatch.setattr(HTTPSession, "request", mocked_post)
     install_app_task(app_installation.pk, activate=True)
     app_installation.refresh_from_db()
 
@@ -53,14 +54,7 @@ def test_install_app_task_wrong_response_code(monkeypatch):
         app_name="External App",
         manifest_url="http://localhost:3000/manifest-wrong1",
     )
-    response_status_code = 404
-    mocked_post = Mock()
-    mocked_post.status_code = response_status_code
-    monkeypatch.setattr("saleor.app.installation_utils.requests.post", mocked_post)
-    message = (
-        f"App internal error ({response_status_code}). "
-        "Try later or contact with app support."
-    )
+    message = "App internal error (404). Try later or contact with app support."
 
     install_app_task(app_installation.pk, activate=True)
     app_installation.refresh_from_db()

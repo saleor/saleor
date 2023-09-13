@@ -112,7 +112,7 @@ def test_external_refresh_from_cookie(
     }
     mocked_refresh_token = Mock(return_value=oauth_payload)
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.plugin.OAuth2Session.refresh_token",
+        "saleor.plugins.openid_connect.client.OAuth2Client.refresh_token",
         mocked_refresh_token,
     )
 
@@ -165,7 +165,7 @@ def test_external_refresh_from_input(
     }
     mocked_refresh_token = Mock(return_value=oauth_payload)
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.plugin.OAuth2Session.refresh_token",
+        "saleor.plugins.openid_connect.client.OAuth2Client.refresh_token",
         mocked_refresh_token,
     )
 
@@ -225,7 +225,7 @@ def test_external_refresh_with_scope_permissions(
     }
     mocked_refresh_token = Mock(return_value=oauth_payload)
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.plugin.OAuth2Session.refresh_token",
+        "saleor.plugins.openid_connect.client.OAuth2Client.refresh_token",
         mocked_refresh_token,
     )
 
@@ -287,7 +287,7 @@ def test_external_refresh_raises_error_when_token_is_invalid(
     }
     mocked_refresh_token = Mock(return_value=oauth_payload)
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.plugin.OAuth2Session.refresh_token",
+        "saleor.plugins.openid_connect.client.OAuth2Client.refresh_token",
         mocked_refresh_token,
     )
 
@@ -386,7 +386,7 @@ def test_external_obtain_access_tokens(
     }
     mocked_fetch_token = Mock(return_value=oauth_payload)
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.plugin.OAuth2Session.fetch_token",
+        "saleor.plugins.openid_connect.client.OAuth2Client.fetch_token",
         mocked_fetch_token,
     )
     redirect_uri = "http://localhost:3000/used-logged-in"
@@ -447,7 +447,7 @@ def test_external_obtain_access_tokens_with_permissions(
     }
     mocked_fetch_token = Mock(return_value=oauth_payload)
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.plugin.OAuth2Session.fetch_token",
+        "saleor.plugins.openid_connect.client.OAuth2Client.fetch_token",
         mocked_fetch_token,
     )
     redirect_uri = "http://localhost:3000/used-logged-in"
@@ -516,7 +516,7 @@ def test_external_obtain_access_tokens_with_saleor_staff(
     }
     mocked_fetch_token = Mock(return_value=oauth_payload)
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.plugin.OAuth2Session.fetch_token",
+        "saleor.plugins.openid_connect.client.OAuth2Client.fetch_token",
         mocked_fetch_token,
     )
     redirect_uri = "http://localhost:3000/used-logged-in"
@@ -587,7 +587,7 @@ def test_external_obtain_access_tokens_user_which_is_no_more_staff(
     }
     mocked_fetch_token = Mock(return_value=oauth_payload)
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.plugin.OAuth2Session.fetch_token",
+        "saleor.plugins.openid_connect.client.OAuth2Client.fetch_token",
         mocked_fetch_token,
     )
     redirect_uri = "http://localhost:3000/used-logged-in"
@@ -678,7 +678,7 @@ def test_external_obtain_access_tokens_fetch_token_raises_error(
     plugin = openid_plugin(use_oauth_scope_permissions=True)
 
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.plugin.OAuth2Session.fetch_token",
+        "saleor.plugins.openid_connect.client.OAuth2Client.fetch_token",
         Mock(side_effect=OAuthError()),
     )
 

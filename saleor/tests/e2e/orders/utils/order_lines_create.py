@@ -1,13 +1,30 @@
 from saleor.graphql.tests.utils import get_graphql_content
 
 ORDER_LINES_CREATE_MUTATION = """
-mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]! ){
-  orderLinesCreate(id: $id input: $input, ) {
+mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
+  orderLinesCreate(id: $id, input: $input) {
     order {
+      id
       lines {
         quantity
         variant {
           id
+        }
+        totalPrice {
+          gross {
+            amount
+          }
+        }
+        unitPrice {
+          gross {
+            amount
+          }
+        }
+        unitDiscountReason
+        undiscountedUnitPrice {
+          gross {
+            amount
+          }
         }
       }
     }

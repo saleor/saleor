@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Ty
 from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
-import requests
 from botocore.exceptions import ClientError
 from celery import group
 from celery.exceptions import MaxRetriesExceededError, Retry
@@ -17,10 +16,12 @@ from django.core.cache import cache
 from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
+from requests_hardened.ip_filter import InvalidIPAddress
 
 from ...app.headers import AppHeaders, DeprecatedAppHeaders
 from ...celeryconf import app
 from ...core import EventDeliveryStatus
+from ...core.http_client import HTTPClient
 from ...core.models import EventDelivery, EventPayload
 from ...core.tracing import webhooks_opentracing_trace
 from ...core.utils import build_absolute_uri
@@ -406,7 +407,8 @@ def send_webhook_using_http(
         headers.update(custom_headers)
 
     try:
-        response = requests.post(
+        response = HTTPClient.send_request(
+            "POST",
             target_url,
             data=message,
             headers=headers,
@@ -415,19 +417,23 @@ def send_webhook_using_http(
         )
     except RequestException as e:
         if e.response:
-            result = WebhookResponse(
+            return WebhookResponse(
                 content=e.response.text,
                 status=EventDeliveryStatus.FAILED,
                 request_headers=headers,
                 response_headers=dict(e.response.headers),
                 response_status_code=e.response.status_code,
             )
+
+        if isinstance(e, InvalidIPAddress):
+            message = "Invalid IP address"
         else:
-            result = WebhookResponse(
-                content=str(e),
-                status=EventDeliveryStatus.FAILED,
-                request_headers=headers,
-            )
+            message = str(e)
+        result = WebhookResponse(
+            content=message,
+            status=EventDeliveryStatus.FAILED,
+            request_headers=headers,
+        )
         return result
 
     return WebhookResponse(

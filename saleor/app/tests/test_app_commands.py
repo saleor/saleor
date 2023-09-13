@@ -1,8 +1,8 @@
 from unittest.mock import ANY, Mock, call
 
 import pytest
-import requests
 from django.core.management import call_command
+from requests_hardened import HTTPSession
 
 from ... import schema_version
 from ...core import JobStatus
@@ -53,13 +53,22 @@ def test_creates_app_from_manifest_sends_token(monkeypatch, app_manifest):
     mocked_post = Mock(return_value=Mock())
     mocked_post.return_value.status_code = 200
 
-    monkeypatch.setattr(requests, "get", mocked_get)
-    monkeypatch.setattr(requests, "post", mocked_post)
+    def _side_effect(_self, method, *args, **kwargs):
+        if method == "GET":
+            func = mocked_get
+        elif method == "POST":
+            func = mocked_post
+        else:
+            raise NotImplementedError("Method not implemented", method)
+        return func(method, *args, **kwargs)
+
+    monkeypatch.setattr(HTTPSession, "request", _side_effect)
     manifest_url = "http://localhost:3000/manifest"
 
     call_command("install_app", manifest_url)
 
     get_call = call(
+        "GET",
         manifest_url,
         headers={"Saleor-Schema-Version": schema_version},
         timeout=ANY,
@@ -67,6 +76,7 @@ def test_creates_app_from_manifest_sends_token(monkeypatch, app_manifest):
     )
     mocked_get.assert_has_calls([get_call, get_call])
     mocked_post.assert_called_once_with(
+        "POST",
         app_manifest["tokenTargetUrl"],
         headers={
             "Content-Type": "application/json",
@@ -126,7 +136,7 @@ def test_sends_data_to_target_url(monkeypatch):
     mocked_response.status_code = 200
     mocked_post = Mock(return_value=mocked_response)
 
-    monkeypatch.setattr(requests, "post", mocked_post)
+    monkeypatch.setattr(HTTPSession, "request", mocked_post)
 
     name = "Single App"
     target_url = "https://ss.shop.com/register"
@@ -135,6 +145,7 @@ def test_sends_data_to_target_url(monkeypatch):
     call_command("create_app", name, permission=permissions, target_url=target_url)
 
     mocked_post.assert_called_once_with(
+        "POST",
         target_url,
         headers={
             # X- headers will be deprecated in Saleor 4.0, proper headers are without X-

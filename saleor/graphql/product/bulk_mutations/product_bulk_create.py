@@ -3,7 +3,6 @@ from datetime import datetime
 
 import graphene
 import pytz
-import requests
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db.models import F
@@ -11,6 +10,7 @@ from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 from text_unidecode import unidecode
 
+from ....core.http_client import HTTPClient
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
 from ....core.utils.editorjs import clean_editor_js
@@ -802,8 +802,8 @@ class ProductBulkCreate(BaseMutation):
                         media_url, "media_url", ProductBulkCreateErrorCode.INVALID.value
                     )
                     filename = get_filename_from_url(media_url)
-                    image_data = requests.get(
-                        media_url, stream=True, timeout=30, allow_redirects=False
+                    image_data = HTTPClient.send_request(
+                        "GET", media_url, stream=True, timeout=30, allow_redirects=False
                     )
                     image_data = File(image_data.raw, filename)
                     media_to_create.append(

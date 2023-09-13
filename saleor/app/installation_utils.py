@@ -18,6 +18,7 @@ from requests import HTTPError, Response
 from .. import schema_version
 from ..app.headers import AppHeaders, DeprecatedAppHeaders
 from ..celeryconf import app
+from ..core.http_client import HTTPClient
 from ..core.utils import build_absolute_uri
 from ..permission.enums import get_permission_names
 from ..plugins.manager import PluginsManager
@@ -63,7 +64,8 @@ def send_app_token(target_url: str, token: str):
         AppHeaders.SCHEMA_VERSION: schema_version,
     }
     json_data = {"auth_token": token}
-    response = requests.post(
+    response = HTTPClient.send_request(
+        "POST",
         target_url,
         json=json_data,
         headers=headers,
@@ -81,8 +83,8 @@ def fetch_icon_image(
     code = AppErrorCode.INVALID.value
     fetch_start = time.monotonic()
     try:
-        with requests.get(
-            url, stream=True, timeout=timeout, allow_redirects=False
+        with HTTPClient.send_request(
+            "GET", url, stream=True, timeout=timeout, allow_redirects=False
         ) as res:
             res.raise_for_status()
             content_type = res.headers.get("content-type")
@@ -189,8 +191,8 @@ def fetch_brand_data_async(
 
 def fetch_manifest(manifest_url: str, timeout=REQUEST_TIMEOUT):
     headers = {AppHeaders.SCHEMA_VERSION: schema_version}
-    response = requests.get(
-        manifest_url, headers=headers, timeout=timeout, allow_redirects=False
+    response = HTTPClient.send_request(
+        "GET", manifest_url, headers=headers, timeout=timeout, allow_redirects=False
     )
     response.raise_for_status()
     return response.json()

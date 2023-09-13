@@ -51,6 +51,13 @@ def associate_attribute_values_to_instance(
             assignment_id=assignment.pk
         ).update(product_id=instance.pk)
 
+    # This code will be deleted in new release (3.17), it is temporary solution between
+    # releases to keep database in sync
+    elif isinstance(instance, Page):
+        AssignedPageAttributeValue.objects.filter(assignment_id=assignment.pk).update(
+            page_id=instance.pk
+        )
+
     sort_assigned_attribute_values(instance, assignment, values)
 
     return assignment

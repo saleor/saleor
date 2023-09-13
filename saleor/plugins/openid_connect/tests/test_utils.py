@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 from requests import Response
+from requests_hardened import HTTPSession
 
 from ....account.models import Group, User
 from ....core.jwt import (
@@ -54,7 +55,7 @@ def test_fetch_jwks_raises_error(monkeypatch, error):
     mocked_get = Mock()
     mocked_get.side_effect = error
     jwks_url = "http://localhost:3000/"
-    monkeypatch.setattr("saleor.plugins.openid_connect.utils.requests.get", mocked_get)
+    monkeypatch.setattr(HTTPSession, "request", mocked_get)
 
     with pytest.raises(AuthenticationError):
         fetch_jwks(jwks_url)
@@ -196,9 +197,7 @@ def test_get_saleor_permissions_from_scope():
 def test_get_user_info_raises_decode_error(monkeypatch):
     response = Response()
     response.status_code = 200
-    monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.requests.get", Mock(return_value=response)
-    )
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=response))
 
     user_info = get_user_info("https://saleor.io/userinfo", "access_token")
     assert user_info is None
@@ -207,9 +206,7 @@ def test_get_user_info_raises_decode_error(monkeypatch):
 def test_get_user_info_raises_http_error(monkeypatch):
     response = Response()
     response.status_code = 500
-    monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.requests.get", Mock(return_value=response)
-    )
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=response))
 
     user_info = get_user_info("https://saleor.io/userinfo", "access_token")
     assert user_info is None

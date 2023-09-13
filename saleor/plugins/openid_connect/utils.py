@@ -18,6 +18,7 @@ from jwt import PyJWTError
 
 from ...account.models import Group, User
 from ...account.utils import get_user_groups_permissions
+from ...core.http_client import HTTPClient
 from ...core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_OWNER_FIELD,
@@ -67,8 +68,8 @@ def fetch_jwks(jwks_url) -> Optional[dict]:
     """
     response = None
     try:
-        response = requests.get(
-            jwks_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
+        response = HTTPClient.send_request(
+            "GET", jwks_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
         )
         response.raise_for_status()
         jwks = response.json()
@@ -121,7 +122,8 @@ def get_user_info_from_cache_or_fetch(
 
 def get_user_info(user_info_url, access_token) -> Optional[dict]:
     try:
-        response = requests.get(
+        response = HTTPClient.send_request(
+            "GET",
             user_info_url,
             headers={"Authorization": f"Bearer {access_token}"},
             timeout=REQUEST_TIMEOUT,
