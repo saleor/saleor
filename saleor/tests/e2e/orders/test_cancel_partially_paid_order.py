@@ -2,8 +2,8 @@ import pytest
 
 from .. import DEFAULT_ADDRESS
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils.preparing_shop import prepare_shop
-from ..transactions.utils.transaction_create import create_transaction
+from ..shop.utils import prepare_shop
+from ..transactions.utils import create_transaction
 from ..utils import assign_permissions
 from .utils import (
     draft_order_complete,
