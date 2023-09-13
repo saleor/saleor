@@ -31,18 +31,25 @@ def test_checkout_create_from_order_core_0104(
     price = 10
 
     (
-        result_warehouse_id,
-        result_channel_id,
-        _,
-        _,
+        warehouse_id,
+        channel_id,
+        _channel_slug,
+        _shipping_method_id,
     ) = prepare_shop(e2e_staff_api_client)
 
-    _, result_product_variant_id, _ = prepare_product(
-        e2e_staff_api_client, result_warehouse_id, result_channel_id, price
+    (
+        _product_id,
+        product_variant_id,
+        _product_variant_price,
+    ) = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        price,
     )
 
     # Step 1 - Create checkout from order
-    channel_id = {"channelId": result_channel_id}
+    channel_id = {"channelId": channel_id}
     data = draft_order_create(
         e2e_staff_api_client,
         channel_id,
@@ -51,13 +58,24 @@ def test_checkout_create_from_order_core_0104(
     order_id = data["order"]["id"]
     assert order_id is not None
     order_lines = [
-        {"variantId": result_product_variant_id, "quantity": 1, "price": 100}
+        {
+            "variantId": product_variant_id,
+            "quantity": 1,
+            "price": 100,
+        }
     ]
-    order_data = order_lines_create(e2e_staff_api_client, order_id, order_lines)
+    order_data = order_lines_create(
+        e2e_staff_api_client,
+        order_id,
+        order_lines,
+    )
     order_product_variant_id = order_data["order"]["lines"][0]["variant"]
     order_product_quantity = order_data["order"]["lines"][0]["quantity"]
 
-    checkout_data = checkout_create_from_order(e2e_staff_api_client, order_id)
+    checkout_data = checkout_create_from_order(
+        e2e_staff_api_client,
+        order_id,
+    )
     checkout_id = checkout_data["checkout"]["id"]
     assert checkout_id is not None
     errors = checkout_data["errors"]

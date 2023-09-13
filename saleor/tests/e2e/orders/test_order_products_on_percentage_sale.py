@@ -21,7 +21,11 @@ def prepare_sale_for_product(
     sale_discount_value,
 ):
     sale_name = "Sale"
-    sale = create_sale(e2e_staff_api_client, sale_name, sale_discount_type)
+    sale = create_sale(
+        e2e_staff_api_client,
+        sale_name,
+        sale_discount_type,
+    )
     sale_id = sale["id"]
     sale_listing_input = [
         {
@@ -30,10 +34,16 @@ def prepare_sale_for_product(
         }
     ]
     create_sale_channel_listing(
-        e2e_staff_api_client, sale_id, add_channels=sale_listing_input
+        e2e_staff_api_client,
+        sale_id,
+        add_channels=sale_listing_input,
     )
     catalogue_input = {"products": [product_id]}
-    sale_catalogues_add(e2e_staff_api_client, sale_id, catalogue_input)
+    sale_catalogues_add(
+        e2e_staff_api_client,
+        sale_id,
+        catalogue_input,
+    )
 
     return sale_id, sale_discount_value
 
@@ -59,12 +69,22 @@ def test_order_products_on_percentage_sale_CORE_1003(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    warehouse_id, channel_id, _channel_slug, shipping_method_id = prepare_shop(
-        e2e_staff_api_client
-    )
+    (
+        warehouse_id,
+        channel_id,
+        _channel_slug,
+        shipping_method_id,
+    ) = prepare_shop(e2e_staff_api_client)
 
-    product_id, product_variant_id, product_variant_price = prepare_product(
-        e2e_staff_api_client, warehouse_id, channel_id, variant_price="11.99"
+    (
+        product_id,
+        product_variant_id,
+        product_variant_price,
+    ) = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        variant_price="11.99",
     )
 
     sale_id, sale_discount_value = prepare_sale_for_product(
@@ -81,7 +101,10 @@ def test_order_products_on_percentage_sale_CORE_1003(
         "billingAddress": DEFAULT_ADDRESS,
         "shippingAddress": DEFAULT_ADDRESS,
     }
-    data = draft_order_create(e2e_staff_api_client, input)
+    data = draft_order_create(
+        e2e_staff_api_client,
+        input,
+    )
     order_id = data["order"]["id"]
     assert data["order"]["billingAddress"] is not None
     assert data["order"]["shippingAddress"] is not None
@@ -89,7 +112,11 @@ def test_order_products_on_percentage_sale_CORE_1003(
 
     # Step 2 - Add product on sale to draft order
     lines = [{"variantId": product_variant_id, "quantity": 1}]
-    order_lines = order_lines_create(e2e_staff_api_client, order_id, lines)
+    order_lines = order_lines_create(
+        e2e_staff_api_client,
+        order_id,
+        lines,
+    )
 
     draft_line = order_lines["order"]["lines"][0]
     assert draft_line["variant"]["id"] == product_variant_id
@@ -101,14 +128,21 @@ def test_order_products_on_percentage_sale_CORE_1003(
 
     # Step 3 - Add a shipping method to the order
     input = {"shippingMethod": shipping_method_id}
-    draft_update = draft_order_update(e2e_staff_api_client, order_id, input)
+    draft_update = draft_order_update(
+        e2e_staff_api_client,
+        order_id,
+        input,
+    )
 
     order_shipping_id = draft_update["order"]["deliveryMethod"]["id"]
     shipping_price = draft_update["order"]["shippingPrice"]["gross"]["amount"]
     assert order_shipping_id is not None
 
     # Step 4 - Complete the draft order
-    order = draft_order_complete(e2e_staff_api_client, order_id)
+    order = draft_order_complete(
+        e2e_staff_api_client,
+        order_id,
+    )
     assert order["order"]["status"] == "UNFULFILLED"
     total = order["order"]["total"]["gross"]["amount"]
     assert total == round(float(shipping_price + unit_price), 2)
