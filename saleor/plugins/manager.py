@@ -32,6 +32,7 @@ from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
 from ..graphql.core import ResolveInfo, SaleorContext
 from ..order import base_calculations as base_order_calculations
 from ..order.interface import OrderTaxedPricesData
+from ..payment import PaymentError
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
@@ -1752,7 +1753,7 @@ class PluginsManager(PaymentInterface):
             if resp is not None:
                 return resp
 
-        raise Exception(
+        raise PaymentError(
             f"Payment plugin {gateway} for {method_name}"
             " payment method is inaccessible!"
         )
