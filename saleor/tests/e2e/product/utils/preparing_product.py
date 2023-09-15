@@ -49,7 +49,10 @@ def prepare_product(
     product_variant_id = product_variant_data["id"]
 
     product_variant_channel_listing_data = create_product_variant_channel_listing(
-        e2e_staff_api_client, product_variant_id, channel_id, variant_price
+        e2e_staff_api_client,
+        product_variant_id,
+        channel_id,
+        variant_price,
     )
     product_variant_price = product_variant_channel_listing_data["channelListings"][0][
         "price"

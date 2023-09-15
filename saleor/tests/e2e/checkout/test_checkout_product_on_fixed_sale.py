@@ -20,7 +20,11 @@ def prepare_sale_for_product(
     sale_discount_value,
 ):
     sale_name = "Sale"
-    sale = create_sale(e2e_staff_api_client, sale_name, sale_discount_type)
+    sale = create_sale(
+        e2e_staff_api_client,
+        sale_name,
+        sale_discount_type,
+    )
     sale_id = sale["id"]
     sale_listing_input = [
         {
@@ -29,10 +33,16 @@ def prepare_sale_for_product(
         }
     ]
     create_sale_channel_listing(
-        e2e_staff_api_client, sale_id, add_channels=sale_listing_input
+        e2e_staff_api_client,
+        sale_id,
+        add_channels=sale_listing_input,
     )
     catalogue_input = {"products": [product_id]}
-    sale_catalogues_add(e2e_staff_api_client, sale_id, catalogue_input)
+    sale_catalogues_add(
+        e2e_staff_api_client,
+        sale_id,
+        catalogue_input,
+    )
 
     return sale_id, sale_discount_value
 
@@ -57,12 +67,22 @@ def test_checkout_products_on_fixed_sale_core_1002(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    warehouse_id, channel_id, channel_slug, shipping_method_id = prepare_shop(
-        e2e_staff_api_client
-    )
+    (
+        warehouse_id,
+        channel_id,
+        channel_slug,
+        shipping_method_id,
+    ) = prepare_shop(e2e_staff_api_client)
 
-    product_id, product_variant_id, product_variant_price = prepare_product(
-        e2e_staff_api_client, warehouse_id, channel_id, variant_price="13.33"
+    (
+        product_id,
+        product_variant_id,
+        product_variant_price,
+    ) = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        variant_price="13.33",
     )
 
     sale_id, sale_discount_value = prepare_sale_for_product(
@@ -108,11 +128,16 @@ def test_checkout_products_on_fixed_sale_core_1002(
 
     # Step 3 - Create payment for checkout.
     checkout_dummy_payment_create(
-        e2e_not_logged_api_client, checkout_id, total_gross_amount
+        e2e_not_logged_api_client,
+        checkout_id,
+        total_gross_amount,
     )
 
     # Step 5 - Complete checkout.
-    order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
+    order_data = checkout_complete(
+        e2e_not_logged_api_client,
+        checkout_id,
+    )
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
     assert order_data["subtotal"]["gross"]["amount"] == subtotal_gross_amount

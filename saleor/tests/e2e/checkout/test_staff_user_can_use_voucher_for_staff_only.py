@@ -29,9 +29,16 @@ def prepare_voucher_for_staff_only(
     )
     voucher_id = voucher_data["id"]
     channel_listing = [
-        {"channelId": channel_id, "discountValue": voucher_discount_value}
+        {
+            "channelId": channel_id,
+            "discountValue": voucher_discount_value,
+        }
     ]
-    create_voucher_channel_listing(e2e_staff_api_client, voucher_id, channel_listing)
+    create_voucher_channel_listing(
+        e2e_staff_api_client,
+        voucher_id,
+        channel_listing,
+    )
 
     return voucher_discount_value, voucher_code
 
@@ -57,11 +64,18 @@ def test_staff_can_use_voucher_for_staff_only_in_checkout_core_0904(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    warehouse_id, channel_id, channel_slug, shipping_method_id = prepare_shop(
-        e2e_staff_api_client
-    )
+    (
+        warehouse_id,
+        channel_id,
+        channel_slug,
+        shipping_method_id,
+    ) = prepare_shop(e2e_staff_api_client)
 
-    _, product_variant_id, product_variant_price = prepare_product(
+    (
+        _product_id,
+        product_variant_id,
+        product_variant_price,
+    ) = prepare_product(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
@@ -78,7 +92,10 @@ def test_staff_can_use_voucher_for_staff_only_in_checkout_core_0904(
 
     # Step 1 - Create checkout for product on sale
     lines = [
-        {"variantId": product_variant_id, "quantity": 1},
+        {
+            "variantId": product_variant_id,
+            "quantity": 1,
+        },
     ]
     checkout_data = checkout_create(
         e2e_no_permission_staff_api_client,
@@ -98,7 +115,9 @@ def test_staff_can_use_voucher_for_staff_only_in_checkout_core_0904(
 
     # Step 2 Add voucher code to checkout
     checkout_data = checkout_add_promo_code(
-        e2e_no_permission_staff_api_client, checkout_id, voucher_code
+        e2e_no_permission_staff_api_client,
+        checkout_id,
+        voucher_code,
     )
     unit_price_with_voucher = float(product_variant_price) - voucher_discount_value
     assert (
@@ -119,11 +138,16 @@ def test_staff_can_use_voucher_for_staff_only_in_checkout_core_0904(
 
     # Step 5 - Create payment for checkout.
     checkout_dummy_payment_create(
-        e2e_no_permission_staff_api_client, checkout_id, total_gross_amount
+        e2e_no_permission_staff_api_client,
+        checkout_id,
+        total_gross_amount,
     )
 
     # Step 6 - Complete checkout.
-    order_data = checkout_complete(e2e_no_permission_staff_api_client, checkout_id)
+    order_data = checkout_complete(
+        e2e_no_permission_staff_api_client,
+        checkout_id,
+    )
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["discounts"][0]["type"] == "VOUCHER"
     assert order_data["voucher"]["code"] == voucher_code
