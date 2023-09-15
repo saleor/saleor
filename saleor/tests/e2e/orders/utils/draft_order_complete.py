@@ -35,6 +35,13 @@ mutation DraftOrderComplete($id: ID!) {
       }
       displayGrossPrices
       status
+      paymentStatus
+      isPaid
+      channel {
+        orderSettings{
+            markAsPaidStrategy
+        }
+     }
       lines {
         productVariantId
         quantity
