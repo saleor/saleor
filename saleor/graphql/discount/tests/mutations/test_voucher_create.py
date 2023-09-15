@@ -29,8 +29,18 @@ mutation voucherCreate($input: VoucherInput!) {
                 type
                 minCheckoutItemsQuantity
                 name
-                codes{
-                    code
+                codes(first: 10){
+                    edges {
+                        node {
+                            code
+                        }
+                    }
+                    pageInfo{
+                        startCursor
+                        endCursor
+                        hasNextPage
+                        hasPreviousPage
+                    }
                 }
                 discountValueType
                 startDate
@@ -248,8 +258,8 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
 
     # then
     assert data["name"] == variables["input"]["name"]
-    assert len(data["codes"]) == 1
-    assert data["codes"][0]["code"] != ""
+    assert len(data["codes"]["edges"]) == 1
+    assert data["codes"]["edges"][0]["node"]["code"] != ""
 
 
 def test_create_voucher_with_duplicated_codes(

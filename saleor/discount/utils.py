@@ -51,13 +51,13 @@ CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 def increase_voucher_code_usage(code: "VoucherCode") -> None:
     """Increase voucher code uses by 1."""
-    code.used += +1
+    code.used = F("used") + 1
     code.save(update_fields=["used"])
 
 
 def decrease_voucher_code_usage(code: "VoucherCode") -> None:
     """Decrease voucher code uses by 1."""
-    code.used -= 1
+    code.used = F("used") - 1
     code.save(update_fields=["used"])
 
 

@@ -67,13 +67,16 @@ class VoucherUpdate(VoucherCreate):
                 )
 
     @classmethod
-    def save(cls, _info: ResolveInfo, voucher_instance, code_instances):
-        codes_to_create = [
-            code_instance for code_instance in code_instances if not code_instance.pk
-        ]
-        codes_to_update = [
-            code_instance for code_instance in code_instances if code_instance.pk
-        ]
+    def save(
+        cls, _info: ResolveInfo, voucher_instance, code_instances, has_multiple_codes
+    ):
+        codes_to_create = []
+        codes_to_update = []
+
+        if has_multiple_codes:
+            codes_to_create += code_instances
+        else:
+            codes_to_update += code_instances
 
         with transaction.atomic():
             voucher_instance.save()

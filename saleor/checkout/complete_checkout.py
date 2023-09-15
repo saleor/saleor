@@ -95,6 +95,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     from ..app.models import App
+    from ..discount.models import VoucherCode
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
 
@@ -477,14 +478,8 @@ def _prepare_order_data(
     try:
         manager.preprocess_order_creation(checkout_info, lines)
     except TaxError:
-        code = None
-        if voucher := order_data.get("voucher"):
-            code = voucher.codes.filter(
-                code=checkout_info.checkout.voucher_code
-            ).first()
-
         release_voucher_code_usage(
-            code,
+            checkout_info.voucher_code,
             order_data.get("user_email"),
         )
         raise
@@ -776,7 +771,7 @@ def _process_payment(
     order_data: dict,
     manager: "PluginsManager",
     channel_slug: str,
-    voucher_code: Optional[str] = None,
+    voucher_code: Optional["VoucherCode"] = None,
 ) -> Transaction:
     """Process the payment assigned to checkout."""
     try:
@@ -802,10 +797,7 @@ def _process_payment(
         if not txn.is_success:
             raise PaymentError(txn.error)
     except PaymentError as e:
-        code = None
-        if voucher := order_data.get("voucher"):
-            code = voucher.codes.filter(code=voucher_code).first()
-        release_voucher_code_usage(code, order_data.get("user_email"))
+        release_voucher_code_usage(voucher_code, order_data.get("user_email"))
         raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
     return txn
 
@@ -1470,7 +1462,7 @@ def complete_checkout_with_payment(
             order_data=order_data,
             manager=manager,
             channel_slug=channel_slug,
-            voucher_code=checkout_info.checkout.voucher_code,
+            voucher_code=checkout_info.voucher_code,
         )
 
         # As payment processing might take a while, we need to check if the payment

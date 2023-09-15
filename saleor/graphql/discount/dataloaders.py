@@ -125,17 +125,58 @@ class VoucherCodeByCodeLoader(DataLoader):
         return [voucher_map.get(code) for code in keys]
 
 
-class VoucherCodesByVoucherIDLoader(DataLoader):
-    context_key = "voucher_codes"
+class CodeByVoucherIDLoader(DataLoader):
+    """Fetch voucher code.
+
+    This dataloader will be deprecated together with `code` field.
+    """
+
+    context_key = "voucher_code"
 
     def batch_load(self, keys):
         voucher_codes = VoucherCode.objects.using(self.database_connection_name).filter(
             voucher_id__in=keys
         )
-        voucher_codes_map = defaultdict(list)
+        voucher_codes_map = {}
         for voucher_code in voucher_codes:
-            voucher_codes_map[voucher_code.voucher_id].append(voucher_code)
-        return [voucher_codes_map.get(voucher_id, []) for voucher_id in keys]
+            voucher_codes_map[voucher_code.voucher_id] = voucher_code.code
+        return [voucher_codes_map.get(voucher_id) for voucher_id in keys]
+
+
+class UsedByVoucherIDLoader(DataLoader):
+    """Fetch voucher used.
+
+    This dataloader will be deprecated together with `used` field.
+    """
+
+    context_key = "voucher_used"
+
+    def batch_load(self, keys):
+        voucher_codes = VoucherCode.objects.using(self.database_connection_name).filter(
+            voucher_id__in=keys
+        )
+        voucher_codes_map = {}
+        for voucher_code in voucher_codes:
+            voucher_codes_map[voucher_code.voucher_id] = voucher_code.used
+        return [voucher_codes_map.get(voucher_id) for voucher_id in keys]
+
+
+class UsageLimitByVoucherIDLoader(DataLoader):
+    """Fetch voucher usage limit.
+
+    This dataloader will be deprecated together with `usage_limit` field.
+    """
+
+    context_key = "voucher_usage_limit"
+
+    def batch_load(self, keys):
+        voucher_codes = VoucherCode.objects.using(self.database_connection_name).filter(
+            voucher_id__in=keys
+        )
+        voucher_codes_map = {}
+        for voucher_code in voucher_codes:
+            voucher_codes_map[voucher_code.voucher_id] = voucher_code.usage_limit
+        return [voucher_codes_map.get(voucher_id) for voucher_id in keys]
 
 
 class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):

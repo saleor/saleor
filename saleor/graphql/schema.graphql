@@ -8986,7 +8986,23 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   
   Added in Saleor 3.16.
   """
-  codes: [VoucherCode]
+  codes(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): VoucherCodeCountableConnection
 
   """The code of the voucher.This field will be removed in Saleor 4.0."""
   code: String
@@ -9141,6 +9157,23 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
   channelListings: [VoucherChannelListing!]
+}
+
+type VoucherCodeCountableConnection @doc(category: "Discounts") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [VoucherCodeCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type VoucherCodeCountableEdge @doc(category: "Discounts") {
+  """The item at the end of the edge."""
+  node: VoucherCode!
+
+  """A cursor for use in pagination."""
+  cursor: String!
 }
 
 """

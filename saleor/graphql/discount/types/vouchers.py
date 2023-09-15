@@ -13,6 +13,7 @@ from ...channel.types import (
 )
 from ...core import ResolveInfo, types
 from ...core.connection import CountableConnection, create_connection_slice
+from ...core.context import get_database_connection_name
 from ...core.descriptions import ADDED_IN_31, ADDED_IN_316, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
@@ -27,9 +28,11 @@ from ...product.types import (
 from ...translations.fields import TranslationField
 from ...translations.types import VoucherTranslation
 from ..dataloaders import (
+    CodeByVoucherIDLoader,
+    UsageLimitByVoucherIDLoader,
+    UsedByVoucherIDLoader,
     VoucherChannelListingByVoucherIdAndChanneSlugLoader,
     VoucherChannelListingByVoucherIdLoader,
-    VoucherCodesByVoucherIDLoader,
 )
 from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 
@@ -73,11 +76,17 @@ class VoucherCode(ModelObjectType[models.VoucherCode]):
         model = models.VoucherCode
 
 
+class VoucherCodeCountableConnection(CountableConnection):
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+        node = VoucherCode
+
+
 class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     id = graphene.GlobalID(required=True, description="The ID of the voucher.")
     name = graphene.String(description="The name of the voucher.")
-    codes = graphene.List(
-        VoucherCode,
+    codes = ConnectionField(
+        VoucherCodeCountableConnection,
         description="List of codes available for this voucher." + ADDED_IN_316,
     )
     code = graphene.String(
@@ -177,22 +186,27 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
 
     @staticmethod
     def resolve_code(root: ChannelContext[models.Voucher], info: ResolveInfo):
-        code_instance = root.node.codes.last()
-        return code_instance.code if code_instance else None
+        return CodeByVoucherIDLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_used(root: ChannelContext[models.Voucher], info: ResolveInfo):
-        code_instance = root.node.codes.last()
-        return code_instance.used if code_instance else 0
+        return UsedByVoucherIDLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_usage_limit(root: ChannelContext[models.Voucher], info: ResolveInfo):
-        code_instance = root.node.codes.last()
-        return code_instance.usage_limit if code_instance else None
+        return UsageLimitByVoucherIDLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_codes(root: ChannelContext[models.Voucher], info: ResolveInfo):
-        return VoucherCodesByVoucherIDLoader(info.context).load(root.node.id)
+    def resolve_codes(
+        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
+    ):
+        readonly_qs = root.node.codes.using(
+            get_database_connection_name(info.context)
+        ).all()
+
+        return create_connection_slice(
+            readonly_qs, info, kwargs, VoucherCodeCountableConnection
+        )
 
     @staticmethod
     def resolve_categories(
