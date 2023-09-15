@@ -19,7 +19,7 @@ def convert_migrated_sale_predicate_to_catalogue_info(
 
     if catalogue_predicate.get("OR"):
         predicates = {
-            next(item.keys()): next(item.values())["ids"]
+            list(item.keys())[0]: list(item.values())[0]["ids"]
             for item in catalogue_predicate["OR"]
         }
         for predicate_name, field in PREDICATE_TO_CATALOGUE_INFO_MAP.items():
