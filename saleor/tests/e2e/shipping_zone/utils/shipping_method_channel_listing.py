@@ -11,7 +11,12 @@ mutation ShippingMethodChannelListingUpdate(
       message
     }
     shippingMethod {
-      id
+        id
+        channelListings {
+            minimumOrderPrice {
+                amount
+             }
+        }
     }
   }
 }
@@ -19,7 +24,12 @@ mutation ShippingMethodChannelListingUpdate(
 
 
 def create_shipping_method_channel_listing(
-    staff_api_client, shipping_method_id, channel_id, price="10.00"
+    staff_api_client,
+    shipping_method_id,
+    channel_id,
+    price="10.00",
+    minimumOrderPrice=None,
+    maximumOrderPrice=None,
 ):
     variables = {
         "id": shipping_method_id,
@@ -28,6 +38,8 @@ def create_shipping_method_channel_listing(
                 {
                     "channelId": channel_id,
                     "price": price,
+                    "maximumOrderPrice": maximumOrderPrice,
+                    "minimumOrderPrice": minimumOrderPrice,
                 }
             ]
         },
