@@ -214,6 +214,7 @@ class Voucher(ModelWithMetadata):
 
 
 class VoucherCode(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     code = models.CharField(max_length=255, unique=True, db_index=True)
     used = models.PositiveIntegerField(default=0)
     voucher = models.ForeignKey(Voucher, related_name="codes", on_delete=models.CASCADE)

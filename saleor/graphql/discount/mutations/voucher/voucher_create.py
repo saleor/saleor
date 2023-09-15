@@ -218,7 +218,9 @@ class VoucherCreate(ModelMutation):
             code_instance.full_clean(exclude=["voucher"])
 
     @classmethod
-    def save(cls, _info: ResolveInfo, voucher_instance, code_instances):
+    def save(
+        cls, _info: ResolveInfo, voucher_instance, code_instances, has_multiple_codes
+    ):
         with transaction.atomic():
             voucher_instance.save()
             models.VoucherCode.objects.bulk_create(code_instances)
@@ -257,7 +259,8 @@ class VoucherCreate(ModelMutation):
         cls.clean_voucher_instance(info, voucher_instance)
         cls.clean_codes_instance(code_instances)
 
-        cls.save(info, voucher_instance, code_instances)
+        has_multiple_codes = bool(codes_data)
+        cls.save(info, voucher_instance, code_instances, has_multiple_codes)
         cls._save_m2m(info, voucher_instance, cleaned_input)
 
         if metadata_list:

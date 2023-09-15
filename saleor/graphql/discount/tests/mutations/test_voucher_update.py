@@ -25,8 +25,18 @@ mutation voucherUpdate($id: ID!, $input: VoucherInput!) {
                 type
                 minCheckoutItemsQuantity
                 name
-                codes{
-                    code
+                codes(first: 10){
+                    edges {
+                        node {
+                            code
+                        }
+                    }
+                    pageInfo{
+                        startCursor
+                        endCursor
+                        hasNextPage
+                        hasPreviousPage
+                    }
                 }
                 discountValueType
                 startDate
@@ -68,11 +78,11 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     voucher.refresh_from_db()
 
     # then
-    assert len(data["codes"]) == 2
+    assert voucher.codes.count() == 2
+    assert len(data["codes"]["edges"]) == 2
     assert data["discountValueType"] == DiscountValueType.PERCENTAGE.upper()
     assert data["applyOncePerOrder"] == apply_once_per_order
     assert data["minCheckoutItemsQuantity"] == 10
-    assert voucher.codes.count() == 2
 
 
 @freeze_time("2022-05-12 12:00:00")

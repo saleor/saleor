@@ -92,6 +92,10 @@ class VoucherSortField(graphene.Enum):
             )
         )
 
+    # @staticmethod
+    # def qs_with_code(queryset: QuerySet) -> QuerySet:
+    #     return queryset.annotate(code=Min("codes__code"))
+
 
 class VoucherSortingInput(ChannelSortInputObjectType):
     class Meta:
