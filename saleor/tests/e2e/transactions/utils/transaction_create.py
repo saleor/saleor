@@ -1,4 +1,4 @@
-from ..utils import get_graphql_content
+from ...utils import get_graphql_content
 
 TRANSACTION_CREATE_MUTATION = """
 mutation TransactionCreate($id: ID!, $transactionCreateInput: TransactionCreateInput!) {
@@ -11,6 +11,7 @@ mutation TransactionCreate($id: ID!, $transactionCreateInput: TransactionCreateI
     transaction {
       id
       name
+      order { id }
       message
       pspReference
       actions
