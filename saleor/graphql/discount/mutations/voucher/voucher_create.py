@@ -87,7 +87,10 @@ class VoucherInput(BaseInputObjectType):
         description="Voucher can be used only by staff user."
     )
     usage_limit = graphene.Int(
-        description="Limit number of times this voucher can be used in total."
+        description=(
+            "Limit number of times this voucher can be used in total."
+            + DEPRECATED_IN_3X_FIELD
+        )
     )
 
     class Meta:

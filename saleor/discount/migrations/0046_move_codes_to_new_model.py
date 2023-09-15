@@ -3,22 +3,44 @@
 from django.db import migrations
 
 
+BATCH_SIZE = 5000
+
+
+def queryset_in_batches(queryset):
+    start_pk = 0
+
+    while True:
+        qs = queryset.order_by("pk").filter(pk__gt=start_pk)[:BATCH_SIZE]
+        pks = list(qs.values_list("pk", flat=True))
+
+        if not pks:
+            break
+
+        yield pks
+
+        start_pk = pks[-1]
+
+
 def move_codes_to_new_model(apps, schema_editor):
     Voucher = apps.get_model("discount", "Voucher")
     VoucherCode = apps.get_model("discount", "VoucherCode")
 
     voucher_codes = []
-    for voucher in Voucher.objects.values("id", "code", "used", "usage_limit"):
-        voucher_codes.append(
-            VoucherCode(
-                voucher_id=voucher["id"],
-                code=voucher["code"],
-                used=voucher["used"],
-                usage_limit=voucher["usage_limit"],
-            )
-        )
+    queryset = Voucher.objects.values("id", "code", "used", "usage_limit")
 
-    VoucherCode.objects.bulk_create(voucher_codes)
+    for batch_pks in queryset_in_batches(queryset):
+        vouchers = Voucher.objects.filter(pk__in=batch_pks)
+
+        for voucher in vouchers:
+            voucher_codes.append(
+                VoucherCode(
+                    voucher_id=voucher["id"],
+                    code=voucher["code"],
+                    used=voucher["used"],
+                    usage_limit=voucher["usage_limit"],
+                )
+            )
+        VoucherCode.objects.bulk_create(voucher_codes)
 
 
 class Migration(migrations.Migration):

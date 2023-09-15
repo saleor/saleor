@@ -26179,7 +26179,9 @@ input VoucherInput @doc(category: "Discounts") {
   """Voucher can be used only by staff user."""
   onlyForStaff: Boolean
 
-  """Limit number of times this voucher can be used in total."""
+  """
+  Limit number of times this voucher can be used in total.This field will be removed in Saleor 4.0.
+  """
   usageLimit: Int
 }
 
