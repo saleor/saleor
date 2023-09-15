@@ -617,6 +617,62 @@ def test_create_order_doesnt_duplicate_order(
 
 
 @pytest.mark.parametrize("is_anonymous_user", (True, False))
+def test_create_order_with_line_discount(
+    checkout_with_item_on_sale, customer_user, shipping_method, is_anonymous_user
+):
+    # given
+    checkout_user = None if is_anonymous_user else customer_user
+    checkout = checkout_with_item_on_sale
+    checkout.user = checkout_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.shipping_method = shipping_method
+    checkout.tracking_code = "tracking_code"
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    shipping_price = calculations.checkout_shipping_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    total_gross = subtotal.gross + shipping_price.gross - checkout.discount
+
+    # when
+    order = _create_order(
+        checkout_info=checkout_info,
+        checkout_lines=lines,
+        order_data=_prepare_order_data(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            prices_entered_with_tax=True,
+        ),
+        user=customer_user if not is_anonymous_user else None,
+        app=None,
+        manager=manager,
+    )
+
+    # then
+    assert order.total.gross == total_gross
+    assert order.lines.count() == 1
+
+    line = order.lines.first()
+    assert line.discounts.count() == 1
+
+
+@pytest.mark.parametrize("is_anonymous_user", (True, False))
 def test_create_order_with_gift_card(
     checkout_with_gift_card, customer_user, shipping_method, is_anonymous_user
 ):
