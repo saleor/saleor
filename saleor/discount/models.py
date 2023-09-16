@@ -82,18 +82,7 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
         )
 
 
-class VoucherManager(models.Manager):
-    def get_queryset(self):
-        return VoucherQueryset(self.model, using=self._db)
-
-    def active(self, date):
-        return self.get_queryset().active(date)
-
-    def active_in_channel(self, date, channel_slug: str):
-        return self.get_queryset().active_in_channel(date, channel_slug)
-
-    def expired(self, date):
-        return self.get_queryset().expired(date)
+VoucherManager = models.Manager.from_queryset(VoucherQueryset)
 
 
 class Voucher(ModelWithMetadata):

@@ -1,5 +1,5 @@
 import graphene
-from django.db.models import Min, Q, QuerySet
+from django.db.models import Max, Min, Q, QuerySet
 
 from ..core.descriptions import CHANNEL_REQUIRED
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
@@ -49,13 +49,13 @@ class SaleSortingInput(ChannelSortInputObjectType):
 
 
 class VoucherSortField(graphene.Enum):
-    CODE = ["codes__code"]
-    START_DATE = ["start_date", "name", "codes__code"]
-    END_DATE = ["end_date", "name", "codes__code"]
-    VALUE = ["discount_value", "name", "codes__code"]
-    TYPE = ["type", "name", "codes__code"]
-    USAGE_LIMIT = ["codes__usage_limit", "name", "codes__code"]
-    MINIMUM_SPENT_AMOUNT = ["min_spent_amount", "name", "codes__code"]
+    CODE = ["name"]
+    START_DATE = ["start_date", "name"]
+    END_DATE = ["end_date", "name"]
+    VALUE = ["discount_value", "name"]
+    TYPE = ["type", "name"]
+    USAGE_LIMIT = ["max_usage_limit", "name"]
+    MINIMUM_SPENT_AMOUNT = ["min_spent_amount", "name"]
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS
@@ -92,9 +92,9 @@ class VoucherSortField(graphene.Enum):
             )
         )
 
-    # @staticmethod
-    # def qs_with_code(queryset: QuerySet) -> QuerySet:
-    #     return queryset.annotate(code=Min("codes__code"))
+    @staticmethod
+    def qs_with_usage_limit(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        return queryset.annotate(max_usage_limit=Max("codes__usage_limit"))
 
 
 class VoucherSortingInput(ChannelSortInputObjectType):
