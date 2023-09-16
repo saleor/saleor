@@ -67,7 +67,7 @@ class VoucherUpdate(VoucherCreate):
                 )
 
     @classmethod
-    def save(
+    def save(  # type: ignore[override]
         cls, _info: ResolveInfo, voucher_instance, code_instances, has_multiple_codes
     ):
         codes_to_create = []
