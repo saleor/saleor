@@ -740,7 +740,7 @@ def test_assign_staff_to_default_group_and_update_permissions_update_user_permis
 
 @patch("saleor.plugins.openid_connect.utils.match_orders_with_new_user")
 @patch("saleor.plugins.openid_connect.utils.logger")
-def test__update_user_details_no_user_with_new_email_in_db(
+def test_update_user_details_no_user_with_new_email_in_db(
     mock_logger,
     mock_match_orders_with_new_user,
     customer_user,
@@ -768,7 +768,7 @@ def test__update_user_details_no_user_with_new_email_in_db(
 
 @patch("saleor.plugins.openid_connect.utils.match_orders_with_new_user")
 @patch("saleor.plugins.openid_connect.utils.logger")
-def test__update_user_details_user_with_new_email_in_db(
+def test_update_user_details_user_with_new_email_in_db(
     mock_logger, mock_match_orders_with_new_user, customer_user, customer_user2
 ):
     # given
@@ -797,7 +797,7 @@ def test__update_user_details_user_with_new_email_in_db(
     mock_match_orders_with_new_user.assert_not_called()
 
 
-def test__update_user_details_update_user_first_name(
+def test_update_user_details_update_user_first_name(
     customer_user,
 ):
     # given
@@ -818,12 +818,11 @@ def test__update_user_details_update_user_first_name(
 
     # then
     customer_user.refresh_from_db()
-    print(repr(customer_user.search_document))
     assert customer_user.first_name == "test user_first_name"
     assert customer_user.search_document == expected_search_document
 
 
-def test__update_user_details_update_user_last_name(
+def test_update_user_details_update_user_last_name(
     customer_user,
 ):
     # given
@@ -844,6 +843,5 @@ def test__update_user_details_update_user_last_name(
 
     # then
     customer_user.refresh_from_db()
-    print(repr(customer_user.search_document))
     assert customer_user.last_name == "test user_last_name"
     assert customer_user.search_document == expected_search_document
