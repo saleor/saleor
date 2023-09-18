@@ -2,6 +2,7 @@ from typing import cast
 
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
+from .....discount.sale_converter import get_or_create_promotion
 from .....discount.utils import fetch_catalogue_info
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
@@ -39,6 +40,8 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
             cls.get_node_or_error(info, id, only_type=Sale, field="sale_id"),
         )
         previous_catalogue = fetch_catalogue_info(sale)
+        promotion = get_or_create_promotion(sale)
+        rules = promotion.rules.all()
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             cls.add_catalogues_to_node(sale, input)
@@ -49,6 +52,7 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
             current_cat_converted = convert_catalogue_info_to_global_ids(
                 current_catalogue
             )
+            cls.update_promotion_rules_predicate(rules, current_cat_converted)
 
             def sale_update_event():
                 return manager.sale_updated(

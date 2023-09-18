@@ -2,6 +2,7 @@ from typing import cast
 
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
+from .....discount.sale_converter import get_or_create_promotion
 from .....discount.utils import fetch_catalogue_info
 from .....graphql.channel import ChannelContext
 from .....permission.enums import DiscountPermissions
@@ -39,10 +40,14 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
             cls.get_node_or_error(info, id, only_type=Sale, field="sale_id"),
         )
         previous_catalogue = fetch_catalogue_info(sale)
+        promotion = get_or_create_promotion(sale)
+        rules = promotion.rules.all()
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             cls.remove_catalogues_from_node(sale, input)
             current_catalogue = fetch_catalogue_info(sale)
+            cls.update_promotion_rules_predicate(rules, current_catalogue)
+
             cls.call_event(
                 lambda: manager.sale_updated(
                     sale,
