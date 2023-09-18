@@ -1,8 +1,28 @@
 from typing import Dict, List
 
+from django.db.models import Exists, OuterRef
+
 from ..graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
 from .models import Promotion, PromotionRule
 from .utils import fetch_catalogue_info
+
+
+def get_promotion_rule_for_sale(sale, sale_channel_listing):
+    channel_id = sale_channel_listing.channel_id
+    promotion = Promotion.objects.filter(old_sale_id=sale.id).first()
+    if not promotion:
+        promotion = create_promotion(sale)
+        return create_promotion_rule(
+            promotion,
+            sale,
+            sale_channel_listing=sale_channel_listing,
+        )
+    PromotionChannel = PromotionRule.channels.through
+    promotion_channels = PromotionChannel.objects.filter(channel_id=channel_id)
+    return PromotionRule.objects.filter(
+        Exists(promotion_channels.filter(promotionrule_id=OuterRef("pk"))),
+        promotion_id=promotion.id,
+    ).first()
 
 
 def get_or_create_promotion(sale):
@@ -36,21 +56,22 @@ def create_promotion_rule(
     promotion,
     sale,
     catalogue_data=None,
-    discount_value=None,
-    old_channel_listing_id=None,
+    sale_channel_listing=None,
 ):
     if catalogue_data is None:
         catalogue_data = convert_catalogue_info_to_global_ids(
             fetch_catalogue_info(sale)
         )
     catalogue_predicate = create_catalogue_predicate_from_catalogue_data(catalogue_data)
-    return PromotionRule.objects.create(
+    rule = PromotionRule.objects.create(
         promotion=promotion,
         catalogue_predicate=catalogue_predicate,
         reward_value_type=sale.type,
-        reward_value=discount_value,
-        old_channel_listing_id=old_channel_listing_id,
+        reward_value=sale_channel_listing.discount_value,
+        old_channel_listing_id=sale_channel_listing.id,
     )
+    rule.channels.add(sale_channel_listing.channel_id)
+    return rule
 
 
 def create_catalogue_predicate_from_catalogue_data(catalogue_data):

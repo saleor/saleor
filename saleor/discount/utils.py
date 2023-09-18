@@ -625,6 +625,8 @@ def create_or_update_discount_objects_from_sale_for_checkout(
     lines_info: Iterable["CheckoutLineInfo"],
     sales_info: Iterable[DiscountInfo],
 ):
+    from .sale_converter import get_promotion_rule_for_sale
+
     line_discounts_to_create = []
     line_discounts_to_update = []
     updated_fields = []
@@ -655,6 +657,7 @@ def create_or_update_discount_objects_from_sale_for_checkout(
         if sale and sale_channel_listing and discount_amount:
             sale = cast(Sale, sale)
             sale_channel_listing = cast(SaleChannelListing, sale_channel_listing)
+            promotion_rule = get_promotion_rule_for_sale(sale, sale_channel_listing)
 
             # Fetch Sale translation
             translation_language_code = checkout_info.checkout.language_code
@@ -677,6 +680,7 @@ def create_or_update_discount_objects_from_sale_for_checkout(
                     translated_name=translated_name,
                     reason=None,
                     sale=sale,
+                    promotion_rule=promotion_rule,
                 )
                 line_discounts_to_create.append(line_discount)
                 line_info.discounts.append(line_discount)
@@ -699,6 +703,9 @@ def create_or_update_discount_objects_from_sale_for_checkout(
                 if discount_to_update.sale != sale:
                     discount_to_update.sale = sale
                     updated_fields.append("sale")
+                if not discount_to_update.promotion_rule:
+                    discount_to_update.promotion_rule = promotion_rule
+                    updated_fields.append("promotion_rule")
 
                 line_discounts_to_update.append(discount_to_update)
 
