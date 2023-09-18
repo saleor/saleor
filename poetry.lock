@@ -1117,20 +1117,20 @@ files = [
 
 [[package]]
 name = "django"
-version = "3.2.21"
-description = "A high-level Python Web framework that encourages rapid development and clean, pragmatic design."
+version = "4.2.5"
+description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 files = [
-    {file = "Django-3.2.21-py3-none-any.whl", hash = "sha256:d31b06c58aa2cd73998ca5966bc3001243d3c4e77ee2d0c479bced124765fd99"},
-    {file = "Django-3.2.21.tar.gz", hash = "sha256:a5de4c484e7b7418e6d3e52a5b8794f0e6b9f9e4ce3c037018cf1c489fa87f3c"},
+    {file = "Django-4.2.5-py3-none-any.whl", hash = "sha256:b6b2b5cae821077f137dc4dade696a1c2aa292f892eca28fa8d7bfdf2608ddd4"},
+    {file = "Django-4.2.5.tar.gz", hash = "sha256:5e5c1c9548ffb7796b4a8a4782e9a2e5a3df3615259fc1bfd3ebc73b646146c1"},
 ]
 
 [package.dependencies]
-asgiref = ">=3.3.2,<4"
+asgiref = ">=3.6.0,<4"
 bcrypt = {version = "*", optional = true, markers = "extra == \"bcrypt\""}
-pytz = "*"
-sqlparse = ">=0.2.2"
+sqlparse = ">=0.3.1"
+tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
 [package.extras]
 argon2 = ["argon2-cffi (>=19.1.0)"]
@@ -3864,17 +3864,6 @@ files = [
 ]
 
 [[package]]
-name = "pytz"
-version = "2023.3.post1"
-description = "World timezone definitions, modern and historical"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pytz-2023.3.post1-py2.py3-none-any.whl", hash = "sha256:ce42d816b81b68506614c11e8937d3aa9e41007ceb50bfdcb0749b921bf646c7"},
-    {file = "pytz-2023.3.post1.tar.gz", hash = "sha256:7b4fddbeb94a1eba4b557da24f19fdf9db575192544270a9101d8509f9f43d7b"},
-]
-
-[[package]]
 name = "pywatchman"
 version = "1.4.1"
 description = "Watchman client for python"
@@ -5424,4 +5413,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "cd8d1ffe72ed113dcf9138a250283e9a2361c8253ef76c0f0ef2f2623240596a"
+content-hash = "eaacb6b129fdaa7300d8dcfd6d0e13440bd398205821f700c788b3b43ea8b542"
