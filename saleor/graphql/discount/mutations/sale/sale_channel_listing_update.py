@@ -75,17 +75,20 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    def add_channels(cls, promotion: Promotion, add_channels: List[Dict]):
-        channelid_rule_map = cls.get_channe_id_to_rule_map(promotion)
+    def add_channels(
+        cls,
+        promotion: Promotion,
+        exemplary_rule: PromotionRule,
+        add_channels: List[Dict],
+    ):
+        channel_id_rule_map = cls.get_channe_id_to_rule_map(promotion)
         rules_to_create: List[Tuple[Channel, PromotionRule]] = []
         rules_to_update: List[Tuple[Channel, PromotionRule]] = []
-        exemplary_rule = promotion.rules.first()
-        exemplary_rule = cast(PromotionRule, exemplary_rule)
         for add_channel in add_channels:
             channel = add_channel["channel"]
             discount_value = add_channel["discount_value"]
 
-            if channel.id not in channelid_rule_map:
+            if channel.id not in channel_id_rule_map and exemplary_rule:
                 rules_to_create.append(
                     (
                         channel,
@@ -99,7 +102,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
                 )
             else:
                 # We ensure that every rule has one or none related channel
-                rule = channelid_rule_map[channel.id]
+                rule = channel_id_rule_map[channel.id]
                 rule.reward_value = discount_value
                 rules_to_update.append(rule)
 
@@ -209,9 +212,15 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         return cleaned_channels
 
     @classmethod
-    def save(cls, _info: ResolveInfo, promotion: Promotion, cleaned_input: Dict):
+    def save(
+        cls,
+        _info: ResolveInfo,
+        promotion: Promotion,
+        rule: PromotionRule,
+        cleaned_input: Dict,
+    ):
         with traced_atomic_transaction():
-            cls.add_channels(promotion, cleaned_input.get("add_channels", []))
+            cls.add_channels(promotion, rule, cleaned_input.get("add_channels", []))
             cls.remove_channels(promotion, cleaned_input.get("remove_channels", []))
             update_products_discounted_prices_of_promotion_task.delay(promotion.pk)
 
@@ -236,7 +245,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         if errors:
             raise ValidationError(errors)
 
-        cls.save(info, promotion, cleaned_input)
+        cls.save(info, promotion, rule, cleaned_input)
 
         # Invalidate dataloader for channel listings
         SaleChannelListingByPromotionIdLoader(info.context).clear(promotion.pk)
