@@ -34,14 +34,14 @@ def test_sale_delete_mutation(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    migrated_sale_catalogue_predicate,
+    converted_sale_catalogue_predicate,
     permission_manage_discounts,
 ):
     # given
     query = SALE_DELETE_MUTATION
     promotion = promotion_converted_from_sale
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        migrated_sale_catalogue_predicate
+        converted_sale_catalogue_predicate
     )
     variables = {"id": graphene.Node.to_global_id("Sale", promotion.old_sale_id)}
 
