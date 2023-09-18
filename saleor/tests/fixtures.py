@@ -5663,8 +5663,27 @@ def promotion_converted_from_sale(converted_sale_catalogue_predicate, channel_US
         catalogue_predicate=converted_sale_catalogue_predicate,
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),
+        old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
     )
     rule.channels.add(channel_USD)
+
+    return promotion
+
+
+@pytest.fixture
+def promotion_converted_from_sale_with_many_channels(
+    promotion_converted_from_sale, converted_sale_catalogue_predicate, channel_PLN
+):
+    promotion = promotion_converted_from_sale
+    rule = PromotionRule.objects.create(
+        name="Sale rule 2",
+        promotion=promotion,
+        catalogue_predicate=converted_sale_catalogue_predicate,
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+        old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
+    )
+    rule.channels.add(channel_PLN)
 
     return promotion
 
