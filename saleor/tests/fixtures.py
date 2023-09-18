@@ -5637,11 +5637,36 @@ def rule_info(
 
 
 @pytest.fixture
-def promotion_converted_from_sale(sale):
-    from ..discount.tests.sale_converter import convert_sales_to_promotions
+def migrated_sale_catalogue_predicate(product, category, collection, variant):
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    return {
+        "OR": [
+            {"collectionPredicate": {"ids": [collection_id]}},
+            {"categoryPredicate": {"ids": [category_id]}},
+            {"productPredicate": {"ids": [product_id]}},
+            {"variantPredicate": {"ids": [variant_id]}},
+        ]
+    }
 
-    convert_sales_to_promotions()
-    return Promotion.objects.filter(old_sale_id=sale.id).last()
+
+@pytest.fixture
+def promotion_converted_from_sale(migrated_sale_catalogue_predicate, channel_USD):
+    promotion = Promotion.objects.create(name="Sale")
+    promotion.assign_old_sale_id()
+
+    rule = PromotionRule.objects.create(
+        name="Sale rule",
+        promotion=promotion,
+        catalogue_predicate=migrated_sale_catalogue_predicate,
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+    )
+    rule.channels.add(channel_USD)
+
+    return promotion
 
 
 @pytest.fixture
