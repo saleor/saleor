@@ -88,7 +88,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
             channel = add_channel["channel"]
             discount_value = add_channel["discount_value"]
 
-            if channel.id not in channel_id_rule_map and exemplary_rule:
+            if channel.id not in channel_id_rule_map:
                 rules_to_create.append(
                     (
                         channel,
