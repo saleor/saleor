@@ -17,7 +17,7 @@ mutation AttributeCreate($input: AttributeCreateInput!) {
 
 
 def attribute_create(
-    e2e_not_logged_api_client,
+    staff_api_client,
     input_type="DROPDOWN",
     name="Color",
     slug="color",
@@ -36,7 +36,7 @@ def attribute_create(
         }
     }
 
-    response = e2e_not_logged_api_client.post_graphql(
+    response = staff_api_client.post_graphql(
         ATTRIBUTE_CREATE_MUTATION,
         variables,
     )
