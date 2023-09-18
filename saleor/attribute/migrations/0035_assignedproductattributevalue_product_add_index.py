@@ -19,8 +19,8 @@ class Migration(migrations.Migration):
         # We can remove this operation when we squash migrations.
         migrations.RunSQL(
             """
-                DROP INDEX attribute_assignedproductattributevalue_product_id_805656f1
-                ON attribute_assignedproductattributevalue;
+                DROP INDEX CONCURRENTLY IF EXISTS
+                attribute_assignedproductattributevalue_product_id_805656f1;
             """
         ),
         AddIndexConcurrently(
