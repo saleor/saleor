@@ -45,6 +45,7 @@ from .bulk_mutations import (
     ProductVariantStocksDelete,
     ProductVariantStocksUpdate,
 )
+from .dataloaders.products import CategoryByIdLoader, CategoryBySlugLoader
 from .filters import (
     CategoryFilterInput,
     CollectionFilterInput,
@@ -103,8 +104,6 @@ from .mutations.digital_contents import (
 )
 from .resolvers import (
     resolve_categories,
-    resolve_category_by_id,
-    resolve_category_by_slug,
     resolve_collection_by_id,
     resolve_collection_by_slug,
     resolve_collections,
@@ -340,14 +339,16 @@ class ProductQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
-    @traced_resolver
-    def resolve_category(_root, _info: ResolveInfo, *, id=None, slug=None, **kwargs):
+    def resolve_category(_root, info: ResolveInfo, *, id=None, slug=None, **kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
             _, id = from_global_id_or_error(id, Category)
-            return resolve_category_by_id(id)
+            # FIXME: we should raise an error above
+            if id is not None:
+                return CategoryByIdLoader(info.context).load(int(id))
+            return None
         if slug:
-            return resolve_category_by_slug(slug=slug)
+            return CategoryBySlugLoader(info.context).load(slug)
 
     @staticmethod
     @traced_resolver
