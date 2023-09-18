@@ -11,6 +11,7 @@ from ...discount import DiscountType
 from ...discount.models import (
     DiscountValueType,
     NotApplicable,
+    Promotion,
     Voucher,
     VoucherChannelListing,
     VoucherType,
@@ -162,6 +163,13 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
     assert line.unit_discount_amount == sale_channel_listing.discount_value
     assert line.unit_discount_value == sale_channel_listing.discount_value
     assert line.unit_discount_reason
+
+    assert line.discounts.count() == 1
+    line_discount = line.discounts.first()
+    assert line_discount.sale == sale
+    promotion = Promotion.objects.first()
+    assert promotion
+    assert line_discount.promotion_rule == promotion.rules.first()
 
 
 def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
