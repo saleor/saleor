@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
         # We have introduced a non-concurrent index creation in one of previous
         # migrations. This has only been applied to dev environments of people
         # who work on the main branch.
+        # We can remove this operation when we squash migrations.
         migrations.RunSQL(
             """
                 DROP INDEX attribute_assignedproductattributevalue_product_id_805656f1
