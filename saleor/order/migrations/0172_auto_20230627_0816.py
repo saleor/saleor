@@ -7,15 +7,23 @@ from django.db.models import Exists, OuterRef
 BATCH_SIZE = 5000
 
 
-def queryset_in_batches(qs, batch_size: int):
-    def batch_ids():
-        length = len(ids)
-        for index in range(0, length, batch_size):
-            yield ids[index : min(index + batch_size, length)]
+def queryset_in_batches(queryset):
+    """Slice a queryset into batches.
 
-    ids = qs.values_list("id", flat=True)
-    for ids_batch in batch_ids():
-        yield ids_batch
+    Input queryset should be sorted be pk.
+    """
+    start_pk = 0
+
+    while True:
+        qs = queryset.filter(pk__gt=start_pk)[:BATCH_SIZE]
+        pks = list(qs.values_list("pk", flat=True))
+
+        if not pks:
+            break
+
+        yield pks
+
+        start_pk = pks[-1]
 
 
 def drop_status_field_from_transaction_event(apps, _schema_editor):
@@ -27,11 +35,11 @@ def drop_status_field_from_transaction_event(apps, _schema_editor):
         Exists(orders.filter(order_id=OuterRef("order_id"))),
         type="transaction_event",
         parameters__has_key="status",
-    )
+    ).order_by("pk")
 
-    for ids_batch in queryset_in_batches(qs, batch_size=BATCH_SIZE):
+    for ids_batch in queryset_in_batches(qs):
         events_to_update = []
-        events = OrderEvent.objects.filter(id__in=ids_batch)
+        events = OrderEvent.objects.filter(pk__in=ids_batch)
         for event in events:
             if "status" in event.parameters:
                 del event.parameters["status"]
