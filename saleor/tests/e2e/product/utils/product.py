@@ -17,6 +17,14 @@ mutation createProduct($input: ProductCreateInput!) {
       category {
         id
       }
+      attributes {
+        attribute {
+          id
+        }
+        values {
+          name
+        }
+      }
     }
   }
 }
@@ -28,12 +36,16 @@ def create_product(
     product_type_id,
     category_id,
     product_name="Test product",
+    attributes=None,
 ):
+    if not attributes:
+        attributes = []
     variables = {
         "input": {
             "name": product_name,
             "productType": product_type_id,
             "category": category_id,
+            "attributes": attributes,
         }
     }
 

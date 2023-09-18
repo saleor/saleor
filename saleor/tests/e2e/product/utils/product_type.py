@@ -15,6 +15,16 @@ mutation createProductType($input: ProductTypeInput!) {
       kind
       isShippingRequired
       isDigital
+      hasVariants
+      productAttributes {
+        id
+      }
+      assignedVariantAttributes {
+        attribute {
+          id
+        }
+        variantSelection
+      }
     }
   }
 }

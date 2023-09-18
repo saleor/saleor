@@ -23,6 +23,7 @@ def attribute_create(
     slug="color",
     type="PRODUCT_TYPE",
     value_required=True,
+    is_variant_only=False,
 ):
     variables = {
         "input": {
@@ -31,6 +32,7 @@ def attribute_create(
             "slug": slug,
             "type": type,
             "valueRequired": value_required,
+            "isVariantOnly": is_variant_only,
         }
     }
 
