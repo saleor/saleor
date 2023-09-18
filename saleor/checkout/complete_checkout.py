@@ -313,7 +313,9 @@ def _create_line_for_order(
 
     line_discounts = _create_order_line_discounts(checkout_line_info, line)
     if line_discounts:
-        unit_discount_reason = f'Sale: {graphene.Node.to_global_id("Sale", sale_id)}'
+        line.unit_discount_reason = (
+            f'Sale: {graphene.Node.to_global_id("Sale", sale_id)}'
+        )
 
     is_digital = line.is_digital
     line_info = OrderLineInfo(

@@ -67,10 +67,15 @@ def create_promotion_rule(
         promotion=promotion,
         catalogue_predicate=catalogue_predicate,
         reward_value_type=sale.type,
-        reward_value=sale_channel_listing.discount_value,
-        old_channel_listing_id=sale_channel_listing.id,
+        reward_value=sale_channel_listing.discount_value
+        if sale_channel_listing
+        else None,
+        old_channel_listing_id=sale_channel_listing.id
+        if sale_channel_listing
+        else None,
     )
-    rule.channels.add(sale_channel_listing.channel_id)
+    if sale_channel_listing:
+        rule.channels.add(sale_channel_listing.channel_id)
     return rule
 
 
