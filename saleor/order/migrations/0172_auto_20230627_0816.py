@@ -28,9 +28,8 @@ def drop_status_field_from_transaction_event(apps, _schema_editor):
         type="transaction_event",
         parameters__has_key="status",
     )
-    from tqdm import tqdm
 
-    for ids_batch in tqdm(queryset_in_batches(qs, batch_size=BATCH_SIZE)):
+    for ids_batch in queryset_in_batches(qs, batch_size=BATCH_SIZE):
         events_to_update = []
         events = OrderEvent.objects.filter(id__in=ids_batch)
         for event in events:
