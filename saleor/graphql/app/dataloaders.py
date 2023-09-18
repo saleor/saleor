@@ -88,16 +88,22 @@ class AppByTokenLoader(DataLoader):
         # when any object is saved with a reference to this app.
         # Because of that loaders that are used in context shouldn't use
         # the replica database.
-        tokens = AppToken.objects.filter(
-            token_last_4__in=last_4s_to_raw_token_map.keys()
-        ).values_list("auth_token", "token_last_4", "app_id")
+        tokens = (
+            AppToken.objects.using(self.database_connection_name)
+            .filter(token_last_4__in=last_4s_to_raw_token_map.keys())
+            .values_list("auth_token", "token_last_4", "app_id")
+        )
         authed_apps = {}
         for auth_token, token_last_4, app_id in tokens:
             for raw_token in last_4s_to_raw_token_map[token_last_4]:
                 if check_password(raw_token, auth_token):
                     authed_apps[raw_token] = app_id
 
-        apps = App.objects.filter(id__in=authed_apps.values(), is_active=True).in_bulk()
+        apps = (
+            App.objects.using(self.database_connection_name)
+            .filter(id__in=authed_apps.values(), is_active=True)
+            .in_bulk()
+        )
 
         return [apps.get(authed_apps.get(key)) for key in keys]
 
