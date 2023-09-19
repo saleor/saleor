@@ -32,6 +32,10 @@ mutation AddCheckoutPromoCode($checkoutId: ID!, $promoCode: String!) {
           amount
         }
       }
+      giftCards {
+        id
+        last4CodeChars
+      }
     }
     errors {
       code

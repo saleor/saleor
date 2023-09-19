@@ -18,7 +18,7 @@ mutation GiftCardCreate($input: GiftCardCreateInput!) {
 
 
 def create_gift_card(
-    e2e_not_logged_api_client,
+    staff_api_client,
     amount,
     currency="USD",
     active=True,
@@ -36,7 +36,7 @@ def create_gift_card(
         }
     }
 
-    response = e2e_not_logged_api_client.post_graphql(
+    response = staff_api_client.post_graphql(
         GIFT_CARD_CREATE_MUTATION,
         variables,
     )

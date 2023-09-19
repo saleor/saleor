@@ -74,6 +74,10 @@ mutation CheckoutComplete($checkoutId: ID!) {
       voucher {
         code
       }
+      giftCards {
+        id
+        last4CodeChars
+      }
     }
   }
 }
