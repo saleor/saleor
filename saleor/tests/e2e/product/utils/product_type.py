@@ -15,6 +15,16 @@ mutation createProductType($input: ProductTypeInput!) {
       kind
       isShippingRequired
       isDigital
+      hasVariants
+      productAttributes {
+        id
+      }
+      assignedVariantAttributes {
+        attribute {
+          id
+        }
+        variantSelection
+      }
     }
   }
 }
@@ -27,13 +37,25 @@ def create_product_type(
     slug="test-type",
     is_shipping_required=True,
     is_digital=False,
+    has_variants=False,
+    product_attributes=None,
+    variant_attributes=None,
 ):
+    if not product_attributes:
+        product_attributes = []
+
+    if not variant_attributes:
+        variant_attributes = []
+
     variables = {
         "input": {
             "name": product_type_name,
             "slug": slug,
             "isShippingRequired": is_shipping_required,
             "isDigital": is_digital,
+            "hasVariants": has_variants,
+            "productAttributes": product_attributes,
+            "variantAttributes": variant_attributes,
         }
     }
 
