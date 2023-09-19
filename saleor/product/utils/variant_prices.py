@@ -191,6 +191,7 @@ def variant_listing_promotion_rule_update(sale_id, variant_listing, discount_amo
     Return (None, None) if Promotion does not exist yet. The proper listing promotion
     rule instances will be created when migrating.
     """
+    # TODO: prepare mapping to optimize this
     promotion = Promotion.objects.filter(old_sale_id=sale_id)
     promotion_rules = PromotionRule.objects.filter(
         Exists(promotion.filter(id=OuterRef("promotion_id")))

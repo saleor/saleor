@@ -6,6 +6,8 @@ from decimal import Decimal
 import graphene
 from django.db.models import Exists, OuterRef
 from ....order.models import OrderLine
+from ....product.models import Product
+from ....product.utils.variant_prices import update_products_discounted_price
 from ...models import (
     Promotion,
     PromotionRule,
@@ -22,6 +24,9 @@ from babel.numbers import get_currency_precision
 # The batch of size 100 takes ~0.9 second and consumes ~30MB memory at peak
 BATCH_SIZE = 100
 
+# Results in memory usage of ~40MB for 500 products
+DISCOUNTED_PRICES_RECALCULATION_BATCH_SIZE = 500
+
 
 @dataclass
 class RuleInfo:
@@ -32,8 +37,6 @@ class RuleInfo:
 
 @app.task
 def migrate_sales_to_promotions_task():
-    # TODO: to update - needs to create `VariantChannelListingPromotionRule` instances
-
     sales = Sale.objects.exclude(
         Exists(Promotion.objects.filter(old_sale_id=OuterRef("pk")))
     ).order_by("pk")
@@ -100,6 +103,10 @@ def migrate_sales_not_listed_in_any_channels_task():
     if ids:
         migrate_sales_not_listed_in_any_channels(ids)
         migrate_sales_not_listed_in_any_channels_task.delay()
+    else:
+        # Call discounted price recalculation to create
+        # VariantChannelListingPromotionRule instances
+        update_discounted_prices_task.delay()
 
 
 def migrate_sales_not_listed_in_any_channels(sales_batch_pks):
@@ -153,7 +160,6 @@ def migrate_sale_listing_to_promotion_rules(
             rules_info.append(
                 RuleInfo(
                     rule=create_promotion_rule(
-                        PromotionRule,
                         sale_listing.sale,
                         promotion,
                         sale_listing.discount_value,
@@ -293,3 +299,20 @@ def get_rule_by_channel_sale(rules_info):
         f"{rule_info.channel_id}_{rule_info.sale_id}": rule_info.rule
         for rule_info in rules_info
     }
+
+
+@app.task
+def update_discounted_prices_task(
+    start_pk: int = 0,
+):
+    products = list(
+        Product.objects.filter(pk__gt=start_pk)
+        .prefetch_related("channel_listings", "collections")
+        .order_by("pk")[:DISCOUNTED_PRICES_RECALCULATION_BATCH_SIZE]
+    )
+
+    if products:
+        update_products_discounted_price(products)
+        update_discounted_prices_task(
+            start_pk=products[-1].pk,
+        )
