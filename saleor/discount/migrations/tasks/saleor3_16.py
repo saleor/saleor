@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from typing import Dict, List
 from ....celeryconf import app
+from decimal import Decimal
 
 import graphene
 from django.db.models import Exists, OuterRef
+from ....order.models import OrderLine
 from ...models import (
     Promotion,
     PromotionRule,
@@ -14,6 +16,7 @@ from ...models import (
     CheckoutLineDiscount,
     OrderLineDiscount,
 )
+from babel.numbers import get_currency_precision
 
 
 # The batch of size 100 takes ~0.9 second and consumes ~30MB memory at peak
@@ -253,22 +256,36 @@ def migrate_checkout_line_discounts(sales_pks, rule_by_channel_and_sale):
 
 
 def migrate_order_line_discounts(sales_pks, rule_by_channel_and_sale):
-    # TODO: to update - should be created based on `OrderLine.sale_id`
-    if order_line_discounts := OrderLineDiscount.objects.filter(
-        sale_id__in=sales_pks
-    ).select_related("line__order"):
-        for order_line_discount in order_line_discounts:
-            if order_line := order_line_discount.line:
-                channel_id = order_line.order.channel_id
-                sale_id = order_line_discount.sale_id
-                lookup = f"{channel_id}_{sale_id}"
-                order_line_discount.type = "promotion"
-                if promotion_rule := rule_by_channel_and_sale.get(lookup):
-                    order_line_discount.promotion_rule = promotion_rule
+    global_pks = [graphene.Node.to_global_id("Sale", pk) for pk in sales_pks]
+    if order_lines := OrderLine.objects.filter(sale_id__in=global_pks).select_related(
+        "order"
+    ):
+        order_line_discounts = []
+        for order_line in order_lines:
+            channel_id = order_line.order.channel_id
+            sale_id = graphene.Node.from_global_id(order_line.sale_id)[1]
+            lookup = f"{channel_id}_{sale_id}"
+            if rule := rule_by_channel_and_sale.get(lookup):
+                order_line_discounts.append(
+                    OrderLineDiscount(
+                        type="promotion",
+                        value_type=rule.reward_value_type,
+                        value=rule.reward_value,
+                        amount_value=get_discount_amount_value(order_line),
+                        currency=order_line.currency,
+                        promotion_rule=rule,
+                        line=order_line,
+                    )
+                )
 
-        OrderLineDiscount.objects.bulk_update(
-            order_line_discounts, ["promotion_rule_id", "type"]
-        )
+        OrderLineDiscount.objects.bulk_create(order_line_discounts)
+
+
+def get_discount_amount_value(order_line):
+    precision = get_currency_precision(order_line.currency)
+    number_places = Decimal(10) ** -precision
+    price = order_line.quantity * order_line.unit_discount_amount
+    return price.quantize(number_places)
 
 
 def get_rule_by_channel_sale(rules_info):
