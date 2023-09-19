@@ -92,7 +92,7 @@ def get_product_discount_on_sale(
     discount: DiscountInfo,
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> Tuple[int, Callable]:
+) -> Tuple["Sale", Callable, Optional["SaleChannelListing"]]:
     """Return sale id, discount value if product is on sale or raise NotApplicable."""
     is_product_on_sale = (
         product.id in discount.product_ids
@@ -102,7 +102,11 @@ def get_product_discount_on_sale(
     is_variant_on_sale = variant_id and variant_id in discount.variants_ids
     if is_product_on_sale or is_variant_on_sale:
         sale_channel_listing = discount.channel_listings.get(channel.slug)
-        return discount.sale.id, discount.sale.get_discount(sale_channel_listing)
+        return (
+            discount.sale,
+            discount.sale.get_discount(sale_channel_listing),
+            sale_channel_listing,
+        )
     raise NotApplicable("Discount not applicable for this product")
 
 
@@ -113,7 +117,7 @@ def get_product_discounts(
     discounts: Iterable[DiscountInfo],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> Iterator[Tuple[int, Callable]]:
+) -> Iterator[Tuple["Sale", Callable, Optional["SaleChannelListing"]]]:
     """Return sale ids, discount values for all discounts applicable to a product."""
     for discount in discounts:
         try:
@@ -124,7 +128,7 @@ def get_product_discounts(
             pass
 
 
-def get_sale_id_with_min_price(
+def get_sale_with_min_price(
     *,
     product: "Product",
     price: Money,
@@ -132,11 +136,11 @@ def get_sale_id_with_min_price(
     discounts: Optional[Iterable[DiscountInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> Tuple[Optional[int], Money]:
+) -> Tuple[Optional["Sale"], Money, Optional["SaleChannelListing"]]:
     """Return a sale_id and minimum product's price."""
     available_discounts = [
-        (sale_id, discount)
-        for sale_id, discount in get_product_discounts(
+        (sale, discount, sale_channel_listing)
+        for sale, discount, sale_channel_listing in get_product_discounts(
             product=product,
             collection_ids=collection_ids,
             discounts=discounts or [],
@@ -145,10 +149,13 @@ def get_sale_id_with_min_price(
         )
     ]
     if not available_discounts:
-        return None, price
+        return None, price, None
 
     applied_discount = min(
-        [(sale_id, discount(price)) for sale_id, discount in available_discounts],
+        [
+            (sale, discount(price), sale_channel_listing)
+            for sale, discount, sale_channel_listing in available_discounts
+        ],
         key=lambda d: d[1],  # sort over a min price
     )
     return applied_discount
@@ -166,7 +173,7 @@ def calculate_discounted_price(
     """Return minimum product's price of all prices with discounts applied."""
     sale_id = None
     if discounts:
-        sale_id, price = get_sale_id_with_min_price(
+        sale, price, _ = get_sale_with_min_price(
             product=product,
             price=price,
             collection_ids=collection_ids,
@@ -174,10 +181,11 @@ def calculate_discounted_price(
             channel=channel,
             variant_id=variant_id,
         )
+        sale_id = sale.id if sale else None
     return sale_id, price
 
 
-def get_sale_id_applied_as_a_discount(
+def get_sale_applied_as_a_discount(
     *,
     product: "Product",
     price: Money,
@@ -185,13 +193,13 @@ def get_sale_id_applied_as_a_discount(
     discounts: Optional[Iterable[DiscountInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> Optional[int]:
+) -> Tuple[Optional["Sale"], Optional["SaleChannelListing"]]:
     """Return an ID of Sale applied to product."""
     if not discounts:
-        return None
+        return None, None
 
     collection_ids = {collection.id for collection in collections}
-    sale_id, _ = get_sale_id_with_min_price(
+    sale, _, sale_channel_listing = get_sale_with_min_price(
         product=product,
         price=price,
         collection_ids=collection_ids,
@@ -199,7 +207,7 @@ def get_sale_id_applied_as_a_discount(
         channel=channel,
         variant_id=variant_id,
     )
-    return sale_id
+    return sale, sale_channel_listing
 
 
 def validate_voucher_for_checkout(
@@ -625,6 +633,8 @@ def create_or_update_discount_objects_from_sale_for_checkout(
     lines_info: Iterable["CheckoutLineInfo"],
     sales_info: Iterable[DiscountInfo],
 ):
+    from .sale_converter import get_promotion_rule_for_sale
+
     line_discounts_to_create = []
     line_discounts_to_update = []
     updated_fields = []
@@ -655,6 +665,7 @@ def create_or_update_discount_objects_from_sale_for_checkout(
         if sale and sale_channel_listing and discount_amount:
             sale = cast(Sale, sale)
             sale_channel_listing = cast(SaleChannelListing, sale_channel_listing)
+            promotion_rule = get_promotion_rule_for_sale(sale, sale_channel_listing)
 
             # Fetch Sale translation
             translation_language_code = checkout_info.checkout.language_code
@@ -677,6 +688,7 @@ def create_or_update_discount_objects_from_sale_for_checkout(
                     translated_name=translated_name,
                     reason=None,
                     sale=sale,
+                    promotion_rule=promotion_rule,
                 )
                 line_discounts_to_create.append(line_discount)
                 line_info.discounts.append(line_discount)
@@ -699,6 +711,9 @@ def create_or_update_discount_objects_from_sale_for_checkout(
                 if discount_to_update.sale != sale:
                     discount_to_update.sale = sale
                     updated_fields.append("sale")
+                if not discount_to_update.promotion_rule:
+                    discount_to_update.promotion_rule = promotion_rule
+                    updated_fields.append("promotion_rule")
 
                 line_discounts_to_update.append(discount_to_update)
 

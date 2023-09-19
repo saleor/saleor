@@ -18,6 +18,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.forms.models import model_to_dict
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -34,7 +35,7 @@ from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountType, DiscountValueType
-from ..discount.models import NotApplicable
+from ..discount.models import NotApplicable, OrderLineDiscount
 from ..discount.utils import (
     add_voucher_usage_by_customer,
     increase_voucher_usage,
@@ -270,8 +271,6 @@ def _create_line_for_order(
         discount_amount = discount_price.net
 
     unit_discount_reason = None
-    if sale_id:
-        unit_discount_reason = f'Sale: {graphene.Node.to_global_id("Sale", sale_id)}'
     if voucher_code:
         if unit_discount_reason:
             unit_discount_reason += f" & Voucher code: {voucher_code}"
@@ -311,6 +310,13 @@ def _create_line_for_order(
         private_metadata=checkout_line.private_metadata,
         **get_tax_class_kwargs_for_order_line(tax_class),
     )
+
+    line_discounts = _create_order_line_discounts(checkout_line_info, line)
+    if line_discounts:
+        line.unit_discount_reason = (
+            f'Sale: {graphene.Node.to_global_id("Sale", sale_id)}'
+        )
+
     is_digital = line.is_digital
     line_info = OrderLineInfo(
         line=line,
@@ -319,9 +325,25 @@ def _create_line_for_order(
         variant=variant,
         digital_content=variant.digital_content if is_digital and variant else None,
         warehouse_pk=checkout_info.delivery_method_info.warehouse_pk,
+        line_discounts=line_discounts,
     )
 
     return line_info
+
+
+def _create_order_line_discounts(
+    checkout_line_info: "CheckoutLineInfo", order_line: "OrderLine"
+) -> List["OrderLineDiscount"]:
+    discount = checkout_line_info.get_sale_discount()
+    if not discount:
+        return []
+    discount_data = model_to_dict(discount)
+    discount_data.pop("line")
+    discount_data["promotion_rule_id"] = discount_data.pop("promotion_rule")
+    discount_data["sale_id"] = discount_data.pop("sale")
+    discount_data["line_id"] = order_line.pk
+    order_line_discount = OrderLineDiscount(**discount_data)
+    return [order_line_discount]
 
 
 def _create_lines_for_order(
@@ -538,12 +560,16 @@ def _create_order(
     _handle_checkout_discount(order, checkout)
 
     order_lines = []
+    order_line_discounts: List[OrderLineDiscount] = []
     for line_info in order_lines_info:
         line = line_info.line
         line.order_id = order.pk
         order_lines.append(line)
+        if discounts := line_info.line_discounts:
+            order_line_discounts.extend(discounts)
 
     OrderLine.objects.bulk_create(order_lines)
+    OrderLineDiscount.objects.bulk_create(order_line_discounts)
 
     country_code = checkout_info.get_country()
     additional_warehouse_lookup = (
