@@ -31,7 +31,7 @@ def test_update_page_assignment(second_page):
     for assigned_page in apa_values_before_migration:
         assert assigned_page.page is None
 
-    with patch("saleor.attribute.migrations.tasks.saleor3_16.BATCH_SIZE", 5):
+    with patch("saleor.attribute.migrations.tasks.saleor3_16.PAGE_BATCH_SIZE", 5):
         assign_pages_to_attribute_values_task()
 
     apa_values_post_migration = AssignedPageAttributeValue.objects.filter(
