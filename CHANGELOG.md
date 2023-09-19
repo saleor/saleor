@@ -51,6 +51,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Called after `fulfillmentUpdateTracking` or `orderFulfill` mutation if tracking number is updated.
 - Add support for tokenizing payment methods via sync webhooks - #13879 by @korycins
 - Add missing `FULFILLMENT_CREATED` event call to `automatically_fulfill_digital_lines_with_fulfillment_created` action. - #13823, by @Air-t
+- Increase timeout of shipping filtering webhooks: `ORDER_FILTER_SHIPPING_METHODS` and `CHECKOUT_FILTER_SHIPPING_METHODS` to 20 seconds - #13989 by @maarcingebala
 
 ### Other changes
 
