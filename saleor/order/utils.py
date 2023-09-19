@@ -15,11 +15,17 @@ from ..core.utils.country import get_active_country
 from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountType
-from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
+from ..discount.models import (
+    NotApplicable,
+    OrderDiscount,
+    OrderLineDiscount,
+    Voucher,
+    VoucherType,
+)
 from ..discount.utils import (
     apply_discount_to_value,
     get_products_voucher_discount,
-    get_sale_id_applied_as_a_discount,
+    get_sale_applied_as_a_discount,
     validate_voucher_in_order,
 )
 from ..giftcard import events as gift_card_events
@@ -208,6 +214,8 @@ def create_order_line(
     discounts=None,
     allocate_stock=False,
 ):
+    from ..discount.sale_converter import get_promotion_rule_for_sale
+
     channel = order.channel
     variant = line_data.variant
     quantity = line_data.quantity
@@ -281,7 +289,7 @@ def create_order_line(
 
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
-        sale_id = get_sale_id_applied_as_a_discount(
+        sale, sale_channel_listing = get_sale_applied_as_a_discount(
             product=product,
             price=channel_listing.price,
             discounts=discounts,
@@ -289,6 +297,7 @@ def create_order_line(
             channel=channel,
             variant_id=variant.id,
         )
+        sale_id = sale.id if sale else None
 
         tax_configuration = channel.tax_configuration
         prices_entered_with_tax = tax_configuration.prices_entered_with_tax
@@ -312,6 +321,21 @@ def create_order_line(
                 "sale_id",
             ]
         )
+
+        if sale:
+            rule = get_promotion_rule_for_sale(sale, sale_channel_listing)
+            OrderLineDiscount.objects.create(
+                type=DiscountType.SALE,
+                value_type=sale.type,
+                value=sale_channel_listing.discount_value
+                if sale_channel_listing
+                else None,
+                amount_value=discount_amount.amount,
+                currency=discount_amount.currency,
+                sale=sale,
+                promotion_rule=rule,
+                line=line,
+            )
 
     if allocate_stock:
         increase_allocations(

@@ -96,7 +96,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale(
         discounts=[],
     )
     product_collections = set(pc.id for pc in checkout_line_info.collections)
-    _, sale_discount = get_product_discount_on_sale(
+    _, sale_discount, _ = get_product_discount_on_sale(
         product=checkout_line_info.product,
         product_collections=product_collections,
         discount=discount_info,
@@ -142,7 +142,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_custom_price(
     currency = checkout_line_info.channel_listing.currency
     expected_undiscounted_price = Money(price_override, currency)
     product_collections = set(pc.id for pc in checkout_line_info.collections)
-    _, sale_discount = get_product_discount_on_sale(
+    _, sale_discount, _ = get_product_discount_on_sale(
         product=checkout_line_info.product,
         product_collections=product_collections,
         discount=discount_info,
@@ -423,7 +423,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_and_voucher(
         discounts=[],
     )
     product_collections = set(pc.id for pc in checkout_line_info.collections)
-    _, sale_discount = get_product_discount_on_sale(
+    _, sale_discount, _ = get_product_discount_on_sale(
         product=checkout_line_info.product,
         product_collections=product_collections,
         discount=discount_info,
@@ -503,7 +503,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale(
         discounts=[],
     )
     product_collections = set(pc.id for pc in checkout_line_info.collections)
-    _, sale_discount = get_product_discount_on_sale(
+    _, sale_discount, _ = get_product_discount_on_sale(
         product=checkout_line_info.product,
         product_collections=product_collections,
         discount=discount_info,
@@ -752,7 +752,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher(
         discounts=[],
     )
     product_collections = set(pc.id for pc in checkout_line_info.collections)
-    _, sale_discount = get_product_discount_on_sale(
+    _, sale_discount, _ = get_product_discount_on_sale(
         product=checkout_line_info.product,
         product_collections=product_collections,
         discount=discount_info,
@@ -818,7 +818,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher_applie
         discounts=[],
     )
     product_collections = set(pc.id for pc in checkout_line_info.collections)
-    _, sale_discount = get_product_discount_on_sale(
+    _, sale_discount, _ = get_product_discount_on_sale(
         product=checkout_line_info.product,
         product_collections=product_collections,
         discount=discount_info,
