@@ -7,7 +7,7 @@ from .....product import models as product_models
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelBulkDeleteMutation
 from ....core.types import DiscountError, NonNullList
@@ -24,7 +24,7 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
         )
 
     class Meta:
-        description = "Deletes promotions." + ADDED_IN_315 + PREVIEW_FEATURE
+        description = "Deletes promotions." + ADDED_IN_317 + PREVIEW_FEATURE
         model = models.Promotion
         object_type = Promotion
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)

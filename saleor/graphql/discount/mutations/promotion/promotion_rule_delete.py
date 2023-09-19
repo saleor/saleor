@@ -7,7 +7,7 @@ from .....product.tasks import update_products_discounted_prices_for_promotion_t
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import Error
 from ....core.utils import WebhookEventInfo
@@ -29,7 +29,7 @@ class PromotionRuleDelete(ModelDeleteMutation):
         )
 
     class Meta:
-        description = "Deletes a promotion rule." + ADDED_IN_315 + PREVIEW_FEATURE
+        description = "Deletes a promotion rule." + ADDED_IN_317 + PREVIEW_FEATURE
         model = models.PromotionRule
         object_type = PromotionRule
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)

@@ -51,6 +51,7 @@ from ..core.descriptions import (
     ADDED_IN_314,
     ADDED_IN_315,
     ADDED_IN_316,
+    ADDED_IN_317,
     DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
@@ -1178,7 +1179,7 @@ class PromotionCreated(SubscriptionObjectType, PromotionBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when new promotion is created." + ADDED_IN_315 + PREVIEW_FEATURE
+            "Event sent when new promotion is created." + ADDED_IN_317 + PREVIEW_FEATURE
         )
 
 
@@ -1188,7 +1189,7 @@ class PromotionUpdated(SubscriptionObjectType, PromotionBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when promotion is updated." + ADDED_IN_315 + PREVIEW_FEATURE
+            "Event sent when promotion is updated." + ADDED_IN_317 + PREVIEW_FEATURE
         )
 
 
@@ -1198,7 +1199,7 @@ class PromotionDeleted(SubscriptionObjectType, PromotionBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when promotion is deleted." + ADDED_IN_315 + PREVIEW_FEATURE
+            "Event sent when promotion is deleted." + ADDED_IN_317 + PREVIEW_FEATURE
         )
 
 
@@ -1208,7 +1209,7 @@ class PromotionStarted(SubscriptionObjectType, PromotionBase):
         enable_dry_run = True
         description = (
             "The event informs about the start of the promotion."
-            + ADDED_IN_315
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
         interfaces = (Event,)
@@ -1220,7 +1221,7 @@ class PromotionEnded(SubscriptionObjectType, PromotionBase):
         enable_dry_run = True
         description = (
             "The event informs about the end of the promotion."
-            + ADDED_IN_315
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
         interfaces = (Event,)
@@ -1245,7 +1246,7 @@ class PromotionRuleCreated(SubscriptionObjectType, PromotionRuleBase):
         interfaces = (Event,)
         description = (
             "Event sent when new promotion rule is created."
-            + ADDED_IN_315
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
 
@@ -1257,7 +1258,7 @@ class PromotionRuleUpdated(SubscriptionObjectType, PromotionRuleBase):
         interfaces = (Event,)
         description = (
             "Event sent when new promotion rule is updated."
-            + ADDED_IN_315
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
 
@@ -1269,7 +1270,7 @@ class PromotionRuleDeleted(SubscriptionObjectType, PromotionRuleBase):
         interfaces = (Event,)
         description = (
             "Event sent when new promotion rule is deleted."
-            + ADDED_IN_315
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
 

@@ -15,7 +15,6 @@ from .product_query import get_product
 from .product_type import create_product_type
 from .product_variant import create_product_variant, raw_create_product_variant
 from .product_variant_bulk_create import create_variants_in_bulk
-from .product_variant_channel_listing import create_product_variant_channel_listing
 from .product_variant_channel_listing import (
     create_product_variant_channel_listing,
     raw_create_product_variant_channel_listing,
