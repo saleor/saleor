@@ -3,6 +3,7 @@ from .promotion_delete import delete_promotion
 from .promotion_query import promotion_query
 from .promotion_rule_create import create_promotion_rule
 from .promotion_rule_update import update_promotion_rule
+from .promotions_query import promotions_query
 
 __all__ = [
     "create_promotion",
@@ -10,4 +11,5 @@ __all__ = [
     "update_promotion_rule",
     "delete_promotion",
     "promotion_query",
+    "promotions_query",
 ]
