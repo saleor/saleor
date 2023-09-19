@@ -2,11 +2,22 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
-# 3.16.0 [Unreleased]
+# 3.17.0 [Unreleased]
+
+### Breaking changes
+
+### GraphQL API
+
+### Saleor Apps
+
+### Other changes
+
+# 3.16.0
 
 ### Breaking changes
 
 - **Feature preview breaking change**:
+
   - Deprecate `OrderSettingsInput.defaultTransactionFlowStrategy`. It will be removed
     in 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
   - Deprecate `OrderSettings.defaultTransactionFlowStrategy`. It will be removed
@@ -30,7 +41,6 @@ All notable, unreleased changes to this project will be documented in this file.
   external reference. - #13342 by @Smit-Parmar
 - Add Filter warehouses by metadata - #13345 by @Smit-Parmar
 - Add API for tokenizing payment methods - #13879 by @korycins
-
 
 - Deprecate the `NOTIFY_USER` webhook and the `externalNotificationTrigger` mutation - #13881 by @maarcingebala
   - See the docs for more details about migrating from the `NOTIFY_USER` webhook to other events: https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation
