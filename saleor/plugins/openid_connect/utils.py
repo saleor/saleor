@@ -17,6 +17,7 @@ from django.utils import timezone
 from jwt import PyJWTError
 
 from ...account.models import Group, User
+from ...account.search import prepare_user_search_document_value
 from ...account.utils import get_user_groups_permissions
 from ...core.http_client import HTTPClient
 from ...core.jwt import (
@@ -425,6 +426,8 @@ def get_or_create_user_from_payload(
         user=user,
         oidc_key=oidc_metadata_key,
         user_email=user_email,
+        user_first_name=defaults_create["first_name"],
+        user_last_name=defaults_create["last_name"],
         sub=sub,  # type: ignore
         last_login=last_login,
     )
@@ -442,14 +445,16 @@ def _update_user_details(
     user: User,
     oidc_key: str,
     user_email: str,
+    user_first_name: str,
+    user_last_name: str,
     sub: str,
     last_login: Optional[int],
 ):
     user_sub = user.get_value_from_private_metadata(oidc_key)
-    fields_to_save = []
+    fields_to_save = set()
     if user_sub != sub:
         user.store_value_in_private_metadata({oidc_key: sub})
-        fields_to_save.append("private_metadata")
+        fields_to_save.add("private_metadata")
 
     if user.email != user_email:
         if User.objects.filter(email=user_email).exists():
@@ -460,12 +465,13 @@ def _update_user_details(
             return
         user.email = user_email
         match_orders_with_new_user(user)
-        fields_to_save.append("email")
+        fields_to_save.update({"email", "search_document"})
+
     if last_login:
         if not user.last_login or user.last_login.timestamp() < last_login:
             login_time = timezone.make_aware(datetime.fromtimestamp(last_login))
             user.last_login = login_time
-            fields_to_save.append("last_login")
+            fields_to_save.add("last_login")
     else:
         if (
             not user.last_login
@@ -473,7 +479,20 @@ def _update_user_details(
             > settings.OAUTH_UPDATE_LAST_LOGIN_THRESHOLD
         ):
             user.last_login = timezone.now()
-            fields_to_save.append("last_login")
+            fields_to_save.add("last_login")
+
+    if user.first_name != user_first_name:
+        user.first_name = user_first_name
+        fields_to_save.update({"first_name", "search_document"})
+
+    if user.last_name != user_last_name:
+        user.last_name = user_last_name
+        fields_to_save.update({"last_name", "search_document"})
+
+    if "search_document" in fields_to_save:
+        user.search_document = prepare_user_search_document_value(
+            user, attach_addresses_data=False
+        )
 
     if fields_to_save:
         user.save(update_fields=fields_to_save)

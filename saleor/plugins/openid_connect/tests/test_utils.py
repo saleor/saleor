@@ -3,7 +3,7 @@ import time
 import warnings
 from datetime import datetime, timedelta
 from unittest import mock
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 import pytz
@@ -28,6 +28,7 @@ from ..exceptions import AuthenticationError
 from ..utils import (
     JWKS_CACHE_TIME,
     JWKS_KEY,
+    _update_user_details,
     assign_staff_to_default_group_and_update_permissions,
     create_jwt_refresh_token,
     create_jwt_token,
@@ -732,3 +733,112 @@ def test_assign_staff_to_default_group_and_update_permissions_update_user_permis
         permission_manage_users.name,
         permission_manage_orders.name,
     }
+
+
+@patch("saleor.plugins.openid_connect.utils.match_orders_with_new_user")
+@patch("saleor.plugins.openid_connect.utils.logger")
+def test_update_user_details_no_user_with_new_email_in_db(
+    mock_logger,
+    mock_match_orders_with_new_user,
+    customer_user,
+):
+    # given
+    assert customer_user.email != "test_user_email@example.com"
+
+    # when
+    _update_user_details(
+        customer_user,
+        "test oidc_key",
+        "test_user_email@example.com",
+        customer_user.first_name,
+        customer_user.last_name,
+        "test oidc_sub",
+        customer_user.last_login,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.email == "test_user_email@example.com"
+    assert mock_logger.mock_calls == []
+    mock_match_orders_with_new_user.assert_called_once_with(customer_user)
+
+
+@patch("saleor.plugins.openid_connect.utils.match_orders_with_new_user")
+@patch("saleor.plugins.openid_connect.utils.logger")
+def test_update_user_details_user_with_new_email_in_db(
+    mock_logger, mock_match_orders_with_new_user, customer_user, customer_user2
+):
+    # given
+    assert customer_user.email != customer_user2.email
+
+    # when
+    _update_user_details(
+        customer_user,
+        "test oidc_key",
+        customer_user2.email,
+        customer_user.first_name,
+        customer_user.last_name,
+        "test oidc_sub",
+        customer_user.last_login,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.email != customer_user2.email
+    assert mock_logger.mock_calls == [
+        call.warning(
+            "Unable to update user email as the new one already exists in DB",
+            extra={"oidc_key": "test oidc_key"},
+        )
+    ]
+    mock_match_orders_with_new_user.assert_not_called()
+
+
+def test_update_user_details_update_user_first_name(
+    customer_user,
+):
+    # given
+    expected_search_document = "test@example.com\ntest user_first_name\nwade\n"
+    assert customer_user.first_name != "test user_first_name"
+    assert customer_user.search_document != expected_search_document
+
+    # when
+    _update_user_details(
+        customer_user,
+        "test oidc_key",
+        customer_user.email,
+        "test user_first_name",
+        customer_user.last_name,
+        "test oidc_sub",
+        customer_user.last_login,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.first_name == "test user_first_name"
+    assert customer_user.search_document == expected_search_document
+
+
+def test_update_user_details_update_user_last_name(
+    customer_user,
+):
+    # given
+    expected_search_document = "test@example.com\nleslie\ntest user_last_name\n"
+    assert customer_user.last_name != "test user_last_name"
+    assert customer_user.search_document != expected_search_document
+
+    # when
+    _update_user_details(
+        customer_user,
+        "test oidc_key",
+        customer_user.email,
+        customer_user.first_name,
+        "test user_last_name",
+        "test oidc_sub",
+        customer_user.last_login,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.last_name == "test user_last_name"
+    assert customer_user.search_document == expected_search_document
