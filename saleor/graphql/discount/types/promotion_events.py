@@ -8,7 +8,7 @@ from ....permission.enums import AccountPermissions, AppPermission
 from ...account.dataloaders import UserByUserIdLoader
 from ...account.utils import is_owner_or_has_one_of_perms
 from ...app.dataloaders import AppByIdLoader
-from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
 from ...core.types import ModelObjectType
@@ -82,7 +82,7 @@ class PromotionCreatedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = (
             "History log of the promotion created event."
-            + ADDED_IN_315
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
         interfaces = [relay.Node, PromotionEventInterface]
@@ -94,7 +94,7 @@ class PromotionUpdatedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = (
             "History log of the promotion updated event."
-            + ADDED_IN_315
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
         interfaces = [relay.Node, PromotionEventInterface]
@@ -106,7 +106,7 @@ class PromotionStartedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = (
             "History log of the promotion started event."
-            + ADDED_IN_315
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
         interfaces = [relay.Node, PromotionEventInterface]
@@ -117,7 +117,7 @@ class PromotionStartedEvent(ModelObjectType[models.PromotionEvent]):
 class PromotionEndedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = (
-            "History log of the promotion ended event." + ADDED_IN_315 + PREVIEW_FEATURE
+            "History log of the promotion ended event." + ADDED_IN_317 + PREVIEW_FEATURE
         )
         interfaces = [relay.Node, PromotionEventInterface]
         model = models.PromotionEvent
@@ -128,7 +128,7 @@ class PromotionRuleEventInterface(graphene.Interface):
     class Meta:
         description = (
             "History log of the promotion event related to rule."
-            + ADDED_IN_315
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
         interfaces = [relay.Node]
@@ -148,7 +148,7 @@ class PromotionRuleCreatedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = (
             "History log of the promotion rule created event."
-            + ADDED_IN_315
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
         interfaces = [relay.Node, PromotionEventInterface, PromotionRuleEventInterface]
@@ -160,7 +160,7 @@ class PromotionRuleUpdatedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = (
             "History log of the promotion rule created event."
-            + ADDED_IN_315
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
         interfaces = [relay.Node, PromotionEventInterface, PromotionRuleEventInterface]
@@ -172,7 +172,7 @@ class PromotionRuleDeletedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = (
             "History log of the promotion rule created event."
-            + ADDED_IN_315
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
         interfaces = [relay.Node, PromotionEventInterface, PromotionRuleEventInterface]

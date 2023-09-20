@@ -1191,7 +1191,7 @@ type Query {
   """
   Look up a promotion by ID.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.17.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -1205,7 +1205,7 @@ type Query {
   """
   List of the promotions.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.17.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9525,7 +9525,7 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
 """
 Represents promotion's original translatable fields and related translations.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 """
 type PromotionTranslatableContent implements Node @doc(category: "Discounts") {
   """ID of the promotion translatable content."""
@@ -9551,7 +9551,7 @@ type PromotionTranslatableContent implements Node @doc(category: "Discounts") {
 """
 Represents promotion translations.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 """
 type PromotionTranslation implements Node @doc(category: "Discounts") {
   """ID of the promotion translation."""
@@ -9574,7 +9574,7 @@ type PromotionTranslation implements Node @doc(category: "Discounts") {
 """
 Represents promotion rule's original translatable fields and related translations.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 """
 type PromotionRuleTranslatableContent implements Node @doc(category: "Discounts") {
   """ID of the promotion rule translatable content."""
@@ -9600,7 +9600,7 @@ type PromotionRuleTranslatableContent implements Node @doc(category: "Discounts"
 """
 Represents promotion rule translations.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 """
 type PromotionRuleTranslation implements Node @doc(category: "Discounts") {
   """ID of the promotion rule translation."""
@@ -13893,7 +13893,7 @@ enum VoucherSortField {
 """
 Represents the promotion that allow creating discounts based on given conditions, and is visible to all the customers.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -13972,7 +13972,7 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
 """
 Represents the promotion rule that specifies the conditions that must be met to apply the promotion discount.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -14024,7 +14024,7 @@ union PromotionEvent = PromotionCreatedEvent | PromotionUpdatedEvent | Promotion
 """
 History log of the promotion created event.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -14076,7 +14076,7 @@ enum PromotionEventsEnum @doc(category: "Discounts") {
 """
 History log of the promotion updated event.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -14100,7 +14100,7 @@ type PromotionUpdatedEvent implements Node & PromotionEventInterface @doc(catego
 """
 History log of the promotion started event.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -14124,7 +14124,7 @@ type PromotionStartedEvent implements Node & PromotionEventInterface @doc(catego
 """
 History log of the promotion ended event.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -14148,7 +14148,7 @@ type PromotionEndedEvent implements Node & PromotionEventInterface @doc(category
 """
 History log of the promotion rule created event.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -14175,7 +14175,7 @@ type PromotionRuleCreatedEvent implements Node & PromotionEventInterface & Promo
 """
 History log of the promotion event related to rule.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -14187,7 +14187,7 @@ interface PromotionRuleEventInterface {
 """
 History log of the promotion rule created event.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -14214,7 +14214,7 @@ type PromotionRuleUpdatedEvent implements Node & PromotionEventInterface & Promo
 """
 History log of the promotion rule created event.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -17600,7 +17600,7 @@ type Mutation {
   """
   Creates a new promotion.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.17.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -17618,7 +17618,7 @@ type Mutation {
   """
   Updates an existing promotion.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.17.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -17640,7 +17640,7 @@ type Mutation {
   """
   Deletes a promotion.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.17.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -17657,7 +17657,7 @@ type Mutation {
   """
   Creates a new promotion rule.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.17.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -17674,7 +17674,7 @@ type Mutation {
   """
   Updates an existing promotion rule.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.17.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -17694,7 +17694,7 @@ type Mutation {
   """
   Deletes a promotion rule.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.17.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -17711,7 +17711,7 @@ type Mutation {
   """
   Creates/updates translations for a promotion.
   
-  Added in Saleor 3.15. 
+  Added in Saleor 3.17. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
@@ -17729,7 +17729,7 @@ type Mutation {
   """
   Creates/updates translations for a promotion rule.
   
-  Added in Saleor 3.15. 
+  Added in Saleor 3.17. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
@@ -17747,7 +17747,7 @@ type Mutation {
   """
   Deletes promotions.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.17.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -27029,7 +27029,7 @@ input ExternalNotificationTriggerInput {
 """
 Creates a new promotion.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -27134,7 +27134,7 @@ input CataloguePredicateInput @doc(category: "Discounts") {
 """
 Updates an existing promotion.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -27188,7 +27188,7 @@ input PromotionUpdateInput {
 """
 Deletes a promotion.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -27224,7 +27224,7 @@ enum PromotionDeleteErrorCode {
 """
 Creates a new promotion rule.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -27293,7 +27293,7 @@ input PromotionRuleCreateInput {
 """
 Updates an existing promotion rule.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -27366,7 +27366,7 @@ input PromotionRuleUpdateInput {
 """
 Deletes a promotion rule.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -27402,7 +27402,7 @@ enum PromotionRuleDeleteErrorCode {
 """
 Creates/updates translations for a promotion.
 
-Added in Saleor 3.15. 
+Added in Saleor 3.17. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
@@ -27425,7 +27425,7 @@ input PromotionTranslationInput {
 """
 Creates/updates translations for a promotion rule.
 
-Added in Saleor 3.15. 
+Added in Saleor 3.17. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
@@ -27448,7 +27448,7 @@ input PromotionRuleTranslationInput {
 """
 Deletes promotions.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -33107,7 +33107,7 @@ type SaleToggle implements Event @doc(category: "Discounts") {
 """
 Event sent when new promotion is created.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -33131,7 +33131,7 @@ type PromotionCreated implements Event @doc(category: "Discounts") {
 """
 Event sent when promotion is updated.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -33155,7 +33155,7 @@ type PromotionUpdated implements Event @doc(category: "Discounts") {
 """
 Event sent when promotion is deleted.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -33179,7 +33179,7 @@ type PromotionDeleted implements Event @doc(category: "Discounts") {
 """
 The event informs about the start of the promotion.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -33203,7 +33203,7 @@ type PromotionStarted implements Event @doc(category: "Discounts") {
 """
 The event informs about the end of the promotion.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -33227,7 +33227,7 @@ type PromotionEnded implements Event @doc(category: "Discounts") {
 """
 Event sent when new promotion rule is created.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -33251,7 +33251,7 @@ type PromotionRuleCreated implements Event @doc(category: "Discounts") {
 """
 Event sent when new promotion rule is updated.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -33275,7 +33275,7 @@ type PromotionRuleUpdated implements Event @doc(category: "Discounts") {
 """
 Event sent when new promotion rule is deleted.
 
-Added in Saleor 3.15.
+Added in Saleor 3.17.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
