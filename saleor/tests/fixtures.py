@@ -5666,7 +5666,6 @@ def promotion_converted_from_sale(converted_sale_catalogue_predicate, channel_US
         old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
     )
     rule.channels.add(channel_USD)
-
     return promotion
 
 
@@ -5684,17 +5683,23 @@ def promotion_converted_from_sale_with_many_channels(
         old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
     )
     rule.channels.add(channel_PLN)
-
     return promotion
 
 
 @pytest.fixture
-def promotion_converted_from_sale_with_empty_predicate():
-    from ..discount.tests.sale_converter import convert_sales_to_promotions
-
-    sale = Sale.objects.create(name="Sale with no rules", type=DiscountValueType.FIXED)
-    convert_sales_to_promotions()
-    return Promotion.objects.filter(old_sale_id=sale.id).last()
+def promotion_converted_from_sale_with_empty_predicate(channel_USD):
+    promotion = Promotion.objects.create(name="Sale with empty predicate")
+    promotion.assign_old_sale_id()
+    rule = PromotionRule.objects.create(
+        name="Sale with empty predicate rule",
+        promotion=promotion,
+        catalogue_predicate={},
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+        old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
+    )
+    rule.channels.add(channel_USD)
+    return promotion
 
 
 @pytest.fixture
