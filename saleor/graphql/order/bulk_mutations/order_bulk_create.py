@@ -747,7 +747,15 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         Some systems might have incorrect time that is in the future compared to Saleor.
         At the same time, we don't want to create orders that are too far in the future.
         """
-        return date < timezone.now() + timedelta(minutes=MINUTES_DIFF)
+        current_time = timezone.now()
+        future_time = current_time + timedelta(minutes=MINUTES_DIFF)
+        if not date.tzinfo:
+            raise ValidationError(
+                message="Input 'date' must be timezone-aware. "
+                "Expected format: 'YYYY-MM-DD HH:MM:SS TZ'.",
+                code=OrderBulkCreateErrorCode.INVALID.value,
+            )
+        return date < future_time
 
     @classmethod
     def is_shipping_required(cls, order_input: Dict[str, Any]) -> bool:

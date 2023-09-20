@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Other changes
 
 - Add transaction items deletion to cleardb command. - #14198 by @jakubkuc
+- Added validation for timestamp comparison #14025 by @ritanjandawn
 
 # 3.17.0
 
