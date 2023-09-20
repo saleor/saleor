@@ -249,7 +249,6 @@ def test_sale_add_catalogues_no_product_ids_change(
 ):
     # given
     query = SALE_CATALOGUES_ADD_MUTATION
-
     promotion = promotion_converted_from_sale
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
         converted_sale_catalogue_predicate
