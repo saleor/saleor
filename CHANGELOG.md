@@ -12,6 +12,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Fix thumbnail redirects sometimes failing with an unsafe redirect warning - #14023 by @patrys
+
 # 3.16.0
 
 ### Breaking changes
