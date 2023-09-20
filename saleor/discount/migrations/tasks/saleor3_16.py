@@ -20,12 +20,11 @@ from ...models import (
 )
 from babel.numbers import get_currency_precision
 
-
 # The batch of size 100 takes ~0.9 second and consumes ~30MB memory at peak
 BATCH_SIZE = 100
 
-# Results in memory usage of ~40MB for 500 products
-DISCOUNTED_PRICES_RECALCULATION_BATCH_SIZE = 500
+# Results in memory usage of ~40MB for 20K products
+DISCOUNTED_PRICES_RECALCULATION_BATCH_SIZE = 100
 
 
 @dataclass
