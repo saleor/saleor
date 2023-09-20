@@ -4,6 +4,7 @@ from ....celeryconf import app
 from decimal import Decimal
 
 import graphene
+from django.db import transaction
 from django.db.models import Exists, OuterRef
 from ....order.models import OrderLine
 from ....product.models import Product
@@ -65,7 +66,16 @@ def migrate_sales_to_promotions_task():
             "sale__variants",
         )
 
-        migrate_sales(qs)
+        with transaction.atomic():
+            # lock the batch of objects to avoid potential promotion creation in the
+            # meantime by sale mutation
+            _sales = list(
+                Sale.objects.filter(
+                    Exists(qs.filter(sale_id=OuterRef("pk")))
+                ).select_for_update(of=(["self"]))
+            )
+            _sale_listings = list(qs.select_for_update(of=(["self"])))
+            migrate_sales(qs)
         migrate_sales_to_promotions_task.delay()
 
     migrate_sales_not_listed_in_any_channels_task.delay()
@@ -100,7 +110,17 @@ def migrate_sales_not_listed_in_any_channels_task():
     ).order_by("pk")
     ids = list(sales_not_listed.values_list("pk", flat=True)[:BATCH_SIZE])
     if ids:
-        migrate_sales_not_listed_in_any_channels(ids)
+        with transaction.atomic():
+            # lock the batch of objects to avoid potential promotion creation in the
+            # meantime by sale mutation
+            sales = Sale.objects.filter(id__in=ids)
+            _sales = list(sales.select_for_update(of=(["self"])))
+            _sale_listings = list(
+                SaleChannelListing.objects.filter(
+                    Exists(sales.filter(id=OuterRef("sale_id")))
+                ).select_for_update(of=(["self"]))
+            )
+            migrate_sales_not_listed_in_any_channels(ids)
         migrate_sales_not_listed_in_any_channels_task.delay()
     else:
         # Call discounted price recalculation to create
@@ -312,6 +332,6 @@ def update_discounted_prices_task(
 
     if products:
         update_products_discounted_price(products)
-        update_discounted_prices_task(
+        update_discounted_prices_task.delay(
             start_pk=products[-1].pk,
         )
