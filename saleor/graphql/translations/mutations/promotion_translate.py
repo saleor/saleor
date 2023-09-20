@@ -2,7 +2,7 @@ import graphene
 
 from ....discount import models as discount_models
 from ....permission.enums import SitePermissions
-from ...core.descriptions import ADDED_IN_315, RICH_CONTENT
+from ...core.descriptions import ADDED_IN_317, RICH_CONTENT
 from ...core.enums import LanguageCodeEnum
 from ...core.scalars import JSON
 from ...core.types import TranslationError
@@ -29,7 +29,7 @@ class PromotionTranslate(BaseTranslateMutation):
         )
 
     class Meta:
-        description = "Creates/updates translations for a promotion." + ADDED_IN_315
+        description = "Creates/updates translations for a promotion." + ADDED_IN_317
         model = discount_models.Promotion
         object_type = Promotion
         error_type_class = TranslationError

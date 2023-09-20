@@ -18,7 +18,7 @@ from ..attribute.dataloaders import AttributesByAttributeId
 from ..channel import ChannelContext
 from ..core.descriptions import (
     ADDED_IN_39,
-    ADDED_IN_315,
+    ADDED_IN_317,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_TYPE,
     RICH_CONTENT,
@@ -774,7 +774,7 @@ class PromotionTranslation(BaseTranslationType[discount_models.PromotionTranslat
     class Meta:
         model = discount_models.Promotion
         interfaces = [graphene.relay.Node]
-        description = "Represents promotion translations." + ADDED_IN_315
+        description = "Represents promotion translations." + ADDED_IN_317
 
 
 class PromotionTranslatableContent(ModelObjectType[discount_models.Promotion]):
@@ -790,7 +790,7 @@ class PromotionTranslatableContent(ModelObjectType[discount_models.Promotion]):
         interfaces = [graphene.relay.Node]
         description = (
             "Represents promotion's original translatable fields "
-            "and related translations." + ADDED_IN_315
+            "and related translations." + ADDED_IN_317
         )
 
 
@@ -808,7 +808,7 @@ class PromotionRuleTranslation(
     class Meta:
         model = discount_models.PromotionRule
         interfaces = [graphene.relay.Node]
-        description = "Represents promotion rule translations." + ADDED_IN_315
+        description = "Represents promotion rule translations." + ADDED_IN_317
 
 
 class PromotionRuleTranslatableContent(ModelObjectType[discount_models.Promotion]):
@@ -826,5 +826,5 @@ class PromotionRuleTranslatableContent(ModelObjectType[discount_models.Promotion
         interfaces = [graphene.relay.Node]
         description = (
             "Represents promotion rule's original translatable fields "
-            "and related translations." + ADDED_IN_315
+            "and related translations." + ADDED_IN_317
         )

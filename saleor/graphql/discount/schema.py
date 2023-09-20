@@ -4,7 +4,7 @@ from ...permission.enums import DiscountPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import (
-    ADDED_IN_315,
+    ADDED_IN_317,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
@@ -149,7 +149,7 @@ class DiscountQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of the promotion.", required=True
         ),
-        description="Look up a promotion by ID." + ADDED_IN_315 + PREVIEW_FEATURE,
+        description="Look up a promotion by ID." + ADDED_IN_317 + PREVIEW_FEATURE,
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
@@ -159,7 +159,7 @@ class DiscountQueries(graphene.ObjectType):
         PromotionCountableConnection,
         where=PromotionWhereInput(description="Where filtering options."),
         sort_by=PromotionSortingInput(description="Sort promotions."),
-        description="List of the promotions." + ADDED_IN_315 + PREVIEW_FEATURE,
+        description="List of the promotions." + ADDED_IN_317 + PREVIEW_FEATURE,
         permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
         doc_category=DOC_CATEGORY_DISCOUNTS,
     )

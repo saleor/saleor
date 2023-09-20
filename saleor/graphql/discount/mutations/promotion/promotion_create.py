@@ -17,7 +17,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....channel.types import Channel
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import JSON
@@ -74,7 +74,7 @@ class PromotionCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new promotion." + ADDED_IN_315 + PREVIEW_FEATURE
+        description = "Creates a new promotion." + ADDED_IN_317 + PREVIEW_FEATURE
         model = models.Promotion
         object_type = Promotion
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
