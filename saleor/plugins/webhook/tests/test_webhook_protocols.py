@@ -9,8 +9,8 @@ from google.cloud.pubsub_v1 import PublisherClient
 from requests_hardened import HTTPSession
 
 from ....webhook.event_types import WebhookEventAsyncType
-from ...webhook import signature_for_payload
-from ...webhook.tasks import trigger_webhooks_async
+from ....webhook.transport import signature_for_payload
+from ....webhook.transport.asynchronous.transport import trigger_webhooks_async
 
 
 @pytest.mark.parametrize(
@@ -32,7 +32,7 @@ def test_trigger_webhooks_with_aws_sqs(
     mocked_client_constructor = MagicMock(spec=boto3.client, return_value=mocked_client)
 
     monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.boto3.client",
+        "saleor.webhook.transport.utils.boto3.client",
         mocked_client_constructor,
     )
 
@@ -98,7 +98,7 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
     mocked_client_constructor = MagicMock(spec=boto3.client, return_value=mocked_client)
 
     monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.boto3.client",
+        "saleor.webhook.transport.utils.boto3.client",
         mocked_client_constructor,
     )
 
@@ -154,7 +154,7 @@ def test_trigger_webhooks_with_google_pub_sub(
     mocked_publisher = MagicMock(spec=PublisherClient)
     mocked_publisher.publish.return_value.result.return_value = "message_id"
     monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.pubsub_v1.PublisherClient",
+        "saleor.webhook.transport.utils.pubsub_v1.PublisherClient",
         lambda: mocked_publisher,
     )
     webhook.app.permissions.add(permission_manage_orders)
@@ -187,7 +187,7 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
     mocked_publisher = MagicMock(spec=PublisherClient)
     mocked_publisher.publish.return_value.result.return_value = "message_id"
     monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.pubsub_v1.PublisherClient",
+        "saleor.webhook.transport.utils.pubsub_v1.PublisherClient",
         lambda: mocked_publisher,
     )
     webhook.app.permissions.add(permission_manage_orders)

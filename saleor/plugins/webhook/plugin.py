@@ -52,6 +52,7 @@ from ...payment.interface import (
 from ...payment.models import Payment, TransactionItem
 from ...settings import WEBHOOK_SYNC_TIMEOUT
 from ...thumbnail.models import Thumbnail
+from ...webhook.const import CACHE_EXCLUDED_SHIPPING_KEY, WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -81,15 +82,11 @@ from ...webhook.payloads import (
     generate_transaction_session_payload,
     generate_translation_payload,
 )
-from ...webhook.utils import get_webhooks_for_event
-from ..base_plugin import BasePlugin, ExcludedShippingMethod
-from .const import CACHE_EXCLUDED_SHIPPING_KEY, WEBHOOK_CACHE_DEFAULT_TIMEOUT
-from .shipping import (
-    get_cache_data_for_shipping_list_methods_for_checkout,
-    get_excluded_shipping_data,
-    parse_list_shipping_methods_response,
+from ...webhook.transport.asynchronous.transport import (
+    send_webhook_request_async,
+    trigger_webhooks_async,
 )
-from .stored_payment_methods import (
+from ...webhook.transport.list_stored_payment_methods import (
     get_list_stored_payment_methods_data_dict,
     get_list_stored_payment_methods_from_response,
     get_response_for_payment_gateway_initialize_tokenization,
@@ -97,15 +94,17 @@ from .stored_payment_methods import (
     get_response_for_stored_payment_method_request_delete,
     invalidate_cache_for_stored_payment_methods,
 )
-from .tasks import (
-    send_webhook_request_async,
+from ...webhook.transport.shipping import (
+    get_cache_data_for_shipping_list_methods_for_checkout,
+    get_excluded_shipping_data,
+    parse_list_shipping_methods_response,
+)
+from ...webhook.transport.synchronous.transport import (
     trigger_all_webhooks_sync,
-    trigger_transaction_request,
     trigger_webhook_sync,
     trigger_webhook_sync_if_not_cached,
-    trigger_webhooks_async,
 )
-from .utils import (
+from ...webhook.transport.utils import (
     DEFAULT_TAX_CODE,
     DEFAULT_TAX_DESCRIPTION,
     delivery_update,
@@ -116,7 +115,10 @@ from .utils import (
     parse_list_payment_gateways_response,
     parse_payment_action_response,
     parse_tax_data,
+    trigger_transaction_request,
 )
+from ...webhook.utils import get_webhooks_for_event
+from ..base_plugin import BasePlugin, ExcludedShippingMethod
 
 if TYPE_CHECKING:
     from ...account.models import Address, Group, User

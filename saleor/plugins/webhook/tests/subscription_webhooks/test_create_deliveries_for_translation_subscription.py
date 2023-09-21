@@ -3,7 +3,9 @@ import json
 import graphene
 
 from .....webhook.event_types import WebhookEventAsyncType
-from ...tasks import create_deliveries_for_subscriptions
+from .....webhook.transport.asynchronous.transport import (
+    create_deliveries_for_subscriptions,
+)
 
 
 def test_translation_created_product(

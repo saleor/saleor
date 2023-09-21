@@ -112,7 +112,7 @@ class WebhookTrigger(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        from ....plugins.webhook.tasks import (
+        from ....webhook.transport.asynchronous.transport import (
             create_deliveries_for_subscriptions,
             send_webhook_request_async,
         )

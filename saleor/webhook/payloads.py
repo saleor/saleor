@@ -41,7 +41,6 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
-from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Collection, Product, ProductMedia
 from ..shipping.interface import ShippingMethodData
@@ -1043,6 +1042,8 @@ def _generate_refund_data_payload(data):
 def generate_payment_payload(
     payment_data: "PaymentData", requestor: Optional["RequestorOrLazyObject"] = None
 ):
+    from .transport.utils import from_payment_app_id
+
     data = asdict(payment_data)
 
     if refund_data := data.get("refund_data"):

@@ -13,7 +13,8 @@ from .....graphql.product.tests.mutations.test_product_create import (
 )
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.models import Webhook
-from ...tasks import trigger_webhook_sync, trigger_webhooks_async
+from .....webhook.transport.asynchronous.transport import trigger_webhooks_async
+from .....webhook.transport.synchronous.transport import trigger_webhook_sync
 from .payloads import generate_payment_payload
 
 TEST_ID = "test_id"
@@ -24,7 +25,9 @@ class FakeDelivery:
     id = TEST_ID
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async.delay")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.delay"
+)
 def test_trigger_webhooks_async(
     mocked_send_webhook_request,
     webhook,
@@ -44,8 +47,12 @@ def test_trigger_webhooks_async(
     assert mocked_send_webhook_request.mock_calls == calls
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async.delay")
-@mock.patch("saleor.plugins.webhook.tasks.create_deliveries_for_subscriptions")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.delay"
+)
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.create_deliveries_for_subscriptions"
+)
 def test_trigger_webhooks_async_no_subscription_webhooks(
     mocked_create_deliveries_for_subscriptions,
     mocked_send_webhook_request,
@@ -59,7 +66,7 @@ def test_trigger_webhooks_async_no_subscription_webhooks(
     mocked_create_deliveries_for_subscriptions.assert_not_called()
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_trigger_webhook_sync_with_subscription(
     mock_request, payment_app_with_subscription_webhooks, payment
 ):
@@ -81,9 +88,11 @@ def test_trigger_webhook_sync_with_subscription(
     mock_request.assert_called_once_with(event_delivery)
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-@mock.patch("saleor.plugins.webhook.tasks.get_webhooks_for_event")
-@mock.patch("saleor.plugins.webhook.tasks.generate_payload_from_subscription")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.get_webhooks_for_event")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+)
 def test_trigger_webhook_sync_with_subscription_within_mutation_use_default_db(
     mocked_generate_payload,
     mocked_get_webhooks_for_event,
@@ -115,9 +124,13 @@ def test_trigger_webhook_sync_with_subscription_within_mutation_use_default_db(
     assert not mocked_generate_payload.call_args[1]["request"].allow_replica
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")
-@mock.patch("saleor.plugins.webhook.tasks.get_webhooks_for_event")
-@mock.patch("saleor.plugins.webhook.tasks.generate_payload_from_subscription")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async"
+)
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_payload_from_subscription"
+)
 def test_trigger_webhook_async_with_subscription_use_replica_db(
     mocked_generate_payload,
     mocked_get_webhooks_for_event,

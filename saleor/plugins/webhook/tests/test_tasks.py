@@ -17,7 +17,8 @@ from ....payment.transaction_item_calculations import recalculate_transaction_am
 from ....tests.utils import flush_post_commit_hooks
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.payloads import generate_transaction_action_request_payload
-from ..tasks import handle_transaction_request_task, trigger_transaction_request
+from ....webhook.transport.synchronous.transport import handle_transaction_request_task
+from ....webhook.transport.utils import trigger_transaction_request
 
 
 @pytest.fixture
@@ -33,7 +34,10 @@ def mocked_webhook_response():
 
 
 @freeze_time("2022-06-11 12:50")
-@mock.patch("saleor.plugins.webhook.tasks.handle_transaction_request_task.delay")
+@mock.patch(
+    "saleor.webhook.transport.synchronous."
+    "transport.handle_transaction_request_task.delay"
+)
 def test_trigger_transaction_request(
     mocked_task,
     transaction_item_created_by_app,
@@ -85,7 +89,10 @@ def test_trigger_transaction_request(
 
 
 @freeze_time("2022-06-11 12:50")
-@mock.patch("saleor.plugins.webhook.tasks.handle_transaction_request_task.delay")
+@mock.patch(
+    "saleor.webhook.transport.synchronous."
+    "transport.handle_transaction_request_task.delay"
+)
 def test_trigger_transaction_request_with_webhook_subscription(
     mocked_task,
     transaction_item_created_by_app,
@@ -229,7 +236,7 @@ def test_handle_transaction_request_task_with_only_psp_reference(
 
 @pytest.mark.parametrize("status_code", [500, 501, 510])
 @freeze_time("2022-06-11 12:50")
-@mock.patch("saleor.plugins.webhook.tasks.handle_webhook_retry")
+@mock.patch("saleor.webhook.transport.synchronous.transport.handle_webhook_retry")
 @mock.patch.object(HTTPSession, "request")
 def test_handle_transaction_request_task_with_server_error(
     mocked_post_request,

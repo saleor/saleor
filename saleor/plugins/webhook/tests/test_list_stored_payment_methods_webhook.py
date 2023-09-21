@@ -4,10 +4,12 @@ import mock
 from ....core.models import EventDelivery
 from ....payment.interface import ListStoredPaymentMethodsRequestData
 from ....settings import WEBHOOK_SYNC_TIMEOUT
+from ....webhook.const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ....webhook.event_types import WebhookEventSyncType
-from ..const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
-from ..stored_payment_methods import get_list_stored_payment_methods_from_response
-from ..utils import generate_cache_key_for_webhook
+from ....webhook.transport.list_stored_payment_methods import (
+    get_list_stored_payment_methods_from_response,
+)
+from ....webhook.transport.utils import generate_cache_key_for_webhook
 
 LIST_STORED_PAYMENT_METHODS = """
 subscription {
@@ -25,9 +27,9 @@ subscription {
 """
 
 
-@mock.patch("saleor.plugins.webhook.tasks.cache.set")
-@mock.patch("saleor.plugins.webhook.tasks.cache.get")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
+@mock.patch("saleor.webhook.transport.synchronous.transport.cache.get")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_list_stored_payment_methods_with_static_payload(
     mock_request,
     mocked_cache_get,
@@ -82,9 +84,9 @@ def test_list_stored_payment_methods_with_static_payload(
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.cache.set")
-@mock.patch("saleor.plugins.webhook.tasks.cache.get")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
+@mock.patch("saleor.webhook.transport.synchronous.transport.cache.get")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_list_stored_payment_methods_with_subscription_payload(
     mock_request,
     mocked_cache_get,
@@ -142,9 +144,9 @@ def test_list_stored_payment_methods_with_subscription_payload(
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.cache.set")
-@mock.patch("saleor.plugins.webhook.tasks.cache.get")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
+@mock.patch("saleor.webhook.transport.synchronous.transport.cache.get")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_list_stored_payment_methods_uses_cache_if_available(
     mock_request,
     mocked_cache_get,
@@ -196,9 +198,9 @@ def test_list_stored_payment_methods_uses_cache_if_available(
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.cache.set")
-@mock.patch("saleor.plugins.webhook.tasks.cache.get")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
+@mock.patch("saleor.webhook.transport.synchronous.transport.cache.get")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_list_stored_payment_methods_app_returns_incorrect_response(
     mock_request,
     mocked_cache_get,

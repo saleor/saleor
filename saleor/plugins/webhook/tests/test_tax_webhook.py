@@ -12,11 +12,15 @@ from ....core.taxes import TaxType
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
 from ....webhook.payloads import generate_order_payload_for_tax_calculation
+from ....webhook.transport.utils import (
+    DEFAULT_TAX_CODE,
+    DEFAULT_TAX_DESCRIPTION,
+    parse_tax_data,
+)
 from ...manager import get_plugins_manager
-from ..utils import DEFAULT_TAX_CODE, DEFAULT_TAX_DESCRIPTION, parse_tax_data
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_taxes_for_checkout_no_permission(
     mock_request,
     webhook_plugin,
@@ -37,7 +41,7 @@ def test_get_taxes_for_checkout_no_permission(
 
 @freeze_time()
 @mock.patch("saleor.order.calculations.fetch_order_prices_if_expired")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_taxes_for_order(
     mock_request,
     mock_fetch,
@@ -68,7 +72,7 @@ def test_get_taxes_for_order(
     assert tax_data == parse_tax_data(tax_data_response)
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_taxes_for_order_no_permission(
     mock_request,
     webhook_plugin,
@@ -148,7 +152,7 @@ def test_get_tax_code_from_object_meta_default_code(
 
 @freeze_time()
 @mock.patch("saleor.order.calculations.fetch_order_prices_if_expired")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_taxes_for_order_with_sync_subscription(
     mock_request,
     mock_fetch,
@@ -188,7 +192,7 @@ def test_get_taxes_for_order_with_sync_subscription(
 
 @freeze_time()
 @mock.patch("saleor.checkout.calculations.fetch_checkout_data")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_taxes_for_checkout_with_sync_subscription(
     mock_request,
     mock_fetch,
