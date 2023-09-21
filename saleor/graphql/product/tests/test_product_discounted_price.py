@@ -4,7 +4,6 @@ from freezegun import freeze_time
 from graphql_relay import to_global_id
 
 from ....discount.models import Promotion
-from ....discount.tests.sale_converter import convert_sales_to_promotions
 from ...discount.enums import DiscountValueTypeEnum
 from ...tests.utils import get_graphql_content
 
@@ -264,7 +263,8 @@ def test_sale_create_updates_products_discounted_prices(
 def test_sale_update_updates_products_discounted_prices(
     mock_update_products_discounted_prices_for_promotion,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    product,
     permission_manage_discounts,
 ):
     # given
@@ -281,10 +281,10 @@ def test_sale_update_updates_products_discounted_prices(
         }
     }
     """
-    product_ids = set(sale.products.values_list("id", flat=True).all())
-    convert_sales_to_promotions()
+    promotion = promotion_converted_from_sale
+
     variables = {
-        "id": to_global_id("Sale", sale.pk),
+        "id": to_global_id("Sale", promotion.old_sale_id),
         "type": DiscountValueTypeEnum.PERCENTAGE.name,
     }
 
@@ -299,7 +299,7 @@ def test_sale_update_updates_products_discounted_prices(
     assert content["data"]["saleUpdate"]["errors"] == []
 
     args, _ = mock_update_products_discounted_prices_for_promotion.delay.call_args
-    assert set(args[0]) == product_ids
+    assert args[0] == [product.id]
 
 
 @patch(
@@ -309,7 +309,8 @@ def test_sale_update_updates_products_discounted_prices(
 def test_sale_delete_updates_products_discounted_prices(
     mock_update_products_discounted_prices_for_promotion,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    product,
     permission_manage_discounts,
 ):
     # given
@@ -326,9 +327,8 @@ def test_sale_delete_updates_products_discounted_prices(
         }
     }
     """
-    variables = {"id": to_global_id("Sale", sale.pk)}
-    convert_sales_to_promotions()
-    product_ids = set(sale.products.values_list("id", flat=True))
+    promotion = promotion_converted_from_sale
+    variables = {"id": to_global_id("Sale", promotion.old_sale_id)}
 
     # when
     response = staff_api_client.post_graphql(
@@ -342,7 +342,7 @@ def test_sale_delete_updates_products_discounted_prices(
     assert content["data"]["saleDelete"]["errors"] == []
 
     args, _ = mock_update_products_discounted_prices_for_promotion.delay.call_args
-    assert set(args[0]) == product_ids
+    assert args[0] == [product.id]
 
 
 @patch(
@@ -352,7 +352,7 @@ def test_sale_delete_updates_products_discounted_prices(
 def test_sale_add_catalogues_updates_products_discounted_prices(
     mock_update_products_discounted_prices_for_promotion,
     staff_api_client,
-    new_sale,
+    promotion_converted_from_sale_with_empty_predicate,
     product_list,
     permission_manage_discounts,
 ):
@@ -370,16 +370,18 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
             }
         }
     """
-    sale = new_sale
-    sale.products.add(product_list[0])
-    sale_id = to_global_id("Sale", sale.pk)
-    product_ids = [to_global_id("Product", product.pk) for product in product_list[1:]]
-    convert_sales_to_promotions()
+    promotion = promotion_converted_from_sale_with_empty_predicate
+    sale_id = to_global_id("Sale", promotion.old_sale_id)
+    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    predicate = {"OR": [{"productPredicate": {"ids": [product_ids[0]]}}]}
+    rule = promotion.rules.first()
+    rule.catalogue_predicate = predicate
+    rule.save(update_fields=["catalogue_predicate"])
 
     variables = {
         "id": sale_id,
         "input": {
-            "products": product_ids,
+            "products": product_ids[1:],
         },
     }
 
@@ -405,14 +407,19 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
 def test_sale_remove_catalogues_updates_products_discounted_prices(
     mock_update_products_discounted_prices_for_promotion,
     staff_api_client,
-    new_sale,
+    promotion_converted_from_sale_with_empty_predicate,
     product_list,
     permission_manage_discounts,
 ):
     # given
-    sale = new_sale
-    sale.products.add(*product_list)
-    convert_sales_to_promotions()
+    promotion = promotion_converted_from_sale_with_empty_predicate
+    sale_id = to_global_id("Sale", promotion.old_sale_id)
+    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    predicate = {"OR": [{"productPredicate": {"ids": product_ids}}]}
+    rule = promotion.rules.first()
+    rule.catalogue_predicate = predicate
+    rule.save(update_fields=["catalogue_predicate"])
+    product_id = to_global_id("Product", product_list[-1].pk)
 
     query = """
         mutation SaleCataloguesRemove($id: ID!, $input: CatalogueInput!) {
@@ -427,9 +434,6 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
             }
         }
     """
-
-    sale_id = to_global_id("Sale", sale.pk)
-    product_id = to_global_id("Product", product_list[-1].pk)
 
     variables = {
         "id": sale_id,
