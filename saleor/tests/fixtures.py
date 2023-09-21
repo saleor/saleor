@@ -5372,18 +5372,6 @@ def dummy_webhook_app_payment_data(dummy_payment_data, payment_app):
 
 
 @pytest.fixture
-def new_sale(category, channel_USD):
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-    )
-    return sale
-
-
-@pytest.fixture
 def sale(product, category, collection, variant, channel_USD):
     sale = Sale.objects.create(name="Sale")
     SaleChannelListing.objects.create(
@@ -6458,13 +6446,6 @@ def promotion_rule_translation_fr(promotion_rule):
 def sale_translation_fr(sale):
     return SaleTranslation.objects.create(
         language_code="fr", sale=sale, name="French sale name"
-    )
-
-
-@pytest.fixture
-def new_sale_translation_fr(new_sale):
-    return SaleTranslation.objects.create(
-        language_code="fr", sale=new_sale, name="French sale name"
     )
 
 

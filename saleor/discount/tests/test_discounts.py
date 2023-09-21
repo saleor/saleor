@@ -8,18 +8,10 @@ from prices import Money, TaxedMoney
 
 from ...discount.interface import VariantPromotionRuleInfo
 from .. import DiscountValueType, RewardValueType, VoucherType
-from ..models import (
-    NotApplicable,
-    Sale,
-    SaleChannelListing,
-    Voucher,
-    VoucherChannelListing,
-    VoucherCustomer,
-)
+from ..models import NotApplicable, Voucher, VoucherChannelListing, VoucherCustomer
 from ..utils import (
     add_voucher_usage_by_customer,
     decrease_voucher_usage,
-    fetch_catalogue_info,
     get_discount_name,
     get_discount_translated_name,
     increase_voucher_usage,
@@ -404,106 +396,6 @@ def test_validate_voucher_not_applicable_once_per_customer(
 
 
 date_time_now = timezone.now()
-
-
-@pytest.mark.parametrize(
-    "current_date, start_date, end_date, is_active",
-    (
-        (date_time_now, date_time_now, date_time_now + timedelta(days=1), True),
-        (
-            date_time_now + timedelta(days=1),
-            date_time_now,
-            date_time_now + timedelta(days=1),
-            True,
-        ),
-        (
-            date_time_now + timedelta(days=2),
-            date_time_now,
-            date_time_now + timedelta(days=1),
-            False,
-        ),
-        (
-            date_time_now - timedelta(days=2),
-            date_time_now,
-            date_time_now + timedelta(days=1),
-            False,
-        ),
-        (date_time_now, date_time_now, None, True),
-        (date_time_now + timedelta(weeks=10), date_time_now, None, True),
-    ),
-)
-def test_sale_active(current_date, start_date, end_date, is_active, channel_USD):
-    sale = Sale.objects.create(
-        type=DiscountValueType.FIXED, start_date=start_date, end_date=end_date
-    )
-    SaleChannelListing.objects.create(
-        sale=sale,
-        currency=channel_USD.currency_code,
-        channel=channel_USD,
-        discount_value=5,
-    )
-    sale_is_active = Sale.objects.active(date=current_date).exists()
-    assert is_active == sale_is_active
-
-
-def test_get_fixed_sale_discount(sale):
-    # given
-    sale.type = DiscountValueType.FIXED
-    channel_listing = sale.channel_listings.get()
-
-    # when
-    result = sale.get_discount(channel_listing).keywords
-
-    # then
-    assert result["discount"] == Money(
-        channel_listing.discount_value, channel_listing.currency
-    )
-
-
-def test_get_percentage_sale_discount(sale):
-    # given
-    sale.type = DiscountValueType.PERCENTAGE
-    channel_listing = sale.channel_listings.get()
-
-    # when
-    result = sale.get_discount(channel_listing).keywords
-
-    # then
-    assert result["percentage"] == channel_listing.discount_value
-
-
-def test_get_unknown_sale_discount(sale):
-    sale.type = "unknown"
-    channel_listing = sale.channel_listings.get()
-
-    with pytest.raises(NotImplementedError):
-        sale.get_discount(channel_listing)
-
-
-def test_get_not_applicable_sale_discount(sale, channel_PLN):
-    sale.type = DiscountValueType.PERCENTAGE
-
-    with pytest.raises(NotApplicable):
-        sale.get_discount(None)
-
-
-def test_fetch_catalogue_info_for_sale_has_one_element_sets(sale):
-    category_ids = set(sale.categories.all().values_list("id", flat=True))
-    collection_ids = set(sale.collections.all().values_list("id", flat=True))
-    product_ids = set(sale.products.all().values_list("id", flat=True))
-    variant_ids = set(sale.variants.all().values_list("id", flat=True))
-
-    catalogue_info = fetch_catalogue_info(sale)
-
-    assert catalogue_info["categories"]
-    assert catalogue_info["collections"]
-    assert catalogue_info["products"]
-    assert catalogue_info["variants"]
-
-    assert catalogue_info["categories"] == category_ids
-    assert catalogue_info["collections"] == collection_ids
-    assert catalogue_info["products"] == product_ids
-    assert catalogue_info["variants"] == variant_ids
 
 
 def test_get_discount_name_only_rule_name(promotion):
