@@ -1,4 +1,3 @@
-from .....discount.tests.sale_converter import convert_sales_to_promotions
 from ....tests.utils import get_graphql_content
 
 
@@ -118,13 +117,12 @@ def test_sale_query_with_channel_slug(
 
 def test_sales_query(
     staff_api_client,
-    sale_with_many_channels,
-    sale,
+    promotion_converted_from_sale,
+    promotion_converted_from_sale_with_empty_predicate,
     permission_manage_discounts,
     channel_USD,
     permission_manage_products,
 ):
-    convert_sales_to_promotions()
     query = """
         query sales {
             sales(first: 2) {
@@ -147,13 +145,12 @@ def test_sales_query(
 
 def test_sales_query_with_channel_slug(
     staff_api_client,
-    sale_with_many_channels,
-    sale,
+    promotion_converted_from_sale_with_empty_predicate,
+    promotion_converted_from_sale_with_many_channels,
     permission_manage_discounts,
     channel_PLN,
     permission_manage_products,
 ):
-    convert_sales_to_promotions()
     query = """
         query sales($channel: String) {
             sales(first: 2, channel: $channel) {
@@ -178,13 +175,12 @@ def test_sales_query_with_channel_slug(
 
 def test_sales_query_channel_listing(
     staff_api_client,
-    sale_with_many_channels,
+    promotion_converted_from_sale_with_many_channels,
     permission_manage_discounts,
     channel_USD,
     channel_PLN,
 ):
     # given
-    convert_sales_to_promotions()
     query = """
         query sales {
             sales(first: 10) {
