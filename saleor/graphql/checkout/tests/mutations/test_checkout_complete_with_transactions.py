@@ -2149,11 +2149,11 @@ def test_checkout_complete_multiple_rules_applied(
     ).exists(), "Checkout should have been deleted"
 
 
-def test_checkout_with_voucher_on_specific_product_complete_with_product_on_sale(
+def test_checkout_with_voucher_on_specific_product_complete_with_product_on_promotion(
     user_api_client,
     checkout_with_item_and_voucher_specific_products,
     voucher_specific_product_type,
-    sale,
+    promotion_with_single_rule,
     address,
     shipping_method,
     transaction_events_generator,
@@ -2174,8 +2174,14 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_sale
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
+    checkout_line_variant_id = graphene.Node.to_global_id(
+        "ProductVariant", checkout_line_variant.id
+    )
 
-    sale.variants.add(checkout_line_variant)
+    rule = promotion_with_single_rule.rules.first()
+    predicate = {"variantPredicate": {"ids": [checkout_line_variant_id]}}
+    rule.catalogue_predicate = predicate
+    rule.save(update_fields=["catalogue_predicate"])
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
