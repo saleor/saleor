@@ -92,7 +92,7 @@ def test_sale_add_catalogues_no_changes_in_catalogue(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     collection,
     category,
     product,
@@ -103,7 +103,7 @@ def test_sale_add_catalogues_no_changes_in_catalogue(
     query = SALE_CATALOGUES_ADD_MUTATION
     promotion = promotion_converted_from_sale
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
@@ -151,7 +151,7 @@ def test_sale_add_empty_catalogues(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     collection,
     category,
     product,
@@ -242,7 +242,7 @@ def test_sale_add_catalogues_no_product_ids_change(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     product,
     product_variant_list,
     permission_manage_discounts,
@@ -251,7 +251,7 @@ def test_sale_add_catalogues_no_product_ids_change(
     query = SALE_CATALOGUES_ADD_MUTATION
     promotion = promotion_converted_from_sale
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     variant_ids = [
         graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -293,7 +293,7 @@ def test_sale_add_catalogues_with_product_without_variants(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     category,
     product,
     collection,
