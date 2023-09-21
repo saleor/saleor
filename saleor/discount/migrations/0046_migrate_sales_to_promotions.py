@@ -249,7 +249,7 @@ def migrate_order_line_discounts(
     OrderLine, OrderLineDiscount, sales_pks, rule_by_channel_and_sale
 ):
     global_pks = [graphene.Node.to_global_id("Sale", pk) for pk in sales_pks]
-    if order_lines := OrderLine.objects.filter(sale_id__in=global_pks).select_related(
+    if order_lines := OrderLine.objects.filter(sale_id__in=global_pks).prefetch_related(
         "order"
     ):
         order_line_discounts = []
