@@ -5388,27 +5388,6 @@ def sale(product, category, collection, variant, channel_USD):
 
 
 @pytest.fixture
-def sale_with_many_channels(product, category, collection, channel_USD, channel_PLN):
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-    )
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_PLN,
-        discount_value=5,
-        currency=channel_PLN.currency_code,
-    )
-    sale.products.add(product)
-    sale.categories.add(category)
-    sale.collections.add(collection)
-    return sale
-
-
-@pytest.fixture
 def discount_info(category, collection, sale, channel_USD):
     sale_channel_listing = sale.channel_listings.get(channel=channel_USD)
 
@@ -5491,6 +5470,20 @@ def promotion_without_rules(db):
         description=dummy_editorjs("Test description."),
         end_date=timezone.now() + timedelta(days=30),
     )
+    return promotion
+
+
+@pytest.fixture
+def promotion_with_single_rule(catalogue_predicate, channel_USD):
+    promotion = Promotion.objects.create(name="Promotion with single rule")
+    rule = PromotionRule.objects.create(
+        name="Sale rule",
+        promotion=promotion,
+        catalogue_predicate=catalogue_predicate,
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+    )
+    rule.channels.add(channel_USD)
     return promotion
 
 
@@ -5625,7 +5618,7 @@ def rule_info(
 
 
 @pytest.fixture
-def converted_sale_catalogue_predicate(product, category, collection, variant):
+def catalogue_predicate(product, category, collection, variant):
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
     product_id = graphene.Node.to_global_id("Product", product.id)
@@ -5641,14 +5634,14 @@ def converted_sale_catalogue_predicate(product, category, collection, variant):
 
 
 @pytest.fixture
-def promotion_converted_from_sale(converted_sale_catalogue_predicate, channel_USD):
+def promotion_converted_from_sale(catalogue_predicate, channel_USD):
     promotion = Promotion.objects.create(name="Sale")
     promotion.assign_old_sale_id()
 
     rule = PromotionRule.objects.create(
         name="Sale rule",
         promotion=promotion,
-        catalogue_predicate=converted_sale_catalogue_predicate,
+        catalogue_predicate=catalogue_predicate,
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),
         old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
@@ -5659,13 +5652,13 @@ def promotion_converted_from_sale(converted_sale_catalogue_predicate, channel_US
 
 @pytest.fixture
 def promotion_converted_from_sale_with_many_channels(
-    promotion_converted_from_sale, converted_sale_catalogue_predicate, channel_PLN
+    promotion_converted_from_sale, catalogue_predicate, channel_PLN
 ):
     promotion = promotion_converted_from_sale
     rule = PromotionRule.objects.create(
         name="Sale rule 2",
         promotion=promotion,
-        catalogue_predicate=converted_sale_catalogue_predicate,
+        catalogue_predicate=catalogue_predicate,
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),
         old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],

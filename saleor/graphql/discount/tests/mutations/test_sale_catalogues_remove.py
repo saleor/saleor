@@ -32,7 +32,7 @@ def test_sale_remove_catalogues(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     category,
     product,
     collection,
@@ -43,7 +43,7 @@ def test_sale_remove_catalogues(
     # given
     query = SALE_CATALOGUES_REMOVE_MUTATION
     promotion = promotion_converted_from_sale
-    predicate = converted_sale_catalogue_predicate
+    predicate = catalogue_predicate
     extra_product = product_list[0]
     extra_product_id = graphene.Node.to_global_id("Product", extra_product.id)
     product_id = graphene.Node.to_global_id("Product", product.id)
@@ -108,7 +108,7 @@ def test_sale_remove_empty_catalogues(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     category,
     product,
     collection,
@@ -119,7 +119,7 @@ def test_sale_remove_empty_catalogues(
     query = SALE_CATALOGUES_REMOVE_MUTATION
     promotion = promotion_converted_from_sale
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
@@ -220,7 +220,7 @@ def test_sale_remove_catalogues_no_product_changes(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     variant,
     permission_manage_discounts,
 ):
@@ -228,7 +228,7 @@ def test_sale_remove_catalogues_no_product_changes(
     query = SALE_CATALOGUES_REMOVE_MUTATION
     promotion = promotion_converted_from_sale
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     convert_sales_to_promotions()

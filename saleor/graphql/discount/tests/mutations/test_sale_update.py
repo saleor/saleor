@@ -39,7 +39,7 @@ def test_update_sale(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     permission_manage_discounts,
     product_list,
 ):
@@ -52,7 +52,7 @@ def test_update_sale(
     assert rule.reward_value_type == RewardValueType.FIXED
 
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     new_product_pks = [product.id for product in product_list]
     new_product_ids = [
@@ -100,7 +100,7 @@ def test_update_sale_name(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     permission_manage_discounts,
     product_list,
 ):
@@ -109,7 +109,7 @@ def test_update_sale_name(
     promotion = promotion_converted_from_sale
     new_name = "New name"
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
 
     variables = {
@@ -153,7 +153,7 @@ def test_update_sale_start_date_after_current_date_notification_not_sent(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
     """Ensure the notification is not sent when the start date is set after the current
@@ -166,7 +166,7 @@ def test_update_sale_start_date_after_current_date_notification_not_sent(
     promotion.last_notification_scheduled_at = None
     promotion.save(update_fields=["last_notification_scheduled_at"])
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     start_date = timezone.now() + timedelta(days=1)
 
@@ -211,7 +211,7 @@ def test_update_sale_start_date_before_current_date_notification_already_sent(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
     """Ensure the notification is not sent when the start date is set before
@@ -225,7 +225,7 @@ def test_update_sale_start_date_before_current_date_notification_already_sent(
     promotion.last_notification_scheduled_at = last_notification_scheduled_at
     promotion.save(update_fields=["last_notification_scheduled_at"])
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     start_date = timezone.now() - timedelta(days=1)
 
@@ -273,7 +273,7 @@ def test_update_sale_start_date_before_current_date_notification_sent(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
     """Ensure the sale_toggle notification is sent and the notification date is set
@@ -287,7 +287,7 @@ def test_update_sale_start_date_before_current_date_notification_sent(
     promotion.last_notification_scheduled_at = None
     promotion.save(update_fields=["last_notification_scheduled_at"])
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     start_date = timezone.now() - timedelta(days=1)
 
@@ -333,7 +333,7 @@ def test_update_sale_end_date_after_current_date_notification_not_sent(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
     """Ensure the notification is not sent when the end date is set after
@@ -346,7 +346,7 @@ def test_update_sale_end_date_after_current_date_notification_not_sent(
     promotion.start_date = timezone.now() - timedelta(days=1)
     promotion.save(update_fields=["start_date"])
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     end_date = timezone.now() + timedelta(days=1)
 
@@ -392,7 +392,7 @@ def test_update_sale_end_date_before_current_date_notification_already_sent(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
     """Ensure the notification is sent when the end date is set before
@@ -409,7 +409,7 @@ def test_update_sale_end_date_before_current_date_notification_already_sent(
     promotion.start_date = now - timedelta(days=2)
     promotion.save(update_fields=["last_notification_scheduled_at", "start_date"])
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     end_date = now - timedelta(days=1)
 
@@ -454,7 +454,7 @@ def test_update_sale_end_date_before_current_date_notification_sent(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
     """Ensure the sale_toggle notification is sent and the notification date is set
@@ -469,7 +469,7 @@ def test_update_sale_end_date_before_current_date_notification_sent(
     promotion.start_date = timezone.now() - timedelta(days=2)
     promotion.save(update_fields=["last_notification_scheduled_at", "start_date"])
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     end_date = timezone.now() - timedelta(days=1)
 
@@ -511,7 +511,7 @@ def test_update_sale_categories(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     permission_manage_discounts,
     product_list,
     non_default_category,
@@ -521,7 +521,7 @@ def test_update_sale_categories(
 
     promotion = promotion_converted_from_sale
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     new_category_id = graphene.Node.to_global_id("Category", non_default_category.id)
 
@@ -560,7 +560,7 @@ def test_update_sale_collections(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     permission_manage_discounts,
     product_list,
     published_collection,
@@ -570,7 +570,7 @@ def test_update_sale_collections(
 
     promotion = promotion_converted_from_sale
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     new_collection_id = graphene.Node.to_global_id(
         "Collection", published_collection.id
@@ -611,7 +611,7 @@ def test_update_sale_variants(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     permission_manage_discounts,
     product_list,
     preorder_variant_global_threshold,
@@ -621,7 +621,7 @@ def test_update_sale_variants(
 
     promotion = promotion_converted_from_sale
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     new_variant_id = graphene.Node.to_global_id(
         "ProductVariant", preorder_variant_global_threshold.id
@@ -662,7 +662,7 @@ def test_update_sale_products(
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
-    converted_sale_catalogue_predicate,
+    catalogue_predicate,
     permission_manage_discounts,
     product_list,
     published_collection,
@@ -672,7 +672,7 @@ def test_update_sale_products(
 
     promotion = promotion_converted_from_sale
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
-        converted_sale_catalogue_predicate
+        catalogue_predicate
     )
     new_product_id = graphene.Node.to_global_id("Product", product_list[-1].id)
 
