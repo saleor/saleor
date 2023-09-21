@@ -46,6 +46,12 @@ def test_order_line_query(
                                     amount
                                 }
                             }
+                            undiscountedTotalPrice {
+                                currency
+                                gross {
+                                    amount
+                                }
+                            }
                             metadata {
                                 key
                                 value
@@ -104,6 +110,7 @@ def test_order_line_query(
         currency="USD",
     )
     assert first_order_data_line["totalPrice"]["currency"] == line.unit_price.currency
+    assert first_order_data_line["undiscountedTotalPrice"]["currency"] == line.currency
     assert expected_unit_price == line.unit_price.gross
 
     expected_total_price = Money(
@@ -111,6 +118,12 @@ def test_order_line_query(
         currency="USD",
     )
     assert expected_total_price == line.unit_price.gross * line.quantity
+
+    expected_undiscounted_total_price = Money(
+        amount=str(first_order_data_line["undiscountedTotalPrice"]["gross"]["amount"]),
+        currency="USD",
+    )
+    assert expected_undiscounted_total_price == line.undiscounted_total_price.gross
 
     allocation = line.allocations.first()
     allocation_id = graphene.Node.to_global_id("Allocation", allocation.pk)
