@@ -2,23 +2,25 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
-# 3.16.0 [Unreleased]
+# 3.16.0
 
 ### Breaking changes
 
 - **Feature preview breaking change**:
+
   - Deprecate `OrderSettingsInput.defaultTransactionFlowStrategy`. It will be removed
-    in 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
+    in Saleor 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
   - Deprecate `OrderSettings.defaultTransactionFlowStrategy`. It will be removed
-    in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
-  - Change in the CSV export. It will now use empty string for empty attribute values instead of a single whitespace value.
+    in Saleor 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
 
 - Add IP filter feature to backend HTTP requests - #13891 by @NyanKiyoshi
 
   This rejects server-side HTTP requests (webhooks, OIDC, etc.) if they try to communicate
-  with private or loopback IP addresses, to change the default behavior,
+  with private or loopback IP addresses to change the default behavior,
   refer to `HTTP_IP_FILTER_ENABLED`, and `HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS` settings
   for more details.
+
+- Change in the CSV export. It will now use an empty string for empty attribute values instead of a single whitespace value.
 
 ### GraphQL API
 
@@ -26,11 +28,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `PaymentSettings` to `Channel` - #13677 by @korycins
 - Adjust where filtering by empty values - explicit treat empty values - #13754 by @IKarbowiak
 - Add `storedPaymentMethodRequestDelete` mutation - #13660 by @korycins
-- Add `externalReference` to `updateWarehouse`. It will allow update warehouse by
+- Add `externalReference` to `updateWarehouse`. It will allow updating the warehouse by
   external reference. - #13342 by @Smit-Parmar
 - Add Filter warehouses by metadata - #13345 by @Smit-Parmar
 - Add API for tokenizing payment methods - #13879 by @korycins
-
 
 - Deprecate the `NOTIFY_USER` webhook and the `externalNotificationTrigger` mutation - #13881 by @maarcingebala
   - See the docs for more details about migrating from the `NOTIFY_USER` webhook to other events: https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation
@@ -39,34 +40,34 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add `customerIpAddress` to `TRANSACTION_INITIALIZE_SESSION` and `TRANSACTION_PROCESS_SESSION` webhooks #13718 by @korycins
 - Add `STORED_PAYMENT_METHOD_DELETE_REQUESTED` webhook event - #13660 by @korycins
-- Add `NOTIFY_CUSTOMER` flag to `FulfillmentCreated` type - #13620, by @Air-t
+- Add `notifyCustomer` flag to `FulfillmentCreated` subscription type - #13620 by @Air-t
   - Inform apps if customer should be notified when fulfillment is created.
-- Add `NOTIFY_CUSTOMER` flag to `FulfillmentApproved` type - #13637, by @Air-t
-  - Inform apps if customer should be notified when fulfillment is approved.
-- Add `GIFT_CARD_EXPORT_COMPLETED` webhook - #13765, by @Air-t
+- Add `notifyCustomer` flag to `FulfillmentApproved` subscription type - #13637 by @Air-t
+  - Inform apps if the customer should be notified when fulfillment is approved.
+- Add `GIFT_CARD_EXPORT_COMPLETED` webhook - #13765 by @Air-t
   - Event sent when CSV export for gift cards is completed.
-- Add `PRODUCT_EXPORT_COMPLETED` webhook - #13787, by @Air-t
+- Add `PRODUCT_EXPORT_COMPLETED` webhook - #13787 by @Air-t
   - Event sent when CSV export for products is completed.
-- Add `FULFILLMENT_TRACKING_NUMBER_UPDATED` webhook - #13708, by @Air-t
-  - Called after `fulfillmentUpdateTracking` or `orderFulfill` mutation if tracking number is updated.
+- Add `FULFILLMENT_TRACKING_NUMBER_UPDATED` webhook - #13708 by @Air-t
+  - Called after the `fulfillmentUpdateTracking` or `orderFulfill` mutation if the tracking number is updated.
 - Add support for tokenizing payment methods via sync webhooks - #13879 by @korycins
-- Add missing `FULFILLMENT_CREATED` event call to `automatically_fulfill_digital_lines_with_fulfillment_created` action. - #13823, by @Air-t
+- Add missing `FULFILLMENT_CREATED` event call to `automatically_fulfill_digital_lines_with_fulfillment_created` action. - #13823 by @Air-t
 - Increase timeout of shipping filtering webhooks: `ORDER_FILTER_SHIPPING_METHODS` and `CHECKOUT_FILTER_SHIPPING_METHODS` to 20 seconds - #13989 by @maarcingebala
 
 ### Other changes
 
+- Add lazy payload generation for legacy webhook payloads - #13758 by @maarcingebala
+  Before this change, the static legacy payloads were generated even when a subscription was provided. From now on, the legacy payloads will be generated only when the subscription is missing.
 - Fix error in variant available stock calculation - 13593 by @awaisdar001
 - Add missing currency in action for transaction requests - 13786 by @AjmalPonneth
-- Fix giftcard code description - #13728 by @rafiwts
-
-- Change error message when denying a permission - #13334 by @rafiwts
+- Fix the `GiftCard.core` description - #13728 by @rafiwts
+- Change error message when denying permission - #13334 by @rafiwts
 - Add filter by slugs to attribute choices - #13761 by @rafiwts
-- Add a new `product` field on `AssignedProductAttributeValue`. First part of a simplification of Attribute - Product relation from #12881. by @aniav
-- Lazy legacy webhooks payload generation - #13758 by @maarcingebala
+- Add a new `product` field on `AssignedProductAttributeValue`. The first part of simplifying Attribute - Product relation from #12881 by @aniav
 - Fix NoneType in `prodcutChannelsListingUpdate` - #13694 by @Manoj-gowra
 - Extended `AttributeValueTranslation.name` to 250 characters - #13776 by @aniav
-- Add a new `page` field on `AssignedPageAttributeValue`. First stage (migration) of a simplification of Attribute - Page relation from #13403. by michal-macioszczyk
-- Update workflow actions with poetry dependencies - #13736 by @rafiwts
+- Add a new `page` field on `AssignedPageAttributeValue`. The first stage (migration) of a simplification of Attribute - Page relation - #13403 by @michal-macioszczyk
+- Update workflow actions with Poetry dependencies - #13736 by @rafiwts
 
 # 3.15.0
 
