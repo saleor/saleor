@@ -1,9 +1,14 @@
 from dataclasses import dataclass
 from typing import Dict, List
 from ....celeryconf import app
+from decimal import Decimal
 
 import graphene
+from django.db import transaction
 from django.db.models import Exists, OuterRef
+from ....order.models import OrderLine
+from ....product.models import Product
+from ....product.utils.variant_prices import update_products_discounted_price
 from ...models import (
     Promotion,
     PromotionRule,
@@ -14,10 +19,13 @@ from ...models import (
     CheckoutLineDiscount,
     OrderLineDiscount,
 )
-
+from babel.numbers import get_currency_precision
 
 # The batch of size 100 takes ~0.9 second and consumes ~30MB memory at peak
 BATCH_SIZE = 100
+
+# Results in memory usage of ~40MB for 20K products
+DISCOUNTED_PRICES_RECALCULATION_BATCH_SIZE = 100
 
 
 @dataclass
@@ -29,8 +37,6 @@ class RuleInfo:
 
 @app.task
 def migrate_sales_to_promotions_task():
-    # TODO: to update - needs to create `VariantChannelListingPromotionRule` instances
-
     sales = Sale.objects.exclude(
         Exists(Promotion.objects.filter(old_sale_id=OuterRef("pk")))
     ).order_by("pk")
@@ -60,7 +66,16 @@ def migrate_sales_to_promotions_task():
             "sale__variants",
         )
 
-        migrate_sales(qs)
+        with transaction.atomic():
+            # lock the batch of objects to avoid potential promotion creation in the
+            # meantime by sale mutation
+            _sales = list(
+                Sale.objects.filter(
+                    Exists(qs.filter(sale_id=OuterRef("pk")))
+                ).select_for_update(of=(["self"]))
+            )
+            _sale_listings = list(qs.select_for_update(of=(["self"])))
+            migrate_sales(qs)
         migrate_sales_to_promotions_task.delay()
 
     migrate_sales_not_listed_in_any_channels_task.delay()
@@ -95,8 +110,22 @@ def migrate_sales_not_listed_in_any_channels_task():
     ).order_by("pk")
     ids = list(sales_not_listed.values_list("pk", flat=True)[:BATCH_SIZE])
     if ids:
-        migrate_sales_not_listed_in_any_channels(ids)
+        with transaction.atomic():
+            # lock the batch of objects to avoid potential promotion creation in the
+            # meantime by sale mutation
+            sales = Sale.objects.filter(id__in=ids)
+            _sales = list(sales.select_for_update(of=(["self"])))
+            _sale_listings = list(
+                SaleChannelListing.objects.filter(
+                    Exists(sales.filter(id=OuterRef("sale_id")))
+                ).select_for_update(of=(["self"]))
+            )
+            migrate_sales_not_listed_in_any_channels(ids)
         migrate_sales_not_listed_in_any_channels_task.delay()
+    else:
+        # Call discounted price recalculation to create
+        # VariantChannelListingPromotionRule instances
+        update_discounted_prices_task.delay()
 
 
 def migrate_sales_not_listed_in_any_channels(sales_batch_pks):
@@ -150,7 +179,6 @@ def migrate_sale_listing_to_promotion_rules(
             rules_info.append(
                 RuleInfo(
                     rule=create_promotion_rule(
-                        PromotionRule,
                         sale_listing.sale,
                         promotion,
                         sale_listing.discount_value,
@@ -253,22 +281,36 @@ def migrate_checkout_line_discounts(sales_pks, rule_by_channel_and_sale):
 
 
 def migrate_order_line_discounts(sales_pks, rule_by_channel_and_sale):
-    # TODO: to update - should be created based on `OrderLine.sale_id`
-    if order_line_discounts := OrderLineDiscount.objects.filter(
-        sale_id__in=sales_pks
-    ).select_related("line__order"):
-        for order_line_discount in order_line_discounts:
-            if order_line := order_line_discount.line:
-                channel_id = order_line.order.channel_id
-                sale_id = order_line_discount.sale_id
-                lookup = f"{channel_id}_{sale_id}"
-                order_line_discount.type = "promotion"
-                if promotion_rule := rule_by_channel_and_sale.get(lookup):
-                    order_line_discount.promotion_rule = promotion_rule
+    global_pks = [graphene.Node.to_global_id("Sale", pk) for pk in sales_pks]
+    if order_lines := OrderLine.objects.filter(sale_id__in=global_pks).select_related(
+        "order"
+    ):
+        order_line_discounts = []
+        for order_line in order_lines:
+            channel_id = order_line.order.channel_id
+            sale_id = graphene.Node.from_global_id(order_line.sale_id)[1]
+            lookup = f"{channel_id}_{sale_id}"
+            if rule := rule_by_channel_and_sale.get(lookup):
+                order_line_discounts.append(
+                    OrderLineDiscount(
+                        type="promotion",
+                        value_type=rule.reward_value_type,
+                        value=rule.reward_value,
+                        amount_value=get_discount_amount_value(order_line),
+                        currency=order_line.currency,
+                        promotion_rule=rule,
+                        line=order_line,
+                    )
+                )
 
-        OrderLineDiscount.objects.bulk_update(
-            order_line_discounts, ["promotion_rule_id", "type"]
-        )
+        OrderLineDiscount.objects.bulk_create(order_line_discounts)
+
+
+def get_discount_amount_value(order_line):
+    precision = get_currency_precision(order_line.currency)
+    number_places = Decimal(10) ** -precision
+    price = order_line.quantity * order_line.unit_discount_amount
+    return price.quantize(number_places)
 
 
 def get_rule_by_channel_sale(rules_info):
@@ -276,3 +318,20 @@ def get_rule_by_channel_sale(rules_info):
         f"{rule_info.channel_id}_{rule_info.sale_id}": rule_info.rule
         for rule_info in rules_info
     }
+
+
+@app.task
+def update_discounted_prices_task(
+    start_pk: int = 0,
+):
+    products = list(
+        Product.objects.filter(pk__gt=start_pk)
+        .prefetch_related("channel_listings", "collections")
+        .order_by("pk")[:DISCOUNTED_PRICES_RECALCULATION_BATCH_SIZE]
+    )
+
+    if products:
+        update_products_discounted_price(products)
+        update_discounted_prices_task.delay(
+            start_pk=products[-1].pk,
+        )
