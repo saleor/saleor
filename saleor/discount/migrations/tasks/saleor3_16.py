@@ -325,9 +325,9 @@ def update_discounted_prices_task(
     start_pk: int = 0,
 ):
     products = list(
-        Product.objects.filter(pk__gt=start_pk)
-        .prefetch_related("channel_listings", "collections")
-        .order_by("pk")[:DISCOUNTED_PRICES_RECALCULATION_BATCH_SIZE]
+        Product.objects.filter(pk__gt=start_pk).order_by("pk")[
+            :DISCOUNTED_PRICES_RECALCULATION_BATCH_SIZE
+        ]
     )
 
     if products:
