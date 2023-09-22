@@ -36,9 +36,8 @@ from ....discount import RewardValueType
 from ....discount.interface import VariantPromotionRuleInfo
 from ....discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
-    fetch_catalogue_info,
 )
-from ....graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
+from ....graphql.discount.utils import convert_migrated_sale_predicate_to_catalogue_info
 from ....payment import TransactionAction, TransactionEventType
 from ....payment.interface import TransactionActionData
 from ....payment.models import TransactionItem
@@ -1622,20 +1621,28 @@ def test_create_event_payload_reference_with_error(
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_sale_created(
-    mocked_webhook_trigger, mocked_get_webhooks_for_event, any_webhook, settings, sale
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    promotion_converted_from_sale,
 ):
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
-    sale_catalogue_info = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+
+    promotion = promotion_converted_from_sale
+    predicate = promotion.rules.first().catalogue_predicate
+    promotion_catalogue_info = convert_migrated_sale_predicate_to_catalogue_info(
+        predicate
     )
-    manager.sale_created(sale, current_catalogue=sale_catalogue_info)
+
+    manager.sale_created(promotion, current_catalogue=promotion_catalogue_info)
     mocked_webhook_trigger.assert_called_once_with(
         None,
         WebhookEventAsyncType.SALE_CREATED,
         [any_webhook],
-        sale,
+        promotion,
         None,
         legacy_data_generator=ANY,
     )
@@ -1652,30 +1659,36 @@ def test_sale_updated(
     mocked_get_webhooks_for_event,
     any_webhook,
     settings,
-    sale,
+    promotion_converted_from_sale,
     product_list,
 ):
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
-    previous_sale_catalogue_info = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
-    )
-    sale.products.add(*product_list)
-    current_sale_catalogue_info = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
-    )
+
+    promotion = promotion_converted_from_sale
+    rule = promotion.rules.first()
+    predicate = promotion.rules.first().catalogue_predicate
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
+
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.id) for product in product_list
+    ]
+    predicate = {"variantPredicate": {"ids": [product_ids]}}
+    rule.catalogue_predicate = predicate
+    rule.save(update_fields=["catalogue_predicate"])
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
     manager.sale_updated(
-        sale,
-        previous_catalogue=previous_sale_catalogue_info,
-        current_catalogue=current_sale_catalogue_info,
+        promotion,
+        previous_catalogue=previous_catalogue,
+        current_catalogue=current_catalogue,
     )
     mocked_webhook_trigger.assert_called_once_with(
         None,
         WebhookEventAsyncType.SALE_UPDATED,
         [any_webhook],
-        sale,
+        promotion,
         None,
         legacy_data_generator=ANY,
     )
@@ -1688,20 +1701,26 @@ def test_sale_updated(
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_sale_deleted(
-    mocked_webhook_trigger, mocked_get_webhooks_for_event, any_webhook, settings, sale
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    promotion_converted_from_sale,
 ):
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
-    sale_catalogue_info = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
-    )
-    manager.sale_deleted(sale, previous_catalogue=sale_catalogue_info)
+
+    promotion = promotion_converted_from_sale
+    predicate = promotion.rules.first().catalogue_predicate
+    catalogue_info = convert_migrated_sale_predicate_to_catalogue_info(predicate)
+
+    manager.sale_deleted(promotion, previous_catalogue=catalogue_info)
     mocked_webhook_trigger.assert_called_once_with(
         None,
         WebhookEventAsyncType.SALE_DELETED,
         [any_webhook],
-        sale,
+        promotion,
         None,
         legacy_data_generator=ANY,
     )
@@ -1714,25 +1733,30 @@ def test_sale_deleted(
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_sale_toggle(
-    mocked_webhook_trigger, mocked_get_webhooks_for_event, any_webhook, settings, sale
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    promotion_converted_from_sale,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
-    sale_catalogue_info = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
-    )
+
+    promotion = promotion_converted_from_sale
+    predicate = promotion.rules.first().catalogue_predicate
+    catalogue_info = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
     # when
-    manager.sale_toggle(sale, catalogue=sale_catalogue_info)
+    manager.sale_toggle(promotion, catalogue=catalogue_info)
 
     # then
     mocked_webhook_trigger.assert_called_once_with(
         None,
         WebhookEventAsyncType.SALE_TOGGLE,
         [any_webhook],
-        sale,
+        promotion,
         None,
         legacy_data_generator=ANY,
     )
