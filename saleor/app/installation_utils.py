@@ -1,7 +1,7 @@
 import logging
 import time
 from io import BytesIO
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 import requests
 from celery.exceptions import MaxRetriesExceededError
@@ -72,7 +72,10 @@ def send_app_token(target_url: str, token: str):
 
 
 def fetch_icon_image(
-    url: str, *, max_file_size=MAX_ICON_FILE_SIZE, timeout=REQUEST_TIMEOUT
+    url: str,
+    *,
+    max_file_size=MAX_ICON_FILE_SIZE,
+    timeout: Tuple[int, int] = REQUEST_TIMEOUT
 ) -> File:
     filename = get_filename_from_url(url)
     size_error_msg = f"File too big. Maximal icon image file size is {max_file_size}."
@@ -96,7 +99,7 @@ def fetch_icon_image(
                 content.write(chunk)
                 if content.tell() > max_file_size:
                     raise ValidationError(size_error_msg, code=code)
-                if (time.monotonic() - fetch_start) > timeout:
+                if (time.monotonic() - fetch_start) > timeout[1]:
                     raise ValidationError(
                         "Timeout occurred while reading image file.",
                         code=AppErrorCode.MANIFEST_URL_CANT_CONNECT.value,
