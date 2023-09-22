@@ -1,5 +1,6 @@
 import graphene
 import requests
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files import File
 
@@ -16,6 +17,8 @@ from ....core.types import BaseInputObjectType, ProductError, Upload
 from ....core.validators.file import clean_image_file, is_image_url, validate_image_url
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
+
+MEDIA_GET_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 30)
 
 
 class ProductMediaCreateInput(BaseInputObjectType):
@@ -111,7 +114,10 @@ class ProductMediaCreate(BaseMutation):
                 )
                 filename = get_filename_from_url(media_url)
                 image_data = requests.get(
-                    media_url, stream=True, timeout=30, allow_redirects=False
+                    media_url,
+                    stream=True,
+                    timeout=MEDIA_GET_TIMEOUT,
+                    allow_redirects=False,
                 )
                 image_file = File(image_data.raw, filename)
                 media = product.media.create(

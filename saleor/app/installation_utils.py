@@ -29,7 +29,7 @@ from .manifest_validations import clean_manifest_data
 from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
 
-REQUEST_TIMEOUT = 20
+REQUEST_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 20)
 MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
 
 logger = logging.getLogger(__name__)

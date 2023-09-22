@@ -1,5 +1,6 @@
 import graphene
 import requests
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ....app.error_codes import AppErrorCode
@@ -13,7 +14,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import AppError
 from ..types import Manifest
 
-FETCH_BRAND_DATA_TIMEOUT = 5
+FETCH_BRAND_DATA_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 5)
 
 
 class AppFetchManifest(BaseMutation):
@@ -38,7 +39,9 @@ class AppFetchManifest(BaseMutation):
     def fetch_manifest(cls, manifest_url):
         try:
             response = requests.get(
-                manifest_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
+                manifest_url,
+                timeout=REQUEST_TIMEOUT,
+                allow_redirects=False,
             )
             response.raise_for_status()
             return response.json()

@@ -2,6 +2,7 @@ import json
 from typing import Any, Dict, Optional
 
 import requests
+from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
@@ -12,6 +13,8 @@ from ....app.headers import AppHeaders, DeprecatedAppHeaders
 from ....core.utils import build_absolute_uri
 from ...models import App
 from .utils import clean_permissions
+
+REQUEST_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 15)
 
 
 class Command(BaseCommand):
@@ -54,7 +57,7 @@ class Command(BaseCommand):
                 target_url,
                 json=data,
                 headers=headers,
-                timeout=15,
+                timeout=REQUEST_TIMEOUT,
                 allow_redirects=False,
             )
         except RequestException as e:

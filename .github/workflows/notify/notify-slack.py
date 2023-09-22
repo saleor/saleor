@@ -23,6 +23,9 @@ import os
 import sys
 
 import requests
+from django.conf import settings
+
+REQUEST_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 10)
 
 
 class JobNotifier:
@@ -90,7 +93,9 @@ class JobNotifier:
     def send_notification(self) -> None:
         post_data = self.make_slack_message()
         print(f"Notifying slack with payload: {post_data!r}", file=sys.stderr)
-        response = requests.post(self.slack_endpoint, json=post_data)
+        response = requests.post(
+            self.slack_endpoint, json=post_data, timeout=REQUEST_TIMEOUT
+        )
         response.raise_for_status()
 
 

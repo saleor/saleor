@@ -8,6 +8,7 @@ from authorizenet.apicontrollers import (
     createTransactionController,
     getCustomerProfileController,
 )
+from django.conf import settings
 from lxml import etree
 from lxml.objectify import ObjectifiedElement
 
@@ -19,6 +20,8 @@ from ...interface import (
     PaymentData,
     PaymentMethodInfo,
 )
+
+REQUEST_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 30)
 
 
 def authenticate_test(
@@ -42,7 +45,7 @@ def authenticate_test(
         url,
         json=data,
         headers={"content-type": "application/json"},
-        timeout=30,
+        timeout=REQUEST_TIMEOUT,
         allow_redirects=False,
     )
     # Response content is utf-8-sig, which requires usage of json.loads
