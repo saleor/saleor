@@ -19,6 +19,7 @@ from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.scalars import PositiveDecimal
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
+from ....core.utils import raise_validation_error
 from ....core.validators import validate_price_precision
 from ....discount.types import Sale
 from ...dataloaders import (
@@ -225,11 +226,22 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
             update_products_discounted_prices_of_promotion_task.delay(promotion.pk)
 
     @classmethod
+    def get_instance(cls, id):
+        object_id = cls.get_global_id_or_error(id, "Sale")
+        try:
+            return Promotion.objects.get(old_sale_id=object_id)
+        except Promotion.DoesNotExist:
+            raise_validation_error(
+                field="id",
+                message="Sale with given ID can't be found.",
+                code=DiscountErrorCode.NOT_FOUND,
+            )
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id, input
     ):
-        object_id = cls.get_global_id_or_error(id, "Sale")
-        promotion = Promotion.objects.get(old_sale_id=object_id)
+        promotion = cls.get_instance(id)
         rule = promotion.rules.first()
         rule = cast(PromotionRule, rule)
         sale_type = rule.reward_value_type
