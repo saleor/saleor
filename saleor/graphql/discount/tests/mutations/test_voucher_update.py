@@ -25,10 +25,12 @@ mutation voucherUpdate($id: ID!, $input: VoucherInput!) {
                 type
                 minCheckoutItemsQuantity
                 name
+                usageLimit
                 codes(first: 10){
                     edges {
                         node {
                             code
+                            usageLimit
                         }
                     }
                     pageInfo{
@@ -83,6 +85,8 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert data["discountValueType"] == DiscountValueType.PERCENTAGE.upper()
     assert data["applyOncePerOrder"] == apply_once_per_order
     assert data["minCheckoutItemsQuantity"] == 10
+    assert data["usageLimit"] == 10
+    assert data["codes"]["edges"][1]["node"]["usageLimit"] == 10
 
 
 @freeze_time("2022-05-12 12:00:00")

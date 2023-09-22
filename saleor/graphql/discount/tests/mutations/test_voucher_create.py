@@ -29,10 +29,14 @@ mutation voucherCreate($input: VoucherInput!) {
                 type
                 minCheckoutItemsQuantity
                 name
+                usageLimit
+                used
                 codes(first: 10){
                     edges {
                         node {
                             code
+                            usageLimit
+                            used
                         }
                     }
                     pageInfo{
@@ -62,14 +66,16 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
         "input": {
             "name": "test voucher",
             "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-            "codes": [{"code": "testcode123"}, {"code": "testcode456"}],
+            "codes": [
+                {"code": "testcode123", "usageLimit": 3},
+                {"code": "testcode456", "usageLimit": 3},
+            ],
             "discountValueType": DiscountValueTypeEnum.FIXED.name,
             "minCheckoutItemsQuantity": 10,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
             "applyOncePerOrder": True,
             "applyOncePerCustomer": True,
-            "usageLimit": 3,
         }
     }
 
@@ -92,6 +98,8 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     assert voucher.apply_once_per_order
     assert voucher.apply_once_per_customer
     assert voucher.usage_limit == 3
+    assert data["voucher"]["usageLimit"] == 3
+    assert data["voucher"]["codes"]["edges"][0]["node"]["usageLimit"] == 3
     assert len(codes) == 2
 
 
@@ -260,6 +268,37 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
     assert data["name"] == variables["input"]["name"]
     assert len(data["codes"]["edges"]) == 1
     assert data["codes"]["edges"][0]["node"]["code"] != ""
+
+
+def test_create_voucher_with_spaces_in_code(
+    staff_api_client, permission_manage_discounts
+):
+    # given
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
+    variables = {
+        "input": {
+            "name": "test voucher",
+            "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+            "codes": [{"code": "  PROMO"}],
+            "discountValueType": DiscountValueTypeEnum.FIXED.name,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "usageLimit": None,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["voucherCreate"]["voucher"]
+
+    # then
+    assert data["name"] == variables["input"]["name"]
+    assert len(data["codes"]["edges"]) == 1
+    assert data["codes"]["edges"][0]["node"]["code"] == "PROMO"
 
 
 def test_create_voucher_with_duplicated_codes(
