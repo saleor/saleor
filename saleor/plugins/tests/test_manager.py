@@ -12,8 +12,7 @@ from ...channel import TransactionFlowStrategy
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.taxes import TaxType, zero_money, zero_taxed_money
-from ...discount.utils import fetch_catalogue_info
-from ...graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
+from ...graphql.discount.utils import convert_migrated_sale_predicate_to_catalogue_info
 from ...payment import TokenizedPaymentFlow
 from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
@@ -579,61 +578,67 @@ def test_manager_get_taxes_for_order(
     ) == expected_tax_data(order)
 
 
-def test_manager_sale_created(sale):
+def test_manager_sale_created(promotion_converted_from_sale):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
 
-    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
-    sale_returned, current_catalogue_returned = PluginsManager(
+    promotion = promotion_converted_from_sale
+    predicate = promotion.rules.first().catalogue_predicate
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
+    promotion_returned, current_catalogue_returned = PluginsManager(
         plugins=plugins
-    ).sale_created(sale, current_catalogue)
+    ).sale_created(promotion, current_catalogue)
 
-    assert sale == sale_returned
+    assert promotion == promotion_returned
     assert current_catalogue == current_catalogue_returned
 
 
-def test_manager_sale_updated(sale):
+def test_manager_sale_updated(promotion_converted_from_sale):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
 
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
-    )
-    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
+    promotion = promotion_converted_from_sale
+    predicate = promotion.rules.first().catalogue_predicate
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
     (
-        sale_returned,
+        promotion_returned,
         previous_catalogue_returned,
         current_catalogue_returned,
     ) = PluginsManager(plugins=plugins).sale_updated(
-        sale, previous_catalogue, current_catalogue
+        promotion, previous_catalogue, current_catalogue
     )
 
-    assert sale == sale_returned
+    assert promotion == promotion_returned
     assert current_catalogue == current_catalogue_returned
     assert previous_catalogue == previous_catalogue_returned
 
 
-def test_manager_sale_deleted(sale):
+def test_manager_sale_deleted(promotion_converted_from_sale):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
 
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
-    )
-    sale_returned, previous_catalogue_returned = PluginsManager(
-        plugins=plugins
-    ).sale_created(sale, previous_catalogue)
+    promotion = promotion_converted_from_sale
+    predicate = promotion.rules.first().catalogue_predicate
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
-    assert sale == sale_returned
+    promotion_returned, previous_catalogue_returned = PluginsManager(
+        plugins=plugins
+    ).sale_created(promotion, previous_catalogue)
+
+    assert promotion == promotion_returned
     assert previous_catalogue == previous_catalogue_returned
 
 
-def test_manager_sale_toggle(sale):
+def test_manager_sale_toggle(promotion_converted_from_sale):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
 
-    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
-    sale_returned, current_catalogue_returned = PluginsManager(
-        plugins=plugins
-    ).sale_toggle(sale, current_catalogue)
+    promotion = promotion_converted_from_sale
+    predicate = promotion.rules.first().catalogue_predicate
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
-    assert sale == sale_returned
+    promotion_returned, current_catalogue_returned = PluginsManager(
+        plugins=plugins
+    ).sale_toggle(promotion, current_catalogue)
+
+    assert promotion == promotion_returned
     assert current_catalogue == current_catalogue_returned
 
 
