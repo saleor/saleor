@@ -8059,14 +8059,6 @@ def dummy_info(request):
 
 @pytest.fixture
 def async_subscription_webhooks_with_root_objects(
-    subscription_account_deleted_webhook,
-    subscription_account_confirmed_webhook,
-    subscription_account_email_changed_webhook,
-    subscription_account_set_password_requested_webhook,
-    subscription_account_confirmation_requested_webhook,
-    subscription_account_delete_requested_webhook,
-    subscription_account_change_email_requested_webhook,
-    subscription_staff_set_password_requested_webhook,
     subscription_address_created_webhook,
     subscription_address_updated_webhook,
     subscription_address_deleted_webhook,
@@ -8093,7 +8085,6 @@ def async_subscription_webhooks_with_root_objects(
     subscription_gift_card_sent_webhook,
     subscription_gift_card_status_changed_webhook,
     subscription_gift_card_metadata_updated_webhook,
-    subscription_gift_card_export_completed_webhook,
     subscription_menu_created_webhook,
     subscription_menu_updated_webhook,
     subscription_menu_deleted_webhook,
@@ -8110,7 +8101,6 @@ def async_subscription_webhooks_with_root_objects(
     subscription_product_updated_webhook,
     subscription_product_created_webhook,
     subscription_product_deleted_webhook,
-    subscription_product_export_completed_webhook,
     subscription_product_media_updated_webhook,
     subscription_product_media_created_webhook,
     subscription_product_media_deleted_webhook,
@@ -8136,6 +8126,11 @@ def async_subscription_webhooks_with_root_objects(
     subscription_draft_order_created_webhook,
     subscription_draft_order_updated_webhook,
     subscription_draft_order_deleted_webhook,
+    subscription_promotion_created_webhook,
+    subscription_promotion_updated_webhook,
+    subscription_promotion_deleted_webhook,
+    subscription_promotion_started_webhook,
+    subscription_promotion_ended_webhook,
     subscription_sale_created_webhook,
     subscription_sale_updated_webhook,
     subscription_sale_deleted_webhook,
@@ -8143,11 +8138,10 @@ def async_subscription_webhooks_with_root_objects(
     subscription_invoice_requested_webhook,
     subscription_invoice_deleted_webhook,
     subscription_invoice_sent_webhook,
-    subscription_fulfillment_canceled_webhook,
     subscription_fulfillment_created_webhook,
+    subscription_fulfillment_canceled_webhook,
     subscription_fulfillment_approved_webhook,
     subscription_fulfillment_metadata_updated_webhook,
-    subscription_fulfillment_tracking_number_updated,
     subscription_customer_created_webhook,
     subscription_customer_updated_webhook,
     subscription_customer_deleted_webhook,
@@ -8195,7 +8189,8 @@ def async_subscription_webhooks_with_root_objects(
     shipping_method,
     product,
     fulfilled_order,
-    sale,
+    promotion,
+    promotion_converted_from_sale,
     fulfillment,
     stock,
     customer_user,
@@ -8210,7 +8205,6 @@ def async_subscription_webhooks_with_root_objects(
     translated_attribute,
     transaction_item_created_by_app,
     product_media_image,
-    user_export_file,
 ):
     events = WebhookEventAsyncType
     attr = numeric_attribute
@@ -8223,38 +8217,6 @@ def async_subscription_webhooks_with_root_objects(
     transaction_item_created_by_app.save()
 
     return {
-        events.ACCOUNT_DELETED: [
-            subscription_account_deleted_webhook,
-            customer_user,
-        ],
-        events.ACCOUNT_EMAIL_CHANGED: [
-            subscription_account_email_changed_webhook,
-            customer_user,
-        ],
-        events.ACCOUNT_CONFIRMED: [
-            subscription_account_confirmed_webhook,
-            customer_user,
-        ],
-        events.ACCOUNT_DELETE_REQUESTED: [
-            subscription_account_delete_requested_webhook,
-            customer_user,
-        ],
-        events.ACCOUNT_SET_PASSWORD_REQUESTED: [
-            subscription_account_set_password_requested_webhook,
-            customer_user,
-        ],
-        events.ACCOUNT_CHANGE_EMAIL_REQUESTED: [
-            subscription_account_change_email_requested_webhook,
-            customer_user,
-        ],
-        events.ACCOUNT_CONFIRMATION_REQUESTED: [
-            subscription_account_confirmation_requested_webhook,
-            customer_user,
-        ],
-        events.STAFF_SET_PASSWORD_REQUESTED: [
-            subscription_staff_set_password_requested_webhook,
-            staff_user,
-        ],
         events.ADDRESS_UPDATED: [subscription_address_updated_webhook, address],
         events.ADDRESS_CREATED: [subscription_address_created_webhook, address],
         events.ADDRESS_DELETED: [subscription_address_deleted_webhook, address],
@@ -8299,10 +8261,6 @@ def async_subscription_webhooks_with_root_objects(
             subscription_gift_card_metadata_updated_webhook,
             gift_card,
         ],
-        events.GIFT_CARD_EXPORT_COMPLETED: [
-            subscription_gift_card_export_completed_webhook,
-            user_export_file,
-        ],
         events.MENU_CREATED: [subscription_menu_created_webhook, menu],
         events.MENU_UPDATED: [subscription_menu_updated_webhook, menu],
         events.MENU_DELETED: [subscription_menu_deleted_webhook, menu],
@@ -8330,10 +8288,6 @@ def async_subscription_webhooks_with_root_objects(
         events.PRODUCT_CREATED: [subscription_product_created_webhook, product],
         events.PRODUCT_UPDATED: [subscription_product_updated_webhook, product],
         events.PRODUCT_DELETED: [subscription_product_deleted_webhook, product],
-        events.PRODUCT_EXPORT_COMPLETED: [
-            subscription_product_export_completed_webhook,
-            user_export_file,
-        ],
         events.PRODUCT_MEDIA_CREATED: [
             subscription_product_media_created_webhook,
             product_media_image,
@@ -8374,19 +8328,36 @@ def async_subscription_webhooks_with_root_objects(
             subscription_product_variant_metadata_updated_webhook,
             product,
         ],
-        events.SALE_CREATED: [subscription_sale_created_webhook, sale],
-        events.SALE_UPDATED: [subscription_sale_updated_webhook, sale],
-        events.SALE_DELETED: [subscription_sale_deleted_webhook, sale],
-        events.SALE_TOGGLE: [subscription_sale_toggle_webhook, sale],
+        events.PROMOTION_CREATED: [subscription_promotion_created_webhook, promotion],
+        events.PROMOTION_UPDATED: [subscription_promotion_updated_webhook, promotion],
+        events.PROMOTION_DELETED: [subscription_promotion_deleted_webhook, promotion],
+        events.PROMOTION_STARTED: [subscription_promotion_started_webhook, promotion],
+        events.PROMOTION_ENDED: [subscription_promotion_ended_webhook, promotion],
+        events.SALE_CREATED: [
+            subscription_sale_created_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_UPDATED: [
+            subscription_sale_updated_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_DELETED: [
+            subscription_sale_deleted_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_TOGGLE: [
+            subscription_sale_toggle_webhook,
+            promotion_converted_from_sale,
+        ],
         events.INVOICE_REQUESTED: [subscription_invoice_requested_webhook, invoice],
         events.INVOICE_DELETED: [subscription_invoice_deleted_webhook, invoice],
         events.INVOICE_SENT: [subscription_invoice_sent_webhook, invoice],
-        events.FULFILLMENT_CANCELED: [
-            subscription_fulfillment_canceled_webhook,
-            fulfillment,
-        ],
         events.FULFILLMENT_CREATED: [
             subscription_fulfillment_created_webhook,
+            fulfillment,
+        ],
+        events.FULFILLMENT_CANCELED: [
+            subscription_fulfillment_canceled_webhook,
             fulfillment,
         ],
         events.FULFILLMENT_APPROVED: [
@@ -8395,10 +8366,6 @@ def async_subscription_webhooks_with_root_objects(
         ],
         events.FULFILLMENT_METADATA_UPDATED: [
             subscription_fulfillment_metadata_updated_webhook,
-            fulfillment,
-        ],
-        events.FULFILLMENT_TRACKING_NUMBER_UPDATED: [
-            subscription_fulfillment_tracking_number_updated,
             fulfillment,
         ],
         events.CUSTOMER_CREATED: [subscription_customer_created_webhook, customer_user],
