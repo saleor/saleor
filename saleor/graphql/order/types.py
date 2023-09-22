@@ -656,7 +656,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     )
     undiscounted_total_price = graphene.Field(
         TaxedMoney,
-        description=("Price of the order line without applied an order line discount."),
+        description="Price of the order line without discounts.",
         required=True,
     )
     variant = graphene.Field(

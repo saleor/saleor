@@ -10811,7 +10811,7 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Price of the order line."""
   totalPrice: TaxedMoney!
 
-  """Price of the order line without applied an order line discount."""
+  """Price of the order line without discounts."""
   undiscountedTotalPrice: TaxedMoney!
 
   """
