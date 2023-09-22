@@ -414,19 +414,12 @@ def _apply_tax_data_from_plugins(
         )
         line.total_price = total_price
 
-        unit_price = manager.calculate_checkout_line_unit_price(
-            checkout_info,
-            lines,
-            line_info,
-            address,
-        )
-
         line.tax_rate = manager.get_checkout_line_tax_rate(
             checkout_info,
             lines,
             line_info,
             address,
-            unit_price,
+            total_price,
         )
 
     checkout.shipping_price = manager.calculate_checkout_shipping(
