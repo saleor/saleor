@@ -295,3 +295,28 @@ def test_sale_remove_catalogues_with_promotion_id(
         "Provided ID refers to Promotion model. Please use "
         "`promotionRuleUpdate` or `promotionRuleDelete` mutation instead."
     )
+
+
+def test_sale_remove_catalogues_not_found_error(
+    staff_api_client,
+    permission_manage_discounts,
+):
+    # given
+    query = SALE_CATALOGUES_REMOVE_MUTATION
+    variables = {
+        "id": graphene.Node.to_global_id("Sale", "0"),
+        "input": {"products": []},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["saleCataloguesRemove"]["sale"]
+    errors = content["data"]["saleCataloguesRemove"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == DiscountErrorCode.NOT_FOUND.name

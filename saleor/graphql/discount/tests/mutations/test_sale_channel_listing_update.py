@@ -803,7 +803,6 @@ def test_sale_channel_listing_remove_all_channels_multiple_times(
 
 def test_sale_channel_listing_update_not_found_error(
     staff_api_client,
-    promotion,
     permission_manage_discounts,
 ):
     # given

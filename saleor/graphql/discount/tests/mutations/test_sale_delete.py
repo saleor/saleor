@@ -110,11 +110,7 @@ def test_sale_delete_mutation_with_promotion_id(
     update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
-def test_sale_delete_not_found_error(
-    staff_api_client,
-    promotion,
-    permission_manage_discounts,
-):
+def test_sale_delete_not_found_error(staff_api_client, permission_manage_discounts):
     # given
     query = SALE_DELETE_MUTATION
     variables = {"id": graphene.Node.to_global_id("Sale", "0")}

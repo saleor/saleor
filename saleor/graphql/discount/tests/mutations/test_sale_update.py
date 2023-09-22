@@ -850,11 +850,7 @@ def test_update_sale_with_promotion_id(
     update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
-def test_update_sale_not_found_error(
-    staff_api_client,
-    promotion,
-    permission_manage_discounts,
-):
+def test_update_sale_not_found_error(staff_api_client, permission_manage_discounts):
     # given
     query = SALE_UPDATE_MUTATION
     variables = {
