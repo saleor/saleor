@@ -77,7 +77,14 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
                 code=DiscountErrorCode.INVALID.value,
             )
         object_id = cls.get_global_id_or_error(id, "Sale")
-        return Promotion.objects.get(old_sale_id=object_id)
+        try:
+            return Promotion.objects.get(old_sale_id=object_id)
+        except Promotion.DoesNotExist:
+            raise_validation_error(
+                field="id",
+                message="Sale with given ID can't be found.",
+                code=DiscountErrorCode.NOT_FOUND,
+            )
 
     @classmethod
     def add_items_to_catalogue(

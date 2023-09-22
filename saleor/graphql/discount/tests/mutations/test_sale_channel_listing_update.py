@@ -799,3 +799,28 @@ def test_sale_channel_listing_remove_all_channels_multiple_times(
     rules = promotion.rules.all()
     assert len(rules) == 1
     assert not rules[0].channels.first()
+
+
+def test_sale_channel_listing_update_not_found_error(
+    staff_api_client,
+    permission_manage_discounts,
+):
+    # given
+    query = SALE_CHANNEL_LISTING_UPDATE_MUTATION
+    variables = {
+        "id": graphene.Node.to_global_id("Sale", "0"),
+        "input": {"removeChannels": []},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["saleChannelListingUpdate"]["sale"]
+    errors = content["data"]["saleChannelListingUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == DiscountErrorCode.NOT_FOUND.name
