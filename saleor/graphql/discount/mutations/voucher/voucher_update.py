@@ -36,12 +36,14 @@ class VoucherUpdate(VoucherCreate):
         ]
 
     @classmethod
-    def construct_codes_instances(cls, code, codes_data, usage_limit, voucher_instance):
+    def construct_codes_instances(
+        cls, code, codes_data, cleaned_input, voucher_instance
+    ):
         if codes_data:
             return [
                 models.VoucherCode(
                     code=code_data["code"],
-                    usage_limit=usage_limit,
+                    usage_limit=code_data.get("usage_limit"),
                     voucher=voucher_instance,
                 )
                 for code_data in codes_data
@@ -52,8 +54,8 @@ class VoucherUpdate(VoucherCreate):
                 code_instance = voucher_instance.codes.first()
                 code_instance.code = code
 
-                if usage_limit is not None:
-                    code_instance.usage_limit = usage_limit
+                if "usage_limit" in cleaned_input:
+                    code_instance.usage_limit = cleaned_input["usage_limit"]
 
                 return [code_instance]
             else:

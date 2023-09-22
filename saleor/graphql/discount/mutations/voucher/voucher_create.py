@@ -135,10 +135,12 @@ class VoucherCreate(ModelMutation):
 
     @classmethod
     def clean_codes(cls, data):
-        if data.code is not None:
-            if data.code == "":
+        if "code" in data:
+            data["code"] = data.code.strip() if data.code else None
+
+            if not data["code"]:
                 data["code"] = generate_promo_code()
-            elif not is_available_promo_code(data.code):
+            elif not is_available_promo_code(data["code"]):
                 raise ValidationError(
                     {
                         "code": ValidationError(
@@ -148,7 +150,9 @@ class VoucherCreate(ModelMutation):
                     }
                 )
         else:
-            codes = [code_data.code for code_data in data.codes if code_data.code]
+            codes = [
+                code_data.code.strip() for code_data in data.codes if code_data.code
+            ]
             duplicated_codes = get_duplicated_values(codes)
 
             if duplicated_codes:
@@ -163,12 +167,13 @@ class VoucherCreate(ModelMutation):
                 )
 
             existing_codes = []
-
             for code_data in data.codes:
-                if code_data.code == "":
+                code_data["code"] = code_data.code.strip() if code_data.code else None
+
+                if not code_data["code"]:
                     code_data["code"] = generate_promo_code()
-                elif not is_available_promo_code(code_data.code):
-                    existing_codes.append(code_data.code)
+                elif not is_available_promo_code(code_data["code"]):
+                    existing_codes.append(code_data["code"])
 
             if existing_codes:
                 raise ValidationError(
@@ -182,18 +187,22 @@ class VoucherCreate(ModelMutation):
                 )
 
     @classmethod
-    def construct_codes_instances(cls, code, codes_data, usage_limit, voucher_instance):
+    def construct_codes_instances(
+        cls, code, codes_data, cleaned_input, voucher_instance
+    ):
         if code:
             return [
                 models.VoucherCode(
-                    code=code, usage_limit=usage_limit, voucher=voucher_instance
+                    code=code,
+                    usage_limit=cleaned_input.get("usage_limit"),
+                    voucher=voucher_instance,
                 )
             ]
         else:
             return [
                 models.VoucherCode(
                     code=code_data["code"],
-                    usage_limit=usage_limit,
+                    usage_limit=code_data.get("usage_limit"),
                     voucher=voucher_instance,
                 )
                 for code_data in codes_data
@@ -245,11 +254,10 @@ class VoucherCreate(ModelMutation):
         private_metadata_list = cleaned_input.pop("private_metadata", None)
         codes_data = cleaned_input.pop("codes", None)
         code = cleaned_input.pop("code", None)
-        usage_limit = cleaned_input.pop("usage_limit", None)
 
         voucher_instance = cls.construct_instance(voucher_instance, cleaned_input)
         code_instances = cls.construct_codes_instances(
-            code, codes_data, usage_limit, voucher_instance
+            code, codes_data, cleaned_input, voucher_instance
         )
 
         cls.validate_and_update_metadata(
