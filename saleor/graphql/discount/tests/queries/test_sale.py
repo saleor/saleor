@@ -132,7 +132,7 @@ def test_query_sale_by_customer(api_client, promotion_converted_from_sale):
 
 
 def test_staff_query_sale_by_invalid_id(
-    staff_api_client, sale, permission_manage_discounts
+    staff_api_client, promotion_converted_from_sale, permission_manage_discounts
 ):
     # given
     id = "bh/"
