@@ -257,17 +257,17 @@ def test_add_variant_to_order(
     order,
     customer_user,
     variant,
-    sale,
+    promotion_with_single_rule,
 ):
     # given
     manager = get_plugins_manager()
     quantity = 4
 
-    sale_channel_listing = sale.channel_listings.get(channel=order.channel)
-
+    promotion = promotion_with_single_rule
+    discount_value = promotion.rules.first().reward_value
     channel_listing = variant.channel_listings.get(channel=order.channel)
     channel_listing.discounted_price_amount = (
-        channel_listing.price.amount - sale_channel_listing.discount_value
+        channel_listing.price.amount - discount_value
     )
     channel_listing.save(update_fields=["discounted_price_amount"])
 
