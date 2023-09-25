@@ -13,6 +13,7 @@ query OrderDetails($id:ID!) {
         id
         name
     }
+    updatedAt
     fulfillments {
       created
       id
