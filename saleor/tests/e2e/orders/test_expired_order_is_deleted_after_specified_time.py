@@ -1,14 +1,20 @@
-import pytest
+import datetime
 
+import pytest
+from django.utils import timezone
+from freezegun import freeze_time
+
+from ....order.tasks import delete_expired_orders_task, expire_orders_task
+from ..channel.utils import update_channel
 from ..checkout.utils import checkout_create, checkout_delivery_method_update
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_shop
 from ..utils import assign_permissions
-from .utils import order_create_from_checkout
+from .utils import order_create_from_checkout, order_query
 
 
 @pytest.mark.e2e
-def test_app_can_create_order_from_checkout_CORE_0215(
+def test_expired_order_is_deleted_after_specified_time_CORE_0216(
     e2e_staff_api_client,
     e2e_app_api_client,
     permission_manage_products,
@@ -44,6 +50,24 @@ def test_app_can_create_order_from_checkout_CORE_0215(
         channel_slug,
         shipping_method_id,
     ) = prepare_shop(e2e_staff_api_client)
+
+    expire_order_after_in_minutes = 1
+    delete_expired_order_after_in_days = "1"
+    channel_update_input = {
+        "orderSettings": {
+            "allowUnpaidOrders": True,
+            "automaticallyFulfillNonShippableGiftCard": True,
+            "automaticallyConfirmAllNewOrders": True,
+            "expireOrdersAfter": expire_order_after_in_minutes,
+            "deleteExpiredOrdersAfter": delete_expired_order_after_in_days,
+        }
+    }
+
+    update_channel(
+        e2e_staff_api_client,
+        channel_id,
+        channel_update_input,
+    )
 
     (
         _product_id,
@@ -86,8 +110,35 @@ def test_app_can_create_order_from_checkout_CORE_0215(
     assert checkout_data["deliveryMethod"]["id"] is not None
 
     # Step 3 - Create order from the checkout
+    now = timezone.now()
     order_data = order_create_from_checkout(e2e_app_api_client, checkout_id)
     order_id = order_data["order"]["id"]
     assert order_id is not None
     assert order_data["order"]["status"] == "UNCONFIRMED"
     assert order_data["order"]["paymentStatus"] == "NOT_CHARGED"
+    (order_data["order"]["created"]) = now
+    assert order_data["order"]["created"] == now
+    expired_orders_settings = order_data["order"]["channel"]["orderSettings"][
+        "expireOrdersAfter"
+    ]
+    delete_expired_orders_settings = order_data["order"]["channel"]["orderSettings"][
+        "deleteExpiredOrdersAfter"
+    ]
+    assert expired_orders_settings == expire_order_after_in_minutes
+    assert delete_expired_orders_settings == int(delete_expired_order_after_in_days)
+
+    # Step 4 - Check the order is expired
+    time_of_expiration = now + datetime.timedelta(minutes=2)
+    with freeze_time(time_of_expiration):
+        expire_orders_task()
+        data = order_query(e2e_staff_api_client, order_id)
+        assert data["status"] == "EXPIRED"
+        assert data["paymentStatus"] == "NOT_CHARGED"
+
+    # Step 5 - Check the order has been deleted
+    valid_deletion_time = time_of_expiration + datetime.timedelta(days=1)
+    with freeze_time(valid_deletion_time):
+        delete_expired_orders_task()
+        data = order_query(e2e_staff_api_client, order_id)
+
+    assert data is None

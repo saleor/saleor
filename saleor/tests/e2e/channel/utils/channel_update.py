@@ -11,6 +11,7 @@ mutation ChannelUpdate($id: ID!, $input: ChannelUpdateInput!) {
         automaticallyFulfillNonShippableGiftCard
         automaticallyConfirmAllNewOrders
         expireOrdersAfter
+        deleteExpiredOrdersAfter
       }
     }
     errors {
