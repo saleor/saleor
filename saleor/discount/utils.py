@@ -31,7 +31,6 @@ from .models import (
     NotApplicable,
     Promotion,
     PromotionRule,
-    Sale,
 )
 
 if TYPE_CHECKING:
@@ -249,16 +248,6 @@ def get_products_voucher_discount(
     discounts = (voucher.get_discount_amount_for(price, channel) for price in prices)
     total_amount = sum(discounts, zero_money(channel.currency_code))
     return total_amount
-
-
-def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
-    catalogue_info: CatalogueInfo = defaultdict(set)
-    for sale_data in Sale.objects.filter(id=instance.id).values(*CATALOGUE_FIELDS):
-        for field in CATALOGUE_FIELDS:
-            if id := sale_data.get(field):
-                catalogue_info[field].add(id)
-
-    return catalogue_info
 
 
 def apply_discount_to_value(

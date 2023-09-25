@@ -12,7 +12,7 @@ from django.db.models import Q
 from ....account.models import User
 from ....attribute.models import Attribute
 from ....checkout.models import Checkout
-from ....discount.models import Sale, Voucher
+from ....discount.models import Promotion, Voucher
 from ....giftcard.models import GiftCard
 from ....order.models import Order
 from ....page.models import Page, PageType
@@ -70,8 +70,8 @@ class Command(BaseCommand):
         Collection.objects.all().delete()
         self.stdout.write("Removed collections")
 
-        Sale.objects.all().delete()
-        self.stdout.write("Removed sales")
+        Promotion.objects.all().delete()
+        self.stdout.write("Removed promotions")
 
         ShippingMethod.objects.all().delete()
         self.stdout.write("Removed shipping methods")
