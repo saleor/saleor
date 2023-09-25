@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytz
 from django.conf import settings
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import connection, models
 from django.db.models import F, Q
 from django.utils import timezone
@@ -494,6 +494,7 @@ class BaseDiscount(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
+        db_index=False,
     )
     voucher = models.ForeignKey(
         Voucher, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
@@ -514,8 +515,13 @@ class OrderDiscount(BaseDiscount):
     old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
 
     class Meta:
-        # Orders searching index
-        indexes = [GinIndex(fields=["name", "translated_name"])]
+        indexes = [
+            BTreeIndex(
+                fields=["promotion_rule"], name="orderdiscount_promotion_rule_idx"
+            ),
+            # Orders searching index
+            GinIndex(fields=["name", "translated_name"]),
+        ]
         ordering = ("created_at", "id")
 
 
@@ -529,6 +535,11 @@ class OrderLineDiscount(BaseDiscount):
     )
 
     class Meta:
+        indexes = [
+            BTreeIndex(
+                fields=["promotion_rule"], name="orderlinedisc_promotion_rule_idx"
+            )
+        ]
         ordering = ("created_at", "id")
 
 
@@ -542,4 +553,9 @@ class CheckoutLineDiscount(BaseDiscount):
     )
 
     class Meta:
+        indexes = [
+            BTreeIndex(
+                fields=["promotion_rule"], name="checklinedisc_promotion_rule_idx"
+            )
+        ]
         ordering = ("created_at", "id")

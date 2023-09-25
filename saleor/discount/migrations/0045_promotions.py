@@ -147,6 +147,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 blank=True,
                 null=True,
+                db_index=False,
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="+",
                 to="discount.promotionrule",
@@ -158,6 +159,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 blank=True,
                 null=True,
+                db_index=False,
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="+",
                 to="discount.promotionrule",
@@ -260,6 +262,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         blank=True,
                         null=True,
+                        db_index=False,
                         on_delete=django.db.models.deletion.SET_NULL,
                         related_name="+",
                         to="discount.promotionrule",
