@@ -4277,16 +4277,16 @@ doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 name = "semgrep"
-version = "1.40.0"
+version = "1.41.0"
 description = "Lightweight static analysis for many languages. Find bug variants with patterns that look like source code."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "semgrep-1.40.0-cp37.cp38.cp39.cp310.cp311.py37.py38.py39.py310.py311-none-any.whl", hash = "sha256:89d9405ab3fcbfb37d52a450da69ad706518ec820ba07e0f078c46c48dd837e1"},
-    {file = "semgrep-1.40.0-cp37.cp38.cp39.cp310.cp311.py37.py38.py39.py310.py311-none-macosx_10_14_x86_64.whl", hash = "sha256:436514629b37f0db1ad63468df9d2fb42a7878c99ac016d1917b7c4c4e800462"},
-    {file = "semgrep-1.40.0-cp37.cp38.cp39.cp310.cp311.py37.py38.py39.py310.py311-none-macosx_11_0_arm64.whl", hash = "sha256:f5d1054be517a054dcf23bea7a1027ad80505bbc88a032505eccdcb949d57fa4"},
-    {file = "semgrep-1.40.0-cp37.cp38.cp39.cp310.cp311.py37.py38.py39.py310.py311-none-musllinux_1_0_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d8cc9603fd048e04a1a54c7ff7a420c3889bb3d79fc1088b1dbc6a6bb9ffa3e5"},
-    {file = "semgrep-1.40.0.tar.gz", hash = "sha256:3400b3df96139dc5cd6da9f70e442e27a2d7850df90c50cf9337fbffc64283f8"},
+    {file = "semgrep-1.41.0-cp37.cp38.cp39.cp310.cp311.py37.py38.py39.py310.py311-none-any.whl", hash = "sha256:bb1679826cb14a9444e5cfb5dcb1cd9c20071baf9ae541eed200076721362ad6"},
+    {file = "semgrep-1.41.0-cp37.cp38.cp39.cp310.cp311.py37.py38.py39.py310.py311-none-macosx_10_14_x86_64.whl", hash = "sha256:fbcc2ea85e828023f2da51dcf93684d09b95b062716f585587d27485b0af5c37"},
+    {file = "semgrep-1.41.0-cp37.cp38.cp39.cp310.cp311.py37.py38.py39.py310.py311-none-macosx_11_0_arm64.whl", hash = "sha256:0ebb2f992618f145c49e5c8de56ed7aec57819b9736128c3690a95213fa0da79"},
+    {file = "semgrep-1.41.0-cp37.cp38.cp39.cp310.cp311.py37.py38.py39.py310.py311-none-musllinux_1_0_aarch64.manylinux2014_aarch64.whl", hash = "sha256:551dc331001674d742afd80aa3b7e8a0ee5ede28f3502ca915338d6548e161d6"},
+    {file = "semgrep-1.41.0.tar.gz", hash = "sha256:d7231b5a65a77da14af9da66d95044ee41137b03da1380f6c646b1e2b60ef81d"},
 ]
 
 [package.dependencies]
