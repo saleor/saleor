@@ -4,7 +4,6 @@ from prices import Money, TaxedMoney
 
 from ...discount import DiscountValueType, RewardValueType, VoucherType
 from ...discount.models import PromotionRule
-from ...discount.tests.sale_converter import convert_sales_to_promotions
 from ...plugins.manager import get_plugins_manager
 from ...tax.utils import calculate_tax_rate
 from ..base_calculations import (
@@ -60,7 +59,6 @@ def test_calculate_base_line_unit_price_with_variant_on_sale(
     checkout_with_item_on_sale,
 ):
     # given
-    convert_sales_to_promotions()
     checkout = checkout_with_item_on_sale
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_item_on_sale)
 
@@ -85,8 +83,6 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_custom_price(
     price_override = Decimal("20.00")
     line.price_override = price_override
     line.save(update_fields=["price_override"])
-
-    convert_sales_to_promotions()
 
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_item_on_sale)
     checkout_line_info = checkout_lines_info[0]
@@ -661,8 +657,6 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher(
     voucher_channel_listing.discount = voucher_amount
     voucher_channel_listing.save()
 
-    convert_sales_to_promotions()
-
     checkout.voucher_code = voucher.code
 
     checkout_lines_info, _ = fetch_checkout_lines(checkout)
@@ -698,8 +692,6 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher_applie
     voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
     voucher_channel_listing.discount = voucher_amount
     voucher_channel_listing.save()
-
-    convert_sales_to_promotions()
 
     checkout_lines_info, _ = fetch_checkout_lines(checkout)
     checkout_line_info = checkout_lines_info[0]

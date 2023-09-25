@@ -4,7 +4,6 @@ import graphene
 
 from .....discount import RewardValueType
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.tests.sale_converter import convert_sales_to_promotions
 from ....tests.utils import assert_negative_positive_decimal_value, get_graphql_content
 
 SALE_CHANNEL_LISTING_UPDATE_MUTATION = """
@@ -167,7 +166,6 @@ def test_sale_channel_listing_update_channels(
     sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     discounted = 10.11
-    convert_sales_to_promotions()
 
     variables = {
         "id": sale_id,
@@ -462,7 +460,6 @@ def test_sale_channel_listing_update_duplicated_channel_in_add(
     sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     discounted = 10.11
-    convert_sales_to_promotions()
 
     variables = {
         "id": sale_id,
@@ -506,7 +503,7 @@ def test_sale_channel_listing_update_duplicated_channel_in_remove(
     promotion = promotion_converted_from_sale
     sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    convert_sales_to_promotions()
+
     variables = {
         "id": sale_id,
         "input": {"removeChannels": [channel_id, channel_id]},
@@ -545,7 +542,7 @@ def test_sale_channel_listing_update_with_invalid_decimal_places(
     sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
     discounted = 1.123
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    convert_sales_to_promotions()
+
     variables = {
         "id": sale_id,
         "input": {
