@@ -59,11 +59,13 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     voucher.save()
     assert voucher.codes.count() == 1
 
+    new_code = "newCode"
+
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
         "input": {
             "codes": [
-                {"code": "newCode", "usageLimit": 10},
+                {"code": new_code, "usageLimit": 10},
             ],
             "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
             "applyOncePerOrder": apply_once_per_order,
@@ -87,6 +89,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert data["minCheckoutItemsQuantity"] == 10
     assert data["usageLimit"] == 10
     assert data["codes"]["edges"][1]["node"]["usageLimit"] == 10
+    assert data["codes"]["edges"][1]["node"]["code"] == new_code
 
 
 @freeze_time("2022-05-12 12:00:00")

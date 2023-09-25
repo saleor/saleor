@@ -101,12 +101,14 @@ def test_create_voucher_trigger_webhook(
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
+    name = "test voucher"
+    code = "testcode123"
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
     variables = {
-        "name": "test voucher",
+        "name": name,
         "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-        "code": "testcode123",
+        "code": code,
         "discountValueType": DiscountValueTypeEnum.FIXED.name,
         "minCheckoutItemsQuantity": 10,
         "startDate": start_date.isoformat(),
@@ -129,8 +131,8 @@ def test_create_voucher_trigger_webhook(
         json.dumps(
             {
                 "id": graphene.Node.to_global_id("Voucher", voucher.id),
-                "name": voucher.name,
-                "code": voucher.code,
+                "name": name,
+                "code": code,
                 "meta": generate_meta(
                     requestor_data=generate_requestor(
                         SimpleLazyObject(lambda: staff_api_client.user)

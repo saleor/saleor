@@ -36,6 +36,13 @@ class VoucherUpdate(VoucherCreate):
         ]
 
     @classmethod
+    def clean_codes(cls, data):
+        if "code" in data:
+            cls._clean_old_code(data)
+        else:
+            cls._clean_new_codes(data)
+
+    @classmethod
     def construct_codes_instances(
         cls, code, codes_data, cleaned_input, voucher_instance
     ):

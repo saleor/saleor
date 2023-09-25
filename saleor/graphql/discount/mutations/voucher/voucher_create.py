@@ -9,7 +9,7 @@ from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_31, ADDED_IN_316, DEPRECATED_IN_3X_FIELD
+from ....core.descriptions import ADDED_IN_31, ADDED_IN_318, DEPRECATED_IN_3X_FIELD
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
@@ -29,7 +29,7 @@ class VoucherCodeInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS
-        description = "Represents voucher code data." + ADDED_IN_316
+        description = "Represents voucher code data." + ADDED_IN_318
 
 
 class VoucherInput(BaseInputObjectType):
@@ -41,7 +41,7 @@ class VoucherInput(BaseInputObjectType):
         required=False, description="Code to use the voucher." + DEPRECATED_IN_3X_FIELD
     )
     codes = NonNullList(
-        VoucherCodeInput, description="Codes to use the voucher." + ADDED_IN_316
+        VoucherCodeInput, description="Codes to use the voucher." + ADDED_IN_318
     )
     start_date = graphene.types.datetime.DateTime(
         description="Start date of the voucher in ISO 8601 format."
@@ -119,6 +119,66 @@ class VoucherCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cls.clean_codes(data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
+
+        return cleaned_input
+
+    @classmethod
+    def _clean_old_code(cls, data):
+        # Deprecated in 3.0, remove in 4.0
+        data["code"] = data.code.strip() if data.code else None
+
+        if not data["code"]:
+            data["code"] = generate_promo_code()
+        elif not is_available_promo_code(data["code"]):
+            raise ValidationError(
+                {
+                    "code": ValidationError(
+                        "Promo code already exists.",
+                        code=DiscountErrorCode.ALREADY_EXISTS.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def _clean_new_codes(cls, data):
+        codes = [code_data.code.strip() for code_data in data.codes if code_data.code]
+        duplicated_codes = get_duplicated_values(codes)
+
+        if duplicated_codes:
+            raise ValidationError(
+                {
+                    "codes": ValidationError(
+                        "Duplicated promo codes provided.",
+                        code=DiscountErrorCode.DUPLICATED_INPUT_ITEM.value,
+                        params={"voucher_codes": duplicated_codes},
+                    )
+                }
+            )
+
+        existing_codes = []
+        for code_data in data.codes:
+            code_data["code"] = code_data.code.strip() if code_data.code else None
+
+            if not code_data["code"]:
+                code_data["code"] = generate_promo_code()
+            elif not is_available_promo_code(code_data["code"]):
+                existing_codes.append(code_data["code"])
+
+        if existing_codes:
+            raise ValidationError(
+                {
+                    "codes": ValidationError(
+                        "Promo code already exists.",
+                        code=DiscountErrorCode.ALREADY_EXISTS.value,
+                        params={"voucher_codes": existing_codes},
+                    )
+                }
+            )
+
+    @classmethod
+    def clean_codes(cls, data):
         if data.code != "":
             validate_one_of_args_is_in_mutation(
                 "code",
@@ -128,63 +188,10 @@ class VoucherCreate(ModelMutation):
                 use_camel_case=True,
             )
 
-        cls.clean_codes(data)
-        cleaned_input = super().clean_input(info, instance, data, **kwargs)
-
-        return cleaned_input
-
-    @classmethod
-    def clean_codes(cls, data):
         if "code" in data:
-            data["code"] = data.code.strip() if data.code else None
-
-            if not data["code"]:
-                data["code"] = generate_promo_code()
-            elif not is_available_promo_code(data["code"]):
-                raise ValidationError(
-                    {
-                        "code": ValidationError(
-                            "Promo code already exists.",
-                            code=DiscountErrorCode.ALREADY_EXISTS.value,
-                        )
-                    }
-                )
+            cls._clean_old_code(data)
         else:
-            codes = [
-                code_data.code.strip() for code_data in data.codes if code_data.code
-            ]
-            duplicated_codes = get_duplicated_values(codes)
-
-            if duplicated_codes:
-                raise ValidationError(
-                    {
-                        "codes": ValidationError(
-                            "Duplicated promo codes provided.",
-                            code=DiscountErrorCode.DUPLICATED_INPUT_ITEM.value,
-                            params={"voucher_codes": duplicated_codes},
-                        )
-                    }
-                )
-
-            existing_codes = []
-            for code_data in data.codes:
-                code_data["code"] = code_data.code.strip() if code_data.code else None
-
-                if not code_data["code"]:
-                    code_data["code"] = generate_promo_code()
-                elif not is_available_promo_code(code_data["code"]):
-                    existing_codes.append(code_data["code"])
-
-            if existing_codes:
-                raise ValidationError(
-                    {
-                        "codes": ValidationError(
-                            "Promo code already exists.",
-                            code=DiscountErrorCode.ALREADY_EXISTS.value,
-                            params={"voucher_codes": existing_codes},
-                        )
-                    }
-                )
+            cls._clean_new_codes(data)
 
     @classmethod
     def construct_codes_instances(
