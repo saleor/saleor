@@ -160,16 +160,35 @@ def test_translation_created_shipping_method(
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_translation_created_sale(
-    sale_translation_fr, subscription_translation_created_webhook
+def test_translation_created_promotion(
+    promotion_translation_fr, subscription_translation_created_webhook
 ):
     webhooks = [subscription_translation_created_webhook]
     event_type = WebhookEventAsyncType.TRANSLATION_CREATED
     translation_id = graphene.Node.to_global_id(
-        "SaleTranslation", sale_translation_fr.id
+        "PromotionTranslation", promotion_translation_fr.id
     )
     deliveries = create_deliveries_for_subscriptions(
-        event_type, sale_translation_fr, webhooks
+        event_type, promotion_translation_fr, webhooks
+    )
+
+    expected_payload = json.dumps({"translation": {"id": translation_id}})
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_translation_created_promotion_rule(
+    promotion_rule_translation_fr, subscription_translation_created_webhook
+):
+    webhooks = [subscription_translation_created_webhook]
+    event_type = WebhookEventAsyncType.TRANSLATION_CREATED
+    translation_id = graphene.Node.to_global_id(
+        "PromotionRuleTranslation", promotion_rule_translation_fr.id
+    )
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, promotion_rule_translation_fr, webhooks
     )
 
     expected_payload = json.dumps({"translation": {"id": translation_id}})
@@ -369,16 +388,35 @@ def test_translation_updated_shipping_method(
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_translation_updated_sale(
-    sale_translation_fr, subscription_translation_updated_webhook
+def test_translation_updated_promotion(
+    promotion_translation_fr, subscription_translation_updated_webhook
 ):
     webhooks = [subscription_translation_updated_webhook]
     event_type = WebhookEventAsyncType.TRANSLATION_UPDATED
     translation_id = graphene.Node.to_global_id(
-        "SaleTranslation", sale_translation_fr.id
+        "PromotionTranslation", promotion_translation_fr.id
     )
     deliveries = create_deliveries_for_subscriptions(
-        event_type, sale_translation_fr, webhooks
+        event_type, promotion_translation_fr, webhooks
+    )
+
+    expected_payload = json.dumps({"translation": {"id": translation_id}})
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_translation_updated_promotion_rule(
+    promotion_rule_translation_fr, subscription_translation_updated_webhook
+):
+    webhooks = [subscription_translation_updated_webhook]
+    event_type = WebhookEventAsyncType.TRANSLATION_UPDATED
+    translation_id = graphene.Node.to_global_id(
+        "PromotionRuleTranslation", promotion_rule_translation_fr.id
+    )
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, promotion_rule_translation_fr, webhooks
     )
 
     expected_payload = json.dumps({"translation": {"id": translation_id}})

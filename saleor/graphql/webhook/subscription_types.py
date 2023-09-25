@@ -8,7 +8,12 @@ from ...account.models import User
 from ...attribute.models import AttributeTranslation, AttributeValueTranslation
 from ...channel.models import Channel
 from ...core.prices import quantize_price
-from ...discount.models import SaleTranslation, VoucherTranslation
+from ...discount.models import (
+    PromotionRuleTranslation,
+    PromotionTranslation,
+    SaleTranslation,
+    VoucherTranslation,
+)
 from ...graphql.shop.types import Shop
 from ...menu.models import MenuItemTranslation
 from ...order.utils import get_all_shipping_methods_for_order
@@ -93,6 +98,8 @@ TRANSLATIONS_TYPES_MAP = {
     SaleTranslation: translation_types.SaleTranslation,
     VoucherTranslation: translation_types.VoucherTranslation,
     MenuItemTranslation: translation_types.MenuItemTranslation,
+    PromotionTranslation: translation_types.PromotionTranslation,
+    PromotionRuleTranslation: translation_types.PromotionRuleTranslation,
 }
 
 
