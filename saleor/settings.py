@@ -830,5 +830,8 @@ OAUTH_UPDATE_LAST_LOGIN_THRESHOLD = parse(
 )
 
 
-# Default timeout (sec) for establishing a connection when performing external request.
+# Default timeout (sec) for establishing a connection when performing external requests.
 REQUESTS_CONN_EST_TIMEOUT = 2
+
+# Default timeout for external requests.
+COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)

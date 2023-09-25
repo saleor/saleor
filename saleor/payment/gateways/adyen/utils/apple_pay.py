@@ -33,7 +33,6 @@ APPLE_DOMAINS = [
     "apple-pay-gateway-cert.apple.com",
     "cn-apple-pay-gateway-cert.apple.com",
 ]
-REQUEST_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 30)
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +106,7 @@ def make_request_to_initialize_apple_pay(
             validation_url,
             json=request_data,
             cert=f.name,
-            timeout=REQUEST_TIMEOUT,
+            timeout=settings.COMMON_REQUESTS_TIMEOUT,
             allow_redirects=False,
         )
 

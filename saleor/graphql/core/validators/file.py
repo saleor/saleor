@@ -11,8 +11,6 @@ from ..utils import add_hash_to_file_name
 
 Image.init()
 
-REQUEST_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 30)
-
 
 def is_image_mimetype(mimetype: str) -> bool:
     """Check if mimetype is image."""
@@ -43,7 +41,9 @@ def validate_image_url(url: str, field_name: str, error_code: str) -> None:
 
     Instead of the whole file, only the headers are fetched.
     """
-    head = requests.head(url, timeout=REQUEST_TIMEOUT, allow_redirects=False)
+    head = requests.head(
+        url, timeout=settings.COMMON_REQUESTS_TIMEOUT, allow_redirects=False
+    )
     header = head.headers
     content_type = header.get("content-type")
     if content_type is None or not is_supported_image_mimetype(content_type):

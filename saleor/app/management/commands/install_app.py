@@ -13,8 +13,6 @@ from ...installation_utils import install_app
 from ...models import AppInstallation
 from .utils import clean_permissions
 
-REQUEST_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 30)
-
 
 class Command(BaseCommand):
     help = "Used to install new app."
@@ -37,7 +35,9 @@ class Command(BaseCommand):
 
     def fetch_manifest_data(self, manifest_url: str) -> dict:
         response = requests.get(
-            manifest_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
+            manifest_url,
+            timeout=settings.COMMON_REQUESTS_TIMEOUT,
+            allow_redirects=False,
         )
         response.raise_for_status()
         return response.json()

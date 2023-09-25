@@ -18,8 +18,6 @@ from ....core.validators.file import clean_image_file, is_image_url, validate_im
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 
-MEDIA_GET_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 30)
-
 
 class ProductMediaCreateInput(BaseInputObjectType):
     alt = graphene.String(description="Alt text for a product media.")
@@ -116,7 +114,7 @@ class ProductMediaCreate(BaseMutation):
                 image_data = requests.get(
                     media_url,
                     stream=True,
-                    timeout=MEDIA_GET_TIMEOUT,
+                    timeout=settings.COMMON_REQUESTS_TIMEOUT,
                     allow_redirects=False,
                 )
                 image_file = File(image_data.raw, filename)

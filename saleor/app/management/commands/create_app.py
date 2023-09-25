@@ -14,8 +14,6 @@ from ....core.utils import build_absolute_uri
 from ...models import App
 from .utils import clean_permissions
 
-REQUEST_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 15)
-
 
 class Command(BaseCommand):
     help = "Used to create new app."
@@ -57,7 +55,7 @@ class Command(BaseCommand):
                 target_url,
                 json=data,
                 headers=headers,
-                timeout=REQUEST_TIMEOUT,
+                timeout=settings.COMMON_REQUESTS_TIMEOUT,
                 allow_redirects=False,
             )
         except RequestException as e:

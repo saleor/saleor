@@ -51,8 +51,6 @@ from .product_variant_bulk_create import (
     ProductVariantBulkCreateInput,
 )
 
-MEDIA_GET_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 30)
-
 
 def get_results(instances_data_with_errors_list, reject_everything=False):
     if reject_everything:
@@ -804,7 +802,7 @@ class ProductBulkCreate(BaseMutation):
                     image_data = requests.get(
                         media_url,
                         stream=True,
-                        timeout=MEDIA_GET_TIMEOUT,
+                        timeout=settings.COMMON_REQUESTS_TIMEOUT,
                         allow_redirects=False,
                     )
                     image_data = File(image_data.raw, filename)

@@ -21,8 +21,6 @@ from ...interface import (
     PaymentMethodInfo,
 )
 
-REQUEST_TIMEOUT = (settings.REQUESTS_CONN_EST_TIMEOUT, 30)
-
 
 def authenticate_test(
     name: str, transaction_key: str, use_sandbox: bool
@@ -45,7 +43,7 @@ def authenticate_test(
         url,
         json=data,
         headers={"content-type": "application/json"},
-        timeout=REQUEST_TIMEOUT,
+        timeout=settings.COMMON_REQUESTS_TIMEOUT,
         allow_redirects=False,
     )
     # Response content is utf-8-sig, which requires usage of json.loads
