@@ -3,7 +3,6 @@ from unittest.mock import patch
 import graphene
 
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.tests.sale_converter import convert_sales_to_promotions
 from ....tests.utils import get_graphql_content
 from ...utils import convert_migrated_sale_predicate_to_catalogue_info
 
@@ -231,7 +230,6 @@ def test_sale_remove_catalogues_no_product_changes(
         catalogue_predicate
     )
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    convert_sales_to_promotions()
 
     variables = {
         "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
