@@ -425,7 +425,6 @@ def test_calculate_checkout_line_total_with_variant_on_promotion_and_voucher_onl
     plugin_configuration,
     voucher,
     channel_USD,
-    discount_info,
 ):
     # given
     plugin_configuration()
@@ -550,7 +549,6 @@ def test_calculate_checkout_line_without_sku_total_with_promotion(
     expected_net,
     expected_gross,
     prices_entered_with_tax,
-    discount_info,
     checkout_with_item_on_promotion,
     ship_to_pl_address,
     monkeypatch,
@@ -2719,7 +2717,6 @@ def test_calculate_checkout_line_unit_price_with_variant_on_promotion(
     shipping_zone,
     address,
     plugin_configuration,
-    discount_info,
 ):
     # given
     plugin_configuration()
@@ -2887,7 +2884,6 @@ def test_calculate_checkout_line_unit_price_with_variant_on_promotion_and_vouche
     plugin_configuration,
     voucher,
     channel_USD,
-    discount_info,
 ):
     # given
     plugin_configuration()

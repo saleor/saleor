@@ -51,7 +51,6 @@ from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
 from ..discount import (
-    DiscountInfo,
     DiscountType,
     DiscountValueType,
     PromotionEvents,
@@ -69,7 +68,6 @@ from ..discount.models import (
     PromotionTranslation,
     Sale,
     SaleChannelListing,
-    SaleTranslation,
     Voucher,
     VoucherChannelListing,
     VoucherCustomer,
@@ -5388,38 +5386,6 @@ def sale(product, category, collection, variant, channel_USD):
 
 
 @pytest.fixture
-def discount_info(category, collection, sale, channel_USD):
-    sale_channel_listing = sale.channel_listings.get(channel=channel_USD)
-
-    return DiscountInfo(
-        sale=sale,
-        channel_listings={channel_USD.slug: sale_channel_listing},
-        product_ids=set(),
-        category_ids={category.id},  # assumes this category does not have children
-        collection_ids={collection.id},
-        variants_ids=set(),
-    )
-
-
-@pytest.fixture
-def discount_info_JPY(sale, product_in_channel_JPY, channel_JPY):
-    sale_channel_listing = sale.channel_listings.create(
-        channel=channel_JPY,
-        discount_value=5,
-        currency=channel_JPY.currency_code,
-    )
-
-    return DiscountInfo(
-        sale=sale,
-        channel_listings={channel_JPY.slug: sale_channel_listing},
-        product_ids={product_in_channel_JPY.id},
-        category_ids=set(),
-        collection_ids=set(),
-        variants_ids=set(),
-    )
-
-
-@pytest.fixture
 def promotion(channel_USD, product, collection):
     promotion = Promotion.objects.create(
         name="Promotion",
@@ -6432,13 +6398,6 @@ def promotion_rule_translation_fr(promotion_rule):
         promotion_rule=promotion_rule,
         name="French promotion rule name",
         description=dummy_editorjs("French promotion rule description."),
-    )
-
-
-@pytest.fixture
-def sale_translation_fr(sale):
-    return SaleTranslation.objects.create(
-        language_code="fr", sale=sale, name="French sale name"
     )
 
 

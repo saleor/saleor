@@ -84,7 +84,6 @@ def test_calculate_checkout_total_with_sale(
     address,
     shipping_zone,
     voucher,
-    discount_info,
     expected_net,
     expected_gross,
     voucher_amount,
@@ -250,7 +249,6 @@ def test_calculate_checkout_total_with_shipping_voucher_and_sale(
     checkout_with_item_on_promotion,
     address,
     shipping_zone,
-    discount_info,
     voucher_shipping_type,
     expected_net,
     expected_gross,
@@ -773,7 +771,6 @@ def test_calculate_checkout_line_total_with_shipping_voucher(
 def test_calculate_checkout_shipping(
     checkout_with_item,
     shipping_zone,
-    discount_info,
     address,
 ):
     # given
@@ -806,7 +803,6 @@ def test_calculate_checkout_shipping(
 
 def test_calculate_checkout_shipping_no_shipping_price(
     checkout_with_item,
-    discount_info,
     address,
     warehouse_for_cc,
 ):
@@ -839,7 +835,6 @@ def test_calculate_checkout_shipping_no_shipping_price(
 def test_calculate_checkout_shipping_voucher_on_shipping(
     checkout_with_item,
     shipping_zone,
-    discount_info,
     address,
     voucher_shipping_type,
 ):
@@ -884,7 +879,6 @@ def test_calculate_checkout_shipping_voucher_on_shipping(
 def test_calculate_checkout_shipping_free_shipping_voucher(
     checkout_with_item,
     shipping_zone,
-    discount_info,
     address,
     voucher_shipping_type,
 ):
@@ -923,7 +917,6 @@ def test_calculate_checkout_shipping_free_shipping_voucher(
 def test_calculate_checkout_shipping_free_entire_order_voucher(
     checkout_with_item,
     shipping_zone,
-    discount_info,
     address,
     voucher,
 ):

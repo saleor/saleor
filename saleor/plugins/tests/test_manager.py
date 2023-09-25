@@ -214,7 +214,7 @@ def test_manager_calculates_checkout_subtotal(
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "0.0")],
 )
 def test_manager_calculates_checkout_shipping(
-    checkout_with_item, discount_info, plugins, shipping_amount
+    checkout_with_item, plugins, shipping_amount
 ):
     currency = checkout_with_item.currency
     expected_shipping_price = Money(shipping_amount, currency)
@@ -252,7 +252,7 @@ def test_manager_calculates_order_shipping(order_with_lines, plugins, shipping_a
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
 )
 def test_manager_calculates_checkout_line_total(
-    checkout_with_item_on_promotion, discount_info, plugins, amount
+    checkout_with_item_on_promotion, plugins, amount
 ):
     # given
     checkout = checkout_with_item_on_promotion
@@ -1142,7 +1142,6 @@ def test_calculate_checkout_total_zero_default_value(
     mocked_base_checkout_total,
     mocked_run_method,
     checkout_with_item,
-    discount_info,
 ):
     # given
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]

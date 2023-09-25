@@ -101,7 +101,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_custom_price(
 
 
 def test_calculate_base_line_unit_price_with_variant_on_promotion(
-    checkout_with_item_on_promotion, discount_info, category
+    checkout_with_item_on_promotion, category
 ):
     # given
     checkout = checkout_with_item_on_promotion
@@ -116,7 +116,7 @@ def test_calculate_base_line_unit_price_with_variant_on_promotion(
 
 
 def test_calculate_base_line_unit_price_with_variant_on_promotion_custom_price(
-    checkout_with_item_on_promotion, discount_info, category
+    checkout_with_item_on_promotion, category
 ):
     # given
     checkout = checkout_with_item_on_promotion
@@ -351,7 +351,7 @@ def test_calculate_base_line_unit_price_with_discounts_once_per_order_custom_pri
 
 
 def test_calculate_base_line_unit_price_with_variant_on_sale_and_voucher(
-    checkout_with_single_item, discount_info, category, voucher, channel_USD
+    checkout_with_single_item, category, voucher, channel_USD
 ):
     # given
     checkout_line = checkout_with_single_item.lines.first()
@@ -436,7 +436,7 @@ def test_calculate_base_line_total_price(checkout_with_single_item):
 
 
 def test_calculate_base_line_total_price_with_variant_on_sale(
-    checkout_with_item_on_sale, discount_info
+    checkout_with_item_on_sale,
 ):
     # given
     quantity = 3
@@ -641,7 +641,7 @@ def test_calculate_base_line_total_price_with_discounts_apply_once_per_order(
 
 
 def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher(
-    checkout_with_item_on_sale, discount_info, category, voucher, channel_USD
+    checkout_with_item_on_sale, category, voucher, channel_USD
 ):
     # given
     quantity = 3
@@ -677,7 +677,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher(
 
 
 def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher_applied_once(
-    checkout_with_item_on_sale, discount_info, category, voucher, channel_USD
+    checkout_with_item_on_sale, category, voucher, channel_USD
 ):
     # given
     quantity = 3
@@ -748,7 +748,7 @@ def test_calculate_base_line_total_price_with_variant_on_promotion_and_voucher(
 
 
 def test_calculate_base_line_total_price_variant_on_promotion_and_voucher_applied_once(
-    checkout_with_item_on_promotion, discount_info, category, voucher, channel_USD
+    checkout_with_item_on_promotion, category, voucher, channel_USD
 ):
     # given
     quantity = 3
