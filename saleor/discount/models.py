@@ -210,7 +210,7 @@ class VoucherCode(models.Model):
     usage_limit = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
-        ordering = ("pk",)
+        ordering = ("code",)
 
 
 class VoucherChannelListing(models.Model):

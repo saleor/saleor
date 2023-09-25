@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.CreateModel(
             name="VoucherCode",
-            options={"ordering": ("pk",)},
+            options={"ordering": ("code",)},
             fields=[
                 (
                     "id",
