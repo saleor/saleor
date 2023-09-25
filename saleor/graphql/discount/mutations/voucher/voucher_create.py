@@ -269,12 +269,6 @@ class VoucherCreate(ModelMutation):
 
         has_multiple_codes = bool(codes_data)
         cls.save(info, voucher_instance, code_instances, has_multiple_codes)
-        cls._save_m2m(info, voucher_instance, cleaned_input)
-
-        if metadata_list:
-            cleaned_input["metadata"] = metadata_list
-        if private_metadata_list:
-            cleaned_input["private_metadata"] = private_metadata_list
 
         cls.post_save_action(info, voucher_instance, code_instances[0].code)
         return cls.success_response(voucher_instance)

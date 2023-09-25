@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import List, Optional
 
-from django.db.models import F
+from django.db.models import F, Max, Sum
 
 from ...discount import DiscountInfo
 from ...discount.interface import VoucherInfo
@@ -152,13 +152,15 @@ class UsedByVoucherIDLoader(DataLoader):
     context_key = "voucher_used"
 
     def batch_load(self, keys):
-        voucher_codes = VoucherCode.objects.using(self.database_connection_name).filter(
-            voucher_id__in=keys
+        vouchers = (
+            Voucher.objects.using(self.database_connection_name)
+            .filter(id__in=keys)
+            .annotate(max_used=Sum("codes__used"))
         )
-        voucher_codes_map = {}
-        for voucher_code in voucher_codes:
-            voucher_codes_map[voucher_code.voucher_id] = voucher_code.used
-        return [voucher_codes_map.get(voucher_id) for voucher_id in keys]
+        vouchers_map = {}
+        for voucher in vouchers:
+            vouchers_map[voucher.id] = voucher.max_used  # type: ignore
+        return [vouchers_map.get(voucher_id) for voucher_id in keys]
 
 
 class UsageLimitByVoucherIDLoader(DataLoader):
@@ -170,13 +172,15 @@ class UsageLimitByVoucherIDLoader(DataLoader):
     context_key = "voucher_usage_limit"
 
     def batch_load(self, keys):
-        voucher_codes = VoucherCode.objects.using(self.database_connection_name).filter(
-            voucher_id__in=keys
+        vouchers = (
+            Voucher.objects.using(self.database_connection_name)
+            .filter(id__in=keys)
+            .annotate(max_used_limit=Max("codes__usage_limit"))
         )
-        voucher_codes_map = {}
-        for voucher_code in voucher_codes:
-            voucher_codes_map[voucher_code.voucher_id] = voucher_code.usage_limit
-        return [voucher_codes_map.get(voucher_id) for voucher_id in keys]
+        vouchers_map = {}
+        for voucher in vouchers:
+            vouchers_map[voucher.id] = voucher.max_used_limit  # type: ignore
+        return [vouchers_map.get(voucher_id) for voucher_id in keys]
 
 
 class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):
