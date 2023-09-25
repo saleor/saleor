@@ -76,7 +76,7 @@ def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method(
     mock_send_request, checkout_with_item, address, settings, shipping_app
 ):
@@ -113,7 +113,7 @@ def test_is_valid_delivery_method_external_method(
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method_shipping_app_id_with_identifier(
     mock_send_request, checkout_with_item, address, settings, shipping_app
 ):
@@ -153,7 +153,7 @@ def test_is_valid_delivery_method_external_method_shipping_app_id_with_identifie
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method_old_shipping_app_id(
     mock_send_request, checkout_with_item, address, settings, shipping_app
 ):
@@ -193,7 +193,7 @@ def test_is_valid_delivery_method_external_method_old_shipping_app_id(
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method_no_longer_available(
     mock_send_request, checkout_with_item, address, settings, shipping_app
 ):

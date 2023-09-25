@@ -157,7 +157,7 @@ def test_checkout_add_already_applied_voucher_for_entire_order(
     assert checkout_data["discount"]["amount"] == net.amount
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_checkout_add_voucher_code_by_token_with_external_shipment(
     mock_send_request,
     api_client,

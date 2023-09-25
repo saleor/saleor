@@ -1,6 +1,6 @@
 from ....core.http_client import HTTPClient
 from ....core.models import EventDeliveryAttempt
-from ..tasks import trigger_webhooks_async
+from ....webhook.transport.asynchronous.transport import trigger_webhooks_async
 
 
 def test_rejects_private_ips(webhook, monkeypatch):

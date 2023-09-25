@@ -30,7 +30,6 @@ from ...payment import TransactionAction, TransactionEventType
 from ...payment.interface import RefundData, TransactionActionData, TransactionData
 from ...payment.models import TransactionItem
 from ...plugins.manager import get_plugins_manager
-from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
 from ...shipping.interface import ShippingMethodData
 from ...warehouse import WarehouseClickAndCollectOption
@@ -64,6 +63,7 @@ from ..payloads import (
     generate_translation_payload,
 )
 from ..serializers import serialize_checkout_lines
+from ..transport.utils import from_payment_app_id
 
 
 def parse_django_datetime(date):

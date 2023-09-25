@@ -118,7 +118,7 @@ def _assert_fields(payload, webhook, expected_response, response, mock_request):
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_initialize_checkout_without_request_data_and_static_payload(
     mock_request,
     webhook_plugin,
@@ -186,7 +186,7 @@ def test_transaction_initialize_checkout_without_request_data_and_static_payload
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_initialize_checkout_with_request_data_and_static_payload(
     mock_request,
     webhook_plugin,
@@ -255,7 +255,7 @@ def test_transaction_initialize_checkout_with_request_data_and_static_payload(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_initialize_checkout_without_request_data(
     mock_request,
     webhook_plugin,
@@ -324,7 +324,7 @@ def test_transaction_initialize_checkout_without_request_data(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_initialize_checkout_with_request_data(
     mock_request,
     webhook_plugin,
@@ -394,7 +394,7 @@ def test_transaction_initialize_checkout_with_request_data(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_initialize_session_skips_app_without_identifier(
     mock_request,
     webhook_plugin,
@@ -459,7 +459,7 @@ def test_transaction_initialize_session_skips_app_without_identifier(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_initialize_order_without_request_data_and_static_payload(
     mock_request,
     webhook_plugin,
@@ -527,7 +527,7 @@ def test_transaction_initialize_order_without_request_data_and_static_payload(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_initialize_order_with_request_data_and_static_payload(
     mock_request,
     webhook_plugin,
@@ -596,7 +596,7 @@ def test_transaction_initialize_order_with_request_data_and_static_payload(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_initialize_order_without_request_data(
     mock_request,
     webhook_plugin,
@@ -665,7 +665,7 @@ def test_transaction_initialize_order_without_request_data(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_initialize_order_with_request_data(
     mock_request,
     webhook_plugin,

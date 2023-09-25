@@ -14,7 +14,10 @@ from .....product.models import Category
 from .....shipping.models import ShippingMethod, ShippingZone
 from .....site.models import SiteSettings
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ...tasks import create_deliveries_for_subscriptions, logger
+from .....webhook.transport.asynchronous.transport import (
+    create_deliveries_for_subscriptions,
+    logger,
+)
 from . import subscription_queries
 from .payloads import (
     generate_account_events_payload,

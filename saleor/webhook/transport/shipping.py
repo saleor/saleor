@@ -15,12 +15,11 @@ from ...checkout.models import Checkout
 from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
 from ...order.models import Order
+from ...plugins.base_plugin import ExcludedShippingMethod
 from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
-from ..base_plugin import ExcludedShippingMethod
-from ..const import APP_ID_PREFIX
-from .const import CACHE_EXCLUDED_SHIPPING_TIME
-from .tasks import trigger_webhook_sync
+from ..const import APP_ID_PREFIX, CACHE_EXCLUDED_SHIPPING_TIME
+from .synchronous.transport import trigger_webhook_sync
 
 logger = logging.getLogger(__name__)
 

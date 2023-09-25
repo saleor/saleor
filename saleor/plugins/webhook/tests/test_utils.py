@@ -4,12 +4,15 @@ import pytest
 
 from ....payment.interface import PaymentGateway
 from ....webhook.event_types import WebhookEventSyncType
-from ..stored_payment_methods import (
+from ....webhook.transport.list_stored_payment_methods import (
     get_credit_card_info,
     get_list_stored_payment_methods_from_response,
     get_payment_method_from_response,
 )
-from ..utils import generate_cache_key_for_webhook, to_payment_app_id
+from ....webhook.transport.utils import (
+    generate_cache_key_for_webhook,
+    to_payment_app_id,
+)
 
 
 @pytest.fixture()

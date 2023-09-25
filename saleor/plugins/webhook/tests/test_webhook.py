@@ -46,10 +46,13 @@ from ....webhook.payloads import (
     generate_checkout_payload,
     generate_product_deleted_payload,
 )
+from ....webhook.transport import signature_for_payload
+from ....webhook.transport.asynchronous.transport import (
+    send_webhook_request_async,
+    trigger_webhooks_async,
+)
 from ....webhook.utils import get_webhooks_for_event
 from ...manager import get_plugins_manager
-from .. import signature_for_payload
-from ..tasks import send_webhook_request_async, trigger_webhooks_async
 from .utils import generate_request_headers
 
 first_url = "http://www.example.com/first/"
@@ -69,7 +72,9 @@ third_url = "http://www.example.com/third/"
         (WebhookEventAsyncType.CUSTOMER_CREATED, 0, set()),
     ],
 )
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async.delay")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.delay"
+)
 def test_trigger_webhooks_for_event_calls_expected_events(
     mock_request,
     event_name,
@@ -1557,7 +1562,7 @@ def test_create_event_payload_reference_with_error(
     mocked_client_constructor = MagicMock(spec=boto3.client, return_value=mocked_client)
 
     monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.boto3.client",
+        "saleor.webhook.transport.utils.boto3.client",
         mocked_client_constructor,
     )
 
@@ -1720,9 +1725,13 @@ def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
     mocked_webhook_send.assert_called_once_with(event_delivery.pk)
 
 
-@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
-@mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.observability.report_event_delivery_attempt"
+)
+@mock.patch("saleor.webhook.transport.asynchronous.transport.clear_successful_delivery")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+)
 def test_send_webhook_request_async(
     mocked_send_response,
     mocked_clear_delivery,
@@ -1757,7 +1766,9 @@ def test_send_webhook_request_async(
     mocked_observability.assert_called_once_with(attempt)
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+)
 def test_send_webhook_request_async_with_custom_headers(
     mocked_send_response,
     event_delivery,
@@ -1777,8 +1788,8 @@ def test_send_webhook_request_async_with_custom_headers(
     assert custom_headers in mocked_send_response.call_args[0]
 
 
-@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
-@mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
+@mock.patch("saleor.webhook.observability.utils.report_event_delivery_attempt")
+@mock.patch("saleor.webhook.transport.utils.clear_successful_delivery")
 def test_send_webhook_request_async_when_webhook_is_disabled(
     mocked_clear_delivery, mocked_observability, event_delivery
 ):
@@ -1956,8 +1967,12 @@ def test_transaction_cancelation_requested(
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.observability.report_event_delivery_attempt"
+)
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+)
 def test_send_webhook_request_async_when_delivery_attempt_failed(
     mocked_send_response,
     mocked_observability,
@@ -1978,7 +1993,9 @@ def test_send_webhook_request_async_when_delivery_attempt_failed(
 
 
 @mock.patch.object(HTTPSession, "request", side_effect=RequestException)
-@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.observability.report_event_delivery_attempt"
+)
 def test_send_webhook_request_async_with_request_exception(
     mocked_observability, mocked_post, event_delivery, webhook_response_failed
 ):
@@ -2006,9 +2023,15 @@ def test_send_webhook_request_async_with_request_exception(
     mocked_observability.assert_called_once_with(attempt, None)
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async.retry")
-@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.retry"
+)
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.observability.report_event_delivery_attempt"
+)
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+)
 def test_send_webhook_request_async_when_max_retries_exceeded(
     mocked_send_response,
     mocked_observability,

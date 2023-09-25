@@ -474,7 +474,7 @@ def update_checkout_info_delivery_method_info(
 
     The attribute is lazy-evaluated avoid external API calls unless accessed.
     """
-    from ..plugins.webhook.shipping import convert_to_app_id_with_identifier
+    from ..webhook.transport.shipping import convert_to_app_id_with_identifier
     from .utils import get_external_shipping_id
 
     delivery_method: Optional[Union[ShippingMethodData, Warehouse, Callable]] = None

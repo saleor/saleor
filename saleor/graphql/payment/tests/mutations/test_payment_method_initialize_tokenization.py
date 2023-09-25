@@ -9,7 +9,7 @@ from .....payment.interface import (
     PaymentMethodTokenizationResult,
 )
 from .....plugins.manager import PluginsManager
-from .....plugins.webhook.utils import to_payment_app_id
+from .....webhook.transport.utils import to_payment_app_id
 from ....core.enums import PaymentMethodInitializeTokenizationErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import PaymentMethodTokenizationResultEnum, TokenizedPaymentFlowEnum
