@@ -66,8 +66,6 @@ from ..discount.models import (
     PromotionRule,
     PromotionRuleTranslation,
     PromotionTranslation,
-    Sale,
-    SaleChannelListing,
     Voucher,
     VoucherChannelListing,
     VoucherCustomer,
@@ -325,19 +323,18 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
-def checkout_with_item_on_sale(checkout_with_item):
+def checkout_with_item_on_sale(checkout_with_item, promotion_with_single_rule):
     line = checkout_with_item.lines.first()
     channel = checkout_with_item.channel
-    sale = Sale.objects.create(name="Sale")
     discount_amount = Decimal("5.0")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel,
-        discount_value=discount_amount,
-        currency=channel.currency_code,
-    )
     variant = line.variant
-    sale.products.add(variant.product)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    predicate = {"variantPredicate": {"ids": [variant_id]}}
+    rule = promotion_with_single_rule.rules.first()
+    rule.catalogue_predicate = predicate
+    rule.reward_value = discount_amount
+    rule.save(update_fields=["catalogue_predicate", "reward_value"])
+    rule.channels.add(channel)
     channel_listing = variant.channel_listings.get(channel=channel)
     channel_listing.discounted_price_amount = (
         channel_listing.price_amount - discount_amount
@@ -346,9 +343,9 @@ def checkout_with_item_on_sale(checkout_with_item):
 
     CheckoutLineDiscount.objects.create(
         line=line,
-        sale=sale,
+        promotion_rule=rule,
         type=DiscountType.SALE,
-        value_type=sale.type,
+        value_type=rule.reward_value_type,
         value=discount_amount,
         amount_value=discount_amount * line.quantity,
         currency=channel.currency_code,
@@ -5367,22 +5364,6 @@ def dummy_address_data(address):
 def dummy_webhook_app_payment_data(dummy_payment_data, payment_app):
     dummy_payment_data.gateway = to_payment_app_id(payment_app, "credit-card")
     return dummy_payment_data
-
-
-@pytest.fixture
-def sale(product, category, collection, variant, channel_USD):
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-    )
-    sale.products.add(product)
-    sale.categories.add(category)
-    sale.collections.add(collection)
-    sale.variants.add(variant)
-    return sale
 
 
 @pytest.fixture
