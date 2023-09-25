@@ -26168,7 +26168,7 @@ input VoucherInput @doc(category: "Discounts") {
   """
   Codes to use the voucher.
   
-  Added in Saleor 3.16.
+  Added in Saleor 3.18.
   """
   codes: [VoucherCodeInput!]
 
@@ -26221,7 +26221,7 @@ input VoucherInput @doc(category: "Discounts") {
 """
 Represents voucher code data.
 
-Added in Saleor 3.16.
+Added in Saleor 3.18.
 """
 input VoucherCodeInput @doc(category: "Discounts") {
   """Code to use the voucher."""

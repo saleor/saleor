@@ -62,9 +62,10 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
 
+    name = "test voucher"
     variables = {
         "input": {
-            "name": "test voucher",
+            "name": name,
             "type": VoucherTypeEnum.ENTIRE_ORDER.name,
             "codes": [
                 {"code": "testcode123", "usageLimit": 3},
@@ -91,7 +92,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     # then
     assert not data["errors"]
     assert voucher.type == VoucherType.ENTIRE_ORDER
-    assert voucher.name == "test voucher"
+    assert voucher.name == name
     assert voucher.discount_value_type == DiscountValueType.FIXED
     assert voucher.start_date == start_date
     assert voucher.end_date == end_date
