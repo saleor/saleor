@@ -5,7 +5,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0046_migrate_sales_to_promotions"),
+        ("discount", "0047_migrate_sales_to_promotions"),
     ]
 
     operations = [

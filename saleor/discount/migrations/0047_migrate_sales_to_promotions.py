@@ -328,7 +328,7 @@ def update_discounted_prices(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0045_promotions"),
+        ("discount", "0046_promotion_discount_indexes"),
     ]
 
     operations = [

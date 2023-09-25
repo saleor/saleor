@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("app", "0025_auto_20230420_1544"),
         ("account", "0082_user_last_confirm_email_request"),
-        ("discount", "0047_old_sale_ids_sequence"),
+        ("discount", "0048_old_sale_ids_sequence"),
     ]
 
     operations = [
