@@ -1524,8 +1524,11 @@ def test_generate_collection_point_payload(order_with_lines_for_cc):
     )
 
 
-def test_generate_sale_payload_no_previous_and_current_has_empty_catalogue_lists(sale):
-    payload = json.loads(generate_sale_payload(sale))[0]
+def test_generate_sale_payload_no_previous_and_current_has_empty_catalogue_lists(
+    promotion_converted_from_sale,
+):
+    promotion = promotion_converted_from_sale
+    payload = json.loads(generate_sale_payload(promotion))[0]
 
     assert not payload["categories_added"]
     assert not payload["categories_removed"]
@@ -1534,19 +1537,22 @@ def test_generate_sale_payload_no_previous_and_current_has_empty_catalogue_lists
     assert not payload["products_added"]
     assert not payload["products_removed"]
 
-    assert graphene.Node.to_global_id("Sale", sale.id) == payload["id"]
+    assert graphene.Node.to_global_id("Sale", promotion.old_sale_id) == payload["id"]
 
 
-def test_generate_sale_payload_with_current_only_has_empty_removed_fields(sale):
+def test_generate_sale_payload_with_current_only_has_empty_removed_fields(
+    promotion_converted_from_sale,
+):
     catalogue_info = {
         "categories": {1, 2, 3},
         "collections": {45, 70, 90},
         "products": {4, 5, 6},
         "variants": {"aa", "bb", "cc"},
     }
-    payload = json.loads(generate_sale_payload(sale, current_catalogue=catalogue_info))[
-        0
-    ]
+    promotion = promotion_converted_from_sale
+    payload = json.loads(
+        generate_sale_payload(promotion, current_catalogue=catalogue_info)
+    )[0]
 
     assert set(payload["categories_added"]) == catalogue_info["categories"]
     assert set(payload["collections_added"]) == catalogue_info["collections"]
@@ -1558,7 +1564,10 @@ def test_generate_sale_payload_with_current_only_has_empty_removed_fields(sale):
     assert not payload["variants_removed"]
 
 
-def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
+def test_generate_sale_payload_with_current_only_has_empty_added_fields(
+    promotion_converted_from_sale,
+):
+    promotion = promotion_converted_from_sale
     catalogue_info = {
         "categories": {1, 2, 3},
         "collections": {45, 70, 90},
@@ -1566,7 +1575,7 @@ def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
         "variants": {"aa", "bb", "cc"},
     }
     payload = json.loads(
-        generate_sale_payload(sale, previous_catalogue=catalogue_info)
+        generate_sale_payload(promotion, previous_catalogue=catalogue_info)
     )[0]
 
     assert set(payload["categories_removed"]) == catalogue_info["categories"]
@@ -1579,7 +1588,10 @@ def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
     assert not payload["variants_added"]
 
 
-def test_generate_sale_payload_calculates_set_differences(sale):
+def test_generate_sale_payload_calculates_set_differences(
+    promotion_converted_from_sale,
+):
+    promotion = promotion_converted_from_sale
     previous_info = {
         "categories": {1, 2, 3},
         "collections": {45, 70, 90},
@@ -1595,7 +1607,7 @@ def test_generate_sale_payload_calculates_set_differences(sale):
 
     payload = json.loads(
         generate_sale_payload(
-            sale, previous_catalogue=previous_info, current_catalogue=current_info
+            promotion, previous_catalogue=previous_info, current_catalogue=current_info
         )
     )[0]
 
@@ -1609,8 +1621,9 @@ def test_generate_sale_payload_calculates_set_differences(sale):
     assert set(payload["variants_removed"]) == {"ccc"}
 
 
-def test_generate_sale_toggle_payload(sale):
+def test_generate_sale_toggle_payload(promotion_converted_from_sale):
     # given
+    promotion = promotion_converted_from_sale
     current_info = {
         "categories": {4, 2, 3},
         "collections": set(),
@@ -1619,7 +1632,7 @@ def test_generate_sale_toggle_payload(sale):
     }
 
     # when
-    payload = json.loads(generate_sale_toggle_payload(sale, current_info))[0]
+    payload = json.loads(generate_sale_toggle_payload(promotion, current_info))[0]
 
     # then
     assert payload["is_active"] is True
@@ -1627,6 +1640,7 @@ def test_generate_sale_toggle_payload(sale):
     assert not payload["collections"]
     assert set(payload["products"]) == current_info["products"]
     assert set(payload["variants"]) == current_info["variants"]
+    assert graphene.Node.to_global_id("Sale", promotion.old_sale_id) == payload["id"]
 
 
 @patch("saleor.webhook.payloads.serialize_checkout_lines_for_tax_calculation")
