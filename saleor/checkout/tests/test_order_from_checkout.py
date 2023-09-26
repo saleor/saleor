@@ -705,7 +705,6 @@ def test_create_order_from_checkout_valid_undiscounted_prices(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
 
     # then
@@ -897,7 +896,6 @@ def test_create_order_from_checkout_update_undiscounted_prices_match(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
     line = order.lines.first()
     assert line.unit_price == line.undiscounted_unit_price
