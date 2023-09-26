@@ -34313,7 +34313,7 @@ type TranslationCreated implements Event @doc(category: "Miscellaneous") {
   translation: TranslationTypes
 }
 
-union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | SaleTranslation | VoucherTranslation | MenuItemTranslation
+union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | SaleTranslation | VoucherTranslation | MenuItemTranslation | PromotionTranslation | PromotionRuleTranslation
 
 """
 Event sent when translation is updated.

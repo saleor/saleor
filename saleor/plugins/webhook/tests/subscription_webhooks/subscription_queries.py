@@ -1972,6 +1972,12 @@ subscription {
         ... on AttributeValueTranslation {
           id
         }
+        ... on PromotionTranslation {
+          id
+        }
+        ... on PromotionRuleTranslation {
+          id
+        }
       }
     }
   }
@@ -2014,6 +2020,12 @@ subscription {
           id
         }
         ... on AttributeValueTranslation {
+          id
+        }
+        ... on PromotionTranslation {
+          id
+        }
+        ... on PromotionRuleTranslation {
           id
         }
       }
