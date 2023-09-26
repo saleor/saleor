@@ -9381,6 +9381,9 @@ Represents voucher code.
 Added in Saleor 3.18.
 """
 type VoucherCode {
+  """The ID of the voucher code."""
+  id: ID!
+
   """Code to use the voucher."""
   code: String
 
@@ -18100,6 +18103,21 @@ type Mutation {
     """Fields required to update voucher channel listings."""
     input: VoucherChannelListingInput!
   ): VoucherChannelListingUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
+
+  """
+  Deletes voucher codes.
+  
+  Added in Saleor 3.18. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - VOUCHER_UPDATED (async): A voucher was updated.
+  """
+  voucherCodeBulkDelete(
+    """List of voucher codes IDs to delete."""
+    ids: [ID!]!
+  ): VoucherCodeBulkDelete @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
   Export products to csv file. 
@@ -27985,6 +28003,23 @@ input VoucherChannelListingAddInput @doc(category: "Discounts") {
 
   """Min purchase amount required to apply the voucher."""
   minAmountSpent: PositiveDecimal
+}
+
+"""
+Deletes voucher codes.
+
+Added in Saleor 3.18. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- VOUCHER_UPDATED (async): A voucher was updated.
+"""
+type VoucherCodeBulkDelete @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
+  """Returns how many objects were affected."""
+  count: Int!
+  discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [DiscountError!]!
 }
 
 """
