@@ -14,7 +14,7 @@ from ...channel.types import (
 from ...core import ResolveInfo, types
 from ...core.connection import CountableConnection, create_connection_slice
 from ...core.context import get_database_connection_name
-from ...core.descriptions import ADDED_IN_31, ADDED_IN_316, DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import ADDED_IN_31, ADDED_IN_318, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
 from ...core.types import ModelObjectType, Money, NonNullList
@@ -65,6 +65,7 @@ class VoucherChannelListing(ModelObjectType[models.VoucherChannelListing]):
 
 
 class VoucherCode(ModelObjectType[models.VoucherCode]):
+    id = graphene.GlobalID(required=True, description="The ID of the voucher code.")
     code = graphene.String(description="Code to use the voucher.")
     used = graphene.Int(description="Number of times a code has been used.")
     usage_limit = graphene.Int(
@@ -72,7 +73,7 @@ class VoucherCode(ModelObjectType[models.VoucherCode]):
     )
 
     class Meta:
-        description = "Represents voucher code." + ADDED_IN_316
+        description = "Represents voucher code." + ADDED_IN_318
         model = models.VoucherCode
 
 
@@ -87,7 +88,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     name = graphene.String(description="The name of the voucher.")
     codes = ConnectionField(
         VoucherCodeCountableConnection,
-        description="List of codes available for this voucher." + ADDED_IN_316,
+        description="List of codes available for this voucher." + ADDED_IN_318,
     )
     code = graphene.String(
         description="The code of the voucher." + DEPRECATED_IN_3X_FIELD
