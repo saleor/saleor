@@ -85,6 +85,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Other changes
 
 - Fix thumbnail redirects sometimes failing with an unsafe redirect warning - #14023 by @patrys
+- New environment variable `PUBLIC_URL` to define URL on which Saleor is hosted (e.g., https://api.example.com/). Takes precedence over `ENABLE_SSL` and `Shop.domain` for URL generation - #13841 by @przlada
 
 # 3.16.0
 

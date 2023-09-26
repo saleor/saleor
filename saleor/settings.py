@@ -4,7 +4,8 @@ import os
 import os.path
 import warnings
 from datetime import timedelta
-from typing import List
+from typing import List, Optional
+from urllib.parse import urlparse
 
 import dj_database_url
 import dj_email_url
@@ -18,6 +19,7 @@ from celery.schedules import crontab
 from django.conf import global_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
+from django.core.validators import URLValidator
 from graphql.execution import executor
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
@@ -43,6 +45,15 @@ def get_bool_from_env(name, default_value):
         except ValueError as e:
             raise ValueError("{} is an invalid value for {}".format(value, name)) from e
     return default_value
+
+
+def get_url_from_env(name, *, schemes=None) -> Optional[str]:
+    if name in os.environ:
+        value = os.environ[name]
+        message = f"{value} is an invalid value for {name}"
+        URLValidator(schemes=schemes, message=message)(value)
+        return value
+    return None
 
 
 DEBUG = get_bool_from_env("DEBUG", True)
@@ -136,7 +147,15 @@ EMAIL_BACKEND: str = email_config.get("EMAIL_BACKEND", "")
 EMAIL_USE_TLS: bool = email_config.get("EMAIL_USE_TLS", False)
 EMAIL_USE_SSL: bool = email_config.get("EMAIL_USE_SSL", False)
 
-ENABLE_SSL = get_bool_from_env("ENABLE_SSL", False)
+ENABLE_SSL: bool = get_bool_from_env("ENABLE_SSL", False)
+
+# URL on which Saleor is hosted (e.g., https://api.example.com/). This has precedence
+# over ENABLE_SSL and Shop.domain when generating URLs pointing to itself.
+PUBLIC_URL: Optional[str] = get_url_from_env("PUBLIC_URL", schemes=["http", "https"])
+if PUBLIC_URL:
+    if os.environ.get("ENABLE_SSL") is not None:
+        warnings.warn("ENABLE_SSL is ignored on URL generation if PUBLIC_URL is set.")
+    ENABLE_SSL = urlparse(PUBLIC_URL).scheme.lower() == "https"
 
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
@@ -406,17 +425,6 @@ DEFAULT_CURRENCY_CODE_LENGTH = 3
 DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 
 COUNTRIES_OVERRIDE = {"EU": "European Union"}
-
-
-def get_host():
-    from django.contrib.sites.models import Site
-
-    return Site.objects.get_current().domain
-
-
-PAYMENT_HOST = get_host
-
-PAYMENT_MODEL = "order.Payment"
 
 MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
 

@@ -6,13 +6,13 @@ from urllib.parse import urlparse
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.core.cache import cache
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventPayload
 from ....core.tracing import webhooks_opentracing_trace
+from ....core.utils import get_domain
 from ....graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
     initialize_request,
@@ -90,7 +90,7 @@ def _send_webhook_request_sync(
     data = event_payload.payload
     webhook = delivery.webhook
     parts = urlparse(webhook.target_url)
-    domain = Site.objects.get_current().domain
+    domain = get_domain()
     message = data.encode("utf-8")
     signature = signature_for_payload(message, webhook.secret_key)
 

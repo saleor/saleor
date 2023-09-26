@@ -7,7 +7,6 @@ import requests
 from celery.exceptions import MaxRetriesExceededError
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files import File
 from django.core.files.storage import default_storage
@@ -19,7 +18,7 @@ from .. import schema_version
 from ..app.headers import AppHeaders, DeprecatedAppHeaders
 from ..celeryconf import app
 from ..core.http_client import HTTPClient
-from ..core.utils import build_absolute_uri
+from ..core.utils import build_absolute_uri, get_domain
 from ..permission.enums import get_permission_names
 from ..plugins.manager import PluginsManager
 from ..thumbnail import ICON_MIME_TYPES
@@ -54,7 +53,7 @@ def validate_app_install_response(response: Response):
 
 
 def send_app_token(target_url: str, token: str):
-    domain = Site.objects.get_current().domain
+    domain = get_domain()
     headers = {
         "Content-Type": "application/json",
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
