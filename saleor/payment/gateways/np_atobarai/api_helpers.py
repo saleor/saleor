@@ -64,7 +64,7 @@ def _request(
         # Because we want to pass those errors to the end user,
         # we treat 400 as valid response.
         if 400 < response.status_code <= 600:
-            raise requests.HTTPError
+            raise requests.HTTPError(request=response.request, response=response)
         return response
 
 
