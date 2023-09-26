@@ -45,7 +45,7 @@ def move_codes_to_new_model(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0045_vouchercode"),
+        ("discount", "0046_voucher_code_indexes"),
     ]
 
     operations = [
