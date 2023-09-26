@@ -828,3 +828,10 @@ RESET_PASSWORD_LOCK_TIME = parse(
 OAUTH_UPDATE_LAST_LOGIN_THRESHOLD = parse(
     os.environ.get("OAUTH_UPDATE_LAST_LOGIN_THRESHOLD", "15 minutes")
 )
+
+
+# Default timeout (sec) for establishing a connection when performing external requests.
+REQUESTS_CONN_EST_TIMEOUT = 2
+
+# Default timeout for external requests.
+COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)

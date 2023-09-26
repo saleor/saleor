@@ -2,6 +2,7 @@ import mimetypes
 import os
 
 import requests
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from PIL import Image, UnidentifiedImageError
 
@@ -40,7 +41,9 @@ def validate_image_url(url: str, field_name: str, error_code: str) -> None:
 
     Instead of the whole file, only the headers are fetched.
     """
-    head = requests.head(url, timeout=30, allow_redirects=False)
+    head = requests.head(
+        url, timeout=settings.COMMON_REQUESTS_TIMEOUT, allow_redirects=False
+    )
     header = head.headers
     content_type = header.get("content-type")
     if content_type is None or not is_supported_image_mimetype(content_type):

@@ -1,9 +1,10 @@
 import graphene
 import requests
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ....app.error_codes import AppErrorCode
-from ....app.installation_utils import REQUEST_TIMEOUT, fetch_brand_data
+from ....app.installation_utils import fetch_brand_data
 from ....app.manifest_validations import clean_manifest_data, clean_manifest_url
 from ....permission.enums import AppPermission
 from ...core import types as grapqhl_types
@@ -12,8 +13,6 @@ from ...core.enums import PermissionEnum
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
 from ..types import Manifest
-
-FETCH_BRAND_DATA_TIMEOUT = 5
 
 
 class AppFetchManifest(BaseMutation):
@@ -38,7 +37,9 @@ class AppFetchManifest(BaseMutation):
     def fetch_manifest(cls, manifest_url):
         try:
             response = requests.get(
-                manifest_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
+                manifest_url,
+                timeout=settings.COMMON_REQUESTS_TIMEOUT,
+                allow_redirects=False,
             )
             response.raise_for_status()
             return response.json()
@@ -85,8 +86,10 @@ class AppFetchManifest(BaseMutation):
     @classmethod
     def clean_manifest_data(cls, info, manifest_data):
         clean_manifest_data(manifest_data)
+        # Brand data is not essential for the mutation, so there is a short,
+        # custom timeout instead of Saleor's default.
         manifest_data["brand"] = fetch_brand_data(
-            manifest_data, timeout=FETCH_BRAND_DATA_TIMEOUT
+            manifest_data, timeout=(settings.REQUESTS_CONN_EST_TIMEOUT, 5)
         )
 
         manifest_data["permissions"] = [

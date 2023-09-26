@@ -1,7 +1,7 @@
 import logging
 import time
 from io import BytesIO
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 import requests
 from celery.exceptions import MaxRetriesExceededError
@@ -29,7 +29,6 @@ from .manifest_validations import clean_manifest_data
 from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
 
-REQUEST_TIMEOUT = 20
 MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
 
 logger = logging.getLogger(__name__)
@@ -65,14 +64,17 @@ def send_app_token(target_url: str, token: str):
         target_url,
         json=json_data,
         headers=headers,
-        timeout=REQUEST_TIMEOUT,
+        timeout=settings.COMMON_REQUESTS_TIMEOUT,
         allow_redirects=False,
     )
     validate_app_install_response(response)
 
 
 def fetch_icon_image(
-    url: str, *, max_file_size=MAX_ICON_FILE_SIZE, timeout=REQUEST_TIMEOUT
+    url: str,
+    *,
+    max_file_size=MAX_ICON_FILE_SIZE,
+    timeout: Tuple[int, int] = settings.COMMON_REQUESTS_TIMEOUT,
 ) -> File:
     filename = get_filename_from_url(url)
     size_error_msg = f"File too big. Maximal icon image file size is {max_file_size}."
@@ -96,7 +98,8 @@ def fetch_icon_image(
                 content.write(chunk)
                 if content.tell() > max_file_size:
                     raise ValidationError(size_error_msg, code=code)
-                if (time.monotonic() - fetch_start) > timeout:
+                timeout_in_secs = sum(timeout)
+                if (time.monotonic() - fetch_start) > timeout_in_secs:
                     raise ValidationError(
                         "Timeout occurred while reading image file.",
                         code=AppErrorCode.MANIFEST_URL_CANT_CONNECT.value,
@@ -111,7 +114,7 @@ def fetch_icon_image(
     return image_file
 
 
-def fetch_brand_data(manifest_data, timeout=REQUEST_TIMEOUT):
+def fetch_brand_data(manifest_data, timeout=settings.COMMON_REQUESTS_TIMEOUT):
     brand_data = manifest_data.get("brand")
     if not brand_data:
         return None
@@ -187,7 +190,9 @@ def fetch_brand_data_async(
 
 def install_app(app_installation: AppInstallation, activate: bool = False):
     response = requests.get(
-        app_installation.manifest_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
+        app_installation.manifest_url,
+        timeout=settings.COMMON_REQUESTS_TIMEOUT,
+        allow_redirects=False,
     )
     response.raise_for_status()
     assigned_permissions = app_installation.permissions.all()
