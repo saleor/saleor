@@ -14399,14 +14399,16 @@ type Mutation {
   ): StaffNotificationRecipientDelete @doc(category: "Users")
 
   """
-  Updates site domain of the shop. 
+  Updates site domain of the shop.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. Use `PUBLIC_URL` environment variable instead. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
   shopDomainUpdate(
     """Fields required to update site."""
     input: SiteDomainInput
-  ): ShopDomainUpdate @doc(category: "Shop")
+  ): ShopDomainUpdate @doc(category: "Shop") @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Use `PUBLIC_URL` environment variable instead.")
 
   """
   Updates shop settings. 
@@ -19782,7 +19784,9 @@ type StaffNotificationRecipientDelete @doc(category: "Users") {
 }
 
 """
-Updates site domain of the shop. 
+Updates site domain of the shop.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. Use `PUBLIC_URL` environment variable instead. 
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """

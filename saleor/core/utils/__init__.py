@@ -1,6 +1,6 @@
 import socket
 from typing import TYPE_CHECKING, Iterable, Optional, Union
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -20,15 +20,35 @@ if TYPE_CHECKING:
     from django.utils.safestring import SafeText
 
 
+def get_domain(site: Optional[Site] = None) -> str:
+    if settings.PUBLIC_URL:
+        return urlparse(settings.PUBLIC_URL).netloc
+    if site is None:
+        site = Site.objects.get_current()
+    return site.domain
+
+
+def get_public_url(domain: Optional[str] = None) -> str:
+    if settings.PUBLIC_URL:
+        return settings.PUBLIC_URL
+    host = domain or Site.objects.get_current().domain
+    protocol = "https" if settings.ENABLE_SSL else "http"
+    return f"{protocol}://{host}"
+
+
+def is_ssl_enabled() -> bool:
+    if settings.PUBLIC_URL:
+        return urlparse(settings.PUBLIC_URL).scheme.lower() == "https"
+    return settings.ENABLE_SSL
+
+
 def build_absolute_uri(location: str, domain: Optional[str] = None) -> str:
     """Create absolute uri from location.
 
     If provided location is absolute uri by itself, it returns unchanged value,
     otherwise if provided location is relative, absolute uri is built and returned.
     """
-    host = domain or Site.objects.get_current().domain
-    protocol = "https" if settings.ENABLE_SSL else "http"  # type: ignore[misc] # circular import # noqa: E501
-    current_uri = f"{protocol}://{host}"
+    current_uri = get_public_url(domain)
     location = urljoin(current_uri, location)
     return iri_to_uri(location)
 

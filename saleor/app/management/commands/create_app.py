@@ -1,7 +1,6 @@
 import json
 from typing import Any, Dict, Optional
 
-from django.contrib.sites.models import Site
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
 from django.urls import reverse
@@ -10,7 +9,7 @@ from requests.exceptions import RequestException
 from .... import schema_version
 from ....app.headers import AppHeaders, DeprecatedAppHeaders
 from ....core.http_client import HTTPClient
-from ....core.utils import build_absolute_uri
+from ....core.utils import build_absolute_uri, get_domain
 from ...models import App
 from .utils import clean_permissions
 
@@ -43,7 +42,7 @@ class Command(BaseCommand):
         )
 
     def send_app_data(self, target_url, data: Dict[str, Any]):
-        domain = Site.objects.get_current().domain
+        domain = get_domain()
         headers = {
             # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
             DeprecatedAppHeaders.DOMAIN: domain,
