@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytz
 from django.conf import settings
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models
 from django.db.models import Exists, F, OuterRef, Q
 from django.utils import timezone
@@ -206,10 +206,13 @@ class VoucherCode(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     code = models.CharField(max_length=255, unique=True, db_index=True)
     used = models.PositiveIntegerField(default=0)
-    voucher = models.ForeignKey(Voucher, related_name="codes", on_delete=models.CASCADE)
+    voucher = models.ForeignKey(
+        Voucher, related_name="codes", on_delete=models.CASCADE, db_index=False
+    )
     usage_limit = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
+        indexes = [BTreeIndex(fields=["voucher"], name="vouchercode_voucher_idx")]
         ordering = ("code",)
 
 
