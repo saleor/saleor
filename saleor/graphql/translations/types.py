@@ -596,12 +596,12 @@ class VoucherTranslatableContent(ModelObjectType[discount_models.Voucher]):
         return ChannelContext(node=root, channel_slug=None)
 
 
-class SaleTranslation(BaseTranslationType[discount_models.SaleTranslation]):
+class SaleTranslation(BaseTranslationType[discount_models.PromotionTranslation]):
     id = graphene.GlobalID(required=True, description="The ID of the sale translation.")
     name = graphene.String(description="Translated name of sale.")
 
     class Meta:
-        model = discount_models.SaleTranslation
+        model = discount_models.PromotionTranslation
         interfaces = [graphene.relay.Node]
         description = (
             "Represents sale translations."
@@ -610,7 +610,7 @@ class SaleTranslation(BaseTranslationType[discount_models.SaleTranslation]):
         )
 
 
-class SaleTranslatableContent(ModelObjectType[discount_models.Sale]):
+class SaleTranslatableContent(ModelObjectType[discount_models.Promotion]):
     id = graphene.GlobalID(
         required=True, description="The ID of the sale translatable content."
     )
@@ -629,7 +629,7 @@ class SaleTranslatableContent(ModelObjectType[discount_models.Sale]):
     )
 
     class Meta:
-        model = discount_models.Sale
+        model = discount_models.Promotion
         interfaces = [graphene.relay.Node]
         description = (
             "Represents sale's original translatable fields and related translations."
