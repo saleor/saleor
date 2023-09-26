@@ -36,7 +36,7 @@ def recalculate_undiscounted_prices_for_order(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("order", "0169_alter_order_options"),
+        ("order", "0174_order_idx_order_created_at"),
     ]
 
     operations = [
