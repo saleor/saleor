@@ -2,7 +2,6 @@ import json
 from unittest import mock
 
 import graphene
-import pytest
 
 from .....core import EventDeliveryStatus
 from .....graphql.tests.utils import get_graphql_content

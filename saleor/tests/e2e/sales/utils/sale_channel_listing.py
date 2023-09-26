@@ -48,7 +48,7 @@ def raw_create_sale_channel_listing(
         variables,
         check_no_permissions=False,
     )
-    content = get_graphql_content(response, ignore_errors=True)
+    content = get_graphql_content(response)
 
     return content
 

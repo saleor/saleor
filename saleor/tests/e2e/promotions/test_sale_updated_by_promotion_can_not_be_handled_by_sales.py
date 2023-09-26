@@ -48,7 +48,7 @@ def prepare_sale_for_product(
 
 
 @pytest.mark.e2e
-def test_staff_can_change_catalogue_predicate_core_2112(
+def test_sale_updated_by_promotion_can_not_be_handled_by_sales_core_2116(
     e2e_staff_api_client,
     permission_manage_products,
     permission_manage_channels,
@@ -105,6 +105,7 @@ def test_staff_can_change_catalogue_predicate_core_2112(
     sale_rule_id = sale_rule["id"]
     assert sale_rule["rewardValue"] == sale_discount_value
     assert sale_rule["rewardValueType"] == sale_discount_type
+
     # Step 2 - Update sale by promotion rule mutation
     input = {
         "rewardValue": 25.0,
@@ -124,5 +125,7 @@ def test_staff_can_change_catalogue_predicate_core_2112(
         sale_id,
         add_channels=sale_listing_input,
     )
-    assert sale_update["errors"][0]["message"] == "Internal Server Error"
-    assert sale_update["errors"][0]["extensions"]["exception"]["code"] == "DoesNotExist"
+    sale_update_error = sale_update["data"]["saleChannelListingUpdate"]["errors"]
+    assert sale_update_error[0]["message"] == "Sale with given ID can't be found."
+    assert sale_update_error[0]["field"] == "id"
+    assert sale_update_error[0]["code"] == "NOT_FOUND"
