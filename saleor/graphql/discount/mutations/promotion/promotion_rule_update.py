@@ -19,9 +19,12 @@ from ...enums import PromotionRuleUpdateErrorCode
 from ...inputs import PromotionRuleBaseInput
 from ...types import PromotionRule
 from ...utils import get_products_for_rule
-from ...validators import clean_predicate
 from ..utils import clear_promotion_old_sale_id
-from .validators import clean_fixed_discount_value, clean_percentage_discount_value
+from .validators import (
+    clean_fixed_discount_value,
+    clean_percentage_discount_value,
+    clean_predicate,
+)
 
 
 class PromotionRuleUpdateError(Error):

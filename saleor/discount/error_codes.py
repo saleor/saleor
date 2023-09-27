@@ -17,6 +17,8 @@ class PromotionCreateErrorCode(Enum):
     NOT_FOUND = "not_found"
     REQUIRED = "required"
     INVALID = "invalid"
+    MULTIPLE_CURRENCIES_NOT_ALLOWED = "multiple_currencies_not_allowed"
+    INVALID_PRECISION = "invalid_precision"
 
 
 class PromotionUpdateErrorCode(Enum):

@@ -29,7 +29,7 @@ from ....utils import get_nodes
 from ...enums import PromotionCreateErrorCode
 from ...inputs import PromotionRuleBaseInput
 from ...types import Promotion
-from ...validators import clean_predicate
+from .validators import clean_promotion_rule
 
 
 class PromotionCreateError(Error):
@@ -127,41 +127,7 @@ class PromotionCreate(ModelMutation):
             if channel_ids := rule_data.get("channels"):
                 channels = cls.clean_channels(info, channel_ids, index, errors)
                 rule_data["channels"] = channels
-
-            if "catalogue_predicate" not in rule_data:
-                errors["catalogue_predicate"].append(
-                    ValidationError(
-                        "The field is required.",
-                        code=PromotionCreateErrorCode.REQUIRED.value,
-                        params={"index": index},
-                    )
-                )
-            else:
-                if "reward_value_type" not in rule_data:
-                    errors["reward_value_type"].append(
-                        ValidationError(
-                            "The rewardValueType is required for when "
-                            "cataloguePredicate is provided.",
-                            code=PromotionCreateErrorCode.REQUIRED.value,
-                            params={"index": index},
-                        )
-                    )
-                if "reward_value" not in rule_data:
-                    errors["reward_value"].append(
-                        ValidationError(
-                            "The rewardValue is required for when cataloguePredicate "
-                            "is provided.",
-                            code=PromotionCreateErrorCode.REQUIRED.value,
-                            params={"index": index},
-                        )
-                    )
-                try:
-                    rule_data["catalogue_predicate"] = clean_predicate(
-                        rule_data.get("catalogue_predicate"), PromotionCreateErrorCode
-                    )
-                except ValidationError as error:
-                    error.params = {"index": index}
-                    errors["catalogue_predicate"].append(error)
+            clean_promotion_rule(rule_data, errors, PromotionCreateErrorCode, index)
             cleaned_rules.append(rule_data)
 
         return cleaned_rules, errors

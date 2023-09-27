@@ -27066,6 +27066,8 @@ enum PromotionCreateErrorCode {
   NOT_FOUND
   REQUIRED
   INVALID
+  MULTIPLE_CURRENCIES_NOT_ALLOWED
+  INVALID_PRECISION
 }
 
 input PromotionCreateInput @doc(category: "Discounts") {
