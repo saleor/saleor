@@ -27,6 +27,9 @@ def get_webhooks_for_event(
         permissions["permissions__content_type__app_label"] = app_label
         permissions["permissions__codename"] = codename
 
+    # In this function we use the replica database for all queryset reads, as there is
+    # no risk that any mutation would change the result of these querysets.
+
     if webhooks is None:
         webhooks = Webhook.objects.all()
     app_kwargs: dict = {"is_active": True, **permissions}
