@@ -22,7 +22,7 @@ from ...core.context import get_database_connection_name
 from ...core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_314,
-    ADDED_IN_316,
+    ADDED_IN_317,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
     RICH_CONTENT,
@@ -64,7 +64,7 @@ class Category(ModelObjectType[models.Category]):
     updated_at = graphene.DateTime(
         required=True,
         description="The date and time when the product was last updated."
-        + ADDED_IN_316,
+        + ADDED_IN_317,
     )
     ancestors = ConnectionField(
         lambda: CategoryCountableConnection,

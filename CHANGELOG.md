@@ -14,6 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Fix thumbnail redirects sometimes failing with an unsafe redirect warning - #14023 by @patrys
 - New environment variable `PUBLIC_URL` to define URL on which Saleor is hosted (e.g., https://api.example.com/). Takes precedence over `ENABLE_SSL` and `Shop.domain` for URL generation - #13841 by @przlada
+- Add a new `updatedAt` field and a filter for product categories. - #13825 by @rafiwts
 
 # 3.16.0
 
@@ -80,7 +81,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extended `AttributeValueTranslation.name` to 250 characters - #13776 by @aniav
 - Add a new `page` field on `AssignedPageAttributeValue`. First stage (migration) of a simplification of Attribute - Page relation from #13403. by michal-macioszczyk
 - Update workflow actions with poetry dependencies - #13736 by @rafiwts
-- Add a new `updatedAt` field and a filter for product categories. - #13825 by @rafiwts
 
 # 3.15.0
 

@@ -6673,7 +6673,7 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   The date and time when the product was last updated.
   
-  Added in Saleor 3.16.
+  Added in Saleor 3.17.
   """
   updatedAt: DateTime!
 
@@ -12807,7 +12807,7 @@ input CategoryFilterInput @doc(category: "Products") {
   """
   Filter by when was the most recent update. 
   
-  Added in Saleor 3.16.
+  Added in Saleor 3.17.
   """
   updatedAt: DateTimeRangeInput
 }
