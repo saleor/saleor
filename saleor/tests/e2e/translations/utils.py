@@ -30,7 +30,7 @@ fragment PromotionTranslation on PromotionTranslatableContent {
   }
 }
 
-fragment PromotionRuleTranslation on PromotionTranslatableContent {
+fragment PromotionRuleTranslation on PromotionRuleTranslatableContent {
   id
   name
   description

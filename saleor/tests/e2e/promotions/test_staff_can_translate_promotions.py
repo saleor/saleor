@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from ..product.utils.preparing_product import prepare_product
@@ -16,11 +18,11 @@ def prepare_promotion(
     e2e_staff_api_client,
     discount_value,
     discount_type,
+    promotion_name="Promotion Test",
     promotion_rule_name="Test rule",
     product_ids=None,
     channel_id=None,
 ):
-    promotion_name = "Promotion Test"
     promotion_description = {
         "blocks": [{"data": {"text": "promotion description"}, "type": "paragraph"}],
         "version": "1.0.0",
@@ -93,12 +95,13 @@ def test_staff_translate_promotions_core_2119(
     assert promotion_translation_list[0]["node"]["name"] == "Promotion Test"
 
     # Step 2 - Translate promotion name and description
+    promotion_translated_description = {
+        "blocks": [{"data": {"text": "Opis promocji"}, "type": "paragraph"}],
+        "version": "1.0.0",
+    }
     promotion_translate_input = {
         "name": "Promocja Testowa",
-        "description": {
-            "blocks": [{"data": {"text": "Opis promocji"}, "type": "paragraph"}],
-            "version": "1.0.0",
-        },
+        "description": promotion_translated_description,
     }
     promotion_translation_data = translate_promotion(
         e2e_staff_api_client, promotion_id, "PL", promotion_translate_input
@@ -106,11 +109,9 @@ def test_staff_translate_promotions_core_2119(
 
     assert promotion_translation_data["language"]["code"] == "PL"
     assert promotion_translation_data["name"] == "Promocja Testowa"
-    # assert (
-    #     promotion_translation_data["description"]
-    #     == '{"blocks": [{"data": {"text": "Opis promocji"},
-    #     "type": "paragraph"}], "version": "1.0.0"}'
-    # )
+    assert promotion_translation_data["description"] == json.dumps(
+        promotion_translated_description
+    )
 
     # Step 3 - Get list of promotions rules translations
     translations_data = get_translations(
@@ -118,16 +119,16 @@ def test_staff_translate_promotions_core_2119(
     )
     rules_translation_list = translations_data["translations"]["edges"]
     assert len(rules_translation_list) == 1
-    # bug list do not return promotion rules
-    # assert rules_translation_list[0]["node"]["name"] == "Test rule"
+    assert rules_translation_list[0]["node"]["name"] == "Test rule"
 
     # Step 4 - Translate promotion rule name and description
+    rule_translated_description = {
+        "blocks": [{"data": {"text": "Opis reguły"}, "type": "paragraph"}],
+        "version": "1.0.0",
+    }
     promotion_rule_translate_input = {
         "name": "Testowa Reguła",
-        "description": {
-            "blocks": [{"data": {"text": "Opis reguły"}, "type": "paragraph"}],
-            "version": "1.0.0",
-        },
+        "description": rule_translated_description,
     }
     promotion_rule_translation_data = translate_promotion_rule(
         e2e_staff_api_client, promotion_rule_id, "PL", promotion_rule_translate_input
@@ -135,8 +136,6 @@ def test_staff_translate_promotions_core_2119(
 
     assert promotion_rule_translation_data["language"]["code"] == "PL"
     assert promotion_rule_translation_data["name"] == "Testowa Reguła"
-    # assert (
-    #     promotion_rule_translation_data["description"]
-    #     == '{"blocks": [{"data": {"text": "Opis regu\\u0142y"},
-    # "type": "paragraph"}], "version": "1.0.0"}'
-    # )
+    assert promotion_rule_translation_data["description"] == json.dumps(
+        rule_translated_description
+    )
