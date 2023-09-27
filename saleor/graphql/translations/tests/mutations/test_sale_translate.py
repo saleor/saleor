@@ -4,6 +4,7 @@ import graphene
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....discount.error_codes import DiscountErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import get_graphql_content
 
@@ -41,7 +42,7 @@ SALE_TRANSLATE_MUTATION = """
 @freeze_time("2023-06-01 10:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_sale_create_translation(
+def test_sale_translate(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
     any_webhook,
@@ -96,7 +97,7 @@ def test_sale_create_translation(
     )
 
 
-def test_sale_create_translation_by_translatable_content_id(
+def test_sale_translate_by_translatable_content_id(
     staff_api_client,
     promotion_converted_from_sale,
     permission_manage_translations,
@@ -128,3 +129,30 @@ def test_sale_create_translation_by_translatable_content_id(
     translation_data = data["sale"]["translation"]
     assert translation_data["name"] == "Polish sale name"
     assert translation_data["language"]["code"] == "PL"
+
+
+def test_sale_translate_not_found_error(
+    staff_api_client, permission_manage_translations
+):
+    # given
+    query = SALE_TRANSLATE_MUTATION
+    variables = {
+        "id": graphene.Node.to_global_id("Sale", "0"),
+        "languageCode": "PL",
+        "input": {
+            "name": "Polish sale name",
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["saleTranslate"]["sale"]
+    errors = content["data"]["saleTranslate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == DiscountErrorCode.NOT_FOUND.name
