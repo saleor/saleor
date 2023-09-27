@@ -822,8 +822,8 @@ def test_checkout_with_voucher_complete(
     # given
     code = voucher_percentage.codes.first()
     voucher_used_count = code.used
-    code.usage_limit = voucher_used_count + 1
-    code.save(update_fields=["usage_limit"])
+    voucher_percentage.usage_limit = voucher_used_count + 1
+    voucher_percentage.save(update_fields=["usage_limit"])
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
@@ -920,10 +920,9 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
     # given
     code = voucher_percentage.codes.first()
     voucher_used_count = code.used
-    code.usage_limit = voucher_used_count + 1
+    voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.apply_once_per_order = True
-    voucher_percentage.save(update_fields=["apply_once_per_order"])
-    code.save(update_fields=["usage_limit"])
+    voucher_percentage.save(update_fields=["apply_once_per_order", "usage_limit"])
 
     checkout = checkout_with_voucher_percentage
 
@@ -1027,8 +1026,8 @@ def test_checkout_with_voucher_complete_product_on_sale(
     # given
     code = voucher_percentage.codes.first()
     voucher_used_count = code.used
-    code.usage_limit = voucher_used_count + 1
-    code.save(update_fields=["usage_limit"])
+    voucher_percentage.usage_limit = voucher_used_count + 1
+    voucher_percentage.save(update_fields=["usage_limit"])
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
@@ -1125,8 +1124,8 @@ def test_checkout_with_voucher_on_specific_product_complete(
     # given
     code = voucher_specific_product_type.codes.first()
     voucher_used_count = code.used
-    code.usage_limit = voucher_used_count + 1
-    code.save(update_fields=["usage_limit"])
+    voucher_specific_product_type.usage_limit = voucher_used_count + 1
+    voucher_specific_product_type.save(update_fields=["usage_limit"])
 
     checkout = checkout_with_item_and_voucher_specific_products
     checkout.shipping_address = address
@@ -1419,8 +1418,8 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_sale
     # given
     code = voucher_specific_product_type.codes.first()
     voucher_used_count = code.used
-    code.usage_limit = voucher_used_count + 1
-    code.save(update_fields=["usage_limit"])
+    voucher_specific_product_type.usage_limit = voucher_used_count + 1
+    voucher_specific_product_type.save(update_fields=["usage_limit"])
 
     checkout = checkout_with_item_and_voucher_specific_products
     checkout.shipping_address = address
@@ -1519,8 +1518,9 @@ def test_checkout_with_voucher_not_increase_uses_on_preprocess_order_creation_fa
     code = voucher_percentage.codes.first()
     mocked_preprocess_order_creation.side_effect = TaxError("tax error!")
     code.used = 0
-    code.usage_limit = 1
-    code.save(update_fields=["used", "usage_limit"])
+    voucher_percentage.usage_limit = 1
+    voucher_percentage.save(update_fields=["usage_limit"])
+    code.save(update_fields=["used"])
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address

@@ -1,7 +1,7 @@
 import graphene
-from django.db.models import Max, Min, Q, QuerySet
+from django.db.models import Min, Q, QuerySet
 
-from ..core.descriptions import CHANNEL_REQUIRED
+from ..core.descriptions import ADDED_IN_318, CHANNEL_REQUIRED, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.types import BaseEnum, ChannelSortInputObjectType
 
@@ -49,13 +49,14 @@ class SaleSortingInput(ChannelSortInputObjectType):
 
 
 class VoucherSortField(graphene.Enum):
-    CODE = ["name"]
-    START_DATE = ["start_date", "name"]
-    END_DATE = ["end_date", "name"]
-    VALUE = ["discount_value", "name"]
-    TYPE = ["type", "name"]
-    USAGE_LIMIT = ["max_usage_limit", "name"]
-    MINIMUM_SPENT_AMOUNT = ["min_spent_amount", "name"]
+    CODE = ["name", "pk"]
+    NAME = ["name", "pk"]
+    START_DATE = ["start_date", "name", "pk"]
+    END_DATE = ["end_date", "name", "pk"]
+    VALUE = ["discount_value", "name", "pk"]
+    TYPE = ["type", "name", "pk"]
+    USAGE_LIMIT = ["usage_limit", "name", "pk"]
+    MINIMUM_SPENT_AMOUNT = ["min_spent_amount", "name", "pk"]
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS
@@ -71,6 +72,13 @@ class VoucherSortField(graphene.Enum):
             description = f"Sort vouchers by {sort_name}."
             if extras := descrption_extras.get(self.name):
                 description += "".join(extras)
+
+            if self.name == "CODE":
+                description += DEPRECATED_IN_3X_INPUT
+
+            if self.name == "NAME":
+                description += ADDED_IN_318
+
             return description
         raise ValueError(f"Unsupported enum value: {self.value}")
 
@@ -91,10 +99,6 @@ class VoucherSortField(graphene.Enum):
                 filter=Q(channel_listings__channel__slug=str(channel_slug)),
             )
         )
-
-    @staticmethod
-    def qs_with_usage_limit(queryset: QuerySet, channel_slug: str) -> QuerySet:
-        return queryset.annotate(max_usage_limit=Max("codes__usage_limit"))
 
 
 class VoucherSortingInput(ChannelSortInputObjectType):

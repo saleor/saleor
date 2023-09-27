@@ -21,8 +21,4 @@ class Migration(migrations.Migration):
             model_name="voucher",
             name="used",
         ),
-        migrations.RemoveField(
-            model_name="voucher",
-            name="usage_limit",
-        ),
     ]

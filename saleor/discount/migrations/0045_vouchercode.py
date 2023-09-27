@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ),
                 ("code", models.CharField(db_index=True, max_length=255, unique=True)),
                 ("used", models.PositiveIntegerField(default=0)),
-                ("usage_limit", models.PositiveIntegerField(null=True, blank=True)),
+                ("is_active", models.BooleanField(default=True)),
                 (
                     "voucher",
                     models.ForeignKey(
@@ -37,5 +37,13 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
+        ),
+        migrations.RunSQL(
+            sql="""
+                ALTER TABLE discount_vouchercode
+                ALTER COLUMN is_active
+                SET DEFAULT true;
+            """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
     ]

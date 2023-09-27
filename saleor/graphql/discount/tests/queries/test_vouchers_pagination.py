@@ -19,39 +19,44 @@ def vouchers_for_pagination(db, channel_USD):
                 end_date=now + timezone.timedelta(hours=14),
                 discount_value_type=DiscountValueType.PERCENTAGE,
                 type=VoucherType.SPECIFIC_PRODUCT,
+                usage_limit=10,
             ),
             Voucher(
                 name="Voucher2",
                 end_date=now + timezone.timedelta(hours=1),
                 type=VoucherType.ENTIRE_ORDER,
+                usage_limit=1000,
             ),
             Voucher(
                 name="Voucher3",
                 end_date=now + timezone.timedelta(hours=2),
                 discount_value_type=DiscountValueType.PERCENTAGE,
                 type=VoucherType.ENTIRE_ORDER,
+                usage_limit=100,
             ),
             Voucher(
                 name="Voucher4",
                 end_date=now + timezone.timedelta(hours=1),
                 type=VoucherType.SPECIFIC_PRODUCT,
+                usage_limit=100,
             ),
             Voucher(
                 name="Voucher15",
                 start_date=now + timezone.timedelta(hours=1),
                 end_date=now + timezone.timedelta(hours=5),
                 discount_value_type=DiscountValueType.PERCENTAGE,
+                usage_limit=10,
             ),
         ]
     )
 
     VoucherCode.objects.bulk_create(
         [
-            VoucherCode(code="Code1", voucher=vouchers[0], usage_limit=10),
-            VoucherCode(code="Code2", used=10, usage_limit=1000, voucher=vouchers[1]),
-            VoucherCode(code="Code3", used=35, usage_limit=100, voucher=vouchers[2]),
-            VoucherCode(code="Code4", usage_limit=100, voucher=vouchers[3]),
-            VoucherCode(code="Code15", usage_limit=10, voucher=vouchers[4]),
+            VoucherCode(code="Code1", voucher=vouchers[0]),
+            VoucherCode(code="Code2", used=10, voucher=vouchers[1]),
+            VoucherCode(code="Code3", used=35, voucher=vouchers[2]),
+            VoucherCode(code="Code4", voucher=vouchers[3]),
+            VoucherCode(code="Code15", voucher=vouchers[4]),
         ]
     )
     VoucherChannelListing.objects.bulk_create(

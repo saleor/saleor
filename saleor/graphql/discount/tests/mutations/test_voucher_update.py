@@ -30,7 +30,6 @@ mutation voucherUpdate($id: ID!, $input: VoucherInput!) {
                     edges {
                         node {
                             code
-                            usageLimit
                         }
                     }
                     pageInfo{
@@ -65,8 +64,9 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
         "input": {
             "codes": [
-                {"code": new_code, "usageLimit": 10},
+                {"code": new_code},
             ],
+            "usageLimit": 10,
             "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
             "applyOncePerOrder": apply_once_per_order,
             "minCheckoutItemsQuantity": 10,
@@ -88,7 +88,6 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert data["applyOncePerOrder"] == apply_once_per_order
     assert data["minCheckoutItemsQuantity"] == 10
     assert data["usageLimit"] == 10
-    assert data["codes"]["edges"][1]["node"]["usageLimit"] == 10
     assert data["codes"]["edges"][1]["node"]["code"] == new_code
 
 
@@ -113,7 +112,7 @@ def test_update_voucher_trigger_webhook(
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
         "input": {
             "codes": [
-                {"code": new_code, "usageLimit": 10},
+                {"code": new_code},
             ]
         },
     }

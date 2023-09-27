@@ -8998,7 +8998,7 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """
   List of codes available for this voucher.
   
-  Added in Saleor 3.16.
+  Added in Saleor 3.18.
   """
   codes(
     """Return the elements in the list that come before the specified cursor."""
@@ -9021,9 +9021,7 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """The code of the voucher.This field will be removed in Saleor 4.0."""
   code: String
 
-  """
-  The number of times a voucher can be used.This field will be removed in Saleor 4.0.
-  """
+  """The number of times a voucher can be used."""
   usageLimit: Int
 
   """Usage count of the voucher.This field will be removed in Saleor 4.0."""
@@ -9193,7 +9191,7 @@ type VoucherCodeCountableEdge @doc(category: "Discounts") {
 """
 Represents voucher code.
 
-Added in Saleor 3.16.
+Added in Saleor 3.18.
 """
 type VoucherCode {
   """Code to use the voucher."""
@@ -9201,9 +9199,6 @@ type VoucherCode {
 
   """Number of times a code has been used."""
   used: Int
-
-  """The number of times a voucher code can be used."""
-  usageLimit: Int
 }
 
 enum DiscountValueTypeEnum @doc(category: "Discounts") {
@@ -13639,8 +13634,19 @@ input VoucherSortingInput @doc(category: "Discounts") {
 }
 
 enum VoucherSortField {
-  """Sort vouchers by code."""
+  """
+  Sort vouchers by code.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   CODE
+
+  """
+  Sort vouchers by code.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
+  NAME
 
   """Sort vouchers by start date."""
   START_DATE
@@ -26478,9 +26484,7 @@ input VoucherInput @doc(category: "Discounts") {
   """Voucher can be used only by staff user."""
   onlyForStaff: Boolean
 
-  """
-  Limit number of times this voucher can be used in total.This field will be removed in Saleor 4.0.
-  """
+  """Limit number of times this voucher can be used in total."""
   usageLimit: Int
 }
 
@@ -26492,9 +26496,6 @@ Added in Saleor 3.18.
 input VoucherCodeInput @doc(category: "Discounts") {
   """Code to use the voucher."""
   code: String
-
-  """Code usage limit."""
-  usageLimit: Int
 }
 
 """

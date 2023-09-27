@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import List, Optional
 
-from django.db.models import F, Max, Sum
+from django.db.models import F, Sum
 
 from ...discount import DiscountInfo
 from ...discount.interface import VoucherInfo
@@ -160,26 +160,6 @@ class UsedByVoucherIDLoader(DataLoader):
         vouchers_map = {}
         for voucher in vouchers:
             vouchers_map[voucher.id] = voucher.max_used  # type: ignore
-        return [vouchers_map.get(voucher_id) for voucher_id in keys]
-
-
-class UsageLimitByVoucherIDLoader(DataLoader):
-    """Fetch voucher usage limit.
-
-    This dataloader will be deprecated together with `usage_limit` field.
-    """
-
-    context_key = "voucher_usage_limit"
-
-    def batch_load(self, keys):
-        vouchers = (
-            Voucher.objects.using(self.database_connection_name)
-            .filter(id__in=keys)
-            .annotate(max_used_limit=Max("codes__usage_limit"))
-        )
-        vouchers_map = {}
-        for voucher in vouchers:
-            vouchers_map[voucher.id] = voucher.max_used_limit  # type: ignore
         return [vouchers_map.get(voucher_id) for voucher_id in keys]
 
 

@@ -35,7 +35,6 @@ mutation voucherCreate($input: VoucherInput!) {
                     edges {
                         node {
                             code
-                            usageLimit
                             used
                         }
                     }
@@ -68,8 +67,8 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
             "name": name,
             "type": VoucherTypeEnum.ENTIRE_ORDER.name,
             "codes": [
-                {"code": "testcode123", "usageLimit": 3},
-                {"code": "testcode456", "usageLimit": 3},
+                {"code": "testcode123"},
+                {"code": "testcode456"},
             ],
             "discountValueType": DiscountValueTypeEnum.FIXED.name,
             "minCheckoutItemsQuantity": 10,
@@ -77,6 +76,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
             "endDate": end_date.isoformat(),
             "applyOncePerOrder": True,
             "applyOncePerCustomer": True,
+            "usageLimit": 3,
         }
     }
 
@@ -100,7 +100,6 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     assert voucher.apply_once_per_customer
     assert voucher.usage_limit == 3
     assert data["voucher"]["usageLimit"] == 3
-    assert data["voucher"]["codes"]["edges"][0]["node"]["usageLimit"] == 3
     assert len(codes) == 2
 
 

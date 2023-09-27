@@ -50,7 +50,6 @@ class VoucherUpdate(VoucherCreate):
             return [
                 models.VoucherCode(
                     code=code_data["code"],
-                    usage_limit=code_data.get("usage_limit"),
                     voucher=voucher_instance,
                 )
                 for code_data in codes_data
@@ -60,10 +59,6 @@ class VoucherUpdate(VoucherCreate):
             if voucher_instance.codes.count() == 1:
                 code_instance = voucher_instance.codes.first()
                 code_instance.code = code
-
-                if "usage_limit" in cleaned_input:
-                    code_instance.usage_limit = cleaned_input["usage_limit"]
-
                 return [code_instance]
             else:
                 raise ValidationError(
@@ -90,9 +85,7 @@ class VoucherUpdate(VoucherCreate):
         with transaction.atomic():
             voucher_instance.save()
             models.VoucherCode.objects.bulk_create(codes_to_create)
-            models.VoucherCode.objects.bulk_update(
-                codes_to_update, fields=["code", "usage_limit"]
-            )
+            models.VoucherCode.objects.bulk_update(codes_to_update, fields=["code"])
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, code):

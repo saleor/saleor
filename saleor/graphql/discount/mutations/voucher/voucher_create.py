@@ -25,7 +25,6 @@ from ...types import Voucher
 
 class VoucherCodeInput(BaseInputObjectType):
     code = graphene.String(description="Code to use the voucher.", required=False)
-    usage_limit = graphene.Int(description="Code usage limit.", required=False)
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS
@@ -87,10 +86,7 @@ class VoucherInput(BaseInputObjectType):
         description="Voucher can be used only by staff user."
     )
     usage_limit = graphene.Int(
-        description=(
-            "Limit number of times this voucher can be used in total."
-            + DEPRECATED_IN_3X_FIELD
-        )
+        description=("Limit number of times this voucher can be used in total.")
     )
 
     class Meta:
@@ -201,7 +197,6 @@ class VoucherCreate(ModelMutation):
             return [
                 models.VoucherCode(
                     code=code,
-                    usage_limit=cleaned_input.get("usage_limit"),
                     voucher=voucher_instance,
                 )
             ]
@@ -209,7 +204,6 @@ class VoucherCreate(ModelMutation):
             return [
                 models.VoucherCode(
                     code=code_data["code"],
-                    usage_limit=code_data.get("usage_limit"),
                     voucher=voucher_instance,
                 )
                 for code_data in codes_data

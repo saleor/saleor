@@ -565,7 +565,7 @@ def get_voucher_for_checkout(
                 "channel_listings",
             )
 
-        if code.usage_limit is not None and with_lock:
+        if voucher.usage_limit is not None and with_lock:
             code = VoucherCode.objects.select_for_update().get(
                 code=checkout.voucher_code
             )

@@ -25,19 +25,18 @@ def move_codes_to_new_model(apps, schema_editor):
     Voucher = apps.get_model("discount", "Voucher")
     VoucherCode = apps.get_model("discount", "VoucherCode")
 
-    voucher_codes = []
     queryset = Voucher.objects.all()
 
     for batch_pks in queryset_in_batches(queryset):
+        voucher_codes = []
         vouchers = Voucher.objects.filter(pk__in=batch_pks)
 
-        for voucher in vouchers.values("id", "code", "used", "usage_limit"):
+        for voucher in vouchers.values("id", "code", "used"):
             voucher_codes.append(
                 VoucherCode(
                     voucher_id=voucher["id"],
                     code=voucher["code"],
                     used=voucher["used"],
-                    usage_limit=voucher["usage_limit"],
                 )
             )
         VoucherCode.objects.bulk_create(voucher_codes)

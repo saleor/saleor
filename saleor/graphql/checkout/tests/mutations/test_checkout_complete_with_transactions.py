@@ -1555,8 +1555,8 @@ def test_checkout_with_voucher_complete(
         transaction_events_generator,
     )
     voucher_used_count = code.used
-    code.usage_limit = voucher_used_count + 1
-    code.save(update_fields=["usage_limit"])
+    voucher_percentage.usage_limit = voucher_used_count + 1
+    voucher_percentage.save(update_fields=["usage_limit"])
 
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -1628,10 +1628,9 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
 
     code = voucher_percentage.codes.first()
     voucher_used_count = code.used
-    code.usage_limit = voucher_used_count + 1
+    voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.apply_once_per_order = True
-    voucher_percentage.save(update_fields=["apply_once_per_order"])
-    code.save(update_fields=["usage_limit"])
+    voucher_percentage.save(update_fields=["apply_once_per_order", "usage_limit"])
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
@@ -1719,8 +1718,8 @@ def test_checkout_with_voucher_complete_product_on_sale(
     )
     code = voucher_percentage.codes.first()
     voucher_used_count = code.used
-    code.usage_limit = voucher_used_count + 1
-    code.save(update_fields=["usage_limit"])
+    voucher_percentage.usage_limit = voucher_used_count + 1
+    voucher_percentage.save(update_fields=["usage_limit"])
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
@@ -1794,8 +1793,8 @@ def test_checkout_with_voucher_on_specific_product_complete(
     )
     code = voucher_specific_product_type.codes.first()
     voucher_used_count = code.used
-    code.usage_limit = voucher_used_count + 1
-    code.save(update_fields=["usage_limit"])
+    voucher_specific_product_type.usage_limit = voucher_used_count + 1
+    voucher_specific_product_type.save(update_fields=["usage_limit"])
 
     checkout.lines.first()
 
@@ -2019,8 +2018,8 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_sale
     )
     code = voucher_specific_product_type.codes.first()
     voucher_used_count = code.used
-    code.usage_limit = voucher_used_count + 1
-    code.save(update_fields=["usage_limit"])
+    voucher_specific_product_type.usage_limit = voucher_used_count + 1
+    voucher_specific_product_type.save(update_fields=["usage_limit"])
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
@@ -2096,8 +2095,9 @@ def test_checkout_with_voucher_not_increase_uses_on_preprocess_order_creation_fa
     mocked_preprocess_order_creation.side_effect = TaxError("tax error!")
     code = voucher_percentage.codes.first()
     code.used = 0
-    code.usage_limit = 1
-    code.save(update_fields=["used", "usage_limit"])
+    voucher_percentage.usage_limit = 1
+    voucher_percentage.save(update_fields=["usage_limit"])
+    code.save(update_fields=["used"])
 
     variables = {
         "id": to_global_id_or_none(checkout),

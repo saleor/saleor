@@ -414,10 +414,9 @@ def test_increase_voucher_code_usage(channel_USD):
     voucher = Voucher.objects.create(
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.FIXED,
+        usage_limit=100,
     )
-    code_instance = VoucherCode.objects.create(
-        code=code, usage_limit=100, voucher=voucher
-    )
+    code_instance = VoucherCode.objects.create(code=code, voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -433,10 +432,9 @@ def test_decrease_voucher_usage(channel_USD):
     voucher = Voucher.objects.create(
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.FIXED,
+        usage_limit=100,
     )
-    code_instance = VoucherCode.objects.create(
-        code=code, voucher=voucher, usage_limit=100, used=10
-    )
+    code_instance = VoucherCode.objects.create(code=code, voucher=voucher, used=10)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
