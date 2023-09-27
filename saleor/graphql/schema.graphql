@@ -13642,9 +13642,9 @@ enum VoucherSortField {
   CODE
 
   """
-  Sort vouchers by code.
+  Sort vouchers by name.
   
-  DEPRECATED: this field will be removed in Saleor 4.0.
+  Added in Saleor 3.18.
   """
   NAME
 

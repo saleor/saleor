@@ -365,14 +365,14 @@ QUERY_VOUCHER_WITH_SORT = """
         (
             {"field": "CODE", "direction": "ASC"},
             [
-                "FreeShipping",
-                "Voucher1",
                 "Voucher2",
+                "Voucher1",
+                "FreeShipping",
             ],
         ),
         (
             {"field": "CODE", "direction": "DESC"},
-            ["Voucher2", "Voucher1", "FreeShipping"],
+            ["FreeShipping", "Voucher1", "Voucher2"],
         ),
         (
             {"field": "TYPE", "direction": "ASC"},
