@@ -815,7 +815,7 @@ class PromotionRuleTranslatableContent(ModelObjectType[discount_models.Promotion
     id = graphene.GlobalID(
         required=True, description="ID of the promotion rule translatable content."
     )
-    name = graphene.String(required=True, description="Name of the promotion rule.")
+    name = graphene.String(description="Name of the promotion rule.")
     description = JSONString(
         description="Description of the promotion rule." + RICH_CONTENT
     )
