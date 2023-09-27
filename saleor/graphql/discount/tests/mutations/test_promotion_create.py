@@ -306,6 +306,56 @@ def test_promotion_create_by_customer(
 @patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_started")
 @patch("saleor.plugins.manager.PluginsManager.promotion_created")
+def test_promotion_create_only_name_and_end_date(
+    promotion_created_mock,
+    promotion_started_mock,
+    update_products_discounted_prices_of_promotion_task_mock,
+    app_api_client,
+    permission_manage_discounts,
+    description_json,
+    channel_USD,
+    variant,
+    product,
+):
+    # given
+    end_date = timezone.now() + timedelta(days=30)
+    promotion_name = "test promotion"
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "endDate": end_date.isoformat(),
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_CREATE_MUTATION, variables, permissions=(permission_manage_discounts,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    promotion_data = data["promotion"]
+
+    assert not data["errors"]
+    assert promotion_data["name"] == promotion_name
+    assert promotion_data["endDate"] == end_date.isoformat()
+
+    promotion = Promotion.objects.filter(name=promotion_name).get()
+    assert promotion.last_notification_scheduled_at == timezone.now()
+
+    promotion_created_mock.assert_called_once_with(promotion)
+    promotion_started_mock.assert_called_once_with(promotion)
+    update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
+        promotion.id
+    )
+
+
+@freeze_time("2020-03-18 12:00:00")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.promotion_started")
+@patch("saleor.plugins.manager.PluginsManager.promotion_created")
 def test_promotion_create_start_date_and_end_date_after_current_date(
     promotion_created_mock,
     promotion_started_mock,
