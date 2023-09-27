@@ -49,7 +49,9 @@ def validate_app_install_response(response: Response):
             error_msg = str(response.json()["error"]["message"])
         except Exception:
             raise err
-        raise AppInstallationError(error_msg, response=response)
+        raise AppInstallationError(
+            error_msg, request=response.request, response=response
+        )
 
 
 def send_app_token(target_url: str, token: str):
