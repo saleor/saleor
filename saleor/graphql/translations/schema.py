@@ -53,9 +53,11 @@ class TranslatableItem(graphene.Union):
     def resolve_type(cls, instance, info: ResolveInfo):
         instance_type = type(instance)
         kind = info.variable_values.get("kind")
-        if kind == TranslatableKinds.SALE:
+        if kind == TranslatableKinds.SALE or (
+            instance_type == Promotion and instance.old_sale_id
+        ):
             return translation_types.SaleTranslatableContent
-        if instance_type in TYPES_TRANSLATIONS_MAP:
+        elif instance_type in TYPES_TRANSLATIONS_MAP:
             return TYPES_TRANSLATIONS_MAP[instance_type]
 
         return super(TranslatableItem, cls).resolve_type(instance, info)
