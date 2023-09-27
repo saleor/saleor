@@ -106,10 +106,11 @@ def test_promotion_update_by_app(
     promotion,
 ):
     # given
+    promotion.start_date = timezone.now()
     promotion.end_date = None
-    promotion.save(update_fields=["end_date"])
+    promotion.save(update_fields=["start_date", "end_date"])
 
-    end_date = timezone.now() - timedelta(days=2)
+    end_date = timezone.now() + timedelta(days=2)
 
     new_promotion_name = "new test promotion"
     variables = {
@@ -138,10 +139,10 @@ def test_promotion_update_by_app(
     assert promotion_data["updatedAt"] == timezone.now().isoformat()
     event_types = [event["type"] for event in promotion_data["events"]]
     assert PromotionEvents.PROMOTION_UPDATED.upper() in event_types
-    assert PromotionEvents.PROMOTION_ENDED.upper() in event_types
+    assert PromotionEvents.PROMOTION_ENDED.upper() not in event_types
 
     promotion_updated_mock.assert_called_once_with(promotion)
-    promotion_ended_mock.assert_called_once_with(promotion)
+    promotion_ended_mock.assert_not_called()
     update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
         promotion.id
     )
