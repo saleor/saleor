@@ -13,6 +13,7 @@ mutation CreatePromotion($input: PromotionCreateInput!) {
       name
       startDate
       endDate
+      description
     }
   }
 }
@@ -24,9 +25,15 @@ def create_promotion(
     promotion_name,
     start_date=None,
     end_date=None,
+    description=None,
 ):
     variables = {
-        "input": {"name": promotion_name, "startDate": start_date, "endDate": end_date}
+        "input": {
+            "name": promotion_name,
+            "startDate": start_date,
+            "endDate": end_date,
+            "description": description,
+        }
     }
 
     response = staff_api_client.post_graphql(
