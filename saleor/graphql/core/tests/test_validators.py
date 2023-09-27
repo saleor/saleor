@@ -69,14 +69,6 @@ def test_validate_end_is_after_start():
     validate_end_is_after_start(start_date, end_date)
 
 
-def test_validate_end_is_after_start_empty_start_date():
-    # given
-    end_date = timezone.now() + timedelta(days=365)
-
-    # when & then
-    validate_end_is_after_start(None, end_date)
-
-
 def test_validate_end_is_after_start_empty_end_date():
     # given
     start_date = timezone.now() + timedelta(days=365)
