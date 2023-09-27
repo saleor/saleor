@@ -99,7 +99,7 @@ def test_sale_updated_by_promotion_can_not_be_handled_by_sales_core_2116(
 
     # Step 1 - Get promotions and check for created sale
     promotions = promotions_query(e2e_staff_api_client)
-    sale_as_promotion = promotions[0]["node"]
+    sale_as_promotion = promotions["edges"][0]["node"]
     assert sale_as_promotion["name"] == sale_name
     sale_rule = sale_as_promotion["rules"][1]
     sale_rule_id = sale_rule["id"]

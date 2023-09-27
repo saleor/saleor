@@ -10,8 +10,18 @@ query Promotions($first: Int, $sortBy: PromotionSortingInput) {
         events {
           __typename
         }
-        name
         createdAt
+        name
+        startDate
+        endDate
+        metadata {
+            key
+            value
+        }
+        privateMetadata {
+            key
+            value
+        }
         rules {
           id
           name
@@ -33,8 +43,14 @@ query Promotions($first: Int, $sortBy: PromotionSortingInput) {
 def promotions_query(
     staff_api_client,
     first=10,
+    sort_by={"field": "CREATED_AT", "direction": "DESC"},
+    where=None,
 ):
-    variables = {"first": first, "sortBy": {"field": "CREATED_AT", "direction": "DESC"}}
+    variables = {
+        "first": first,
+        "sortBy": sort_by,
+        "where": where,
+    }
 
     response = staff_api_client.post_graphql(
         PROMOTIONS_QUERY,
@@ -43,6 +59,6 @@ def promotions_query(
 
     content = get_graphql_content(response)
 
-    data = content["data"]["promotions"]["edges"]
+    data = content["data"]["promotions"]
 
     return data

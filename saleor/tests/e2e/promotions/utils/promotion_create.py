@@ -13,6 +13,7 @@ mutation CreatePromotion($input: PromotionCreateInput!) {
       name
       startDate
       endDate
+      createdAt
       description
     }
   }
