@@ -85,7 +85,7 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
                 fields=["name", "slug", "description_plaintext"],
                 opclasses=["gin_trgm_ops"] * 3,
             ),
-            GinIndex(fields=["updated_at"], name="updated_at_idx"),
+            BTreeIndex(fields=["updated_at"], name="updated_at_idx"),
         ]
 
     def __str__(self) -> str:
