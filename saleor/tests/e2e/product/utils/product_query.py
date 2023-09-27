@@ -31,6 +31,11 @@ query Product($id: ID!, $channel: String) {
             amount
           }
         }
+        price{
+          gross{
+            amount
+          }
+        }
       }
       attributes {
         attribute {
