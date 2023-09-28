@@ -3,7 +3,7 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from ....discount.error_codes import PromotionCreateErrorCode
-from ..validators import clean_predicate
+from ..mutations.promotion.validators import clean_predicate
 
 
 def test_clean_predicate(variant, product):
