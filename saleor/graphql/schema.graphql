@@ -9175,13 +9175,36 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """The name of the voucher."""
   name: String
 
-  """The code of the voucher."""
-  code: String!
+  """
+  List of codes available for this voucher.
+  
+  Added in Saleor 3.18.
+  """
+  codes(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): VoucherCodeCountableConnection
+
+  """The code of the voucher.This field will be removed in Saleor 4.0."""
+  code: String
 
   """The number of times a voucher can be used."""
   usageLimit: Int
 
-  """Usage count of the voucher."""
+  """Usage count of the voucher.This field will be removed in Saleor 4.0."""
   used: Int!
 
   """The start date and time of voucher."""
@@ -9326,6 +9349,39 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
   channelListings: [VoucherChannelListing!]
+}
+
+type VoucherCodeCountableConnection @doc(category: "Discounts") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [VoucherCodeCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type VoucherCodeCountableEdge @doc(category: "Discounts") {
+  """The item at the end of the edge."""
+  node: VoucherCode!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+"""
+Represents voucher code.
+
+Added in Saleor 3.18.
+"""
+type VoucherCode {
+  """Code to use the voucher."""
+  code: String
+
+  """Number of times a code has been used."""
+  used: Int
+
+  """Whether a code is active or not."""
+  isActive: Boolean
 }
 
 enum DiscountValueTypeEnum @doc(category: "Discounts") {
@@ -13874,8 +13930,19 @@ input VoucherSortingInput @doc(category: "Discounts") {
 }
 
 enum VoucherSortField {
-  """Sort vouchers by code."""
+  """
+  Sort vouchers by code.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   CODE
+
+  """
+  Sort vouchers by name.
+  
+  Added in Saleor 3.18.
+  """
+  NAME
 
   """Sort vouchers by start date."""
   START_DATE
@@ -27500,6 +27567,9 @@ type DiscountError @doc(category: "Discounts") {
 
   """List of channels IDs which causes the error."""
   channels: [ID!]
+
+  """List of voucher codes which causes the error."""
+  voucherCodes: [String!]
 }
 
 """An enumeration."""
@@ -27721,8 +27791,15 @@ input VoucherInput @doc(category: "Discounts") {
   """Voucher name."""
   name: String
 
-  """Code to use the voucher."""
+  """Code to use the voucher.This field will be removed in Saleor 4.0."""
   code: String
+
+  """
+  Codes to use the voucher.
+  
+  Added in Saleor 3.18.
+  """
+  codes: [VoucherCodeInput!]
 
   """Start date of the voucher in ISO 8601 format."""
   startDate: DateTime
@@ -27766,6 +27843,16 @@ input VoucherInput @doc(category: "Discounts") {
 
   """Limit number of times this voucher can be used in total."""
   usageLimit: Int
+}
+
+"""
+Represents voucher code data.
+
+Added in Saleor 3.18.
+"""
+input VoucherCodeInput @doc(category: "Discounts") {
+  """Code to use the voucher."""
+  code: String
 }
 
 """
