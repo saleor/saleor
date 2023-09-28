@@ -63,7 +63,7 @@ class Category(ModelObjectType[models.Category]):
     )
     updated_at = graphene.DateTime(
         required=True,
-        description="The date and time when the product was last updated."
+        description="The date and time when the category was last updated."
         + ADDED_IN_317,
     )
     ancestors = ConnectionField(
