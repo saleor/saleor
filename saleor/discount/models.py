@@ -640,30 +640,3 @@ class CheckoutLineDiscount(BaseDiscount):
             )
         ]
         ordering = ("created_at", "id")
-
-
-class PromotionEvent(models.Model):
-    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
-    date = models.DateTimeField(auto_now_add=True, db_index=True, editable=False)
-    type = models.CharField(max_length=255, choices=PromotionEvents.CHOICES)
-    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        blank=True,
-        null=True,
-        related_name="promotion_events",
-        on_delete=models.SET_NULL,
-    )
-    app = models.ForeignKey(
-        App,
-        blank=True,
-        null=True,
-        related_name="promotion_events",
-        on_delete=models.SET_NULL,
-    )
-    promotion = models.ForeignKey(
-        Promotion, related_name="events", on_delete=models.CASCADE
-    )
-
-    class Meta:
-        ordering = ("date",)
