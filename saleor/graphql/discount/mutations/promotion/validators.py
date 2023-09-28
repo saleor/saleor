@@ -47,7 +47,7 @@ def clean_reward(cleaned_input, errors, error_class, index=None):
     if reward_value is None:
         errors["reward_value"].append(
             ValidationError(
-                "The rewardValue is required when cataloguePredicate " "is provided.",
+                "The rewardValue is required when cataloguePredicate is provided.",
                 code=error_class.REQUIRED.value,
                 params={"index": index} if index is not None else {},
             )
