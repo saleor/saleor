@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import Exists, OuterRef, prefetch_related_objects
 from django.utils import timezone
 from prices import Money
 
@@ -18,7 +19,7 @@ from ..core.utils.promo_code import (
 from ..core.utils.translations import get_translation
 from ..discount import VoucherType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
-from ..discount.models import NotApplicable, Voucher
+from ..discount.models import NotApplicable, Voucher, VoucherCode
 from ..discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
     get_products_voucher_discount,
@@ -517,31 +518,47 @@ def get_voucher_for_checkout(
     channel_slug: str,
     with_lock: bool = False,
     with_prefetch: bool = False,
-) -> Optional[Voucher]:
+) -> Tuple[Optional[Voucher], Optional[VoucherCode]]:
     """Return voucher assigned to checkout."""
     if checkout.voucher_code is not None:
-        vouchers = Voucher.objects
-        vouchers = vouchers.active_in_channel(
-            date=timezone.now(), channel_slug=channel_slug
-        )
-        if with_prefetch:
-            vouchers.prefetch_related(
-                "products", "collections", "categories", "variants", "channel_listings"
-            )
         try:
-            qs = vouchers
-            voucher = qs.get(code=checkout.voucher_code)
-            if voucher and voucher.usage_limit is not None and with_lock:
-                voucher = vouchers.select_for_update().get(code=checkout.voucher_code)
-            return voucher
-        except Voucher.DoesNotExist:
-            return None
-    return None
+            code = VoucherCode.objects.get(code=checkout.voucher_code)
+        except VoucherCode.DoesNotExist:
+            return None, None
+
+        voucher = (
+            Voucher.objects.active_in_channel(
+                date=timezone.now(), channel_slug=channel_slug
+            )
+            .filter(id=code.voucher_id)
+            .first()
+        )
+
+        if not voucher:
+            return None, None
+
+        if with_prefetch:
+            prefetch_related_objects(
+                [voucher],
+                "products",
+                "collections",
+                "categories",
+                "variants",
+                "channel_listings",
+            )
+
+        if voucher.usage_limit is not None and with_lock:
+            code = VoucherCode.objects.select_for_update().get(
+                code=checkout.voucher_code
+            )
+
+        return voucher, code
+    return None, None
 
 
 def get_voucher_for_checkout_info(
     checkout_info: "CheckoutInfo", with_lock: bool = False, with_prefetch: bool = False
-) -> Optional[Voucher]:
+) -> Tuple[Optional[Voucher], Optional[VoucherCode]]:
     """Return voucher with voucher code saved in checkout if active or None."""
     checkout = checkout_info.checkout
     return get_voucher_for_checkout(
@@ -666,18 +683,24 @@ def add_voucher_code_to_checkout(
 
     Raise InvalidPromoCode() if voucher of given type cannot be applied.
     """
-    try:
-        voucher = Voucher.objects.active_in_channel(
+
+    if (
+        Voucher.objects.active_in_channel(
             date=timezone.now(), channel_slug=checkout_info.channel.slug
-        ).get(code=voucher_code)
-    except Voucher.DoesNotExist:
+        )
+        .filter(
+            Exists(
+                VoucherCode.objects.filter(code=voucher_code, voucher_id=OuterRef("id"))
+            )
+        )
+        .exists()
+    ):
+        code_instance = VoucherCode.objects.get(code=voucher_code)
+    else:
         raise InvalidPromoCode()
     try:
         add_voucher_to_checkout(
-            manager,
-            checkout_info,
-            lines,
-            voucher,
+            manager, checkout_info, lines, code_instance.voucher, code_instance
         )
     except NotApplicable:
         raise ValidationError(
@@ -695,6 +718,7 @@ def add_voucher_to_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
+    voucher_code: VoucherCode,
 ):
     """Add voucher data to checkout.
 
@@ -709,7 +733,7 @@ def add_voucher_to_checkout(
         lines,
         address,
     )
-    checkout.voucher_code = voucher.code
+    checkout.voucher_code = voucher_code.code
     checkout.discount_name = voucher.name
 
     language_code = checkout.language_code
@@ -729,6 +753,7 @@ def add_voucher_to_checkout(
         ]
     )
     checkout_info.voucher = voucher
+    checkout_info.voucher_code = voucher_code
 
 
 def remove_promo_code_from_checkout(

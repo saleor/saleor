@@ -1,6 +1,9 @@
 import graphene
+from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from .....discount import models
+from .....discount.error_codes import DiscountErrorCode
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
@@ -33,6 +36,58 @@ class VoucherUpdate(VoucherCreate):
         ]
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+    def clean_codes(cls, data):
+        if "code" in data:
+            cls._clean_old_code(data)
+        else:
+            cls._clean_new_codes(data)
+
+    @classmethod
+    def construct_codes_instances(
+        cls, code, codes_data, cleaned_input, voucher_instance
+    ):
+        if codes_data:
+            return [
+                models.VoucherCode(
+                    code=code_data["code"],
+                    voucher=voucher_instance,
+                )
+                for code_data in codes_data
+            ]
+
+        if code:
+            if voucher_instance.codes.count() == 1:
+                code_instance = voucher_instance.codes.first()
+                code_instance.code = code
+                return [code_instance]
+            else:
+                raise ValidationError(
+                    {
+                        "code": ValidationError(
+                            "Cannot update code when multiple codes exists.",
+                            code=DiscountErrorCode.INVALID.value,
+                        )
+                    }
+                )
+
+    @classmethod
+    def save(  # type: ignore[override]
+        cls, _info: ResolveInfo, voucher_instance, code_instances, has_multiple_codes
+    ):
+        codes_to_create = []
+        codes_to_update = []
+
+        if has_multiple_codes:
+            codes_to_create += code_instances
+        else:
+            codes_to_update += code_instances
+
+        with transaction.atomic():
+            voucher_instance.save()
+            models.VoucherCode.objects.bulk_create(codes_to_create)
+            models.VoucherCode.objects.bulk_update(codes_to_update, fields=["code"])
+
+    @classmethod
+    def post_save_action(cls, info: ResolveInfo, instance, code):
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.voucher_updated, instance)
+        cls.call_event(manager.voucher_updated, instance, code)
