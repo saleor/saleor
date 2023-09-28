@@ -9581,7 +9581,7 @@ type PromotionRuleTranslatableContent implements Node @doc(category: "Discounts"
   id: ID!
 
   """Name of the promotion rule."""
-  name: String!
+  name: String
 
   """
   Description of the promotion rule.

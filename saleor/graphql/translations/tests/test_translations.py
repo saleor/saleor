@@ -3076,17 +3076,20 @@ def test_translations_query(
     kind,
     expected_typename,
 ):
-    query = """
-    query TranslationsQuery($kind: TranslatableKinds!) {
-        translations(kind: $kind, first: 1) {
-            edges {
-                node {
+    query = f"""
+    query TranslationsQuery($kind: TranslatableKinds!) {{
+        translations(kind: $kind, first: 1) {{
+            edges {{
+                node {{
+                    ... on {expected_typename} {{
+                        id
+                    }}
                     __typename
-                }
-            }
+                }}
+            }}
             totalCount
-        }
-    }
+        }}
+    }}
     """
 
     response = staff_api_client.post_graphql(
@@ -3095,6 +3098,7 @@ def test_translations_query(
     data = get_graphql_content(response)["data"]["translations"]
 
     assert data["edges"][0]["node"]["__typename"] == expected_typename
+    assert data["edges"][0]["node"]["id"]
     assert data["totalCount"] > 0
 
 
@@ -3106,6 +3110,9 @@ def test_translations_query_promotion_converted_from_sale(
         translations(kind: $kind, first: 1) {
             edges {
                 node {
+                    ... on SaleTranslatableContent {
+                        name
+                    }
                     __typename
                 }
             }
@@ -3122,6 +3129,7 @@ def test_translations_query_promotion_converted_from_sale(
     data = get_graphql_content(response)["data"]["translations"]
 
     assert data["edges"][0]["node"]["__typename"] == "SaleTranslatableContent"
+    assert data["edges"][0]["node"]["name"]
     assert data["totalCount"] > 0
 
 
