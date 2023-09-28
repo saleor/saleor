@@ -149,9 +149,11 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
-        vouchers = list(queryset)
-        queryset.delete()
-        webhooks = get_webhooks_for_event(WebhookEventAsyncType.VOUCHER_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
-        for voucher in vouchers:
-            manager.voucher_deleted(voucher, webhooks=webhooks)
+        vouchers = list(queryset)
+        codes = [voucher.code for voucher in vouchers]
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.VOUCHER_DELETED)
+        queryset.delete()
+
+        for voucher, code in zip(vouchers, codes):
+            manager.voucher_deleted(voucher, code, webhooks=webhooks)

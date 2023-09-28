@@ -58,7 +58,7 @@ def test_voucher_delete_mutation_trigger_webhook(
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-
+    code = voucher.codes.first().code
     variables = {"id": graphene.Node.to_global_id("Voucher", voucher.id)}
 
     # when
@@ -74,7 +74,7 @@ def test_voucher_delete_mutation_trigger_webhook(
             {
                 "id": variables["id"],
                 "name": voucher.name,
-                "code": voucher.code,
+                "code": code,
                 "meta": generate_meta(
                     requestor_data=generate_requestor(
                         SimpleLazyObject(lambda: staff_api_client.user)

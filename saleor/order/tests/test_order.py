@@ -14,6 +14,7 @@ from ...discount.models import (
     NotApplicable,
     Voucher,
     VoucherChannelListing,
+    VoucherCode,
     VoucherType,
 )
 from ...discount.utils import validate_voucher_in_order
@@ -720,10 +721,10 @@ def test_value_voucher_order_discount(
     address_usa,
 ):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_type,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -756,10 +757,10 @@ def test_shipping_voucher_order_discount(
     address_usa,
 ):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -807,11 +808,11 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
     address_usa,
 ):
     voucher = Voucher.objects.create(
-        code="unique",
         type=voucher_type,
         discount_value_type=DiscountValueType.FIXED,
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -853,11 +854,11 @@ def test_get_discount_for_order_specific_products_voucher(
     channel_USD,
 ):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=discount_type,
         apply_once_per_order=apply_once_per_order,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -876,10 +877,10 @@ def test_product_voucher_checkout_discount_raises_not_applicable(
 ):
     discounted_product = product_with_images
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -901,10 +902,10 @@ def test_category_voucher_checkout_discount_raises_not_applicable(
         name="Discounted", slug="discount"
     )
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,

@@ -2244,7 +2244,7 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED, warehouse
         )
 
-    def _trigger_voucher_event(self, event_type, voucher, webhooks=None):
+    def _trigger_voucher_event(self, event_type, voucher, code, webhooks=None):
         if (
             webhooks := webhooks
             if webhooks is not None
@@ -2254,7 +2254,7 @@ class WebhookPlugin(BasePlugin):
                 {
                     "id": graphene.Node.to_global_id("Voucher", voucher.id),
                     "name": voucher.name,
-                    "code": voucher.code,
+                    "code": code,
                     "meta": self._generate_meta(),
                 }
             )
@@ -2262,23 +2262,31 @@ class WebhookPlugin(BasePlugin):
                 payload, event_type, webhooks, voucher, self.requestor
             )
 
-    def voucher_created(self, voucher: "Voucher", previous_value: None) -> None:
-        if not self.active:
-            return previous_value
-        self._trigger_voucher_event(WebhookEventAsyncType.VOUCHER_CREATED, voucher)
-
-    def voucher_updated(self, voucher: "Voucher", previous_value: None) -> None:
-        if not self.active:
-            return previous_value
-        self._trigger_voucher_event(WebhookEventAsyncType.VOUCHER_UPDATED, voucher)
-
-    def voucher_deleted(
-        self, voucher: "Voucher", previous_value: None, webhooks=None
+    def voucher_created(
+        self, voucher: "Voucher", code: str, previous_value: None
     ) -> None:
         if not self.active:
             return previous_value
         self._trigger_voucher_event(
-            WebhookEventAsyncType.VOUCHER_DELETED, voucher, webhooks=webhooks
+            WebhookEventAsyncType.VOUCHER_CREATED, voucher, code
+        )
+
+    def voucher_updated(
+        self, voucher: "Voucher", code: str, previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_voucher_event(
+            WebhookEventAsyncType.VOUCHER_UPDATED, voucher, code
+        )
+
+    def voucher_deleted(
+        self, voucher: "Voucher", code: str, previous_value: None, webhooks=None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_voucher_event(
+            WebhookEventAsyncType.VOUCHER_DELETED, voucher, code, webhooks=webhooks
         )
 
     def voucher_metadata_updated(
