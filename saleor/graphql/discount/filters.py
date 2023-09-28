@@ -14,6 +14,13 @@ from ...discount.models import (
     VoucherQueryset,
 )
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
+from ...discount.models import (
+    Promotion,
+    PromotionRule,
+    Voucher,
+    VoucherCode,
+    VoucherQueryset,
+)
 from ..core.filters import (
     BooleanWhereFilter,
     GlobalIDMultipleChoiceFilter,

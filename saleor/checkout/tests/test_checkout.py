@@ -18,6 +18,7 @@ from ...discount.models import (
     CheckoutLineDiscount,
     NotApplicable,
     Voucher,
+    VoucherCode,
     VoucherChannelListing,
     VoucherCode,
 )
