@@ -2,7 +2,9 @@ from .promotion_create import create_promotion
 from .promotion_delete import delete_promotion
 from .promotion_query import promotion_query
 from .promotion_rule_create import create_promotion_rule
+from .promotion_rule_translate import translate_promotion_rule
 from .promotion_rule_update import update_promotion_rule
+from .promotion_translate import translate_promotion
 from .promotions_query import promotions_query
 
 __all__ = [
@@ -12,4 +14,6 @@ __all__ = [
     "delete_promotion",
     "promotion_query",
     "promotions_query",
+    "translate_promotion",
+    "translate_promotion_rule",
 ]

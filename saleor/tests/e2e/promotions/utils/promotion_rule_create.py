@@ -32,6 +32,7 @@ def create_promotion_rule(
     reward_value=5.00,
     promotion_rule_name="Test rule",
     channel_id=None,
+    description=None,
 ):
     if not channel_id:
         channel_id = []
@@ -44,6 +45,7 @@ def create_promotion_rule(
             "rewardValue": reward_value,
             "channels": channel_id,
             "cataloguePredicate": catalogue_predicate,
+            "description": description,
         }
     }
 
