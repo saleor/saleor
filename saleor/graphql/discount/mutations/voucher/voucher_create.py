@@ -224,12 +224,10 @@ class VoucherCreate(ModelMutation):
         return []
 
     @classmethod
-    def clean_voucher_instance(cls, info: ResolveInfo, voucher_instance):
-        cls.clean_instance(info, voucher_instance)
-
-        start_date = voucher_instance.start_date
-        end_date = voucher_instance.end_date
-
+    def clean_instance(cls, info: ResolveInfo, instance):
+        super().clean_instance(info, instance)
+        start_date = instance.start_date
+        end_date = instance.end_date
         try:
             validate_end_is_after_start(start_date, end_date)
         except ValidationError as error:
@@ -237,20 +235,7 @@ class VoucherCreate(ModelMutation):
             raise ValidationError({"end_date": error})
 
     @classmethod
-    def clean_codes_instance(cls, code_instances):
-        for code_instance in code_instances:
-            code_instance.full_clean(exclude=["voucher"])
-
-    @classmethod
-    def save(  # type: ignore[override]
-        cls, _info: ResolveInfo, voucher_instance, code_instances, has_multiple_codes
-    ):
-        with transaction.atomic():
-            voucher_instance.save()
-            models.VoucherCode.objects.bulk_create(code_instances)
-
-    @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, code):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.voucher_created, instance, code)
 

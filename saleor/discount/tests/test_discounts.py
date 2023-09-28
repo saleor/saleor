@@ -22,7 +22,7 @@ from ..utils import (
     decrease_voucher_code_usage,
     get_discount_name,
     get_discount_translated_name,
-    increase_voucher_code_usage,
+    increase_voucher_usage,
     remove_voucher_usage_by_customer,
     validate_voucher,
 )

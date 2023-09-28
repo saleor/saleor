@@ -510,11 +510,7 @@ def _prepare_order_data(
     try:
         manager.preprocess_order_creation(checkout_info, lines)
     except TaxError:
-        release_voucher_code_usage(
-            checkout_info.voucher_code,
-            checkout_info.voucher,
-            order_data.get("user_email"),
-        )
+        release_voucher_usage(order_data.get("voucher"), order_data.get("user_email"))
         raise
 
     return order_data
