@@ -26,6 +26,7 @@ PROMOTION_TRANSLATE_MUTATION = """
                     language {
                         code
                     }
+                    __typename
                 }
             }
             errors {
@@ -81,6 +82,7 @@ def test_promotion_create_translation(
     assert translation_data["name"] == "Polish promotion name"
     assert translation_data["description"] == json.dumps(description_json)
     assert translation_data["language"]["code"] == "PL"
+    assert translation_data["__typename"] == "PromotionTranslation"
 
     translation = promotion.translations.first()
     mocked_webhook_trigger.assert_called_once_with(
@@ -186,3 +188,41 @@ def test_promotion_create_translation_by_translatable_content_id(
     translation_data = data["promotion"]["translation"]
     assert translation_data["name"] == "Polish promotion name"
     assert translation_data["language"]["code"] == "PL"
+
+
+def test_promotion_translate_clear_old_sale_id(
+    staff_api_client,
+    promotion_converted_from_sale,
+    permission_manage_translations,
+):
+    # given
+    promotion = promotion_converted_from_sale
+    assert promotion.old_sale_id
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+
+    variables = {
+        "id": promotion_id,
+        "languageCode": "PL",
+        "input": {
+            "name": "Polish promotion name",
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PROMOTION_TRANSLATE_MUTATION,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionTranslate"]
+    assert not data["errors"]
+    translation_data = data["promotion"]["translation"]
+    assert translation_data["name"] == "Polish promotion name"
+    assert translation_data["language"]["code"] == "PL"
+    assert translation_data["__typename"] == "PromotionTranslation"
+
+    promotion.refresh_from_db()
+    assert not promotion.old_sale_id

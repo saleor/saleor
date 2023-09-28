@@ -185,3 +185,41 @@ def test_promotion_rule_create_translation_by_translatable_content_id(
     translation_data = data["promotionRule"]["translation"]
     assert translation_data["name"] == "Polish rule name"
     assert translation_data["language"]["code"] == "PL"
+
+
+def test_promotion_rule_create_translation_clear_old_sale_id(
+    staff_api_client,
+    promotion_converted_from_sale,
+    permission_manage_translations,
+):
+    promotion = promotion_converted_from_sale
+    assert promotion.old_sale_id
+    rule = promotion.rules.first()
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    variables = {
+        "id": rule_id,
+        "languageCode": "PL",
+        "input": {
+            "name": "Polish rule name",
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PROMOTION_RULE_TRANSLATE_MUTATION,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleTranslate"]
+    assert not data["errors"]
+    translation_data = data["promotionRule"]["translation"]
+
+    assert translation_data["name"] == "Polish rule name"
+    assert translation_data["language"]["code"] == "PL"
+
+    promotion.refresh_from_db()
+    assert not promotion.old_sale_id

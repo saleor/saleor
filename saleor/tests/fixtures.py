@@ -6386,6 +6386,16 @@ def promotion_translation_fr(promotion):
 
 
 @pytest.fixture
+def promotion_converted_from_sale_translation_fr(promotion_converted_from_sale):
+    return PromotionTranslation.objects.create(
+        language_code="fr",
+        promotion=promotion_converted_from_sale,
+        name="French sale name",
+        description=dummy_editorjs("French sale description."),
+    )
+
+
+@pytest.fixture
 def promotion_rule_translation_fr(promotion_rule):
     return PromotionRuleTranslation.objects.create(
         language_code="fr",

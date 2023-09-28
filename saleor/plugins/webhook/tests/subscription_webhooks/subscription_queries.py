@@ -1962,6 +1962,7 @@ subscription {
         }
         ... on SaleTranslation {
           id
+          __typename
         }
         ... on VoucherTranslation {
           id
@@ -1974,6 +1975,7 @@ subscription {
         }
         ... on PromotionTranslation {
           id
+          __typename
         }
         ... on PromotionRuleTranslation {
           id
@@ -2012,6 +2014,7 @@ subscription {
         }
         ... on SaleTranslation {
           id
+          __typename
         }
         ... on VoucherTranslation {
           id
@@ -2024,6 +2027,7 @@ subscription {
         }
         ... on PromotionTranslation {
           id
+          __typename
         }
         ... on PromotionRuleTranslation {
           id

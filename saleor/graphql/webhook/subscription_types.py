@@ -2318,6 +2318,8 @@ class TranslationTypes(Union):
     @classmethod
     def resolve_type(cls, instance, info: ResolveInfo):
         instance_type = type(instance)
+        if instance_type == PromotionTranslation and instance.promotion.old_sale_id:
+            return translation_types.SaleTranslation
         if instance_type in TRANSLATIONS_TYPES_MAP:
             return TRANSLATIONS_TYPES_MAP[instance_type]
 
