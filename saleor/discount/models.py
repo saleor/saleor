@@ -22,7 +22,6 @@ from ..core.models import ModelWithMetadata
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import Translation
-from ..permission.enums import DiscountPermissions
 from . import (
     DiscountType,
     DiscountValueType,
@@ -259,67 +258,6 @@ class VoucherTranslation(Translation):
         return {"name": self.name}
 
 
-SaleManager = models.Manager.from_queryset(SaleQueryset)
-
-
-class Sale(ModelWithMetadata):
-    name = models.CharField(max_length=255)
-    type = models.CharField(
-        max_length=10,
-        choices=DiscountValueType.CHOICES,
-        default=DiscountValueType.FIXED,
-    )
-    categories = models.ManyToManyField("product.Category", blank=True)
-    collections = models.ManyToManyField("product.Collection", blank=True)
-    products = models.ManyToManyField("product.Product", blank=True)
-    variants = models.ManyToManyField("product.ProductVariant", blank=True)
-    start_date = models.DateTimeField(default=timezone.now)
-    end_date = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    updated_at = models.DateTimeField(auto_now=True, db_index=True)
-
-    notification_sent_datetime = models.DateTimeField(null=True, blank=True)
-
-    objects = SaleManager()
-
-    class Meta:
-        ordering = ("name", "pk")
-        app_label = "discount"
-        permissions = (
-            (
-                DiscountPermissions.MANAGE_DISCOUNTS.codename,
-                "Manage sales and vouchers.",
-            ),
-        )
-
-    def __repr__(self):
-        return f"Sale(name={str(self.name)}, type={self.get_type_display()})"
-
-    def __str__(self):
-        return self.name
-
-    def get_discount(self, sale_channel_listing):
-        if not sale_channel_listing:
-            raise NotApplicable("This sale is not assigned to this channel.")
-        if self.type == DiscountValueType.FIXED:
-            discount_amount = Money(
-                sale_channel_listing.discount_value, sale_channel_listing.currency
-            )
-            return partial(fixed_discount, discount=discount_amount)
-        if self.type == DiscountValueType.PERCENTAGE:
-            return partial(
-                percentage_discount,
-                percentage=sale_channel_listing.discount_value,
-                rounding=ROUND_HALF_UP,
-            )
-        raise NotImplementedError("Unknown discount type")
-
-    def is_active(self, date=None):
-        if date is None:
-            date = datetime.now(pytz.utc)
-        return (not self.end_date or self.end_date >= date) and self.start_date <= date
-
-
 class PromotionQueryset(models.QuerySet["Promotion"]):
     def active(self, date=None):
         if date is None:
@@ -476,9 +414,6 @@ class BaseDiscount(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     translated_name = models.CharField(max_length=255, null=True, blank=True)
     reason = models.TextField(blank=True, null=True)
-    sale = models.ForeignKey(
-        Sale, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
-    )
     promotion_rule = models.ForeignKey(
         PromotionRule,
         related_name="+",

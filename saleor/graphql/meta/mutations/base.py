@@ -263,7 +263,6 @@ class BaseMetadataMutation(BaseMutation):
             [
                 isinstance(instance, Model)
                 for Model in [
-                    discount_models.Sale,
                     discount_models.Voucher,
                     menu_models.Menu,
                     menu_models.MenuItem,

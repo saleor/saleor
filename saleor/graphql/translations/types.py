@@ -638,7 +638,7 @@ class SaleTranslatableContent(ModelObjectType[discount_models.Promotion]):
         )
 
     @staticmethod
-    def resolve_sale(root: discount_models.Sale, _info):
+    def resolve_sale(root: discount_models.Promotion, _info):
         return ChannelContext(node=root, channel_slug=None)
 
 
