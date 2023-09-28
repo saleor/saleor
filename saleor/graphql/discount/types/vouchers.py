@@ -66,6 +66,7 @@ class VoucherChannelListing(ModelObjectType[models.VoucherChannelListing]):
 class VoucherCode(ModelObjectType[models.VoucherCode]):
     code = graphene.String(description="Code to use the voucher.")
     used = graphene.Int(description="Number of times a code has been used.")
+    is_active = graphene.Boolean(description="Whether a code is active or not.")
 
     class Meta:
         description = "Represents voucher code." + ADDED_IN_318

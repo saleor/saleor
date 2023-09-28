@@ -9199,6 +9199,9 @@ type VoucherCode {
 
   """Number of times a code has been used."""
   used: Int
+
+  """Whether a code is active or not."""
+  isActive: Boolean
 }
 
 enum DiscountValueTypeEnum @doc(category: "Discounts") {
