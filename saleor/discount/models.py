@@ -349,23 +349,6 @@ class SaleChannelListing(models.Model):
         ordering = ("pk",)
 
 
-class SaleTranslation(Translation):
-    name = models.CharField(max_length=255, null=True, blank=True)
-    sale = models.ForeignKey(
-        Sale, related_name="translations", on_delete=models.CASCADE
-    )
-
-    class Meta:
-        ordering = ("language_code", "name", "pk")
-        unique_together = (("language_code", "sale"),)
-
-    def get_translated_object_id(self):
-        return "Sale", self.sale_id
-
-    def get_translated_keys(self):
-        return {"name": self.name}
-
-
 class PromotionQueryset(models.QuerySet["Promotion"]):
     def active(self, date=None):
         if date is None:

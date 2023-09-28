@@ -11,7 +11,6 @@ from ...core.prices import quantize_price
 from ...discount.models import (
     PromotionRuleTranslation,
     PromotionTranslation,
-    SaleTranslation,
     VoucherTranslation,
 )
 from ...graphql.shop.types import Shop
@@ -95,7 +94,6 @@ TRANSLATIONS_TYPES_MAP = {
     ProductVariantTranslation: translation_types.ProductVariantTranslation,
     PageTranslation: translation_types.PageTranslation,
     ShippingMethodTranslation: translation_types.ShippingMethodTranslation,
-    SaleTranslation: translation_types.SaleTranslation,
     VoucherTranslation: translation_types.VoucherTranslation,
     MenuItemTranslation: translation_types.MenuItemTranslation,
     PromotionTranslation: translation_types.PromotionTranslation,
@@ -2313,7 +2311,9 @@ class PaymentMethodProcessTokenizationSession(
 
 class TranslationTypes(Union):
     class Meta:
-        types = tuple(TRANSLATIONS_TYPES_MAP.values())
+        types = tuple(TRANSLATIONS_TYPES_MAP.values()) + (
+            translation_types.SaleTranslation,
+        )
 
     @classmethod
     def resolve_type(cls, instance, info: ResolveInfo):
