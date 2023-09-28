@@ -29,12 +29,13 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
         voucher = cls.get_node_or_error(
             info, data.get("id"), only_type=Voucher, field="voucher_id"
         )
-        input_data = data.get("input", {})
-        cls.remove_catalogues_from_node(voucher, input_data)
+        if voucher:
+            input_data = data.get("input", {})
+            cls.remove_catalogues_from_node(voucher, input_data)
 
-        if input_data:
-            manager = get_plugin_manager_promise(info.context).get()
-            cls.call_event(manager.voucher_updated, voucher)
+            if input_data:
+                manager = get_plugin_manager_promise(info.context).get()
+                cls.call_event(manager.voucher_updated, voucher, voucher.code)
 
         return VoucherRemoveCatalogues(voucher=voucher)
 

@@ -691,7 +691,9 @@ def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
     checkout_with_item.save(update_fields=["shipping_address"])
 
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
 
     subtotal = calculations.checkout_subtotal(
         manager=manager,

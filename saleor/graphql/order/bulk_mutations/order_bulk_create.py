@@ -11,7 +11,7 @@ from uuid import UUID
 import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from graphql import GraphQLError
 from prices import Money
@@ -24,7 +24,7 @@ from ....core.prices import quantize_price
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
-from ....discount.models import OrderDiscount, Voucher
+from ....discount.models import OrderDiscount, Voucher, VoucherCode
 from ....giftcard.models import GiftCard
 from ....invoice.models import Invoice
 from ....order import (
@@ -691,7 +691,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             | Q(external_reference__in=identifiers.variant_external_references.keys)
         )
         channels = Channel.objects.filter(slug__in=identifiers.channel_slugs.keys)
-        vouchers = Voucher.objects.filter(code__in=identifiers.voucher_codes.keys)
+
+        vouchers = Voucher.objects.filter(
+            Exists(
+                VoucherCode.objects.filter(
+                    code__in=identifiers.voucher_codes.keys, voucher_id=OuterRef("id")
+                )
+            )
+        )
         warehouses = Warehouse.objects.filter(pk__in=identifiers.warehouse_ids.keys)
         shipping_methods = ShippingMethod.objects.filter(
             pk__in=identifiers.shipping_method_ids.keys
