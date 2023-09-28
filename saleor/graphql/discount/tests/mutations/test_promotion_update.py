@@ -106,18 +106,17 @@ def test_promotion_update_by_app(
     promotion,
 ):
     # given
+    promotion.start_date = timezone.now()
     promotion.end_date = None
-    promotion.save(update_fields=["end_date"])
+    promotion.save(update_fields=["start_date", "end_date"])
 
-    start_date = timezone.now() - timedelta(days=10)
-    end_date = timezone.now() - timedelta(days=2)
+    end_date = timezone.now() + timedelta(days=2)
 
     new_promotion_name = "new test promotion"
     variables = {
         "id": graphene.Node.to_global_id("Promotion", promotion.id),
         "input": {
             "name": new_promotion_name,
-            "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
         },
     }
@@ -135,16 +134,15 @@ def test_promotion_update_by_app(
     assert not data["errors"]
     assert promotion_data["name"] == new_promotion_name
     assert promotion_data["description"] == promotion.description
-    assert promotion_data["startDate"] == start_date.isoformat()
     assert promotion_data["endDate"] == end_date.isoformat()
     assert promotion_data["createdAt"] == promotion.created_at.isoformat()
     assert promotion_data["updatedAt"] == timezone.now().isoformat()
     event_types = [event["type"] for event in promotion_data["events"]]
     assert PromotionEvents.PROMOTION_UPDATED.upper() in event_types
-    assert PromotionEvents.PROMOTION_ENDED.upper() in event_types
+    assert PromotionEvents.PROMOTION_ENDED.upper() not in event_types
 
     promotion_updated_mock.assert_called_once_with(promotion)
-    promotion_ended_mock.assert_called_once_with(promotion)
+    promotion_ended_mock.assert_not_called()
     update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
         promotion.id
     )

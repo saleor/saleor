@@ -88,8 +88,8 @@ class PromotionUpdate(ModelMutation):
         cls, info: ResolveInfo, instance: models.Promotion, data: dict, **kwargs
     ):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
-        start_date = cleaned_input.get("start_date")
-        end_date = cleaned_input.get("end_date")
+        start_date = cleaned_input.get("start_date") or instance.start_date
+        end_date = cleaned_input.get("end_date") or instance.end_date
         try:
             validate_end_is_after_start(start_date, end_date)
         except ValidationError as error:

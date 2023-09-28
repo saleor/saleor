@@ -98,7 +98,7 @@ class PromotionCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         errors: DefaultDict[str, List[ValidationError]] = defaultdict(list)
-        start_date = cleaned_input.get("start_date")
+        start_date = cleaned_input.get("start_date") or instance.start_date
         end_date = cleaned_input.get("end_date")
         try:
             validate_end_is_after_start(start_date, end_date)
