@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
     from ..discount.interface import VariantPromotionRuleInfo, VoucherInfo
-    from ..discount.models import CheckoutLineDiscount, Voucher
+    from ..discount.models import CheckoutLineDiscount, Voucher, VoucherCode
     from ..plugins.manager import PluginsManager
     from ..product.models import (
         Collection,
@@ -78,6 +78,7 @@ class CheckoutInfo:
     tax_configuration: "TaxConfiguration"
     valid_pick_up_points: List["Warehouse"]
     voucher: Optional["Voucher"] = None
+    voucher_code: Optional["VoucherCode"] = None
 
     @property
     def valid_shipping_methods(self) -> List["ShippingMethodData"]:
@@ -312,7 +313,7 @@ def fetch_checkout_lines(
 
     if not skip_recalculation and checkout.voucher_code and lines_info:
         if not voucher:
-            voucher = get_voucher_for_checkout(
+            voucher, _ = get_voucher_for_checkout(
                 checkout, channel_slug=channel.slug, with_prefetch=True
             )
         if not voucher:
@@ -423,8 +424,12 @@ def fetch_checkout_info(
     shipping_address = checkout.shipping_address
     if shipping_channel_listings is None:
         shipping_channel_listings = channel.shipping_method_listings.all()
+
+    voucher_code = None
     if not voucher:
-        voucher = get_voucher_for_checkout(checkout, channel_slug=channel.slug)
+        voucher, voucher_code = get_voucher_for_checkout(
+            checkout, channel_slug=channel.slug
+        )
 
     delivery_method_info = get_delivery_method_info(None, shipping_address)
     checkout_info = CheckoutInfo(
@@ -438,6 +443,7 @@ def fetch_checkout_info(
         all_shipping_methods=[],
         valid_pick_up_points=[],
         voucher=voucher,
+        voucher_code=voucher_code,
     )
     if fetch_delivery_methods:
         update_delivery_method_lists_for_checkout_info(

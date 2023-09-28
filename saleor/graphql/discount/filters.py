@@ -2,12 +2,18 @@ import decimal
 from typing import List
 
 import django_filters
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef, Q, Sum
 from django.utils import timezone
 
 from ...discount import DiscountValueType
-from ...discount.models import Promotion, PromotionRule, Voucher, VoucherQueryset
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
+from ...discount.models import (
+    Promotion,
+    PromotionRule,
+    Voucher,
+    VoucherCode,
+    VoucherQueryset,
+)
 from ..core.filters import (
     BooleanWhereFilter,
     GlobalIDMultipleChoiceFilter,
@@ -53,6 +59,7 @@ def filter_status(
 
 
 def filter_times_used(qs, _, value):
+    qs = qs.annotate(used=Sum("codes__used"))
     return filter_range_field(qs, "used", value)
 
 
@@ -98,7 +105,14 @@ def filter_sale_search(qs, _, value):
 
 
 def filter_voucher_search(qs, _, value):
-    return qs.filter(Q(name__ilike=value) | Q(code__ilike=value))
+    return qs.filter(
+        Q(name__ilike=value)
+        | Q(
+            Exists(
+                VoucherCode.objects.filter(code__ilike=value, voucher_id=OuterRef("pk"))
+            )
+        )
+    )
 
 
 def filter_updated_at_range(qs, _, value):
