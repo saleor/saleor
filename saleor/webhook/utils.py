@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 
+from django.conf import settings
 from django.db.models import Q
 from django.db.models.expressions import Exists, OuterRef
 
@@ -27,19 +28,30 @@ def get_webhooks_for_event(
         permissions["permissions__content_type__app_label"] = app_label
         permissions["permissions__codename"] = codename
 
+    # In this function we use the replica database for all queryset reads, as there is
+    # no risk that any mutation would change the result of these querysets.
+
     if webhooks is None:
-        webhooks = Webhook.objects.all()
+        webhooks = Webhook.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).all()
+
     app_kwargs: dict = {"is_active": True, **permissions}
     if apps_ids:
         app_kwargs["id__in"] = apps_ids
     if apps_identifier:
         app_kwargs["identifier__in"] = apps_identifier
 
-    apps = App.objects.filter(**app_kwargs)
+    apps = App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
+        **app_kwargs
+    )
     event_types = [event_type]
     if event_type in WebhookEventAsyncType.ALL:
         event_types.append(WebhookEventAsyncType.ANY)
-    webhook_events = WebhookEvent.objects.filter(event_type__in=event_types)
+
+    webhook_events = WebhookEvent.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(event_type__in=event_types)
     return (
         webhooks.filter(
             Q(is_active=True, app__in=apps)
