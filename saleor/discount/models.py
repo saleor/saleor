@@ -320,35 +320,6 @@ class Sale(ModelWithMetadata):
         return (not self.end_date or self.end_date >= date) and self.start_date <= date
 
 
-class SaleChannelListing(models.Model):
-    sale = models.ForeignKey(
-        Sale,
-        null=False,
-        blank=False,
-        related_name="channel_listings",
-        on_delete=models.CASCADE,
-    )
-    channel = models.ForeignKey(
-        Channel,
-        null=False,
-        blank=False,
-        related_name="sale_listings",
-        on_delete=models.CASCADE,
-    )
-    discount_value = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0.0"),
-    )
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-    )
-
-    class Meta:
-        unique_together = [["sale", "channel"]]
-        ordering = ("pk",)
-
-
 class PromotionQueryset(models.QuerySet["Promotion"]):
     def active(self, date=None):
         if date is None:
