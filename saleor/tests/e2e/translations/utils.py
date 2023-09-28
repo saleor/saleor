@@ -32,11 +32,9 @@ fragment PromotionTranslation on PromotionTranslatableContent {
 
 fragment PromotionRuleTranslation on PromotionRuleTranslatableContent {
   id
-  name
   description
   translation(languageCode: $language) {
     id
-    name
     description
   }
 }

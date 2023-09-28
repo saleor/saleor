@@ -119,7 +119,7 @@ def test_staff_translate_promotions_core_2119(
     )
     rules_translation_list = translations_data["translations"]["edges"]
     assert len(rules_translation_list) == 1
-    assert rules_translation_list[0]["node"]["name"] == "Test rule"
+    assert rules_translation_list[0]["node"]["id"] is not None
 
     # Step 4 - Translate promotion rule name and description
     rule_translated_description = {
