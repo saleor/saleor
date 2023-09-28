@@ -40,7 +40,6 @@ logger = logging.getLogger(__name__)
 FAILED_STATUSES = ["refused", "error", "cancelled"]
 PENDING_STATUSES = ["pending", "received"]
 AUTH_STATUS = "authorised"
-HTTP_TIMEOUT = 20  # in seconds
 
 
 def initialize_adyen_client(config: GatewayConfig) -> Adyen.Adyen:
@@ -61,7 +60,7 @@ def init_http_client(adyen: Adyen.Adyen):
         user_agent_suffix=adyen_client.USER_AGENT_SUFFIX,
         lib_version=adyen_client.LIB_VERSION,
         force_request=adyen_client.http_force,
-        timeout=HTTP_TIMEOUT,
+        timeout=settings.COMMON_REQUESTS_TIMEOUT,
     )
     adyen_client.http_init = True
 

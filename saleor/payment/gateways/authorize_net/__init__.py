@@ -8,6 +8,7 @@ from authorizenet.apicontrollers import (
     createTransactionController,
     getCustomerProfileController,
 )
+from django.conf import settings
 from lxml import etree
 from lxml.objectify import ObjectifiedElement
 
@@ -42,7 +43,7 @@ def authenticate_test(
         url,
         json=data,
         headers={"content-type": "application/json"},
-        timeout=30,
+        timeout=settings.COMMON_REQUESTS_TIMEOUT,
         allow_redirects=False,
     )
     # Response content is utf-8-sig, which requires usage of json.loads

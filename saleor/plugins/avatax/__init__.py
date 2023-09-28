@@ -9,6 +9,7 @@ from urllib.parse import urljoin
 import opentracing
 import opentracing.tags
 import requests
+from django.conf import settings
 from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
@@ -38,7 +39,6 @@ CACHE_TIME = 60 * 60  # 1 hour
 TAX_CODES_CACHE_TIME = 60 * 60 * 24 * 7  # 7 days
 CACHE_KEY = "avatax_request_id_"
 TAX_CODES_CACHE_KEY = "avatax_tax_codes_cache_key"
-TIMEOUT = 10  # API HTTP Requests Timeout
 
 # Common discount code use to apply discount on order
 COMMON_DISCOUNT_VOUCHER_CODE = "OD010000"
@@ -101,7 +101,7 @@ def api_post_request(
             url,
             auth=auth,
             data=json.dumps(data),
-            timeout=TIMEOUT,
+            timeout=settings.COMMON_REQUESTS_TIMEOUT,
             allow_redirects=False,
         )
         logger.debug("Hit to Avatax to calculate taxes %s", url)
@@ -129,7 +129,12 @@ def api_get_request(
     response = None
     try:
         auth = HTTPBasicAuth(username_or_account, password_or_license)
-        response = requests.get(url, auth=auth, timeout=TIMEOUT, allow_redirects=False)
+        response = requests.get(
+            url,
+            auth=auth,
+            timeout=settings.COMMON_REQUESTS_TIMEOUT,
+            allow_redirects=False,
+        )
         json_response = response.json()
         logger.debug("[GET] Hit to %s", url)
         if "error" in json_response:
