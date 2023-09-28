@@ -197,6 +197,7 @@ def test_promotion_translate_clear_old_sale_id(
 ):
     # given
     promotion = promotion_converted_from_sale
+    assert promotion.old_sale_id
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
 
     variables = {
