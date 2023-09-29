@@ -6,7 +6,7 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0044_auto_20230421_1018"),
+        ("discount", "0049_promotionevent"),
     ]
 
     operations = [

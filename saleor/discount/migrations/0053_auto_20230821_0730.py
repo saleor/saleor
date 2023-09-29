@@ -5,7 +5,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0047_move_codes_to_new_model"),
+        ("discount", "0052_move_codes_to_new_model"),
     ]
 
     operations = [

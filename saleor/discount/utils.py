@@ -44,8 +44,6 @@ if TYPE_CHECKING:
         ProductVariantChannelListing,
         VariantChannelListingPromotionRule,
     )
-    from .models import Voucher
-    from ..product.models import Collection, Product
     from .models import Voucher, VoucherCode
 
 CatalogueInfo = DefaultDict[str, Set[Union[int, str]]]

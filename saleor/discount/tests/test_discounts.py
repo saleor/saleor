@@ -8,7 +8,13 @@ from prices import Money, TaxedMoney
 
 from ...discount.interface import VariantPromotionRuleInfo
 from .. import DiscountValueType, RewardValueType, VoucherType
-from ..models import NotApplicable, Voucher, VoucherChannelListing, VoucherCustomer
+from ..models import (
+    NotApplicable,
+    Voucher,
+    VoucherChannelListing,
+    VoucherCode,
+    VoucherCustomer,
+)
 from ..utils import (
     add_voucher_usage_by_customer,
     decrease_voucher_code_usage,
@@ -183,6 +189,7 @@ def test_voucher_queryset_active_in_other_channel(voucher, channel_PLN):
 
 
 def test_increase_voucher_usage(channel_USD):
+    code = ("unique",)
     voucher = Voucher.objects.create(
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.FIXED,
