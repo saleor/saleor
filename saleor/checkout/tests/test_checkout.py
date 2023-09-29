@@ -18,8 +18,8 @@ from ...discount.models import (
     CheckoutLineDiscount,
     NotApplicable,
     Voucher,
-    VoucherCode,
     VoucherChannelListing,
+    VoucherCode,
 )
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
