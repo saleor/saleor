@@ -716,6 +716,7 @@ def test_order_bulk_create(
     db_invoice = Invoice.objects.get()
     assert db_invoice.number == "01/12/2020/TEST"
     assert db_invoice.external_url == "http://www.example.com"
+    assert db_invoice.url == "http://www.example.com"
     assert db_invoice.private_metadata["pmd key"] == "pmd value"
     assert db_invoice.metadata["md key"] == "md value"
     assert db_invoice.order_id == db_order.id
