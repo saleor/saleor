@@ -6,7 +6,6 @@ from django.db.models import Exists, OuterRef, Q, Sum
 from django.utils import timezone
 
 from ...discount import DiscountValueType
-from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...discount.models import (
     Promotion,
     PromotionRule,
@@ -14,6 +13,7 @@ from ...discount.models import (
     VoucherCode,
     VoucherQueryset,
 )
+from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.filters import (
     BooleanWhereFilter,
     GlobalIDMultipleChoiceFilter,
