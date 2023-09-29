@@ -9,7 +9,7 @@ VOUCHER_CODE_BULK_DELETE_MUTATION = """
         voucherCodeBulkDelete(ids: $ids) {
             count
             errors {
-                field
+                path
                 message
             }
         }
@@ -21,7 +21,8 @@ def test_delete_voucher_codes(staff_api_client, voucher, permission_manage_disco
     # given
     voucher.codes.create(code="voucher-1")
     voucher.codes.create(code="voucher-2")
-    assert voucher.codes.count() == 3
+    vouchers = voucher.codes.all()
+    assert len(vouchers) == 3
 
     variables = {
         "ids": [
@@ -32,6 +33,36 @@ def test_delete_voucher_codes(staff_api_client, voucher, permission_manage_disco
 
     # when
     response = staff_api_client.post_graphql(
+        VOUCHER_CODE_BULK_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+    content = get_graphql_content(response)
+    voucher.refresh_from_db()
+
+    # then
+    assert content["data"]["voucherCodeBulkDelete"]["count"] == 3
+    assert voucher.codes.count() == 0
+
+
+def test_delete_voucher_codes_as_app(
+    app_api_client, voucher, permission_manage_discounts
+):
+    # given
+    voucher.codes.create(code="voucher-1")
+    voucher.codes.create(code="voucher-2")
+    vouchers = voucher.codes.all()
+    assert len(vouchers) == 3
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("VoucherCode", code.id)
+            for code in voucher.codes.all()
+        ]
+    }
+
+    # when
+    response = app_api_client.post_graphql(
         VOUCHER_CODE_BULK_DELETE_MUTATION,
         variables,
         permissions=[permission_manage_discounts],
@@ -58,7 +89,8 @@ def test_delete_voucher_codes_trigger_voucher_update_webhook(
     # given
     voucher.codes.create(code="voucher-1")
     voucher.codes.create(code="voucher-2")
-    assert voucher.codes.count() == 3
+    vouchers = voucher.codes.all()
+    assert len(vouchers) == 3
 
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -69,6 +101,8 @@ def test_delete_voucher_codes_trigger_voucher_update_webhook(
             for code in voucher.codes.all()
         ]
     }
+
+    # when
     response = staff_api_client.post_graphql(
         VOUCHER_CODE_BULK_DELETE_MUTATION,
         variables,
@@ -76,5 +110,6 @@ def test_delete_voucher_codes_trigger_voucher_update_webhook(
     )
     content = get_graphql_content(response)
 
+    # then
     assert content["data"]["voucherCodeBulkDelete"]["count"] == 3
     assert mocked_webhook_trigger.call_count == 1

@@ -6,7 +6,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_318
 from ....core.mutations import ModelBulkDeleteMutation
-from ....core.types import DiscountError, NonNullList
+from ....core.types import NonNullList, VoucherCodeBulkDeleteError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import VoucherCode
@@ -25,8 +25,7 @@ class VoucherCodeBulkDelete(ModelBulkDeleteMutation):
         model = models.VoucherCode
         object_type = VoucherCode
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
-        error_type_class = DiscountError
-        error_type_field = "discount_errors"
+        error_type_class = VoucherCodeBulkDeleteError
         webhook_events_info = [
             WebhookEventInfo(
                 type=WebhookEventAsyncType.VOUCHER_UPDATED,

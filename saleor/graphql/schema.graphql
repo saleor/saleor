@@ -28018,8 +28018,31 @@ Triggers the following webhook events:
 type VoucherCodeBulkDelete @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
-  discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
-  errors: [DiscountError!]!
+  errors: [VoucherCodeBulkDeleteError!]!
+}
+
+type VoucherCodeBulkDeleteError @doc(category: "Discounts") {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: VoucherCodeErrorCode!
+}
+
+"""An enumeration."""
+enum VoucherCodeErrorCode @doc(category: "Discounts") {
+  ALREADY_EXISTS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  DUPLICATED_INPUT_ITEM
 }
 
 """

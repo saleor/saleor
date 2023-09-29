@@ -55,3 +55,13 @@ class PromotionRuleUpdateErrorCode(Enum):
 class PromotionRuleDeleteErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
+
+
+class VoucherCodeErrorCode(Enum):
+    ALREADY_EXISTS = "already_exists"
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
+    UNIQUE = "unique"
+    DUPLICATED_INPUT_ITEM = "duplicated_input_item"
