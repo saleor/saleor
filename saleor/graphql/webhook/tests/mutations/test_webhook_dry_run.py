@@ -6,6 +6,7 @@ import graphene
 from .....graphql.shop.types import SHOP_ID
 from .....graphql.tests.utils import get_graphql_content
 from .....webhook.error_codes import WebhookDryRunErrorCode
+from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission
 from ...subscription_types import WEBHOOK_TYPES_MAP
 
@@ -210,7 +211,17 @@ def test_webhook_dry_run_root_type(
 
         webhook = async_subscription_webhooks_with_root_objects[event_name][0]
         object = async_subscription_webhooks_with_root_objects[event_name][1]
-        object_id = graphene.Node.to_global_id(object.__class__.__name__, object.pk)
+        object_type = object.__class__.__name__
+        events = WebhookEventAsyncType
+        if event_name in [
+            events.SALE_CREATED,
+            events.SALE_UPDATED,
+            events.SALE_DELETED,
+            events.SALE_TOGGLE,
+        ]:
+            object_id = graphene.Node.to_global_id("Sale", object.old_sale_id)
+        else:
+            object_id = graphene.Node.to_global_id(object_type, object.pk)
 
         variables = {"objectId": object_id, "query": webhook.subscription_query}
 

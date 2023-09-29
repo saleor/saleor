@@ -11,7 +11,7 @@ from ...account.models import Address, User
 from ...account.utils import create_superuser
 from ...attribute.models import AttributeValue
 from ...channel.models import Channel
-from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
+from ...discount.models import Promotion, PromotionRule, Voucher, VoucherChannelListing
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.models import Order
 from ...product import ProductTypeKind
@@ -144,15 +144,15 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
     assert Order.objects.all().count() == how_many_orders
 
 
-def test_create_product_sales(db):
+def test_create_product_promotions(db):
     how_many = 5
     channel_count = 0
     for _ in random_data.create_channels():
         channel_count += 1
-    for _ in random_data.create_product_sales(how_many):
+    for _ in random_data.create_product_promotions(how_many):
         pass
-    assert Sale.objects.all().count() == how_many
-    assert SaleChannelListing.objects.all().count() == how_many * channel_count
+    assert Promotion.objects.all().count() == how_many
+    assert PromotionRule.objects.all().count() == how_many * 2
 
 
 def test_create_vouchers(db):

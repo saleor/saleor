@@ -23,7 +23,9 @@ class PageTranslate(BaseTranslateMutation):
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
-        input = PageTranslationInput(required=True)
+        input = PageTranslationInput(
+            required=True, description="Fields required to update page translations."
+        )
 
     class Meta:
         description = "Creates/updates translations for a page."

@@ -2,9 +2,6 @@ import pytest
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....plugins.manager import get_plugins_manager
-from ... import DiscountInfo, DiscountValueType
-from ...models import Sale, SaleChannelListing
-from ...utils import fetch_sale_channel_listings
 
 
 @pytest.fixture
@@ -54,53 +51,3 @@ def checkout_lines_with_multiple_quantity_info(
 
     lines_info, _ = fetch_checkout_lines(checkout_with_items)
     return lines_info
-
-
-@pytest.fixture
-def discount_info_for_new_sale(new_sale):
-    channel_listings = fetch_sale_channel_listings([new_sale.pk])[new_sale.pk]
-
-    return DiscountInfo(
-        sale=new_sale,
-        category_ids=set(),
-        channel_listings=channel_listings,
-        collection_ids=set(),
-        product_ids=set(),
-        variants_ids=set(),
-    )
-
-
-@pytest.fixture
-def new_sale_percentage(channel_USD):
-    sale = Sale.objects.create(name="Sale 25%", type=DiscountValueType.PERCENTAGE)
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=25,
-        currency=channel_USD.currency_code,
-    )
-    return sale
-
-
-@pytest.fixture
-def sale_5_percentage(channel_USD):
-    sale = Sale.objects.create(name="Sale 5%", type=DiscountValueType.PERCENTAGE)
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-    )
-    return sale
-
-
-@pytest.fixture
-def sale_1_usd(channel_USD):
-    sale = Sale.objects.create(name="Sale 1 USD", type=DiscountValueType.FIXED)
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=1,
-        currency=channel_USD.currency_code,
-    )
-    return sale

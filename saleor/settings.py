@@ -28,7 +28,7 @@ from sentry_sdk.integrations.logging import ignore_logger
 
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
-from .core.schedules import initiated_sale_webhook_schedule
+from .core.schedules import initiated_promotion_webhook_schedule
 
 django_stubs_ext.monkeypatch()
 
@@ -598,9 +598,9 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.csv.tasks.delete_old_export_files",
         "schedule": crontab(hour=1, minute=0),
     },
-    "handle-sale-toggle": {
-        "task": "saleor.discount.tasks.handle_sale_toggle",
-        "schedule": initiated_sale_webhook_schedule,
+    "handle-promotion-toggle": {
+        "task": "saleor.discount.tasks.handle_promotion_toggle",
+        "schedule": initiated_promotion_webhook_schedule,
     },
     "update-products-search-vectors": {
         "task": "saleor.product.tasks.update_products_search_vector_task",

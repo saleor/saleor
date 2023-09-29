@@ -1,5 +1,6 @@
 import datetime
-from typing import TYPE_CHECKING, Iterable, Optional
+from decimal import Decimal
+from typing import Iterable, Optional
 from uuid import uuid4
 
 import graphene
@@ -32,8 +33,8 @@ from ..core.utils import build_absolute_uri
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, get_translation
 from ..core.weight import zero_weight
-from ..discount import DiscountInfo
-from ..discount.utils import calculate_discounted_price
+from ..discount.models import PromotionRule
+from ..discount.utils import calculate_discounted_price_for_rules
 from ..permission.enums import (
     DiscountPermissions,
     OrderPermissions,
@@ -43,10 +44,6 @@ from ..permission.enums import (
 from ..seo.models import SeoModel, SeoModelTranslation
 from ..tax.models import TaxClass
 from . import ProductMediaTypes, ProductTypeKind, managers
-
-if TYPE_CHECKING:
-    from decimal import Decimal
-
 
 ALL_PRODUCTS_PERMISSIONS = [
     # List of permissions, where each of them allows viewing all products
@@ -393,7 +390,8 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         self,
         channel_listing: "ProductVariantChannelListing",
         price_override: Optional["Decimal"] = None,
-    ):
+    ) -> "Money":
+        """Return the base variant price before applying the promotion discounts."""
         return (
             channel_listing.price
             if price_override is None
@@ -402,22 +400,21 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
 
     def get_price(
         self,
-        product: Product,
-        collections: Iterable["Collection"],
-        channel: Channel,
         channel_listing: "ProductVariantChannelListing",
-        discounts: Optional[Iterable[DiscountInfo]] = None,
         price_override: Optional["Decimal"] = None,
+        promotion_rules: Optional[Iterable["PromotionRule"]] = None,
     ) -> "Money":
-        price = self.get_base_price(channel_listing, price_override)
-        collection_ids = {collection.id for collection in collections}
-        return calculate_discounted_price(
-            product=product,
-            price=price,
-            discounts=discounts,
-            collection_ids=collection_ids,
-            channel=channel,
-            variant_id=self.id,
+        """Return the variant discounted price with applied promotions.
+
+        If a custom price is provided, return the price with applied discounts from
+        valid promotion rules for this variant.
+        """
+        if price_override is None:
+            return channel_listing.discounted_price or channel_listing.price
+        price: "Money" = self.get_base_price(channel_listing, price_override)
+        rules = promotion_rules or []
+        return calculate_discounted_price_for_rules(
+            price=price, rules=rules, currency=channel_listing.currency
         )
 
     def get_weight(self):
@@ -523,6 +520,12 @@ class ProductVariantChannelListing(models.Model):
     discounted_price = MoneyField(
         amount_field="discounted_price_amount", currency_field="currency"
     )
+    promotion_rules = models.ManyToManyField(
+        PromotionRule,
+        help_text=("Promotion rules that were included in the discounted price."),
+        through="VariantChannelListingPromotionRule",
+        blank=True,
+    )
 
     preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
 
@@ -531,6 +534,31 @@ class ProductVariantChannelListing(models.Model):
     class Meta:
         unique_together = [["variant", "channel"]]
         ordering = ("pk",)
+
+
+class VariantChannelListingPromotionRule(models.Model):
+    variant_channel_listing = models.ForeignKey(
+        ProductVariantChannelListing,
+        related_name="variantlistingpromotionrule",
+        on_delete=models.CASCADE,
+    )
+    promotion_rule = models.ForeignKey(
+        PromotionRule,
+        related_name="variantlistingpromotionrule",
+        on_delete=models.CASCADE,
+    )
+    discount_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0.0"),
+    )
+    discount = MoneyField(amount_field="discount_amount", currency_field="currency")
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
+
+    class Meta:
+        unique_together = [["variant_channel_listing", "promotion_rule"]]
 
 
 class DigitalContent(ModelWithMetadata):

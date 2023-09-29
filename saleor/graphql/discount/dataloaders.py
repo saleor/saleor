@@ -1,71 +1,23 @@
 from collections import defaultdict
 from typing import List, Optional
 
-from django.db.models import F
+from django.db.models import Exists, F, OuterRef
+from promise import Promise
 
-from ...discount import DiscountInfo
+from ...channel.models import Channel
 from ...discount.interface import VoucherInfo
 from ...discount.models import (
     CheckoutLineDiscount,
     OrderDiscount,
-    Sale,
+    Promotion,
+    PromotionEvent,
+    PromotionRule,
     SaleChannelListing,
     Voucher,
     VoucherChannelListing,
 )
-from ...discount.utils import (
-    fetch_categories,
-    fetch_collections,
-    fetch_products,
-    fetch_sale_channel_listings,
-    fetch_variants,
-)
+from ..channel.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
-
-
-class DiscountsByDateTimeLoader(DataLoader):
-    context_key = "discounts"
-
-    def batch_load(self, keys):
-        sales_map = {
-            datetime: list(
-                Sale.objects.using(self.database_connection_name)
-                .active(datetime)
-                .order_by("id")
-            )
-            for datetime in keys
-        }
-        pks = {s.pk for d, ss in sales_map.items() for s in ss}
-        collections = fetch_collections(
-            pks, database_connection_name=self.database_connection_name
-        )
-        channel_listings = fetch_sale_channel_listings(
-            pks, self.database_connection_name
-        )
-        products = fetch_products(
-            pks, database_connection_name=self.database_connection_name
-        )
-        categories = fetch_categories(
-            pks, database_connection_name=self.database_connection_name
-        )
-        variants = fetch_variants(
-            pks, database_connection_name=self.database_connection_name
-        )
-
-        return [
-            [
-                DiscountInfo(
-                    sale=sale,
-                    channel_listings=channel_listings[sale.pk],
-                    category_ids=categories[sale.pk],
-                    collection_ids=collections[sale.pk],
-                    product_ids=products[sale.pk],
-                    variants_ids=variants[sale.pk],
-                )
-                for sale in sales_map[datetime]
-            ]
-            for datetime in keys
-        ]
 
 
 class SaleChannelListingBySaleIdAndChanneSlugLoader(DataLoader):
@@ -241,10 +193,6 @@ class OrderDiscountsByOrderIDLoader(DataLoader):
         return [discount_map.get(order_id, []) for order_id in keys]
 
 
-def load_discounts(request):
-    return DiscountsByDateTimeLoader(request).load(request.request_time).get()
-
-
 class CheckoutLineDiscountsByCheckoutLineIdLoader(DataLoader):
     context_key = "checkout_line_discounts_by_checkout_line_id"
 
@@ -256,3 +204,195 @@ class CheckoutLineDiscountsByCheckoutLineIdLoader(DataLoader):
         for discount in discounts:
             discount_map[discount.line_id].append(discount)
         return [discount_map.get(checkout_line_id, []) for checkout_line_id in keys]
+
+
+class PromotionRulesByPromotionIdLoader(DataLoader):
+    context_key = "promotion_rules_by_promotion_id"
+
+    def batch_load(self, keys):
+        promotions = Promotion.objects.using(self.database_connection_name).filter(
+            id__in=keys
+        )
+        rules = PromotionRule.objects.using(self.database_connection_name).filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id")))
+        )
+        rules_map = defaultdict(list)
+        for rule in rules:
+            rules_map[rule.promotion_id].append(rule)
+        return [rules_map.get(promotion_id, []) for promotion_id in keys]
+
+
+class PromotionEventsByPromotionIdLoader(DataLoader):
+    context_key = "promotion_events_by_promotion_id"
+
+    def batch_load(self, keys):
+        promotions = Promotion.objects.using(self.database_connection_name).filter(
+            id__in=keys
+        )
+        events = PromotionEvent.objects.using(self.database_connection_name).filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id")))
+        )
+        events_map = defaultdict(list)
+        for event in events:
+            events_map[event.promotion_id].append(event)
+        return [events_map.get(promotion_id, []) for promotion_id in keys]
+
+
+class PromotionByIdLoader(DataLoader):
+    context_key = "promotion_by_id"
+
+    def batch_load(self, keys):
+        promotions = Promotion.objects.using(self.database_connection_name).in_bulk(
+            keys
+        )
+        return [promotions.get(id) for id in keys]
+
+
+class ChannelsByPromotionRuleIdLoader(DataLoader):
+    context_key = "channels_by_promotion_rule_id"
+
+    def batch_load(self, keys):
+        PromotionRuleChannel = PromotionRule.channels.through
+        rule_channels = PromotionRuleChannel.objects.using(
+            self.database_connection_name
+        ).filter(promotionrule_id__in=keys)
+        channels = (
+            Channel.objects.using(self.database_connection_name)
+            .filter(id__in=rule_channels.values("channel_id"))
+            .in_bulk()
+        )
+        rule_to_channels_map = defaultdict(list)
+        for rule_id, channel_id in rule_channels.values_list(
+            "promotionrule_id", "channel_id"
+        ):
+            rule_to_channels_map[rule_id].append(channels.get(channel_id))
+        return [rule_to_channels_map.get(rule_id, []) for rule_id in keys]
+
+
+class PromotionRuleByIdLoader(DataLoader):
+    context_key = "promotion_rule_by_id"
+
+    def batch_load(self, keys):
+        rules = PromotionRule.objects.using(self.database_connection_name).in_bulk(keys)
+        return [rules.get(id) for id in keys]
+
+
+class PromotionByRuleIdLoader(DataLoader):
+    context_key = "promotion_by_rule_id"
+
+    def batch_load(self, keys):
+        rules = PromotionRule.objects.using(self.database_connection_name).filter(
+            id__in=keys
+        )
+        promotions = (
+            Promotion.objects.using(self.database_connection_name)
+            .filter(Exists(rules.filter(promotion_id=OuterRef("id"))))
+            .in_bulk()
+        )
+        promotion_map = {rule.id: promotions.get(rule.promotion_id) for rule in rules}
+        return [promotion_map.get(rule_id) for rule_id in keys]
+
+
+class SaleChannelListingByPromotionIdLoader(DataLoader):
+    context_key = "sale_channel_listing_by_promotion_id"
+
+    def batch_load(self, keys):
+        from .types.sales import SaleChannelListing
+
+        def with_rules(rules):
+            rule_ids = [rule.id for item in rules for rule in item]
+
+            def with_channels(channels):
+                rule_channels = dict(zip(rule_ids, channels))
+                promotion_listing_map = defaultdict(list)
+                for promotion_id, promotion_rules in zip(keys, rules):
+                    for rule in promotion_rules:
+                        channels = rule_channels[rule.id]
+                        for channel in channels:
+                            promotion_listing_map[promotion_id].append(
+                                SaleChannelListing(
+                                    id=rule.old_channel_listing_id,
+                                    channel=channel,
+                                    discount_value=rule.reward_value,
+                                    currency=channel.currency_code,
+                                )
+                            )
+                return [promotion_listing_map[key] for key in keys]
+
+            return (
+                ChannelsByPromotionRuleIdLoader(self.context)
+                .load_many(rule_ids)
+                .then(with_channels)
+            )
+
+        return (
+            PromotionRulesByPromotionIdLoader(self.context)
+            .load_many(keys)
+            .then(with_rules)
+        )
+
+
+class PromotionRulesByPromotionIdAndChannelSlugLoader(DataLoader):
+    context_key = "promotion_rules_by_promotion_id_and_channel_slug"
+
+    def batch_load(self, keys):
+        promotion_ids = [key[0] for key in keys]
+        channel_slug = keys[0][1]
+        channel = ChannelBySlugLoader(self.context).load(channel_slug)
+
+        def with_channel(data):
+            channel, promotion_ids = data
+            promotions = Promotion.objects.using(self.database_connection_name).filter(
+                id__in=promotion_ids
+            )
+            PromotionRuleChannel = PromotionRule.channels.through
+            rule_channels = PromotionRuleChannel.objects.using(
+                self.database_connection_name
+            ).filter(channel_id=channel.id)
+
+            rules = PromotionRule.objects.using(self.database_connection_name).filter(
+                Exists(promotions.filter(id=OuterRef("promotion_id"))),
+                Exists(rule_channels.filter(promotionrule_id=OuterRef("id"))),
+            )
+
+            promotion_rule_map = defaultdict(list)
+            for rule in rules:
+                promotion_rule_map[rule.promotion_id].append(rule)
+
+            return [promotion_rule_map[promotion_id] for promotion_id, _ in keys]
+
+        return Promise.all([channel, promotion_ids]).then(with_channel)
+
+
+class PredicateByPromotionIdLoader(DataLoader):
+    context_key = "predicate_by_promotion_id_and_channel_slug"
+
+    def batch_load(self, keys):
+        def with_rules(rules):
+            from .utils import convert_migrated_sale_predicate_to_model_ids
+
+            rules = [rule for item in rules for rule in item]
+            promotion_predicated_map = defaultdict(list)
+            for rule in rules:
+                converted_predicate = convert_migrated_sale_predicate_to_model_ids(
+                    rule.catalogue_predicate
+                )
+                promotion_predicated_map[rule.promotion_id].append(converted_predicate)
+
+            promotion_merged_predicated_map = {}
+            for promotion_id, predicates in promotion_predicated_map.items():
+                merged_predicates: dict = defaultdict(list)
+                for predicate in predicates:
+                    if not predicate:
+                        continue
+                    for key, ids in predicate.items():
+                        merged_predicates[key].extend(ids)
+                promotion_merged_predicated_map[promotion_id] = merged_predicates
+
+            return [promotion_merged_predicated_map[key] for key in keys]
+
+        return (
+            PromotionRulesByPromotionIdLoader(self.context)
+            .load_many(keys)
+            .then(with_rules)
+        )

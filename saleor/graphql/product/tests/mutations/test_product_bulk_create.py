@@ -74,7 +74,9 @@ PRODUCT_BULK_CREATE_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_product_bulk_create_with_base_data(
     update_products_discounted_price_task_mock,
     staff_api_client,

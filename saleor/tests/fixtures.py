@@ -50,9 +50,23 @@ from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
-from ..discount import DiscountInfo, DiscountValueType, VoucherType
+from ..discount import (
+    DiscountInfo,
+    DiscountType,
+    DiscountValueType,
+    PromotionEvents,
+    RewardValueType,
+    VoucherType,
+)
+from ..discount.interface import VariantPromotionRuleInfo
 from ..discount.models import (
+    CheckoutLineDiscount,
     NotApplicable,
+    Promotion,
+    PromotionEvent,
+    PromotionRule,
+    PromotionRuleTranslation,
+    PromotionTranslation,
     Sale,
     SaleChannelListing,
     SaleTranslation,
@@ -310,6 +324,86 @@ def checkout_with_item(checkout, product):
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
+
+
+@pytest.fixture
+def checkout_with_item_on_sale(checkout_with_item):
+    line = checkout_with_item.lines.first()
+    channel = checkout_with_item.channel
+    sale = Sale.objects.create(name="Sale")
+    discount_amount = Decimal("5.0")
+    SaleChannelListing.objects.create(
+        sale=sale,
+        channel=channel,
+        discount_value=discount_amount,
+        currency=channel.currency_code,
+    )
+    variant = line.variant
+    sale.products.add(variant.product)
+    channel_listing = variant.channel_listings.get(channel=channel)
+    channel_listing.discounted_price_amount = (
+        channel_listing.price_amount - discount_amount
+    )
+    channel_listing.save(update_fields=["discounted_price_amount"])
+
+    CheckoutLineDiscount.objects.create(
+        line=line,
+        sale=sale,
+        type=DiscountType.SALE,
+        value_type=sale.type,
+        value=discount_amount,
+        amount_value=discount_amount * line.quantity,
+        currency=channel.currency_code,
+    )
+
+    return checkout_with_item
+
+
+@pytest.fixture
+def checkout_with_item_on_promotion(checkout_with_item):
+    line = checkout_with_item.lines.first()
+    channel = checkout_with_item.channel
+    promotion = Promotion.objects.create(name="Checkout promotion")
+
+    variant = line.variant
+
+    channel = checkout_with_item.channel
+
+    reward_value = Decimal("5")
+    rule = promotion.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel)
+
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel.currency_code,
+    )
+    CheckoutLineDiscount.objects.create(
+        line=line,
+        type=DiscountType.PROMOTION,
+        value_type=DiscountValueType.FIXED,
+        value=reward_value,
+        amount_value=reward_value * line.quantity,
+        currency=channel.currency_code,
+        promotion_rule=rule,
+    )
+
+    return checkout_with_item
 
 
 @pytest.fixture
@@ -3892,7 +3986,7 @@ def order_line(order, variant):
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -3918,6 +4012,55 @@ def order_line(order, variant):
 
 
 @pytest.fixture
+def order_line_on_promotion(order_line, promotion):
+    variant = order_line.variant
+
+    channel = order_line.order.channel
+    reward_value = Decimal("1.0")
+    rule = promotion.rules.first()
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel.currency_code,
+    )
+    order_line.total_price_gross_amount = (
+        variant_channel_listing.discounted_price_amount * order_line.quantity
+    )
+    order_line.total_price_net_amount = (
+        variant_channel_listing.discounted_price_amount * order_line.quantity
+    )
+    order_line.undiscounted_total_price_gross_amount = (
+        variant_channel_listing.price_amount * order_line.quantity
+    )
+    order_line.undiscounted_total_price_net_amount = (
+        variant_channel_listing.price_amount * order_line.quantity
+    )
+
+    order_line.unit_price_gross_amount = variant_channel_listing.discounted_price_amount
+    order_line.unit_price_net_amount = variant_channel_listing.discounted_price_amount
+    order_line.undiscounted_unit_price_gross_amount = (
+        variant_channel_listing.price_amount
+    )
+    order_line.undiscounted_unit_price_net_amount = variant_channel_listing.price_amount
+
+    order_line.base_unit_price_amount = variant_channel_listing.discounted_price_amount
+    order_line.undiscounted_base_unit_price_amount = (
+        variant_channel_listing.price_amount
+    )
+
+    order_line.unit_discount_amount = reward_value
+    order_line.save()
+    return order_line
+
+
+@pytest.fixture
 def gift_card_non_shippable_order_line(
     order, gift_card_non_shippable_variant, warehouse
 ):
@@ -3925,7 +4068,7 @@ def gift_card_non_shippable_order_line(
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 1
@@ -3958,7 +4101,7 @@ def gift_card_shippable_order_line(order, gift_card_shippable_variant, warehouse
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -3995,7 +4138,7 @@ def order_line_JPY(order_generator, channel_JPY, product_in_channel_JPY):
     variant = product_in_channel_JPY.variants.get()
     channel = order_JPY.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    base_price = variant.get_price(product, [], channel, channel_listing)
+    base_price = variant.get_price(channel_listing)
     currency = base_price.currency
     gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4036,7 +4179,7 @@ def order_line_with_allocation_in_many_stocks(
 
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel_USD)
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4093,7 +4236,7 @@ def order_line_with_one_allocation(
 
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel_USD)
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 2
@@ -4405,7 +4548,7 @@ def order_with_lines(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    base_price = variant.get_price(product, [], channel_USD, channel_listing)
+    base_price = variant.get_price(channel_listing)
     currency = base_price.currency
     gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4460,7 +4603,7 @@ def order_with_lines(
     )
     stock.refresh_from_db()
 
-    base_price = variant.get_price(product, [], channel_USD, channel_listing)
+    base_price = variant.get_price(channel_listing)
     currency = base_price.currency
     gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     unit_price = TaxedMoney(net=base_price, gross=gross)
@@ -4541,7 +4684,7 @@ def order_with_lines_for_cc(
     variant = product_variant_list[0]
     channel_listing = variant.channel_listings.get(channel=channel_USD)
     quantity = 1
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     unit_price = TaxedMoney(net=net, gross=gross)
@@ -4692,7 +4835,7 @@ def order_with_lines_channel_PLN(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(product, [], channel_PLN, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4745,7 +4888,7 @@ def order_with_lines_channel_PLN(
         product_variant=variant, warehouse=warehouse, quantity=2
     )
 
-    net = variant.get_price(product, [], channel_PLN, channel_listing, None)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 2
@@ -4802,7 +4945,7 @@ def order_with_line_without_inventory_tracking(
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4862,7 +5005,7 @@ def order_with_preorder_lines(
         preorder_quantity_threshold=10,
     )
 
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -5310,6 +5453,255 @@ def discount_info_JPY(sale, product_in_channel_JPY, channel_JPY):
 
 
 @pytest.fixture
+def promotion(channel_USD, product, collection):
+    promotion = Promotion.objects.create(
+        name="Promotion",
+        description=dummy_editorjs("Test description."),
+        end_date=timezone.now() + timedelta(days=30),
+    )
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                name="Percentage promotion rule",
+                promotion=promotion,
+                description=dummy_editorjs(
+                    "Test description for percentage promotion rule."
+                ),
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [graphene.Node.to_global_id("Product", product.id)]
+                    }
+                },
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=Decimal("10"),
+            ),
+            PromotionRule(
+                name="Fixed promotion rule",
+                promotion=promotion,
+                description=dummy_editorjs(
+                    "Test description for fixes promotion rule."
+                ),
+                catalogue_predicate={
+                    "collectionPredicate": {
+                        "ids": [graphene.Node.to_global_id("Collection", collection.id)]
+                    }
+                },
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=Decimal("5"),
+            ),
+        ]
+    )
+    for rule in rules:
+        rule.channels.add(channel_USD)
+    return promotion
+
+
+@pytest.fixture
+def promotion_without_rules(db):
+    promotion = Promotion.objects.create(
+        name="Promotion",
+        description=dummy_editorjs("Test description."),
+        end_date=timezone.now() + timedelta(days=30),
+    )
+    return promotion
+
+
+@pytest.fixture
+def promotion_list(channel_USD, product, collection):
+    promotions = Promotion.objects.bulk_create(
+        [
+            Promotion(
+                name="Promotion 1",
+                description=dummy_editorjs("Promotion 1 description."),
+                start_date=timezone.now() + timedelta(days=1),
+                end_date=timezone.now() + timedelta(days=10),
+            ),
+            Promotion(
+                name="Promotion 2",
+                description=dummy_editorjs("Promotion 2 description."),
+                start_date=timezone.now() + timedelta(days=5),
+                end_date=timezone.now() + timedelta(days=20),
+            ),
+            Promotion(
+                name="Promotion 3",
+                description=dummy_editorjs("TePromotion 3 description."),
+                start_date=timezone.now() + timedelta(days=15),
+                end_date=timezone.now() + timedelta(days=30),
+            ),
+        ]
+    )
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                name="Promotion 1 percentage rule",
+                promotion=promotions[0],
+                description=dummy_editorjs(
+                    "Test description for promotion 1 percentage rule."
+                ),
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [graphene.Node.to_global_id("Product", product.id)]
+                    }
+                },
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=Decimal("10"),
+            ),
+            PromotionRule(
+                name="Promotion 1 fixed rule",
+                promotion=promotions[0],
+                description=dummy_editorjs(
+                    "Test description for promotion 1 fixed rule."
+                ),
+                catalogue_predicate={
+                    "collectionPredicate": {
+                        "ids": [graphene.Node.to_global_id("Collection", collection.id)]
+                    }
+                },
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=Decimal("5"),
+            ),
+            PromotionRule(
+                name="Promotion 2 percentage rule",
+                promotion=promotions[1],
+                description=dummy_editorjs(
+                    "Test description for promotion 2 percentage rule."
+                ),
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [graphene.Node.to_global_id("Product", product.id)]
+                    }
+                },
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=Decimal("10"),
+            ),
+            PromotionRule(
+                name="Promotion 3 fixed rule",
+                promotion=promotions[2],
+                description=dummy_editorjs(
+                    "Test description for promotion 3 fixed rule."
+                ),
+                catalogue_predicate={
+                    "collectionPredicate": {
+                        "ids": [graphene.Node.to_global_id("Collection", collection.id)]
+                    }
+                },
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=Decimal("5"),
+            ),
+        ]
+    )
+    for rule in rules:
+        rule.channels.add(channel_USD)
+    return promotions
+
+
+@pytest.fixture
+def promotion_rule(channel_USD, promotion, product):
+    rule = PromotionRule.objects.create(
+        name="Promotion rule name",
+        promotion=promotion,
+        description=dummy_editorjs("Test description for percentage promotion rule."),
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("25"),
+    )
+    rule.channels.add(channel_USD)
+    return rule
+
+
+@pytest.fixture
+def rule_info(
+    promotion_rule,
+    promotion_translation_fr,
+    promotion_rule_translation_fr,
+    variant,
+    channel_USD,
+):
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    listing_promotion_rule = variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=promotion_rule,
+        discount_amount=Decimal("10"),
+        currency=channel_USD.currency_code,
+    )
+    return VariantPromotionRuleInfo(
+        rule=promotion_rule,
+        promotion=promotion_rule.promotion,
+        variant_listing_promotion_rule=listing_promotion_rule,
+        promotion_translation=promotion_translation_fr,
+        rule_translation=promotion_rule_translation_fr,
+    )
+
+
+@pytest.fixture
+def promotion_converted_from_sale(sale):
+    from ..discount.tests.sale_converter import convert_sales_to_promotions
+
+    convert_sales_to_promotions()
+    return Promotion.objects.filter(old_sale_id=sale.id).last()
+
+
+@pytest.fixture
+def promotion_converted_from_sale_with_empty_predicate():
+    from ..discount.tests.sale_converter import convert_sales_to_promotions
+
+    sale = Sale.objects.create(name="Sale with no rules", type=DiscountValueType.FIXED)
+    convert_sales_to_promotions()
+    return Promotion.objects.filter(old_sale_id=sale.id).last()
+
+
+@pytest.fixture
+def promotion_events(promotion, staff_user):
+    rule_id = promotion.rules.first().pk
+    events = PromotionEvent.objects.bulk_create(
+        [
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_CREATED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_UPDATED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+            PromotionEvent(
+                type=PromotionEvents.RULE_CREATED,
+                user=staff_user,
+                promotion=promotion,
+                parameters={"rule_id": rule_id},
+            ),
+            PromotionEvent(
+                type=PromotionEvents.RULE_UPDATED,
+                user=staff_user,
+                promotion=promotion,
+                parameters={"rule_id": rule_id},
+            ),
+            PromotionEvent(
+                type=PromotionEvents.RULE_DELETED,
+                user=staff_user,
+                promotion=promotion,
+                parameters={"rule_id": rule_id},
+            ),
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_STARTED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_ENDED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+        ]
+    )
+    return events
+
+
+@pytest.fixture
 def permission_manage_staff():
     return Permission.objects.get(codename="manage_staff")
 
@@ -5377,6 +5769,17 @@ def permission_manage_channels():
 @pytest.fixture
 def permission_manage_payments():
     return Permission.objects.get(codename="handle_payments")
+
+
+@pytest.fixture
+def permission_group_manage_discounts(permission_manage_discounts, staff_users):
+    group = Group.objects.create(
+        name="Manage discounts group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_discounts)
+
+    group.user_set.add(staff_users[1])
+    return group
 
 
 @pytest.fixture
@@ -5969,6 +6372,36 @@ def shipping_method_translation_fr(shipping_method):
         language_code="fr",
         shipping_method=shipping_method,
         name="French shipping method name",
+    )
+
+
+@pytest.fixture
+def promotion_translation_fr(promotion):
+    return PromotionTranslation.objects.create(
+        language_code="fr",
+        promotion=promotion,
+        name="French promotion name",
+        description=dummy_editorjs("French promotion description."),
+    )
+
+
+@pytest.fixture
+def promotion_converted_from_sale_translation_fr(promotion_converted_from_sale):
+    return PromotionTranslation.objects.create(
+        language_code="fr",
+        promotion=promotion_converted_from_sale,
+        name="French sale name",
+        description=dummy_editorjs("French sale description."),
+    )
+
+
+@pytest.fixture
+def promotion_rule_translation_fr(promotion_rule):
+    return PromotionRuleTranslation.objects.create(
+        language_code="fr",
+        promotion_rule=promotion_rule,
+        name="French promotion rule name",
+        description=dummy_editorjs("French promotion rule description."),
     )
 
 
@@ -7102,7 +7535,7 @@ def allocations(order_list, stock, channel_USD):
     variant = stock.product_variant
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel_USD)
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     price = TaxedMoney(net=net, gross=gross)
     lines = OrderLine.objects.bulk_create(

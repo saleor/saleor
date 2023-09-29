@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
@@ -6,6 +7,7 @@ import pytest
 import pytz
 from django.db.models import Sum
 
+from .....discount import DiscountType, RewardValueType
 from .....order import OrderStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
@@ -531,7 +533,7 @@ def test_order_lines_create_when_variant_already_in_multiple_lines(
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-def test_order_lines_create_variant_on_sale(
+def test_order_lines_create_variant_on_promotion(
     order_updated_webhook_mock,
     draft_order_updated_webhook_mock,
     status,
@@ -539,7 +541,9 @@ def test_order_lines_create_variant_on_sale(
     permission_group_manage_orders,
     staff_api_client,
     variant_with_many_stocks,
-    sale,
+    promotion_without_rules,
+    promotion_translation_fr,
+    promotion_rule_translation_fr,
 ):
     # given
     query = ORDER_LINES_CREATE_MUTATION
@@ -549,7 +553,41 @@ def test_order_lines_create_variant_on_sale(
     order.save(update_fields=["status"])
 
     variant = variant_with_many_stocks
-    sale.variants.add(variant)
+
+    reward_value = Decimal("5")
+    rule = promotion_without_rules.rules.create(
+        name="Promotion rule",
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(order.channel)
+
+    variant_channel_listing = variant.channel_listings.get(channel=order.channel)
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price.amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=order.channel.currency_code,
+    )
+
+    promotion_translation_fr.promotion = promotion_without_rules
+    promotion_translation_fr.language_code = order.language_code
+    promotion_translation_fr.save(update_fields=["promotion", "language_code"])
+
+    promotion_rule_translation_fr.promotion_rule = rule
+    promotion_rule_translation_fr.language_code = order.language_code
+    promotion_rule_translation_fr.save(
+        update_fields=["promotion_rule", "language_code"]
+    )
 
     quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -573,24 +611,35 @@ def test_order_lines_create_variant_on_sale(
     assert line_data["productSku"] == variant.sku
     assert line_data["quantity"] == quantity
     assert line_data["quantity"] == quantity
-    variant_channel_listing = variant.channel_listings.get(channel=order.channel)
-    sale_channel_listing = sale.channel_listings.first()
+
     assert (
         line_data["unitPrice"]["gross"]["amount"]
-        == variant_channel_listing.price_amount - sale_channel_listing.discount_value
+        == variant_channel_listing.price_amount - reward_value
     )
     assert (
         line_data["unitPrice"]["net"]["amount"]
-        == variant_channel_listing.price_amount - sale_channel_listing.discount_value
+        == variant_channel_listing.price_amount - reward_value
     )
 
     line = order.lines.get(product_sku=variant.sku)
-    assert line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
-    assert line.unit_discount_amount == sale_channel_listing.discount_value
-    assert line.unit_discount_value == sale_channel_listing.discount_value
+    assert line.sale_id == graphene.Node.to_global_id(
+        "Promotion", promotion_without_rules.id
+    )
+    assert line.unit_discount_amount == reward_value
+    assert line.unit_discount_value == reward_value
     assert (
         line.unit_discount_reason
-        == f"Sale: {graphene.Node.to_global_id('Sale', sale.id)}"
+        == f"Promotion rules discounts: {promotion_without_rules.name}: {rule.name}"
+    )
+    assert line.discounts.count() == 1
+    discount = line.discounts.first()
+    assert discount.promotion_rule == rule
+    assert discount.amount_value == reward_value
+    assert discount.type == DiscountType.PROMOTION
+    assert discount.name == f"{promotion_without_rules.name}: {rule.name}"
+    assert (
+        discount.translated_name
+        == f"{promotion_translation_fr.name}: {promotion_rule_translation_fr.name}"
     )
 
 

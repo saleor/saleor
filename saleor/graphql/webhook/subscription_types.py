@@ -8,7 +8,12 @@ from ...account.models import User
 from ...attribute.models import AttributeTranslation, AttributeValueTranslation
 from ...channel.models import Channel
 from ...core.prices import quantize_price
-from ...discount.models import SaleTranslation, VoucherTranslation
+from ...discount.models import (
+    PromotionRuleTranslation,
+    PromotionTranslation,
+    SaleTranslation,
+    VoucherTranslation,
+)
 from ...graphql.shop.types import Shop
 from ...menu.models import MenuItemTranslation
 from ...order.utils import get_all_shipping_methods_for_order
@@ -51,6 +56,8 @@ from ..core.descriptions import (
     ADDED_IN_314,
     ADDED_IN_315,
     ADDED_IN_316,
+    ADDED_IN_317,
+    DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -91,6 +98,8 @@ TRANSLATIONS_TYPES_MAP = {
     SaleTranslation: translation_types.SaleTranslation,
     VoucherTranslation: translation_types.VoucherTranslation,
     MenuItemTranslation: translation_types.MenuItemTranslation,
+    PromotionTranslation: translation_types.PromotionTranslation,
+    PromotionRuleTranslation: translation_types.PromotionRuleTranslation,
 }
 
 
@@ -1104,7 +1113,12 @@ class SaleCreated(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when new sale is created." + ADDED_IN_32
+        description = (
+            "Event sent when new sale is created."
+            + ADDED_IN_32
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `PromotionCreated` event instead."
+        )
 
 
 class SaleUpdated(SubscriptionObjectType, SaleBase):
@@ -1112,7 +1126,12 @@ class SaleUpdated(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when sale is updated." + ADDED_IN_32
+        description = (
+            "Event sent when sale is updated."
+            + ADDED_IN_32
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `PromotionUpdated` event instead."
+        )
 
 
 class SaleDeleted(SubscriptionObjectType, SaleBase):
@@ -1120,7 +1139,12 @@ class SaleDeleted(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when sale is deleted." + ADDED_IN_32
+        description = (
+            "Event sent when sale is deleted."
+            + ADDED_IN_32
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `PromotionDeleted` event instead."
+        )
 
 
 class SaleToggle(SubscriptionObjectType, SaleBase):
@@ -1136,9 +1160,126 @@ class SaleToggle(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         description = (
-            "The event informs about the start or end of the sale." + ADDED_IN_35
+            "The event informs about the start or end of the sale."
+            + ADDED_IN_35
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `PromotionStarted` and `PromotionEnded` events instead."
         )
         interfaces = (Event,)
+
+
+class PromotionBase(AbstractType):
+    promotion = graphene.Field(
+        "saleor.graphql.discount.types.Promotion",
+        description="The promotion the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_promotion(root, info: ResolveInfo, channel=None):
+        _, promotion = root
+        return promotion
+
+
+class PromotionCreated(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when new promotion is created." + ADDED_IN_317 + PREVIEW_FEATURE
+        )
+
+
+class PromotionUpdated(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when promotion is updated." + ADDED_IN_317 + PREVIEW_FEATURE
+        )
+
+
+class PromotionDeleted(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when promotion is deleted." + ADDED_IN_317 + PREVIEW_FEATURE
+        )
+
+
+class PromotionStarted(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        description = (
+            "The event informs about the start of the promotion."
+            + ADDED_IN_317
+            + PREVIEW_FEATURE
+        )
+        interfaces = (Event,)
+
+
+class PromotionEnded(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        description = (
+            "The event informs about the end of the promotion."
+            + ADDED_IN_317
+            + PREVIEW_FEATURE
+        )
+        interfaces = (Event,)
+
+
+class PromotionRuleBase(AbstractType):
+    promotion_rule = graphene.Field(
+        "saleor.graphql.discount.types.PromotionRule",
+        description="The promotion rule the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_promotion_rule(root, _info: ResolveInfo):
+        _, promotion_rule = root
+        return promotion_rule
+
+
+class PromotionRuleCreated(SubscriptionObjectType, PromotionRuleBase):
+    class Meta:
+        root_type = "PromotionRule"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when new promotion rule is created."
+            + ADDED_IN_317
+            + PREVIEW_FEATURE
+        )
+
+
+class PromotionRuleUpdated(SubscriptionObjectType, PromotionRuleBase):
+    class Meta:
+        root_type = "PromotionRule"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when new promotion rule is updated."
+            + ADDED_IN_317
+            + PREVIEW_FEATURE
+        )
+
+
+class PromotionRuleDeleted(SubscriptionObjectType, PromotionRuleBase):
+    class Meta:
+        root_type = "PromotionRule"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when new promotion rule is deleted."
+            + ADDED_IN_317
+            + PREVIEW_FEATURE
+        )
 
 
 class InvoiceBase(AbstractType):
@@ -2177,6 +2318,8 @@ class TranslationTypes(Union):
     @classmethod
     def resolve_type(cls, instance, info: ResolveInfo):
         instance_type = type(instance)
+        if instance_type == PromotionTranslation and instance.promotion.old_sale_id:
+            return translation_types.SaleTranslation
         if instance_type in TRANSLATIONS_TYPES_MAP:
             return TRANSLATIONS_TYPES_MAP[instance_type]
 
@@ -2617,6 +2760,14 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.SALE_UPDATED: SaleUpdated,
     WebhookEventAsyncType.SALE_DELETED: SaleDeleted,
     WebhookEventAsyncType.SALE_TOGGLE: SaleToggle,
+    WebhookEventAsyncType.PROMOTION_CREATED: PromotionCreated,
+    WebhookEventAsyncType.PROMOTION_UPDATED: PromotionUpdated,
+    WebhookEventAsyncType.PROMOTION_DELETED: PromotionDeleted,
+    WebhookEventAsyncType.PROMOTION_STARTED: PromotionStarted,
+    WebhookEventAsyncType.PROMOTION_ENDED: PromotionEnded,
+    WebhookEventAsyncType.PROMOTION_RULE_CREATED: PromotionRuleCreated,
+    WebhookEventAsyncType.PROMOTION_RULE_UPDATED: PromotionRuleUpdated,
+    WebhookEventAsyncType.PROMOTION_RULE_DELETED: PromotionRuleDeleted,
     WebhookEventAsyncType.INVOICE_REQUESTED: InvoiceRequested,
     WebhookEventAsyncType.INVOICE_DELETED: InvoiceDeleted,
     WebhookEventAsyncType.INVOICE_SENT: InvoiceSent,

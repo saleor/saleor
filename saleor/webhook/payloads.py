@@ -64,7 +64,7 @@ if TYPE_CHECKING:
 from ..payment.models import Payment, TransactionItem
 
 if TYPE_CHECKING:
-    from ..discount.models import Sale
+    from ..discount.models import Promotion
     from ..invoice.models import Invoice
     from ..payment.interface import (
         PaymentData,
@@ -421,7 +421,7 @@ def _calculate_removed(
 
 @traced_payload_generator
 def generate_sale_payload(
-    sale: "Sale",
+    promotion: "Promotion",
     previous_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
     current_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
     requestor: Optional["RequestorOrLazyObject"] = None,
@@ -432,12 +432,12 @@ def generate_sale_payload(
         current_catalogue = defaultdict(set)
 
     serializer = PayloadSerializer()
-    sale_fields = ("id",)
 
     return serializer.serialize(
-        [sale],
-        fields=sale_fields,
+        [promotion],
+        fields=[],
         extra_dict_data={
+            "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
             "categories_added": _calculate_added(
                 previous_catalogue, current_catalogue, "categories"
@@ -469,22 +469,22 @@ def generate_sale_payload(
 
 @traced_payload_generator
 def generate_sale_toggle_payload(
-    sale: "Sale",
+    promotion: "Promotion",
     catalogue: DefaultDict[str, Set[str]],
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):
     serializer = PayloadSerializer()
-    sale_fields = ("id",)
 
     extra_dict_data = {key: list(ids) for key, ids in catalogue.items()}
     extra_dict_data["meta"] = generate_meta(
         requestor_data=generate_requestor(requestor)
     )
-    extra_dict_data["is_active"] = sale.is_active()
+    extra_dict_data["is_active"] = promotion.is_active()
+    extra_dict_data["id"] = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
     return serializer.serialize(
-        [sale],
-        fields=sale_fields,
+        [promotion],
+        fields=[],
         extra_dict_data=extra_dict_data,
     )
 

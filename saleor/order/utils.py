@@ -15,11 +15,18 @@ from ..core.utils.country import get_active_country
 from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountType
-from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
+from ..discount.models import (
+    NotApplicable,
+    OrderDiscount,
+    OrderLineDiscount,
+    Voucher,
+    VoucherType,
+)
 from ..discount.utils import (
     apply_discount_to_value,
+    get_discount_name,
+    get_discount_translated_name,
     get_products_voucher_discount,
-    get_sale_id_applied_as_a_discount,
     validate_voucher_in_order,
 )
 from ..giftcard import events as gift_card_events
@@ -56,6 +63,7 @@ if TYPE_CHECKING:
     from ..app.models import App
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
+    from ..discount.interface import VariantPromotionRuleInfo
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
 
@@ -205,38 +213,29 @@ def create_order_line(
     order,
     line_data,
     manager,
-    discounts=None,
     allocate_stock=False,
 ):
     channel = order.channel
     variant = line_data.variant
     quantity = line_data.quantity
     price_override = line_data.price_override
+    rules_info = line_data.rules_info
 
     product = variant.product
-    collections = product.collections.all()
     channel_listing = variant.channel_listings.get(channel=channel)
 
     # vouchers are not applied for new lines in unconfirmed/draft orders
     untaxed_unit_price = variant.get_price(
-        product,
-        collections,
-        channel,
         channel_listing,
-        discounts,
+        price_override=price_override,
+        promotion_rules=(
+            [rule_info.rule for rule_info in rules_info] if rules_info else None
+        ),
+    )
+    untaxed_undiscounted_price = variant.get_base_price(
+        channel_listing,
         price_override=price_override,
     )
-    if not discounts:
-        untaxed_undiscounted_price = untaxed_unit_price
-    else:
-        untaxed_undiscounted_price = variant.get_price(
-            product,
-            collections,
-            channel,
-            channel_listing,
-            [],
-            price_override=price_override,
-        )
     unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
     undiscounted_unit_price = TaxedMoney(
         net=untaxed_undiscounted_price, gross=untaxed_undiscounted_price
@@ -281,14 +280,16 @@ def create_order_line(
 
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
-        sale_id = get_sale_id_applied_as_a_discount(
-            product=product,
-            price=channel_listing.price,
-            discounts=discounts,
-            collections=collections,
-            channel=channel,
-            variant_id=variant.id,
-        )
+        if rules_info:
+            line_discounts = create_order_line_discounts(line, rules_info)
+            line.unit_discount_reason = (
+                prepare_promotion_discount_reason(line_discounts)
+                if line_discounts
+                else None
+            )
+            line.sale_id = graphene.Node.to_global_id(
+                "Promotion", rules_info[0].promotion.pk
+            )
 
         tax_configuration = channel.tax_configuration
         prices_entered_with_tax = tax_configuration.prices_entered_with_tax
@@ -299,10 +300,6 @@ def create_order_line(
             discount_amount = unit_discount.net
         line.unit_discount = discount_amount
         line.unit_discount_value = discount_amount.amount
-        line.unit_discount_reason = (
-            f"Sale: {graphene.Node.to_global_id('Sale', sale_id)}"
-        )
-        line.sale_id = graphene.Node.to_global_id("Sale", sale_id) if sale_id else None
 
         line.save(
             update_fields=[
@@ -330,6 +327,43 @@ def create_order_line(
     return line
 
 
+def create_order_line_discounts(
+    line: "OrderLine", rules_info: Iterable["VariantPromotionRuleInfo"]
+) -> Iterable["OrderLineDiscount"]:
+    line_discounts_to_create: List[OrderLineDiscount] = []
+    for rule_info in rules_info:
+        rule = rule_info.rule
+        rule_discount_amount = rule_info.variant_listing_promotion_rule.discount_amount
+        line_discounts_to_create.append(
+            OrderLineDiscount(
+                line=line,
+                type=DiscountType.PROMOTION,
+                value_type=rule.reward_value_type,
+                value=rule.reward_value,
+                amount_value=rule_discount_amount,
+                currency=line.currency,
+                name=get_discount_name(rule, rule_info.promotion),
+                translated_name=get_discount_translated_name(rule_info),
+                reason=None,
+                promotion_rule=rule,
+            )
+        )
+
+    return OrderLineDiscount.objects.bulk_create(line_discounts_to_create)
+
+
+def prepare_promotion_discount_reason(line_discounts: Iterable["OrderLineDiscount"]):
+    # TODO: for old sales it should be in format: "Sale: global_id"
+    unit_discount_reason = "Promotion rules discounts: " + ", ".join(
+        [
+            discount.name
+            or graphene.Node.to_global_id("PromotionRule", discount.promotion_rule_id)
+            for discount in line_discounts
+        ]
+    )
+    return unit_discount_reason
+
+
 @traced_atomic_transaction()
 def add_variant_to_order(
     order,
@@ -337,7 +371,6 @@ def add_variant_to_order(
     user,
     app,
     manager,
-    discounts=None,
     allocate_stock=False,
 ):
     """Add total_quantity of variant to order.
@@ -383,7 +416,6 @@ def add_variant_to_order(
             order,
             line_data,
             manager,
-            discounts,
             allocate_stock,
         )
 

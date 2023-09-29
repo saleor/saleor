@@ -57,7 +57,7 @@ if TYPE_CHECKING:
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxData, TaxType
     from ..csv.models import ExportFile
-    from ..discount.models import Sale, Voucher
+    from ..discount.models import Promotion, PromotionRule, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
@@ -1023,21 +1023,69 @@ class BasePlugin:
     # Trigger when sale is created.
     #
     # Overwrite this method if you need to trigger specific logic after sale is created.
-    sale_created: Callable[["Sale", DefaultDict[str, Set[str]], Any], Any]
+    sale_created: Callable[["Promotion", DefaultDict[str, Set[str]], Any], Any]
 
     # Trigger when sale is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a sale is deleted.
-    sale_deleted: Callable[["Sale", DefaultDict[str, Set[str]], Any], Any]
+    sale_deleted: Callable[["Promotion", DefaultDict[str, Set[str]], Any], Any]
 
     # Trigger when sale is updated.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a sale is updated.
     sale_updated: Callable[
-        ["Sale", DefaultDict[str, Set[str]], DefaultDict[str, Set[str]], Any], Any
+        ["Promotion", DefaultDict[str, Set[str]], DefaultDict[str, Set[str]], Any], Any
     ]
+
+    # Trigger when promotion is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after promotion
+    # is created.
+    promotion_created: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion is deleted.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion is deleted.
+    promotion_deleted: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion is updated.
+    promotion_updated: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion is started.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion is started.
+    promotion_started: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion is ended.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion is ended.
+    promotion_ended: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion rule is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion rule is created.
+    promotion_rule_created: Callable[["PromotionRule", Any], Any]
+
+    # Trigger when promotion rule is deleted.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion rule is deleted.
+    promotion_rule_deleted: Callable[["PromotionRule", Any], Any]
+
+    # Trigger when promotion rule is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion rule is updated.
+    promotion_rule_updated: Callable[["PromotionRule", Any], Any]
 
     # Trigger when shipping price is created.
     #

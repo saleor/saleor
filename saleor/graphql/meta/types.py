@@ -5,6 +5,7 @@ from graphene.types.generic import GenericScalar
 
 from ...checkout.models import Checkout
 from ...core.models import ModelWithMetadata
+from ...discount.models import Promotion
 from ..channel import ChannelContext
 from ..core import ResolveInfo
 from ..core.types import NonNullList
@@ -157,5 +158,11 @@ class ObjectWithMetadata(graphene.Interface):
             from ..checkout.types import Checkout as CheckoutType
 
             return CheckoutType.resolve_type(instance, info)
+        if isinstance(instance, Promotion) and instance.old_sale_id:
+            # For old sales migrated into promotions
+            from ..discount.types.sales import Sale as SaleType
+
+            return SaleType
+
         item_type, _ = resolve_object_with_metadata_type(instance)
         return item_type

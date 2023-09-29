@@ -1091,11 +1091,13 @@ DELETE_COLLECTION_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.collection_deleted")
 def test_delete_collection(
     deleted_webhook_mock,
-    update_products_discounted_prices_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     collection,
     product_list,
@@ -1120,43 +1122,10 @@ def test_delete_collection(
         collection.refresh_from_db()
 
     deleted_webhook_mock.assert_called_once()
-    update_products_discounted_prices_task_mock.assert_not_called()
-
-
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
-@patch("saleor.plugins.manager.PluginsManager.collection_deleted")
-def test_delete_collection_on_sale(
-    deleted_webhook_mock,
-    update_products_discounted_prices_task_mock,
-    sale,
-    product_list,
-    staff_api_client,
-    collection,
-    permission_manage_products,
-):
-    # given
-    query = DELETE_COLLECTION_MUTATION
-    collection.products.set(product_list)
-    sale.collections.add(collection)
-
-    collection_id = to_global_id("Collection", collection.id)
-    variables = {"id": collection_id}
-
-    # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
+    args = set(
+        update_products_discounted_prices_for_promotion_task_mock.call_args.args[0]
     )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["collectionDelete"]["collection"]
-    assert data["name"] == collection.name
-    with pytest.raises(collection._meta.model.DoesNotExist):
-        collection.refresh_from_db()
-
-    deleted_webhook_mock.assert_called_once()
-    update_products_discounted_prices_task_mock.assert_called_once()
-    args = set(update_products_discounted_prices_task_mock.call_args.args[0])
     assert args == {product.id for product in product_list}
 
 
@@ -1237,9 +1206,11 @@ COLLECTION_ADD_PRODUCTS_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_add_products_to_collection(
-    update_products_discounted_prices_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     collection,
     product_list,
@@ -1262,39 +1233,10 @@ def test_add_products_to_collection(
     content = get_graphql_content(response)
     data = content["data"]["collectionAddProducts"]["collection"]
     assert data["products"]["totalCount"] == products_before + len(product_ids)
-    update_products_discounted_prices_task_mock.assert_not_called()
-
-
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
-def test_add_products_to_collection_with_sale(
-    update_products_discounted_prices_task_mock,
-    sale,
-    staff_api_client,
-    collection,
-    product_list,
-    permission_manage_products,
-):
-    # given
-    query = COLLECTION_ADD_PRODUCTS_MUTATION
-
-    sale.collections.add(collection)
-
-    collection_id = to_global_id("Collection", collection.id)
-    product_ids = [to_global_id("Product", product.pk) for product in product_list]
-    products_before = collection.products.count()
-    variables = {"id": collection_id, "products": product_ids}
-
-    # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
+    args = set(
+        update_products_discounted_prices_for_promotion_task_mock.call_args.args[0]
     )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["collectionAddProducts"]["collection"]
-    assert data["products"]["totalCount"] == products_before + len(product_ids)
-    update_products_discounted_prices_task_mock.assert_called_once()
-    args = set(update_products_discounted_prices_task_mock.call_args.args[0])
     assert args == {product.id for product in product_list}
 
 
@@ -1370,9 +1312,11 @@ COLLECTION_REMOVE_PRODUCTS_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_remove_products_from_collection(
-    update_products_discounted_prices_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     collection,
     product_list,
@@ -1395,38 +1339,10 @@ def test_remove_products_from_collection(
     content = get_graphql_content(response)
     data = content["data"]["collectionRemoveProducts"]["collection"]
     assert data["products"]["totalCount"] == products_before - len(product_ids)
-    update_products_discounted_prices_task_mock.assert_not_called()
-
-
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
-def test_remove_products_from_collection_on_sale(
-    update_products_discounted_prices_task_mock,
-    sale,
-    staff_api_client,
-    collection,
-    product_list,
-    permission_manage_products,
-):
-    # given
-    query = COLLECTION_REMOVE_PRODUCTS_MUTATION
-    sale.collections.add(collection)
-    collection.products.add(*product_list)
-    collection_id = to_global_id("Collection", collection.id)
-    product_ids = [to_global_id("Product", product.pk) for product in product_list]
-    products_before = collection.products.count()
-    variables = {"id": collection_id, "products": product_ids}
-
-    # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
+    args = set(
+        update_products_discounted_prices_for_promotion_task_mock.call_args.args[0]
     )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["collectionRemoveProducts"]["collection"]
-    assert data["products"]["totalCount"] == products_before - len(product_ids)
-    update_products_discounted_prices_task_mock.assert_called_once()
-    args = set(update_products_discounted_prices_task_mock.call_args.args[0])
     assert args == {product.id for product in product_list}
 
 

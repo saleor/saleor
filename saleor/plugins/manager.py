@@ -66,8 +66,9 @@ if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
+    from ..core.utils.translations import Translation
     from ..csv.models import ExportFile
-    from ..discount.models import Sale, Voucher
+    from ..discount.models import Promotion, PromotionRule, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
@@ -87,7 +88,6 @@ if TYPE_CHECKING:
     from ..site.models import SiteSettings
     from ..tax.models import TaxClass
     from ..thumbnail.models import Thumbnail
-    from ..translation.models import Translation
     from ..warehouse.models import Stock, Warehouse
     from .base_plugin import BasePlugin
 
@@ -749,28 +749,74 @@ class PluginsManager(PaymentInterface):
             "draft_order_deleted", default_value, order, channel_slug=order.channel.slug
         )
 
-    def sale_created(self, sale: "Sale", current_catalogue):
+    def sale_created(self, sale: "Promotion", current_catalogue):
         default_value = None
         return self.__run_method_on_plugins(
             "sale_created", default_value, sale, current_catalogue
         )
 
-    def sale_deleted(self, sale: "Sale", previous_catalogue):
+    def sale_deleted(self, sale: "Promotion", previous_catalogue):
         default_value = None
         return self.__run_method_on_plugins(
             "sale_deleted", default_value, sale, previous_catalogue
         )
 
-    def sale_updated(self, sale: "Sale", previous_catalogue, current_catalogue):
+    def sale_updated(self, sale: "Promotion", previous_catalogue, current_catalogue):
         default_value = None
         return self.__run_method_on_plugins(
             "sale_updated", default_value, sale, previous_catalogue, current_catalogue
         )
 
-    def sale_toggle(self, sale: "Sale", catalogue):
+    def sale_toggle(self, sale: "Promotion", catalogue):
         default_value = None
         return self.__run_method_on_plugins(
             "sale_toggle", default_value, sale, catalogue
+        )
+
+    def promotion_created(self, promotion: "Promotion"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_created", default_value, promotion
+        )
+
+    def promotion_updated(self, promotion: "Promotion"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_updated", default_value, promotion
+        )
+
+    def promotion_deleted(self, promotion: "Promotion"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_deleted", default_value, promotion
+        )
+
+    def promotion_started(self, promotion: "Promotion"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_started", default_value, promotion
+        )
+
+    def promotion_ended(self, promotion: "Promotion"):
+        default_value = None
+        return self.__run_method_on_plugins("promotion_ended", default_value, promotion)
+
+    def promotion_rule_created(self, promotion_rule: "PromotionRule"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_rule_created", default_value, promotion_rule
+        )
+
+    def promotion_rule_updated(self, promotion_rule: "PromotionRule"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_rule_updated", default_value, promotion_rule
+        )
+
+    def promotion_rule_deleted(self, promotion_rule: "PromotionRule"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_rule_deleted", default_value, promotion_rule
         )
 
     def invoice_request(

@@ -1,12 +1,13 @@
 from datetime import timedelta
 from decimal import Decimal
 
+import graphene
 import pytest
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
-from ...product.models import Product, ProductVariant, ProductVariantChannelListing
-from .. import DiscountInfo, DiscountValueType, VoucherType
+from ...discount.interface import VariantPromotionRuleInfo
+from .. import DiscountValueType, RewardValueType, VoucherType
 from ..models import (
     NotApplicable,
     Sale,
@@ -19,7 +20,8 @@ from ..utils import (
     add_voucher_usage_by_customer,
     decrease_voucher_usage,
     fetch_catalogue_info,
-    get_product_discount_on_sale,
+    get_discount_name,
+    get_discount_translated_name,
     increase_voucher_usage,
     remove_voucher_usage_by_customer,
     validate_voucher,
@@ -96,235 +98,68 @@ def test_valid_voucher_min_checkout_items_quantity(voucher):
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_discount_for_variants_is_applied_to_single_variant(product, channel_USD):
-    discount_value = 5
+def test_percentage_discounts(product, channel_USD, promotion_without_rules):
+    # given
     variant = product.variants.get()
+    reward_value = Decimal("50")
+    rule = promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=reward_value,
+    )
+
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-    sale = Sale.objects.create(type=DiscountValueType.FIXED)
-    sale_channel_listing = SaleChannelListing.objects.create(
-        sale=sale,
-        discount_value=discount_value,
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=Decimal("5"),
         currency=channel_USD.currency_code,
-        channel=channel_USD,
     )
-    old_price = variant.get_price(
-        product, [], channel_USD, variant_channel_listing, discounts=[]
-    )
+    price = Decimal("10")
 
-    discount_info = DiscountInfo(
-        sale=sale,
-        channel_listings={channel_USD.slug: sale_channel_listing},
-        product_ids=set(),
-        category_ids=set(),
-        collection_ids=set(),
-        variants_ids={variant.id},
-    )
-
-    new_price = variant.get_price(
-        product, [], channel_USD, variant_channel_listing, discounts=[discount_info]
-    )
-
-    assert new_price == old_price - Money(discount_value, "USD")
-
-
-@pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
-def test_discount_for_variants_are_not_applied_twice_for_variant_assigned_to_product(
-    product, channel_USD
-):
-    discount_value = 5
-    variant = product.variants.get()
-    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-    sale = Sale.objects.create(type=DiscountValueType.FIXED)
-    sale_channel_listing = SaleChannelListing.objects.create(
-        sale=sale,
-        discount_value=discount_value,
-        currency=channel_USD.currency_code,
-        channel=channel_USD,
-    )
-    old_price = variant.get_price(
-        product, [], channel_USD, variant_channel_listing, discounts=[]
-    )
-
-    discount_info = DiscountInfo(
-        sale=sale,
-        channel_listings={channel_USD.slug: sale_channel_listing},
-        product_ids={product.id},
-        category_ids=set(),
-        collection_ids=set(),
-        variants_ids={variant.id},
-    )
-
-    new_price = variant.get_price(
-        product, [], channel_USD, variant_channel_listing, discounts=[discount_info]
-    )
-
-    assert new_price == old_price - Money(discount_value, "USD")
-
-
-@pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
-def test_variant_discounts(product, channel_USD):
-    variant = product.variants.get()
-    low_sale = Sale.objects.create(type=DiscountValueType.FIXED)
-    low_sale_channel_listing = SaleChannelListing.objects.create(
-        sale=low_sale,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-        channel=channel_USD,
-    )
-    low_discount = DiscountInfo(
-        sale=low_sale,
-        channel_listings={channel_USD.slug: low_sale_channel_listing},
-        product_ids={product.id},
-        category_ids=set(),
-        collection_ids=set(),
-        variants_ids=set(),
-    )
-    sale = Sale.objects.create(type=DiscountValueType.FIXED)
-    sale_channel_listing = SaleChannelListing.objects.create(
-        sale=sale,
-        discount_value=8,
-        currency=channel_USD.currency_code,
-        channel=channel_USD,
-    )
-    discount = DiscountInfo(
-        sale=sale,
-        channel_listings={channel_USD.slug: sale_channel_listing},
-        product_ids={product.id},
-        category_ids=set(),
-        collection_ids=set(),
-        variants_ids=set(),
-    )
-    high_sale = Sale.objects.create(type=DiscountValueType.FIXED)
-    high_sale_channel_listing = SaleChannelListing.objects.create(
-        sale=high_sale,
-        discount_value=50,
-        currency=channel_USD.currency_code,
-        channel=channel_USD,
-    )
-    high_discount = DiscountInfo(
-        sale=high_sale,
-        channel_listings={channel_USD.slug: high_sale_channel_listing},
-        product_ids={product.id},
-        category_ids=set(),
-        collection_ids=set(),
-        variants_ids=set(),
-    )
-    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    # when
     final_price = variant.get_price(
-        product,
-        [],
-        channel_USD,
-        variant_channel_listing,
-        discounts=[low_discount, discount, high_discount],
+        variant_channel_listing, price, promotion_rules=[rule]
     )
-    assert final_price == Money(0, "USD")
+
+    # then
+    assert final_price.amount == price - reward_value / 100 * price
 
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_discount_for_variants_when_sale_for_specific_variants_only(
-    product, channel_USD
-):
-    discount_value = 5
-    variant = ProductVariant.objects.create(product=product, sku="456")
-    ProductVariantChannelListing.objects.create(
-        variant=variant,
-        channel=channel_USD,
-        price_amount=Decimal(20),
-        cost_price_amount=Decimal(1),
-        currency=channel_USD.currency_code,
-    )
-    variant = ProductVariant.objects.create(product=product, sku="789")
-    ProductVariantChannelListing.objects.create(
-        variant=variant,
-        channel=channel_USD,
-        price_amount=Decimal(20),
-        cost_price_amount=Decimal(1),
-        currency=channel_USD.currency_code,
-    )
-    product.refresh_from_db()
-
-    all_variants = product.variants.all()
-    first_variant, *rest_variants = all_variants
-
-    first_variant_channel_listing = first_variant.channel_listings.get(
-        channel=channel_USD
-    )
-    sale = Sale.objects.create(type=DiscountValueType.FIXED)
-    sale_channel_listing = SaleChannelListing.objects.create(
-        sale=sale,
-        discount_value=discount_value,
-        currency=channel_USD.currency_code,
-        channel=channel_USD,
-    )
-
-    old_price = first_variant.get_price(
-        product, [], channel_USD, first_variant_channel_listing, discounts=[]
-    )
-
-    old_price_for_applied_variants = []
-
-    for variant in rest_variants:
-        variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-        old_price_for_applied_variants.append(
-            variant.get_price(
-                product, [], channel_USD, variant_channel_listing, discounts=[]
-            )
-        )
-
-    discount = DiscountInfo(
-        sale=sale,
-        channel_listings={channel_USD.slug: sale_channel_listing},
-        product_ids=set(),
-        category_ids=set(),
-        collection_ids=set(),
-        variants_ids={variant.id for variant in rest_variants},
-    )
-
-    new_price = first_variant.get_price(
-        product, [], channel_USD, first_variant_channel_listing, discounts=[discount]
-    )
-
-    new_price_for_applied_variants = []
-    for variant in rest_variants:
-        variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-        new_price_for_applied_variants.append(
-            variant.get_price(
-                product, [], channel_USD, variant_channel_listing, discounts=[discount]
-            )
-        )
-
-    assert new_price == old_price
-    for p1, p2 in zip(new_price_for_applied_variants, old_price_for_applied_variants):
-        assert p1 == p2 - Money(discount_value, "USD")
-
-
-@pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
-def test_percentage_discounts(product, channel_USD):
+def test_fixed_discounts(product, channel_USD, promotion_without_rules):
+    # given
     variant = product.variants.get()
-    sale = Sale.objects.create(type=DiscountValueType.PERCENTAGE)
-    sale_channel_listing = SaleChannelListing.objects.create(
-        sale=sale,
-        discount_value=50,
-        currency=channel_USD.currency_code,
-        channel=channel_USD,
+    reward_value = Decimal("5")
+    rule = promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
     )
-    discount = DiscountInfo(
-        sale=sale,
-        channel_listings={channel_USD.slug: sale_channel_listing},
-        product_ids={product.id},
-        category_ids=set(),
-        collection_ids=set(),
-        variants_ids=set(),
-    )
+
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-    final_price = variant.get_price(
-        product, [], channel_USD, variant_channel_listing, discounts=[discount]
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=Decimal("1"),
+        currency=channel_USD.currency_code,
     )
-    assert final_price == Money(5, "USD")
+    price = Decimal("10")
+
+    # when
+    final_price = variant.get_price(
+        variant_channel_listing, price, promotion_rules=[rule]
+    )
+
+    # then
+    assert final_price.amount == price - reward_value
 
 
 def test_voucher_queryset_active(voucher, channel_USD):
@@ -352,60 +187,6 @@ def test_voucher_queryset_active_in_other_channel(voucher, channel_PLN):
         date=timezone.now(), channel_slug=channel_PLN.slug
     )
     assert active_vouchers.count() == 0
-
-
-def test_sale_applies_to_correct_products(product_type, category, channel_USD):
-    product = Product.objects.create(
-        name="Test Product",
-        slug="test-product",
-        description={},
-        product_type=product_type,
-        category=category,
-    )
-    variant = ProductVariant.objects.create(product=product, sku="firstvar")
-    variant_channel_listing = ProductVariantChannelListing.objects.create(
-        variant=variant,
-        channel=channel_USD,
-        price_amount=Decimal(10),
-        currency=channel_USD.currency_code,
-    )
-    product2 = Product.objects.create(
-        name="Second product",
-        slug="second-product",
-        description={},
-        product_type=product_type,
-        category=category,
-    )
-    sec_variant = ProductVariant.objects.create(product=product2, sku="secvar")
-    ProductVariantChannelListing.objects.create(
-        variant=sec_variant,
-        channel=channel_USD,
-        price_amount=Decimal(10),
-        currency=channel_USD.currency_code,
-    )
-    sale = Sale.objects.create(name="Test sale", type=DiscountValueType.FIXED)
-    sale_channel_listing = SaleChannelListing.objects.create(
-        sale=sale,
-        currency=channel_USD.currency_code,
-        channel=channel_USD,
-        discount_value=3,
-    )
-    discount = DiscountInfo(
-        sale=sale,
-        channel_listings={channel_USD.slug: sale_channel_listing},
-        product_ids={product.id},
-        category_ids=set(),
-        collection_ids=set(),
-        variants_ids=set(),
-    )
-    _, product_discount = get_product_discount_on_sale(
-        variant.product, set(), discount, channel_USD
-    )
-
-    discounted_price = product_discount(variant_channel_listing.price)
-    assert discounted_price == Money(7, "USD")
-    with pytest.raises(NotApplicable):
-        get_product_discount_on_sale(sec_variant.product, set(), discount, channel_USD)
 
 
 def test_increase_voucher_usage(channel_USD):
@@ -723,3 +504,109 @@ def test_fetch_catalogue_info_for_sale_has_one_element_sets(sale):
     assert catalogue_info["collections"] == collection_ids
     assert catalogue_info["products"] == product_ids
     assert catalogue_info["variants"] == variant_ids
+
+
+def test_get_discount_name_only_rule_name(promotion):
+    # given
+    promotion.name = ""
+    promotion.save(update_fields=["name"])
+
+    rule = promotion.rules.first()
+
+    # when
+    name = get_discount_name(rule, promotion)
+
+    # then
+    assert name == rule.name
+
+
+def test_get_discount_name_only_rule_promotion_name(promotion):
+    # given
+    rule = promotion.rules.first()
+    rule.name = ""
+    rule.save(update_fields=["name"])
+
+    # when
+    name = get_discount_name(rule, promotion)
+
+    # then
+    assert name == promotion.name
+
+
+def test_get_discount_name_rule_and_promotion_name(promotion):
+    # given
+    rule = promotion.rules.first()
+
+    # when
+    name = get_discount_name(rule, promotion)
+
+    # then
+    assert name == f"{promotion.name}: {rule.name}"
+
+
+def test_get_discount_name_empty_names(promotion):
+    # given
+    rule = promotion.rules.first()
+
+    rule.name = ""
+    rule.save(update_fields=["name"])
+
+    promotion.name = ""
+    promotion.save(update_fields=["name"])
+
+    # when
+    name = get_discount_name(rule, promotion)
+
+    # then
+    assert name == ""
+
+
+def test_get_discount_translated_name_only_rule_translation(rule_info):
+    # given
+    rule_info_data = rule_info._asdict()
+    rule_info_data["promotion_translation"] = None
+    rule_info = VariantPromotionRuleInfo(**rule_info_data)
+
+    # when
+    translated_name = get_discount_translated_name(rule_info)
+
+    # then
+    assert translated_name == rule_info.rule_translation.name
+
+
+def test_get_discount_translated_name_only_rule_promotion_translation(rule_info):
+    # given
+    rule_info_data = rule_info._asdict()
+    rule_info_data["rule_translation"] = None
+    rule_info = VariantPromotionRuleInfo(**rule_info_data)
+
+    # when
+    translated_name = get_discount_translated_name(rule_info)
+
+    # then
+    assert translated_name == rule_info.promotion_translation.name
+
+
+def test_get_discount_translated_name_rule_and_promotion_translations(rule_info):
+    # when
+    translated_name = get_discount_translated_name(rule_info)
+
+    # then
+    assert (
+        translated_name
+        == f"{rule_info.promotion_translation.name}: {rule_info.rule_translation.name}"
+    )
+
+
+def test_get_discount_translated_name_no_translations(rule_info):
+    # given
+    rule_info_data = rule_info._asdict()
+    rule_info_data["promotion_translation"] = None
+    rule_info_data["rule_translation"] = None
+    rule_info = VariantPromotionRuleInfo(**rule_info_data)
+
+    # when
+    translated_name = get_discount_translated_name(rule_info)
+
+    # then
+    assert translated_name is None

@@ -2,7 +2,8 @@ import pytest
 from django.utils import timezone
 
 from .....discount import DiscountValueType
-from .....discount.models import Sale, SaleChannelListing
+from .....discount.models import Promotion, Sale, SaleChannelListing
+from .....discount.tests.sale_converter import convert_sales_to_promotions
 from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 
@@ -33,9 +34,21 @@ def sales_for_sorting_with_channels(db, channel_USD, channel_PLN):
             ),
             SaleChannelListing(
                 discount_value=7,
+                sale=sales[0],
+                channel=channel_PLN,
+                currency=channel_PLN.currency_code,
+            ),
+            SaleChannelListing(
+                discount_value=7,
                 sale=sales[1],
                 channel=channel_USD,
                 currency=channel_USD.currency_code,
+            ),
+            SaleChannelListing(
+                discount_value=1,
+                sale=sales[1],
+                channel=channel_PLN,
+                currency=channel_PLN.currency_code,
             ),
             SaleChannelListing(
                 discount_value=5,
@@ -45,28 +58,15 @@ def sales_for_sorting_with_channels(db, channel_USD, channel_PLN):
             ),
             SaleChannelListing(
                 discount_value=2,
-                sale=sales[4],
-                channel=channel_USD,
-                currency=channel_USD.currency_code,
-            ),
-            # Second channel
-            SaleChannelListing(
-                discount_value=7,
-                sale=sales[0],
-                channel=channel_PLN,
-                currency=channel_PLN.currency_code,
-            ),
-            SaleChannelListing(
-                discount_value=1,
-                sale=sales[1],
+                sale=sales[3],
                 channel=channel_PLN,
                 currency=channel_PLN.currency_code,
             ),
             SaleChannelListing(
                 discount_value=2,
-                sale=sales[3],
-                channel=channel_PLN,
-                currency=channel_PLN.currency_code,
+                sale=sales[4],
+                channel=channel_USD,
+                currency=channel_USD.currency_code,
             ),
             SaleChannelListing(
                 discount_value=5,
@@ -77,13 +77,16 @@ def sales_for_sorting_with_channels(db, channel_USD, channel_PLN):
         ]
     )
 
-    sales[4].save()
-    sales[2].save()
-    sales[0].save()
-    sales[1].save()
-    sales[3].save()
+    convert_sales_to_promotions()
+    promotions = Promotion.objects.order_by("created_at").all()
 
-    return sales
+    promotions[4].save()
+    promotions[2].save()
+    promotions[0].save()
+    promotions[1].save()
+    promotions[3].save()
+
+    return promotions
 
 
 QUERY_SALES_WITH_SORTING_AND_FILTERING = """
@@ -286,7 +289,8 @@ QUERY_SALE_WITH_SORT = """
 def test_query_sales_with_sort(
     sale_sort, result_order, staff_api_client, permission_manage_discounts, channel_USD
 ):
-    sales = Sale.objects.bulk_create(
+    # given
+    Sale.objects.bulk_create(
         [
             Sale(name="BigSale", type="PERCENTAGE"),
             Sale(
@@ -303,9 +307,14 @@ def test_query_sales_with_sort(
             ),
         ]
     )
+    convert_sales_to_promotions()
     variables = {"sort_by": sale_sort}
     staff_api_client.user.user_permissions.add(permission_manage_discounts)
+
+    # when
     response = staff_api_client.post_graphql(QUERY_SALE_WITH_SORT, variables)
+
+    # then
     content = get_graphql_content(response)
     sales = content["data"]["sales"]["edges"]
 
