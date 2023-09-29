@@ -18,8 +18,8 @@ from ...discount.models import (
     CheckoutLineDiscount,
     NotApplicable,
     Voucher,
-    VoucherCode,
     VoucherChannelListing,
+    VoucherCode,
 )
 from ...discount.tests.sale_converter import convert_sales_to_promotions
 from ...payment.models import Payment
