@@ -11,7 +11,13 @@ from ...account.models import Address, User
 from ...account.utils import create_superuser
 from ...attribute.models import AttributeValue
 from ...channel.models import Channel
-from ...discount.models import Promotion, PromotionRule, Voucher, VoucherCode, VoucherChannelListing
+from ...discount.models import (
+    Promotion,
+    PromotionRule,
+    Voucher,
+    VoucherChannelListing,
+    VoucherCode,
+)
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.models import Order
 from ...payment.models import TransactionItem
