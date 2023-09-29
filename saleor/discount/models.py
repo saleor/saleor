@@ -8,7 +8,7 @@ import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import connection, models
-from django.db.models import F, JSONField, Exists, OuterRef, Q, Subquery, Sum
+from django.db.models import Exists, JSONField, OuterRef, Q, Subquery, Sum
 from django.utils import timezone
 from django_countries.fields import CountryField
 from django_prices.models import MoneyField
