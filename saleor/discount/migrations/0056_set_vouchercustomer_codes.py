@@ -3,7 +3,7 @@
 from django.db import migrations
 from django.db.models import Exists, OuterRef
 
-# The batch of size 10000 took about 0.2s
+# The batch of size 1000 took about 0.2s
 BATCH_SIZE = 1000
 
 
@@ -18,8 +18,7 @@ def set_voucher_customer_codes(VoucherCustomer, Voucher, VoucherCode):
     voucher_customers = VoucherCustomer.objects.filter(
         voucher_code__isnull=True
     ).order_by("pk")[:BATCH_SIZE]
-    ids = list(voucher_customers.values_list("pk", flat=True))
-    if ids:
+    if ids := list(voucher_customers.values_list("pk", flat=True)):
         qs = VoucherCustomer.objects.filter(pk__in=ids)
         set_voucher_code(VoucherCustomer, Voucher, VoucherCode, qs)
         set_voucher_customer_codes(VoucherCustomer, Voucher, VoucherCode)
