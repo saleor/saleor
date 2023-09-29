@@ -14,6 +14,7 @@ from ..models import (
     SaleChannelListing,
     Voucher,
     VoucherChannelListing,
+    VoucherCode,
     VoucherCustomer,
 )
 from ..utils import (
@@ -190,6 +191,7 @@ def test_voucher_queryset_active_in_other_channel(voucher, channel_PLN):
 
 
 def test_increase_voucher_usage(channel_USD):
+    code = ("unique",)
     voucher = Voucher.objects.create(
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.FIXED,

@@ -48,17 +48,13 @@ from ...checkout.models import Checkout
 from ...checkout.utils import add_variant_to_checkout
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, RewardValueType, VoucherType
-from ...discount import DiscountValueType, VoucherType
 from ...discount.models import (
     Promotion,
     PromotionRule,
-    Sale,
-    SaleChannelListing,
     Voucher,
     VoucherChannelListing,
     VoucherCode,
 )
-from ...discount.utils import fetch_discounts
 from ...giftcard import events as gift_card_events
 from ...giftcard.models import GiftCard, GiftCardTag
 from ...menu.models import Menu, MenuItem
