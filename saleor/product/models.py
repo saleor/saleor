@@ -1,5 +1,6 @@
 import datetime
-from typing import TYPE_CHECKING, Iterable, Optional
+from decimal import Decimal
+from typing import Iterable, Optional
 from uuid import uuid4
 
 import graphene
@@ -33,6 +34,7 @@ from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountInfo
+from ..discount.models import PromotionRule
 from ..discount.utils import calculate_discounted_price
 from ..permission.enums import (
     DiscountPermissions,
@@ -43,10 +45,6 @@ from ..permission.enums import (
 from ..seo.models import SeoModel, SeoModelTranslation
 from ..tax.models import TaxClass
 from . import ProductMediaTypes, ProductTypeKind, managers
-
-if TYPE_CHECKING:
-    from decimal import Decimal
-
 
 ALL_PRODUCTS_PERMISSIONS = [
     # List of permissions, where each of them allows viewing all products
@@ -416,7 +414,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
             collection_ids=collection_ids,
             channel=channel,
             variant_id=self.id,
-        )
+        )[1]
 
     def get_weight(self):
         return self.weight or self.product.weight or self.product.product_type.weight
@@ -521,6 +519,12 @@ class ProductVariantChannelListing(models.Model):
     discounted_price = MoneyField(
         amount_field="discounted_price_amount", currency_field="currency"
     )
+    promotion_rules = models.ManyToManyField(
+        PromotionRule,
+        help_text=("Promotion rules that were included in the discounted price."),
+        through="VariantChannelListingPromotionRule",
+        blank=True,
+    )
 
     preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
 
@@ -529,6 +533,31 @@ class ProductVariantChannelListing(models.Model):
     class Meta:
         unique_together = [["variant", "channel"]]
         ordering = ("pk",)
+
+
+class VariantChannelListingPromotionRule(models.Model):
+    variant_channel_listing = models.ForeignKey(
+        ProductVariantChannelListing,
+        related_name="variantlistingpromotionrule",
+        on_delete=models.CASCADE,
+    )
+    promotion_rule = models.ForeignKey(
+        PromotionRule,
+        related_name="variantlistingpromotionrule",
+        on_delete=models.CASCADE,
+    )
+    discount_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0.0"),
+    )
+    discount = MoneyField(amount_field="discount_amount", currency_field="currency")
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
+
+    class Meta:
+        unique_together = [["variant_channel_listing", "promotion_rule"]]
 
 
 class DigitalContent(ModelWithMetadata):

@@ -4,6 +4,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ... import DiscountType, DiscountValueType
+from ...models import Promotion
 from ...utils import create_or_update_discount_objects_from_sale_for_checkout
 from . import generate_discount_info
 
@@ -77,6 +78,81 @@ def test_create_fixed_sale(checkout_lines_info, checkout_info, new_sale):
 
     for checkout_line_info in checkout_lines_info[1:]:
         assert not checkout_line_info.discounts
+
+    promotion = Promotion.objects.first()
+    assert promotion
+    assert promotion.old_sale_id == sale.id
+    rule = promotion.rules.first()
+    assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
+
+
+@freeze_time("2020-12-12 12:00:00")
+def test_create_fixed_sale_promotion_exist(
+    checkout_lines_info, checkout_info, new_sale
+):
+    # given
+    line_info1 = checkout_lines_info[0]
+    product_line1 = line_info1.product
+
+    sale = new_sale
+    sale.products.add(product_line1)
+    discount_info_for_new_sale = generate_discount_info(
+        sale, products_pks={product_line1.pk}
+    )
+
+    sale_channel_listing = sale.channel_listings.get()
+    expected_discount_amount = sale_channel_listing.discount_value
+
+    promotion = Promotion.objects.create(old_sale_id=sale.id)
+    rule = promotion.rules.create(reward_value=10)
+    rule.channels.add(sale_channel_listing.channel_id)
+
+    # when
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, checkout_lines_info, [discount_info_for_new_sale]
+    )
+
+    # then
+    assert len(line_info1.discounts) == 1
+    now = timezone.now()
+    discount_from_info = line_info1.discounts[0]
+    discount_from_db = line_info1.line.discounts.get()
+    assert discount_from_info.line == discount_from_db.line == line_info1.line
+    assert discount_from_info.created_at == discount_from_db.created_at == now
+    assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
+    assert (
+        discount_from_info.value_type
+        == discount_from_db.value_type
+        == DiscountValueType.FIXED
+    )
+    assert (
+        discount_from_info.value
+        == discount_from_db.value
+        == sale_channel_listing.discount_value
+    )
+    assert (
+        discount_from_info.amount_value
+        == discount_from_db.amount_value
+        == expected_discount_amount
+    )
+    assert discount_from_info.currency == discount_from_db.currency == "USD"
+    assert discount_from_info.name == discount_from_db.name == sale.name
+    assert (
+        discount_from_info.translated_name == discount_from_db.translated_name is None
+    )
+    assert discount_from_info.reason == discount_from_db.reason is None
+    assert discount_from_info.sale == discount_from_db.sale == sale
+    assert discount_from_info.voucher == discount_from_db.voucher is None
+
+    for checkout_line_info in checkout_lines_info[1:]:
+        assert not checkout_line_info.discounts
+
+    assert Promotion.objects.count() == 1
+    promotion.refresh_from_db()
+    assert promotion.rules.count() == 1
+    assert promotion.old_sale_id == sale.id
+    rule = promotion.rules.first()
+    assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
 
 
 @freeze_time("2020-12-12 12:00:00")

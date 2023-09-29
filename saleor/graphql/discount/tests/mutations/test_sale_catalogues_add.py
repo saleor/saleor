@@ -3,9 +3,11 @@ from unittest.mock import patch
 import graphene
 
 from .....discount.error_codes import DiscountErrorCode
+from .....discount.models import Promotion
 from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...mutations.utils import convert_catalogue_info_to_global_ids
+from .utils import convert_migrated_sale_predicate_to_catalogue_info
 
 SALE_CATALOGUES_ADD_MUTATION = """
     mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
@@ -51,6 +53,7 @@ def test_sale_add_catalogues(
         graphene.Node.to_global_id("ProductVariant", variant.id)
         for variant in product_variant_list
     ]
+
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
         "input": {
@@ -88,6 +91,15 @@ def test_sale_add_catalogues(
         variant.id for variant in product_variant_list
     }
 
+    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    predicate = promotion.rules.first().catalogue_predicate
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
+
+    assert collection_id in current_catalogue["collections"]
+    assert category_id in current_catalogue["categories"]
+    assert product_id in current_catalogue["products"]
+    assert all([variant in current_catalogue["variants"] for variant in variant_ids])
+
 
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
@@ -120,6 +132,15 @@ def test_sale_add_no_catalogues(
     assert not new_sale.collections.exists()
     assert not new_sale.variants.exists()
     update_products_discounted_prices_of_catalogues_task_mock.assert_not_called()
+
+    promotion = Promotion.objects.get(old_sale_id=new_sale.id)
+    predicate = promotion.rules.first().catalogue_predicate
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
+
+    assert not current_catalogue.get("collections")
+    assert not current_catalogue.get("categories")
+    assert not current_catalogue.get("products")
+    assert not current_catalogue.get("variants")
 
 
 @patch(
@@ -162,6 +183,15 @@ def test_sale_remove_no_catalogues(
     assert sale.collections.exists()
     assert sale.variants.exists()
     update_products_discounted_prices_of_catalogues_task_mock.assert_not_called()
+
+    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    predicate = promotion.rules.first().catalogue_predicate
+    current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
+
+    assert current_catalogue.get("collections")
+    assert current_catalogue.get("categories")
+    assert current_catalogue.get("products")
+    assert current_catalogue.get("variants")
 
 
 @patch(

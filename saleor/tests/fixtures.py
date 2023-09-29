@@ -50,8 +50,9 @@ from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
-from ..discount import DiscountInfo, DiscountValueType, VoucherType
+from ..discount import DiscountInfo, DiscountType, DiscountValueType, VoucherType
 from ..discount.models import (
+    CheckoutLineDiscount,
     NotApplicable,
     Sale,
     SaleChannelListing,
@@ -311,6 +312,39 @@ def checkout_with_item(checkout, product):
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
+
+
+@pytest.fixture
+def checkout_with_item_on_sale(checkout_with_item):
+    line = checkout_with_item.lines.first()
+    channel = checkout_with_item.channel
+    sale = Sale.objects.create(name="Sale")
+    discount_amount = Decimal("5.0")
+    SaleChannelListing.objects.create(
+        sale=sale,
+        channel=channel,
+        discount_value=discount_amount,
+        currency=channel.currency_code,
+    )
+    variant = line.variant
+    sale.products.add(variant.product)
+    channel_listing = variant.channel_listings.get(channel=channel)
+    channel_listing.discounted_price_amount = (
+        channel_listing.price_amount - discount_amount
+    )
+    channel_listing.save(update_fields=["discounted_price_amount"])
+
+    CheckoutLineDiscount.objects.create(
+        line=line,
+        sale=sale,
+        type=DiscountType.SALE,
+        value_type=sale.type,
+        value=discount_amount,
+        amount_value=discount_amount * line.quantity,
+        currency=channel.currency_code,
+    )
+
+    return checkout_with_item
 
 
 @pytest.fixture
