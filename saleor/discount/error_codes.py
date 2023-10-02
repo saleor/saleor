@@ -57,7 +57,7 @@ class PromotionRuleDeleteErrorCode(Enum):
     NOT_FOUND = "not_found"
 
 
-class VoucherCodeErrorCode(Enum):
+class VoucherCodeBulkDeleteErrorCode(Enum):
     ALREADY_EXISTS = "already_exists"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"

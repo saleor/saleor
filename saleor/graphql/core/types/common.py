@@ -91,7 +91,7 @@ from ..enums import (
     TransactionUpdateErrorCode,
     TranslationErrorCode,
     UploadErrorCode,
-    VoucherCodeErrorCode,
+    VoucherCodeBulkDeleteErrorCode,
     WarehouseErrorCode,
     WebhookDryRunErrorCode,
     WebhookErrorCode,
@@ -309,7 +309,7 @@ class DiscountError(ProductWithoutVariantError):
 
 
 class VoucherCodeBulkDeleteError(BulkError):
-    code = VoucherCodeErrorCode(description="The error code.", required=True)
+    code = VoucherCodeBulkDeleteErrorCode(description="The error code.", required=True)
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS

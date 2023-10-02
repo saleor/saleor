@@ -28031,11 +28031,11 @@ type VoucherCodeBulkDeleteError @doc(category: "Discounts") {
   message: String
 
   """The error code."""
-  code: VoucherCodeErrorCode!
+  code: VoucherCodeBulkDeleteErrorCode!
 }
 
 """An enumeration."""
-enum VoucherCodeErrorCode @doc(category: "Discounts") {
+enum VoucherCodeBulkDeleteErrorCode @doc(category: "Discounts") {
   ALREADY_EXISTS
   GRAPHQL_ERROR
   INVALID
