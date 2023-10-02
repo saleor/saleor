@@ -49,8 +49,6 @@ JWKS_KEY = "oauth_jwks"
 JWKS_CACHE_TIME = 60 * 60  # 1 hour
 USER_INFO_DEFAULT_CACHE_TIME = 60 * 60  # 1 hour
 
-REQUEST_TIMEOUT = 5
-
 
 OAUTH_TOKEN_REFRESH_FIELD = "oauth_refresh_token"
 CSRF_FIELD = "csrf_token"
@@ -68,9 +66,7 @@ def fetch_jwks(jwks_url) -> Optional[dict]:
     """
     response = None
     try:
-        response = HTTPClient.send_request(
-            "GET", jwks_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
-        )
+        response = HTTPClient.send_request("GET", jwks_url, allow_redirects=False)
         response.raise_for_status()
         jwks = response.json()
     except requests.exceptions.RequestException:
@@ -126,7 +122,6 @@ def get_user_info(user_info_url, access_token) -> Optional[dict]:
             "GET",
             user_info_url,
             headers={"Authorization": f"Bearer {access_token}"},
-            timeout=REQUEST_TIMEOUT,
             allow_redirects=False,
         )
         response.raise_for_status()
