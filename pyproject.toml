@@ -78,7 +78,7 @@ documentation = "https://docs.saleor.io/"
     extras = [ "redis" ]
 
     [tool.poetry.dependencies.django-storages]
-    version = "^1.11"
+    version = "^1.14"
     extras = [ "google" ]
 
     [tool.poetry.dependencies.python-magic-bin]
