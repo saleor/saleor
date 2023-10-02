@@ -27849,7 +27849,7 @@ input VoucherInput @doc(category: "Discounts") {
   onlyForStaff: Boolean
 
   """
-  When set to 'True,' each voucher is limited to a single use; otherwise, usage remains unrestricted.
+  When set to 'True', each voucher is limited to a single use; otherwise, usage remains unrestricted.
   
   Added in Saleor 3.18.
   """
