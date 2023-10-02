@@ -13,6 +13,7 @@ from ....product.utils.variant_prices import update_discounted_prices_for_promot
 # For 100 rules, with 1000 variants for each rule it takes around 15s
 PRICE_RECALCULATION_BATCH_SIZE = 100
 
+# For 1 million vouchers it takes around 0.5s and consumes ~40MB memory at peak
 VOUCHER_BATCH_SIZE = 5000
 
 
