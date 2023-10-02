@@ -118,7 +118,6 @@ def recalculate_undiscounted_prices():
             )
             & Q(tax_rate__gt=0)
         )
-        .prefetch_related("order_id")
         .order_by("-created_at")[:LINE_BATCH]
     )
 
@@ -135,7 +134,7 @@ def recalculate_undiscounted_prices():
 
     lines_to_update = set()
     for line in order_lines:
-        prices_entered_with_tax = order_to_prices_with_tax_map[line.order.id]
+        prices_entered_with_tax = order_to_prices_with_tax_map[line.order_id]
         tax_rate = line.tax_rate
         if tax_rate > 0:
             recalculate_tax_for_prices(
