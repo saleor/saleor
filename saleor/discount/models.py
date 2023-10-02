@@ -186,8 +186,10 @@ class Voucher(ModelWithMetadata):
             )
 
     def validate_once_per_customer(self, customer_email):
+        voucher_codes = self.codes.all()
         voucher_customer = VoucherCustomer.objects.filter(
-            voucher=self, customer_email=customer_email
+            Exists(voucher_codes.filter(id=OuterRef("voucher_code_id"))),
+            customer_email=customer_email,
         )
         if voucher_customer:
             msg = "This offer is valid only once per customer."
@@ -253,14 +255,20 @@ class VoucherChannelListing(models.Model):
 
 
 class VoucherCustomer(models.Model):
-    voucher = models.ForeignKey(
-        Voucher, related_name="customers", on_delete=models.CASCADE
+    voucher_code = models.ForeignKey(
+        VoucherCode,
+        related_name="customers",
+        on_delete=models.CASCADE,
+        db_index=False,
     )
     customer_email = models.EmailField()
 
     class Meta:
-        ordering = ("voucher", "customer_email", "pk")
-        unique_together = (("voucher", "customer_email"),)
+        indexes = [
+            BTreeIndex(fields=["voucher_code"], name="vouchercustomer_voucher_code_idx")
+        ]
+        ordering = ("voucher_code", "customer_email", "pk")
+        unique_together = (("voucher_code", "customer_email"),)
 
 
 class SaleQueryset(models.QuerySet["Sale"]):

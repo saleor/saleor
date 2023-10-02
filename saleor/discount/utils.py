@@ -63,17 +63,17 @@ def decrease_voucher_code_usage(code: "VoucherCode") -> None:
     code.save(update_fields=["used"])
 
 
-def add_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
+def add_voucher_usage_by_customer(code: "VoucherCode", customer_email: str) -> None:
     _, created = VoucherCustomer.objects.get_or_create(
-        voucher=voucher, customer_email=customer_email
+        voucher_code=code, customer_email=customer_email
     )
     if not created:
         raise NotApplicable("This offer is only valid once per customer.")
 
 
-def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
+def remove_voucher_usage_by_customer(code: "VoucherCode", customer_email: str) -> None:
     voucher_customer = VoucherCustomer.objects.filter(
-        voucher=voucher, customer_email=customer_email
+        voucher_code=code, customer_email=customer_email
     )
     if voucher_customer:
         voucher_customer.delete()
@@ -89,7 +89,7 @@ def release_voucher_code_usage(
     if voucher and voucher.usage_limit:
         decrease_voucher_code_usage(code)
     if user_email:
-        remove_voucher_usage_by_customer(code.voucher, user_email)
+        remove_voucher_usage_by_customer(code, user_email)
 
 
 def calculate_discounted_price_for_rules(
