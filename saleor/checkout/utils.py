@@ -522,7 +522,7 @@ def get_voucher_for_checkout(
     """Return voucher assigned to checkout."""
     if checkout.voucher_code is not None:
         try:
-            code = VoucherCode.objects.get(code=checkout.voucher_code)
+            code = VoucherCode.objects.get(code=checkout.voucher_code, is_active=True)
         except VoucherCode.DoesNotExist:
             return None, None
 
