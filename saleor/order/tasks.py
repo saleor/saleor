@@ -9,7 +9,7 @@ from ..celeryconf import app
 from ..channel.models import Channel
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.events import call_event
-from ..discount.models import VoucherCustomer
+from ..discount.models import Voucher, VoucherCode, VoucherCustomer
 from ..payment.models import Payment, TransactionItem
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_orders
@@ -63,13 +63,15 @@ def _bulk_release_voucher_usage(order_ids):
     #     order_count=Subquery(count_orders)
     # ).update(used=F("used") - F("order_count"))
 
-    voucher_customer_orders = Order.objects.filter(
-        voucher=OuterRef("voucher__id"),
-        user_email=OuterRef("customer_email"),
-        id__in=order_ids,
+    orders = Order.objects.filter(id__in=order_ids)
+    vouchers = Voucher.objects.filter(Exists(orders.filter(voucher_id=OuterRef("pk"))))
+    voucher_codes = VoucherCode.objects.filter(
+        Exists(vouchers.filter(id=OuterRef("voucher_id")))
     )
-
-    VoucherCustomer.objects.filter(Exists(voucher_customer_orders)).delete()
+    VoucherCustomer.objects.filter(
+        Exists(voucher_codes.filter(id=OuterRef("voucher_code_id"))),
+        Exists(orders.filter(user_email=OuterRef("customer_email"))),
+    ).delete()
 
 
 def _call_expired_order_events(order_ids, manager):
