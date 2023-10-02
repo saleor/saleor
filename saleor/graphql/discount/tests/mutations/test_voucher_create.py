@@ -76,6 +76,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
             "endDate": end_date.isoformat(),
             "applyOncePerOrder": True,
             "applyOncePerCustomer": True,
+            "singleUse": True,
             "usageLimit": 3,
         }
     }
@@ -98,6 +99,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     assert voucher.end_date == end_date
     assert voucher.apply_once_per_order
     assert voucher.apply_once_per_customer
+    assert voucher.single_use
     assert voucher.usage_limit == 3
     assert data["voucher"]["usageLimit"] == 3
     assert len(codes) == 2

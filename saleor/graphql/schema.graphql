@@ -27841,6 +27841,13 @@ input VoucherInput @doc(category: "Discounts") {
   """Voucher can be used only by staff user."""
   onlyForStaff: Boolean
 
+  """
+  When set to 'True,' each voucher is limited to a single use; otherwise, usage remains unrestricted.
+  
+  Added in Saleor 3.18.
+  """
+  singleUse: Boolean
+
   """Limit number of times this voucher can be used in total."""
   usageLimit: Int
 }
