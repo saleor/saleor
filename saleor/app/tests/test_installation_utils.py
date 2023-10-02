@@ -96,7 +96,6 @@ def test_install_app_created_app(
             "Saleor-Schema-Version": schema_version,
         },
         json={"auth_token": ANY},
-        timeout=ANY,
         allow_redirects=False,
     )
     assert App.objects.get().id == app.id

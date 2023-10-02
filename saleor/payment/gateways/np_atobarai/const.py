@@ -1,8 +1,8 @@
-# This integration is currently supporting the settlement type 02 - NP Atobarai
+# This integration is currently supporting the settlement type 02 - NP Atobarai.
 NP_ATOBARAI = "02"
 NP_ATOBARAI_WIZ = "03"
 
-# NetProtections recommends a timeout of around 30s
+# Custom timeout, as NetProtections recommends a timeout of around 30s.
 REQUEST_TIMEOUT = 30
 
 NP_PLUGIN_ID = "saleor.payments.np-atobarai"

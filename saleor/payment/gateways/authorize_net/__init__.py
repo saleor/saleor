@@ -43,7 +43,6 @@ def authenticate_test(
         url,
         json=data,
         headers={"content-type": "application/json"},
-        timeout=30,
         allow_redirects=False,
     )
     # Response content is utf-8-sig, which requires usage of json.loads

@@ -40,7 +40,10 @@ logger = logging.getLogger(__name__)
 FAILED_STATUSES = ["refused", "error", "cancelled"]
 PENDING_STATUSES = ["pending", "received"]
 AUTH_STATUS = "authorised"
-HTTP_TIMEOUT = 20  # in seconds
+
+# we'd like shorter timeout than default 30s for Adyen client,
+# library doesn't allow to set connection establ. timeout
+HTTP_TIMEOUT = 20
 
 
 def initialize_adyen_client(config: GatewayConfig) -> Adyen.Adyen:
