@@ -1354,12 +1354,14 @@ def test_complete_checkout_action_required_voucher_once_per_customer(
     payment.to_confirm = True
     payment.save()
 
+    voucher_code = voucher.codes.first()
+
     checkout.user = customer_user
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_billing_address
     checkout.tracking_code = ""
     checkout.redirect_url = "https://www.example.com"
-    checkout.voucher_code = voucher.code
+    checkout.voucher_code = voucher_code.code
     checkout.save()
 
     voucher.apply_once_per_customer = True
@@ -1381,9 +1383,10 @@ def test_complete_checkout_action_required_voucher_once_per_customer(
     )
     # then
     voucher_customer = VoucherCustomer.objects.filter(
-        voucher=voucher, customer_email=customer_user.email
+        voucher_code=voucher_code, customer_email=customer_user.email
     )
     assert not order
+
     assert action_required is True
     assert not voucher_customer.exists()
     mocked_create_order.assert_not_called()
