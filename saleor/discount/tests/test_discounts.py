@@ -18,7 +18,9 @@ from ..models import (
     VoucherCustomer,
 )
 from ..utils import (
+    activate_voucher_code,
     add_voucher_usage_by_customer,
+    deactivate_voucher_code,
     decrease_voucher_code_usage,
     fetch_catalogue_info,
     get_discount_name,
@@ -224,6 +226,32 @@ def test_decrease_voucher_usage(channel_USD):
     decrease_voucher_code_usage(code_instance)
     code_instance.refresh_from_db(fields=["used"])
     assert code_instance.used == 9
+
+
+def test_deactivate_voucher_code(voucher):
+    # given
+    code_instance = voucher.codes.first()
+
+    # when
+    deactivate_voucher_code(code_instance)
+
+    # then
+    code_instance.refresh_from_db(fields=["is_active"])
+    assert code_instance.is_active is False
+
+
+def test_activate_voucher_code(voucher):
+    # given
+    code_instance = voucher.codes.first()
+    code_instance.is_active = False
+    code_instance.save(update_fields=["is_active"])
+
+    # when
+    activate_voucher_code(code_instance)
+
+    # then
+    code_instance.refresh_from_db(fields=["is_active"])
+    assert code_instance.is_active is True
 
 
 def test_add_voucher_usage_by_customer(voucher, customer_user):
