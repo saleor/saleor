@@ -690,7 +690,11 @@ def add_voucher_code_to_checkout(
         )
         .filter(
             Exists(
-                VoucherCode.objects.filter(code=voucher_code, voucher_id=OuterRef("id"))
+                VoucherCode.objects.filter(
+                    code=voucher_code,
+                    voucher_id=OuterRef("id"),
+                    is_active=True,
+                )
             )
         )
         .exists()
