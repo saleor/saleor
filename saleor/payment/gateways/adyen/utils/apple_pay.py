@@ -107,7 +107,6 @@ def make_request_to_initialize_apple_pay(
             validation_url,
             json=request_data,
             cert=f.name,
-            timeout=30,
             allow_redirects=False,
         )
 
