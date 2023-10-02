@@ -124,7 +124,7 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
         increase_voucher_code_usage(code)
     if voucher.apply_once_per_customer:
         customer_email = cast(str, checkout_info.get_customer_email())
-        add_voucher_usage_by_customer(voucher, customer_email)
+        add_voucher_usage_by_customer(code, customer_email)
     return {
         "voucher": voucher,
     }
@@ -983,7 +983,7 @@ def _increase_voucher_code_usage(checkout_info: "CheckoutInfo"):
 
     if voucher.apply_once_per_customer:
         customer_email = cast(str, checkout_info.get_customer_email())
-        add_voucher_usage_by_customer(voucher, customer_email)
+        add_voucher_usage_by_customer(code, customer_email)
 
     if voucher.usage_limit:
         increase_voucher_code_usage(code)

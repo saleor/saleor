@@ -225,31 +225,50 @@ def test_decrease_voucher_usage(channel_USD):
 
 
 def test_add_voucher_usage_by_customer(voucher, customer_user):
+    # given
     voucher_customer_count = VoucherCustomer.objects.all().count()
-    add_voucher_usage_by_customer(voucher, customer_user.email)
+    code = voucher.codes.first()
+
+    # when
+    add_voucher_usage_by_customer(code, customer_user.email)
+
+    # then
     assert VoucherCustomer.objects.all().count() == voucher_customer_count + 1
     voucherCustomer = VoucherCustomer.objects.first()
-    assert voucherCustomer.voucher == voucher
+    assert voucherCustomer.voucher_code == code
     assert voucherCustomer.customer_email == customer_user.email
 
 
 def test_add_voucher_usage_by_customer_raise_not_applicable(voucher_customer):
-    voucher = voucher_customer.voucher
+    # given
+    code = voucher_customer.voucher_code
+
     customer_email = voucher_customer.customer_email
+
+    # when & then
     with pytest.raises(NotApplicable):
-        add_voucher_usage_by_customer(voucher, customer_email)
+        add_voucher_usage_by_customer(code, customer_email)
 
 
 def test_remove_voucher_usage_by_customer(voucher_customer):
+    # given
     voucher_customer_count = VoucherCustomer.objects.all().count()
-    voucher = voucher_customer.voucher
+    code = voucher_customer.voucher_code
     customer_email = voucher_customer.customer_email
-    remove_voucher_usage_by_customer(voucher, customer_email)
+
+    # when
+    remove_voucher_usage_by_customer(code, customer_email)
+
+    # then
     assert VoucherCustomer.objects.all().count() == voucher_customer_count - 1
 
 
 def test_remove_voucher_usage_by_customer_not_exists(voucher):
-    remove_voucher_usage_by_customer(voucher, "fake@exmaimpel.com")
+    # given
+    code = voucher.codes.first()
+
+    # when & then
+    remove_voucher_usage_by_customer(code, "fake@exmaimpel.com")
 
 
 @pytest.mark.parametrize(
@@ -387,11 +406,19 @@ def test_validate_voucher_not_applicable(
 def test_validate_voucher_not_applicable_once_per_customer(
     voucher, customer_user, channel_USD
 ):
+    # given
     voucher.apply_once_per_customer = True
     voucher.save()
-    VoucherCustomer.objects.create(voucher=voucher, customer_email=customer_user.email)
+
+    code = voucher.codes.first()
+
+    VoucherCustomer.objects.create(
+        voucher_code=code, customer_email=customer_user.email
+    )
     price = Money(0, "USD")
     total_price = TaxedMoney(net=price, gross=price)
+
+    # when & then
     with pytest.raises(NotApplicable):
         validate_voucher(
             voucher,
