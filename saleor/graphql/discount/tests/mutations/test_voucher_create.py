@@ -50,6 +50,7 @@ mutation voucherCreate($input: VoucherInput!) {
                 endDate
                 applyOncePerOrder
                 applyOncePerCustomer
+                singleUse
             }
         }
     }

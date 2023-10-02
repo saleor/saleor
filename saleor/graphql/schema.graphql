@@ -9223,6 +9223,13 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """
   applyOncePerCustomer: Boolean!
 
+  """
+  Determine if the voucher is limited to a single use or unlimited use.
+  
+  Added in Saleor 3.18.
+  """
+  singleUse: Boolean!
+
   """Determine if the voucher is available only for staff members."""
   onlyForStaff: Boolean!
 
