@@ -26,7 +26,6 @@ def promotion_converted_from_sale_list(channel_USD):
             for promotion, value in zip(promotions, values)
         ]
     )
-    PromotionRule.objects.bulk_create(rules)
     PromotionRuleChannel = PromotionRule.channels.through
 
     rules_channels = [
