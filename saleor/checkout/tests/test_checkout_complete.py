@@ -1448,6 +1448,7 @@ def test_complete_checkout_action_required_voucher_single_use(
         voucher_code=code, customer_email=customer_user.email
     )
     assert not order
+
     assert action_required is True
     assert not voucher_customer.exists()
     mocked_create_order.assert_not_called()
