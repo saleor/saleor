@@ -99,7 +99,7 @@ class VoucherInput(BaseInputObjectType):
         )
     )
     usage_limit = graphene.Int(
-        description=("Limit number of times this voucher can be used in total.")
+        description="Limit number of times this voucher can be used in total."
     )
 
     class Meta:
