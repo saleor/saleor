@@ -56,7 +56,6 @@ class Command(BaseCommand):
                 target_url,
                 json=data,
                 headers=headers,
-                timeout=15,
                 allow_redirects=False,
             )
         except RequestException as e:

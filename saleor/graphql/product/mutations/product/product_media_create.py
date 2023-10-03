@@ -111,7 +111,7 @@ class ProductMediaCreate(BaseMutation):
                 )
                 filename = get_filename_from_url(media_url)
                 image_data = HTTPClient.send_request(
-                    "GET", media_url, stream=True, timeout=30, allow_redirects=False
+                    "GET", media_url, stream=True, allow_redirects=False
                 )
                 image_file = File(image_data.raw, filename)
                 media = product.media.create(
