@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pytest
 from freezegun import freeze_time
 
-from ..metadata.utils import update_metadata, update_private_metadata
+from ..metadata.utils import update_metadata
 from ..promotions.utils import create_promotion, promotions_query
 from ..sales.utils import create_sale
 from ..utils import assign_permissions
@@ -13,7 +13,7 @@ from ..utils import assign_permissions
 
 # Step 1 - Promotions with the parameter: first: 10
 @pytest.mark.e2e
-def test_query_promotions_first_10_CORE_2118(
+def test_step_1_query_promotions_first_10_CORE_2118(
     e2e_staff_api_client,
     permission_manage_discounts,
 ):
@@ -33,7 +33,7 @@ def test_query_promotions_first_10_CORE_2118(
 
 # Step 2 - Returns 10 promotions with CREATED_AT in descending order
 @pytest.mark.e2e
-def test_query_promotions_first_10_created_at_CORE_2118(
+def test_step_2_query_promotions_first_10_created_at_CORE_2118(
     e2e_staff_api_client,
     permission_manage_discounts,
 ):
@@ -70,7 +70,7 @@ def test_query_promotions_first_10_created_at_CORE_2118(
 
 # Step 3 - Returns 10 promotions with startDate before a date in descending order
 @pytest.mark.e2e
-def test_query_promotions_first_10_start_date_before_CORE_2118(
+def test_step_3_query_promotions_first_10_start_date_before_CORE_2118(
     e2e_staff_api_client,
     permission_manage_discounts,
 ):
@@ -94,11 +94,12 @@ def test_query_promotions_first_10_start_date_before_CORE_2118(
 
     promotions_list = promotions_query(
         e2e_staff_api_client,
+        first=11,
         sort_by={
             "field": "START_DATE",
             "direction": "DESC",
         },
-        where={"startDate": {"lte": "2023-07-28T14:01:34.061119+00:00"}},
+        where={"startDate": {"range": {"lte": "2023-07-28T14:01:34.061119+00:00"}}},
     )
 
     assert len(promotions_list) == 10
@@ -126,29 +127,24 @@ def test_step_4_old_sales_CORE_2118(
         [permission_manage_discounts],
     )
 
-    sale_id = None
-
     for i in range(10):
         sale_name = f"Old sale {i + 1}"
-        sale_data = create_sale(
+        create_sale(
             e2e_staff_api_client,
             sale_name,
             sale_type="FIXED",
         )
-        sale_id = sale_data["id"]
-        assert sale_id is not None
 
     promotion_dnm = create_promotion(e2e_staff_api_client, "Promotion does not match")
 
     old_sale_promotions = promotions_query(
         e2e_staff_api_client,
+        first=11,
         where={"isOldSale": True},
     )
     assert len(old_sale_promotions) == 10
-    assert sale_id is not None
 
     for i in range(10):
-        assert old_sale_promotions[i]["node"] != sale_id
         assert old_sale_promotions[i]["node"]["id"] != promotion_dnm["id"]
 
 
@@ -163,7 +159,6 @@ def test_step_5_promotions_with_metadata_CORE_211(
         [permission_manage_discounts],
     )
 
-    promotion_id = None
     metadata = []
 
     for i in range(10):
@@ -180,23 +175,19 @@ def test_step_5_promotions_with_metadata_CORE_211(
         )
     promotion_dnm = create_promotion(e2e_staff_api_client, "Promotion does not match")
 
-    promotions_list = promotions_query(e2e_staff_api_client, first=10)
-
-    assert len(promotions_list) == 10
-
     promotions_list = promotions_query(
-        e2e_staff_api_client, where={"metadata": [{"key": "pub"}]}
+        e2e_staff_api_client, first=11, where={"metadata": [{"key": "pub"}]}
     )
     assert len(promotions_list) == 10
 
-    for i in range(1, len(promotions_list)):
+    for i in range(10):
         assert promotions_list[i]["node"]["metadata"] == metadata
         assert promotions_list[i]["node"]["id"] != promotion_dnm["id"]
 
 
-# Step 6 - Returns 10 promotions with one of the names
+# Step 6 - Returns promotions with one of the names
 @pytest.mark.e2e
-def test_step_7_promotions_with_one_of_names_CORE_2118(
+def test_step_6_promotions_with_one_of_names_CORE_2118(
     e2e_staff_api_client,
     permission_manage_discounts,
 ):
@@ -205,25 +196,29 @@ def test_step_7_promotions_with_one_of_names_CORE_2118(
         [permission_manage_discounts],
     )
 
-    for i in range(10):
+    for i in range(3):
         promotion_name = f"Promotion {i + 1}"
+        create_promotion(
+            e2e_staff_api_client,
+            promotion_name,
+        )
+    for i in range(3):
+        promotion_name = f"Test {i + 1}"
         create_promotion(
             e2e_staff_api_client,
             promotion_name,
         )
     promotions_list = promotions_query(
         e2e_staff_api_client,
-        where={"name": {"oneOf": ["Promotion", "Test"]}},
+        sort_by={"field": "NAME", "direction": "ASC"},
+        where={"name": {"oneOf": ["Promotion 2", "Test 3"]}},
     )
-    assert len(promotions_list) == 10
-
-    for i in range(10, len(promotions_list)):
-        assert all(
-            promotion["node"]["name"] == "Promotion" for promotion in promotions_list
-        )
+    assert len(promotions_list) == 2
+    assert promotions_list[0]["node"]["name"] == "Promotion 2"
+    assert promotions_list[1]["node"]["name"] == "Test 3"
 
 
-# Step 7 - Returns 10 promotions with name equal to
+# Step 7 - Returns promotions with name equal to
 @pytest.mark.e2e
 def test_step_7_promotions_with_name_eq_CORE_2118(
     e2e_staff_api_client,
@@ -233,7 +228,7 @@ def test_step_7_promotions_with_name_eq_CORE_2118(
         e2e_staff_api_client,
         [permission_manage_discounts],
     )
-    for i in range(10):
+    for i in range(3):
         promotion_name = f"Promotion {i + 1}"
         create_promotion(
             e2e_staff_api_client,
@@ -241,19 +236,16 @@ def test_step_7_promotions_with_name_eq_CORE_2118(
         )
     promotions_list = promotions_query(
         e2e_staff_api_client,
-        where={"name": {"eq": "Promotion"}},
+        first=4,
+        where={"name": {"eq": "Promotion 3"}},
     )
-    assert len(promotions_list) == 10
-
-    for i in range(10, len(promotions_list)):
-        assert all(
-            promotion["node"]["name"] == "Promotion" for promotion in promotions_list
-        )
+    assert len(promotions_list) == 1
+    assert promotions_list[0]["node"]["name"] == "Promotion 3"
 
 
-# Step 8 - Returns 10 old sale promotions with a name
+# Step 8 - Returns old sale promotions with a name
 @pytest.mark.e2e
-def test_step_8_old_sale_promotions_with_name_CORE_2118(
+def test_step_8_query_old_sales_with_name_CORE_2118(
     e2e_staff_api_client,
     permission_manage_discounts,
 ):
@@ -262,39 +254,29 @@ def test_step_8_old_sale_promotions_with_name_CORE_2118(
         [permission_manage_discounts],
     )
 
-    sale_id = None
-
-    for i in range(10):
+    for i in range(3):
         sale_name = f"Old sale {i + 1}"
-        sale_data = create_sale(
+        create_sale(
             e2e_staff_api_client,
             sale_name,
             sale_type="FIXED",
         )
-        sale_id = sale_data["id"]
-        assert sale_id is not None
-    old_sale_promotions = promotions_query(
-        e2e_staff_api_client,
-        where={"isOldSale": True},
-    )
-    assert len(old_sale_promotions) == 10
-    assert sale_id is not None
+
+    promotion_dnm = create_promotion(e2e_staff_api_client, "Old sale 2")
+
     promotions = promotions_query(
         e2e_staff_api_client,
-        where={"AND": [{"name": {"eq": "Old Sale"}}, {"isOldSale": True}]},
+        first=4,
+        where={"AND": [{"name": {"eq": "Old sale 2"}}, {"isOldSale": True}]},
     )
-    assert len(promotions) == 10
-
-    assert sale_id is not None
-
-    for i in range(10, len(promotions)):
-        assert promotions[i]["node"] != sale_id
-        assert all(promotion["node"]["name"] == "Old Sale" for promotion in promotions)
+    assert len(promotions) == 1
+    assert promotions[0]["node"]["name"] == "Old sale 2"
+    assert promotions[0]["node"]["id"] != promotion_dnm["id"]
 
 
 # Step 9 - Returns 10 old sale promotions with one of the names
 @pytest.mark.e2e
-def test_step_9_old_sale_promotions_with_one_of_the_names_CORE_2118(
+def test_step_9_query_old_sales_with_one_of_the_names_CORE_2118(
     e2e_staff_api_client,
     permission_manage_discounts,
 ):
@@ -302,82 +284,39 @@ def test_step_9_old_sale_promotions_with_one_of_the_names_CORE_2118(
         e2e_staff_api_client,
         [permission_manage_discounts],
     )
-    sale_id = None
 
-    for i in range(10):
-        sale_name = f"Old sales {i + 1}"
-        sale_data = create_sale(
+    for i in range(3):
+        sale_name = f"Old sale {i + 1}"
+        create_sale(
             e2e_staff_api_client,
             sale_name,
             sale_type="FIXED",
         )
-        sale_id = sale_data["id"]
-        assert sale_id is not None
-    old_sale_promotions = promotions_query(
+    for i in range(3):
+        sale_name = f"Test {i + 1}"
+        create_sale(
+            e2e_staff_api_client,
+            sale_name,
+            sale_type="PERCENTAGE",
+        )
+
+    promotions_list = promotions_query(
         e2e_staff_api_client,
-        where={"isOldSale": True},
-    )
-    assert len(old_sale_promotions) == 10
-    assert sale_id is not None
-    promotions = promotions_query(
-        e2e_staff_api_client,
+        first=7,
+        sort_by={"field": "NAME", "direction": "ASC"},
         where={
-            "AND": [{"name": {"oneOf": ["Old sales", "Test"]}}, {"isOldSale": True}]
+            "AND": [{"name": {"oneOf": ["Old sale 2", "Test 3"]}}, {"isOldSale": True}]
         },
     )
-    assert len(promotions) == 10
 
-    assert sale_id is not None
-
-    for i in range(10, len(promotions)):
-        assert promotions[i]["node"] != sale_id
-        assert all(promotion["node"]["name"] == "Old Sales" for promotion in promotions)
+    assert len(promotions_list) == 2
+    assert promotions_list[0]["node"]["name"] == "Old sale 2"
+    assert promotions_list[1]["node"]["name"] == "Test 3"
 
 
-# Step 10 - Returns 10 promotions with private metadata
+# Step 10 - Returns promotions with end date after a date
 @pytest.mark.e2e
-def test_step_10_promotions_with_private_metadata_CORE_2118(
-    e2e_staff_api_client,
-    permission_manage_discounts,
-):
-    assign_permissions(
-        e2e_staff_api_client,
-        [permission_manage_discounts],
-    )
-    private_metadata = []
-
-    for i in range(10):
-        promotion_name = f"Promotion with metadata {i + 1}"
-        promotion_with_priv_metadata = create_promotion(
-            e2e_staff_api_client,
-            promotion_name,
-        )
-        promotion_id = promotion_with_priv_metadata["id"]
-        assert promotion_id is not None
-
-        private_metadata = [{"key": "priv", "value": "test"}]
-        update_private_metadata(
-            e2e_staff_api_client,
-            promotion_id,
-            private_metadata,
-        )
-
-    promotion_list = promotions_query(
-        e2e_staff_api_client,
-        where={"privateMetadata": private_metadata},
-    )
-    assert len(promotion_list) == 10
-
-    for i in range(10, len(promotion_list)):
-        assert all(
-            promotion["node"]["privateMetadata"] == private_metadata
-            for promotion in promotion_list
-        )
-
-
-# Step 11 - Returns promotions with end date after a date
-@pytest.mark.e2e
-def test_step_11_promotions_with_end_date_after_CORE_2118(
+def test_step_10_promotions_with_end_date_after_CORE_2118(
     e2e_staff_api_client,
     permission_manage_discounts,
 ):
@@ -403,28 +342,43 @@ def test_step_11_promotions_with_end_date_after_CORE_2118(
             )
             assert promotion["endDate"] == end_date
 
+    promotion_dnm = create_promotion(
+        e2e_staff_api_client,
+        "Promotion does not match",
+        end_date="2024-12-31T21:00:00.000000+00:00",
+    )
+
     promotions_list = promotions_query(
         e2e_staff_api_client,
+        first=11,
         sort_by={
-            "field": "CREATED_AT",
+            "field": "END_DATE",
             "direction": "DESC",
         },
-        where={"endDate": {"gt": "2023-07-28T14:01:34.061119+00:00"}},
+        where={
+            "endDate": {
+                "range": {
+                    "gte": "2023-07-28T14:01:34.061119+00:00",
+                    "lte": "2023-11-08T10:19:50.812975+00:00",
+                }
+            }
+        },
     )
 
     assert len(promotions_list) == 10
 
-    for i in range(10, len(promotions_list)):
+    for i in range(1, len(promotions_list)):
         prev_promotion = promotions_list[i - 1]["node"]
         current_promotion = promotions_list[i]["node"]
         prev_promo_end_date = datetime.fromisoformat(prev_promotion["endDate"])
         current_promo_end_date = datetime.fromisoformat(current_promotion["endDate"])
-        assert prev_promo_end_date >= current_promo_end_date
+        assert prev_promo_end_date > current_promo_end_date
+        assert current_promotion["id"] != promotion_dnm["id"]
 
 
-# Step 12 - Returns promotions with no end date
+# Step 11 - Returns promotions with no end date
 @pytest.mark.e2e
-def test_step_12_promotions_with_no_date_CORE_2118(
+def test_step_11_promotions_with_no_date_CORE_2118(
     e2e_staff_api_client,
     permission_manage_discounts,
 ):
@@ -436,8 +390,24 @@ def test_step_12_promotions_with_no_date_CORE_2118(
         promotion_name = f"Promotion without end date {i + 1}"
         promotion = create_promotion(e2e_staff_api_client, promotion_name)
         assert promotion["endDate"] is None
+
+    base_date = datetime(2023, 1, 1, 14, 1, 34, 61119)
+    now = base_date.isoformat()
+
+    with freeze_time(now):
+        end_date = datetime.fromisoformat(
+            "2023-10-08T10:19:50.812975+00:00"
+        ).isoformat()
+        promotion_dnm = create_promotion(
+            e2e_staff_api_client,
+            promotion_name="With end date",
+            start_date="2023-10-04T00:00:00+02:00",
+            end_date=end_date,
+        )
+
     promotions_list = promotions_query(
         e2e_staff_api_client,
+        first=11,
         sort_by={
             "field": "CREATED_AT",
             "direction": "DESC",
@@ -447,7 +417,6 @@ def test_step_12_promotions_with_no_date_CORE_2118(
 
     assert len(promotions_list) == 10
 
-    for i in range(10, len(promotions_list)):
-        assert all(
-            promotion["node"]["endDate"] is None for promotion in promotions_list
-        )
+    for i in range(10):
+        assert promotions_list[i]["node"]["endDate"] is None
+        assert promotions_list[i]["node"]["id"] != promotion_dnm["id"]

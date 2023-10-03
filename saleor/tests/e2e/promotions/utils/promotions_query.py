@@ -1,43 +1,43 @@
 from ...utils import get_graphql_content
 
 PROMOTIONS_QUERY = """
-query Promotions(
-    $first: Int,
-    $sortBy: PromotionSortingInput,
-    ) {
-        promotions(first: $first, sortBy: $sortBy) {
-            totalCount
-            edges {
-                node {
-                    id
-                    events {
-                    __typename
-                }
-                    name
-                    createdAt
-                    startDate
-                    endDate
-                    metadata {
-                        key value
-                    }
-                    privateMetadata {
-                        key value
-                    }
-                    rules {
-                        id
-                        name
-                        description
-                        rewardValueType
-                        cataloguePredicate
-                        rewardValue
-                        channels {
-                            name
-                        }
-                    }
-                }
-            }
+query Promotions($first: Int, $sortBy: PromotionSortingInput,
+$where: PromotionWhereInput) {
+  promotions(first: $first, sortBy: $sortBy, where: $where) {
+    totalCount
+    edges {
+      node {
+        id
+        events {
+          __typename
         }
+        name
+        createdAt
+        startDate
+        endDate
+        metadata {
+          key
+          value
+        }
+        privateMetadata {
+          key
+          value
+        }
+        rules {
+          id
+          name
+          description
+          rewardValueType
+          cataloguePredicate
+          rewardValue
+          channels {
+            name
+          }
+        }
+      }
     }
+  }
+}
 """
 
 
