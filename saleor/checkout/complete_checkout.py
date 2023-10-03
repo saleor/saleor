@@ -38,6 +38,7 @@ from ..discount.models import NotApplicable, OrderLineDiscount
 from ..discount.utils import (
     add_voucher_usage_by_customer,
     get_sale_id,
+    deactivate_voucher_code,
     increase_voucher_code_usage,
     prepare_promotion_discount_reason,
     release_voucher_code_usage,
@@ -125,6 +126,8 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     if voucher.apply_once_per_customer:
         customer_email = cast(str, checkout_info.get_customer_email())
         add_voucher_usage_by_customer(code, customer_email)
+    if voucher.single_use:
+        deactivate_voucher_code(code)
     return {
         "voucher": voucher,
     }
@@ -989,6 +992,9 @@ def _increase_voucher_code_usage(checkout_info: "CheckoutInfo"):
     if voucher.usage_limit:
         increase_voucher_code_usage(code)
 
+    if voucher.single_use:
+        deactivate_voucher_code(code)
+
     return code
 
 
@@ -1503,6 +1509,8 @@ def complete_checkout_with_payment(
     # who potentially can order the same product variants.
     txn = None
     channel_slug = checkout_info.channel.slug
+    voucher = checkout_info.voucher
+    voucher_code = checkout_info.voucher_code
     if payment:
         txn = _process_payment(
             payment=payment,
@@ -1541,6 +1549,11 @@ def complete_checkout_with_payment(
         # for correct data.
         lines, _ = fetch_checkout_lines(checkout, skip_recalculation=True)
         checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+        # reassign voucher data that was used during payment process to allow voucher
+        # usage releasing in case of checkout complete failure
+        checkout_info.voucher = voucher
+        checkout_info.voucher_code = voucher_code
 
         order, action_required, action_data = complete_checkout_post_payment_part(
             manager=manager,

@@ -1393,6 +1393,70 @@ def test_complete_checkout_action_required_voucher_once_per_customer(
 
 
 @mock.patch("saleor.checkout.complete_checkout._create_order")
+@mock.patch("saleor.checkout.complete_checkout._process_payment")
+def test_complete_checkout_action_required_voucher_single_use(
+    mocked_process_payment,
+    mocked_create_order,
+    voucher,
+    customer_user,
+    checkout,
+    app,
+    payment_txn_to_confirm,
+    action_required_gateway_response,
+):
+    # given
+    mocked_process_payment.return_value = action_required_gateway_response
+
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+    )
+    payment.to_confirm = True
+    payment.save()
+
+    code = voucher.codes.first()
+
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+    checkout.voucher_code = code.code
+    checkout.save()
+
+    voucher.single_use = True
+    voucher.save(update_fields=["single_use"])
+
+    assert code.is_active
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    order, action_required, _ = complete_checkout(
+        checkout_info=checkout_info,
+        lines=lines,
+        manager=manager,
+        payment_data={},
+        store_source=False,
+        user=customer_user,
+        app=app,
+    )
+
+    # then
+    voucher_customer = VoucherCustomer.objects.filter(
+        voucher_code=code, customer_email=customer_user.email
+    )
+    assert not order
+    assert action_required is True
+    assert not voucher_customer.exists()
+    mocked_create_order.assert_not_called()
+
+    code.refresh_from_db()
+    assert code.is_active is True
+
+
+@mock.patch("saleor.checkout.complete_checkout._create_order")
 def test_complete_checkout_order_not_created_when_the_refund_is_ongoing(
     mocked_create_order,
     customer_user,
