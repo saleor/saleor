@@ -2404,7 +2404,7 @@ def non_default_category(db):  # pylint: disable=W0613
 
 @pytest.fixture
 def permission_manage_discounts():
-    return Permission.objects.get(codename="manage_discounts")
+    return Permission.objects.filter(codename="manage_discounts").order_by("pk").last()
 
 
 @pytest.fixture
