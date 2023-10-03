@@ -62,6 +62,18 @@ def decrease_voucher_code_usage(code: "VoucherCode") -> None:
     code.save(update_fields=["used"])
 
 
+def deactivate_voucher_code(code: "VoucherCode") -> None:
+    """Mark voucher code as used."""
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+
+def activate_voucher_code(code: "VoucherCode") -> None:
+    """Mark voucher code as unused."""
+    code.is_active = True
+    code.save(update_fields=["is_active"])
+
+
 def add_voucher_usage_by_customer(code: "VoucherCode", customer_email: str) -> None:
     _, created = VoucherCustomer.objects.get_or_create(
         voucher_code=code, customer_email=customer_email
@@ -87,6 +99,8 @@ def release_voucher_code_usage(
         return
     if voucher and voucher.usage_limit:
         decrease_voucher_code_usage(code)
+    if voucher and voucher.single_use:
+        activate_voucher_code(code)
     if user_email:
         remove_voucher_usage_by_customer(code, user_email)
 
