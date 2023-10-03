@@ -15,6 +15,7 @@ from typing import (
 )
 
 import graphene
+from django.conf import settings
 
 from ...app.models import App
 from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
@@ -2446,12 +2447,16 @@ class WebhookPlugin(BasePlugin):
 
         if payment_app_data is not None:
             if payment_app_data.app_identifier:
-                apps = App.objects.for_event_type(event_type).filter(
-                    identifier=payment_app_data.app_identifier
+                apps = (
+                    App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+                    .for_event_type(event_type)
+                    .filter(identifier=payment_app_data.app_identifier)
                 )
             else:
-                apps = App.objects.for_event_type(event_type).filter(
-                    pk=payment_app_data.app_pk
+                apps = (
+                    App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+                    .for_event_type(event_type)
+                    .filter(pk=payment_app_data.app_pk)
                 )
 
         if not apps:
