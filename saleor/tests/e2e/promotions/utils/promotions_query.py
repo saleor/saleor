@@ -44,7 +44,7 @@ query Promotions(
 def promotions_query(
     staff_api_client,
     first=10,
-    sort_by={"field": "CREATED_AT", "direction": "DESC"},
+    sort_by=None,
     where=None,
 ):
     variables = {

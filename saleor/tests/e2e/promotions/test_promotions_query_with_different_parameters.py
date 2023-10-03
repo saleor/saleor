@@ -22,7 +22,7 @@ def test_query_promotions_first_10_CORE_2118(
         [permission_manage_discounts],
     )
 
-    for i in range(10):
+    for i in range(11):
         promotion_name = f"Promotion first {i + 1}"
         create_promotion(e2e_staff_api_client, promotion_name)
 
@@ -42,15 +42,11 @@ def test_query_promotions_first_10_created_at_CORE_2118(
         [permission_manage_discounts],
     )
 
-    base_date = datetime(2023, 1, 1, 14, 1, 34, 61119)
-    created_at = [
-        (base_date + timedelta(days=i)).isoformat() + "+00:00" for i in range(10)
-    ]
-    with freeze_time(base_date):
-        for i in range(10):
-            promotion_name = f"Promotion first {i + 1}"
-            promotion = create_promotion(e2e_staff_api_client, promotion_name)
-            promotion["createdAt"] = created_at
+    promotion_dnm = create_promotion(e2e_staff_api_client, "Promotion does not match")
+
+    for i in range(10):
+        promotion_name = f"Promotion {i + 1}"
+        create_promotion(e2e_staff_api_client, promotion_name)
 
     promotions_list = promotions_query(
         e2e_staff_api_client,
@@ -60,7 +56,7 @@ def test_query_promotions_first_10_created_at_CORE_2118(
 
     assert len(promotions_list) == 10
 
-    for i in range(10, len(promotions_list)):
+    for i in range(1, len(promotions_list)):
         prev_promotion = promotions_list[i - 1]["node"]
         current_promotion = promotions_list[i]["node"]
 
@@ -68,7 +64,8 @@ def test_query_promotions_first_10_created_at_CORE_2118(
         current_promo_created_at = datetime.fromisoformat(
             current_promotion["createdAt"]
         )
-        assert prev_promo_created_at >= current_promo_created_at
+        assert current_promotion["id"] != promotion_dnm["id"]
+        assert prev_promo_created_at > current_promo_created_at
 
 
 # Step 3 - Returns 10 promotions with startDate before a date in descending order
@@ -81,6 +78,8 @@ def test_query_promotions_first_10_start_date_before_CORE_2118(
         e2e_staff_api_client,
         [permission_manage_discounts],
     )
+
+    promotion_dnm = create_promotion(e2e_staff_api_client, "Promotion does not match")
 
     base_date = datetime(2023, 1, 1, 14, 1, 34, 61119)
 
@@ -96,7 +95,7 @@ def test_query_promotions_first_10_start_date_before_CORE_2118(
     promotions_list = promotions_query(
         e2e_staff_api_client,
         sort_by={
-            "field": "CREATED_AT",
+            "field": "START_DATE",
             "direction": "DESC",
         },
         where={"startDate": {"lte": "2023-07-28T14:01:34.061119+00:00"}},
@@ -104,7 +103,7 @@ def test_query_promotions_first_10_start_date_before_CORE_2118(
 
     assert len(promotions_list) == 10
 
-    for i in range(10, len(promotions_list)):
+    for i in range(1, len(promotions_list)):
         prev_promotion = promotions_list[i - 1]["node"]
         current_promotion = promotions_list[i]["node"]
 
@@ -113,6 +112,7 @@ def test_query_promotions_first_10_start_date_before_CORE_2118(
             current_promotion["startDate"]
         )
         assert prev_promo_start_date >= current_promo_start_date
+        assert current_promotion["id"] != promotion_dnm["id"]
 
 
 # Step 4 - Returns 10 old sale promotions in descending order
@@ -137,6 +137,9 @@ def test_step_4_old_sales_CORE_2118(
         )
         sale_id = sale_data["id"]
         assert sale_id is not None
+
+    promotion_dnm = create_promotion(e2e_staff_api_client, "Promotion does not match")
+
     old_sale_promotions = promotions_query(
         e2e_staff_api_client,
         where={"isOldSale": True},
@@ -144,8 +147,9 @@ def test_step_4_old_sales_CORE_2118(
     assert len(old_sale_promotions) == 10
     assert sale_id is not None
 
-    for i in range(10, len(old_sale_promotions)):
+    for i in range(10):
         assert old_sale_promotions[i]["node"] != sale_id
+        assert old_sale_promotions[i]["node"]["id"] != promotion_dnm["id"]
 
 
 # Step 5 - Returns 10 promotions with metadata
@@ -174,21 +178,20 @@ def test_step_5_promotions_with_metadata_CORE_211(
             promotion_id,
             metadata,
         )
+    promotion_dnm = create_promotion(e2e_staff_api_client, "Promotion does not match")
 
     promotions_list = promotions_query(e2e_staff_api_client, first=10)
 
     assert len(promotions_list) == 10
 
     promotions_list = promotions_query(
-        e2e_staff_api_client,
-        where={"metadata": metadata},
+        e2e_staff_api_client, where={"metadata": [{"key": "pub"}]}
     )
     assert len(promotions_list) == 10
 
-    for i in range(10, len(promotions_list)):
-        assert all(
-            promotion["node"]["metadata"] == metadata for promotion in promotions_list
-        )
+    for i in range(1, len(promotions_list)):
+        assert promotions_list[i]["node"]["metadata"] == metadata
+        assert promotions_list[i]["node"]["id"] != promotion_dnm["id"]
 
 
 # Step 6 - Returns 10 promotions with one of the names
