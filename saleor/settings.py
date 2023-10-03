@@ -545,7 +545,10 @@ BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = timedelta(
 
 # Defines after how many seconds should the task triggered by the Celery beat
 # entry 'update-products-search-vectors' expire if it wasn't picked up by a worker.
-BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC = 20
+BEAT_UPDATE_SEARCH_SEC = parse(
+    os.environ.get("BEAT_UPDATE_SEARCH_FREQUENCY", "20 seconds")
+)
+BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC = BEAT_UPDATE_SEARCH_SEC
 
 # Defines the Celery beat scheduler entries.
 #
@@ -596,12 +599,12 @@ CELERY_BEAT_SCHEDULE = {
     },
     "update-products-search-vectors": {
         "task": "saleor.product.tasks.update_products_search_vector_task",
-        "schedule": timedelta(seconds=20),
+        "schedule": timedelta(seconds=BEAT_UPDATE_SEARCH_SEC),
         "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
     },
     "update-gift-cards-search-vectors": {
         "task": "saleor.giftcard.tasks.update_gift_cards_search_vector_task",
-        "schedule": timedelta(seconds=20),
+        "schedule": timedelta(seconds=BEAT_UPDATE_SEARCH_SEC),
         "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
     },
     "expire-orders": {
