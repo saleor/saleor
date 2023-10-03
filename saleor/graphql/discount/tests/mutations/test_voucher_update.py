@@ -44,6 +44,7 @@ mutation voucherUpdate($id: ID!, $input: VoucherInput!) {
                 endDate
                 applyOncePerOrder
                 applyOncePerCustomer
+                singleUse
             }
         }
     }
@@ -53,9 +54,10 @@ mutation voucherUpdate($id: ID!, $input: VoucherInput!) {
 def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     # given
     apply_once_per_order = not voucher.apply_once_per_order
+    single_use = not voucher.single_use
     # Set discount value type to 'fixed' and change it in mutation
     voucher.discount_value_type = DiscountValueType.FIXED
-    voucher.save()
+    voucher.save(update_fields=["discount_value_type"])
     assert voucher.codes.count() == 1
 
     new_code = "newCode"
@@ -67,6 +69,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
                 {"code": new_code},
             ],
             "usageLimit": 10,
+            "singleUse": single_use,
             "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
             "applyOncePerOrder": apply_once_per_order,
             "minCheckoutItemsQuantity": 10,
@@ -86,6 +89,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert len(data["codes"]["edges"]) == 2
     assert data["discountValueType"] == DiscountValueType.PERCENTAGE.upper()
     assert data["applyOncePerOrder"] == apply_once_per_order
+    assert data["singleUse"] == single_use
     assert data["minCheckoutItemsQuantity"] == 10
     assert data["usageLimit"] == 10
     assert data["codes"]["edges"][1]["node"]["code"] == new_code

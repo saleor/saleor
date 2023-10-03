@@ -102,6 +102,7 @@ class Voucher(ModelWithMetadata):
     # individually to every item
     apply_once_per_order = models.BooleanField(default=False)
     apply_once_per_customer = models.BooleanField(default=False)
+    single_use = models.BooleanField(default=False)
 
     only_for_staff = models.BooleanField(default=False)
 
