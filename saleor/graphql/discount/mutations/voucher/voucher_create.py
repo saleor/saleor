@@ -85,8 +85,14 @@ class VoucherInput(BaseInputObjectType):
     only_for_staff = graphene.Boolean(
         description="Voucher can be used only by staff user."
     )
+    single_use = graphene.Boolean(
+        description=(
+            "When set to 'True', each voucher is limited to a single use; "
+            "otherwise, usage remains unrestricted." + ADDED_IN_318
+        )
+    )
     usage_limit = graphene.Int(
-        description=("Limit number of times this voucher can be used in total.")
+        description="Limit number of times this voucher can be used in total."
     )
 
     class Meta:
