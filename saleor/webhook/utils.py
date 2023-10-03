@@ -32,9 +32,9 @@ def get_webhooks_for_event(
     # no risk that any mutation would change the result of these querysets.
 
     if webhooks is None:
-        webhooks = Webhook.objects.using(
-            settings.DATABASE_CONNECTION_REPLICA_NAME
-        ).all()
+        # For this QS replica usage is applied later, as this QS could be also passed
+        # as parameter.
+        webhooks = Webhook.objects.all()
 
     app_kwargs: dict = {"is_active": True, **permissions}
     if apps_ids:
@@ -53,7 +53,8 @@ def get_webhooks_for_event(
         settings.DATABASE_CONNECTION_REPLICA_NAME
     ).filter(event_type__in=event_types)
     return (
-        webhooks.filter(
+        webhooks.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(
             Q(is_active=True, app__in=apps)
             & Q(Exists(webhook_events.filter(webhook_id=OuterRef("id"))))
         )
