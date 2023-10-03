@@ -852,6 +852,42 @@ def test_checkout_with_voucher_not_applicable(
     assert data["errors"][0]["code"] == CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.name
 
 
+def test_checkout_with_voucher_inactive_code(
+    user_api_client,
+    checkout_with_item_and_voucher,
+    voucher,
+    address,
+    shipping_method,
+    transaction_item_generator,
+    transaction_events_generator,
+):
+    # given
+    code = voucher.codes.first()
+    checkout = prepare_checkout_for_test(
+        checkout_with_item_and_voucher,
+        address,
+        address,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+    )
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert data["errors"][0]["field"] == "voucherCode"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.name
+
+
 def test_checkout_with_insufficient_stock(
     user_api_client,
     checkout_with_item,
@@ -1691,6 +1727,85 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+
+
+@pytest.mark.integration
+def test_checkout_complete_with_voucher_single_use(
+    user_api_client,
+    checkout_with_voucher_percentage,
+    voucher_percentage,
+    address,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+):
+    # given
+    code = voucher_percentage.codes.first()
+    checkout = prepare_checkout_for_test(
+        checkout_with_voucher_percentage,
+        address,
+        address,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+    )
+    voucher_percentage.single_use = True
+    voucher_percentage.save(update_fields=["single_use"])
+
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    checkout.metadata_storage.save()
+
+    discount_amount = checkout.discount
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
+    assert Order.objects.count() == 1
+    order = Order.objects.first()
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
+    assert order.metadata == checkout.metadata_storage.metadata
+    assert order.private_metadata == checkout.metadata_storage.private_metadata
+
+    assert order.total == total
+    assert order.undiscounted_total == total + discount_amount
+
+    code.refresh_from_db()
+    order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
+    assert order_discount
+    assert (
+        order_discount.amount_value
+        == (order.undiscounted_total - order.total).gross.amount
+    )
+    code.refresh_from_db()
+    assert code.is_active is False
 
     assert not Checkout.objects.filter(
         pk=checkout.pk

@@ -109,6 +109,13 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
         description="Determine if the voucher usage should be limited to one use per "
         "customer.",
     )
+    single_use = graphene.Boolean(
+        required=True,
+        description=(
+            "Determine if the voucher is limited to a single use or unlimited use."
+            + ADDED_IN_318
+        ),
+    )
     only_for_staff = graphene.Boolean(
         required=True,
         description="Determine if the voucher is available only for staff members.",
