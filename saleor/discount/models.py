@@ -371,6 +371,13 @@ class Promotion(ModelWithMetadata):
 
     class Meta:
         ordering = ("name", "pk")
+        app_label = "discount"
+        permissions = (
+            (
+                DiscountPermissions.MANAGE_DISCOUNTS.codename,
+                "Manage promotions and vouchers.",
+            ),
+        )
 
     def is_active(self, date=None):
         if date is None:
