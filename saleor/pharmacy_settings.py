@@ -268,7 +268,7 @@ INSTALLED_APPS = [
     "saleor.app",
     "saleor.thumbnail",
     "saleor.schedulers",
-    # "saleor.pharmacy",
+    "saleor.pharmacy",
     # External apps
     "django_measurement",
     "django_prices",
