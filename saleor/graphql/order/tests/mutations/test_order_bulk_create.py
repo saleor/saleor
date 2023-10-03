@@ -2424,6 +2424,44 @@ def test_order_bulk_create_error_get_instance_with_no_keys(
     assert Order.objects.count() == orders_count
 
 
+def test_order_bulk_create_no_user_input_provided_ignore_failed_policy(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["user"]["id"] = None
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert (
+        error["message"] == "One of [id, email, external_reference] arguments"
+        " must be provided to resolve User instance."
+    )
+    assert error["path"] == "user"
+    assert error["code"] == OrderBulkCreateErrorCode.REQUIRED.name
+    db_order = Order.objects.get()
+    assert not db_order.user
+
+
 def test_order_bulk_create_error_invalid_quantity(
     staff_api_client,
     permission_manage_orders,

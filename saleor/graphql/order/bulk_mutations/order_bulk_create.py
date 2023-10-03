@@ -1021,7 +1021,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.shipping_address = shipping_address
         order_data.voucher = voucher
 
-        if not (user or user_email) or not channel or not billing_address:
+        if not channel or not billing_address:
             order_data.is_critical_error = True
 
         return
@@ -1896,7 +1896,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order_data.user.email
             if order_data.user
             else order_input["user"].get("email")
-        )
+        ) or ""
         order_data.order.collection_point = delivery_method.warehouse
         order_data.order.collection_point_name = delivery_method.warehouse_name
         order_data.order.shipping_method = delivery_method.shipping_method
