@@ -78,6 +78,11 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+- **Feature preview breaking change**:
+  - `orderBulkCreate` now will attempt to create order with `IGNORE_FAILED` policy even if: - #14177 by @kadewu
+    - `User` cannot be resolved, and `email` wasn't provided.
+    - `Variant` wasn't provided.
+
 ### GraphQL API
 
 ### Saleor Apps
