@@ -1,8 +1,9 @@
 from ...utils import get_graphql_content
 
 PROMOTIONS_QUERY = """
-query Promotions($first: Int, $sortBy: PromotionSortingInput) {
-  promotions(first: $first, sortBy: $sortBy) {
+query Promotions($first: Int, $sortBy: PromotionSortingInput,
+$where: PromotionWhereInput) {
+  promotions(first: $first, sortBy: $sortBy, where: $where) {
     totalCount
     edges {
       node {
@@ -12,6 +13,16 @@ query Promotions($first: Int, $sortBy: PromotionSortingInput) {
         }
         name
         createdAt
+        startDate
+        endDate
+        metadata {
+          key
+          value
+        }
+        privateMetadata {
+          key
+          value
+        }
         rules {
           id
           name
@@ -33,8 +44,14 @@ query Promotions($first: Int, $sortBy: PromotionSortingInput) {
 def promotions_query(
     staff_api_client,
     first=10,
+    sort_by=None,
+    where=None,
 ):
-    variables = {"first": first, "sortBy": {"field": "CREATED_AT", "direction": "DESC"}}
+    variables = {
+        "first": first,
+        "sortBy": sort_by,
+        "where": where,
+    }
 
     response = staff_api_client.post_graphql(
         PROMOTIONS_QUERY,
