@@ -35,6 +35,15 @@ class RuleInfo:
     channel_id: int
 
 
+@app.task()
+def remigrate_sales_to_promotions_task():
+    # we need to recreate promotions as the error was introduced in 3.16.5
+    # and promotion rules were not created for the promotions
+    if Promotion.objects.exists():
+        Promotion.objects.all().delete()
+        migrate_sales_to_promotions_task.delay()
+
+
 @app.task
 def migrate_sales_to_promotions_task():
     sales = Sale.objects.exclude(
