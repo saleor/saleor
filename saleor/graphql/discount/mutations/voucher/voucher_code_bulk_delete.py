@@ -63,10 +63,10 @@ class VoucherCodeBulkDelete(BaseMutation):
         return cleaned_ids
 
     @classmethod
-    def post_save_actions(cls, info, vouchers):
+    def post_save_actions(cls, info, vouchers_code_map):
         manager = get_plugin_manager_promise(info.context).get()
-        for voucher in vouchers:
-            cls.call_event(manager.voucher_updated, voucher, "")
+        for voucher, code in vouchers_code_map.items():
+            cls.call_event(manager.voucher_updated, voucher, code)
 
     @classmethod
     @traced_atomic_transaction()
@@ -82,9 +82,15 @@ class VoucherCodeBulkDelete(BaseMutation):
         )
 
         count = len(queryset)
-        vouchers = {code.voucher for code in queryset}
+
+        vouchers_code_map = {}
+
+        for code in queryset:
+            if code.voucher not in vouchers_code_map:
+                vouchers_code_map[code.voucher] = code.code
+
         queryset.delete()
 
-        cls.post_save_actions(info, vouchers)
+        cls.post_save_actions(info, vouchers_code_map)
 
         return VoucherCodeBulkDelete(count=count)

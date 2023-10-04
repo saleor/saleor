@@ -3924,8 +3924,7 @@ def voucher(voucher_without_channel, channel_USD):
 
 
 @pytest.fixture
-def voucher_with_many_codes(db):
-    voucher = Voucher.objects.create(name="ManyCodes")
+def voucher_with_many_codes(voucher):
     VoucherCode.objects.bulk_create(
         [
             VoucherCode(code="Multi1", voucher=voucher),
