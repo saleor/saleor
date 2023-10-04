@@ -28039,13 +28039,9 @@ type VoucherCodeBulkDeleteError @doc(category: "Discounts") {
 
 """An enumeration."""
 enum VoucherCodeBulkDeleteErrorCode @doc(category: "Discounts") {
-  ALREADY_EXISTS
   GRAPHQL_ERROR
-  INVALID
   NOT_FOUND
-  REQUIRED
-  UNIQUE
-  DUPLICATED_INPUT_ITEM
+  INVALID
 }
 
 """
