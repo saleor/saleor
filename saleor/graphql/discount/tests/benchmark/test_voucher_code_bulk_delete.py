@@ -17,23 +17,15 @@ VOUCHER_CODE_BULK_DELETE_MUTATION = """
 def test_voucher_code_bulk_delete(
     staff_api_client,
     permission_manage_discounts,
-    voucher,
+    voucher_with_many_codes,
     django_assert_num_queries,
     count_queries,
 ):
     # given
-    voucher.codes.create(code="voucher-1")
-    voucher.codes.create(code="voucher-2")
-    voucher.codes.create(code="voucher-3")
-    vouchers = voucher.codes.all()
-    assert len(vouchers) == 4
-
+    codes = voucher_with_many_codes.codes.all()
     staff_api_client.user.user_permissions.add(permission_manage_discounts)
 
-    ids = [
-        graphene.Node.to_global_id("VoucherCode", code.id)
-        for code in voucher.codes.all()
-    ]
+    ids = [graphene.Node.to_global_id("VoucherCode", code.id) for code in codes]
 
     variables = {"ids": ids[:1]}
 
