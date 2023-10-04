@@ -1709,12 +1709,17 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
                 return None
 
-            if (
+            line_variant_missmatch = (
                 variant
                 and order_line.line.variant
                 and order_line.line.variant.id != variant.id
-                or (variant and not order_line.line.variant)
-                or (not variant and order_line.line.variant)
+            )
+            missing_only_variant = not variant and order_line.line.variant
+            missing_only_line_variant = variant and not order_line.line.variant
+            if (
+                line_variant_missmatch
+                or missing_only_variant
+                or missing_only_line_variant
             ):
                 code = OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH
                 order_data.errors.append(
