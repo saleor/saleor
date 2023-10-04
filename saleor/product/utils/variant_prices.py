@@ -117,8 +117,11 @@ def _update_or_create_listings(
             changed_variants_listings_to_update, ["discounted_price_amount"]
         )
     if changed_variant_listing_promotion_rule_to_create:
+        # after migrating to Django 4.0 we should use `update_conflicts` instead
+        # of `ignore_conflicts`
+        # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#bulk-create
         VariantChannelListingPromotionRule.objects.bulk_create(
-            changed_variant_listing_promotion_rule_to_create
+            changed_variant_listing_promotion_rule_to_create, ignore_conflicts=True
         )
     if changed_variant_listing_promotion_rule_to_update:
         VariantChannelListingPromotionRule.objects.bulk_update(
