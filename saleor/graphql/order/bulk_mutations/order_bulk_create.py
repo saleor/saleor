@@ -1518,7 +1518,17 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             object_storage=object_storage,
             path=f"lines.{index}",
         )
-        if not variant:
+        if variant is None and not order_line_input.get("product_name"):
+            order_data.errors.append(
+                OrderBulkError(
+                    message=(
+                        "Order line input must contain product name when"
+                        " no variant provided."
+                    ),
+                    path=f"lines.{index}",
+                    code=OrderBulkCreateErrorCode.REQUIRED,
+                )
+            )
             return None
 
         warehouse = cls.get_instance_with_errors(
@@ -1559,12 +1569,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order=order_data.order,
             variant=variant,
             product_name=order_line_input.get("product_name") or variant.product.name,
-            variant_name=order_line_input.get("variant_name") or variant.name,
+            variant_name=order_line_input.get("variant_name")
+            or (variant.name if variant else ""),
             translated_product_name=order_line_input.get("translated_product_name")
             or "",
             translated_variant_name=order_line_input.get("translated_variant_name")
             or "",
-            product_variant_id=variant.get_global_id(),
+            product_variant_id=(variant.get_global_id() if variant else None),
             created_at=order_line_input["created_at"],
             is_shipping_required=order_line_input["is_shipping_required"],
             is_gift_card=order_line_input["is_gift_card"],
@@ -1650,8 +1661,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 object_storage=object_storage,
                 path=path,
             )
-            if not variant:
-                return None
 
             warehouse = cls.get_instance_with_errors(
                 input=line_input,
@@ -1700,7 +1709,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
                 return None
 
-            if order_line.line.variant.id != variant.id:
+            if (
+                variant
+                and order_line.line.variant
+                and order_line.line.variant.id != variant.id
+                or (variant and not order_line.line.variant)
+                or (not variant and order_line.line.variant)
+            ):
                 code = OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH
                 order_data.errors.append(
                     OrderBulkError(
