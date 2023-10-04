@@ -74,17 +74,18 @@ def migrate_sales(sales):
     saleid_promotion_map: Dict[int, Promotion] = {}
     rules_info: List[RuleInfo] = []
 
+    sale_ids = [sale.id for sale in sales]
     migrate_sales_to_promotions(sales, saleid_promotion_map)
     migrate_sale_listing_to_promotion_rules(
-        sales,
+        sale_ids,
         saleid_promotion_map,
         rules_info,
     )
-    migrate_translations(sales, saleid_promotion_map)
+    migrate_translations(sale_ids, saleid_promotion_map)
 
     rule_by_channel_and_sale = get_rule_by_channel_sale(rules_info)
-    migrate_checkout_line_discounts(sales, rule_by_channel_and_sale)
-    migrate_order_line_discounts(sales, rule_by_channel_and_sale)
+    migrate_checkout_line_discounts(sale_ids, rule_by_channel_and_sale)
+    migrate_order_line_discounts(sale_ids, rule_by_channel_and_sale)
 
 
 @app.task
@@ -121,9 +122,10 @@ def migrate_sales_not_listed_in_any_channels_task():
 
 def migrate_sales_not_listed_in_any_channels(sales):
     saleid_promotion_map = {}
+    sale_ids = [sale.id for sale in sales]
     migrate_sales_to_promotions(sales, saleid_promotion_map)
     migrate_sales_to_promotion_rules(sales, saleid_promotion_map)
-    migrate_translations(sales, saleid_promotion_map)
+    migrate_translations(sale_ids, saleid_promotion_map)
 
 
 def migrate_sales_to_promotions(sales, saleid_promotion_map):
@@ -159,13 +161,13 @@ def create_promotion_rule(
 
 
 def migrate_sale_listing_to_promotion_rules(
-    sales,
+    sale_ids,
     saleid_promotion_map,
     rules_info,
 ):
     sale_listings = (
         SaleChannelListing.objects.order_by("sale_id")
-        .filter(Exists(sales.filter(id=OuterRef("sale_id"))))
+        .filter(sale_id__in=sale_ids)
         .prefetch_related(
             "sale",
             "sale__collections",
@@ -253,10 +255,8 @@ def migrate_sales_to_promotion_rules(sales, saleid_promotion_map):
     PromotionRule.objects.bulk_create(rules)
 
 
-def migrate_translations(sales, saleid_promotion_map):
-    if sale_translations := SaleTranslation.objects.filter(
-        Exists(sales.filter(id=OuterRef("sale_id")))
-    ):
+def migrate_translations(sale_ids, saleid_promotion_map):
+    if sale_translations := SaleTranslation.objects.filter(sale_id__in=sale_ids):
         promotion_translations = [
             PromotionTranslation(
                 name=translation.name,
@@ -268,9 +268,9 @@ def migrate_translations(sales, saleid_promotion_map):
         PromotionTranslation.objects.bulk_create(promotion_translations)
 
 
-def migrate_checkout_line_discounts(sales, rule_by_channel_and_sale):
+def migrate_checkout_line_discounts(sale_ids, rule_by_channel_and_sale):
     if checkout_line_discounts := CheckoutLineDiscount.objects.filter(
-        Exists(sales.filter(id=OuterRef("sale_id")))
+        sale_id__in=sale_ids
     ).select_related("line__checkout"):
         for checkout_line_discount in checkout_line_discounts:
             if checkout_line := checkout_line_discount.line:
@@ -286,11 +286,8 @@ def migrate_checkout_line_discounts(sales, rule_by_channel_and_sale):
         )
 
 
-def migrate_order_line_discounts(sales, rule_by_channel_and_sale):
-    global_pks = [
-        graphene.Node.to_global_id("Sale", pk)
-        for pk in sales.values_list("pk", flat=True)
-    ]
+def migrate_order_line_discounts(sale_ids, rule_by_channel_and_sale):
+    global_pks = [graphene.Node.to_global_id("Sale", pk) for pk in sale_ids]
     if order_lines := OrderLine.objects.filter(sale_id__in=global_pks).prefetch_related(
         "order"
     ):
