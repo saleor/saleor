@@ -113,3 +113,25 @@ def test_delete_voucher_codes_trigger_voucher_update_webhook(
     # then
     assert content["data"]["voucherCodeBulkDelete"]["count"] == 3
     assert mocked_webhook_trigger.call_count == 1
+
+
+def test_delete_voucher_codes_return_error_when_invalid_id(
+    staff_api_client, permission_manage_discounts
+):
+    # given
+    variables = {"ids": [graphene.Node.to_global_id("Product", 123)]}
+
+    # when
+    response = staff_api_client.post_graphql(
+        VOUCHER_CODE_BULK_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["voucherCodeBulkDelete"]["errors"]
+    assert errors
+    assert errors[0]["path"] == "ids.0"
+    assert errors[0]["message"] == "Invalid VoucherCode ID."
+    assert content["data"]["voucherCodeBulkDelete"]["count"] == 0

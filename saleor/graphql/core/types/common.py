@@ -310,6 +310,11 @@ class DiscountError(ProductWithoutVariantError):
 
 class VoucherCodeBulkDeleteError(BulkError):
     code = VoucherCodeBulkDeleteErrorCode(description="The error code.", required=True)
+    voucher_codes = NonNullList(
+        graphene.String,
+        description="List of voucher codes which causes the error.",
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS

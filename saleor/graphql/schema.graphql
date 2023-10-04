@@ -28016,7 +28016,7 @@ Triggers the following webhook events:
 - VOUCHER_UPDATED (async): A voucher was updated.
 """
 type VoucherCodeBulkDelete @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
-  """Returns how many objects were affected."""
+  """Returns how many codes were deleted."""
   count: Int!
   errors: [VoucherCodeBulkDeleteError!]!
 }
@@ -28032,6 +28032,9 @@ type VoucherCodeBulkDeleteError @doc(category: "Discounts") {
 
   """The error code."""
   code: VoucherCodeBulkDeleteErrorCode!
+
+  """List of voucher codes which causes the error."""
+  voucherCodes: [String!]
 }
 
 """An enumeration."""
