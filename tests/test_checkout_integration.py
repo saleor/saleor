@@ -1,4 +1,4 @@
-# from django.core.urlresolvers import reverse
+# from django.urls import reverse
 # from payments import FraudStatus, PaymentStatus
 #
 # from tests.utils import get_redirect_location

@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import django.db.models.deletion
-import django_prices.models
 import versatileimagefield.fields
 
 
@@ -93,7 +92,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='product',
             name='price',
-            field=django_prices.models.PriceField(currency='EUR', decimal_places=2, max_digits=12, verbose_name='price'),
+            field=models.DecimalField(decimal_places=2, max_digits=12, verbose_name='price'),
         ),
         migrations.AlterField(
             model_name='productimage',
@@ -123,12 +122,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='productvariant',
             name='price_override',
-            field=django_prices.models.PriceField(blank=True, currency='EUR', decimal_places=2, max_digits=12, null=True, verbose_name='price override'),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True, verbose_name='price override'),
         ),
         migrations.AlterField(
             model_name='stock',
             name='cost_price',
-            field=django_prices.models.PriceField(blank=True, currency='EUR', decimal_places=2, max_digits=12, null=True, verbose_name='cost price'),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True, verbose_name='cost price'),
         ),
         migrations.AlterField(
             model_name='stock',

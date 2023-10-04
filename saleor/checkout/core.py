@@ -5,7 +5,7 @@ from django.db import transaction
 from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language
-from prices import FixedDiscount, Price
+from prices import fixed_discount, Price
 
 from ..discount.models import NotApplicable, Voucher
 # from ..order.models import Order
@@ -87,7 +87,7 @@ class Checkout(object):
     def shipping_address(self):
         if self._shipping_address is None:
             address = self._get_address_from_storage('shipping_address')
-            if address is None and self.user.is_authenticated():
+            if address is None and self.user.is_authenticated:
                 address = self.user.default_shipping_address
             self._shipping_address = address
         return self._shipping_address
@@ -142,7 +142,7 @@ class Checkout(object):
         address = self._get_address_from_storage('billing_address')
         if address is not None:
             return address
-        elif (self.user.is_authenticated() and
+        elif (self.user.is_authenticated and
               self.user.default_billing_address):
             return self.user.default_billing_address
         elif self.shipping_address:
@@ -162,7 +162,7 @@ class Checkout(object):
         name = self.storage.get('discount_name')
         if value is not None and name is not None and currency is not None:
             amount = Price(value, currency=currency)
-            return FixedDiscount(amount, name)
+            return fixed_discount(amount, name)
 
     @discount.setter
     def discount(self, discount):
@@ -206,7 +206,7 @@ class Checkout(object):
 
     def _add_to_user_address_book(self, address, is_billing=False,
                                   is_shipping=False):
-        if self.user.is_authenticated():
+        if self.user.is_authenticated:
             store_user_address(
                 self.user, address, shipping=is_shipping,
                 billing=is_billing)

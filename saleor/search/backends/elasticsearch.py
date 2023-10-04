@@ -5,7 +5,7 @@ import json
 
 from django.db import models
 from django.utils.crypto import get_random_string
-from django.utils.six.moves.urllib.parse import urlparse
+import urllib3
 from elasticsearch import Elasticsearch, NotFoundError
 from elasticsearch.helpers import bulk
 
@@ -32,7 +32,6 @@ class ElasticsearchMapping(object):
         'BigIntegerField': 'long',
         'IPAddressField': 'string',
         'GenericIPAddressField': 'string',
-        'NullBooleanField': 'boolean',
         'OneToOneField': 'integer',
         'PositiveIntegerField': 'integer',
         'PositiveSmallIntegerField': 'integer',
@@ -96,8 +95,6 @@ class ElasticsearchMapping(object):
                 if field.partial_match:
                     mapping.update(self.edgengram_analyzer_config)
 
-                mapping['include_in_all'] = True
-
             elif isinstance(field, FilterField):
                 if mapping['type'] == 'string':
                     mapping['type'] = self.keyword_type
@@ -105,9 +102,7 @@ class ElasticsearchMapping(object):
                 if self.set_index_not_analyzed_on_filter_fields:
                     # Not required on ES5 as that uses the "keyword" type for
                     # filtered string fields
-                    mapping['index'] = 'not_analyzed'
-
-                mapping['include_in_all'] = False
+                    mapping['index'] = False
 
             if 'es_extra' in field.kwargs:
                 for key, value in field.kwargs['es_extra'].items():
@@ -118,17 +113,17 @@ class ElasticsearchMapping(object):
     def get_mapping(self):
         # Make field list
         fields = {
-            'pk': dict(type=self.keyword_type, store=True, include_in_all=False),
-            'content_type': dict(type=self.keyword_type, include_in_all=False),
-            '_partials': dict(type=self.text_type, include_in_all=False),
+            'pk': dict(type=self.keyword_type, store=True),
+            'content_type': dict(type=self.keyword_type),
+            '_partials': dict(type=self.text_type),
         }
         fields['_partials'].update(self.edgengram_analyzer_config)
 
         if self.set_index_not_analyzed_on_filter_fields:
             # Not required on ES5 as that uses the "keyword" type for
             # filtered string fields
-            fields['pk']['index'] = 'not_analyzed'
-            fields['content_type']['index'] = 'not_analyzed'
+            fields['pk']['index'] = False
+            fields['content_type']['index'] = False
 
         fields.update(dict(
             self.get_field_mapping(field) for field in self.model.get_search_fields()
@@ -740,7 +735,7 @@ class ElasticsearchSearchBackend(BaseSearchBackend):
             self.hosts = []
 
             for url in es_urls:
-                parsed_url = urlparse(url)
+                parsed_url = urllib3.parse(url)
 
                 use_ssl = parsed_url.scheme == 'https'
                 port = parsed_url.port or (443 if use_ssl else 80)

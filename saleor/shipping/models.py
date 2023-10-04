@@ -5,10 +5,8 @@ from operator import itemgetter
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
-from django_prices.models import PriceField
-from prices import PriceRange
+from prices import MoneyRange
 from django_countries import countries
 
 
@@ -16,8 +14,6 @@ ANY_COUNTRY = ''
 ANY_COUNTRY_DISPLAY = pgettext_lazy('Country choice', 'Rest of World')
 COUNTRY_CODE_CHOICES = [(ANY_COUNTRY, ANY_COUNTRY_DISPLAY)] + list(countries)
 
-
-@python_2_unicode_compatible
 class ShippingMethod(models.Model):
 
     name = models.CharField(
@@ -42,7 +38,7 @@ class ShippingMethod(models.Model):
     def price_range(self):
         prices = [country.price for country in self.price_per_country.all()]
         if prices:
-            return PriceRange(min(prices), max(prices))
+            return MoneyRange(min(prices), max(prices))
 
 
 class ShippingMethodCountryQueryset(models.QuerySet):
@@ -69,18 +65,21 @@ class ShippingMethodCountryQueryset(models.QuerySet):
         return self.filter(id__in=ids)
 
 
-@python_2_unicode_compatible
 class ShippingMethodCountry(models.Model):
 
     country_code = models.CharField(
         pgettext_lazy('Shipping method country field', 'country code'),
         choices=COUNTRY_CODE_CHOICES, max_length=2, blank=True, default=ANY_COUNTRY)
-    price = PriceField(
+    price = models.DecimalField(
         pgettext_lazy('Shipping method country field', 'price'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
+        max_digits=12,
+        decimal_places=2
+        )
     shipping_method = models.ForeignKey(
         ShippingMethod, related_name='price_per_country',
-        verbose_name=pgettext_lazy('Shipping method country field', 'shipping method'),)
+        verbose_name=pgettext_lazy('Shipping method country field', 'shipping method'),
+        on_delete=models.CASCADE
+    )
 
     objects = ShippingMethodCountryQueryset.as_manager()
 
@@ -124,3 +123,13 @@ class ShippingCountryQueryset(models.QuerySet):
                 method = method_values[0]
             ids.append(method[1])
         return self.filter(id__in=ids)
+
+
+from dataclasses import dataclass
+
+@dataclass
+class PortoOption:
+    """ Porto option """
+    id: int
+    name: str
+    preis: int

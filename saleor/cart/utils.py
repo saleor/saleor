@@ -107,12 +107,27 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
                 if not signed_token
                 else signing.get_cookie_signer(salt='cart').unsign(signed_token)
             )
-            #
-            from rest_framework_jwt.serializers import jwt_decode_handler
-            from jwt_auth.mixins import jwt_get_user_id_from_payload
+
+            from rest_framework_simplejwt.tokens import AccessToken
+            from rest_framework_simplejwt.settings import api_settings
+            from rest_framework_simplejwt.exceptions import TokenError
+
             User = get_user_model()
-            payload = jwt_decode_handler(response.data.get('token', None))
-            user_id = jwt_get_user_id_from_payload(payload)
+
+            auth_token = response.data.get('token', None)
+
+            if auth_token is None:
+                return response
+
+            validated_token = AccessToken(auth_token)
+
+            try:
+                validated_token.check_exp()
+            except TokenError:
+                return response
+
+
+            user_id = validated_token[api_settings.USER_ID_CLAIM]
             user = request.user
             if user_id:
                 user = User.objects.get(pk=user_id)
@@ -123,7 +138,7 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
                 token=token, cart_queryset=queryset)
             if cart is None:
                 return response
-            if user.is_authenticated():
+            if user.is_authenticated:
                 with transaction.atomic():
                     cart.change_user(user)
                     carts_to_close = Cart.objects.open().filter(user=user)
@@ -159,7 +174,7 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
     :type request: django.http.HttpRequest
     :rtype: Cart
     """
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         cart = get_user_cart(request.user, cart_queryset)
         user = request.user
     else:
@@ -181,7 +196,7 @@ def get_or_create_db_cart(cart_queryset=Cart.objects.all()):
         def func(request, *args, **kwargs):
             cart = get_or_create_cart_from_request(request, cart_queryset)
             response = view(request, cart, *args, **kwargs)
-            if not request.user.is_authenticated():
+            if not request.user.is_authenticated:
                 set_cart_cookie(cart, response)
             return response
         return func

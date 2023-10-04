@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import datetime
 from django.db import migrations, models
 import django.db.models.deletion
-import django_prices.models
 
 
 class Migration(migrations.Migration):
@@ -30,7 +29,7 @@ class Migration(migrations.Migration):
                 ('discount_value_type', models.CharField(choices=[('fixed', 'USD'), ('percentage', '%')], default='fixed', max_length=10)),
                 ('discount_value', models.DecimalField(decimal_places=2, max_digits=12)),
                 ('apply_to', models.CharField(blank=True, max_length=20, null=True)),
-                ('limit', django_prices.models.PriceField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True)),
+                ('limit', models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True)),
                 ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='product.Category')),
                 ('product', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='product.Product')),
             ],

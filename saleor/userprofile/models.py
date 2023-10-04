@@ -5,7 +5,6 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.forms.models import model_to_dict
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from ..search import index
@@ -30,7 +29,6 @@ class AddressManager(models.Manager):
         return address
 
 
-@python_2_unicode_compatible
 class Address(models.Model):
     first_name = models.CharField(
         pgettext_lazy('Address field', 'given name'),
@@ -131,7 +129,7 @@ class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
         on_delete=models.SET_NULL,
         verbose_name=pgettext_lazy('User field', 'default billing address'))
 
-    USERNAME_FIELD = 'email'
+    # USERNAME_FIELD = 'email'
 
     objects = UserManager()
 

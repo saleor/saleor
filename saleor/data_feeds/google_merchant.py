@@ -7,8 +7,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.syndication.views import add_domain
 from django.core.files.storage import default_storage
-from django.utils import six
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 
 from ..discount.models import Sale
 from ..product.models import (AttributeChoiceValue, Category, ProductAttribute,
@@ -204,7 +203,7 @@ def write_feed(file_obj):
     discounts = Sale.objects.all().prefetch_related('products',
                                                     'categories')
     attributes_dict = {a.name: a.pk for a in ProductAttribute.objects.all()}
-    attribute_values_dict = {smart_text(a.pk): smart_text(a) for a
+    attribute_values_dict = {smart_str(a.pk): smart_str(a) for a
                              in AttributeChoiceValue.objects.all()}
     category_paths = {}
     current_site = Site.objects.get_current()
@@ -221,9 +220,7 @@ def update_feed(file_path=FILE_PATH):
     module as FILE_PATH.
     """
     with default_storage.open(file_path, 'wb') as output_file:
-        if six.PY3:
-            output = gzip.open(output_file, 'wt')
-        else:
-            output = gzip.GzipFile(fileobj=output_file, mode='w')
+        output = gzip.open(output_file, 'wt')
+
         write_feed(output)
         output.close()

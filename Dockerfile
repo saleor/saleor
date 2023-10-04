@@ -1,9 +1,16 @@
 # syntax=docker/dockerfile:1.2
 
-FROM python:3.5-buster
+FROM python:3.10-buster
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get -y update --allow-insecure-repositories && apt-get --allow-unauthenticated install -y wget openssh-client
+RUN apt-get -y update --allow-insecure-repositories && \
+  apt-get --allow-unauthenticated install -y \
+  wget \
+  openssh-client \
+  build-essential \
+  libssl-dev \
+  libffi-dev \
+  python3-dev
 
 ADD requirements.txt /app/
 WORKDIR /app
@@ -16,8 +23,8 @@ RUN mkdir -p /home/user/.ssh && ln -s /run/secrets/user_ssh_key /home/user/.ssh/
 RUN chown -R user:user /home/user/.ssh
 
 RUN --mount=type=ssh,id=github_ssh_key pip install \
-    --no-cache \
-    --requirement requirements.txt
+  --no-cache \
+  --requirement requirements.txt
 
 RUN pip install gunicorn
 

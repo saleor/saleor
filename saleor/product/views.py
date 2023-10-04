@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import datetime
 import json
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -104,7 +104,7 @@ def product_add_to_cart(request, slug, product_id):
             response = JsonResponse({'error': form.errors}, status=400)
         else:
             response = product_details(request, slug, product_id, form)
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         set_cart_cookie(cart, response)
     return response
 

@@ -1,0 +1,11 @@
+version: "3.3"
+services:
+  media:
+    image: python:3.9
+    command: python3 -m http.server 8001
+    env_file: .env
+    ports:
+      - 8001:8001
+    working_dir: /files
+    volumes:
+      - ${DOCKER_HOST_OYE_MEDIA_ROOT}:/files/media

@@ -3,7 +3,7 @@
 # from mock import Mock
 # import pytest
 #
-# from django.core.urlresolvers import reverse
+# from django.urls import reverse
 # from django.utils.encoding import smart_text
 #
 # from saleor.cart.models import Cart

@@ -6,11 +6,9 @@ from django.conf import settings
 from django.db import models
 from django.db.models import F
 from django.utils.translation import pgettext, pgettext_lazy
-from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django_countries import countries
-from django_prices.models import PriceField
-from django_prices.templatetags.prices_i18n import net
-from prices import FixedDiscount, percentage_discount, Price
+from prices import fixed_discount, percentage_discount, Money
+from django.utils.encoding import smart_str
 #
 # from ..cart.utils import (
 #     get_product_variants_and_prices, get_category_variants_and_prices)
@@ -40,8 +38,6 @@ class VoucherQueryset(models.QuerySet):
         voucher.used = F('used') - 1
         voucher.save(update_fields=['used'])
 
-
-@python_2_unicode_compatible
 class Voucher(models.Model):
 
     APPLY_TO_ONE_PRODUCT = 'one'
@@ -98,18 +94,30 @@ class Voucher(models.Model):
 
     # not mandatory fields, usage depends on type
     product = models.ForeignKey(
-        'product.Product', blank=True, null=True,
-        verbose_name=pgettext_lazy('Voucher field', 'product'))
+        'product.Product',
+        blank=True,
+        null=True,
+        verbose_name=pgettext_lazy('Voucher field', 'product'),
+        on_delete=models.CASCADE
+    )
     category = models.ForeignKey(
-        'product.Category', blank=True, null=True,
-        verbose_name=pgettext_lazy('Voucher field', 'category'))
+        'product.Category',
+        blank=True,
+        null=True,
+        verbose_name=pgettext_lazy('Voucher field', 'category'),
+        on_delete=models.CASCADE
+    )
     apply_to = models.CharField(
         pgettext_lazy('Voucher field', 'apply to'),
-        max_length=20, blank=True, null=True)
-    limit = PriceField(
+        max_length=20, blank=True, null=True
+    )
+    limit = models.DecimalField(
         pgettext_lazy('Voucher field', 'limit'),
-        max_digits=12, decimal_places=2, null=True,
-        blank=True, currency=settings.DEFAULT_CURRENCY)
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
 
     objects = VoucherQueryset.as_manager()
 
@@ -153,20 +161,20 @@ class Voucher(models.Model):
 
     def get_fixed_discount_for(self, amount):
         if self.discount_value_type == self.DISCOUNT_VALUE_FIXED:
-            discount_price = Price(net=self.discount_value,
+            discount_price = Money(net=self.discount_value,
                                    currency=settings.DEFAULT_CURRENCY)
-            discount = FixedDiscount(
-                amount=discount_price, name=smart_text(self))
+            discount = fixed_discount(
+                amount=discount_price, name=smart_str(self))
         elif self.discount_value_type == self.DISCOUNT_VALUE_PERCENTAGE:
             discount = percentage_discount(
-                value=self.discount_value, name=smart_text(self))
+                value=self.discount_value, name=smart_str(self))
             fixed_discount_value = amount - discount.apply(amount)
-            discount = FixedDiscount(
-                amount=fixed_discount_value, name=smart_text(self))
+            discount = fixed_discount(
+                amount=fixed_discount_value, name=smart_str(self))
         else:
             raise NotImplementedError('Unknown discount value type')
         if discount.amount > amount:
-            return FixedDiscount(amount, name=smart_text(self))
+            return fixed_discount(amount, name=smart_str(self))
         else:
             return discount
 
@@ -176,65 +184,8 @@ class Voucher(models.Model):
             msg = pgettext(
                 'Voucher not applicable',
                 'This offer is only valid for orders over %(amount)s.')
-            raise NotApplicable(msg % {'amount': net(limit)})
+            raise NotApplicable(msg % {'amount': limit})
 
-    # def get_discount_for_checkout(self, checkout):
-    #     if self.type == Voucher.VALUE_TYPE:
-    #         cart_total = checkout.get_subtotal()
-    #         self.validate_limit(cart_total)
-    #         return self.get_fixed_discount_for(cart_total)
-    #
-    #     elif self.type == Voucher.SHIPPING_TYPE:
-    #         if not checkout.is_shipping_required:
-    #             msg = pgettext(
-    #                 'Voucher not applicable', 'Your order does not require shipping.')
-    #             raise NotApplicable(msg)
-    #         shipping_method = checkout.shipping_method
-    #         if not shipping_method:
-    #             msg = pgettext(
-    #                 'Voucher not applicable', 'Please select a shipping method first.')
-    #             raise NotApplicable(msg)
-    #         if (self.apply_to and
-    #                 shipping_method.country_code != self.apply_to):
-    #             msg = pgettext(
-    #                 'Voucher not applicable', 'This offer is only valid in %(country)s.')
-    #             raise NotApplicable(msg % {
-    #                 'country': self.get_apply_to_display()})
-    #         cart_total = checkout.get_subtotal()
-    #         self.validate_limit(cart_total)
-    #         return self.get_fixed_discount_for(shipping_method.price)
-    #
-    #     elif self.type in (Voucher.PRODUCT_TYPE, Voucher.CATEGORY_TYPE):
-    #         if self.type == Voucher.PRODUCT_TYPE:
-    #             prices = list(
-    #                 (item[1] for item in get_product_variants_and_prices(
-    #                     checkout.cart, self.product)))
-    #         else:
-    #             prices = list(
-    #                 (item[1] for item in get_category_variants_and_prices(
-    #                     checkout.cart, self.category)))
-    #         if len(prices) == 0:
-    #             msg = pgettext(
-    #                 'Voucher not applicable',
-    #                 'This offer is only valid for selected items.')
-    #             raise NotApplicable(msg)
-    #         if self.apply_to == Voucher.APPLY_TO_ALL_PRODUCTS:
-    #             discounts = (
-    #                 self.get_fixed_discount_for(price) for price in prices)
-    #             discount_total = sum(
-    #                 (discount.amount for discount in discounts),
-    #                 Price(0, currency=settings.DEFAULT_CURRENCY))
-    #             return FixedDiscount(discount_total, smart_text(self))
-    #         else:
-    #             product_total = sum(
-    #                 prices, Price(0, currency=settings.DEFAULT_CURRENCY))
-    #             return self.get_fixed_discount_for(product_total)
-    #
-    #     else:
-    #         raise NotImplementedError('Unknown discount type')
-
-
-@python_2_unicode_compatible
 class Sale(models.Model):
     FIXED = 'fixed'
     PERCENTAGE = 'percentage'
@@ -273,7 +224,7 @@ class Sale(models.Model):
         if self.type == self.FIXED:
             discount_price = Price(net=self.value,
                                    currency=settings.DEFAULT_CURRENCY)
-            return FixedDiscount(amount=discount_price, name=self.name)
+            return fixed_discount(amount=discount_price, name=self.name)
         elif self.type == self.PERCENTAGE:
             return percentage_discount(value=self.value, name=self.name)
         raise NotImplementedError('Unknown discount type')

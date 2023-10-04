@@ -9,7 +9,6 @@ from collections import defaultdict
 from django.conf import settings
 from django.core.files import File
 from django.template.defaultfilters import slugify
-from django.utils.six import moves
 from faker import Factory
 from faker.providers import BaseProvider
 # from payments import PaymentStatus
@@ -220,7 +219,7 @@ def create_products_by_class(product_class, schema,
 
         prices = get_price_override(
             schema, len(variant_combinations), product.price)
-        variants_with_prices = moves.zip_longest(
+        variants_with_prices = itertools.zip_longest(
             variant_combinations, prices)
 
         for i, variant_price in enumerate(variants_with_prices, start=1337):

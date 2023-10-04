@@ -6,7 +6,7 @@ import logging
 from django.apps import apps
 from django.core import checks
 from django.db import models
-from django.db.models.fields import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel, OneToOneRel, RelatedField
 
 from .backends import get_search_backends_with_name
@@ -91,7 +91,7 @@ class Indexed(object):
         try:
             cls._meta.get_field(name)
             return True
-        except models.fields.FieldDoesNotExist:
+        except FieldDoesNotExist:
             return hasattr(cls, name)
 
     @classmethod
@@ -176,14 +176,14 @@ class BaseField(object):
         try:
             field = self.get_field(cls)
             return field.attname
-        except models.fields.FieldDoesNotExist:
+        except FieldDoesNotExist:
             return self.field_name
 
     def get_definition_model(self, cls):
         try:
             field = self.get_field(cls)
             return field.model
-        except models.fields.FieldDoesNotExist:
+        except FieldDoesNotExist:
             # Find where it was defined by walking the inheritance tree
             for base_cls in inspect.getmro(cls):
                 if self.field_name in base_cls.__dict__:
@@ -196,7 +196,7 @@ class BaseField(object):
         try:
             field = self.get_field(cls)
             return field.get_internal_type()
-        except models.fields.FieldDoesNotExist:
+        except FieldDoesNotExist:
             return 'CharField'
 
     def get_value(self, obj):
@@ -206,7 +206,7 @@ class BaseField(object):
             if hasattr(field, 'get_searchable_content'):
                 value = field.get_searchable_content(value)
             return value
-        except models.fields.FieldDoesNotExist:
+        except FieldDoesNotExist:
             value = getattr(obj, self.field_name, None)
             if hasattr(value, '__call__'):
                 value = value()

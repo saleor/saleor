@@ -13,7 +13,7 @@ class SearchableType(graphene.Interface):
     score = graphene.Float()
 
     @classmethod
-    def resolve_type(cls, instance, context, info):
+    def resolve_type(cls, instance, info):
         type = instance.hit.meta.doc_type
         if type == 'release':
             return ReleaseSearchResult
@@ -22,11 +22,11 @@ class SearchableType(graphene.Interface):
         if type == 'label':
             return LabelSearchResult
 
-    def resolve_highlight(self, *args):
+    def resolve_highlight(self, info):
         if hasattr(self.hit.meta, "highlight"):
             return self.hit.meta.highlight.to_dict()
 
-    def resolve_score(self, *args):
+    def resolve_score(self, info):
         return self.hit.meta.score
 
 
@@ -36,7 +36,7 @@ class ReleaseSearchResult(graphene.ObjectType):
 
     release = graphene.Field(lambda: ArtikelType)
 
-    def resolve_release(self, *args):
+    def resolve_release(self, info):
         return self.instance
 
 
@@ -46,7 +46,7 @@ class ArtistSearchResult(graphene.ObjectType):
 
     artist = graphene.Field(lambda: ArtistType)
 
-    def resolve_artist(self, *args):
+    def resolve_artist(self, info):
         return self.instance
 
 
@@ -56,7 +56,7 @@ class LabelSearchResult(graphene.ObjectType):
 
     label = graphene.Field(lambda: LabelType)
 
-    def resolve_label(self, *args):
+    def resolve_label(self, info):
         return self.instance
 
 

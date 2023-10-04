@@ -3,8 +3,6 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import django_prices.models
-
 
 class Migration(migrations.Migration):
 
@@ -26,6 +24,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='voucher',
             name='limit',
-            field=django_prices.models.PriceField(blank=True, currency='EUR', decimal_places=2, max_digits=12, null=True, verbose_name='limit'),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True, verbose_name='limit'),
         ),
     ]

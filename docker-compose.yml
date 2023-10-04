@@ -1,6 +1,5 @@
-version: '3.3'
+version: "3.3"
 services:
-
   redis:
     image: redis
     restart: always
@@ -8,12 +7,14 @@ services:
       - 6379
 
   search:
-    image: elasticsearch:5.5
+    image: elasticsearch:8.9.0
     restart: always
     ports:
       - 9200
     environment:
-      - bootstrap.memory_lock=true  # https://www.elastic.co/guide/en/elasticsearch/reference/master/setup-configuration-memory.html#mlockall
+      - bootstrap.memory_lock=true # https://www.elastic.co/guide/en/elasticsearch/reference/master/setup-configuration-memory.html#mlockall
+      - discovery.type=single-node
+      - xpack.security.enabled=false
     env_file: .env
     ulimits:
       memlock:
@@ -24,10 +25,10 @@ services:
         hard: 65536
     mem_limit: 8g
     volumes:
-       - ${OYE_ELASTIC_DATA}:/usr/share/elasticsearch/data
+      - ${OYE_ELASTIC_DATA}:/usr/share/elasticsearch/data
 
   rabbitmq:
-    image: 'rabbitmq:3'
+    image: "rabbitmq:3"
     restart: always
     entrypoint: /app/rabbitmq-entrypoint.sh
     env_file: .env
@@ -55,7 +56,7 @@ services:
       com.example.description: "For logging data"
     image: logstash:5.4.3
     volumes:
-       - ./docker/logstash.conf:/logstash_dir/logstash.conf
+      - ./docker/logstash.conf:/logstash_dir/logstash.conf
     command: logstash -f /logstash_dir/logstash.conf
     depends_on:
       - search
@@ -70,13 +71,15 @@ services:
       - search
       - rabbitmq
     ports:
-      - '8000:8000'
+      - "8000:8000"
     volumes:
       - ${DOCKER_HOST_OYE_MEDIA_ROOT}:${MEDIA_ROOT}
       - ${DOCKER_HOST_OYE_STATIC_ROOT}:${STATIC_ROOT}
       - ${DOCKER_HOST_OYE_INVOICES_ROOT}:${PDF_STORAGE_ROOT}
       - ${DOCKER_HOST_ORIGINAL_IMAGES_ROOT}:/var/www/images/
       - ./logs/:/srv/logs/
+      - ./saleor:/app/saleor
+      - ./src:/app/src
 
   celeryworker:
     image: oyelogic:latest
@@ -106,4 +109,3 @@ services:
 volumes:
   rabbit:
     driver: local
-

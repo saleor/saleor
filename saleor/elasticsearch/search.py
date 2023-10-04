@@ -5,8 +5,8 @@ from django.conf import settings
 from django.core import cache
 
 from elasticsearch import NotFoundError
-from elasticsearch_dsl import DocType, Text, Integer, InnerObjectWrapper, \
-    Nested, String, Date, char_filter
+from elasticsearch_dsl import Document, Text, Integer, \
+    Nested, Date, char_filter, InnerDoc
 from elasticsearch_dsl import Keyword
 from elasticsearch_dsl import MetaField
 from elasticsearch_dsl import Search
@@ -16,7 +16,7 @@ from elasticsearch_dsl.connections import connections
 
 __author__ = 'tkolter'
 
-connections.create_connection(hosts=[settings.ELASTICSEARCH_HOST])
+connections.create_connection(hosts=[settings.ELASTICSEARCH_URL])
 redis = cache.caches['default']
 logger = logging.getLogger(__name__)
 
@@ -69,13 +69,13 @@ lowercase_analyzer = analyzer(
     ]
 )
 
+class Track(InnerDoc):
+    track_pk = Integer(index=False)
+    title = Text()
+    url = Text(index=False)
 
-class Track(InnerObjectWrapper):
-    pass
-
-
-class Release(DocType):
-    artist_name = String(
+class Release(Document):
+    artist_name = Text(
         search_analyzer=lowercase_analyzer,
         analyzer=lowercase_analyzer,
         fields={'raw': Keyword()})
@@ -84,52 +84,49 @@ class Release(DocType):
     description = Text(
         search_analyzer=lowercase_analyzer,
         analyzer=lowercase_analyzer,
-        include_in_all=False,
     )
-    label = String(
+    label = Text(
         search_analyzer=lowercase_analyzer,
         analyzer=lowercase_analyzer,
         fields={'raw': Keyword()}
     )
-    cat_no = String(
+    cat_no = Text(
         search_analyzer=lowercase_analyzer,
         analyzer=lowercase_analyzer,
         fields={'raw': Keyword()}
     )
 
-    tracks = Nested({
-        'track_pk': Integer(index='not_analyzed'),
-        'title': Text(),
-        'url': Text(index='not_analyzed')
-    })
+    tracks = Nested(Track)
 
-    class Meta:
-        all = MetaField(store=True, analyzer=lowercase_analyzer, search_analyzer=lowercase_analyzer)
-        index = OYE_RELEASES_INDEX
+    class Index:
+        name = OYE_RELEASES_INDEX
+
+    # class Meta:
+    #     all = MetaField(store=True, analyzer=lowercase_analyzer, search_analyzer=lowercase_analyzer)
 
     @staticmethod
     def get_elastic_dict(release):
         return get_elastic_release_dict(release)
 
 
-class Artist(DocType):
-    name = String(
+class Artist(Document):
+    name = Text(
         search_analyzer=lowercase_analyzer,
         analyzer=lowercase_analyzer
     )
 
-    class Meta:
-        index = OYE_ARTISTS_INDEX
+    class Index:
+        name = OYE_ARTISTS_INDEX
 
 
-class Label(DocType):
-    name = String(
+class Label(Document):
+    name = Text(
         search_analyzer=lowercase_analyzer,
         analyzer=lowercase_analyzer,
     )
 
-    class Meta:
-        index = OYE_LABELS_INDEX
+    class Index:
+        name = OYE_LABELS_INDEX
 
 
 QUERY_FIELDS = [

@@ -2,7 +2,7 @@ from collections import namedtuple
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from django_prices.templatetags import prices_i18n
 
 from ..core.utils import to_local_currency
@@ -15,7 +15,7 @@ except ImportError:
 
 def products_visible_to_user(user):
     from .models import Product
-    if user.is_authenticated() and user.is_active and user.is_staff:
+    if user.is_authenticated and user.is_active and user.is_staff:
         return Product.objects.all()
     else:
         return Product.objects.get_available_products()
@@ -110,8 +110,8 @@ def product_json_ld(product, availability=None, attributes=None):
     """Generates JSON-LD data for product"""
     data = {'@context': 'http://schema.org/',
             '@type': 'Product',
-            'name': smart_text(product),
-            'image': smart_text(product.get_first_image()),
+            'name': smart_str(product),
+            'image': smart_str(product.get_first_image()),
             'description': product.description,
             'offers': {'@type': 'Offer',
                        'itemCondition': 'http://schema.org/NewCondition'}}
@@ -151,11 +151,11 @@ def get_product_attributes_data(product):
 def price_as_dict(price):
     if not price:
         return None
-    return {'currency': price.currency,
-            'gross': price.gross,
-            'grossLocalized': prices_i18n.gross(price),
-            'net': price.net,
-            'netLocalized': prices_i18n.net(price)}
+    return {
+        'currency': price.currency,
+        'gross': price.gross,
+        'net': price.net
+    }
 
 
 def price_range_as_dict(price_range):
@@ -183,9 +183,9 @@ def get_variant_url(variant):
 def get_attributes_display_map(obj, attributes):
     display_map = {}
     for attribute in attributes:
-        value = obj.attributes.get(smart_text(attribute.pk))
+        value = obj.attributes.get(smart_str(attribute.pk))
         if value:
-            choices = {smart_text(a.pk): a for a in attribute.values.all()}
+            choices = {smart_str(a.pk): a for a in attribute.values.all()}
             choice_obj = choices.get(value)
             if choice_obj:
                 display_map[attribute.pk] = choice_obj

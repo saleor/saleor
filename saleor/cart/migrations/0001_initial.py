@@ -6,7 +6,6 @@ from django.conf import settings
 import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
-import django_prices.models
 import satchless.item
 import uuid
 
@@ -30,7 +29,7 @@ class Migration(migrations.Migration):
                 ('last_status_change', models.DateTimeField(auto_now_add=True, verbose_name='last status change')),
                 ('email', models.EmailField(blank=True, max_length=254, null=True, verbose_name='email')),
                 ('token', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, verbose_name='token')),
-                ('total', django_prices.models.PriceField(currency='EUR', decimal_places=2, default=0, max_digits=12, verbose_name='total')),
+                ('total', models.DecimalField(decimal_places=2, default=0, max_digits=12, verbose_name='total')),
                 ('quantity', models.PositiveIntegerField(default=0, verbose_name='quantity')),
                 ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='user')),
                 ('voucher', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='discount.Voucher', verbose_name='token')),

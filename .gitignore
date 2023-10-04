@@ -27,3 +27,5 @@ webpack-bundle.json
 /venv/
 .idea
 .env
+.vscode
+src/
