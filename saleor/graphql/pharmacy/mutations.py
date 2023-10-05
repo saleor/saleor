@@ -1,21 +1,22 @@
 import graphene
 
 from .types import SiteSettingsType
+from ...core.utils import build_absolute_uri
 from ...pharmacy import models
-from django.contrib.sites.models import Site
 
 from ...pharmacy_settings import MEDIA_URL
 
 
 class SiteSettingsInput(graphene.InputObjectType):
     name = graphene.String(description="Site Settings Name", required=True)
+    slug = graphene.String(description="Site Settings Slug")
     pharmacy_name = graphene.String(description="Site Settings Pharmacy Name",
                                     required=True)
     npi = graphene.String(description="Site Settings NPI", required=True)
     phone_number = graphene.String(description="Site Settings Phone Number",
                                    required=True)
     fax_number = graphene.String(description="Site Settings Fax Number", required=True)
-    image = graphene.String(description="Site Settings Image", required=True)
+    image = graphene.String(description="Site Settings Image")
     css = graphene.String(description="Site Settings CSS")
 
 
@@ -63,10 +64,11 @@ class SiteSettingsCreate(graphene.Mutation):
         site_settings.slug = slug
         site_settings.save()
 
-        domain = Site.objects.get_current().domain
-        site_settings.image = f"{domain}{MEDIA_URL}{site_settings.image}"
-        site_settings.css = f"{domain}{MEDIA_URL}{site_settings.css}" \
-            if site_settings.css else ""
+        site_settings.image = \
+            build_absolute_uri(f"{MEDIA_URL}{site_settings.image}")
+        site_settings.css = \
+            build_absolute_uri(f"{MEDIA_URL}{site_settings.css}") \
+                if site_settings.css else ""
 
         return SiteSettingsCreate(site_settings=site_settings)
 
@@ -99,30 +101,52 @@ class SiteSettingsUpdate(graphene.Mutation):
 
         site_settings.save()
 
-        slug = str(input.name).lower().replace(" ", "-")
+        slug = str(input.slug).lower().replace(" ", "-")
         existing_site_settings = models.SiteSettings.objects.filter(slug=slug).first()
-        if existing_site_settings:
+        if site_settings.slug != input.slug and existing_site_settings:
             slug = f"{slug}-{str(site_settings.pk)}"
 
-        if input.image or input.css:
-            import base64
+        import base64
+        from django.core.files.base import ContentFile
 
-            from django.core.files.base import ContentFile
+        if input.image and str(site_settings.image) not in input.image:
+            file_content = base64.b64decode(input.image)
+            site_settings.image.save(slug + '.svg', ContentFile(file_content))
 
-            if input.image:
-                file_content = base64.b64decode(input.image)
-                site_settings.image.save(slug + '.svg', ContentFile(file_content))
-
-            if input.css:
-                file_content = base64.b64decode(input.css)
-                site_settings.css.save(slug + '.css', ContentFile(file_content))
+        if input.css and (not site_settings.css or str(site_settings.css) not in input.css):
+            file_content = base64.b64decode(input.css)
+            site_settings.css.save(slug + '.css', ContentFile(file_content))
+        elif not input.css:
+            site_settings.css = ''
 
         site_settings.slug = slug
         site_settings.save()
 
-        domain = Site.objects.get_current().domain
-        site_settings.image = f"{domain}{MEDIA_URL}{site_settings.image}"
-        site_settings.css = f"{domain}{MEDIA_URL}{site_settings.css}" \
-            if site_settings.css else ""
+        site_settings.image = \
+            build_absolute_uri(f"{MEDIA_URL}{site_settings.image}")
+        site_settings.css = \
+            build_absolute_uri(f"{MEDIA_URL}{site_settings.css}") \
+                if site_settings.css else ""
 
-        return SiteSettingsCreate(site_settings=site_settings)
+        return SiteSettingsUpdate(site_settings=site_settings)
+
+
+class SiteSettingsDelete(graphene.Mutation):
+    class Meta:
+        description = "Delete Site Settings by slug."
+
+    class Arguments:
+        slug = graphene.String(description="Site Settings Slug")
+
+    success = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, slug):
+        site_settings = models.SiteSettings.objects.filter(slug=slug).first()
+
+        if site_settings is None:
+            raise Exception("Site settings slug doesn't exits")
+
+        site_settings.delete()
+
+        return SiteSettingsDelete(success=True)
