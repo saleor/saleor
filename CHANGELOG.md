@@ -80,6 +80,12 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- **Feature preview change**:
+  - Order bulk create allow to import archive orders - #14177 by @kadewu
+    - `orderBulkCreate` now will attempt to create order with `IGNORE_FAILED` policy even if:
+      - `User` cannot be resolved and `email` wasn't provided.
+      - `Variant` wasn't provided but `product_name` was provided.
+
 ### Saleor Apps
 
 ### Other changes
