@@ -108,7 +108,9 @@ def update_products_discounted_price(products: Iterable[Product], discounts=None
             changed_rule_listings_to_update, ["discount_amount"]
         )
     if rule_listings_to_create:
-        VariantChannelListingPromotionRule.objects.bulk_create(rule_listings_to_create)
+        VariantChannelListingPromotionRule.objects.bulk_create(
+            rule_listings_to_create, ignore_conflicts=True
+        )
 
 
 def _get_product_to_variant_channel_listings_per_channel_map(
