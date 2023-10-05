@@ -28034,7 +28034,7 @@ type VoucherCodeBulkDeleteError @doc(category: "Discounts") {
   code: VoucherCodeBulkDeleteErrorCode!
 
   """List of voucher codes which causes the error."""
-  voucherCodes: [String!]
+  voucherCodes: [ID!]
 }
 
 """An enumeration."""

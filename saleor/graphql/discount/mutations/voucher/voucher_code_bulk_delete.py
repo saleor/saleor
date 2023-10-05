@@ -54,7 +54,7 @@ class VoucherCodeBulkDelete(BaseMutation):
         if invalid_codes_ids:
             errors_list.append(
                 VoucherCodeBulkDeleteError(
-                    path=f"ids.{index}",
+                    path="ids",
                     code=VoucherCodeBulkDeleteErrorCode.INVALID.value,
                     message="Invalid VoucherCode ID.",
                     voucher_codes=invalid_codes_ids,

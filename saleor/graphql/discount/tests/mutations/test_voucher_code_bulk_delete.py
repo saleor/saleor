@@ -132,6 +132,6 @@ def test_delete_voucher_codes_return_error_when_invalid_id(
     # then
     errors = content["data"]["voucherCodeBulkDelete"]["errors"]
     assert errors
-    assert errors[0]["path"] == "ids.0"
+    assert errors[0]["path"] == "ids"
     assert errors[0]["message"] == "Invalid VoucherCode ID."
     assert content["data"]["voucherCodeBulkDelete"]["count"] == 0
