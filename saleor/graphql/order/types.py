@@ -75,6 +75,7 @@ from ..core.descriptions import (
     ADDED_IN_313,
     ADDED_IN_314,
     ADDED_IN_315,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -1178,6 +1179,10 @@ class Order(ModelObjectType[models.Order]):
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `id` instead."),
     )
     voucher = graphene.Field(Voucher)
+    voucher_code = graphene.String(
+        required=False,
+        description="Voucher code that was used for Order." + ADDED_IN_318,
+    )
     gift_cards = NonNullList(
         GiftCard, description="List of user gift cards.", required=True
     )
@@ -1955,6 +1960,12 @@ class Order(ModelObjectType[models.Order]):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
 
         return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
+
+    @staticmethod
+    def resolve_voucher_code(root: models.Order, info):
+        if not root.voucher_code:
+            return None
+        return root.voucher_code
 
     @staticmethod
     def resolve_language_code_enum(root: models.Order, _info):

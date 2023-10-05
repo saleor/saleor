@@ -1,4 +1,5 @@
 import graphene
+import pytest
 from prices import TaxedMoney
 
 from .....core.prices import quantize_price
@@ -37,6 +38,10 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                             value
                         }
                     }
+                    voucher {
+                        code
+                    }
+                    voucherCode
                     shippingAddress{
                         city
                         streetAddress1
@@ -104,26 +109,40 @@ def test_draft_order_update_voucher_not_available(
     assert error["field"] == "voucher"
 
 
+@pytest.mark.parametrize(
+    "query_str, voucher_type",
+    (
+        (DRAFT_ORDER_UPDATE_MUTATION, "voucher"),
+        (DRAFT_ORDER_UPDATE_MUTATION, "voucherCode"),
+    ),
+)
 def test_draft_order_update(
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
     voucher,
     graphql_address_data,
+    query_str,
+    voucher_type,
 ):
     order = draft_order
     assert not order.voucher
+    assert not order.voucher_code
     assert not order.customer_note
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    query = DRAFT_ORDER_UPDATE_MUTATION
+    query = query_str
+    voucher = voucher if voucher_type == "voucher" else voucher.codes.first()
     order_id = graphene.Node.to_global_id("Order", order.id)
-    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    if voucher_type == "voucher":
+        voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    else:
+        voucher_id = voucher.code
     customer_note = "Test customer note"
     external_reference = "test-ext-ref"
     variables = {
         "id": order_id,
         "input": {
-            "voucher": voucher_id,
+            voucher_type: voucher_id,
             "customerNote": customer_note,
             "externalReference": external_reference,
             "shippingAddress": graphql_address_data,
@@ -134,6 +153,9 @@ def test_draft_order_update(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
+    if voucher_type == "voucher":
+        assert data["order"]["voucher"]["code"] == voucher.code
+    assert data["order"]["voucherCode"] == voucher.code
     stored_metadata = {"public": "public_value"}
 
     assert (
@@ -147,7 +169,7 @@ def test_draft_order_update(
     order.refresh_from_db()
     assert order.billing_address.metadata == stored_metadata
     assert order.shipping_address.metadata == stored_metadata
-    assert order.voucher
+    assert order.voucher_code == voucher.code
     assert order.customer_note == customer_note
     assert order.search_vector
     assert (

@@ -9,7 +9,7 @@ from ..celeryconf import app
 from ..channel.models import Channel
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.events import call_event
-from ..discount.models import Voucher, VoucherCode, VoucherCustomer
+from ..discount.models import VoucherCode, VoucherCustomer
 from ..payment.models import Payment, TransactionItem
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_orders
@@ -45,28 +45,24 @@ def send_order_updated(order_ids):
 
 
 def _bulk_release_voucher_usage(order_ids):
-    # code commented to fix mypy issue, this will be fixed in separate PR with
-    # expire_orders_task adjustments
+    voucher_orders = Order.objects.filter(
+        voucher_code=OuterRef("code"),
+        id__in=order_ids,
+    )
+    count_orders = voucher_orders.annotate(
+        count=Func(F("pk"), function="Count")
+    ).values("count")
 
-    # voucher_orders = Order.objects.filter(
-    #     voucher=OuterRef("pk"),
-    #     id__in=order_ids,
-    # )
-    # count_orders = voucher_orders.annotate(
-    #     count=Func(F("pk"), function="Count")
-    # ).values("count")
-
-    # Voucher.objects.filter(
-    #     Exists(voucher_orders),
-    #     usage_limit__isnull=False,
-    # ).annotate(
-    #     order_count=Subquery(count_orders)
-    # ).update(used=F("used") - F("order_count"))
+    VoucherCode.objects.filter(
+        Exists(voucher_orders),
+        voucher__usage_limit__isnull=False,
+    ).annotate(order_count=Subquery(count_orders)).update(
+        used=F("used") - F("order_count")
+    )
 
     orders = Order.objects.filter(id__in=order_ids)
-    vouchers = Voucher.objects.filter(Exists(orders.filter(voucher_id=OuterRef("pk"))))
     voucher_codes = VoucherCode.objects.filter(
-        Exists(vouchers.filter(id=OuterRef("voucher_id")))
+        Exists(orders.filter(voucher_code=OuterRef("code")))
     )
     VoucherCustomer.objects.filter(
         Exists(voucher_codes.filter(id=OuterRef("voucher_code_id"))),

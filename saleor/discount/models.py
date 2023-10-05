@@ -470,6 +470,9 @@ class OrderDiscount(BaseDiscount):
         on_delete=models.CASCADE,
     )
     old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
+    voucher_code = models.CharField(
+        max_length=255, null=True, blank=True, db_index=False
+    )
 
     class Meta:
         indexes = [
@@ -478,6 +481,7 @@ class OrderDiscount(BaseDiscount):
             ),
             # Orders searching index
             GinIndex(fields=["name", "translated_name"]),
+            GinIndex(fields=["voucher_code"], name="orderdiscount_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
 

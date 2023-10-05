@@ -66,6 +66,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                     voucher {
                         code
                     }
+                    voucherCode
                     customerNote
                     total {
                         gross {
@@ -115,6 +116,13 @@ DRAFT_ORDER_CREATE_MUTATION = """
     """
 
 
+@pytest.mark.parametrize(
+    "query_str, voucher_type",
+    (
+        (DRAFT_ORDER_CREATE_MUTATION, "voucher"),
+        (DRAFT_ORDER_CREATE_MUTATION, "voucherCode"),
+    ),
+)
 def test_draft_order_create(
     staff_api_client,
     permission_group_manage_orders,
@@ -126,9 +134,12 @@ def test_draft_order_create(
     voucher,
     channel_USD,
     graphql_address_data,
+    query_str,
+    voucher_type,
 ):
     variant_0 = variant
-    query = DRAFT_ORDER_CREATE_MUTATION
+    query = query_str
+    voucher = voucher if voucher_type == "voucher" else voucher.codes.first()
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
@@ -148,7 +159,10 @@ def test_draft_order_create(
     ]
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
-    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    if voucher_type == "voucher":
+        voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    else:
+        voucher_id = voucher.code
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     redirect_url = "https://www.example.com"
     external_reference = "test-ext-ref"
@@ -161,7 +175,7 @@ def test_draft_order_create(
             "billingAddress": shipping_address,
             "shippingAddress": shipping_address,
             "shippingMethod": shipping_id,
-            "voucher": voucher_id,
+            voucher_type: voucher_id,
             "customerNote": customer_note,
             "channelId": channel_id,
             "redirectUrl": redirect_url,
@@ -175,7 +189,9 @@ def test_draft_order_create(
     stored_metadata = {"public": "public_value"}
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
-    assert data["voucher"]["code"] == voucher.code
+    if voucher_type == "voucher":
+        assert data["voucher"]["code"] == voucher.code
+    assert data["voucherCode"] == voucher.code
     assert data["customerNote"] == customer_note
     assert data["redirectUrl"] == redirect_url
     assert data["externalReference"] == external_reference
@@ -191,6 +207,7 @@ def test_draft_order_create(
     assert data["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
 
     order = Order.objects.first()
+    assert order.voucher_code == voucher.code
     assert order.user == customer_user
     assert order.shipping_method == shipping_method
     assert order.shipping_method_name == shipping_method.name
