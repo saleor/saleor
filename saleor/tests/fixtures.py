@@ -3924,6 +3924,19 @@ def voucher(voucher_without_channel, channel_USD):
 
 
 @pytest.fixture
+def voucher_with_many_codes(voucher):
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="Multi1", voucher=voucher),
+            VoucherCode(code="Multi2", voucher=voucher),
+            VoucherCode(code="Multi3", voucher=voucher),
+            VoucherCode(code="Multi4", voucher=voucher),
+        ]
+    )
+    return voucher
+
+
+@pytest.fixture
 def voucher_with_many_channels(voucher, channel_PLN):
     VoucherChannelListing.objects.create(
         voucher=voucher,

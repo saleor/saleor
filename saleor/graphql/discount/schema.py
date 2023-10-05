@@ -36,6 +36,7 @@ from .mutations import (
     SaleUpdate,
     VoucherAddCatalogues,
     VoucherChannelListingUpdate,
+    VoucherCodeBulkDelete,
     VoucherCreate,
     VoucherDelete,
     VoucherRemoveCatalogues,
@@ -228,3 +229,4 @@ class DiscountMutations(graphene.ObjectType):
     voucher_catalogues_remove = VoucherRemoveCatalogues.Field()
     voucher_translate = VoucherTranslate.Field()
     voucher_channel_listing_update = VoucherChannelListingUpdate.Field()
+    voucher_code_bulk_delete = VoucherCodeBulkDelete.Field()
