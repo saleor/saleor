@@ -13,7 +13,7 @@ def handle_permissions(apps, _schema_editor):
 
 def create_permissions(
     app_config,
-    verbosity=2,
+    verbosity=0,
     interactive=True,
     using=DEFAULT_DB_ALIAS,
     apps=global_apps,
@@ -73,7 +73,7 @@ def _get_builtin_permissions(opts):  # noqa: D205, D212
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0049_promotionevent"),
+        ("discount", "0050_merge_20231004_1306"),
     ]
 
     operations = [
