@@ -55,3 +55,9 @@ class PromotionRuleUpdateErrorCode(Enum):
 class PromotionRuleDeleteErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
+
+
+class VoucherCodeBulkDeleteErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    INVALID = "invalid"
