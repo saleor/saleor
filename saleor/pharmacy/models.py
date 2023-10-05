@@ -2,6 +2,10 @@ from django.db import models
 
 
 class SiteSettings(models.Model):
+    class Meta:
+        app_label = 'pharmacy'
+        ordering = ['name']
+
     name = models.CharField(max_length=25)
     slug = models.SlugField(max_length=255, unique=True)
     pharmacy_name = models.CharField(max_length=255)
