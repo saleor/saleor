@@ -234,9 +234,19 @@ class VoucherCustomer(models.Model):
     voucher = models.ForeignKey(
         Voucher, related_name="customers", on_delete=models.CASCADE
     )
+    voucher_code = models.ForeignKey(
+        VoucherCode,
+        related_name="customers",
+        on_delete=models.CASCADE,
+        db_index=False,
+        null=True,
+    )
     customer_email = models.EmailField()
 
     class Meta:
+        indexes = [
+            BTreeIndex(fields=["voucher_code"], name="vouchercustomer_voucher_code_idx")
+        ]
         ordering = ("voucher", "customer_email", "pk")
         unique_together = (("voucher", "customer_email"),)
 
