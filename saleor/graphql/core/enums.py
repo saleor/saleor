@@ -204,6 +204,11 @@ ExportErrorCode = graphene.Enum.from_enum(csv_error_codes.ExportErrorCode)
 DiscountErrorCode = graphene.Enum.from_enum(discount_error_codes.DiscountErrorCode)
 DiscountErrorCode.doc_category = DOC_CATEGORY_DISCOUNTS
 
+VoucherCodeBulkDeleteErrorCode = graphene.Enum.from_enum(
+    discount_error_codes.VoucherCodeBulkDeleteErrorCode
+)
+VoucherCodeBulkDeleteErrorCode.doc_category = DOC_CATEGORY_DISCOUNTS
+
 PluginErrorCode = graphene.Enum.from_enum(plugin_error_codes.PluginErrorCode)
 
 GiftCardErrorCode = graphene.Enum.from_enum(giftcard_error_codes.GiftCardErrorCode)
