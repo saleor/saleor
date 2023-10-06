@@ -264,6 +264,12 @@ type Query {
   """
   giftCardSettings: GiftCardSettings! @doc(category: "Gift cards")
 
+  "\\n\\nRequires one of the following permissions: MANAGE_SETTINGS."
+  siteSettings(slug: String): SiteSettingsType
+
+  "\\n\\nRequires one of the following permissions: MANAGE_SETTINGS."
+  allSiteSettings: SiteSettingsList
+
   """
   Look up a shipping zone by ID.
   
@@ -11962,6 +11968,39 @@ enum TimePeriodTypeEnum {
   YEAR
 }
 
+type SiteSettingsType {
+  """"""
+  id: ID!
+
+  """"""
+  name: String!
+
+  """"""
+  slug: String!
+
+  """"""
+  pharmacyName: String!
+
+  """"""
+  npi: String!
+
+  """"""
+  phoneNumber: String!
+
+  """"""
+  faxNumber: String!
+
+  """"""
+  image: String!
+
+  """"""
+  css: String!
+}
+
+type SiteSettingsList {
+  edge: [SiteSettingsType]
+}
+
 input ShippingZoneFilterInput @doc(category: "Shipping") {
   search: String
   channels: [ID!]
@@ -13709,6 +13748,27 @@ type Mutation {
     """Fields required to update a shipping zone."""
     input: ShippingZoneUpdateInput!
   ): ShippingZoneUpdate @doc(category: "Shipping")
+
+  """Creates a new Site Settings."""
+  siteSettingsCreate(
+    """Fields required to create a Site Settings"""
+    input: SiteSettingsInput!
+  ): SiteSettingsCreate
+
+  """Update Site Settings by id."""
+  siteSettingsUpdate(
+    """ID of Site Settings"""
+    id: ID!
+
+    """Fields required to create a Site Settings"""
+    input: SiteSettingsInput!
+  ): SiteSettingsUpdate
+
+  """Delete Site Settings by slug."""
+  siteSettingsDelete(
+    """Site Settings Slug"""
+    slug: String
+  ): SiteSettingsDelete
 
   """
   Assign attributes to a given product type. 
@@ -18801,6 +18861,47 @@ input ShippingZoneUpdateInput @doc(category: "Shipping") {
 
   """List of channels to unassign from the shipping zone."""
   removeChannels: [ID!]
+}
+
+"""Creates a new Site Settings."""
+type SiteSettingsCreate {
+  siteSettings: SiteSettingsType
+}
+
+input SiteSettingsInput {
+  """Site Settings Name"""
+  name: String!
+
+  """Site Settings Slug"""
+  slug: String
+
+  """Site Settings Pharmacy Name"""
+  pharmacyName: String!
+
+  """Site Settings NPI"""
+  npi: String!
+
+  """Site Settings Phone Number"""
+  phoneNumber: String!
+
+  """Site Settings Fax Number"""
+  faxNumber: String!
+
+  """Site Settings Image"""
+  image: String
+
+  """Site Settings CSS"""
+  css: String
+}
+
+"""Update Site Settings by id."""
+type SiteSettingsUpdate {
+  siteSettings: SiteSettingsType
+}
+
+"""Delete Site Settings by slug."""
+type SiteSettingsDelete {
+  success: Boolean
 }
 
 """
