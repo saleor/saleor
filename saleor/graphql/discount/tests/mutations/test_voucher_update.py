@@ -38,28 +38,70 @@ UPDATE_VOUCHER_MUTATION = """
 
 
 def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
+    # given
     apply_once_per_order = not voucher.apply_once_per_order
     # Set discount value type to 'fixed' and change it in mutation
     voucher.discount_value_type = DiscountValueType.FIXED
     voucher.save()
-    assert voucher.code != "testcode123"
+    new_code = "testcode123"
+    code_instance = voucher.codes.first()
+    assert voucher.code != new_code
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
-        "code": "testcode123",
+        "code": new_code,
         "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
         "applyOncePerOrder": apply_once_per_order,
         "minCheckoutItemsQuantity": 10,
     }
 
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["voucherUpdate"]["voucher"]
-    assert data["code"] == "testcode123"
+    assert data["code"] == new_code
     assert data["discountValueType"] == DiscountValueType.PERCENTAGE.upper()
     assert data["applyOncePerOrder"] == apply_once_per_order
     assert data["minCheckoutItemsQuantity"] == 10
+    code_instance.refresh_from_db()
+    assert code_instance.code == new_code
+
+
+def test_update_voucher_lack_of_code_instance(
+    staff_api_client, voucher, permission_manage_discounts
+):
+    # given
+    apply_once_per_order = not voucher.apply_once_per_order
+    # Set discount value type to 'fixed' and change it in mutation
+    voucher.discount_value_type = DiscountValueType.FIXED
+    voucher.save()
+    new_code = "testcode123"
+    assert voucher.code != new_code
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "code": new_code,
+        "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
+        "applyOncePerOrder": apply_once_per_order,
+        "minCheckoutItemsQuantity": 10,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["voucherUpdate"]["voucher"]
+    assert data["code"] == new_code
+    assert data["discountValueType"] == DiscountValueType.PERCENTAGE.upper()
+    assert data["applyOncePerOrder"] == apply_once_per_order
+    assert data["minCheckoutItemsQuantity"] == 10
+    assert voucher.codes.count() == 1
+    assert voucher.codes.first().code == new_code
 
 
 @freeze_time("2022-05-12 12:00:00")

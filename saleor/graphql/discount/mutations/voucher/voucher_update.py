@@ -33,6 +33,20 @@ class VoucherUpdate(VoucherCreate):
         ]
 
     @classmethod
+    def create_code_instance(cls, code, voucher):
+        if not code:
+            return
+        code_instance = voucher.codes.first()
+        if code_instance:
+            code_instance.code = code
+        else:
+            code_instance = models.VoucherCode(
+                code=code,
+                voucher=voucher,
+            )
+        return code_instance
+
+    @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.voucher_updated, instance)

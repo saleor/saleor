@@ -396,7 +396,7 @@ def order_bulk_input(
         "invoices": [invoice],
         "discounts": [discount],
         "giftCards": ["never_expiry"],
-        "voucher": "mirumee",
+        "voucher": voucher_without_channel.code,
         "metadata": [{"key": "md key", "value": "md value"}],
         "privateMetadata": [{"key": "pmd key", "value": "pmd value"}],
     }
@@ -484,6 +484,7 @@ def test_order_bulk_create(
     graphql_address_data,
     shipping_method_channel_PLN,
     variant,
+    voucher_without_channel,
 ):
     # given
     orders_count = Order.objects.count()
@@ -573,7 +574,7 @@ def test_order_bulk_create(
     assert db_order.display_gross_prices
     assert db_order.currency == "PLN"
     assert db_order.gift_cards.first().code == "never_expiry"
-    assert db_order.voucher.code == "mirumee"
+    assert db_order.voucher.code == voucher_without_channel.code
     assert db_order.metadata["md key"] == "md value"
     assert db_order.private_metadata["pmd key"] == "pmd value"
     assert db_order.total_authorized_amount == Decimal("10")
