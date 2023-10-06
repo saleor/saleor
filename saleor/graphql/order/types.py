@@ -74,6 +74,7 @@ from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_311,
     ADDED_IN_313,
+    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
     PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD,
@@ -682,6 +683,13 @@ class OrderLine(ModelObjectType[models.OrderLine]):
             ProductPermissions.MANAGE_PRODUCTS,
             OrderPermissions.MANAGE_ORDERS,
         ],
+    )
+    sale_id = graphene.ID(
+        required=False,
+        description=(
+            "Denormalized sale ID, set when order line is created for a product "
+            "variant that is on sale." + ADDED_IN_314
+        ),
     )
     quantity_to_fulfill = graphene.Int(
         required=True,
