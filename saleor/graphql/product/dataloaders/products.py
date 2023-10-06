@@ -268,6 +268,7 @@ class VariantChannelListingByVariantIdLoader(DataLoader):
             ProductVariantChannelListing.objects.using(self.database_connection_name)
             .filter(variant_id__in=keys)
             .annotate_preorder_quantity_allocated()
+            .order_by("pk")
         )
 
         variant_id_variant_channel_listings_map = defaultdict(list)
