@@ -8135,7 +8135,6 @@ def async_subscription_webhooks_with_root_objects(
     shipping_method,
     product,
     fulfilled_order,
-    sale,
     fulfillment,
     stock,
     customer_user,
@@ -8151,6 +8150,7 @@ def async_subscription_webhooks_with_root_objects(
     transaction_item_created_by_app,
     product_media_image,
     user_export_file,
+    promotion_converted_from_sale,
 ):
     events = WebhookEventAsyncType
     attr = numeric_attribute
@@ -8314,10 +8314,22 @@ def async_subscription_webhooks_with_root_objects(
             subscription_product_variant_metadata_updated_webhook,
             product,
         ],
-        events.SALE_CREATED: [subscription_sale_created_webhook, sale],
-        events.SALE_UPDATED: [subscription_sale_updated_webhook, sale],
-        events.SALE_DELETED: [subscription_sale_deleted_webhook, sale],
-        events.SALE_TOGGLE: [subscription_sale_toggle_webhook, sale],
+        events.SALE_CREATED: [
+            subscription_sale_created_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_UPDATED: [
+            subscription_sale_updated_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_DELETED: [
+            subscription_sale_deleted_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_TOGGLE: [
+            subscription_sale_toggle_webhook,
+            promotion_converted_from_sale,
+        ],
         events.INVOICE_REQUESTED: [subscription_invoice_requested_webhook, invoice],
         events.INVOICE_DELETED: [subscription_invoice_deleted_webhook, invoice],
         events.INVOICE_SENT: [subscription_invoice_sent_webhook, invoice],
