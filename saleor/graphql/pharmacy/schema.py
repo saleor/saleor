@@ -1,7 +1,8 @@
 import graphene
+from django.db.models import QuerySet
 
 from ..core import ResolveInfo
-from .types import SiteSettingsType
+from .types import SiteSettingsType, SiteSettingsList
 from .mutations import SiteSettingsCreate, SiteSettingsUpdate, SiteSettingsDelete
 from .resolvers import (
     resolve_site_settings_by_slug,
@@ -9,11 +10,23 @@ from .resolvers import (
 )
 from ...core.utils import build_absolute_uri
 from ...pharmacy_settings import MEDIA_URL
+from ...permission.enums import SitePermissions
+from ..core.fields import PermissionsField
 
 
 class SiteSettingsQueries(graphene.ObjectType):
-    site_settings = graphene.Field(SiteSettingsType, slug=graphene.String())
-    all_site_settings = graphene.List(SiteSettingsType)
+    site_settings = PermissionsField(
+        SiteSettingsType,
+        slug=graphene.String(),
+        permissions=[
+            SitePermissions.MANAGE_SETTINGS,
+        ])
+    all_site_settings = PermissionsField(
+        SiteSettingsList,
+        permissions=[
+            SitePermissions.MANAGE_SETTINGS,
+        ]
+    )
 
     @staticmethod
     def resolve_site_settings(_root, _info: ResolveInfo, *, slug=None, **kwargs):
@@ -30,6 +43,7 @@ class SiteSettingsQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_all_site_settings(_root, _info: ResolveInfo):
+        site_settings_list = SiteSettingsList()
         all_site_settings = resolve_all_site_settings()
 
         for site_settings in all_site_settings:
@@ -39,7 +53,8 @@ class SiteSettingsQueries(graphene.ObjectType):
                 build_absolute_uri(f"{MEDIA_URL}{site_settings.css}") \
                     if site_settings.css else ""
 
-        return all_site_settings
+        site_settings_list.edge = all_site_settings
+        return site_settings_list
 
 
 class SiteSettingsMutations(graphene.ObjectType):

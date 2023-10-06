@@ -263,8 +263,12 @@ type Query {
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCardSettings: GiftCardSettings! @doc(category: "Gift cards")
+
+  "\\n\\nRequires one of the following permissions: MANAGE_SETTINGS."
   siteSettings(slug: String): SiteSettingsType
-  allSiteSettings: [SiteSettingsType]
+
+  "\\n\\nRequires one of the following permissions: MANAGE_SETTINGS."
+  allSiteSettings: SiteSettingsList
 
   """
   Look up a shipping zone by ID.
@@ -11991,6 +11995,10 @@ type SiteSettingsType {
 
   """"""
   css: String!
+}
+
+type SiteSettingsList {
+  edge: [SiteSettingsType]
 }
 
 input ShippingZoneFilterInput @doc(category: "Shipping") {
