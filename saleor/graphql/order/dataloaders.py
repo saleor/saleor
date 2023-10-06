@@ -29,6 +29,7 @@ class OrderLinesByVariantIdAndChannelIdLoader(
             OrderLine.objects.using(self.database_connection_name)
             .filter(order__channel_id__in=channel_ids, variant_id__in=variant_ids)
             .annotate(channel_id=F("order__channel_id"))
+            .order_by("created_at", "id")
         )
 
         order_line_by_variant_and_channel_map: DefaultDict[

@@ -215,6 +215,7 @@ class ProductVariantsByProductIdAndChannel(
             ProductVariant.objects.using(self.database_connection_name)
             .filter(**variants_filter)
             .annotate(channel_slug=F("channel_listings__channel__slug"))
+            .order_by("sort_order", "sku")
         )
         variant_map: DefaultDict[Tuple[int, str], List[ProductVariant]] = defaultdict(
             list
@@ -324,6 +325,7 @@ class VariantChannelListingByVariantIdAndChannelLoader(
             .using(self.database_connection_name)
             .filter(**filter)
             .annotate_preorder_quantity_allocated()
+            .order_by("pk")
         )
 
         variant_channel_listings_map: Dict[int, ProductVariantChannelListing] = {}
@@ -396,6 +398,7 @@ class VariantsChannelListingByProductIdAndChannelSlugLoader(
                 price_amount__isnull=False,
             )
             .annotate(product_id=F("variant__product_id"))
+            .order_by("pk")
         )
 
         variants_channel_listings_map: Dict[
@@ -615,6 +618,7 @@ class CollectionChannelListingByCollectionIdAndChannelSlugLoader(DataLoader):
             CollectionChannelListing.objects.using(self.database_connection_name)
             .filter(collection_id__in=collection_ids, channel__slug__in=channel_slugs)
             .annotate(channel_slug=F("channel__slug"))
+            .order_by("pk")
         )
         collections_channel_listings_by_collection_and_channel_map = {}
         for collections_channel_listing in collections_channel_listings.iterator():

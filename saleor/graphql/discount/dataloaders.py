@@ -30,6 +30,7 @@ class SaleChannelListingBySaleIdAndChanneSlugLoader(DataLoader):
             SaleChannelListing.objects.using(self.database_connection_name)
             .filter(sale_id__in=sale_ids, channel__slug__in=channel_slugs)
             .annotate(channel_slug=F("channel__slug"))
+            .order_by("pk")
         )
         sale_channel_listings_by_sale_and_channel_map = {}
         for sale_channel_listing in sale_channel_listings:
@@ -83,6 +84,7 @@ class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):
             VoucherChannelListing.objects.using(self.database_connection_name)
             .filter(voucher_id__in=voucher_ids, channel__slug__in=channel_slugs)
             .annotate(channel_slug=F("channel__slug"))
+            .order_by("pk")
         )
         voucher_channel_listings_by_voucher_and_channel_map = {}
         for voucher_channel_listing in voucher_channel_listings:
