@@ -249,6 +249,7 @@ class CheckoutByUserAndChannelLoader(DataLoader[Tuple[int, str], List[Checkout]]
                 channel__is_active=True,
             )
             .annotate(channel_slug=F("channel__slug"))
+            .order_by("-last_change", "pk")
         )
         checkout_by_user_and_channel_map = defaultdict(list)
         for checkout in checkouts:
