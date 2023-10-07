@@ -14,7 +14,7 @@ COPY google-build-key.json /app/google-build-key.json
 COPY pyproject.toml /app/
 COPY poetry.lock /app/
 
-RUN pip install poetry
+RUN pip install "poetry>=1.3.0,<1.4.0"
 RUN pip install wheel
 RUN pip install keyrings.google-artifactregistry-auth
 
