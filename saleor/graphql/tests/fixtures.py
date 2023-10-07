@@ -20,7 +20,7 @@ from .utils import assert_no_permission
 API_PATH = reverse("api")
 
 
-class ApiClient(Client):
+class BaseApiClient(Client):
     """GraphQL API client."""
 
     def __init__(self, *args, **kwargs):
@@ -72,6 +72,8 @@ class ApiClient(Client):
         kwargs["content_type"] = "application/json"
         return super().post(self.api_path, data, **kwargs)
 
+
+class ApiClient(BaseApiClient):
     def post_graphql(
         self,
         query,
@@ -95,13 +97,13 @@ class ApiClient(Client):
         if permissions:
             if check_no_permissions:
                 with mock.patch("saleor.graphql.utils.handled_errors_logger"):
-                    response = super().post(self.api_path, data, **kwargs)
+                    response = super(Client, self).post(self.api_path, data, **kwargs)
                 assert_no_permission(response)
             if self.app:
                 self.app.permissions.add(*permissions)
             else:
                 self.user.user_permissions.add(*permissions)
-        result = super().post(self.api_path, data, **kwargs)
+        result = super(Client, self).post(self.api_path, data, **kwargs)
         flush_post_commit_hooks()
         return result
 
@@ -114,10 +116,10 @@ class ApiClient(Client):
         kwargs["content_type"] = MULTIPART_CONTENT
 
         if permissions:
-            response = super().post(self.api_path, *args, **kwargs)
+            response = super(Client, self).post(self.api_path, *args, **kwargs)
             assert_no_permission(response)
             self.user.user_permissions.add(*permissions)
-        result = super().post(self.api_path, *args, **kwargs)
+        result = super(Client, self).post(self.api_path, *args, **kwargs)
         flush_post_commit_hooks()
         return result
 

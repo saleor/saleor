@@ -78,7 +78,7 @@ def test_trigger_webhook_sync_with_subscription(
 
     # then
     assert json.loads(event_delivery.payload.payload) == expected_payment_payload
-    mock_request.assert_called_once_with(payment_app.name, event_delivery)
+    mock_request.assert_called_once_with(event_delivery)
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")

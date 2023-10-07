@@ -140,10 +140,16 @@ class AttributeValueBulkTranslate(BaseBulkTranslateMutation):
     @classmethod
     def pre_update_or_create(cls, instance, input_data):
         if input_data.get("name") is None:
-            if instance.attribute.input_type == AttributeInputType.RICH_TEXT:
+            attribute = instance.attribute_value.attribute
+            if attribute.input_type == AttributeInputType.RICH_TEXT:
                 input_data["name"] = truncatechars(
-                    clean_editor_js(input_data["rich_text"], to_string=True), 100
+                    clean_editor_js(input_data["rich_text"], to_string=True), 250
                 )
-            elif instance.attribute.input_type == AttributeInputType.PLAIN_TEXT:
-                input_data["name"] = truncatechars(input_data["plain_text"], 100)
+            elif attribute.input_type == AttributeInputType.PLAIN_TEXT:
+                input_data["name"] = truncatechars(input_data["plain_text"], 250)
+
+            # Set this value on the instance too as at this point it was already created
+            # input_data will be used for validation
+            # the value on the instance will be used to save it after the validation
+            instance.name = input_data["name"]
         return input_data

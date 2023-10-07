@@ -24,6 +24,12 @@ from ....core.prices import quantize_price
 from ....discount import DiscountValueType, VoucherType
 from ....discount.utils import generate_sale_discount_objects_for_checkout
 from ....payment import TransactionAction
+from ....payment.interface import (
+    ListStoredPaymentMethodsRequestData,
+    PaymentGateway,
+    PaymentMethodCreditCardInfo,
+    PaymentMethodData,
+)
 from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductVariant
@@ -33,6 +39,7 @@ from ....tests.utils import dummy_editorjs
 from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.models import PreorderReservation, Reservation, Stock, Warehouse
 from ...core.utils import to_global_id_or_none
+from ...payment.enums import TokenizedPaymentFlowEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 from ..mutations.utils import (
@@ -194,6 +201,33 @@ def test_checkout_available_payment_gateways(
     assert data["availablePaymentGateways"] == [
         expected_dummy_gateway,
     ]
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.list_payment_gateways")
+def test_checkout_available_payment_gateways_valid_info_sent(
+    mocked_list_gateways,
+    api_client,
+    checkout_with_item,
+    checkout_info,
+    checkout_lines_info,
+):
+    # given
+    checkout = checkout_with_item
+    channel_slug = checkout.channel.slug
+    currency = checkout.currency
+    query = GET_CHECKOUT_PAYMENTS_QUERY
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+
+    # when
+    api_client.post_graphql(query, variables)
+
+    # then
+    mocked_list_gateways.assert_called_with(
+        currency=currency,
+        checkout_info=checkout_info,
+        checkout_lines=checkout_lines_info,
+        channel_slug=channel_slug,
+    )
 
 
 def test_checkout_available_payment_gateways_currency_specified_USD(
@@ -2226,12 +2260,11 @@ QUERY_CHECKOUT_TRANSACTIONS = """
 def test_checkout_transactions_missing_permission(api_client, checkout):
     # given
     checkout.payment_transactions.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"id": to_global_id_or_none(checkout)}
@@ -2248,12 +2281,11 @@ def test_checkout_transactions_with_manage_checkouts(
 ):
     # given
     transaction = checkout.payment_transactions.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"id": to_global_id_or_none(checkout)}
@@ -2277,12 +2309,11 @@ def test_checkout_transactions_with_handle_payments(
 ):
     # given
     transaction = checkout.payment_transactions.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"id": to_global_id_or_none(checkout)}
@@ -2322,14 +2353,13 @@ def test_checkout_payment_statuses(
 ):
     # given
     checkout_with_prices.payment_transactions.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
         charged_value=Decimal("5"),
         charge_pending_value=Decimal("6"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_STATUSES_AND_BALANCE
     variables = {"id": to_global_id_or_none(checkout_with_prices)}
@@ -2359,14 +2389,13 @@ def test_checkout_balance(
 ):
     # given
     transaction = checkout_with_prices.payment_transactions.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
         charged_value=Decimal("5"),
         charge_pending_value=Decimal("6"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_STATUSES_AND_BALANCE
     variables = {"id": to_global_id_or_none(checkout_with_prices)}
@@ -2386,3 +2415,294 @@ def test_checkout_balance(
         + transaction.charge_pending_value
         - checkout_with_prices.total.gross.amount
     )
+
+
+def test_checkout_metadata(checkout, user_api_client):
+    # given
+    checkout.metadata_storage.metadata = {"foo": "bar"}
+    checkout.metadata_storage.save()
+
+    query = """
+        query getCheckout($id: ID) {
+            checkout(id: $id) {
+                metadata {
+                    key
+                    value
+                }
+                foo: metafield(key: "foo")
+                nonexistent: metafield(key: "nonexistent")
+                metafields
+            }
+        }
+    """
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["metadata"] == [{"key": "foo", "value": "bar"}]
+    assert content["data"]["checkout"]["foo"] == "bar"
+    assert content["data"]["checkout"]["nonexistent"] is None
+    assert content["data"]["checkout"]["metafields"] == {"foo": "bar"}
+
+
+def test_checkout_no_metadata(checkout, user_api_client):
+    # given
+    checkout.metadata_storage.delete()
+
+    query = """
+        query getCheckout($id: ID) {
+            checkout(id: $id) {
+                metadata {
+                    key
+                    value
+                }
+                metafield(key: "foo")
+                metafields
+            }
+        }
+    """
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["metadata"] == []
+    assert content["data"]["checkout"]["metafield"] is None
+    assert content["data"]["checkout"]["metafields"] == {}
+
+
+QUERY_CHECKOUT_STORED_PAYMENT_METHODS = """
+query getCheckout($id: ID, $amount: PositiveDecimal) {
+  checkout(id: $id) {
+    storedPaymentMethods(amount: $amount){
+      id
+      gateway{
+        name
+        id
+        config{
+          field
+          value
+        }
+        currencies
+      }
+      paymentMethodId
+      creditCardInfo{
+        brand
+        firstDigits
+        lastDigits
+        expMonth
+        expYear
+      }
+      supportedPaymentFlows
+      type
+      name
+      data
+    }
+  }
+}
+"""
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.list_stored_payment_methods")
+def test_checkout_with_stored_payment_methods_empty_response(
+    mocked_list_stored_payment_methods,
+    user_api_client,
+    checkout_with_prices,
+):
+    # given
+    checkout_with_prices.user = user_api_client.user
+    checkout_with_prices.save(update_fields=["user"])
+
+    mocked_list_stored_payment_methods.return_value = []
+    query = QUERY_CHECKOUT_STORED_PAYMENT_METHODS
+    variables = {"id": to_global_id_or_none(checkout_with_prices)}
+
+    request_data = ListStoredPaymentMethodsRequestData(
+        user=checkout_with_prices.user,
+        channel=checkout_with_prices.channel,
+    )
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    mocked_list_stored_payment_methods.assert_called_once_with(request_data)
+    assert content["data"]["checkout"]["storedPaymentMethods"] == []
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.list_stored_payment_methods")
+def test_checkout_with_stored_payment_methods(
+    mocked_list_stored_payment_methods,
+    user_api_client,
+    checkout_with_prices,
+):
+    # given
+    checkout_with_prices.user = user_api_client.user
+    checkout_with_prices.save(update_fields=["user"])
+
+    payment_method_id = "app:payment-method-id"
+    external_id = "payment-method-id"
+    supported_payment_flow = TokenizedPaymentFlowEnum.INTERACTIVE
+    payment_method_type = "credit-card"
+    payment_method_name = "Payment method name"
+    payment_method_data = {"additional_data": "value"}
+
+    payment_gateway_id = "gateway-id"
+    payment_gateway_name = "gateway-name"
+
+    credit_card_brand = "brand"
+    credit_card_first_digits = "123"
+    credit_card_last_digits = "456"
+    credit_card_exp_month = 1
+    credit_card_exp_year = 2021
+
+    mocked_list_stored_payment_methods.return_value = [
+        PaymentMethodData(
+            id=payment_method_id,
+            external_id=external_id,
+            supported_payment_flows=[supported_payment_flow.value],
+            type=payment_method_type,
+            credit_card_info=PaymentMethodCreditCardInfo(
+                brand=credit_card_brand,
+                first_digits=credit_card_first_digits,
+                last_digits=credit_card_last_digits,
+                exp_month=credit_card_exp_month,
+                exp_year=credit_card_exp_year,
+            ),
+            name=payment_method_name,
+            data=payment_method_data,
+            gateway=PaymentGateway(
+                id=payment_gateway_id,
+                name=payment_gateway_name,
+                currencies=[checkout_with_prices.currency],
+                config=[],
+            ),
+        )
+    ]
+
+    query = QUERY_CHECKOUT_STORED_PAYMENT_METHODS
+    variables = {"id": to_global_id_or_none(checkout_with_prices)}
+
+    request_data = ListStoredPaymentMethodsRequestData(
+        user=checkout_with_prices.user,
+        channel=checkout_with_prices.channel,
+    )
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    mocked_list_stored_payment_methods.assert_called_once_with(request_data)
+    assert content["data"]["checkout"]["storedPaymentMethods"] == [
+        {
+            "id": payment_method_id,
+            "gateway": {
+                "name": payment_gateway_name,
+                "id": payment_gateway_id,
+                "config": [],
+                "currencies": [checkout_with_prices.currency],
+            },
+            "paymentMethodId": external_id,
+            "creditCardInfo": {
+                "brand": credit_card_brand,
+                "firstDigits": credit_card_first_digits,
+                "lastDigits": credit_card_last_digits,
+                "expMonth": credit_card_exp_month,
+                "expYear": credit_card_exp_year,
+            },
+            "supportedPaymentFlows": [supported_payment_flow.name],
+            "type": payment_method_type,
+            "name": payment_method_name,
+            "data": payment_method_data,
+        }
+    ]
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.list_stored_payment_methods")
+def test_checkout_with_stored_payment_methods_requested_by_staff_user(
+    mocked_list_stored_payment_methods,
+    staff_api_client,
+    checkout_with_prices,
+    customer_user2,
+    permission_manage_checkouts,
+    permission_manage_users,
+):
+    # given
+    checkout_with_prices.user = customer_user2
+    checkout_with_prices.save(update_fields=["user"])
+
+    staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+
+    mocked_list_stored_payment_methods.return_value = []
+    query = QUERY_CHECKOUT_STORED_PAYMENT_METHODS
+    variables = {"id": to_global_id_or_none(checkout_with_prices)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    assert customer_user2 != staff_api_client.user
+
+    content = get_graphql_content(response)
+
+    assert not mocked_list_stored_payment_methods.called
+    assert content["data"]["checkout"]["storedPaymentMethods"] == []
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.list_stored_payment_methods")
+def test_checkout_with_stored_payment_methods_requested_by_app(
+    mocked_list_stored_payment_methods,
+    app_api_client,
+    checkout_with_prices,
+    customer_user2,
+    permission_manage_checkouts,
+    permission_manage_users,
+):
+    # given
+    app = app_api_client.app
+    app.permissions.add(
+        permission_manage_checkouts,
+        permission_manage_users,
+    )
+    checkout_with_prices.user = customer_user2
+    checkout_with_prices.save(update_fields=["user"])
+
+    mocked_list_stored_payment_methods.return_value = []
+    query = QUERY_CHECKOUT_STORED_PAYMENT_METHODS
+    variables = {"id": to_global_id_or_none(checkout_with_prices)}
+
+    # when
+    response = app_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert not mocked_list_stored_payment_methods.called
+    assert content["data"]["checkout"]["storedPaymentMethods"] == []

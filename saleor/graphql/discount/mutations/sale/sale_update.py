@@ -6,13 +6,19 @@ import pytz
 
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
+from .....discount.sale_converter import (
+    create_catalogue_predicate_from_catalogue_data,
+    get_or_create_promotion,
+)
 from .....discount.utils import CATALOGUE_FIELDS, fetch_catalogue_info
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_of_catalogues_task
+from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.mutations import ModelMutation
 from ....core.types import DiscountError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Sale
 from ..utils import convert_catalogue_info_to_global_ids
@@ -33,10 +39,22 @@ class SaleUpdate(ModelMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.SALE_UPDATED,
+                description="A sale was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.SALE_TOGGLE,
+                description="Optionally triggered when a sale is started or stopped.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
+        promotion = get_or_create_promotion(instance)
+        rules = promotion.rules.all()
         previous_catalogue = fetch_catalogue_info(instance)
         previous_end_date = instance.end_date
         data = data.get("input")
@@ -48,12 +66,19 @@ class SaleUpdate(ModelMutation):
             cls.save(info, instance, cleaned_input)
             cls._save_m2m(info, instance, cleaned_input)
             current_catalogue = fetch_catalogue_info(instance)
+            current_catalogue_global_ids = convert_catalogue_info_to_global_ids(
+                current_catalogue
+            )
+            promotion_update_fields = cls.update_promotion(
+                instance, promotion, rules, current_catalogue_global_ids
+            )
+            cls.save_promotion(promotion, rules, promotion_update_fields)
             cls.send_sale_notifications(
                 manager,
                 instance,
                 cleaned_input,
                 previous_catalogue,
-                current_catalogue,
+                current_catalogue_global_ids,
                 previous_end_date,
             )
 
@@ -61,6 +86,29 @@ class SaleUpdate(ModelMutation):
                 cleaned_input, previous_catalogue, current_catalogue
             )
         return cls.success_response(ChannelContext(node=instance, channel_slug=None))
+
+    @classmethod
+    def update_promotion(cls, sale, promotion, rules, current_catalogue):
+        promotion_update_fields = []
+        for field in ["name", "start_date", "end_date"]:
+            value = getattr(sale, field)
+            if getattr(promotion, field) != value:
+                setattr(promotion, field, value)
+                promotion_update_fields.append(field)
+
+        predicate = create_catalogue_predicate_from_catalogue_data(current_catalogue)
+        for rule in rules:
+            rule.reward_value_type = sale.type
+            rule.catalogue_predicate = predicate
+
+        return promotion_update_fields
+
+    @classmethod
+    def save_promotion(cls, promotion, rules, promotion_update_fields):
+        promotion.save(update_fields=promotion_update_fields)
+        models.PromotionRule.objects.bulk_update(
+            list(rules), ["catalogue_predicate", "reward_value_type"]
+        )
 
     @classmethod
     def send_sale_notifications(
@@ -72,7 +120,6 @@ class SaleUpdate(ModelMutation):
         current_catalogue,
         previous_end_date,
     ):
-        current_catalogue = convert_catalogue_info_to_global_ids(current_catalogue)
         cls.call_event(
             manager.sale_updated,
             instance,

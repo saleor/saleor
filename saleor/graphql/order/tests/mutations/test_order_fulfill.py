@@ -12,6 +12,7 @@ from .....order.models import Fulfillment, FulfillmentLine
 from .....product.models import ProductVariant
 from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Allocation, Stock
+from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_FULFILL_MUTATION = """
@@ -72,9 +73,11 @@ def test_order_fulfill_with_out_of_stock_webhook(
 
 
 @pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
+@patch("saleor.plugins.manager.PluginsManager.tracking_number_updated")
 @patch("saleor.graphql.order.mutations.order_fulfill.create_fulfillments")
 def test_order_fulfill(
     mock_create_fulfillments,
+    mocked_fulfillment_tracking_number_updated_event,
     fulfillment_auto_approve,
     staff_api_client,
     staff_user,
@@ -132,6 +135,7 @@ def test_order_fulfill(
         approved=fulfillment_auto_approve,
         tracking_number="",
     )
+    mocked_fulfillment_tracking_number_updated_event.assert_not_called()
 
 
 def test_order_fulfill_no_channel_access(
@@ -1484,3 +1488,62 @@ def test_create_digital_fulfillment(
     get_graphql_content(response)
 
     assert mock_email_fulfillment.call_count == 1
+
+
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_order_fulfill_tracking_number_updated_event_triggered(
+    mocked_webhooks,
+    any_webhook,
+    subscription_fulfillment_tracking_number_updated,
+    subscription_fulfillment_created_webhook,
+    staff_api_client,
+    staff_user,
+    order_with_lines,
+    permission_group_manage_orders,
+    warehouse,
+    site_settings,
+    settings,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    site_settings.fulfillment_auto_approve = True
+    site_settings.save(update_fields=["fulfillment_auto_approve"])
+    order = order_with_lines
+    query = ORDER_FULFILL_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_line, order_line2 = order.lines.all()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": True,
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 3, "warehouse": warehouse_id}],
+                },
+                {
+                    "orderLineId": order_line2_id,
+                    "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
+                },
+            ],
+            "trackingNumber": "test_tracking_number",
+        },
+    }
+    # when
+    staff_api_client.post_graphql(query, variables)
+    flush_post_commit_hooks()
+
+    # then
+    assert mocked_webhooks.call_count == 2
+    mocked_tracking_updated = mocked_webhooks.call_args_list[0]
+    mocked_fulfillment_created = mocked_webhooks.call_args_list[1]
+
+    assert (
+        mocked_tracking_updated[0][1]
+        == WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED
+    )
+    assert mocked_fulfillment_created[0][1] == WebhookEventAsyncType.FULFILLMENT_CREATED

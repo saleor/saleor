@@ -57,8 +57,11 @@ def test_payment_transactions(
     permission_group_manage_orders,
     count_queries,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     transactions_count = 0
+
+    # when
     content = get_graphql_content(
         staff_api_client.post_graphql(
             PAYMENT_TRANSACTIONS_QUERY,
@@ -66,6 +69,7 @@ def test_payment_transactions(
         )
     )
 
+    # then
     edges = content["data"]["orders"]["edges"]
     for edge in edges:
         for payment in edge["node"]["payments"]:

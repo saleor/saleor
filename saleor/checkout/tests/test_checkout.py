@@ -1158,11 +1158,8 @@ def test_checkout_discount_amount_should_be_decimal():
 def test_recalculate_checkout_discount(
     checkout_with_voucher,
     voucher,
-    voucher_translation_fr,
-    settings,
     channel_USD,
 ):
-    settings.LANGUAGE_CODE = "fr"
     voucher.channel_listings.filter(channel=channel_USD).update(discount_value=10)
 
     manager = get_plugins_manager()
@@ -1170,9 +1167,6 @@ def test_recalculate_checkout_discount(
     checkout_info = fetch_checkout_info(checkout_with_voucher, lines, manager)
 
     recalculate_checkout_discount(manager, checkout_info, lines)
-    assert (
-        checkout_with_voucher.translated_discount_name == voucher_translation_fr.name
-    )  # noqa
     assert checkout_with_voucher.discount == Money("10.00", "USD")
 
 
@@ -1336,6 +1330,33 @@ def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shippi
     assert not checkout.discount_name
     assert not checkout.voucher_code
     assert checkout.discount == zero_money(checkout.channel.currency_code)
+
+
+def test_recalculate_checkout_discount_translate_discount_in_checkout_language(
+    checkout_with_voucher,
+    voucher,
+    voucher_translation_fr,
+    settings,
+    channel_USD,
+):
+    # given
+    language_code = "fr"
+    settings.LANGUAGE_CODE = "es"
+    checkout = checkout_with_voucher
+    checkout.language_code = language_code
+    checkout.save(update_fields=["language_code"])
+
+    voucher.channel_listings.filter(channel=channel_USD).update(discount_value=10)
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    recalculate_checkout_discount(manager, checkout_info, lines)
+
+    # then
+    assert checkout.translated_discount_name == voucher_translation_fr.name
 
 
 def test_change_address_in_checkout(checkout, address):

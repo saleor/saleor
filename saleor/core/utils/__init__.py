@@ -1,18 +1,17 @@
-import os
 import socket
-from typing import TYPE_CHECKING, Iterable, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 from urllib.parse import urljoin
 
-from babel.numbers import get_territory_currencies
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db.models import Model
 from django.utils.encoding import iri_to_uri
 from django.utils.text import slugify
-from django_prices_openexchangerates import exchange_currency
-from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from text_unidecode import unidecode
+
+if TYPE_CHECKING:
+    from ...attribute.models import Attribute
 
 task_logger = get_task_logger(__name__)
 
@@ -69,30 +68,6 @@ def is_valid_ipv6(ip: str) -> bool:
     return True
 
 
-def get_currency_for_country(country_code: str):
-    currencies = get_territory_currencies(country_code)
-    if currencies:
-        return currencies[0]
-    return os.environ.get("DEFAULT_CURRENCY", "USD")
-
-
-M = TypeVar("M", Money, MoneyRange, TaxedMoney, TaxedMoneyRange)
-
-
-def to_local_currency(price: Optional[M], currency: str) -> Optional[M]:
-    if price is None:
-        return None
-    if not settings.OPENEXCHANGERATES_API_KEY:  # type: ignore[misc] # circular import # noqa: E501
-        return None
-    from_currency = price.currency
-    if currency != from_currency:
-        try:
-            return exchange_currency(price, currency)
-        except ValueError:
-            pass
-    return None
-
-
 def generate_unique_slug(
     instance: Model,
     slugable_value: str,
@@ -145,3 +120,10 @@ def prepare_unique_slug(slug: str, slug_values: Iterable):
         unique_slug = f"{slug}-{extension}"
 
     return unique_slug
+
+
+def prepare_unique_attribute_value_slug(attribute: "Attribute", slug: str):
+    value_slugs = attribute.values.filter(slug__startswith=slug).values_list(
+        "slug", flat=True
+    )
+    return prepare_unique_slug(slug, value_slugs)

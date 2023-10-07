@@ -4,8 +4,39 @@ import graphene
 from django.utils import timezone
 
 from ..... import __version__
+from .....core.utils import build_absolute_uri
 from .....graphql.attribute.enums import AttributeInputTypeEnum, AttributeTypeEnum
+from .....graphql.shop.types import SHOP_ID
 from .....product.models import Product
+
+
+def generate_account_events_payload(customer_user):
+    payload = {
+        **generate_customer_payload(customer_user),
+    }
+
+    return json.dumps(payload)
+
+
+def generate_account_requested_events_payload(customer_user, channel, new_email=None):
+    payload = {
+        **generate_customer_payload(customer_user),
+        **{
+            "token": "token",
+            "redirectUrl": "http://www.mirumee.com?token=token",
+            "channel": {
+                "slug": channel.slug,
+                "id": graphene.Node.to_global_id("Channel", channel.id),
+            }
+            if channel
+            else None,
+            "shop": {"domain": {"host": "mirumee.com", "url": "http://mirumee.com/"}},
+        },
+    }
+    if new_email:
+        payload["newEmail"] = new_email
+
+    return json.dumps(payload)
 
 
 def generate_app_payload(app, app_global_id):
@@ -81,9 +112,9 @@ def generate_fulfillment_lines_payload(fulfillment):
     ]
 
 
-def generate_fulfillment_payload(fulfillment):
+def generate_fulfillment_payload(fulfillment, add_notify_customer_field=False):
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.pk)
-    return {
+    payload = {
         "fulfillment": {
             "id": fulfillment_id,
             "fulfillmentOrder": fulfillment.fulfillment_order,
@@ -95,6 +126,9 @@ def generate_fulfillment_payload(fulfillment):
             "id": graphene.Node.to_global_id("Order", fulfillment.order.pk),
         },
     }
+    if add_notify_customer_field:
+        payload["notifyCustomer"] = True
+    return payload
 
 
 def generate_address_payload(address):
@@ -120,7 +154,7 @@ def generate_customer_payload(customer):
             "email": customer.email,
             "firstName": customer.first_name,
             "lastName": customer.last_name,
-            "isStaff": False,
+            "isStaff": customer.is_staff,
             "isActive": customer.is_active,
             "addresses": [
                 {"id": graphene.Node.to_global_id("Address", address.pk)}
@@ -129,9 +163,13 @@ def generate_customer_payload(customer):
             "languageCode": customer.language_code.upper(),
             "defaultShippingAddress": (
                 generate_address_payload(customer.default_shipping_address)
+                if customer.default_shipping_address
+                else None
             ),
             "defaultBillingAddress": (
                 generate_address_payload(customer.default_billing_address)
+                if customer.default_billing_address
+                else None
             ),
         }
     }
@@ -390,6 +428,21 @@ def generate_gift_card_payload(gift_card, card_global_id):
     )
 
 
+def generate_export_payload(export_file, export_global_id):
+    return json.dumps(
+        {
+            "export": {
+                "id": export_global_id,
+                "createdAt": export_file.created_at.isoformat(),
+                "updatedAt": export_file.updated_at.isoformat(),
+                "status": export_file.status.upper(),
+                "url": build_absolute_uri(export_file.content_file.url),
+                "message": export_file.message,
+            }
+        }
+    )
+
+
 def generate_menu_payload(menu, menu_global_id):
     menu_items = sorted(menu.items.all(), key=lambda key: key.pk)
     return {
@@ -463,3 +516,13 @@ def generate_payment_payload(payment):
             "isActive": payment.is_active,
         }
     }
+
+
+def generate_shop_payload():
+    return json.dumps(
+        {
+            "shop": {
+                "id": graphene.Node.to_global_id("Shop", SHOP_ID),
+            }
+        }
+    )

@@ -298,7 +298,7 @@ def test_attribute_bulk_translate_return_error_when_invalid_attr_id(
 
     # then
     assert data["count"] == 0
-    message = "Couldn't resolve to an attribute."
+    message = "Couldn't resolve to an object."
     error = data["results"][0]["errors"][0]
     assert error["code"] == TranslationErrorCode.NOT_FOUND.name
     assert error["message"] == message
@@ -333,7 +333,7 @@ def test_attribute_bulk_translate_return_error_when_invalid_attr_external_ref(
 
     # then
     assert data["count"] == 0
-    message = "Couldn't resolve to an attribute."
+    message = "Couldn't resolve to an object."
     error = data["results"][0]["errors"][0]
     assert error["code"] == TranslationErrorCode.NOT_FOUND.name
     assert error["message"] == message

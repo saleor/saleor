@@ -6,6 +6,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from .....discount import DiscountValueType
+from .....discount.models import Promotion, PromotionRule
 from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...enums import DiscountValueTypeEnum
@@ -89,6 +90,177 @@ def test_update_sale(
     assert set(kwargs["collection_ids"]) == collection_pks
     assert set(kwargs["product_ids"]) == product_pks.union(new_product_pks)
     assert set(kwargs["variant_ids"]) == variant_pks
+
+
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+)
+@patch("saleor.plugins.manager.PluginsManager.sale_updated")
+def test_update_sale_promotion_created(
+    updated_webhook_mock,
+    update_products_discounted_prices_of_catalogues_task_mock,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    product_list,
+):
+    # given
+    query = SALE_UPDATE_MUTATION
+
+    # Set discount value type to 'fixed' and change it in mutation
+    sale.type = DiscountValueType.FIXED
+    sale.save(update_fields=["type"])
+
+    new_product_pks = [product.id for product in product_list]
+
+    new_product_ids = [
+        graphene.Node.to_global_id("Product", product_id)
+        for product_id in new_product_pks
+    ]
+    variables = {
+        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "input": {
+            "type": DiscountValueTypeEnum.PERCENTAGE.name,
+            "products": new_product_ids,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["saleUpdate"]["sale"]
+    assert data["type"] == DiscountValueType.PERCENTAGE.upper()
+
+    sale.refresh_from_db()
+    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    assert promotion.start_date == sale.start_date
+    assert promotion.end_date == sale.end_date
+    assert promotion.rules.count() == 1
+    rule = promotion.rules.first()
+    assert rule.reward_value_type == sale.type
+    assert rule.catalogue_predicate
+
+    updated_webhook_mock.assert_called_once()
+    update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
+
+
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+)
+@patch("saleor.plugins.manager.PluginsManager.sale_updated")
+def test_update_sale_promotion_updated(
+    updated_webhook_mock,
+    update_products_discounted_prices_of_catalogues_task_mock,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    product_list,
+    channel_USD,
+    product,
+):
+    # given
+    query = SALE_UPDATE_MUTATION
+
+    # Set discount value type to 'fixed' and change it in mutation
+    sale.type = DiscountValueType.FIXED
+    sale.save(update_fields=["type"])
+    previous_catalogue = convert_catalogue_info_to_global_ids(
+        fetch_catalogue_info(sale)
+    )
+    new_product_pks = [product.id for product in product_list]
+
+    promotion = Promotion.objects.create(name="Test", old_sale_id=sale.pk)
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                promotion=promotion,
+                reward_value_type=sale.type,
+                reward_value=5,
+                catalogue_predicate={
+                    "OR": [
+                        {
+                            "productPredicate": {
+                                "ids": [
+                                    graphene.Node.to_global_id("Product", product.pk)
+                                ]
+                            }
+                        }
+                    ]
+                },
+            ),
+            PromotionRule(
+                promotion=promotion,
+                reward_value_type=sale.type,
+                reward_value=5,
+                catalogue_predicate={
+                    "OR": [
+                        {
+                            "variantPredicate": {
+                                "ids": [
+                                    graphene.Node.to_global_id(
+                                        "Product", product.variants.first().pk
+                                    )
+                                ]
+                            }
+                        }
+                    ]
+                },
+            ),
+        ]
+    )
+
+    rules[1].channels.add(channel_USD)
+    variant = product.variants.first()
+    variant_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    variant_listing.variantlistingpromotionrule.create(
+        promotion_rule=rules[1],
+        discount_amount=5,
+        currency=channel_USD.currency_code,
+    )
+
+    type = DiscountValueTypeEnum.PERCENTAGE.name
+
+    new_product_ids = [
+        graphene.Node.to_global_id("Product", product_id)
+        for product_id in new_product_pks
+    ]
+    variables = {
+        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "input": {
+            "type": type,
+            "products": new_product_ids,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["saleUpdate"]["sale"]
+    assert data["type"] == DiscountValueType.PERCENTAGE.upper()
+
+    for rule in rules:
+        rule.refresh_from_db()
+        assert rule.reward_value_type == type.lower()
+        predicate = {
+            key: value
+            for item in rule.catalogue_predicate["OR"]
+            for key, value in item.items()
+        }
+        assert set(new_product_ids) == set(predicate["productPredicate"]["ids"])
+
+    updated_webhook_mock.assert_called_once_with(
+        sale, previous_catalogue, current_catalogue
+    )
+    update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
 
 
 @patch(

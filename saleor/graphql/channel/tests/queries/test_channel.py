@@ -1,6 +1,7 @@
 import graphene
 from prices import Money
 
+from .....channel import TransactionFlowStrategy
 from .....shipping.models import ShippingMethodChannelListing, ShippingZone
 from ....tests.utils import (
     assert_no_permission,
@@ -292,6 +293,7 @@ QUERY_CHANNEL_ORDER_SETTINGS = """
                 markAsPaidStrategy
                 defaultTransactionFlowStrategy
                 deleteExpiredOrdersAfter
+                allowUnpaidOrders
             }
         }
     }
@@ -343,6 +345,10 @@ def test_query_channel_order_settings_as_staff_user(
     assert (
         channel_data["orderSettings"]["deleteExpiredOrdersAfter"]
         == channel_USD.delete_expired_orders_after.days
+    )
+    assert (
+        channel_data["orderSettings"]["allowUnpaidOrders"]
+        == channel_USD.allow_unpaid_orders
     )
 
 
@@ -425,3 +431,257 @@ def test_query_channel_order_settings_as_app_no_permission(
 
     # then
     assert_no_permission(response)
+
+
+QUERY_CHANNEL_CHECKOUT_SETTINGS = """
+    query getChannel($id: ID){
+        channel(id: $id){
+            id
+            checkoutSettings {
+                useLegacyErrorFlow
+            }
+        }
+    }
+"""
+
+
+def test_query_channel_checkout_settings_as_staff_user(
+    permission_manage_channels, staff_api_client, channel_USD
+):
+    # given
+    channel_USD.use_legacy_error_flow_for_checkout = False
+    channel_USD.save()
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_CHANNEL_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=[permission_manage_channels],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    channel_data = content["data"]["channel"]
+    assert channel_data["id"] == channel_id
+    assert (
+        channel_data["checkoutSettings"]["useLegacyErrorFlow"]
+        == channel_USD.use_legacy_error_flow_for_checkout
+    )
+
+
+def test_query_channel_checkout_settings_as_app(
+    permission_manage_channels,
+    app_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_CHANNEL_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=[permission_manage_channels],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    channel_data = content["data"]["channel"]
+    assert channel_data["id"] == channel_id
+    assert (
+        channel_data["checkoutSettings"]["useLegacyErrorFlow"]
+        == channel_USD.use_legacy_error_flow_for_checkout
+    )
+
+
+def test_query_channel_checkout_settings_as_staff_user_no_permission(
+    staff_api_client, channel_USD
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_CHANNEL_CHECKOUT_SETTINGS,
+        variables=variables,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_channel_checkout_settings_as_app_no_permission(
+    app_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_CHANNEL_CHECKOUT_SETTINGS,
+        variables=variables,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_channel_checkout_settings_with_manage_checkouts(
+    permission_manage_checkouts, staff_api_client, channel_USD
+):
+    # given
+    channel_USD.use_legacy_error_flow_for_checkout = False
+    channel_USD.save()
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_CHANNEL_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=[permission_manage_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    channel_data = content["data"]["channel"]
+    assert channel_data["id"] == channel_id
+    assert (
+        channel_data["checkoutSettings"]["useLegacyErrorFlow"]
+        == channel_USD.use_legacy_error_flow_for_checkout
+    )
+
+
+QUERY_CHANNEL_PAYMENT_SETTINGS = """
+    query getChannel($id: ID){
+        channel(id: $id){
+            id
+            paymentSettings {
+                defaultTransactionFlowStrategy
+            }
+        }
+    }
+"""
+
+
+def test_query_channel_payment_settings_as_staff_user(
+    permission_manage_channels, staff_api_client, channel_USD
+):
+    # given
+    channel_USD.default_transaction_flow_strategy = (
+        TransactionFlowStrategy.AUTHORIZATION
+    )
+    channel_USD.save()
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_CHANNEL_PAYMENT_SETTINGS,
+        variables=variables,
+        permissions=[permission_manage_channels],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    channel_data = content["data"]["channel"]
+    assert channel_data["id"] == channel_id
+    assert (
+        channel_data["paymentSettings"]["defaultTransactionFlowStrategy"]
+        == channel_USD.default_transaction_flow_strategy.upper()
+    )
+
+
+def test_query_channel_payment_settings_as_app(
+    permission_manage_channels,
+    app_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_CHANNEL_PAYMENT_SETTINGS,
+        variables=variables,
+        permissions=[permission_manage_channels],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    channel_data = content["data"]["channel"]
+    assert channel_data["id"] == channel_id
+    assert (
+        channel_data["paymentSettings"]["defaultTransactionFlowStrategy"]
+        == channel_USD.default_transaction_flow_strategy.upper()
+    )
+
+
+def test_query_channel_payment_settings_as_staff_user_no_permission(
+    staff_api_client, channel_USD
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_CHANNEL_PAYMENT_SETTINGS,
+        variables=variables,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_channel_payment_settings_as_app_no_permission(
+    app_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_CHANNEL_PAYMENT_SETTINGS,
+        variables=variables,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_channel_payment_settings_with_handle_payments(
+    permission_manage_payments, staff_api_client, channel_USD
+):
+    # given
+    channel_USD.default_transaction_flow_strategy = (
+        TransactionFlowStrategy.AUTHORIZATION
+    )
+    channel_USD.save()
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_CHANNEL_PAYMENT_SETTINGS,
+        variables=variables,
+        permissions=[permission_manage_payments],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    channel_data = content["data"]["channel"]
+    assert channel_data["id"] == channel_id
+    assert (
+        channel_data["paymentSettings"]["defaultTransactionFlowStrategy"]
+        == channel_USD.default_transaction_flow_strategy.upper()
+    )

@@ -149,20 +149,16 @@ class TransactionAction:
     The following actions are possible:
     CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
-    VOID - Represents a void action. This field will be removed
-    in Saleor 3.14 (Preview Feature). Use `CANCEL` instead.
     CANCEL - Represents a cancel action. Added in Saleor 3.12.
     """
 
     CHARGE = "charge"
     REFUND = "refund"
-    VOID = "void"
     CANCEL = "cancel"
 
     CHOICES = [
         (CHARGE, "Charge payment"),
         (REFUND, "Refund payment"),
-        (VOID, "Void payment"),
         (CANCEL, "Cancel payment"),
     ]
 
@@ -239,21 +235,16 @@ class TransactionEventType:
     ]
 
 
-class TransactionEventStatus:
-    """Represents a status of payment transaction.
+class TokenizedPaymentFlow:
+    """Represents possible tokenized payment flows that can be used to process payment.
 
-    The following statuses are possible:
-    SUCCESS - Represents a sucess action.
-    FAILURE - Represents a failure action.
-    PENDING - Represents a pending action.
+    The following flows are possible:
+    INTERACTIVE - Payment method can be used for 1 click checkout - it's prefilled in
+    checkout form (might require additional authentication from user)
     """
 
-    PENDING = "pending"
-    SUCCESS = "success"
-    FAILURE = "failure"
+    INTERACTIVE = "interactive"
 
     CHOICES = [
-        (PENDING, "Pending"),
-        (SUCCESS, "Success"),
-        (FAILURE, "Failure"),
+        (INTERACTIVE, "Interactive"),
     ]

@@ -29,6 +29,7 @@ CREATE_PAYMENT_MUTATION = """
 def test_checkout_add_payment_by_checkout_id(
     user_api_client, checkout_without_shipping_required, address
 ):
+    # given
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
     checkout.save()
@@ -48,7 +49,11 @@ def test_checkout_add_payment_by_checkout_id(
             "amount": total.gross.amount,
         },
     }
+
+    # when
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert not data["errors"]
@@ -67,6 +72,7 @@ def test_checkout_add_payment_by_checkout_id(
 def test_checkout_add_payment_neither_token_and_id_given(
     user_api_client, checkout_without_shipping_required, address
 ):
+    # given
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
     checkout.save()
@@ -84,7 +90,11 @@ def test_checkout_add_payment_neither_token_and_id_given(
             "amount": total.gross.amount,
         },
     }
+
+    # when
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert len(data["errors"]) == 1
@@ -95,6 +105,7 @@ def test_checkout_add_payment_neither_token_and_id_given(
 def test_checkout_add_payment_both_token_and_id_given(
     user_api_client, checkout_without_shipping_required, address
 ):
+    # given
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
     checkout.save()
@@ -115,7 +126,11 @@ def test_checkout_add_payment_both_token_and_id_given(
             "amount": total.gross.amount,
         },
     }
+
+    # when
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert len(data["errors"]) == 1

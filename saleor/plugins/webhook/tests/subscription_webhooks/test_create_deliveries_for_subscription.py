@@ -1,8 +1,9 @@
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import graphene
 import pytest
+from django.core.files import File
 from freezegun import freeze_time
 
 from .....channel.models import Channel
@@ -11,10 +12,13 @@ from .....graphql.webhook.subscription_query import SubscriptionQuery
 from .....menu.models import Menu, MenuItem
 from .....product.models import Category
 from .....shipping.models import ShippingMethod, ShippingZone
+from .....site.models import SiteSettings
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...tasks import create_deliveries_for_subscriptions, logger
 from . import subscription_queries
 from .payloads import (
+    generate_account_events_payload,
+    generate_account_requested_events_payload,
     generate_address_payload,
     generate_app_payload,
     generate_attribute_payload,
@@ -22,6 +26,7 @@ from .payloads import (
     generate_category_payload,
     generate_collection_payload,
     generate_customer_payload,
+    generate_export_payload,
     generate_fulfillment_payload,
     generate_gift_card_payload,
     generate_invoice_payload,
@@ -32,6 +37,7 @@ from .payloads import (
     generate_permission_group_payload,
     generate_sale_payload,
     generate_shipping_method_payload,
+    generate_shop_payload,
     generate_staff_payload,
     generate_voucher_created_payload_with_meta,
     generate_voucher_payload,
@@ -74,6 +80,178 @@ def test_subscription_query_with_meta(
         subscription_voucher_webhook_with_meta.app,
     )
     assert json.loads(deliveries[0].payload.payload) == json.loads(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_confirmation_requested(
+    customer_user, channel_USD, subscription_account_confirmation_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_confirmation_requested_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    expected_payload = generate_account_requested_events_payload(
+        customer_user, channel_USD
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_confirmed(customer_user, subscription_account_confirmed_webhook):
+    # given
+    webhooks = [subscription_account_confirmed_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_CONFIRMED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, {"user": customer_user}, webhooks
+    )
+
+    # then
+    expected_payload = generate_account_events_payload(customer_user)
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_change_email_requested(
+    customer_user, channel_USD, subscription_account_change_email_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_change_email_requested_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED
+    new_email = "new@example.com"
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "new_email": new_email,
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    expected_payload = generate_account_requested_events_payload(
+        customer_user, channel_USD, new_email=new_email
+    )
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_email_changed(
+    customer_user, subscription_account_email_changed_webhook
+):
+    # given
+    webhooks = [subscription_account_email_changed_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, {"user": customer_user}, webhooks
+    )
+
+    # then
+    expected_payload = generate_account_events_payload(customer_user)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_delete_requested(
+    customer_user, channel_USD, subscription_account_delete_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_delete_requested_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    expected_payload = generate_account_requested_events_payload(
+        customer_user, channel_USD
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_set_password_requested(
+    customer_user, channel_USD, subscription_account_set_password_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_set_password_requested_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    expected_payload = generate_account_requested_events_payload(
+        customer_user, channel_USD
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_deleted_confirmed(customer_user, subscription_account_deleted_webhook):
+    # given
+    webhooks = [subscription_account_deleted_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_DELETED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, {"user": customer_user}, webhooks
+    )
+
+    # then
+    expected_payload = generate_account_events_payload(customer_user)
+
+    assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -597,6 +775,32 @@ def test_gift_card_metadata_updated(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_gift_card_export_completed(
+    user_export_file, tmpdir, subscription_gift_card_export_completed_webhook
+):
+    # given
+    file_mock = MagicMock(spec=File)
+    file_mock.name = "temp_file.csv"
+
+    user_export_file.content_file = file_mock
+    user_export_file.save()
+
+    webhooks = [subscription_gift_card_export_completed_webhook]
+    event_type = WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED
+    gift_card_id = graphene.Node.to_global_id("ExportFile", user_export_file.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, user_export_file, webhooks
+    )
+
+    # then
+    expected_payload = generate_export_payload(user_export_file, gift_card_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_menu_created(menu, subscription_menu_created_webhook):
     # given
     webhooks = [subscription_menu_created_webhook]
@@ -947,6 +1151,35 @@ def test_staff_deleted(staff_user, subscription_staff_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_staff_set_password_requested(
+    staff_user, channel_USD, subscription_staff_set_password_requested_webhook
+):
+    # given
+    webhooks = [subscription_staff_set_password_requested_webhook]
+    event_type = WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": staff_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    expected_payload = generate_account_requested_events_payload(
+        staff_user, channel_USD
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_product_created(product, subscription_product_created_webhook):
     webhooks = [subscription_product_created_webhook]
     event_type = WebhookEventAsyncType.PRODUCT_CREATED
@@ -992,6 +1225,32 @@ def test_product_metadata_updated(
     deliveries = create_deliveries_for_subscriptions(event_type, product, webhooks)
     expected_payload = json.dumps({"product": {"id": product_id}})
 
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_export_completed(
+    user_export_file, tmpdir, subscription_product_export_completed_webhook
+):
+    # given
+    file_mock = MagicMock(spec=File)
+    file_mock.name = "temp_file.csv"
+
+    user_export_file.content_file = file_mock
+    user_export_file.save()
+
+    webhooks = [subscription_product_export_completed_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED
+    export_id = graphene.Node.to_global_id("ExportFile", user_export_file.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, user_export_file, webhooks
+    )
+
+    # then
+    expected_payload = generate_export_payload(user_export_file, export_id)
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -1448,11 +1707,19 @@ def test_fulfillment_created(fulfillment, subscription_fulfillment_created_webho
     # given
     webhooks = [subscription_fulfillment_created_webhook]
     event_type = WebhookEventAsyncType.FULFILLMENT_CREATED
-    expected_payload = generate_fulfillment_payload(fulfillment)
+    expected_payload = generate_fulfillment_payload(
+        fulfillment, add_notify_customer_field=True
+    )
 
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
-
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "fulfillment": fulfillment,
+            "notify_customer": True,
+        },
+        webhooks,
+    )
     # then
     assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
@@ -1478,6 +1745,32 @@ def test_fulfillment_approved(fulfillment, subscription_fulfillment_approved_web
     # given
     webhooks = [subscription_fulfillment_approved_webhook]
     event_type = WebhookEventAsyncType.FULFILLMENT_APPROVED
+    expected_payload = generate_fulfillment_payload(
+        fulfillment, add_notify_customer_field=True
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "fulfillment": fulfillment,
+            "notify_customer": True,
+        },
+        webhooks,
+    )
+
+    # then
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_fulfillment_metadata_updated(
+    fulfillment, subscription_fulfillment_metadata_updated_webhook
+):
+    # given
+    webhooks = [subscription_fulfillment_metadata_updated_webhook]
+    event_type = WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED
     expected_payload = generate_fulfillment_payload(fulfillment)
 
     # when
@@ -1489,12 +1782,12 @@ def test_fulfillment_approved(fulfillment, subscription_fulfillment_approved_web
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_fulfillment_metadata_updated(
-    fulfillment, subscription_fulfillment_metadata_updated_webhook
+def test_fulfillment_tracking_number_updated(
+    fulfillment, subscription_fulfillment_tracking_number_updated
 ):
     # given
-    webhooks = [subscription_fulfillment_metadata_updated_webhook]
-    event_type = WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED
+    webhooks = [subscription_fulfillment_tracking_number_updated]
+    event_type = WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED
     expected_payload = generate_fulfillment_payload(fulfillment)
 
     # when
@@ -2014,6 +2307,24 @@ def test_voucher_metadata_updated(
 
     # then
     expected_payload = generate_voucher_payload(voucher, voucher_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_shop_metadata_updated(subscription_shop_metadata_updated_webhook):
+    # given
+    webhooks = [subscription_shop_metadata_updated_webhook]
+    event_type = WebhookEventAsyncType.SHOP_METADATA_UPDATED
+    site_settings = SiteSettings.objects.first()
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, site_settings, webhooks
+    )
+
+    # then
+    expected_payload = generate_shop_payload()
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

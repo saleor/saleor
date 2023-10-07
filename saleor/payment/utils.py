@@ -6,6 +6,7 @@ from decimal import Decimal
 from typing import Any, Dict, Optional, Union, cast, overload
 
 import graphene
+from aniso8601 import parse_datetime
 from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
@@ -794,8 +795,17 @@ def parse_transaction_event_data(
                 datetime.fromisoformat(event_time_data) if event_time_data else None
             )
         except ValueError:
-            logger.warning(invalid_msg, "time", event_time_data)
-            error_field_msg.append(invalid_msg % ("time", event_time_data))
+            try:
+                # datetime.fromisoformat supports only formats of the objects that were
+                # created by date.isoformat() or datetime.isoformat(). It is fixed in
+                # 3.11
+                # This try except block can be removed after moving to python 3.11
+                # ref: https://docs.python.org/3/library/datetime.html#datetime.
+                # datetime.fromisoformat
+                parsed_event_data["time"] = parse_datetime(event_time_data)
+            except ValueError:
+                logger.warning(invalid_msg, "time", event_time_data)
+                error_field_msg.append(invalid_msg % ("time", event_time_data))
     else:
         parsed_event_data["time"] = timezone.now()
 
@@ -1145,7 +1155,7 @@ def create_transaction_event_for_transaction_session(
         transaction_item.psp_reference = event.psp_reference
         available_actions = transaction_request_response.available_actions
         if available_actions is not None:
-            transaction_item.available_actions = available_actions
+            transaction_item.available_actions = list(set(available_actions))
 
         recalculate_transaction_amounts(transaction_item, save=False)
         transaction_item.save(
@@ -1217,7 +1227,7 @@ def create_transaction_event_from_request_and_webhook_response(
     recalculate_transaction_amounts(transaction_item, save=False)
     available_actions = transaction_request_response.available_actions
     if available_actions is not None:
-        transaction_item.available_actions = available_actions
+        transaction_item.available_actions = list(set(available_actions))
 
     transaction_item.save(
         update_fields=[
@@ -1422,9 +1432,10 @@ def create_transaction_for_order(
 
 def handle_transaction_initialize_session(
     source_object: Union[Checkout, Order],
-    payment_gateway: PaymentGatewayData,
+    payment_gateway_data: PaymentGatewayData,
     amount: Decimal,
     action: str,
+    customer_ip_address: Optional[str],
     app: App,
     manager: PluginsManager,
 ):
@@ -1434,10 +1445,11 @@ def handle_transaction_initialize_session(
     session_data = TransactionSessionData(
         transaction=transaction_item,
         source_object=source_object,
-        payment_gateway=payment_gateway,
+        payment_gateway_data=payment_gateway_data,
         action=TransactionProcessActionData(
             action_type=action, currency=source_object.currency, amount=amount
         ),
+        customer_ip_address=customer_ip_address,
     )
 
     request_event = transaction_item.events.create(
@@ -1448,9 +1460,9 @@ def handle_transaction_initialize_session(
         currency=transaction_item.currency,
         amount_value=amount,
     )
-    response = manager.transaction_initialize_session(session_data)
+    result = manager.transaction_initialize_session(session_data)
 
-    response_data = response.data if response else None
+    response_data = result.response if result else None
 
     created_event = create_transaction_event_for_transaction_session(
         request_event,
@@ -1465,26 +1477,28 @@ def handle_transaction_initialize_session(
 def handle_transaction_process_session(
     transaction_item: TransactionItem,
     source_object: Union[Checkout, Order],
-    payment_gateway: PaymentGatewayData,
+    payment_gateway_data: PaymentGatewayData,
     action: str,
     app: App,
+    customer_ip_address: Optional[str],
     manager: PluginsManager,
     request_event: TransactionEvent,
 ):
     session_data = TransactionSessionData(
         transaction=transaction_item,
         source_object=source_object,
-        payment_gateway=payment_gateway,
+        payment_gateway_data=payment_gateway_data,
         action=TransactionProcessActionData(
             action_type=action,
             currency=source_object.currency,
             amount=request_event.amount_value,
         ),
+        customer_ip_address=customer_ip_address,
     )
 
-    response = manager.transaction_process_session(session_data)
+    result = manager.transaction_process_session(session_data)
 
-    response_data = response.data if response else None
+    response_data = result.response if result else None
 
     created_event = create_transaction_event_for_transaction_session(
         request_event,

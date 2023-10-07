@@ -42,7 +42,7 @@ def test_order_bulk_create(
     order_2["notes"] = [note_1, note_2]
 
     transaction_1 = {
-        "status": "Authorized for 10$",
+        "name": "Authorized for 10$",
         "amountAuthorized": {
             "amount": Decimal("20"),
             "currency": "PLN",
@@ -50,7 +50,7 @@ def test_order_bulk_create(
     }
 
     transaction_2 = {
-        "type": "Credit Card",
+        "name": "Credit Card",
         "amountCharged": {
             "amount": Decimal("100"),
             "currency": "PLN",

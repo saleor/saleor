@@ -1,4 +1,5 @@
 import decimal
+import hashlib
 import json
 import logging
 from contextlib import contextmanager
@@ -34,13 +35,13 @@ class PaymentAppData:
     name: str
 
 
-def to_payment_app_id(app: "App", gateway_id: str) -> "str":
+def to_payment_app_id(app: "App", external_id: str) -> "str":
     app_identifier = app.identifier or app.id
-    return f"{APP_ID_PREFIX}:{app_identifier}:{gateway_id}"
+    return f"{APP_ID_PREFIX}:{app_identifier}:{external_id}"
 
 
 def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
-    splitted_id = app_gateway_id.split(":")
+    splitted_id = app_gateway_id.split(":", maxsplit=2)
     if len(splitted_id) == 3 and splitted_id[0] == APP_ID_PREFIX and all(splitted_id):
         try:
             app_pk = int(splitted_id[1])
@@ -289,3 +290,20 @@ def get_meta_code_key(app: App) -> str:
 
 def get_meta_description_key(app: App) -> str:
     return f"{app.identifier}.description"
+
+
+def generate_cache_key_for_webhook(
+    key_data: dict, webhook_url: str, event: str, app_id: int
+) -> str:
+    """Generate cache key for webhook.
+
+    Cache key takes into account the webhook url, event type, and app id.
+    The response from webhook_url can be different for different events.
+    Apps can have assigned different permissions, so the response can vary for
+    different apps.
+    """
+    key = json.dumps(key_data)
+    return (
+        f"{app_id}-{webhook_url}-{event}-"
+        f"{hashlib.sha256(key.encode('utf-8')).hexdigest()}"
+    )

@@ -16,6 +16,27 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 from ...mutations.utils import CheckoutLineData
 
+CHECKOUT_GIFT_CARD_QUERY = """
+    query CheckoutGiftCard {
+      checkouts(first: 100) {
+        edges {
+          node {
+            id
+            giftCards {
+              id
+              isActive
+              code
+              last4CodeChars
+              currentBalance {
+                amount
+              }
+            }
+          }
+        }
+      }
+    }
+"""
+
 FRAGMENT_PRICE = """
     fragment Price on TaxedMoney {
       gross {
@@ -391,7 +412,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(67):
+    with django_assert_num_queries(62):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -409,7 +430,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(67):
+    with django_assert_num_queries(62):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -427,7 +448,7 @@ def test_add_shipping_to_checkout(
         FRAGMENT_CHECKOUT
         + """
             mutation updateCheckoutShippingOptions(
-              $id: ID, $shippingMethodId: ID!
+              $id: ID, $shippingMethodId: ID
             ) {
               checkoutShippingMethodUpdate(
                 id: $id, shippingMethodId: $shippingMethodId
@@ -1400,3 +1421,34 @@ def test_checkout_create_from_order(user_api_client, order_with_lines):
     # then
     content = get_graphql_content(response)
     assert not content["data"]["checkoutCreateFromOrder"]["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_checkout_gift_cards(
+    staff_api_client,
+    checkout_with_gift_card,
+    checkout_with_gift_card_items,
+    gift_card_created_by_staff,
+    gift_card,
+    permission_manage_gift_card,
+    permission_manage_checkouts,
+):
+    # given
+    checkout_with_gift_card.gift_cards.add(gift_card_created_by_staff)
+    checkout_with_gift_card.gift_cards.add(gift_card)
+    checkout_with_gift_card.save()
+    checkout_with_gift_card_items.gift_cards.add(gift_card_created_by_staff)
+    checkout_with_gift_card_items.gift_cards.add(gift_card)
+    checkout_with_gift_card_items.save()
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHECKOUT_GIFT_CARD_QUERY,
+        {},
+        permissions=[permission_manage_gift_card, permission_manage_checkouts],
+        check_no_permissions=False,
+    )
+
+    # then
+    assert response.status_code == 200

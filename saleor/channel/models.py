@@ -4,11 +4,12 @@ from django.conf import settings
 from django.db import models
 from django_countries.fields import CountryField
 
+from ..core.models import ModelWithMetadata
 from ..permission.enums import ChannelPermissions
 from . import AllocationStrategy, MarkAsPaidStrategy, TransactionFlowStrategy
 
 
-class Channel(models.Model):
+class Channel(ModelWithMetadata):
     name = models.CharField(max_length=250)
     is_active = models.BooleanField(default=False)
     slug = models.SlugField(max_length=255, unique=True)
@@ -32,6 +33,7 @@ class Channel(models.Model):
     )
 
     automatically_confirm_all_new_orders = models.BooleanField(default=True, null=True)
+    allow_unpaid_orders = models.BooleanField(default=False)
     automatically_fulfill_non_shippable_gift_card = models.BooleanField(
         default=True,
         null=True,
@@ -42,7 +44,9 @@ class Channel(models.Model):
         default=timedelta(days=60),
     )
 
-    class Meta:
+    use_legacy_error_flow_for_checkout = models.BooleanField(default=True)
+
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         app_label = "channel"
         permissions = (

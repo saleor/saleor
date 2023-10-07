@@ -3,10 +3,12 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import requests
+from django.conf import settings
 from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
+from ....core.http_client import HTTPClient
 from ....order.models import Order
 from ... import PaymentError
 from ...interface import AddressData, PaymentData, PaymentLineData, RefundData
@@ -50,10 +52,10 @@ def _request(
 ) -> requests.Response:
     trace_name = f"np-atobarai.request.{path.lstrip('/')}"
     with np_atobarai_opentracing_trace(trace_name):
-        response = requests.request(
-            method=method,
-            url=get_url(config, path),
-            timeout=REQUEST_TIMEOUT,
+        response = HTTPClient.send_request(
+            method,
+            get_url(config, path),
+            timeout=(settings.REQUESTS_CONN_EST_TIMEOUT, REQUEST_TIMEOUT),
             json=json or {},
             auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
             headers={"X-NP-Terminal-Id": config.terminal_id},

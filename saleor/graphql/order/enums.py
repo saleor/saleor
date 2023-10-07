@@ -11,7 +11,6 @@ from ...order import (
     StockUpdatePolicy,
     error_codes,
 )
-from ..core.descriptions import PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import to_enum
 from ..core.types import BaseEnum
@@ -20,16 +19,6 @@ from ..core.types import BaseEnum
 def order_event_enum_description(enum):
     if enum is None:
         return "The different order event types. "
-    if enum == OrderEventsEnum.TRANSACTION_VOID_REQUESTED:
-        return (
-            f"{PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD} "
-            "Use `TRANSACTION_CANCEL_REQUESTED` instead."
-        )
-    if enum == OrderEventsEnum.TRANSACTION_CAPTURE_REQUESTED:
-        return (
-            f"{PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD} "
-            "Use `TRANSACTION_CHARGE_REQUESTED` instead."
-        )
     return None
 
 
@@ -64,6 +53,14 @@ OrderChargeStatusEnum.doc_category = DOC_CATEGORY_ORDERS
 OrderGrantRefundCreateErrorCode = graphene.Enum.from_enum(
     error_codes.OrderGrantRefundCreateErrorCode
 )
+OrderGrantRefundCreateLineErrorCode = graphene.Enum.from_enum(
+    error_codes.OrderGrantRefundCreateLineErrorCode
+)
+
+OrderGrantRefundUpdateLineErrorCode = graphene.Enum.from_enum(
+    error_codes.OrderGrantRefundUpdateLineErrorCode
+)
+
 OrderGrantRefundCreateErrorCode.doc_category = DOC_CATEGORY_ORDERS
 
 OrderGrantRefundUpdateErrorCode = graphene.Enum.from_enum(

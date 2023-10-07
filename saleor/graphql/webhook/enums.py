@@ -7,6 +7,9 @@ from ..core.descriptions import (
     ADDED_IN_312,
     ADDED_IN_313,
     ADDED_IN_314,
+    ADDED_IN_315,
+    ADDED_IN_316,
+    DEPRECATED_IN_3X_ENUM_VALUE,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
@@ -33,6 +36,19 @@ order_updated_event_enum_description = (
 
 
 WEBHOOK_EVENT_DESCRIPTION = {
+    WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: (
+        "An account confirmation is requested."
+    ),
+    WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED: "An account email was changed",
+    WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED: (
+        "An account email change is requested."
+    ),
+    WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED: (
+        "Setting a new password for the account is requested."
+    ),
+    WebhookEventAsyncType.ACCOUNT_CONFIRMED: "An account is confirmed.",
+    WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: "An account delete is requested.",
+    WebhookEventAsyncType.ACCOUNT_DELETED: "An account is deleted.",
     WebhookEventAsyncType.ADDRESS_CREATED: "A new address created.",
     WebhookEventAsyncType.ADDRESS_UPDATED: "An address updated.",
     WebhookEventAsyncType.ADDRESS_DELETED: "An address deleted.",
@@ -53,6 +69,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.CHANNEL_UPDATED: "A channel is updated.",
     WebhookEventAsyncType.CHANNEL_DELETED: "A channel is deleted.",
     WebhookEventAsyncType.CHANNEL_STATUS_CHANGED: "A channel status is changed.",
+    WebhookEventAsyncType.CHANNEL_METADATA_UPDATED: "A channel metadata is updated.",
     WebhookEventAsyncType.CHECKOUT_CREATED: "A new checkout is created.",
     WebhookEventAsyncType.CHECKOUT_UPDATED: checkout_updated_event_enum_description,
     WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: (
@@ -80,6 +97,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED: (
         "A gift card metadata is updated." + ADDED_IN_38
     ),
+    WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED: (
+        "A gift card export is completed." + ADDED_IN_316
+    ),
     WebhookEventAsyncType.INVOICE_REQUESTED: "An invoice for order requested.",
     WebhookEventAsyncType.INVOICE_DELETED: "An invoice is deleted.",
     WebhookEventAsyncType.INVOICE_SENT: "Invoice has been sent.",
@@ -89,7 +109,13 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.MENU_ITEM_CREATED: "A new menu item created.",
     WebhookEventAsyncType.MENU_ITEM_UPDATED: "A menu item is updated.",
     WebhookEventAsyncType.MENU_ITEM_DELETED: "A menu item is deleted.",
-    WebhookEventAsyncType.NOTIFY_USER: "User notification triggered.",
+    WebhookEventAsyncType.NOTIFY_USER: (
+        "User notification triggered."
+        + DEPRECATED_IN_3X_ENUM_VALUE
+        + " See the docs for more details about migrating from NOTIFY_USER to other "
+        "events: "
+        + "https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation"
+    ),
     WebhookEventAsyncType.ORDER_CREATED: "A new order is placed.",
     WebhookEventAsyncType.ORDER_CONFIRMED: order_confirmed_event_enum_description,
     WebhookEventAsyncType.ORDER_PAID: (
@@ -167,6 +193,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED: (
         "A product variant stock is updated"
     ),
+    WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED: (
+        "A product export is completed." + ADDED_IN_316
+    ),
     WebhookEventAsyncType.SHIPPING_PRICE_CREATED: "A new shipping price is created.",
     WebhookEventAsyncType.SHIPPING_PRICE_UPDATED: "A shipping price is updated.",
     WebhookEventAsyncType.SHIPPING_PRICE_DELETED: "A shipping price is deleted.",
@@ -176,15 +205,12 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.SHIPPING_ZONE_METADATA_UPDATED: (
         "A shipping zone metadata is updated." + ADDED_IN_38
     ),
+    WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED: (
+        "Setting a new password for the staff account is requested."
+    ),
     WebhookEventAsyncType.STAFF_CREATED: "A new staff user is created.",
     WebhookEventAsyncType.STAFF_UPDATED: "A staff user is updated.",
     WebhookEventAsyncType.STAFF_DELETED: "A staff user is deleted.",
-    WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: (
-        "An action requested for transaction."
-        + "\n\nDEPRECATED: this subscription will be removed in Saleor 3.14 "
-        + "(Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, "
-        + "`TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead."
-    ),
     WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: (
         "Transaction item metadata is updated." + ADDED_IN_38
     ),
@@ -202,9 +228,11 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: (
         "A voucher metadata is updated." + ADDED_IN_38
     ),
-    WebhookEventAsyncType.ANY: "All the events.",
+    WebhookEventAsyncType.ANY: "All the events." + DEPRECATED_IN_3X_ENUM_VALUE,
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
     WebhookEventAsyncType.THUMBNAIL_CREATED: "A thumbnail is created." + ADDED_IN_312,
+    WebhookEventAsyncType.SHOP_METADATA_UPDATED: "Shop metadata is updated."
+    + ADDED_IN_315,
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
         "Fetch external shipping methods for checkout."
     ),

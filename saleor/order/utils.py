@@ -11,17 +11,26 @@ from ..account.models import User
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
+from ..core.utils.country import get_active_country
+from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountType
-from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
+from ..discount.models import (
+    NotApplicable,
+    OrderDiscount,
+    OrderLineDiscount,
+    Voucher,
+    VoucherType,
+)
 from ..discount.utils import (
     apply_discount_to_value,
     get_products_voucher_discount,
-    get_sale_id_applied_as_a_discount,
+    get_sale_applied_as_a_discount,
     validate_voucher_in_order,
 )
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
+from ..giftcard.search import mark_gift_cards_search_index_as_dirty
 from ..payment.model_helpers import get_total_authorized
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.interface import ShippingMethodData
@@ -30,11 +39,7 @@ from ..shipping.utils import (
     convert_to_shipping_method_data,
     initialize_shipping_method_active_status,
 )
-from ..tax.utils import (
-    get_display_gross_prices,
-    get_tax_class_kwargs_for_order_line,
-    get_tax_country,
-)
+from ..tax.utils import get_display_gross_prices, get_tax_class_kwargs_for_order_line
 from ..warehouse.management import (
     decrease_allocations,
     get_order_lines_with_track_inventory,
@@ -63,12 +68,9 @@ if TYPE_CHECKING:
 
 def get_order_country(order: Order) -> str:
     """Return country to which order will be shipped."""
-    address = order.billing_address
-    if order.is_shipping_required():
-        address = order.shipping_address
-    if address is None:
-        return order.channel.default_country.code
-    return address.country.code
+    return get_active_country(
+        order.channel, order.shipping_address, order.billing_address
+    )
 
 
 def order_line_needs_automatic_fulfillment(line_data: OrderLineInfo) -> bool:
@@ -212,6 +214,8 @@ def create_order_line(
     discounts=None,
     allocate_stock=False,
 ):
+    from ..discount.sale_converter import get_promotion_rule_for_sale
+
     channel = order.channel
     variant = line_data.variant
     quantity = line_data.quantity
@@ -256,8 +260,9 @@ def create_order_line(
 
     product_name = str(product)
     variant_name = str(variant)
-    translated_product_name = str(product.translated)
-    translated_variant_name = str(variant.translated)
+    language_code = order.language_code
+    translated_product_name = get_translation(product, language_code).name
+    translated_variant_name = get_translation(variant, language_code).name
     if translated_product_name == product_name:
         translated_product_name = ""
     if translated_variant_name == variant_name:
@@ -284,7 +289,7 @@ def create_order_line(
 
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
-        sale_id = get_sale_id_applied_as_a_discount(
+        sale, sale_channel_listing = get_sale_applied_as_a_discount(
             product=product,
             price=channel_listing.price,
             discounts=discounts,
@@ -292,6 +297,7 @@ def create_order_line(
             channel=channel,
             variant_id=variant.id,
         )
+        sale_id = sale.id if sale else None
 
         tax_configuration = channel.tax_configuration
         prices_entered_with_tax = tax_configuration.prices_entered_with_tax
@@ -315,6 +321,21 @@ def create_order_line(
                 "sale_id",
             ]
         )
+
+        if sale:
+            rule = get_promotion_rule_for_sale(sale, sale_channel_listing)
+            OrderLineDiscount.objects.create(
+                type=DiscountType.SALE,
+                value_type=sale.type,
+                value=sale_channel_listing.discount_value
+                if sale_channel_listing
+                else None,
+                amount_value=discount_amount.amount,
+                currency=discount_amount.currency,
+                sale=sale,
+                promotion_rule=rule,
+                line=line,
+            )
 
     if allocate_stock:
         increase_allocations(
@@ -407,7 +428,9 @@ def add_gift_cards_to_order(
         if total_price_left > zero_money(total_price_left.currency):
             order_gift_cards.append(gift_card)
 
-            update_gift_card_balance(gift_card, total_price_left, balance_data)
+            total_price_left = update_gift_card_balance(
+                gift_card, total_price_left, balance_data
+            )
 
             set_gift_card_user(gift_card, used_by_user, used_by_email)
 
@@ -429,7 +452,7 @@ def update_gift_card_balance(
     gift_card: GiftCard,
     total_price_left: Money,
     balance_data: List[Tuple[GiftCard, float]],
-):
+) -> Money:
     previous_balance = gift_card.current_balance
     if total_price_left < gift_card.current_balance:
         gift_card.current_balance = gift_card.current_balance - total_price_left
@@ -438,6 +461,7 @@ def update_gift_card_balance(
         total_price_left = total_price_left - gift_card.current_balance
         gift_card.current_balance_amount = 0
     balance_data.append((gift_card, previous_balance.amount))
+    return total_price_left
 
 
 def set_gift_card_user(
@@ -452,6 +476,7 @@ def set_gift_card_user(
         else User.objects.filter(email=used_by_email).first()
     )
     gift_card.used_by_email = used_by_email
+    mark_gift_cards_search_index_as_dirty([gift_card])
 
 
 def _update_allocations_for_line(
@@ -1048,9 +1073,8 @@ def update_order_display_gross_prices(order: "Order"):
     """
     channel = order.channel
     tax_configuration = channel.tax_configuration
-    country_code = get_tax_country(
+    country_code = get_active_country(
         channel,
-        order.is_shipping_required(),
         order.shipping_address,
         order.billing_address,
     )

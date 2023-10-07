@@ -1,10 +1,11 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.models import SaleChannelListing
+from .....discount.models import Promotion, PromotionRule, SaleChannelListing
 from ....tests.utils import assert_negative_positive_decimal_value, get_graphql_content
 
 SALE_CHANNEL_LISTING_UPDATE_MUTATION = """
@@ -79,6 +80,143 @@ def test_sale_channel_listing_create_as_staff_user(
     mock_update_discounted_prices_of_discount_task.delay.assert_called_once_with(
         sale.pk,
     )
+
+
+@patch(
+    "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
+    ".update_products_discounted_prices_of_sale_task"
+)
+def test_sale_channel_listing_updates_rule_listings(
+    mock_update_discounted_prices_of_discount_task,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    sale_id = graphene.Node.to_global_id("Sale", sale.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    discounted = 1.12
+
+    sale_listing = sale.channel_listings.first()
+    product = sale.products.first()
+
+    promotion = Promotion.objects.create(name="Test", old_sale_id=sale.pk)
+    rule = promotion.rules.create(
+        reward_value_type=sale.type,
+        reward_value=sale_listing.discount_value,
+        catalogue_predicate={
+            "OR": [
+                {
+                    "productPredicate": {
+                        "ids": [graphene.Node.to_global_id("Product", product.pk)]
+                    }
+                }
+            ]
+        },
+    )
+    rule.channels.add(channel_USD)
+    variant = product.variants.first()
+    variant_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    rule_listing = variant_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=sale_listing.discount_value,
+        currency=channel_USD.currency_code,
+    )
+
+    variables = {
+        "id": sale_id,
+        "input": {
+            "addChannels": [{"channelId": channel_id, "discountValue": discounted}],
+            "removeChannels": [graphene.Node.to_global_id("Channel", channel_USD.id)],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SALE_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_discounts,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["saleChannelListingUpdate"]
+    sale_data = data["sale"]
+    assert not data["errors"]
+    assert sale_data["name"] == sale.name
+
+    assert len(sale_data["channelListings"]) == 1
+    assert sale_data["channelListings"][0]["discountValue"] == discounted
+    assert sale_data["channelListings"][0]["channel"]["slug"] == channel_PLN.slug
+    with pytest.raises(rule._meta.model.DoesNotExist):
+        rule.refresh_from_db()
+    assert promotion.rules.count() == 1
+    new_rule = promotion.rules.first()
+    assert new_rule.channels.count() == 1
+    assert new_rule.channels.first() == channel_PLN
+
+    with pytest.raises(rule_listing._meta.model.DoesNotExist):
+        rule_listing.refresh_from_db()
+
+    mock_update_discounted_prices_of_discount_task.delay.assert_called_once_with(
+        sale.pk,
+    )
+
+
+@patch(
+    "saleor.graphql.discount.mutations.sale.sale_channel_listing_update"
+    ".update_products_discounted_prices_of_sale_task"
+)
+def test_sale_channel_listing_creates_promotion_and_rule_listings(
+    mock_update_discounted_prices_of_discount_task,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    sale_id = graphene.Node.to_global_id("Sale", sale.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    discounted = 1.12
+
+    variables = {
+        "id": sale_id,
+        "input": {
+            "addChannels": [{"channelId": channel_id, "discountValue": discounted}],
+            "removeChannels": [graphene.Node.to_global_id("Channel", channel_USD.id)],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SALE_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_discounts,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["saleChannelListingUpdate"]
+    sale_data = data["sale"]
+    assert not data["errors"]
+    assert sale_data["name"] == sale.name
+
+    assert len(sale_data["channelListings"]) == 1
+    assert sale_data["channelListings"][0]["discountValue"] == discounted
+    assert sale_data["channelListings"][0]["channel"]["slug"] == channel_PLN.slug
+    mock_update_discounted_prices_of_discount_task.delay.assert_called_once_with(
+        sale.pk,
+    )
+
+    promotion = Promotion.objects.get(old_sale_id=sale.pk)
+    assert promotion.rules.count() == 2
+    channel_ids = PromotionRule.channels.through.objects.values_list(
+        "channel_id", flat=True
+    )
+    assert list(channel_ids) == [channel_PLN.id]
 
 
 @patch(

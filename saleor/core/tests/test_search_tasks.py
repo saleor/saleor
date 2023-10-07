@@ -1,3 +1,4 @@
+from ...core.postgres import FlatConcatSearchVector
 from ...core.search_tasks import (
     set_order_search_document_values,
     set_user_search_document_values,
@@ -21,10 +22,10 @@ def test_set_user_search_document_values(customer_user, customer_user2):
 
 
 def test_set_order_search_document_values_already_present(
-    order_with_search_vector_value,
+    order_generator,
 ):
     # given
-    order = order_with_search_vector_value
+    order = order_generator(search_vector_class=FlatConcatSearchVector)
     order.refresh_from_db()
     vector = order.search_vector
 

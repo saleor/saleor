@@ -13,11 +13,7 @@ from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_order_payload,
 )
 from ...base_plugin import ExcludedShippingMethod
-from ..const import (
-    CACHE_EXCLUDED_SHIPPING_KEY,
-    CACHE_EXCLUDED_SHIPPING_TIME,
-    EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
-)
+from ..const import CACHE_EXCLUDED_SHIPPING_KEY, CACHE_EXCLUDED_SHIPPING_TIME
 from ..shipping import get_excluded_shipping_methods_from_response, to_shipping_app_id
 from ..tasks import trigger_webhook_sync
 
@@ -79,6 +75,7 @@ def test_excluded_shipping_methods_for_order(
     order_with_lines,
     available_shipping_methods_factory,
     shipping_app_factory,
+    settings,
 ):
     # given
     shipping_app = shipping_app_factory()
@@ -120,7 +117,7 @@ def test_excluded_shipping_methods_for_order(
         payload,
         shipping_app.webhooks.get(events__event_type=event_type),
         subscribable_object=order_with_lines,
-        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order_with_lines.id)
 
@@ -146,6 +143,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
     order_with_lines,
     available_shipping_methods_factory,
     shipping_app_factory,
+    settings,
 ):
     # given
     shipping_app = shipping_app_factory()
@@ -201,14 +199,14 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         payload,
         shipping_app.webhooks.get(events__event_type=event_type),
         subscribable_object=order_with_lines,
-        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
     mocked_webhook.assert_any_call(
         event_type,
         payload,
         second_shipping_app.webhooks.get(events__event_type=event_type),
         subscribable_object=order_with_lines,
-        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order_with_lines.id)
 
@@ -238,6 +236,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
     order_with_lines,
     available_shipping_methods_factory,
     shipping_app_factory,
+    settings,
 ):
     # given
     shipping_app = shipping_app_factory()
@@ -307,7 +306,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
             payload,
             webhook,
             subscribable_object=order_with_lines,
-            timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+            timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         )
 
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order_with_lines.id)
@@ -518,7 +517,7 @@ def test_trigger_webhook_sync(mock_request, shipping_app):
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, data, webhook
     )
     event_delivery = EventDelivery.objects.first()
-    mock_request.assert_called_once_with(shipping_app.name, event_delivery)
+    mock_request.assert_called_once_with(event_delivery)
 
 
 @mock.patch("saleor.plugins.webhook.shipping.cache.set")
@@ -535,6 +534,7 @@ def test_excluded_shipping_methods_for_checkout_webhook(
     checkout_with_items,
     available_shipping_methods_factory,
     shipping_app_factory,
+    settings,
 ):
     # given
     shipping_app = shipping_app_factory()
@@ -575,7 +575,7 @@ def test_excluded_shipping_methods_for_checkout_webhook(
         payload,
         shipping_app.webhooks.get(events__event_type=event_type),
         subscribable_object=checkout_with_items,
-        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
 
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_with_items.token)
@@ -648,6 +648,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
     checkout_with_items,
     available_shipping_methods_factory,
     shipping_app_factory,
+    settings,
 ):
     # given
     shipping_app = shipping_app_factory()
@@ -702,14 +703,14 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         payload,
         shipping_app.webhooks.get(events__event_type=event_type),
         subscribable_object=checkout_with_items,
-        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
     mocked_webhook.assert_any_call(
         event_type,
         payload,
         second_shipping_app.webhooks.get(events__event_type=event_type),
         subscribable_object=checkout_with_items,
-        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
 
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_with_items.token)
@@ -741,6 +742,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
     checkout_with_items,
     available_shipping_methods_factory,
     shipping_app_factory,
+    settings,
 ):
     # given
     shipping_app = shipping_app_factory()
@@ -809,7 +811,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
             payload,
             webhook,
             subscribable_object=checkout_with_items,
-            timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+            timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         )
 
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_with_items.token)

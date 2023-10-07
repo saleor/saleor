@@ -15,7 +15,7 @@ from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata
 from ..core.units import WeightUnits
 from ..core.utils.editorjs import clean_editor_js
-from ..core.utils.translations import Translation, TranslationProxy
+from ..core.utils.translations import Translation
 from ..core.weight import convert_weight, get_default_weight_unit, zero_weight
 from ..permission.enums import ShippingPermissions
 from ..tax.models import TaxClass
@@ -219,7 +219,6 @@ class ShippingMethod(ModelWithMetadata):
     )
 
     objects = ShippingMethodManager()
-    translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("pk",)

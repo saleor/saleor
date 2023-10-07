@@ -31,6 +31,16 @@ class CategoryByIdLoader(DataLoader[int, Category]):
         return [categories.get(category_id) for category_id in keys]
 
 
+class CategoryBySlugLoader(DataLoader[str, Category]):
+    context_key = "category_by_slug"
+
+    def batch_load(self, keys):
+        categories = Category.objects.using(self.database_connection_name).in_bulk(
+            keys, field_name="slug"
+        )
+        return [categories.get(category_id) for category_id in keys]
+
+
 class ProductByIdLoader(DataLoader[int, Product]):
     context_key = "product_by_id"
 
@@ -420,20 +430,6 @@ class ProductImageByIdLoader(DataLoader):
             .in_bulk(keys)
         )
         return [images.get(product_image_id) for product_image_id in keys]
-
-
-class ProductImageByProductIdLoader(DataLoader):
-    context_key = "product_image_by_product_id"
-
-    def batch_load(self, keys):
-        medias = ProductMedia.objects.using(self.database_connection_name).filter(
-            type=ProductMediaTypes.IMAGE,
-            product_id__in=keys,
-        )
-        product_id_medias_map = defaultdict(list)
-        for media in medias.iterator():
-            product_id_medias_map[media.product_id].append(media)
-        return [product_id_medias_map.get(product_id, []) for product_id in keys]
 
 
 class MediaByProductVariantIdLoader(DataLoader):

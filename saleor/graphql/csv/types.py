@@ -12,6 +12,7 @@ from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.types import Job, ModelObjectType, NonNullList
 from ..utils import get_user_or_app_from_context
+from .dataloaders import EventsByExportFileIdLoader
 from .enums import ExportEventEnum
 
 
@@ -71,14 +72,14 @@ class ExportEvent(ModelObjectType[models.ExportEvent]):
 
 
 class ExportFile(ModelObjectType[models.ExportFile]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the export file.")
     url = graphene.String(description="The URL of field to download.")
     events = NonNullList(
         ExportEvent,
         description="List of events associated with the export.",
     )
-    user = graphene.Field(User)
-    app = graphene.Field(App)
+    user = graphene.Field(User, description="The user who requests file export.")
+    app = graphene.Field(App, description="The app which requests file export.")
 
     class Meta:
         description = "Represents a job data of exported file."
@@ -109,8 +110,11 @@ class ExportFile(ModelObjectType[models.ExportFile]):
         return AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
 
     @staticmethod
-    def resolve_events(root: models.ExportFile, _info: ResolveInfo):
-        return root.events.all().order_by("pk")
+    def resolve_events(root: models.ExportFile, info):
+        def _sort_by_pk(records):
+            return sorted(records, key=lambda r: r.pk)
+
+        return EventsByExportFileIdLoader(info.context).load(root.pk).then(_sort_by_pk)
 
 
 class ExportFileCountableConnection(CountableConnection):

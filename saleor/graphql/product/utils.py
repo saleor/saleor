@@ -5,12 +5,14 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, transaction
 from django.db.utils import IntegrityError
+from graphql import GraphQLError
 
 from ...core.tracing import traced_atomic_transaction
 from ...order import OrderStatus
 from ...order import models as order_models
 from ...warehouse.models import Stock
 from ..core.enums import ProductErrorCode
+from .sorters import ProductOrderField
 
 if TYPE_CHECKING:
     from ...product.models import ProductVariant
@@ -141,3 +143,32 @@ def update_ordered_media(ordered_media):
 
     if errors:
         raise ValidationError(errors)
+
+
+def search_string_in_kwargs(kwargs: dict) -> bool:
+    filter_search = kwargs.get("filter", {}).get("search", "") or ""
+    search = kwargs.get("search", "") or ""
+    return bool(filter_search.strip()) or bool(search.strip())
+
+
+def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
+    return kwargs.get("sort_by", {}).get("field") or None
+
+
+def check_for_sorting_by_rank(info, kwargs: dict):
+    if sort_field_from_kwargs(kwargs) == ProductOrderField.RANK:
+        # sort by RANK can be used only with search filter
+        if not search_string_in_kwargs(kwargs):
+            raise GraphQLError(
+                (
+                    "Sorting by RANK is available only when using a search filter "
+                    "or search argument."
+                )
+            )
+    if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
+        # default to sorting by RANK if search is used
+        # and no explicit sorting is requested
+        product_type = info.schema.get_type("ProductOrder")
+        kwargs["sort_by"] = product_type.create_container(
+            {"direction": "-", "field": ["search_rank", "id"]}
+        )

@@ -1,7 +1,7 @@
 import graphene
 import pytest
 
-from ....account.tests.test_account_permission_group import (
+from ....account.tests.mutations.permission_group.test_permission_group_update import (
     PERMISSION_GROUP_UPDATE_MUTATION,
 )
 from ....tests.utils import assert_no_permission, get_graphql_content

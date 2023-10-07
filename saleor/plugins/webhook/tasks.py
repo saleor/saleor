@@ -7,19 +7,21 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Ty
 from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
-import requests
 from botocore.exceptions import ClientError
 from celery import group
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.core.cache import cache
 from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
+from requests_hardened.ip_filter import InvalidIPAddress
 
 from ...app.headers import AppHeaders, DeprecatedAppHeaders
 from ...celeryconf import app
 from ...core import EventDeliveryStatus
+from ...core.http_client import HTTPClient
 from ...core.models import EventDelivery, EventPayload
 from ...core.tracing import webhooks_opentracing_trace
 from ...core.utils import build_absolute_uri
@@ -43,6 +45,7 @@ from ...webhook.observability import WebhookData
 from ...webhook.payloads import generate_transaction_action_request_payload
 from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
+from .const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from .utils import (
     attempt_update,
     catch_duration_time,
@@ -50,6 +53,7 @@ from .utils import (
     create_attempt,
     create_event_delivery_list_for_webhooks,
     delivery_update,
+    generate_cache_key_for_webhook,
     get_delivery_for_webhook,
 )
 
@@ -105,7 +109,9 @@ def create_deliveries_for_subscriptions(
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
             request=initialize_request(
-                requestor, event_type in WebhookEventSyncType.ALL, event_type=event_type
+                requestor,
+                event_type in WebhookEventSyncType.ALL,
+                event_type=event_type,
             ),
             app=webhook.app,
         )
@@ -114,7 +120,6 @@ def create_deliveries_for_subscriptions(
                 "No payload was generated with subscription for event: %s" % event_type
             )
             continue
-
         event_payload = EventPayload(payload=json.dumps({**data}))
         event_payloads.append(event_payload)
         event_deliveries.append(
@@ -181,20 +186,32 @@ def create_delivery_for_subscription_sync_event(
 
 
 def trigger_webhooks_async(
-    data, event_type, webhooks, subscribable_object=None, requestor=None
+    data,  # deprecated, legacy_data_generator should be used instead
+    event_type,
+    webhooks,
+    subscribable_object=None,
+    requestor=None,
+    legacy_data_generator=None,
 ):
     """Trigger async webhooks - both regular and subscription.
 
     :param data: used as payload in regular webhooks.
+        Note: this is a legacy parameter, thus it is optional; if it's not provided,
+        `legacy_data_generator` function is used to generate the payload when needed.
     :param event_type: used in both webhook types as event type.
     :param webhooks: used in both webhook types, queryset of async webhooks.
     :param subscribable_object: subscribable object used in subscription webhooks.
     :param requestor: used in subscription webhooks to generate meta data for payload.
+    :param legacy_data_generator: used to generate payload for regular webhooks.
     """
     regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
     deliveries = []
-
     if regular_webhooks:
+        if legacy_data_generator:
+            data = legacy_data_generator()
+        elif data is None:
+            raise NotImplementedError("No payload was provided for regular webhooks.")
+
         payload = EventPayload.objects.create(payload=data)
         deliveries.extend(
             create_event_delivery_list_for_webhooks(
@@ -224,6 +241,44 @@ def group_webhooks_by_subscription(webhooks):
     return regular, subscription
 
 
+def trigger_webhook_sync_if_not_cached(
+    event_type: str,
+    payload: str,
+    webhook: "Webhook",
+    cache_data: dict,
+    subscribable_object=None,
+    request_timeout=None,
+    cache_timeout=None,
+    request=None,
+) -> Optional[dict]:
+    """Get response for synchronous webhook.
+
+    - Send a synchronous webhook request if cache is expired.
+    - Fetch response from cache if it is still valid.
+    """
+
+    cache_key = generate_cache_key_for_webhook(
+        cache_data, webhook.target_url, event_type, webhook.app_id
+    )
+    response_data = cache.get(cache_key)
+    if response_data is None:
+        response_data = trigger_webhook_sync(
+            event_type,
+            payload,
+            webhook,
+            subscribable_object=subscribable_object,
+            timeout=request_timeout,
+            request=request,
+        )
+        if response_data is not None:
+            cache.set(
+                cache_key,
+                response_data,
+                timeout=cache_timeout or WEBHOOK_CACHE_DEFAULT_TIMEOUT,
+            )
+    return response_data
+
+
 def trigger_webhook_sync(
     event_type: str,
     payload: str,
@@ -233,9 +288,6 @@ def trigger_webhook_sync(
     request=None,
 ) -> Optional[Dict[Any, Any]]:
     """Send a synchronous webhook request."""
-    if not webhook:
-        raise PaymentError(f"No payment webhook found for event: {event_type}.")
-
     if webhook.subscription_query:
         delivery = create_delivery_for_subscription_sync_event(
             event_type=event_type,
@@ -258,7 +310,7 @@ def trigger_webhook_sync(
     if timeout:
         kwargs = {"timeout": timeout}
 
-    return send_webhook_request_sync(webhook.app.name, delivery, **kwargs)
+    return send_webhook_request_sync(delivery, **kwargs)
 
 
 R = TypeVar("R")
@@ -312,7 +364,7 @@ def trigger_all_webhooks_sync(
                 webhook=webhook,
             )
 
-        response_data = send_webhook_request_sync(webhook.app.name, delivery)
+        response_data = send_webhook_request_sync(delivery)
         if parsed_response := parse_response(response_data):
             return parsed_response
     return None
@@ -355,7 +407,8 @@ def send_webhook_using_http(
         headers.update(custom_headers)
 
     try:
-        response = requests.post(
+        response = HTTPClient.send_request(
+            "POST",
             target_url,
             data=message,
             headers=headers,
@@ -364,19 +417,23 @@ def send_webhook_using_http(
         )
     except RequestException as e:
         if e.response:
-            result = WebhookResponse(
+            return WebhookResponse(
                 content=e.response.text,
                 status=EventDeliveryStatus.FAILED,
                 request_headers=headers,
                 response_headers=dict(e.response.headers),
                 response_status_code=e.response.status_code,
             )
+
+        if isinstance(e, InvalidIPAddress):
+            message = "Invalid IP address"
         else:
-            result = WebhookResponse(
-                content=str(e),
-                status=EventDeliveryStatus.FAILED,
-                request_headers=headers,
-            )
+            message = str(e)
+        result = WebhookResponse(
+            content=message,
+            status=EventDeliveryStatus.FAILED,
+            request_headers=headers,
+        )
         return result
 
     return WebhookResponse(
@@ -562,9 +619,7 @@ def send_webhook_request_async(self, event_delivery_id):
                 "Event delivery id: %r has no payload." % event_delivery_id
             )
         data = delivery.payload.payload
-        with webhooks_opentracing_trace(
-            delivery.event_type, domain, app_name=webhook.app.name
-        ):
+        with webhooks_opentracing_trace(delivery.event_type, domain, app=webhook.app):
             response = send_webhook_using_scheme_method(
                 webhook.target_url,
                 domain,
@@ -596,7 +651,7 @@ def send_webhook_request_async(self, event_delivery_id):
 
 
 def _send_webhook_request_sync(
-    app_name, delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, attempt=None
+    delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, attempt=None
 ) -> Tuple[WebhookResponse, Optional[Dict[Any, Any]]]:
     event_payload = delivery.payload
     data = event_payload.payload
@@ -622,7 +677,7 @@ def _send_webhook_request_sync(
 
     try:
         with webhooks_opentracing_trace(
-            delivery.event_type, domain, sync=True, app_name=app_name
+            delivery.event_type, domain, sync=True, app=webhook.app
         ):
             response = send_webhook_using_http(
                 webhook.target_url,
@@ -669,9 +724,9 @@ def _send_webhook_request_sync(
 
 
 def send_webhook_request_sync(
-    app_name, delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
+    delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
 ) -> Optional[Dict[Any, Any]]:
-    response, response_data = _send_webhook_request_sync(app_name, delivery, timeout)
+    response, response_data = _send_webhook_request_sync(delivery, timeout)
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
 
 
@@ -816,7 +871,6 @@ def trigger_transaction_request(
     call_event(
         handle_transaction_request_task.delay,
         delivery.id,
-        webhook.app.name,
         transaction_data.event.id,
     )
     return None
@@ -827,7 +881,7 @@ def trigger_transaction_request(
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
 )
-def handle_transaction_request_task(self, delivery_id, app_name, request_event_id):
+def handle_transaction_request_task(self, delivery_id, request_event_id):
     delivery = get_delivery_for_webhook(delivery_id)
     if not delivery:
         logger.error(
@@ -843,9 +897,7 @@ def handle_transaction_request_task(self, delivery_id, app_name, request_event_i
         )
         return None
     attempt = create_attempt(delivery, self.request.id)
-    response, response_data = _send_webhook_request_sync(
-        app_name, delivery, attempt=attempt
-    )
+    response, response_data = _send_webhook_request_sync(delivery, attempt=attempt)
     if response.response_status_code and response.response_status_code >= 500:
         handle_webhook_retry(
             self, delivery.webhook, response.content, delivery, attempt

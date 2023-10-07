@@ -12,6 +12,7 @@ from ..core.filters import (
     EnumFilter,
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
+    MetadataFilterBase,
     filter_slug_list,
 )
 from ..core.types import FilterInputObjectType
@@ -84,7 +85,7 @@ def filter_search_stock(qs, _, value):
     return qs
 
 
-class WarehouseFilter(django_filters.FilterSet):
+class WarehouseFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method=filter_search_warehouse)
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
     is_private = django_filters.BooleanFilter(field_name="is_private")

@@ -7,9 +7,11 @@ from django.core.exceptions import ValidationError
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
+from .....discount.sale_converter import create_promotion_for_new_sale
 from .....discount.utils import fetch_catalogue_info
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_of_sale_task
+from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_31
@@ -17,6 +19,7 @@ from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import PositiveDecimal
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
+from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import DiscountValueTypeEnum
@@ -70,6 +73,12 @@ class SaleCreate(ModelMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.SALE_CREATED,
+                description="A sale was created.",
+            ),
+        ]
 
     @classmethod
     def clean_instance(cls, info: ResolveInfo, instance):
@@ -94,16 +103,16 @@ class SaleCreate(ModelMutation):
             response = super().perform_mutation(_root, info, **data)
             instance = getattr(response, cls._meta.return_field_name).node
             manager = get_plugin_manager_promise(info.context).get()
-            cls.send_sale_notifications(manager, instance)
+            current_catalogue = convert_catalogue_info_to_global_ids(
+                fetch_catalogue_info(instance)
+            )
+            create_promotion_for_new_sale(instance, current_catalogue)
+            cls.send_sale_notifications(manager, instance, current_catalogue)
             update_products_discounted_prices_of_sale_task.delay(instance.pk)
         return response
 
     @classmethod
-    def send_sale_notifications(cls, manager, instance):
-        current_catalogue = convert_catalogue_info_to_global_ids(
-            fetch_catalogue_info(instance)
-        )
-
+    def send_sale_notifications(cls, manager, instance, current_catalogue):
         cls.call_event(manager.sale_created, instance, current_catalogue)
         cls.send_sale_toggle_notification(manager, instance, current_catalogue)
 

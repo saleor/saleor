@@ -29,9 +29,15 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 app.autodiscover_tasks(
     packages=[
-        "saleor.payment.migrations.tasks",
+        "saleor.attribute.migrations.tasks",
     ],
-    related_name="saleor3_12",
+    related_name="saleor3_16",
+)
+app.autodiscover_tasks(
+    packages=[
+        "saleor.discount.migrations.tasks",
+    ],
+    related_name="saleor3_16",
 )
 app.autodiscover_tasks(lambda: discover_plugins_modules(settings.PLUGINS))  # type: ignore[misc] # circular import # noqa: E501
 app.autodiscover_tasks(related_name="search_tasks")

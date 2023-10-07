@@ -30,13 +30,18 @@ CAPTURE_QUERY = """
 def test_payment_capture_success(
     staff_api_client, permission_group_manage_orders, payment_txn_preauth
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     payment = payment_txn_preauth
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
+
+    # when
     response = staff_api_client.post_graphql(CAPTURE_QUERY, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
     assert not data["errors"]
@@ -102,13 +107,18 @@ def test_payment_capture_success_by_app(
 def test_payment_capture_with_invalid_argument(
     staff_api_client, permission_group_manage_orders, payment_txn_preauth
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     payment = payment_txn_preauth
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": 0}
+
+    # when
     response = staff_api_client.post_graphql(CAPTURE_QUERY, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
     assert len(data["errors"]) == 1
@@ -121,13 +131,18 @@ def test_payment_capture_with_payment_non_authorized_yet(
     """Ensure capture a payment that is set as authorized is failing with
     the proper error message.
     """
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     payment = payment_dummy
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": 1}
+
+    # when
     response = staff_api_client.post_graphql(CAPTURE_QUERY, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
     assert data["errors"] == [

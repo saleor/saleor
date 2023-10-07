@@ -21,7 +21,7 @@ from ....tests.utils import get_graphql_content
 
 MUTATION_UPDATE_SHIPPING_METHOD = """
     mutation checkoutShippingMethodUpdate(
-            $id: ID, $shippingMethodId: ID!){
+            $id: ID, $shippingMethodId: ID){
         checkoutShippingMethodUpdate(
             id: $id, shippingMethodId: $shippingMethodId) {
             errors {
@@ -456,3 +456,29 @@ def test_checkout_update_shipping_method_with_digital(
     # Ensure the shipping method was unchanged
     checkout.refresh_from_db(fields=["shipping_method"])
     assert checkout.shipping_method is None
+
+
+def test_with_active_problems_flow(
+    api_client,
+    checkout_with_problems,
+    shipping_method,
+):
+    # given
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {
+            "id": to_global_id_or_none(checkout_with_problems),
+            "shippingMethodId": method_id,
+        },
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutShippingMethodUpdate"]["errors"]

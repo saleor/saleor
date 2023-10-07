@@ -58,7 +58,7 @@ def test_trigger_tax_webhook_sync(
     assert delivery.event_type == event_type
     assert delivery.payload == payload
     assert delivery.webhook == tax_checkout_webhook
-    mock_request.assert_called_once_with(tax_checkout_webhook.app.name, delivery)
+    mock_request.assert_called_once_with(delivery)
     assert tax_data == parse_tax_data(tax_data_response)
 
 
@@ -86,7 +86,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
     assert delivery.event_type == event_type
     assert delivery.payload == payload
     assert delivery.webhook == successful_webhook
-    mock_request.assert_called_once_with(successful_webhook.app.name, delivery)
+    mock_request.assert_called_once_with(delivery)
     assert tax_data == parse_tax_data(tax_data_response)
 
 
@@ -116,7 +116,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
         assert delivery.event_type == event_type
         assert delivery.payload == payload
         assert delivery.webhook == webhook
-        assert call[0] == (webhook.app.name, delivery)
+        assert call[0] == (delivery,)
 
     assert mock_request.call_count == 3
     assert tax_data == parse_tax_data(tax_data_response)

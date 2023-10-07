@@ -23,11 +23,16 @@ VOID_QUERY = """
 def test_payment_void_success(
     staff_api_client, permission_group_manage_orders, payment_txn_preauth
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment_txn_preauth.pk)
     variables = {"paymentId": payment_id}
+
+    # when
     response = staff_api_client.post_graphql(VOID_QUERY, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["paymentVoid"]
     assert not data["errors"]
@@ -89,12 +94,17 @@ def test_payment_void_success_by_app(
 def test_payment_void_gateway_error(
     staff_api_client, permission_group_manage_orders, payment_txn_preauth, monkeypatch
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment_txn_preauth.pk)
     variables = {"paymentId": payment_id}
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
+
+    # when
     response = staff_api_client.post_graphql(VOID_QUERY, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["paymentVoid"]
     assert data["errors"]

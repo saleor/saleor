@@ -1469,7 +1469,6 @@ def generate_transaction_action_request_payload(
             "currency": transaction.currency,
         },
         "transaction": {
-            "status": transaction.status,
             "type": transaction.name,
             "name": transaction.name,
             "message": transaction.message,
@@ -1485,9 +1484,6 @@ def generate_transaction_action_request_payload(
             ),
             "refunded_value": quantize_price(
                 transaction.refunded_value, transaction.currency
-            ),
-            "voided_value": quantize_price(
-                transaction.canceled_value, transaction.currency
             ),
             "canceled_value": quantize_price(
                 transaction.canceled_value, transaction.currency

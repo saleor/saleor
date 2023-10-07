@@ -1,16 +1,17 @@
 import json
+from functools import partial
 from unittest.mock import patch
 
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
+from mock import ANY
 
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....permission.models import Permission
 from ....tests.utils import dummy_editorjs
 from ....webhook.event_types import WebhookEventAsyncType
-from ....webhook.payloads import generate_translation_payload
 from ...core.enums import LanguageCodeEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..schema import TranslatableKinds
@@ -410,7 +411,13 @@ def test_attribute_translation(user_api_client, color_attribute):
     assert attribute["translation"]["language"]["code"] == "PL"
 
 
-def test_attribute_value_translation(user_api_client, pink_attribute_value):
+def test_attribute_value_translation(user_api_client, attribute_value_generator):
+    # given
+    pink_attribute_value = attribute_value_generator(
+        slug="pink",
+        name="Pink",
+        value="#FF69B4",
+    )
     pink_attribute_value.translations.create(
         language_code="pl", name="Różowy", rich_text=dummy_editorjs("Pink")
     )
@@ -442,11 +449,14 @@ def test_attribute_value_translation(user_api_client, pink_attribute_value):
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", pink_attribute_value.id
     )
+
+    # when
     response = user_api_client.post_graphql(
         query, {"attributeValueId": attribute_value_id}
     )
     data = get_graphql_content(response)["data"]
 
+    # then
     attribute_value = data["attributes"]["edges"][0]["node"]["choices"]["edges"][-1][
         "node"
     ]
@@ -856,13 +866,16 @@ def test_product_create_translation(
     assert data["product"]["translation"]["language"]["code"] == "PL"
 
     translation = product.translations.first()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -942,7 +955,7 @@ def test_product_create_translation_validates_name_length(
     product_id = graphene.Node.to_global_id("Product", product.id)
     variables = {
         "productId": product_id,
-        "input": {"description": None, "name": "Long" * 100},
+        "input": {"description": None, "name": "Long" * 255},
     }
     response = staff_api_client.post_graphql(
         PRODUCT_TRANSLATE_MUTATION,
@@ -1009,13 +1022,16 @@ def test_product_update_translation(
     assert data["product"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1071,13 +1087,16 @@ def test_product_variant_create_translation(
     assert data["productVariant"]["translation"]["language"]["code"] == "PL"
 
     translation = variant.translations.first()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1129,13 +1148,13 @@ def test_product_variant_update_translation(
     assert data["productVariant"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
     )
 
 
@@ -1152,7 +1171,7 @@ def test_product_variant_translation_mutation_validates_inputs_length(
         PRODUCT_VARIANT_TRANSLATE_MUTATION,
         {
             "productVariantId": translatable_content_id,
-            "input": {"name": "Wariant PL" * 100},
+            "input": {"name": "Wariant PL" * 255},
         },
         permissions=[permission_manage_translations],
     )
@@ -1216,13 +1235,16 @@ def test_collection_create_translation(
     assert data["collection"]["translation"]["language"]["code"] == "PL"
 
     translation = published_collection.translations.first()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1312,13 +1334,16 @@ def test_collection_update_translation(
     assert data["collection"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1331,7 +1356,7 @@ def test_collection_translation_mutation_validates_inputs_length(
         COLLECTION_TRANSLATE_MUTATION,
         {
             "collectionId": collection_id,
-            "input": {"description": description, "name": "long" * 100},
+            "input": {"description": description, "name": "long" * 255},
         },
         permissions=[permission_manage_translations],
     )
@@ -1387,13 +1412,16 @@ def test_category_create_translation(
     assert data["category"]["translation"]["language"]["code"] == "PL"
 
     translation = category.translations.first()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1481,13 +1509,16 @@ def test_category_update_translation(
     assert data["category"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1536,13 +1567,16 @@ def test_voucher_create_translation(
     assert data["voucher"]["translation"]["language"]["code"] == "PL"
 
     translation = voucher.translations.first()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1592,13 +1626,16 @@ def test_voucher_update_translation(
     assert data["voucher"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1647,13 +1684,16 @@ def test_sale_create_translation(
     assert data["sale"]["translation"]["language"]["code"] == "PL"
 
     translation = sale.translations.first()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1704,13 +1744,16 @@ def test_sale_update_translation(
     assert data["sale"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1760,13 +1803,16 @@ def test_page_create_translation(
     assert data["page"]["translation"]["language"]["code"] == "PL"
 
     translation = page.translations.first()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1850,13 +1896,16 @@ def test_page_update_translation(
     assert data["page"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1907,13 +1956,16 @@ def test_attribute_create_translation(
     assert data["attribute"]["translation"]["language"]["code"] == "PL"
 
     translation = color_attribute.translations.first()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -1964,13 +2016,16 @@ def test_attribute_update_translation(
     assert data["attribute"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -2028,13 +2083,16 @@ def test_attribute_value_create_translation(
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
 
     translation = pink_attribute_value.translations.first()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -2154,13 +2212,16 @@ def test_attribute_value_update_translation(
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -2216,7 +2277,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_long_text(
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.id
     )
-    expected_base_text = "Nowy Opis. " * 100
+    expected_base_text = "Nowy Opis. " * 250
     expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
 
     # when
@@ -2233,7 +2294,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_long_text(
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
     assert (
-        data["attributeValue"]["translation"]["name"] == expected_base_text[:99] + "…"
+        data["attributeValue"]["translation"]["name"] == expected_base_text[:249] + "…"
     )
     assert data["attributeValue"]["translation"]["richText"] == expected_rich_text
 
@@ -2406,7 +2467,7 @@ def test_plain_text_attribute_value_update_translation_only_plain_text_long_text
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.id
     )
-    expected_base_text = "Nowy Opis. " * 100
+    expected_base_text = "Nowy Opis. " * 250
 
     # when
     response = staff_api_client.post_graphql(
@@ -2422,7 +2483,7 @@ def test_plain_text_attribute_value_update_translation_only_plain_text_long_text
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
     assert (
-        data["attributeValue"]["translation"]["name"] == expected_base_text[:99] + "…"
+        data["attributeValue"]["translation"]["name"] == expected_base_text[:249] + "…"
     )
     assert data["attributeValue"]["translation"]["plainText"] == expected_base_text
 
@@ -2606,13 +2667,16 @@ def test_shipping_method_create_translation(
     assert data["shippingMethod"]["translation"]["language"]["code"] == "PL"
 
     translation = shipping_method.translations.first()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -2689,13 +2753,16 @@ def test_shipping_method_update_translation(
     assert data["shippingMethod"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -2749,13 +2816,16 @@ def test_menu_item_update_translation(
     assert data["menuItem"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -2815,13 +2885,16 @@ def test_shop_create_translation(
     assert data["shop"]["translation"]["language"]["code"] == "PL"
 
     translation = site_settings.translations.first()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -2876,13 +2949,16 @@ def test_shop_update_translation(
     assert data["shop"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
+        None,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 
@@ -2899,7 +2975,7 @@ def test_shop_translation_validates_values_lengths(
 
     response = staff_api_client.post_graphql(
         SHOP_SETTINGS_TRANSLATE_MUTATION,
-        {"input": {"headerText": "Nagłówek PL" * 100}},
+        {"input": {"headerText": "Nagłówek PL" * 255}},
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["shopSettingsTranslate"]

@@ -1,6 +1,5 @@
 import datetime
 from decimal import Decimal
-from unittest.mock import Mock
 
 from django.utils import timezone
 from freezegun import freeze_time
@@ -40,23 +39,6 @@ def test_availability(stock, monkeypatch, settings, channel_USD):
     )
     taxed_price_range = TaxedMoneyRange(start=taxed_price, stop=taxed_price)
     assert availability.price_range == taxed_price_range
-    assert availability.price_range_local_currency is None
-
-    monkeypatch.setattr(
-        "django_prices_openexchangerates.models.get_rates",
-        lambda c: {"PLN": Mock(rate=2)},
-    )
-    settings.DEFAULT_COUNTRY = "PL"
-    settings.OPENEXCHANGERATES_API_KEY = "fake-key"
-    availability = get_product_availability(
-        product_channel_listing=product_channel_listing,
-        variants_channel_listing=variants_channel_listing,
-        local_currency="PLN",
-        tax_rate=tax_rate,
-        tax_calculation_strategy=tc.tax_calculation_strategy,
-        prices_entered_with_tax=tc.prices_entered_with_tax,
-    )
-    assert availability.price_range_local_currency.start.currency == "PLN"
 
     availability = get_product_availability(
         product_channel_listing=product_channel_listing,

@@ -7,7 +7,7 @@ from freezegun import freeze_time
 
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.models import Sale
+from .....discount.models import Promotion, Sale
 from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...enums import DiscountValueTypeEnum
@@ -77,6 +77,13 @@ def test_create_sale(
 
     sale = Sale.objects.filter(name="test sale").get()
     assert sale.notification_sent_datetime == timezone.now()
+
+    promotion = Promotion.objects.filter(name=sale.name).get()
+    assert promotion.old_sale_id == sale.id
+    assert promotion.rules.count() == 1
+    predicate = promotion.rules.first().catalogue_predicate
+    assert len(predicate["OR"]) == 1
+    assert set(predicate["OR"][0]["productPredicate"]["ids"]) == set(product_ids)
 
     current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
     created_webhook_mock.assert_called_once_with(sale, current_catalogue)

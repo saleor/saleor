@@ -9,10 +9,12 @@ from ....checkout.models import Checkout
 from ....core.tracing import traced_atomic_transaction
 from ....order.models import Order
 from ....permission.enums import ChannelPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import BaseInputObjectType, ChannelError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Channel
 from ..utils import delete_invalid_warehouse_to_shipping_zone_relations
@@ -44,6 +46,12 @@ class ChannelDelete(ModelDeleteMutation):
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHANNEL_DELETED,
+                description="A channel was deleted.",
+            ),
+        ]
 
     @classmethod
     def validate_input(cls, origin_channel, target_channel):

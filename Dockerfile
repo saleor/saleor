@@ -29,9 +29,9 @@ RUN apt-get update --no-install-recommends \
   libopenjp2-7 \
   libpango-1.0-0 \
   libpangocairo-1.0-0 \
-  libssl1.1 \
-  libtiff5 \
-  libwebp6 \
+  libssl3 \
+  libtiff6 \
+  libwebp7 \
   libxml2 \
   libpq5 \
   shared-mime-info \
@@ -61,7 +61,7 @@ ARG COMMIT_ID
 ARG PROJECT_VERSION
 ENV PROJECT_VERSION="${PROJECT_VERSION}"
 
-LABEL org.opencontainers.image.title="mirumee/saleor"                                  \
+LABEL org.opencontainers.image.title="saleor/saleor"                                  \
       org.opencontainers.image.description="\
 A modular, high performance, headless e-commerce platform built with Python, \
 GraphQL, Django, and ReactJS."                                                         \

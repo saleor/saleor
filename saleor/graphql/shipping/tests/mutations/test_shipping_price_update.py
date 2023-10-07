@@ -72,6 +72,7 @@ UPDATE_SHIPPING_PRICE_MUTATION = """
 def test_update_shipping_method(
     staff_api_client, shipping_zone, permission_manage_shipping, tax_classes
 ):
+    # given
     query = UPDATE_SHIPPING_PRICE_MUTATION
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -91,9 +92,13 @@ def test_update_shipping_method(
         "minimumDeliveryDays": min_del_days,
         "taxClass": tax_class_id,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
     assert data["shippingZone"]["id"] == shipping_zone_id
@@ -172,6 +177,7 @@ def test_update_shipping_method_postal_codes(
     shipping_method_excluded_by_postal_code,
     permission_manage_shipping,
 ):
+    # given
     query = UPDATE_SHIPPING_PRICE_MUTATION
     shipping_zone_id = graphene.Node.to_global_id(
         "ShippingZone", shipping_method_excluded_by_postal_code.shipping_zone.pk
@@ -196,9 +202,13 @@ def test_update_shipping_method_postal_codes(
         "minimumDeliveryDays": min_del_days,
         "deletePostalCodeRules": [postal_code_rule_id],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
     assert (
@@ -210,6 +220,7 @@ def test_update_shipping_method_postal_codes(
 def test_update_shipping_method_minimum_delivery_days_higher_than_maximum(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
+    # given
     query = UPDATE_SHIPPING_PRICE_MUTATION
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -228,9 +239,13 @@ def test_update_shipping_method_minimum_delivery_days_higher_than_maximum(
         "deletePostalCodeRules": [],
         "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
     errors = data["errors"]
@@ -243,6 +258,7 @@ def test_update_shipping_method_minimum_delivery_days_higher_than_maximum(
 def test_update_shipping_method_minimum_delivery_days_below_0(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
+    # given
     query = UPDATE_SHIPPING_PRICE_MUTATION
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -261,9 +277,13 @@ def test_update_shipping_method_minimum_delivery_days_below_0(
         "deletePostalCodeRules": [],
         "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
     errors = data["errors"]
@@ -276,6 +296,7 @@ def test_update_shipping_method_minimum_delivery_days_below_0(
 def test_update_shipping_method_maximum_delivery_days_below_0(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
+    # given
     query = UPDATE_SHIPPING_PRICE_MUTATION
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -294,9 +315,13 @@ def test_update_shipping_method_maximum_delivery_days_below_0(
         "deletePostalCodeRules": [],
         "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
     errors = data["errors"]
@@ -309,6 +334,7 @@ def test_update_shipping_method_maximum_delivery_days_below_0(
 def test_update_shipping_method_minimum_delivery_days_higher_than_max_from_instance(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
+    # given
     query = UPDATE_SHIPPING_PRICE_MUTATION
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_method.maximum_delivery_days = 5
@@ -327,9 +353,13 @@ def test_update_shipping_method_minimum_delivery_days_higher_than_max_from_insta
         "deletePostalCodeRules": [],
         "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
     errors = data["errors"]
@@ -342,6 +372,7 @@ def test_update_shipping_method_minimum_delivery_days_higher_than_max_from_insta
 def test_update_shipping_method_maximum_delivery_days_lower_than_min_from_instance(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
+    # given
     query = UPDATE_SHIPPING_PRICE_MUTATION
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_method.minimum_delivery_days = 10
@@ -360,9 +391,13 @@ def test_update_shipping_method_maximum_delivery_days_lower_than_min_from_instan
         "deletePostalCodeRules": [],
         "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
     errors = data["errors"]
@@ -375,6 +410,7 @@ def test_update_shipping_method_maximum_delivery_days_lower_than_min_from_instan
 def test_update_shipping_method_multiple_errors(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
+    # given
     query = UPDATE_SHIPPING_PRICE_MUTATION
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_method.minimum_delivery_days = 10
@@ -395,9 +431,13 @@ def test_update_shipping_method_multiple_errors(
         "deletePostalCodeRules": [],
         "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
     errors = data["errors"]
@@ -427,6 +467,7 @@ def test_update_shipping_method_delivery_days_without_value(
     min_delivery_days,
     max_delivery_days,
 ):
+    # given
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     shipping_method_id = graphene.Node.to_global_id(
@@ -443,11 +484,14 @@ def test_update_shipping_method_delivery_days_without_value(
         "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
 
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_PRICE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     shipping_method.refresh_from_db()
 

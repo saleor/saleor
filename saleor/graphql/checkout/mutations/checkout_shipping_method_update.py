@@ -16,13 +16,14 @@ from ....plugins.webhook.utils import APP_ID_PREFIX
 from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
+from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...core.utils import from_global_id_or_error
+from ...core.utils import WebhookEventInfo, from_global_id_or_error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ..types import Checkout
@@ -47,13 +48,28 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
             ),
         )
-        shipping_method_id = graphene.ID(required=True, description="Shipping method.")
+        shipping_method_id = graphene.ID(
+            required=False, default_value=None, description="Shipping method."
+        )
 
     class Meta:
         description = "Updates the shipping method of the checkout."
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                description=(
+                    "Triggered when updating the checkout shipping method with "
+                    "the external one."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
+                description="A checkout was updated.",
+            ),
+        ]
 
     @staticmethod
     def _resolve_delivery_method_type(id_) -> Optional[str]:
@@ -77,7 +93,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         return str_type
 
     @classmethod
-    def perform_mutation(  # type: ignore[override]
+    def perform_mutation(
         cls,
         _root,
         info: ResolveInfo,
@@ -85,15 +101,19 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         *,
         checkout_id=None,
         id=None,
-        shipping_method_id,
+        shipping_method_id=None,
         token=None,
     ):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
+        use_legacy_error_flow_for_checkout = (
+            checkout.channel.use_legacy_error_flow_for_checkout
+        )
+
         manager = get_plugin_manager_promise(info.context).get()
 
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-        if unavailable_variant_pks:
+        if use_legacy_error_flow_for_checkout and unavailable_variant_pks:
             not_available_variants_ids = {
                 graphene.Node.to_global_id("ProductVariant", pk)
                 for pk in unavailable_variant_pks
@@ -108,7 +128,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 }
             )
         checkout_info = fetch_checkout_info(checkout, lines, manager)
-        if not is_shipping_required(lines):
+        if use_legacy_error_flow_for_checkout and not is_shipping_required(lines):
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
@@ -117,6 +137,8 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                     )
                 }
             )
+        if shipping_method_id is None:
+            return cls.remove_shipping_method(checkout, checkout_info, lines, manager)
 
         type_name = cls._resolve_delivery_method_type(shipping_method_id)
 
@@ -238,4 +260,22 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         get_checkout_metadata(checkout).save()
         cls.call_event(manager.checkout_updated, checkout)
 
+        return CheckoutShippingMethodUpdate(checkout=checkout)
+
+    @classmethod
+    def remove_shipping_method(cls, checkout, checkout_info, lines, manager):
+        checkout.shipping_method = None
+        delete_external_shipping_id(checkout=checkout)
+        invalidate_prices_updated_fields = invalidate_checkout_prices(
+            checkout_info, lines, manager, save=False
+        )
+        checkout.save(
+            update_fields=[
+                "shipping_method",
+            ]
+            + invalidate_prices_updated_fields
+        )
+        get_checkout_metadata(checkout).save()
+
+        cls.call_event(manager.checkout_updated, checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)

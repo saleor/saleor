@@ -2,10 +2,11 @@ import graphene
 from graphql.error import GraphQLError
 
 from ...giftcard import models
+from ...giftcard.search import search_gift_cards
 from ...permission.enums import GiftcardPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_315, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
@@ -49,6 +50,12 @@ class GiftCardQueries(graphene.ObjectType):
         filter=GiftCardFilterInput(
             description=("Filtering options for gift cards." + ADDED_IN_31)
         ),
+        search=graphene.String(
+            description="Search gift cards by email and name of user, "
+            "who created or used the gift card, and by code."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        ),
         description="List of gift cards.",
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
@@ -83,7 +90,7 @@ class GiftCardQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_gift_cards(
-        _root, info: ResolveInfo, /, *, sort_by=None, filter=None, **kwargs
+        _root, info: ResolveInfo, /, *, sort_by=None, filter=None, search=None, **kwargs
     ):
         sorting_by_balance = sort_by and "current_balance_amount" in sort_by.get(
             "field", []
@@ -92,6 +99,8 @@ class GiftCardQueries(graphene.ObjectType):
         if sorting_by_balance and not filtering_by_currency:
             raise GraphQLError("Sorting by balance requires filtering by currency.")
         qs = resolve_gift_cards()
+        if search:
+            qs = search_gift_cards(qs, search)
         qs = filter_connection_queryset(
             qs, {"sort_by": sort_by, "filter": filter, **kwargs}
         )

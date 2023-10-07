@@ -5,7 +5,7 @@ from uuid import UUID
 from django.db.models import Model, Q
 from graphene.types.objecttype import ObjectTypeOptions
 
-from ..descriptions import ADDED_IN_33, PREVIEW_FEATURE
+from ..descriptions import ADDED_IN_33
 from ..doc_category import DOC_CATEGORY_MAP
 from . import TYPES_WITH_DOUBLE_ID_AVAILABLE
 from .base import BaseObjectType
@@ -84,11 +84,11 @@ class ModelObjectType(Generic[MT], BaseObjectType):
                 # is required, otherwise the description is changed in each model
                 # that inherits the `ObjectWithMetadata` interface
                 field = copy.deepcopy(field)
-                field.description = field.description + added_label + PREVIEW_FEATURE
+                field.description = field.description + added_label
                 cls._meta.fields[field_name] = field
             elif metadata_since and field_name in ["private_metadata", "metadata"]:
                 field = copy.deepcopy(field)
-                field.description = field.description + metadata_since + PREVIEW_FEATURE
+                field.description = field.description + metadata_since
                 cls._meta.fields[field_name] = field
 
     @classmethod

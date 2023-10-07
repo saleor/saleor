@@ -4,10 +4,12 @@ from django.core.exceptions import ValidationError
 from ....app import models
 from ....app.error_codes import AppErrorCode
 from ....permission.enums import AppPermission
+from ....webhook.event_types import WebhookEventAsyncType
 from ...account.utils import can_manage_app
 from ...core import ResolveInfo
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import AppError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from ..types import App
@@ -24,6 +26,12 @@ class AppDelete(ModelDeleteMutation):
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.APP_DELETED,
+                description="An app was deleted.",
+            ),
+        ]
 
     @classmethod
     def clean_instance(cls, info: ResolveInfo, instance):

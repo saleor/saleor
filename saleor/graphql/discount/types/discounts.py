@@ -11,10 +11,15 @@ from ..enums import DiscountValueTypeEnum, OrderDiscountTypeEnum
 
 
 class OrderDiscount(ModelObjectType[models.OrderDiscount]):
-    id = graphene.GlobalID(required=True)
-    type = OrderDiscountTypeEnum(required=True)
-    name = graphene.String()
-    translated_name = graphene.String()
+    id = graphene.GlobalID(required=True, description="The ID of discount applied.")
+    type = OrderDiscountTypeEnum(
+        required=True,
+        description="The type of applied discount: Sale, Voucher or Manual.",
+    )
+    name = graphene.String(description="The name of applied discount.")
+    translated_name = graphene.String(
+        description="Translated name of the applied discount."
+    )
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,

@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ...core.utils import to_local_currency
 from ...product.models import ProductChannelListing, ProductVariantChannelListing
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations import calculate_flat_rate_tax
@@ -16,8 +15,6 @@ class ProductAvailability:
     price_range: Optional[TaxedMoneyRange]
     price_range_undiscounted: Optional[TaxedMoneyRange]
     discount: Optional[TaxedMoney]
-    price_range_local_currency: Optional[TaxedMoneyRange]
-    discount_local_currency: Optional[TaxedMoney]
 
 
 @dataclass
@@ -26,8 +23,6 @@ class VariantAvailability:
     price: TaxedMoney
     price_undiscounted: TaxedMoney
     discount: Optional[TaxedMoney]
-    price_local_currency: Optional[TaxedMoney]
-    discount_local_currency: Optional[TaxedMoney]
 
 
 def _get_total_discount_from_range(
@@ -52,27 +47,6 @@ def _get_total_discount(
     if undiscounted > discounted:
         return undiscounted - discounted
     return None
-
-
-def _get_product_price_range(
-    discounted: Optional[TaxedMoneyRange],
-    undiscounted: Optional[TaxedMoneyRange],
-    local_currency: Optional[str] = None,
-) -> Tuple[Optional[TaxedMoneyRange], Optional[TaxedMoney]]:
-    price_range_local = None
-    discount_local_currency = None
-
-    if local_currency:
-        price_range_local = to_local_currency(discounted, local_currency)
-        undiscounted_local = to_local_currency(undiscounted, local_currency)
-        if (
-            undiscounted_local
-            and price_range_local
-            and undiscounted_local.start > price_range_local.start
-        ):
-            discount_local_currency = undiscounted_local.start - price_range_local.start
-
-    return price_range_local, discount_local_currency
 
 
 def get_product_price_range(
@@ -117,7 +91,6 @@ def get_product_availability(
     *,
     product_channel_listing: Optional[ProductChannelListing],
     variants_channel_listing: List[ProductVariantChannelListing],
-    local_currency: Optional[str] = None,
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
     tax_rate: Decimal
@@ -164,13 +137,8 @@ def get_product_availability(
         )
 
     discount = None
-    price_range_local = None
-    discount_local_currency = None
     if undiscounted is not None and discounted is not None:
         discount = _get_total_discount_from_range(undiscounted, discounted)
-        price_range_local, discount_local_currency = _get_product_price_range(
-            discounted, undiscounted, local_currency
-        )
 
     is_visible = (
         product_channel_listing is not None and product_channel_listing.is_visible
@@ -182,8 +150,6 @@ def get_product_availability(
         price_range=discounted,
         price_range_undiscounted=undiscounted,
         discount=discount,
-        price_range_local_currency=price_range_local,
-        discount_local_currency=discount_local_currency,
     )
 
 
@@ -191,7 +157,6 @@ def get_variant_availability(
     *,
     variant_channel_listing: ProductVariantChannelListing,
     product_channel_listing: Optional[ProductChannelListing],
-    local_currency: Optional[str] = None,
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
     tax_rate: Decimal
@@ -213,13 +178,6 @@ def get_variant_availability(
     )
     discount = _get_total_discount(undiscounted_price_taxed, discounted_price_taxed)
 
-    if local_currency:
-        price_local_currency = to_local_currency(discounted_price_taxed, local_currency)
-        discount_local_currency = to_local_currency(discount, local_currency)
-    else:
-        price_local_currency = None
-        discount_local_currency = None
-
     is_visible = (
         product_channel_listing is not None and product_channel_listing.is_visible
     )
@@ -230,6 +188,4 @@ def get_variant_availability(
         price=discounted_price_taxed,
         price_undiscounted=undiscounted_price_taxed,
         discount=discount,
-        price_local_currency=price_local_currency,
-        discount_local_currency=discount_local_currency,
     )

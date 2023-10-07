@@ -16,7 +16,9 @@ from ....checkout.utils import (
     is_shipping_required,
 )
 from ....core.tracing import traced_atomic_transaction
+from ....graphql.account.mixins import AddressMetadataMixin
 from ....warehouse.reservations import is_reservation_enabled
+from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.descriptions import ADDED_IN_34, ADDED_IN_35, DEPRECATED_IN_3X_INPUT
@@ -24,6 +26,7 @@ from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Checkout
@@ -39,7 +42,7 @@ if TYPE_CHECKING:
     from ....checkout.fetch import DeliveryMethodBase
 
 
-class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
+class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
@@ -74,6 +77,12 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
+                description="A checkout was updated.",
+            )
+        ]
 
     @classmethod
     def process_checkout_lines(
@@ -126,9 +135,15 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 "lines__variant__product__product_type"
             ),
         )
+        use_legacy_error_flow_for_checkout = (
+            checkout.channel.use_legacy_error_flow_for_checkout
+        )
 
-        lines, _ = fetch_checkout_lines(checkout)
-        if not is_shipping_required(lines):
+        lines, _ = fetch_checkout_lines(
+            checkout,
+        )
+
+        if use_legacy_error_flow_for_checkout and not is_shipping_required(lines):
             raise ValidationError(
                 {
                     "shipping_address": ValidationError(
@@ -159,7 +174,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         checkout.set_country(country, commit=True)
 
         # Resolve and process the lines, validating variants quantities
-        if lines:
+        if lines and use_legacy_error_flow_for_checkout:
             cls.process_checkout_lines(
                 info,
                 lines,

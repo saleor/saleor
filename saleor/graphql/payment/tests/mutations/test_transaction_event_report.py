@@ -3,6 +3,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import graphene
+import pytest
 from django.utils import timezone
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
@@ -25,8 +26,17 @@ fragment TransactionEventData on TransactionEventReport {
     transaction {
         id
         actions
+        pspReference
         events {
             id
+        }
+        createdBy {
+            ... on User {
+                id
+            }
+            ... on App {
+                id
+            }
         }
     }
     transactionEvent {
@@ -155,7 +165,10 @@ def test_transaction_event_report_by_user(
         "time": event_time.isoformat(),
         "externalUrl": external_url,
         "message": message,
-        "availableActions": [TransactionActionEnum.CANCEL.name],
+        "availableActions": [
+            TransactionActionEnum.CANCEL.name,
+            TransactionActionEnum.CANCEL.name,
+        ],
     }
     query = (
         MUTATION_DATA_FRAGMENT
@@ -497,6 +510,163 @@ def test_transaction_event_report_event_already_exists(
     )
 
 
+def test_transaction_event_report_event_already_exists_updates_available_actions(
+    transaction_item_generator, app_api_client, permission_manage_payments, app
+):
+    # given
+    event_time = timezone.now()
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+    message = "Sucesfull charge"
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    event_type = TransactionEventTypeEnum.CHARGE_SUCCESS
+    transaction = transaction_item_generator(app=app, charged_value=amount)
+    transaction.events.update(
+        psp_reference=psp_reference,
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": event_type.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "time": event_time.isoformat(),
+        "externalUrl": external_url,
+        "message": message,
+        "availableActions": [
+            TransactionActionEnum.REFUND.name,
+            TransactionActionEnum.CHARGE.name,
+        ],
+    }
+
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $time: DateTime
+        $externalUrl: String
+        $message: String
+        $availableActions: [TransactionActionEnum!]!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            time: $time
+            externalUrl: $externalUrl
+            message: $message
+            availableActions: $availableActions
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["alreadyProcessed"] is True
+    assert set(transaction_report_data["transaction"]["actions"]) == set(
+        [
+            TransactionActionEnum.REFUND.name,
+            TransactionActionEnum.CHARGE.name,
+        ]
+    )
+    assert set(transaction.available_actions) == set(
+        [TransactionActionEnum.REFUND.value, TransactionActionEnum.CHARGE.value]
+    )
+
+
+def test_event_already_exists_do_not_overwrite_actions_when_not_provided_in_input(
+    transaction_item_generator, app_api_client, permission_manage_payments, app
+):
+    # given
+    event_time = timezone.now()
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+    message = "Sucesfull charge"
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    event_type = TransactionEventTypeEnum.CHARGE_SUCCESS
+    transaction = transaction_item_generator(
+        app=app,
+        charged_value=amount,
+        available_actions=[
+            TransactionActionEnum.REFUND.value,
+            TransactionActionEnum.CHARGE.value,
+        ],
+    )
+    transaction.events.update(
+        psp_reference=psp_reference,
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": event_type.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "time": event_time.isoformat(),
+        "externalUrl": external_url,
+        "message": message,
+    }
+
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $time: DateTime
+        $externalUrl: String
+        $message: String
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            time: $time
+            externalUrl: $externalUrl
+            message: $message
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["alreadyProcessed"] is True
+    assert set(transaction_report_data["transaction"]["actions"]) == set(
+        [
+            TransactionActionEnum.REFUND.name,
+            TransactionActionEnum.CHARGE.name,
+        ]
+    )
+    assert set(transaction.available_actions) == set(
+        [TransactionActionEnum.REFUND.value, TransactionActionEnum.CHARGE.value]
+    )
+
+
 def test_transaction_event_report_incorrect_amount_for_already_existing(
     app_api_client, permission_manage_payments, transaction_item_generator, app
 ):
@@ -579,7 +749,8 @@ def test_transaction_event_report_incorrect_amount_for_already_existing(
 
 
 @patch(
-    "saleor.graphql.payment.mutations.recalculate_transaction_amounts",
+    "saleor.graphql.payment.mutations.transaction.transaction_event_report."
+    "recalculate_transaction_amounts",
     wraps=recalculate_transaction_amounts,
 )
 def test_transaction_event_report_calls_amount_recalculations(
@@ -640,7 +811,7 @@ def test_transaction_event_report_calls_amount_recalculations(
     )
 
     # then
-    mocked_recalculation.assert_called_once_with(transaction)
+    mocked_recalculation.assert_called_once_with(transaction, save=False)
     transaction.refresh_from_db()
     assert transaction.charged_value == amount
 
@@ -1638,3 +1809,136 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_partially_ref
     assert not mock_order_fully_refunded.called
     mock_order_refunded.assert_called_once_with(order)
     mock_order_updated.assert_called_once_with(order)
+
+
+def test_transaction_event_report_by_app_assign_app_owner(
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(authorized_value=Decimal("10"))
+    event_time = timezone.now()
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+    message = "Sucesfull charge"
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "time": event_time.isoformat(),
+        "externalUrl": external_url,
+        "message": message,
+        "availableActions": [TransactionActionEnum.REFUND.name],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $time: DateTime
+        $externalUrl: String
+        $message: String
+        $availableActions: [TransactionActionEnum!]!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            time: $time
+            externalUrl: $externalUrl
+            message: $message
+            availableActions: $availableActions
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    transaction.refresh_from_db()
+
+    assert transaction_report_data["transaction"]["createdBy"][
+        "id"
+    ] == to_global_id_or_none(app_api_client.app)
+    assert transaction.app_identifier == app_api_client.app.identifier
+    assert transaction.app == app_api_client.app
+    assert transaction.user is None
+
+
+@pytest.mark.parametrize(
+    "transaction_psp_reference, expected_transaction_psp_reference",
+    [
+        (None, "psp_reference_from_event"),
+        ("", "psp_reference_from_event"),
+        ("psp_reference_from_transaction", "psp_reference_from_transaction"),
+    ],
+)
+def test_transaction_event_report_assign_transaction_psp_reference_if_missing(
+    transaction_psp_reference,
+    expected_transaction_psp_reference,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        authorized_value=Decimal("10"), psp_reference=transaction_psp_reference
+    )
+    amount = Decimal("11.00")
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": expected_transaction_psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    transaction.refresh_from_db()
+
+    assert (
+        transaction_report_data["transaction"]["pspReference"]
+        == expected_transaction_psp_reference
+    )
+    assert transaction.psp_reference == expected_transaction_psp_reference

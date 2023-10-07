@@ -6,7 +6,6 @@ from django.core.management import CommandError, call_command
 from django.db.utils import DataError
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
-from django_countries.fields import Country
 
 from ...account.models import Address, User
 from ...account.utils import create_superuser
@@ -23,7 +22,7 @@ from ..utils import (
     build_absolute_uri,
     generate_unique_slug,
     get_client_ip,
-    get_currency_for_country,
+    prepare_unique_attribute_value_slug,
     random_data,
 )
 
@@ -60,15 +59,6 @@ def test_get_client_ip(ip_address, expected_ip):
     headers = {"HTTP_X_FORWARDED_FOR": ip_address} if ip_address else {}
     request = RequestFactory(**headers).get("/")
     assert get_client_ip(request) == expected_ip
-
-
-@pytest.mark.parametrize(
-    "country, expected_currency",
-    [(Country("PL"), "PLN"), (Country("US"), "USD"), (Country("GB"), "GBP")],
-)
-def test_get_currency_for_country(country, expected_currency, monkeypatch):
-    currency = get_currency_for_country(country.code)
-    assert currency == expected_currency
 
 
 def test_create_superuser(db, client, media_root):
@@ -364,3 +354,28 @@ def test_cleardb_preserves_data(admin_user, app, site_settings, staff_user):
     app.refresh_from_db()
     site_settings.refresh_from_db()
     staff_user.refresh_from_db()
+
+
+def test_prepare_unique_attribute_value_slug(color_attribute):
+    # given
+    value_1 = color_attribute.values.first()
+
+    # when
+    value_2 = AttributeValue(
+        name=value_1.name, attribute=color_attribute, slug=value_1.slug
+    )
+
+    # then
+    result = prepare_unique_attribute_value_slug(value_2.attribute, value_2.slug)
+
+    assert result == f"{value_1.slug}-2"
+
+
+def test_prepare_unique_attribute_value_slug_non_existing_slug(color_attribute):
+    # when
+    non_existing_slug = "non-existing-slug"
+
+    # then
+    result = prepare_unique_attribute_value_slug(color_attribute, non_existing_slug)
+
+    assert result == non_existing_slug

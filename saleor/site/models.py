@@ -9,8 +9,9 @@ from django.core.validators import MaxLengthValidator, MinValueValidator, RegexV
 from django.db import models
 
 from ..core import TimePeriodType
+from ..core.models import ModelWithMetadata
 from ..core.units import WeightUnits
-from ..core.utils.translations import Translation, TranslationProxy
+from ..core.utils.translations import Translation
 from ..permission.enums import SitePermissions
 from . import GiftCardSettingsExpiryType
 from .error_codes import SiteErrorCode
@@ -33,7 +34,7 @@ def email_sender_name_validators():
     ]
 
 
-class SiteSettings(models.Model):
+class SiteSettings(ModelWithMetadata):
     site = models.OneToOneField(Site, related_name="settings", on_delete=models.CASCADE)
     header_text = models.CharField(max_length=200, blank=True)
     description = models.CharField(max_length=500, blank=True)
@@ -65,6 +66,7 @@ class SiteSettings(models.Model):
     )
     default_mail_sender_address = models.EmailField(blank=True, null=True)
     enable_account_confirmation_by_email = models.BooleanField(default=True)
+    allow_login_without_confirmation = models.BooleanField(default=False)
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
     fulfillment_auto_approve = models.BooleanField(default=True)
     fulfillment_allow_unpaid = models.BooleanField(default=True)
@@ -97,8 +99,6 @@ class SiteSettings(models.Model):
     charge_taxes_on_shipping = models.BooleanField(default=True)
     include_taxes_in_prices = models.BooleanField(default=True)
     display_gross_prices = models.BooleanField(default=True)
-
-    translated = TranslationProxy()
 
     class Meta:
         permissions = (

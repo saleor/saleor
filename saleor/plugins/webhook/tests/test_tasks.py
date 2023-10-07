@@ -6,6 +6,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 from graphene import Node
+from requests_hardened import HTTPSession
 
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventPayload
@@ -80,7 +81,7 @@ def test_trigger_transaction_request(
     assert generated_delivery.webhook == webhook
     assert generated_delivery.payload == generated_payload
 
-    mocked_task.assert_called_once_with(generated_delivery.id, app.name, event.id)
+    mocked_task.assert_called_once_with(generated_delivery.id, event.id)
 
 
 @freeze_time("2022-06-11 12:50")
@@ -158,11 +159,11 @@ def test_trigger_transaction_request_with_webhook_subscription(
 
     assert generated_delivery.payload == generated_payload
 
-    mocked_task.assert_called_once_with(generated_delivery.id, app.name, event.id)
+    mocked_task.assert_called_once_with(generated_delivery.id, event.id)
 
 
 @freeze_time("2022-06-11 12:50")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_handle_transaction_request_task_with_only_psp_reference(
     mocked_post_request,
     transaction_item_generator,
@@ -210,13 +211,14 @@ def test_handle_transaction_request_task_with_only_psp_reference(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, transaction_data.event.id)
 
     # then
     assert TransactionEvent.objects.count() == 1
     event.refresh_from_db()
     assert event.psp_reference == expected_psp_reference
     mocked_post_request.assert_called_once_with(
+        "POST",
         target_url,
         data=payload.encode("utf-8"),
         headers=mock.ANY,
@@ -228,7 +230,7 @@ def test_handle_transaction_request_task_with_only_psp_reference(
 @pytest.mark.parametrize("status_code", [500, 501, 510])
 @freeze_time("2022-06-11 12:50")
 @mock.patch("saleor.plugins.webhook.tasks.handle_webhook_retry")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_handle_transaction_request_task_with_server_error(
     mocked_post_request,
     mocked_webhook_retry,
@@ -277,14 +279,14 @@ def test_handle_transaction_request_task_with_server_error(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, transaction_data.event.id)
 
     # then
     assert mocked_webhook_retry.called
 
 
 @freeze_time("2022-06-11 12:50")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_handle_transaction_request_task_with_missing_psp_reference(
     mocked_post_request,
     transaction_item_created_by_app,
@@ -330,7 +332,7 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, transaction_data.event.id)
 
     # then
     assert (
@@ -353,6 +355,7 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
     assert failure_event.amount_value == event.amount_value
     assert failure_event.transaction_id == event.transaction_id
     mocked_post_request.assert_called_once_with(
+        "POST",
         target_url,
         data=payload.encode("utf-8"),
         headers=mock.ANY,
@@ -362,7 +365,7 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
 
 
 @freeze_time("2022-06-11 12:50")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_handle_transaction_request_task_with_missing_required_event_field(
     mocked_post_request,
     transaction_item_created_by_app,
@@ -413,7 +416,7 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, transaction_data.event.id)
 
     # then
     assert (
@@ -436,6 +439,7 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     assert failure_event.amount_value == event.amount_value
     assert failure_event.transaction_id == event.transaction_id
     mocked_post_request.assert_called_once_with(
+        "POST",
         target_url,
         data=payload.encode("utf-8"),
         headers=mock.ANY,
@@ -445,7 +449,7 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
 
 
 @freeze_time("2022-06-11 12:50")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_handle_transaction_request_task_with_result_event(
     mocked_post_request,
     transaction_item_generator,
@@ -505,7 +509,7 @@ def test_handle_transaction_request_task_with_result_event(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, transaction_data.event.id)
 
     # then
     assert TransactionEvent.objects.all().count() == 2
@@ -534,6 +538,7 @@ def test_handle_transaction_request_task_with_result_event(
     assert success_event.message == event_cause
 
     mocked_post_request.assert_called_once_with(
+        "POST",
         target_url,
         data=payload.encode("utf-8"),
         headers=mock.ANY,
@@ -543,7 +548,7 @@ def test_handle_transaction_request_task_with_result_event(
 
 
 @freeze_time("2022-06-11T17:50:00+00:00")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_handle_transaction_request_task_with_only_required_fields_for_result_event(
     mocked_post_request,
     transaction_item_generator,
@@ -596,7 +601,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, transaction_data.event.id)
 
     # then
     assert TransactionEvent.objects.all().count() == 2
@@ -626,6 +631,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     assert success_event.message == ""
 
     mocked_post_request.assert_called_once_with(
+        "POST",
         target_url,
         data=payload.encode("utf-8"),
         headers=mock.ANY,
@@ -639,7 +645,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     "saleor.payment.utils.recalculate_transaction_amounts",
     wraps=recalculate_transaction_amounts,
 )
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_handle_transaction_request_task_calls_recalculation_of_amounts(
     mocked_post_request,
     mocked_recalculation,
@@ -700,7 +706,7 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, transaction_data.event.id)
 
     # then
     mocked_recalculation.assert_called_once_with(transaction, save=False)
@@ -709,7 +715,7 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
 
 
 @freeze_time("2022-06-11 12:50")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_handle_transaction_request_task_with_available_actions(
     mocked_post_request,
     transaction_item_generator,
@@ -764,7 +770,7 @@ def test_handle_transaction_request_task_with_available_actions(
     )
 
     # when
-    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+    handle_transaction_request_task(delivery.id, transaction_data.event.id)
 
     # then
     assert TransactionEvent.objects.all().count() == 2
@@ -791,10 +797,15 @@ def test_handle_transaction_request_task_with_available_actions(
 
     transaction.refresh_from_db()
     assert set(transaction.available_actions) == set(
-        ["charge", "refund", "cancel", "void"]
+        [
+            "charge",
+            "refund",
+            "cancel",
+        ]
     )
 
     mocked_post_request.assert_called_once_with(
+        "POST",
         target_url,
         allow_redirects=False,
         data=payload.encode("utf-8"),

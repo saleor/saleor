@@ -50,8 +50,9 @@ from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
-from ..discount import DiscountInfo, DiscountValueType, VoucherType
+from ..discount import DiscountInfo, DiscountType, DiscountValueType, VoucherType
 from ..discount.models import (
+    CheckoutLineDiscount,
     NotApplicable,
     Sale,
     SaleChannelListing,
@@ -314,9 +315,41 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_item_on_sale(checkout_with_item):
+    line = checkout_with_item.lines.first()
+    channel = checkout_with_item.channel
+    sale = Sale.objects.create(name="Sale")
+    discount_amount = Decimal("5.0")
+    SaleChannelListing.objects.create(
+        sale=sale,
+        channel=channel,
+        discount_value=discount_amount,
+        currency=channel.currency_code,
+    )
+    variant = line.variant
+    sale.products.add(variant.product)
+    channel_listing = variant.channel_listings.get(channel=channel)
+    channel_listing.discounted_price_amount = (
+        channel_listing.price_amount - discount_amount
+    )
+    channel_listing.save(update_fields=["discounted_price_amount"])
+
+    CheckoutLineDiscount.objects.create(
+        line=line,
+        sale=sale,
+        type=DiscountType.SALE,
+        value_type=sale.type,
+        value=discount_amount,
+        amount_value=discount_amount * line.quantity,
+        currency=channel.currency_code,
+    )
+
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_with_item_and_transaction_item(checkout_with_item):
     TransactionItem.objects.create(
-        status="Captured",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
@@ -481,6 +514,16 @@ def checkout_with_shipping_required(checkout_with_item, product):
 @pytest.fixture
 def checkout_with_item_and_shipping_method(checkout_with_item, shipping_method):
     checkout = checkout_with_item
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
+def checkout_with_item_and_voucher_and_shipping_method(
+    checkout_with_item_and_voucher, shipping_method
+):
+    checkout = checkout_with_item_and_voucher
     checkout.shipping_method = shipping_method
     checkout.save()
     return checkout
@@ -755,6 +798,45 @@ def checkout_with_item_and_preorder_item(
 
 
 @pytest.fixture
+def checkout_with_problems(
+    checkout_with_items,
+    product_type,
+    address,
+    shipping_method,
+    category,
+    default_tax_class,
+    channel_USD,
+    warehouse,
+):
+    checkout_with_items.shipping_address = address
+    checkout_with_items.billing_address = address
+    checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.save(
+        update_fields=["shipping_address", "shipping_method", "billing_address"]
+    )
+
+    first_line = checkout_with_items.lines.first()
+    first_line.variant.track_inventory = True
+    first_line.variant.save(update_fields=["track_inventory"])
+
+    product_type = first_line.variant.product.product_type
+    product_type.is_shipping_required = True
+    product_type.save(update_fields=["is_shipping_required"])
+
+    first_line.variant.stocks.all().delete()
+
+    second_line = checkout_with_items.lines.last()
+
+    available_at = datetime.datetime.now(pytz.UTC) + datetime.timedelta(days=5)
+    product = second_line.variant.product
+    product.channel_listings.update(
+        available_for_purchase_at=available_at, is_published=False
+    )
+
+    return checkout_with_items
+
+
+@pytest.fixture
 def address(db):  # pylint: disable=W0613
     return Address.objects.create(
         first_name="John",
@@ -824,6 +906,7 @@ def graphql_address_data():
         "city": "Wrocław",
         "countryArea": "",
         "phone": "+48321321888",
+        "metadata": [{"key": "public", "value": "public_value"}],
     }
 
 
@@ -1023,19 +1106,10 @@ def orders_from_checkout(customer_user, checkout):
 
 
 @pytest.fixture
-def order_from_checkout_JPY(customer_user, checkout_JPY):
-    return Order.objects.create(
-        user=customer_user,
-        status=OrderStatus.CANCELED,
-        channel=checkout_JPY.channel,
-        checkout_token=checkout_JPY.token,
-    )
-
-
-@pytest.fixture
-def order(customer_user, channel_USD):
+def order_generator(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
-    order = Order.objects.create(
+
+    def create_order(
         billing_address=address,
         channel=channel_USD,
         currency=channel_USD.currency_code,
@@ -1046,31 +1120,38 @@ def order(customer_user, channel_USD):
         should_refresh_prices=False,
         metadata={"key": "value"},
         private_metadata={"secret_key": "secret_value"},
-    )
-    return order
+        checkout_token="",
+        status=OrderStatus.UNFULFILLED,
+        search_vector_class=None,
+    ):
+        order = Order.objects.create(
+            billing_address=billing_address,
+            channel=channel,
+            currency=currency,
+            shipping_address=shipping_address,
+            user_email=user_email,
+            user=user,
+            origin=origin,
+            should_refresh_prices=should_refresh_prices,
+            metadata=metadata,
+            private_metadata=private_metadata,
+            checkout_token=checkout_token,
+            status=status,
+        )
+        if search_vector_class:
+            search_vector = search_vector_class(
+                *prepare_order_search_vector_value(order)
+            )
+            order.search_vector = search_vector
+            order.save(update_fields=["search_vector"])
+        return order
+
+    return create_order
 
 
 @pytest.fixture
-def order_with_search_vector_value(order):
-    order.search_vector = FlatConcatSearchVector(
-        *prepare_order_search_vector_value(order)
-    )
-    order.save(update_fields=["search_vector"])
-    return order
-
-
-@pytest.fixture
-def order_JPY(customer_user, channel_JPY):
-    address = customer_user.default_billing_address.get_copy()
-    return Order.objects.create(
-        billing_address=address,
-        channel=channel_JPY,
-        currency=channel_JPY.currency_code,
-        shipping_address=address,
-        user_email=customer_user.email,
-        user=customer_user,
-        origin=OrderOrigin.CHECKOUT,
-    )
+def order(order_generator):
+    return order_generator()
 
 
 @pytest.fixture
@@ -1078,6 +1159,74 @@ def order_unconfirmed(order):
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
     return order
+
+
+@pytest.fixture
+def product_type_generator(
+    attribute_generator, attribute_value_generator, default_tax_class
+):
+    def create_product_type(
+        name="Default Type",
+        slug="default-type",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+        tax_class=default_tax_class,
+        product_attributes=None,
+        variant_attributes=None,
+    ):
+        product_type = ProductType.objects.create(
+            name=name,
+            slug=slug,
+            kind=kind,
+            has_variants=has_variants,
+            is_shipping_required=is_shipping_required,
+            tax_class=tax_class,
+        )
+        if product_attributes is None:
+            product_attribute = attribute_generator(
+                external_reference="colorAttributeExternalReference",
+                slug="color",
+                name="Color",
+                type=AttributeType.PRODUCT_TYPE,
+                filterable_in_storefront=True,
+                filterable_in_dashboard=True,
+                available_in_grid=True,
+            )
+
+            attribute_value_generator(
+                external_reference="colorAttributeValue1ExternalReference",
+                name="Red",
+                slug="red",
+                attribute=product_attribute,
+            )
+
+            product_attributes = [product_attribute]
+        if variant_attributes is None:
+            variant_attribute = attribute_generator(
+                external_reference="sizeAttributeExternalReference",
+                slug="size",
+                name="Size",
+                type=AttributeType.PRODUCT_TYPE,
+                filterable_in_storefront=True,
+                filterable_in_dashboard=True,
+                available_in_grid=True,
+            )
+
+            attribute_value_generator(
+                name="Small",
+                slug="small",
+                attribute=variant_attribute,
+            )
+            variant_attributes = [variant_attribute]
+
+        product_type.product_attributes.add(*product_attributes)
+        product_type.variant_attributes.add(
+            *variant_attributes, through_defaults={"variant_selection": True}
+        )
+        return product_type
+
+    return create_product_type
 
 
 @pytest.fixture
@@ -1214,6 +1363,24 @@ def shipping_zones(db, channel_USD, channel_PLN):
         ]
     )
     return [shipping_zone_poland, shipping_zone_usa]
+
+
+def chunks(it, n):
+    for i in range(0, len(it), n):
+        yield it[i : i + n]
+
+
+@pytest.fixture
+def shipping_zones_with_warehouses(address, channel_USD):
+    zones = [ShippingZone(name=f"{i}_zone") for i in range(10)]
+    warehouses = [Warehouse(slug=f"{i}_warehouse", address=address) for i in range(20)]
+    warehouses = Warehouse.objects.bulk_create(warehouses)
+    warehouses_in_batches = list(chunks(warehouses, 2))
+    for i, zone in enumerate(ShippingZone.objects.bulk_create(zones)):
+        zone.channels.add(channel_USD)
+        for warehouse in warehouses_in_batches[i]:
+            zone.warehouses.add(warehouse)
+    return zones
 
 
 @pytest.fixture
@@ -1358,8 +1525,103 @@ def shipping_method_channel_PLN(shipping_zone, channel_PLN):
 
 
 @pytest.fixture
-def color_attribute(db):
-    attribute = Attribute.objects.create(
+def attribute_generator():
+    def create_attribute(
+        external_reference="attributeExtRef",
+        slug="attr",
+        name="Attr",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    ):
+        attribute, _ = Attribute.objects.get_or_create(
+            external_reference=external_reference,
+            slug=slug,
+            name=name,
+            type=type,
+            filterable_in_storefront=filterable_in_storefront,
+            filterable_in_dashboard=filterable_in_dashboard,
+            available_in_grid=available_in_grid,
+        )
+
+        return attribute
+
+    return create_attribute
+
+
+@pytest.fixture
+def attribute_value_generator(attribute_generator):
+    def create_attribute_value(
+        attribute=None,
+        external_reference=None,
+        name="Attr Value",
+        slug="attr-value",
+        value="",
+    ):
+        if attribute is None:
+            attribute = attribute_generator()
+        attribute_value, _ = AttributeValue.objects.get_or_create(
+            attribute=attribute,
+            external_reference=external_reference,
+            name=name,
+            slug=slug,
+            value=value,
+        )
+
+        return attribute_value
+
+    return create_attribute_value
+
+
+@pytest.fixture
+def attribute_values_generator(attribute_generator):
+    def create_attribute_values(
+        external_references=None,
+        names=None,
+        slugs=None,
+        attribute=None,
+        values=None,
+    ):
+        if attribute is None:
+            attribute = attribute_generator()
+
+        if slugs is None:
+            slugs = ["attr-value"]
+
+        if external_references is None:
+            external_references = [None] * len(slugs)
+
+        if names is None:
+            names = [""] * len(slugs)
+
+        if values is None:
+            values = [""] * len(slugs)
+
+        AttributeValue.objects.bulk_create(
+            [
+                AttributeValue(
+                    attribute=attribute,
+                    external_reference=ext_ref,
+                    name=name,
+                    slug=slug,
+                    value=value,
+                )
+                for slug, name, ext_ref, value in zip(
+                    slugs, names, external_references, values
+                )
+            ],
+            ignore_conflicts=True,
+        )
+
+        return list(AttributeValue.objects.filter(slug__in=slugs))
+
+    return create_attribute_values
+
+
+@pytest.fixture
+def color_attribute(db, attribute_generator, attribute_values_generator):
+    attribute = attribute_generator(
         external_reference="colorAttributeExternalReference",
         slug="color",
         name="Color",
@@ -1368,18 +1630,19 @@ def color_attribute(db):
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    AttributeValue.objects.create(
-        external_reference="colorAttributeValue1ExternalReference",
+    external_references = [
+        "colorAttributeValue1ExternalReference",
+        "colorAttributeValue2ExternalReference",
+    ]
+    slugs = ["red", "blue"]
+    names = ["Red", "Blue"]
+    attribute_values_generator(
         attribute=attribute,
-        name="Red",
-        slug="red",
+        external_references=external_references,
+        names=names,
+        slugs=slugs,
     )
-    AttributeValue.objects.create(
-        external_reference="colorAttributeValue2ExternalReference",
-        attribute=attribute,
-        name="Blue",
-        slug="blue",
-    )
+
     return attribute
 
 
@@ -1693,8 +1956,10 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def size_attribute(db):  # pylint: disable=W0613
-    attribute = Attribute.objects.create(
+def size_attribute(
+    db, attribute_generator, attribute_values_generator
+):  # pylint: disable=W0613
+    attribute = attribute_generator(
         external_reference="sizeAttributeExternalReference",
         slug="size",
         name="Size",
@@ -1703,8 +1968,15 @@ def size_attribute(db):  # pylint: disable=W0613
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    AttributeValue.objects.create(attribute=attribute, name="Small", slug="small")
-    AttributeValue.objects.create(attribute=attribute, name="Big", slug="big")
+
+    slugs = ["small", "big"]
+    names = ["Small", "Big"]
+    attribute_values_generator(
+        attribute=attribute,
+        names=names,
+        slugs=slugs,
+    )
+
     return attribute
 
 
@@ -2021,14 +2293,29 @@ def image_list():
 
 
 @pytest.fixture
-def category(db):  # pylint: disable=W0613
-    return Category.objects.create(name="Default", slug="default")
+def category_generator():
+    def create_category(
+        name="Default",
+        slug="default",
+    ):
+        category = Category.objects.create(
+            name=name,
+            slug=slug,
+        )
+        return category
+
+    return create_category
+
+
+@pytest.fixture
+def category(category_generator):  # pylint: disable=W0613
+    return category_generator()
 
 
 @pytest.fixture
 def category_with_image(db, image, media_root):  # pylint: disable=W0613
     return Category.objects.create(
-        name="Default", slug="default", background_image=image
+        name="Default2", slug="default2", background_image=image
     )
 
 
@@ -2171,20 +2458,8 @@ def permission_manage_taxes():
 
 
 @pytest.fixture
-def product_type(color_attribute, size_attribute, default_tax_class):
-    product_type = ProductType.objects.create(
-        name="Default Type",
-        slug="default-type",
-        kind=ProductTypeKind.NORMAL,
-        has_variants=True,
-        is_shipping_required=True,
-        tax_class=default_tax_class,
-    )
-    product_type.product_attributes.add(color_attribute)
-    product_type.variant_attributes.add(
-        size_attribute, through_defaults={"variant_selection": True}
-    )
-    return product_type
+def product_type(product_type_generator):
+    return product_type_generator()
 
 
 @pytest.fixture
@@ -2290,6 +2565,14 @@ def product(product_type, category, warehouse, channel_USD, default_tax_class):
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
     associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+
+    return product
+
+
+@pytest.fixture
+def product_with_translations(product):
+    product.translations.create(language_code="pl", name="OldProduct PL")
+    product.translations.create(language_code="de", name="OldProduct DE")
 
     return product
 
@@ -2850,6 +3133,13 @@ def variant(product, channel_USD) -> ProductVariant:
         currency=channel_USD.currency_code,
     )
     return product_variant
+
+
+@pytest.fixture
+def variant_with_translations(variant):
+    variant.translations.create(language_code="pl", name="OldVariant PL")
+    variant.translations.create(language_code="de", name="OldVariant DE")
+    return variant
 
 
 @pytest.fixture
@@ -3731,7 +4021,11 @@ def gift_card_shippable_order_line(order, gift_card_shippable_variant, warehouse
 
 
 @pytest.fixture
-def order_line_JPY(order_JPY, product_in_channel_JPY):
+def order_line_JPY(order_generator, channel_JPY, product_in_channel_JPY):
+    order_JPY = order_generator(
+        channel=channel_JPY,
+        currency=channel_JPY.currency_code,
+    )
     product = product_in_channel_JPY
     variant = product_in_channel_JPY.variants.get()
     channel = order_JPY.channel
@@ -5405,6 +5699,44 @@ def page(db, page_type):
 
 
 @pytest.fixture
+def second_page(page):
+    data = {
+        "slug": "test-url-2",
+        "title": "Test page 2",
+        "content": dummy_editorjs("Test content 2."),
+        "is_published": True,
+        "page_type": page.page_type,
+    }
+    page2 = Page.objects.create(**data)
+
+    # associate attribute value to the second page
+    page_attr = page.page_type.page_attributes.first()
+    page_attr_value = page_attr.values.first()
+
+    associate_attribute_values_to_instance(page2, page_attr, page_attr_value)
+
+    attribute = Attribute.objects.create(
+        slug="test-attribute",
+        name="Test Attribute",
+        type="some_attribute_type",
+        input_type=AttributeInputType.DROPDOWN,
+    )
+    attribute.page_types.add(page.page_type)
+
+    attribute_values = []
+    for i in range(10):
+        attribute_values.append(
+            AttributeValue.objects.create(
+                attribute=attribute,
+                name=f"Test-name-attribute-value-{i}",
+                slug=f"test-slug-attribute-value-{i}",
+            )
+        )
+    associate_attribute_values_to_instance(page2, attribute, *attribute_values)
+    return page, page2
+
+
+@pytest.fixture
 def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
     data = {
         "slug": "test-url",
@@ -6109,6 +6441,7 @@ def webhook_app(
     permission_manage_products,
     permission_manage_staff,
     permission_manage_orders,
+    permission_manage_users,
 ):
     app = App.objects.create(name="Webhook app", is_active=True)
     app.permissions.add(permission_manage_shipping)
@@ -6118,6 +6451,7 @@ def webhook_app(
     app.permissions.add(permission_manage_products)
     app.permissions.add(permission_manage_staff)
     app.permissions.add(permission_manage_orders)
+    app.permissions.add(permission_manage_users)
     return app
 
 
@@ -6220,6 +6554,111 @@ def shipping_app(db, permission_manage_shipping):
 
 
 @pytest.fixture
+def list_stored_payment_methods_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="List payment methods app",
+        is_active=True,
+        identifier="saleor.payment.app.list.stored.method",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="list_stored_payment_methods",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+    )
+    return app
+
+
+@pytest.fixture
+def stored_payment_method_request_delete_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment method request delete",
+        is_active=True,
+        identifier="saleor.payment.app.payment.method.request.delete",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="stored_payment_method_request_delete",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED,
+    )
+    return app
+
+
+@pytest.fixture
+def payment_gateway_initialize_tokenization_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment method request delete",
+        is_active=True,
+        identifier="saleor.payment.app.payment.gateway.initialize.tokenization",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment_gateway_initialize_tokenization",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION,
+    )
+    return app
+
+
+@pytest.fixture
+def payment_method_initialize_tokenization_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment method initialize tokenization",
+        is_active=True,
+        identifier="saleor.payment.app.payment.method.initialize.tokenization",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment_method_initialize_tokenization",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION,
+    )
+    return app
+
+
+@pytest.fixture
+def payment_method_process_tokenization_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment method process tokenization",
+        is_active=True,
+        identifier="saleor.payment.app.payment.method.process.tokenization",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment_method_process_tokenization",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION,
+    )
+    return app
+
+
+@pytest.fixture
 def tax_app(db, permission_handle_taxes):
     app = App.objects.create(name="Tax App", is_active=True)
     app.permissions.add(permission_handle_taxes)
@@ -6290,6 +6729,13 @@ def webhook(app):
     webhook = Webhook.objects.create(
         name="Simple webhook", app=app, target_url="http://www.example.com/test"
     )
+    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
+    return webhook
+
+
+@pytest.fixture
+def webhook_without_name(app):
+    webhook = Webhook.objects.create(app=app, target_url="http://www.example.com/test")
     webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
     return webhook
 
@@ -6958,6 +7404,28 @@ def event_attempt(event_delivery):
 
 
 @pytest.fixture
+def webhook_list_stored_payment_methods_response():
+    return {
+        "paymentMethods": [
+            {
+                "id": "method-1",
+                "supportedPaymentFlows": ["INTERACTIVE"],
+                "type": "Credit Card",
+                "creditCardInfo": {
+                    "brand": "visa",
+                    "lastDigits": "1234",
+                    "expMonth": 1,
+                    "expYear": 2023,
+                    "firstDigits": "123456",
+                },
+                "name": "***1234",
+                "data": {"some": "data"},
+            }
+        ]
+    }
+
+
+@pytest.fixture
 def webhook_response():
     return WebhookResponse(
         content="test_content",
@@ -7155,4 +7623,468 @@ def transaction_session_response():
         "time": "2022-11-18T13:25:58.169685+00:00",
         "externalUrl": "http://127.0.0.1:9090/external-reference",
         "message": "Message related to the payment",
+    }
+
+
+class Info:
+    def __init__(self, request):
+        self.context = request
+
+
+@pytest.fixture
+def dummy_info(request):
+    return Info(request)
+
+
+@pytest.fixture
+def async_subscription_webhooks_with_root_objects(
+    subscription_account_deleted_webhook,
+    subscription_account_confirmed_webhook,
+    subscription_account_email_changed_webhook,
+    subscription_account_set_password_requested_webhook,
+    subscription_account_confirmation_requested_webhook,
+    subscription_account_delete_requested_webhook,
+    subscription_account_change_email_requested_webhook,
+    subscription_staff_set_password_requested_webhook,
+    subscription_address_created_webhook,
+    subscription_address_updated_webhook,
+    subscription_address_deleted_webhook,
+    subscription_app_installed_webhook,
+    subscription_app_updated_webhook,
+    subscription_app_deleted_webhook,
+    subscription_app_status_changed_webhook,
+    subscription_attribute_created_webhook,
+    subscription_attribute_updated_webhook,
+    subscription_attribute_deleted_webhook,
+    subscription_attribute_value_created_webhook,
+    subscription_attribute_value_updated_webhook,
+    subscription_attribute_value_deleted_webhook,
+    subscription_category_created_webhook,
+    subscription_category_updated_webhook,
+    subscription_category_deleted_webhook,
+    subscription_channel_created_webhook,
+    subscription_channel_updated_webhook,
+    subscription_channel_deleted_webhook,
+    subscription_channel_status_changed_webhook,
+    subscription_gift_card_created_webhook,
+    subscription_gift_card_updated_webhook,
+    subscription_gift_card_deleted_webhook,
+    subscription_gift_card_sent_webhook,
+    subscription_gift_card_status_changed_webhook,
+    subscription_gift_card_metadata_updated_webhook,
+    subscription_gift_card_export_completed_webhook,
+    subscription_menu_created_webhook,
+    subscription_menu_updated_webhook,
+    subscription_menu_deleted_webhook,
+    subscription_menu_item_created_webhook,
+    subscription_menu_item_updated_webhook,
+    subscription_menu_item_deleted_webhook,
+    subscription_shipping_price_created_webhook,
+    subscription_shipping_price_updated_webhook,
+    subscription_shipping_price_deleted_webhook,
+    subscription_shipping_zone_created_webhook,
+    subscription_shipping_zone_updated_webhook,
+    subscription_shipping_zone_deleted_webhook,
+    subscription_shipping_zone_metadata_updated_webhook,
+    subscription_product_updated_webhook,
+    subscription_product_created_webhook,
+    subscription_product_deleted_webhook,
+    subscription_product_export_completed_webhook,
+    subscription_product_media_updated_webhook,
+    subscription_product_media_created_webhook,
+    subscription_product_media_deleted_webhook,
+    subscription_product_metadata_updated_webhook,
+    subscription_product_variant_created_webhook,
+    subscription_product_variant_updated_webhook,
+    subscription_product_variant_deleted_webhook,
+    subscription_product_variant_metadata_updated_webhook,
+    subscription_product_variant_out_of_stock_webhook,
+    subscription_product_variant_back_in_stock_webhook,
+    subscription_order_created_webhook,
+    subscription_order_updated_webhook,
+    subscription_order_confirmed_webhook,
+    subscription_order_fully_paid_webhook,
+    subscription_order_refunded_webhook,
+    subscription_order_fully_refunded_webhook,
+    subscription_order_paid_webhook,
+    subscription_order_cancelled_webhook,
+    subscription_order_expired_webhook,
+    subscription_order_fulfilled_webhook,
+    subscription_order_metadata_updated_webhook,
+    subscription_order_bulk_created_webhook,
+    subscription_draft_order_created_webhook,
+    subscription_draft_order_updated_webhook,
+    subscription_draft_order_deleted_webhook,
+    subscription_sale_created_webhook,
+    subscription_sale_updated_webhook,
+    subscription_sale_deleted_webhook,
+    subscription_sale_toggle_webhook,
+    subscription_invoice_requested_webhook,
+    subscription_invoice_deleted_webhook,
+    subscription_invoice_sent_webhook,
+    subscription_fulfillment_canceled_webhook,
+    subscription_fulfillment_created_webhook,
+    subscription_fulfillment_approved_webhook,
+    subscription_fulfillment_metadata_updated_webhook,
+    subscription_fulfillment_tracking_number_updated,
+    subscription_customer_created_webhook,
+    subscription_customer_updated_webhook,
+    subscription_customer_deleted_webhook,
+    subscription_customer_metadata_updated_webhook,
+    subscription_collection_created_webhook,
+    subscription_collection_updated_webhook,
+    subscription_collection_deleted_webhook,
+    subscription_collection_metadata_updated_webhook,
+    subscription_checkout_created_webhook,
+    subscription_checkout_updated_webhook,
+    subscription_checkout_fully_paid_webhook,
+    subscription_checkout_metadata_updated_webhook,
+    subscription_page_created_webhook,
+    subscription_page_updated_webhook,
+    subscription_page_deleted_webhook,
+    subscription_page_type_created_webhook,
+    subscription_page_type_updated_webhook,
+    subscription_page_type_deleted_webhook,
+    subscription_permission_group_created_webhook,
+    subscription_permission_group_updated_webhook,
+    subscription_permission_group_deleted_webhook,
+    subscription_product_created_multiple_events_webhook,
+    subscription_staff_created_webhook,
+    subscription_staff_updated_webhook,
+    subscription_staff_deleted_webhook,
+    subscription_transaction_item_metadata_updated_webhook,
+    subscription_translation_created_webhook,
+    subscription_translation_updated_webhook,
+    subscription_warehouse_created_webhook,
+    subscription_warehouse_updated_webhook,
+    subscription_warehouse_deleted_webhook,
+    subscription_warehouse_metadata_updated_webhook,
+    subscription_voucher_created_webhook,
+    subscription_voucher_updated_webhook,
+    subscription_voucher_deleted_webhook,
+    subscription_voucher_webhook_with_meta,
+    subscription_voucher_metadata_updated_webhook,
+    address,
+    app,
+    numeric_attribute,
+    category,
+    channel_PLN,
+    gift_card,
+    menu_item,
+    shipping_method,
+    product,
+    fulfilled_order,
+    sale,
+    fulfillment,
+    stock,
+    customer_user,
+    collection,
+    checkout,
+    page,
+    permission_group_manage_users,
+    shipping_zone,
+    staff_user,
+    voucher,
+    warehouse,
+    translated_attribute,
+    transaction_item_created_by_app,
+    product_media_image,
+    user_export_file,
+):
+    events = WebhookEventAsyncType
+    attr = numeric_attribute
+    attr_value = attr.values.first()
+    menu = menu_item.menu
+    order = fulfilled_order
+    invoice = order.invoices.first()
+    page_type = page.page_type
+    transaction_item_created_by_app.use_old_id = True
+    transaction_item_created_by_app.save()
+
+    return {
+        events.ACCOUNT_DELETED: [
+            subscription_account_deleted_webhook,
+            customer_user,
+        ],
+        events.ACCOUNT_EMAIL_CHANGED: [
+            subscription_account_email_changed_webhook,
+            customer_user,
+        ],
+        events.ACCOUNT_CONFIRMED: [
+            subscription_account_confirmed_webhook,
+            customer_user,
+        ],
+        events.ACCOUNT_DELETE_REQUESTED: [
+            subscription_account_delete_requested_webhook,
+            customer_user,
+        ],
+        events.ACCOUNT_SET_PASSWORD_REQUESTED: [
+            subscription_account_set_password_requested_webhook,
+            customer_user,
+        ],
+        events.ACCOUNT_CHANGE_EMAIL_REQUESTED: [
+            subscription_account_change_email_requested_webhook,
+            customer_user,
+        ],
+        events.ACCOUNT_CONFIRMATION_REQUESTED: [
+            subscription_account_confirmation_requested_webhook,
+            customer_user,
+        ],
+        events.STAFF_SET_PASSWORD_REQUESTED: [
+            subscription_staff_set_password_requested_webhook,
+            staff_user,
+        ],
+        events.ADDRESS_UPDATED: [subscription_address_updated_webhook, address],
+        events.ADDRESS_CREATED: [subscription_address_created_webhook, address],
+        events.ADDRESS_DELETED: [subscription_address_deleted_webhook, address],
+        events.APP_UPDATED: [subscription_app_updated_webhook, app],
+        events.APP_DELETED: [subscription_app_deleted_webhook, app],
+        events.APP_INSTALLED: [subscription_app_installed_webhook, app],
+        events.APP_STATUS_CHANGED: [subscription_app_status_changed_webhook, app],
+        events.ATTRIBUTE_CREATED: [subscription_attribute_created_webhook, attr],
+        events.ATTRIBUTE_UPDATED: [subscription_attribute_updated_webhook, attr],
+        events.ATTRIBUTE_DELETED: [subscription_attribute_deleted_webhook, attr],
+        events.ATTRIBUTE_VALUE_UPDATED: [
+            subscription_attribute_value_updated_webhook,
+            attr_value,
+        ],
+        events.ATTRIBUTE_VALUE_CREATED: [
+            subscription_attribute_value_created_webhook,
+            attr_value,
+        ],
+        events.ATTRIBUTE_VALUE_DELETED: [
+            subscription_attribute_value_deleted_webhook,
+            attr_value,
+        ],
+        events.CATEGORY_CREATED: [subscription_category_created_webhook, category],
+        events.CATEGORY_UPDATED: [subscription_category_updated_webhook, category],
+        events.CATEGORY_DELETED: [subscription_category_deleted_webhook, category],
+        events.CHANNEL_CREATED: [subscription_channel_created_webhook, channel_PLN],
+        events.CHANNEL_UPDATED: [subscription_channel_updated_webhook, channel_PLN],
+        events.CHANNEL_DELETED: [subscription_channel_deleted_webhook, channel_PLN],
+        events.CHANNEL_STATUS_CHANGED: [
+            subscription_channel_status_changed_webhook,
+            channel_PLN,
+        ],
+        events.GIFT_CARD_CREATED: [subscription_gift_card_created_webhook, gift_card],
+        events.GIFT_CARD_UPDATED: [subscription_gift_card_updated_webhook, gift_card],
+        events.GIFT_CARD_DELETED: [subscription_gift_card_deleted_webhook, gift_card],
+        events.GIFT_CARD_SENT: [subscription_gift_card_sent_webhook, gift_card],
+        events.GIFT_CARD_STATUS_CHANGED: [
+            subscription_gift_card_status_changed_webhook,
+            gift_card,
+        ],
+        events.GIFT_CARD_METADATA_UPDATED: [
+            subscription_gift_card_metadata_updated_webhook,
+            gift_card,
+        ],
+        events.GIFT_CARD_EXPORT_COMPLETED: [
+            subscription_gift_card_export_completed_webhook,
+            user_export_file,
+        ],
+        events.MENU_CREATED: [subscription_menu_created_webhook, menu],
+        events.MENU_UPDATED: [subscription_menu_updated_webhook, menu],
+        events.MENU_DELETED: [subscription_menu_deleted_webhook, menu],
+        events.MENU_ITEM_CREATED: [subscription_menu_item_created_webhook, menu_item],
+        events.MENU_ITEM_UPDATED: [subscription_menu_item_updated_webhook, menu_item],
+        events.MENU_ITEM_DELETED: [subscription_menu_item_deleted_webhook, menu_item],
+        events.ORDER_CREATED: [subscription_order_created_webhook, order],
+        events.ORDER_UPDATED: [subscription_order_updated_webhook, order],
+        events.ORDER_CONFIRMED: [subscription_order_confirmed_webhook, order],
+        events.ORDER_FULLY_PAID: [subscription_order_fully_paid_webhook, order],
+        events.ORDER_PAID: [subscription_order_paid_webhook, order],
+        events.ORDER_REFUNDED: [subscription_order_refunded_webhook, order],
+        events.ORDER_FULLY_REFUNDED: [subscription_order_fully_refunded_webhook, order],
+        events.ORDER_FULFILLED: [subscription_order_fulfilled_webhook, order],
+        events.ORDER_CANCELLED: [subscription_order_cancelled_webhook, order],
+        events.ORDER_EXPIRED: [subscription_order_expired_webhook, order],
+        events.ORDER_METADATA_UPDATED: [
+            subscription_order_metadata_updated_webhook,
+            order,
+        ],
+        events.ORDER_BULK_CREATED: [subscription_order_bulk_created_webhook, order],
+        events.DRAFT_ORDER_CREATED: [subscription_draft_order_created_webhook, order],
+        events.DRAFT_ORDER_UPDATED: [subscription_draft_order_updated_webhook, order],
+        events.DRAFT_ORDER_DELETED: [subscription_draft_order_deleted_webhook, order],
+        events.PRODUCT_CREATED: [subscription_product_created_webhook, product],
+        events.PRODUCT_UPDATED: [subscription_product_updated_webhook, product],
+        events.PRODUCT_DELETED: [subscription_product_deleted_webhook, product],
+        events.PRODUCT_EXPORT_COMPLETED: [
+            subscription_product_export_completed_webhook,
+            user_export_file,
+        ],
+        events.PRODUCT_MEDIA_CREATED: [
+            subscription_product_media_created_webhook,
+            product_media_image,
+        ],
+        events.PRODUCT_MEDIA_UPDATED: [
+            subscription_product_media_updated_webhook,
+            product_media_image,
+        ],
+        events.PRODUCT_MEDIA_DELETED: [
+            subscription_product_media_deleted_webhook,
+            product_media_image,
+        ],
+        events.PRODUCT_METADATA_UPDATED: [
+            subscription_product_metadata_updated_webhook,
+            product,
+        ],
+        events.PRODUCT_VARIANT_CREATED: [
+            subscription_product_variant_created_webhook,
+            product,
+        ],
+        events.PRODUCT_VARIANT_UPDATED: [
+            subscription_product_variant_updated_webhook,
+            product,
+        ],
+        events.PRODUCT_VARIANT_OUT_OF_STOCK: [
+            subscription_product_variant_out_of_stock_webhook,
+            stock,
+        ],
+        events.PRODUCT_VARIANT_BACK_IN_STOCK: [
+            subscription_product_variant_back_in_stock_webhook,
+            stock,
+        ],
+        events.PRODUCT_VARIANT_DELETED: [
+            subscription_product_variant_deleted_webhook,
+            product,
+        ],
+        events.PRODUCT_VARIANT_METADATA_UPDATED: [
+            subscription_product_variant_metadata_updated_webhook,
+            product,
+        ],
+        events.SALE_CREATED: [subscription_sale_created_webhook, sale],
+        events.SALE_UPDATED: [subscription_sale_updated_webhook, sale],
+        events.SALE_DELETED: [subscription_sale_deleted_webhook, sale],
+        events.SALE_TOGGLE: [subscription_sale_toggle_webhook, sale],
+        events.INVOICE_REQUESTED: [subscription_invoice_requested_webhook, invoice],
+        events.INVOICE_DELETED: [subscription_invoice_deleted_webhook, invoice],
+        events.INVOICE_SENT: [subscription_invoice_sent_webhook, invoice],
+        events.FULFILLMENT_CANCELED: [
+            subscription_fulfillment_canceled_webhook,
+            fulfillment,
+        ],
+        events.FULFILLMENT_CREATED: [
+            subscription_fulfillment_created_webhook,
+            fulfillment,
+        ],
+        events.FULFILLMENT_APPROVED: [
+            subscription_fulfillment_approved_webhook,
+            fulfillment,
+        ],
+        events.FULFILLMENT_METADATA_UPDATED: [
+            subscription_fulfillment_metadata_updated_webhook,
+            fulfillment,
+        ],
+        events.FULFILLMENT_TRACKING_NUMBER_UPDATED: [
+            subscription_fulfillment_tracking_number_updated,
+            fulfillment,
+        ],
+        events.CUSTOMER_CREATED: [subscription_customer_created_webhook, customer_user],
+        events.CUSTOMER_UPDATED: [subscription_customer_updated_webhook, customer_user],
+        events.CUSTOMER_METADATA_UPDATED: [
+            subscription_customer_metadata_updated_webhook,
+            customer_user,
+        ],
+        events.COLLECTION_CREATED: [
+            subscription_collection_created_webhook,
+            collection,
+        ],
+        events.COLLECTION_UPDATED: [
+            subscription_collection_updated_webhook,
+            collection,
+        ],
+        events.COLLECTION_DELETED: [
+            subscription_collection_deleted_webhook,
+            collection,
+        ],
+        events.COLLECTION_METADATA_UPDATED: [
+            subscription_collection_metadata_updated_webhook,
+            collection,
+        ],
+        events.CHECKOUT_CREATED: [subscription_checkout_created_webhook, checkout],
+        events.CHECKOUT_UPDATED: [subscription_checkout_updated_webhook, checkout],
+        events.CHECKOUT_FULLY_PAID: [
+            subscription_checkout_fully_paid_webhook,
+            checkout,
+        ],
+        events.CHECKOUT_METADATA_UPDATED: [
+            subscription_checkout_metadata_updated_webhook,
+            checkout,
+        ],
+        events.PAGE_CREATED: [subscription_page_created_webhook, page],
+        events.PAGE_UPDATED: [subscription_page_updated_webhook, page],
+        events.PAGE_DELETED: [subscription_page_deleted_webhook, page],
+        events.PAGE_TYPE_CREATED: [subscription_page_type_created_webhook, page_type],
+        events.PAGE_TYPE_UPDATED: [subscription_page_type_updated_webhook, page_type],
+        events.PAGE_TYPE_DELETED: [subscription_page_type_deleted_webhook, page_type],
+        events.PERMISSION_GROUP_CREATED: [
+            subscription_permission_group_created_webhook,
+            permission_group_manage_users,
+        ],
+        events.PERMISSION_GROUP_UPDATED: [
+            subscription_permission_group_updated_webhook,
+            permission_group_manage_users,
+        ],
+        events.PERMISSION_GROUP_DELETED: [
+            subscription_permission_group_deleted_webhook,
+            permission_group_manage_users,
+        ],
+        events.SHIPPING_PRICE_CREATED: [
+            subscription_shipping_price_created_webhook,
+            shipping_method,
+        ],
+        events.SHIPPING_PRICE_UPDATED: [
+            subscription_shipping_price_updated_webhook,
+            shipping_method,
+        ],
+        events.SHIPPING_PRICE_DELETED: [
+            subscription_shipping_price_deleted_webhook,
+            shipping_method,
+        ],
+        events.SHIPPING_ZONE_CREATED: [
+            subscription_shipping_zone_created_webhook,
+            shipping_zone,
+        ],
+        events.SHIPPING_ZONE_UPDATED: [
+            subscription_shipping_zone_updated_webhook,
+            shipping_zone,
+        ],
+        events.SHIPPING_ZONE_DELETED: [
+            subscription_shipping_zone_deleted_webhook,
+            shipping_zone,
+        ],
+        events.SHIPPING_ZONE_METADATA_UPDATED: [
+            subscription_shipping_zone_metadata_updated_webhook,
+            shipping_zone,
+        ],
+        events.STAFF_CREATED: [subscription_staff_created_webhook, staff_user],
+        events.STAFF_UPDATED: [subscription_staff_updated_webhook, staff_user],
+        events.STAFF_DELETED: [subscription_staff_deleted_webhook, staff_user],
+        events.TRANSACTION_ITEM_METADATA_UPDATED: [
+            subscription_transaction_item_metadata_updated_webhook,
+            transaction_item_created_by_app,
+        ],
+        events.TRANSLATION_CREATED: [
+            subscription_translation_created_webhook,
+            translated_attribute,
+        ],
+        events.TRANSLATION_UPDATED: [
+            subscription_translation_updated_webhook,
+            translated_attribute,
+        ],
+        events.VOUCHER_CREATED: [subscription_voucher_created_webhook, voucher],
+        events.VOUCHER_UPDATED: [subscription_voucher_updated_webhook, voucher],
+        events.VOUCHER_DELETED: [subscription_voucher_deleted_webhook, voucher],
+        events.VOUCHER_METADATA_UPDATED: [
+            subscription_voucher_metadata_updated_webhook,
+            voucher,
+        ],
+        events.WAREHOUSE_CREATED: [subscription_warehouse_created_webhook, warehouse],
+        events.WAREHOUSE_UPDATED: [subscription_warehouse_updated_webhook, warehouse],
+        events.WAREHOUSE_DELETED: [subscription_warehouse_deleted_webhook, warehouse],
+        events.WAREHOUSE_METADATA_UPDATED: [
+            subscription_warehouse_metadata_updated_webhook,
+            warehouse,
+        ],
     }

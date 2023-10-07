@@ -9,6 +9,8 @@ on:
       - requirements_dev.txt
       - "saleor/**"
       - ".github/workflows/pytest.yml"
+      - pyproject.toml
+      - poetry.lock
   push:
     branches:
       - main
@@ -18,6 +20,8 @@ on:
       - Dockerfile
       - requirements_dev.txt
       - "saleor/**"
+      - pyproject.toml
+      - poetry.lock
 
 env:
   BENCH_PATH: ./queries-results.json
@@ -42,27 +46,40 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install system dependencies
-        run: apt-get install -y libpq-dev
+        run: |
+          apt-get install -y libpq-dev
 
-      - uses: actions/cache@v3
+      - name: Install and configure poetry
+        run: |
+          python -m pip install poetry==1.5.0
+
+      - name: Cache the venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements_dev.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          path: ~/.venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
 
-      # To remove once the issue is resolved.
       - name: Install dependencies
         run: |
-          python -m pip install wheel
-          python -m pip install -r requirements_dev.txt
+          python -m poetry install --no-root
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
 
-      - name: Run tests
+      # Run linters and Django related checks
+      # `git config` command is a workaround for https://github.com/actions/runner-images/issues/6775
+      - name: Run Linters and Checks
         run: |
-          pytest \
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          python -m poetry run pre-commit run --all
+        if: ${{ always() }}
+
+      - name: Run unit tests
+        run: |
+          python -m poetry run pytest \
+            -m "not e2e" \
             --cov \
             --junitxml=junit/test-results.xml \
             --django-db-bench=${{ env.BENCH_PATH }}
@@ -99,10 +116,7 @@ jobs:
           upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
         if: github.event_name == 'push' && github.repository == 'saleor/saleor'
 
-      # Run linters and Django related checks
-      # `git config` command is a workaround for https://github.com/actions/runner-images/issues/6775
-      - name: Run Linters and Checks
+      - name: Run E2E tests
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          pre-commit run --all
-        if: ${{ always() }}
+          python -m poetry run pytest \
+            -m "e2e"

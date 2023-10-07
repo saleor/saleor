@@ -12,7 +12,12 @@ from promise import Promise
 from ...channel import models
 from ...core.models import ModelWithMetadata
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import ChannelPermissions, OrderPermissions
+from ...permission.enums import (
+    ChannelPermissions,
+    CheckoutPermissions,
+    OrderPermissions,
+    PaymentPermissions,
+)
 from ..account.enums import CountryCodeEnum
 from ..core import ResolveInfo
 from ..core.descriptions import (
@@ -23,9 +28,18 @@ from ..core.descriptions import (
     ADDED_IN_312,
     ADDED_IN_313,
     ADDED_IN_314,
+    ADDED_IN_315,
+    ADDED_IN_316,
+    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_PREVIEW_IN_316_FIELD,
     PREVIEW_FEATURE,
 )
-from ..core.doc_category import DOC_CATEGORY_ORDERS, DOC_CATEGORY_PRODUCTS
+from ..core.doc_category import (
+    DOC_CATEGORY_CHECKOUT,
+    DOC_CATEGORY_ORDERS,
+    DOC_CATEGORY_PAYMENTS,
+    DOC_CATEGORY_PRODUCTS,
+)
 from ..core.fields import PermissionsField
 from ..core.scalars import Day, Minute
 from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
@@ -168,6 +182,32 @@ class StockSettings(BaseObjectType):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
+class CheckoutSettings(ObjectType):
+    use_legacy_error_flow = graphene.Boolean(
+        required=True,
+        description=(
+            "Default `true`. Determines if the checkout mutations should use legacy "
+            "error flow. In legacy flow, all mutations can raise an exception "
+            "unrelated to the requested action - (e.g. out-of-stock exception when "
+            "updating checkoutShippingAddress.) "
+            "If `false`, the errors will be aggregated in `checkout.problems` field. "
+            "Some of the `problems` can block the finalizing checkout process. "
+            "The legacy flow will be removed in Saleor 4.0. "
+            "The flow with `checkout.problems` will be the default one."
+            + ADDED_IN_315
+            + DEPRECATED_IN_3X_FIELD
+        ),
+    )
+
+    class Meta:
+        description = (
+            "Represents the channel-specific checkout settings."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+
 class OrderSettings(ObjectType):
     automatically_confirm_all_new_orders = graphene.Boolean(
         required=True,
@@ -210,7 +250,11 @@ class OrderSettings(ObjectType):
         description=(
             "Determine the transaction flow strategy to be used. "
             "Include the selected option in the payload sent to the payment app, as a "
-            "requested action for the transaction." + ADDED_IN_313 + PREVIEW_FEATURE
+            "requested action for the transaction."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+            + DEPRECATED_PREVIEW_IN_316_FIELD
+            + " Use `PaymentSettings.defaultTransactionFlowStrategy` instead."
         ),
     )
     delete_expired_orders_after = Day(
@@ -221,14 +265,36 @@ class OrderSettings(ObjectType):
             + PREVIEW_FEATURE
         ),
     )
+    allow_unpaid_orders = graphene.Boolean(
+        required=True,
+        description=(
+            "Determine if it is possible to place unpdaid order by calling "
+            "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
+        ),
+    )
 
     class Meta:
         description = "Represents the channel-specific order settings."
         doc_category = DOC_CATEGORY_ORDERS
 
 
+class PaymentSettings(ObjectType):
+    default_transaction_flow_strategy = TransactionFlowStrategyEnum(
+        required=True,
+        description=(
+            "Determine the transaction flow strategy to be used. "
+            "Include the selected option in the payload sent to the payment app, as a "
+            "requested action for the transaction." + ADDED_IN_316 + PREVIEW_FEATURE
+        ),
+    )
+
+    class Meta:
+        description = "Represents the channel-specific payment settings."
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
 class Channel(ModelObjectType):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the channel.")
     slug = graphene.String(
         required=True,
         description="Slug of the channel.",
@@ -321,10 +387,34 @@ class Channel(ModelObjectType):
         ],
     )
 
+    checkout_settings = PermissionsField(
+        CheckoutSettings,
+        description="Channel-specific checkout settings."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
+        required=True,
+        permissions=[
+            ChannelPermissions.MANAGE_CHANNELS,
+            CheckoutPermissions.MANAGE_CHECKOUTS,
+        ],
+    )
+    payment_settings = PermissionsField(
+        PaymentSettings,
+        description="Channel-specific payment settings."
+        + ADDED_IN_316
+        + PREVIEW_FEATURE,
+        required=True,
+        permissions=[
+            ChannelPermissions.MANAGE_CHANNELS,
+            PaymentPermissions.HANDLE_PAYMENTS,
+        ],
+    )
+
     class Meta:
         description = "Represents channel."
         model = models.Channel
-        interfaces = [graphene.relay.Node]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
+        metadata_since = ADDED_IN_315
 
     @staticmethod
     def resolve_has_orders(root: models.Channel, info: ResolveInfo):
@@ -467,4 +557,17 @@ class Channel(ModelObjectType):
             mark_as_paid_strategy=root.order_mark_as_paid_strategy,
             default_transaction_flow_strategy=root.default_transaction_flow_strategy,
             delete_expired_orders_after=root.delete_expired_orders_after.days,
+            allow_unpaid_orders=(root.allow_unpaid_orders),
+        )
+
+    @staticmethod
+    def resolve_checkout_settings(root: models.Channel, _info):
+        return CheckoutSettings(
+            use_legacy_error_flow=root.use_legacy_error_flow_for_checkout
+        )
+
+    @staticmethod
+    def resolve_payment_settings(root: models.Channel, _info):
+        return PaymentSettings(
+            default_transaction_flow_strategy=root.default_transaction_flow_strategy,
         )

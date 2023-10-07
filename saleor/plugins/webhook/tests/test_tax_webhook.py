@@ -63,7 +63,7 @@ def test_get_taxes_for_order(
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
     assert delivery.payload == payload
     assert delivery.webhook == tax_order_webhook
-    mock_request.assert_called_once_with(tax_order_webhook.app.name, delivery)
+    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
 
@@ -181,7 +181,7 @@ def test_get_taxes_for_order_with_sync_subscription(
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
     assert delivery.payload == payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(webhook.app.name, delivery)
+    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
 
@@ -222,6 +222,6 @@ def test_get_taxes_for_checkout_with_sync_subscription(
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     assert delivery.payload == payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(webhook.app.name, delivery)
+    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)

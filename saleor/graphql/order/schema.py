@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 import graphene
+from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 
 from ...order import models
@@ -33,7 +34,6 @@ from .mutations.fulfillment_cancel import FulfillmentCancel
 from .mutations.fulfillment_refund_products import FulfillmentRefundProducts
 from .mutations.fulfillment_return_products import FulfillmentReturnProducts
 from .mutations.fulfillment_update_tracking import FulfillmentUpdateTracking
-from .mutations.order_add_note import OrderAddNote
 from .mutations.order_cancel import OrderCancel
 from .mutations.order_capture import OrderCapture
 from .mutations.order_confirm import OrderConfirm
@@ -49,6 +49,8 @@ from .mutations.order_line_discount_update import OrderLineDiscountUpdate
 from .mutations.order_line_update import OrderLineUpdate
 from .mutations.order_lines_create import OrderLinesCreate
 from .mutations.order_mark_as_paid import OrderMarkAsPaid
+from .mutations.order_note_add import OrderAddNote, OrderNoteAdd
+from .mutations.order_note_update import OrderNoteUpdate
 from .mutations.order_refund import OrderRefund
 from .mutations.order_update import OrderUpdate
 from .mutations.order_update_shipping import OrderUpdateShipping
@@ -66,7 +68,8 @@ from .types import Order, OrderCountableConnection, OrderEventCountableConnectio
 
 
 def search_string_in_kwargs(kwargs: dict) -> bool:
-    return bool(kwargs.get("filter", {}).get("search", "").strip())
+    filter_search = kwargs.get("filter", {}).get("search", "") or ""
+    return bool(filter_search.strip())
 
 
 def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
@@ -160,7 +163,10 @@ class OrderQueries(graphene.ObjectType):
             "id", id, "external_reference", external_reference
         )
         if not id:
-            id = ext_ref_to_global_id_or_error(models.Order, external_reference)
+            try:
+                id = ext_ref_to_global_id_or_error(models.Order, external_reference)
+            except ValidationError:
+                return None
         _, id = from_global_id_or_error(id, Order)
         return resolve_order(info, id)
 
@@ -221,7 +227,9 @@ class OrderMutations(graphene.ObjectType):
     )
     draft_order_update = DraftOrderUpdate.Field()
 
-    order_add_note = OrderAddNote.Field()
+    order_add_note = OrderAddNote.Field(
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `orderNoteAdd` instead.")
+    )
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
     order_confirm = OrderConfirm.Field()
@@ -246,6 +254,9 @@ class OrderMutations(graphene.ObjectType):
 
     order_line_discount_update = OrderLineDiscountUpdate.Field()
     order_line_discount_remove = OrderLineDiscountRemove.Field()
+
+    order_note_add = OrderNoteAdd.Field()
+    order_note_update = OrderNoteUpdate.Field()
 
     order_mark_as_paid = OrderMarkAsPaid.Field()
     order_refund = OrderRefund.Field()

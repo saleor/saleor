@@ -50,7 +50,7 @@ from .utils import AttributeAssignmentMixin
 
 
 class AttributeValue(ModelObjectType[models.AttributeValue]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the attribute value.")
     name = graphene.String(description=AttributeValueDescriptions.NAME)
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
     value = graphene.String(description=AttributeValueDescriptions.VALUE)
@@ -155,7 +155,7 @@ class AttributeValueCountableConnection(CountableConnection):
 
 
 class Attribute(ModelObjectType[models.Attribute]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the attribute.")
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     entity_type = AttributeEntityTypeEnum(
         description=AttributeDescriptions.ENTITY_TYPE, required=False
@@ -244,10 +244,17 @@ class Attribute(ModelObjectType[models.Attribute]):
     product_types = ConnectionField(
         "saleor.graphql.product.types.ProductTypeCountableConnection",
         required=True,
+        description=(
+            "A list of product types that use this attribute as a product attribute."
+        ),
     )
     product_variant_types = ConnectionField(
         "saleor.graphql.product.types.ProductTypeCountableConnection",
         required=True,
+        description=(
+            "A list of product types that use this attribute "
+            "as a product variant attribute."
+        ),
     )
     external_reference = graphene.String(
         description=f"External ID of this attribute. {ADDED_IN_310}",

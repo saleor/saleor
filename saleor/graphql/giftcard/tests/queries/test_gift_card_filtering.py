@@ -10,6 +10,7 @@ QUERY_GIFT_CARDS = """
             edges {
                 node {
                     id
+                    createdByEmail
                     last4CodeChars
                     product {
                         name
@@ -495,3 +496,25 @@ def test_query_filter_gift_cards_by_metadata(
     content = get_graphql_content(response)
     data = content["data"]["giftCards"]["edges"]
     assert len(data) == 1
+
+
+def test_query_filter_gift_cards_by_created_by_email(
+    staff_api_client,
+    gift_card,
+    permission_manage_gift_card,
+):
+    # given
+    query = QUERY_GIFT_CARDS
+
+    variables = {"filter": {"createdByEmail": gift_card.created_by_email}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCards"]["edges"]
+    assert len(data) == 1
+    assert data[0]["node"]["createdByEmail"] == "test@example.com"

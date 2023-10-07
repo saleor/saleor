@@ -9,7 +9,6 @@ from django.contrib.sites.models import Site
 from django.db import transaction
 
 from ..account.models import User
-from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
@@ -156,11 +155,6 @@ def handle_fully_paid_order(
         send_payment_confirmation(order_info, manager)
         if utils.order_needs_automatic_fulfillment(order_info.lines_data):
             automatically_fulfill_digital_lines(order_info, manager)
-    try:
-        analytics.report_order(order.tracking_client_id, order)
-    except Exception:
-        # Analytics failing should not abort the checkout flow
-        logger.exception("Recording order in analytics failed")
 
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
@@ -303,9 +297,8 @@ def order_fulfilled(
             order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
         )
         call_event(manager.order_updated, order)
-
         for fulfillment in fulfillments:
-            call_event(manager.fulfillment_created, fulfillment)
+            call_event(manager.fulfillment_created, fulfillment, notify_customer)
 
         if order.status == OrderStatus.FULFILLED:
             call_event(manager.order_fulfilled, order)
@@ -570,7 +563,7 @@ def approve_fulfillment(
         update_order_status(order)
 
         call_event(manager.order_updated, order)
-        call_event(manager.fulfillment_approved, fulfillment)
+        call_event(manager.fulfillment_approved, fulfillment, notify_customer)
         if order.status == OrderStatus.FULFILLED:
             call_event(manager.order_fulfilled, order)
 
@@ -737,7 +730,7 @@ def automatically_fulfill_digital_lines(
     with traced_atomic_transaction():
         if not digital_lines_data:
             return
-        fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
+        fulfillment, created = Fulfillment.objects.get_or_create(order=order)
 
         fulfillments = []
         lines_info = []
@@ -773,6 +766,8 @@ def automatically_fulfill_digital_lines(
         send_fulfillment_confirmation_to_customer(
             order, fulfillment, user=order.user, app=None, manager=manager
         )
+        if created:
+            manager.fulfillment_created(fulfillment)
         update_order_status(order)
 
 

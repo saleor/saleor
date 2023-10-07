@@ -119,10 +119,8 @@ class OrderEvents:
     PAYMENT_FAILED = "payment_failed"
 
     TRANSACTION_EVENT = "transaction_event"
-    TRANSACTION_CAPTURE_REQUESTED = "transaction_capture_requested"
     TRANSACTION_CHARGE_REQUESTED = "transaction_charge_requested"
     TRANSACTION_REFUND_REQUESTED = "transaction_refund_requested"
-    TRANSACTION_VOID_REQUESTED = "transaction_void_requested"
     TRANSACTION_CANCEL_REQUESTED = "transaction_cancel_requested"
     TRANSACTION_MARK_AS_PAID_FAILED = "transaction_mark_as_paid_failed"
 
@@ -142,6 +140,7 @@ class OrderEvents:
     FULFILLMENT_AWAITS_APPROVAL = "fulfillment_awaits_approval"
     TRACKING_UPDATED = "tracking_updated"
     NOTE_ADDED = "note_added"
+    NOTE_UPDATED = "note_updated"
 
     # Used mostly for importing legacy data from before Enum-based events
     OTHER = "other"
@@ -181,9 +180,7 @@ class OrderEvents:
         (PAYMENT_FAILED, "The payment was failed"),
         (TRANSACTION_EVENT, "The transaction event"),
         (TRANSACTION_CHARGE_REQUESTED, "The charge requested for transaction"),
-        (TRANSACTION_CAPTURE_REQUESTED, "The capture requested for transaction"),
         (TRANSACTION_REFUND_REQUESTED, "The refund requested for transaction"),
-        (TRANSACTION_VOID_REQUESTED, "The void requested for transaction"),
         (TRANSACTION_CANCEL_REQUESTED, "The cancel requested for transaction"),
         (TRANSACTION_MARK_AS_PAID_FAILED, "The mark as paid failed for transaction"),
         (INVOICE_REQUESTED, "An invoice was requested"),
@@ -199,6 +196,7 @@ class OrderEvents:
         (FULFILLMENT_AWAITS_APPROVAL, "Fulfillments awaits approval"),
         (TRACKING_UPDATED, "The fulfillment's tracking code was updated"),
         (NOTE_ADDED, "A note was added to the order"),
+        (NOTE_UPDATED, "A note was updated in the order"),
         (OTHER, "An unknown order event containing a message"),
     ]
 

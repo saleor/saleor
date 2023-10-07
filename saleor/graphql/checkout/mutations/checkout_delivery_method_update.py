@@ -22,13 +22,14 @@ from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
 from ....warehouse import models as warehouse_models
+from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31, ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...core.utils import from_global_id_or_error
+from ...core.utils import WebhookEventInfo, from_global_id_or_error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ...warehouse.types import Warehouse
@@ -61,6 +62,19 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         )
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                description=(
+                    "Triggered when updating the checkout delivery method with "
+                    "the external one."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
+                description="A checkout was updated.",
+            ),
+        ]
 
     @classmethod
     def perform_on_shipping_method(
@@ -278,9 +292,13 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     ):
         checkout = get_checkout(cls, info, checkout_id=None, token=token, id=id)
 
+        use_legacy_error_flow_for_checkout = (
+            checkout.channel.use_legacy_error_flow_for_checkout
+        )
+
         manager = get_plugin_manager_promise(info.context).get()
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-        if unavailable_variant_pks:
+        if use_legacy_error_flow_for_checkout and unavailable_variant_pks:
             not_available_variants_ids = {
                 graphene.Node.to_global_id("ProductVariant", pk)
                 for pk in unavailable_variant_pks
@@ -295,7 +313,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                 }
             )
 
-        if not is_shipping_required(lines):
+        if use_legacy_error_flow_for_checkout and not is_shipping_required(lines):
             raise ValidationError(
                 {
                     "delivery_method": ValidationError(

@@ -1,14 +1,15 @@
 import json
 from typing import Any, Dict, Optional
 
-import requests
 from django.contrib.sites.models import Site
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
 from django.urls import reverse
 from requests.exceptions import RequestException
 
+from .... import schema_version
 from ....app.headers import AppHeaders, DeprecatedAppHeaders
+from ....core.http_client import HTTPClient
 from ....core.utils import build_absolute_uri
 from ...models import App
 from .utils import clean_permissions
@@ -36,7 +37,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--target-url",
             dest="target_url",
-            help="Url which will receive newly created data of app object. "
+            help="URL which will receive newly created data of app object. "
             "Command doesn't return app data to stdout when this "
             "argument is provided.",
         )
@@ -48,13 +49,14 @@ class Command(BaseCommand):
             DeprecatedAppHeaders.DOMAIN: domain,
             AppHeaders.DOMAIN: domain,
             AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
+            AppHeaders.SCHEMA_VERSION: schema_version,
         }
         try:
-            response = requests.post(
+            response = HTTPClient.send_request(
+                "POST",
                 target_url,
                 json=data,
                 headers=headers,
-                timeout=15,
                 allow_redirects=False,
             )
         except RequestException as e:

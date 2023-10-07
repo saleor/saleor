@@ -20,6 +20,7 @@ from ..core.utils.json_serializer import CustomJsonEncoder
 from ..order.models import Order
 from ..permission.enums import AccountPermissions, BasePermissionEnum, get_permissions
 from ..permission.models import Permission, PermissionsMixin, _user_has_perm
+from ..site.models import SiteSettings
 from . import CustomerEvents
 from .validators import validate_possible_number
 
@@ -166,6 +167,8 @@ class User(
     )
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    is_confirmed = models.BooleanField(default=True)
+    last_confirm_email_request = models.DateTimeField(null=True, blank=True)
     note = models.TextField(null=True, blank=True)
     date_joined = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
@@ -303,6 +306,13 @@ class User(
             for perm in perm_list
         ]
         return super().has_perms(perm_list, obj)
+
+    def can_login(self, site_settings: SiteSettings):
+        return self.is_active and (
+            site_settings.allow_login_without_confirmation
+            or not site_settings.enable_account_confirmation_by_email
+            or self.is_confirmed
+        )
 
 
 class CustomerNote(models.Model):

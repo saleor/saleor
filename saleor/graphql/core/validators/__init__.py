@@ -178,11 +178,12 @@ def clean_seo_fields(data):
     """Extract and assign seo fields to given dictionary."""
     seo_fields = data.pop("seo", {})
 
-    if "title" in seo_fields:
-        data["seo_title"] = seo_fields["title"]
+    if seo_fields:
+        if "title" in seo_fields:
+            data["seo_title"] = seo_fields["title"]
 
-    if "description" in seo_fields:
-        data["seo_description"] = seo_fields["description"]
+        if "description" in seo_fields:
+            data["seo_description"] = seo_fields["description"]
 
 
 def validate_required_string_field(cleaned_input, field_name: str):

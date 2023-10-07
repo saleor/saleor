@@ -8,6 +8,7 @@ from .....graphql.tests.utils import get_graphql_content
 from .....webhook.error_codes import WebhookTriggerErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission
+from ...subscription_types import WEBHOOK_TYPES_MAP
 
 WEBHOOK_TRIGGER_MUTATION = """
     mutation webhookTrigger($webhookId: ID!, $objectId: ID!) {
@@ -30,34 +31,89 @@ WEBHOOK_TRIGGER_MUTATION = """
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
 def test_webhook_trigger_success(
     mock_send_webhook_using_scheme_method,
-    staff_api_client,
-    permission_manage_orders,
-    order,
-    subscription_order_created_webhook,
+    async_subscription_webhooks_with_root_objects,
+    superuser_api_client,
     webhook_response,
 ):
     # given
     query = WEBHOOK_TRIGGER_MUTATION
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
-    order_id = graphene.Node.to_global_id("Order", order.id)
-    webhook = subscription_order_created_webhook
-    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
-    mock_send_webhook_using_scheme_method.return_value = webhook_response
+    for event_name, event_type in WEBHOOK_TYPES_MAP.items():
+        if (
+            not event_type._meta.enable_dry_run
+            or event_name not in async_subscription_webhooks_with_root_objects
+        ):
+            continue
+        webhook = async_subscription_webhooks_with_root_objects[event_name][0]
+        object = async_subscription_webhooks_with_root_objects[event_name][1]
+        object_type = object.__class__.__name__
+        object_id = graphene.Node.to_global_id(object_type, object.pk)
 
-    variables = {"webhookId": webhook_id, "objectId": order_id}
+        webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
-    # when
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
+        mock_send_webhook_using_scheme_method.return_value = webhook_response
 
-    # then
-    data = content["data"]["webhookTrigger"]
-    assert data
-    assert not data["errors"]
-    assert data["delivery"]["status"] == EventDeliveryStatus.PENDING.upper()
-    assert data["delivery"]["eventType"] == WebhookEventAsyncType.ORDER_CREATED.upper()
-    assert not data["delivery"]["payload"]
+        variables = {"webhookId": webhook_id, "objectId": object_id}
+
+        # when
+        response = superuser_api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+
+        # then
+        data = content["data"]["webhookTrigger"]
+        assert data
+        assert not data["errors"]
+        assert data["delivery"]["status"] == EventDeliveryStatus.PENDING.upper()
+        assert data["delivery"]["eventType"] == event_name.upper()
+        assert not data["delivery"]["payload"]
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
+def test_webhook_trigger_type_not_supported(
+    mock_send_webhook_using_scheme_method,
+    async_subscription_webhooks_with_root_objects,
+    superuser_api_client,
+    webhook_response,
+):
+    # given
+    query = WEBHOOK_TRIGGER_MUTATION
+
+    for event_name, event_type in WEBHOOK_TYPES_MAP.items():
+        if (
+            event_type._meta.enable_dry_run
+            or event_name not in async_subscription_webhooks_with_root_objects
+        ):
+            continue
+        webhook = async_subscription_webhooks_with_root_objects[event_name][0]
+        object = async_subscription_webhooks_with_root_objects[event_name][1]
+        object_type = object.__class__.__name__
+        object_id = graphene.Node.to_global_id(object_type, object.pk)
+
+        webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
+
+        mock_send_webhook_using_scheme_method.return_value = webhook_response
+
+        variables = {"webhookId": webhook_id, "objectId": object_id}
+
+        # when
+        response = superuser_api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+
+        # then
+        data = content["data"]["webhookTrigger"]
+        assert data
+        assert data["errors"]
+        assert data["errors"] == [
+            {
+                "field": None,
+                "code": "TYPE_NOT_SUPPORTED",
+                "message": (
+                    f"Event type: {event_type.__name__}, "
+                    "which was parsed from webhook's subscription query, "
+                    "is not supported."
+                ),
+            }
+        ]
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")

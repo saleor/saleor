@@ -7,16 +7,18 @@ import requests
 from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import DecodeError, JoseError
 from authlib.oidc.core import CodeIDToken
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import QuerySet
-from django.utils.timezone import make_aware
+from django.utils import timezone
 from jwt import PyJWTError
 
 from ...account.models import Group, User
 from ...account.utils import get_user_groups_permissions
+from ...core.http_client import HTTPClient
 from ...core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_OWNER_FIELD,
@@ -26,13 +28,14 @@ from ...core.jwt import (
     jwt_encode,
     jwt_user_payload,
 )
-from ...graphql.account.mutations.authentication import (
+from ...graphql.account.mutations.authentication.utils import (
     _does_token_match,
     _get_new_csrf_token,
 )
 from ...order.utils import match_orders_with_new_user
 from ...permission.enums import get_permission_names, get_permissions_from_codenames
 from ...permission.models import Permission
+from ...site.models import Site
 from ..error_codes import PluginErrorCode
 from ..models import PluginConfiguration
 from . import PLUGIN_ID
@@ -45,8 +48,6 @@ if TYPE_CHECKING:
 JWKS_KEY = "oauth_jwks"
 JWKS_CACHE_TIME = 60 * 60  # 1 hour
 USER_INFO_DEFAULT_CACHE_TIME = 60 * 60  # 1 hour
-
-REQUEST_TIMEOUT = 5
 
 
 OAUTH_TOKEN_REFRESH_FIELD = "oauth_refresh_token"
@@ -65,9 +66,7 @@ def fetch_jwks(jwks_url) -> Optional[dict]:
     """
     response = None
     try:
-        response = requests.get(
-            jwks_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
-        )
+        response = HTTPClient.send_request("GET", jwks_url, allow_redirects=False)
         response.raise_for_status()
         jwks = response.json()
     except requests.exceptions.RequestException:
@@ -119,10 +118,10 @@ def get_user_info_from_cache_or_fetch(
 
 def get_user_info(user_info_url, access_token) -> Optional[dict]:
     try:
-        response = requests.get(
+        response = HTTPClient.send_request(
+            "GET",
             user_info_url,
             headers={"Authorization": f"Bearer {access_token}"},
-            timeout=REQUEST_TIMEOUT,
             allow_redirects=False,
         )
         response.raise_for_status()
@@ -391,6 +390,7 @@ def get_or_create_user_from_payload(
 
     defaults_create = {
         "is_active": True,
+        "is_confirmed": True,
         "email": user_email,
         "first_name": payload.get("given_name", ""),
         "last_name": payload.get("family_name", ""),
@@ -412,7 +412,8 @@ def get_or_create_user_from_payload(
             defaults=defaults_create,
         )
 
-    if not user.is_active:  # it is true only if we fetch disabled user.
+    site_settings = Site.objects.get_current().settings
+    if not user.can_login(site_settings):  # it is true only if we fetch disabled user.
         raise AuthenticationError("Unable to log in.")
 
     _update_user_details(
@@ -457,8 +458,16 @@ def _update_user_details(
         fields_to_save.append("email")
     if last_login:
         if not user.last_login or user.last_login.timestamp() < last_login:
-            login_time = make_aware(datetime.fromtimestamp(last_login))
+            login_time = timezone.make_aware(datetime.fromtimestamp(last_login))
             user.last_login = login_time
+            fields_to_save.append("last_login")
+    else:
+        if (
+            not user.last_login
+            or (timezone.now() - user.last_login).seconds
+            > settings.OAUTH_UPDATE_LAST_LOGIN_THRESHOLD
+        ):
+            user.last_login = timezone.now()
             fields_to_save.append("last_login")
 
     if fields_to_save:
@@ -481,8 +490,10 @@ def get_user_from_token(claims: CodeIDToken) -> User:
     user_email = claims.get("email")
     if not user_email:
         raise AuthenticationError("Missing user's email.")
-    user = User.objects.filter(email=user_email, is_active=True).first()
-    if not user:
+
+    site_settings = Site.objects.get_current().settings
+    user = User.objects.filter(email=user_email).first()
+    if not user or not user.can_login(site_settings):
         raise AuthenticationError("User does not exist.")
     return user
 

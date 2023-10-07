@@ -56,8 +56,11 @@ from ...core.scalars import PositiveDecimal, WeightScalar
 from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...core.utils import from_global_id_or_error
-from ...meta.mutations import MetadataInput
-from ...payment.mutations import TransactionCreate, TransactionCreateInput
+from ...meta.inputs import MetadataInput
+from ...payment.mutations.transaction.transaction_create import (
+    TransactionCreate,
+    TransactionCreateInput,
+)
 from ...payment.utils import metadata_contains_empty_key
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import OrderStatusEnum, StockUpdatePolicyEnum
@@ -486,7 +489,6 @@ class OrderBulkCreateInput(BaseInputObjectType):
         required=True,
         description="Customer associated with the order.",
     )
-    tracking_client_id = graphene.String(description="Tracking ID of the customer.")
     billing_address = graphene.Field(
         AddressInput, required=True, description="Billing address of the customer."
     )
@@ -952,8 +954,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         billing_address: Optional[Address] = None
         billing_address_input = order_input["billing_address"]
+        metadata_list = billing_address_input.pop("metadata", None)
+        private_metadata_list = billing_address_input.pop("private_metadata", None)
         try:
             billing_address = cls.validate_address(billing_address_input)
+            cls.validate_and_update_metadata(
+                billing_address, metadata_list, private_metadata_list
+            )
         except Exception:
             order_data.errors.append(
                 OrderBulkError(
@@ -964,9 +971,15 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             )
 
         shipping_address: Optional[Address] = None
+
         if shipping_address_input := order_input.get("shipping_address"):
+            metadata_list = shipping_address_input.pop("metadata", None)
+            private_metadata_list = shipping_address_input.pop("private_metadata", None)
             try:
                 shipping_address = cls.validate_address(shipping_address_input)
+                cls.validate_and_update_metadata(
+                    shipping_address, metadata_list, private_metadata_list
+                )
             except Exception:
                 order_data.errors.append(
                     OrderBulkError(
@@ -1910,9 +1923,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.order.redirect_url = order_input.get("redirect_url")
         order_data.order.origin = OrderOrigin.BULK_CREATE
         order_data.order.weight = order_input.get("weight") or zero_weight()
-        order_data.order.tracking_client_id = (
-            order_input.get("tracking_client_id") or ""
-        )
         order_data.order.currency = order_input["currency"]
         order_data.order.should_refresh_prices = False
         order_data.order.voucher = order_data.voucher

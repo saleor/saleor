@@ -29,6 +29,7 @@ INVOICE_SEND_EMAIL_MUTATION = """
 def test_invoice_send_notification_by_user(
     mock_notify, staff_api_client, permission_group_manage_orders, order, site_settings
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
@@ -36,7 +37,11 @@ def test_invoice_send_notification_by_user(
         order=order, number=number, url=url, status=JobStatus.SUCCESS
     )
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_SEND_EMAIL_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     expected_payload = {
         "requester_user_id": to_global_id_or_none(staff_api_client.user),
@@ -116,12 +121,17 @@ def test_invoice_send_notification_by_app(
 def test_invoice_send_notification_pending(
     mock_notify, staff_api_client, permission_group_manage_orders, order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     invoice = Invoice.objects.create(
         order=order, number=None, url=None, status=JobStatus.PENDING
     )
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_SEND_EMAIL_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["invoiceSendNotification"]["errors"]
     assert errors == [
@@ -137,12 +147,17 @@ def test_invoice_send_notification_pending(
 def test_invoice_send_notification_without_url_and_number(
     mock_notify, staff_api_client, permission_group_manage_orders, order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     invoice = Invoice.objects.create(
         order=order, number=None, url=None, status=JobStatus.SUCCESS
     )
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_SEND_EMAIL_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["invoiceSendNotification"]["errors"]
     assert errors == [
@@ -158,6 +173,7 @@ def test_invoice_send_notification_without_url_and_number(
 def test_invoice_send_email_without_email(
     order_mock, mock_notify, staff_api_client, permission_group_manage_orders, order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_mock.return_value = None
     invoice = Invoice.objects.create(
@@ -167,7 +183,11 @@ def test_invoice_send_email_without_email(
         status=JobStatus.SUCCESS,
     )
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_SEND_EMAIL_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     mock_notify.assert_not_called()
     assert order_mock.called

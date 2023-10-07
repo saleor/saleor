@@ -8,12 +8,14 @@ from .....core.tracing import traced_atomic_transaction
 from .....discount import DiscountValueType, models
 from .....discount.error_codes import DiscountErrorCode
 from .....permission.enums import DiscountPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....channel.mutations import BaseChannelListingMutation
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.scalars import PositiveDecimal
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
+from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_price_precision
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Voucher
@@ -62,6 +64,12 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.VOUCHER_UPDATED,
+                description="A voucher was updated.",
+            )
+        ]
 
     @classmethod
     def clean_discount_values_per_channel(cls, cleaned_input, voucher, error_dict):

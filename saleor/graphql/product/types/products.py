@@ -9,7 +9,8 @@ from graphene import relay
 from promise import Promise
 
 from ....attribute import models as attribute_models
-from ....core.utils import build_absolute_uri, get_currency_for_country
+from ....core.utils import build_absolute_uri
+from ....core.utils.country import get_active_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import OrderPermissions, ProductPermissions
@@ -162,26 +163,37 @@ class BasePricingInfo(BaseObjectType):
     discount = graphene.Field(
         TaxedMoney, description="The discount amount if in sale (null otherwise)."
     )
+
+    # deprecated
     discount_local_currency = graphene.Field(
-        TaxedMoney, description="The discount amount in the local currency."
+        TaxedMoney,
+        description="The discount amount in the local currency.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `null`.",
     )
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
+        description = "Represents base type for pricing information of a product."
 
 
 class VariantPricingInfo(BasePricingInfo):
-    discount_local_currency = graphene.Field(
-        TaxedMoney, description="The discount amount in the local currency."
-    )
     price = graphene.Field(
         TaxedMoney, description="The price, with any discount subtracted."
     )
     price_undiscounted = graphene.Field(
         TaxedMoney, description="The price without any discount."
     )
+
+    # deprecated
+    discount_local_currency = graphene.Field(
+        TaxedMoney,
+        description="The discount amount in the local currency.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `null`.",
+    )
     price_local_currency = graphene.Field(
-        TaxedMoney, description="The discounted price in the local currency."
+        TaxedMoney,
+        description="The discounted price in the local currency.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `null`.",
     )
 
     class Meta:
@@ -190,6 +202,13 @@ class VariantPricingInfo(BasePricingInfo):
 
 
 class ProductPricingInfo(BasePricingInfo):
+    display_gross_prices = graphene.Boolean(
+        description=(
+            "Determines whether this product's price displayed in a storefront "
+            "should include taxes." + ADDED_IN_39
+        ),
+        required=True,
+    )
     price_range = graphene.Field(
         TaxedMoneyRange,
         description="The discounted price range of the product variants.",
@@ -198,19 +217,15 @@ class ProductPricingInfo(BasePricingInfo):
         TaxedMoneyRange,
         description="The undiscounted price range of the product variants.",
     )
+
+    # deprecated
     price_range_local_currency = graphene.Field(
         TaxedMoneyRange,
         description=(
             "The discounted price range of the product variants "
             "in the local currency."
         ),
-    )
-    display_gross_prices = graphene.Boolean(
-        description=(
-            "Determines whether this product's price displayed in a storefront "
-            "should include taxes." + ADDED_IN_39
-        ),
-        required=True,
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `null`.",
     )
 
     class Meta:
@@ -248,13 +263,30 @@ class PreorderData(BaseObjectType):
 
 @federated_entity("id channel")
 class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
-    sku = graphene.String()
-    product = graphene.Field(lambda: Product, required=True)
-    track_inventory = graphene.Boolean(required=True)
-    quantity_limit_per_customer = graphene.Int()
-    weight = graphene.Field(Weight)
+    id = graphene.GlobalID(required=True, description="The ID of the product variant.")
+    name = graphene.String(
+        required=True, description="The name of the product variant."
+    )
+    sku = graphene.String(
+        description="The SKU (stock keeping unit) of the product variant."
+    )
+    product = graphene.Field(
+        lambda: Product,
+        required=True,
+        description="The product to which the variant belongs.",
+    )
+    track_inventory = graphene.Boolean(
+        required=True,
+        description=(
+            "Determines if the inventory of this variant should be tracked. If false, "
+            "the quantity won't change when customers buy this item. "
+            "If the field is not provided, `Shop.trackInventoryByDefault` will be used."
+        ),
+    )
+    quantity_limit_per_customer = graphene.Int(
+        description="The maximum quantity of this variant that a customer can purchase."
+    )
+    weight = graphene.Field(Weight, description="The weight of the product variant.")
     channel = graphene.String(
         description=(
             "Channel given to retrieve this product variant. Also used by federation "
@@ -362,8 +394,14 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         required=False,
         description=("Preorder data for product variant." + ADDED_IN_31),
     )
-    created = graphene.DateTime(required=True)
-    updated_at = graphene.DateTime(required=True)
+    created = graphene.DateTime(
+        required=True,
+        description="The date and time when the product variant was created.",
+    )
+    updated_at = graphene.DateTime(
+        required=True,
+        description="The date and time when the product variant was last updated.",
+    )
     external_reference = graphene.String(
         description=f"External ID of this product. {ADDED_IN_310}",
         required=False,
@@ -575,8 +613,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         channel = ChannelBySlugLoader(context).load(channel_slug)
         tax_class = TaxClassByVariantIdLoader(context).load(root.node.id)
 
-        address_country = address.country if address is not None else None
-
         def load_tax_configuration(data):
             (
                 product_channel_listing,
@@ -587,14 +623,12 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
 
             if not variant_channel_listing or not product_channel_listing:
                 return None
-
-            country_code = address_country or channel.default_country.code
+            country_code = get_active_country(channel, address_data=address)
 
             def load_tax_country_exceptions(tax_config):
                 def load_default_tax_rate(tax_configs_per_country):
                     def calculate_pricing_info(data):
                         country_rates, default_country_rate_obj = data
-                        local_currency = get_currency_for_country(country_code)
 
                         tax_config_country = next(
                             (
@@ -620,7 +654,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
                         availability = get_variant_availability(
                             variant_channel_listing=variant_channel_listing,
                             product_channel_listing=product_channel_listing,
-                            local_currency=local_currency,
                             prices_entered_with_tax=tax_config.prices_entered_with_tax,
                             tax_calculation_strategy=tax_calculation_strategy,
                             tax_rate=tax_rate,
@@ -797,16 +830,23 @@ class ProductVariantCountableConnection(CountableConnection):
 
 @federated_entity("id channel")
 class Product(ChannelContextTypeWithMetadata[models.Product]):
-    id = graphene.GlobalID(required=True)
-    seo_title = graphene.String()
-    seo_description = graphene.String()
-    name = graphene.String(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the product.")
+    seo_title = graphene.String(description="SEO title of the product.")
+    seo_description = graphene.String(description="SEO description of the product.")
+    name = graphene.String(required=True, description="SEO description of the product.")
     description = JSONString(description="Description of the product." + RICH_CONTENT)
-    product_type = graphene.Field(lambda: ProductType, required=True)
-    slug = graphene.String(required=True)
+    product_type = graphene.Field(
+        lambda: ProductType, required=True, description="Type of the product."
+    )
+    slug = graphene.String(required=True, description="Slug of the product.")
     category = graphene.Field("saleor.graphql.product.types.categories.Category")
-    created = graphene.DateTime(required=True)
-    updated_at = graphene.DateTime(required=True)
+    created = graphene.DateTime(
+        required=True, description="The date and time when the product was created."
+    )
+    updated_at = graphene.DateTime(
+        required=True,
+        description="The date and time when the product was last updated.",
+    )
     charge_taxes = graphene.Boolean(
         required=True,
         deprecation_reason=(
@@ -814,9 +854,11 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             "determine whether tax collection is enabled."
         ),
     )
-    weight = graphene.Field(Weight)
-    default_variant = graphene.Field(ProductVariant)
-    rating = graphene.Float()
+    weight = graphene.Field(Weight, description="Weight of the product.")
+    default_variant = graphene.Field(
+        ProductVariant, description="Default variant of the product."
+    )
+    rating = graphene.Float(description="Rating of the product.")
     channel = graphene.String(
         description=(
             "Channel given to retrieve this product. Also used by federation "
@@ -829,7 +871,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    thumbnail = ThumbnailField()
+    thumbnail = ThumbnailField(description="Thumbnail of the product.")
     pricing = graphene.Field(
         ProductPricingInfo,
         address=destination_address_argument,
@@ -840,7 +882,10 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     )
     is_available = graphene.Boolean(
         address=destination_address_argument,
-        description="Whether the product is in stock and visible or not.",
+        description=(
+            "Whether the product is in stock, set as available for purchase in the "
+            "given channel, and published."
+        ),
     )
     tax_type = graphene.Field(
         TaxType,
@@ -934,7 +979,12 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         description="Date when product is available for purchase."
     )
     is_available_for_purchase = graphene.Boolean(
-        description="Whether the product is available for purchase."
+        description=(
+            "Refers to a state that can be set by admins to control whether a product "
+            "is available for purchase in storefronts. This does not guarantee the "
+            "availability of stock. When set to `False`, this product is still visible "
+            "to customers, but it cannot be purchased."
+        )
     )
     tax_class = PermissionsField(
         TaxClass,
@@ -1059,7 +1109,6 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         channel_slug = str(root.channel_slug)
         context = info.context
-        address_country = address.country if address is not None else None
 
         channel = ChannelBySlugLoader(context).load(channel_slug)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
@@ -1082,14 +1131,12 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
             if not variants_channel_listing:
                 return None
-
-            country_code = address_country or channel.default_country.code
+            country_code = get_active_country(channel, address_data=address)
 
             def load_tax_country_exceptions(tax_config):
                 def load_default_tax_rate(tax_configs_per_country):
                     def calculate_pricing_info(data):
                         country_rates, default_country_rate_obj = data
-                        local_currency = get_currency_for_country(country_code)
                         tax_config_country = next(
                             (
                                 tc
@@ -1118,7 +1165,6 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
                         availability = get_product_availability(
                             product_channel_listing=product_channel_listing,
                             variants_channel_listing=variants_channel_listing,
-                            local_currency=local_currency,
                             prices_entered_with_tax=tax_config.prices_entered_with_tax,
                             tax_calculation_strategy=tax_calculation_strategy,
                             tax_rate=tax_rate,
@@ -1538,13 +1584,19 @@ class ProductCountableConnection(CountableConnection):
 
 @federated_entity("id")
 class ProductType(ModelObjectType[models.ProductType]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
-    slug = graphene.String(required=True)
-    has_variants = graphene.Boolean(required=True)
-    is_shipping_required = graphene.Boolean(required=True)
-    is_digital = graphene.Boolean(required=True)
-    weight = graphene.Field(Weight)
+    id = graphene.GlobalID(required=True, description="The ID of the product type.")
+    name = graphene.String(required=True, description="Name of the product type.")
+    slug = graphene.String(required=True, description="Slug of the product type.")
+    has_variants = graphene.Boolean(
+        required=True, description="Whether the product type has variants."
+    )
+    is_shipping_required = graphene.Boolean(
+        required=True, description="Whether shipping is required for this product type."
+    )
+    is_digital = graphene.Boolean(
+        required=True, description="Whether the product type is digital."
+    )
+    weight = graphene.Field(Weight, description="Weight of the product type.")
     kind = ProductTypeKindEnum(description="The product type kind.", required=True)
     products = ConnectionField(
         ProductCountableConnection,
@@ -1742,12 +1794,16 @@ class ProductTypeCountableConnection(CountableConnection):
 
 @federated_entity("id")
 class ProductMedia(ModelObjectType[models.ProductMedia]):
-    id = graphene.GlobalID(required=True)
-    sort_order = graphene.Int()
-    alt = graphene.String(required=True)
-    type = ProductMediaType(required=True)
-    oembed_data = JSONString(required=True)
-    url = ThumbnailField(graphene.String, required=True)
+    id = graphene.GlobalID(
+        required=True, description="The unique ID of the product media."
+    )
+    sort_order = graphene.Int(description="The sort order of the media.")
+    alt = graphene.String(required=True, description="The alt text of the media.")
+    type = ProductMediaType(required=True, description="The type of the media.")
+    oembed_data = JSONString(required=True, description="The oEmbed data of the media.")
+    url = ThumbnailField(
+        graphene.String, required=True, description="The URL of the media."
+    )
     product_id = graphene.ID(
         description="Product id the media refers to." + ADDED_IN_312
     )
@@ -1812,7 +1868,9 @@ class ProductImage(BaseObjectType):
             "backward, 0 leaves the item unchanged."
         ),
     )
-    url = ThumbnailField(graphene.String, required=True)
+    url = ThumbnailField(
+        graphene.String, required=True, description="The URL of the image."
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS

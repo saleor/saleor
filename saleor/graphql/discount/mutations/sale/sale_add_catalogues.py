@@ -2,12 +2,15 @@ from typing import cast
 
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
+from .....discount.sale_converter import get_or_create_promotion
 from .....discount.utils import fetch_catalogue_info
 from .....permission.enums import DiscountPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Sale
 from ..utils import convert_catalogue_info_to_global_ids
@@ -21,6 +24,12 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.SALE_UPDATED,
+                description="A sale was updated.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -31,6 +40,8 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
             cls.get_node_or_error(info, id, only_type=Sale, field="sale_id"),
         )
         previous_catalogue = fetch_catalogue_info(sale)
+        promotion = get_or_create_promotion(sale)
+        rules = promotion.rules.all()
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             cls.add_catalogues_to_node(sale, input)
@@ -41,6 +52,7 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
             current_cat_converted = convert_catalogue_info_to_global_ids(
                 current_catalogue
             )
+            cls.update_promotion_rules_predicate(rules, current_cat_converted)
 
             def sale_update_event():
                 return manager.sale_updated(

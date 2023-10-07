@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import graphene
 import pytest
@@ -148,24 +148,6 @@ def test_variant_pricing(
         prices_entered_with_tax=tc.prices_entered_with_tax,
     )
     assert pricing.price == taxed_price
-    assert pricing.price_local_currency is None
-
-    monkeypatch.setattr(
-        "django_prices_openexchangerates.models.get_rates",
-        lambda c: {"PLN": Mock(rate=2)},
-    )
-
-    settings.OPENEXCHANGERATES_API_KEY = "fake-key"
-
-    pricing = get_variant_availability(
-        variant_channel_listing=variant_channel_listing,
-        product_channel_listing=product_channel_listing,
-        local_currency="PLN",
-        tax_rate=tax_rate,
-        tax_calculation_strategy=tc.tax_calculation_strategy,
-        prices_entered_with_tax=tc.prices_entered_with_tax,
-    )
-    assert pricing.price_local_currency.currency == "PLN"  # type: ignore
 
     pricing = get_variant_availability(
         variant_channel_listing=variant_channel_listing,

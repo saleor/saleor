@@ -8,11 +8,15 @@ from ..order.dataloaders import OrderByIdLoader
 
 
 class Invoice(ModelObjectType[models.Invoice]):
-    number = graphene.String()
-    external_url = graphene.String()
-    created_at = graphene.DateTime(required=True)
-    updated_at = graphene.DateTime(required=True)
-    message = graphene.String()
+    number = graphene.String(description="Invoice number.")
+    external_url = graphene.String(description="URL to view an invoice.")
+    created_at = graphene.DateTime(
+        required=True, description="Date and time at which invoice was created."
+    )
+    updated_at = graphene.DateTime(
+        required=True, description="Date and time at which invoice was updated."
+    )
+    message = graphene.String(description="Message associated with an invoice.")
     url = graphene.String(description="URL to download an invoice.")
     order = graphene.Field(
         "saleor.graphql.order.types.Order",

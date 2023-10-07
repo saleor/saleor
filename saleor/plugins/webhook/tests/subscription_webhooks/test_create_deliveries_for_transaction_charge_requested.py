@@ -25,6 +25,7 @@ subscription {
       action {
         actionType
         amount
+        currency
       }
     }
   }
@@ -39,7 +40,6 @@ def test_transaction_charge_request(order, webhook_app, permission_manage_paymen
     authorized_value = Decimal("10")
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["charge"],
@@ -88,19 +88,17 @@ def test_transaction_charge_request(order, webhook_app, permission_manage_paymen
                 "amount": quantize_price(authorized_value, "USD"),
             },
             "refundedAmount": {"currency": "USD", "amount": 0.0},
-            "voidedAmount": {"currency": "USD", "amount": 0.0},
+            "canceledAmount": {"currency": "USD", "amount": 0.0},
             "chargedAmount": {"currency": "USD", "amount": 0.0},
             "events": [
                 {"id": graphene.Node.to_global_id("TransactionEvent", request_event.id)}
             ],
-            "status": "Authorized",
-            "type": "Credit card",
-            "reference": "PSP ref",
             "pspReference": "PSP ref",
             "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
         "action": {
             "actionType": "CHARGE",
             "amount": quantize_price(action_value, "USD"),
+            "currency": "USD",
         },
     }

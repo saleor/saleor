@@ -2,7 +2,6 @@ import logging
 from typing import Optional, Tuple
 
 from authlib.common.errors import AuthlibBaseError
-from authlib.integrations.requests_client import OAuth2Session
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
@@ -24,6 +23,7 @@ from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessToke
 from ..error_codes import PluginErrorCode
 from ..models import PluginConfiguration
 from . import PLUGIN_ID
+from .client import OAuth2Client
 from .const import SALEOR_STAFF_PERMISSION
 from .dataclasses import OpenIDConnectConfig
 from .exceptions import AuthenticationError
@@ -226,7 +226,7 @@ class OpenIDConnectPlugin(BasePlugin):
             scope += f" {scope_permissions}"
         if self.config.enable_refresh_token:
             scope += " offline_access"
-        return OAuth2Session(
+        return OAuth2Client(
             client_id=self.config.client_id,
             client_secret=self.config.client_secret,
             scope=scope,

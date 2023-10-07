@@ -20,7 +20,11 @@ from prices import Money, TaxedMoney
 from ...account.models import User
 from ...core.taxes import TaxData, TaxLineData, TaxType
 from ...order.interface import OrderTaxedPricesData
-from ...payment.interface import PaymentGatewayData, TransactionSessionData
+from ...payment.interface import (
+    PaymentGatewayData,
+    TransactionSessionData,
+    TransactionSessionResult,
+)
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
@@ -317,26 +321,49 @@ class PluginSample(BasePlugin):
         transaction_session_data: "TransactionSessionData",
         previous_value: Any,
     ):
-        return PaymentGatewayData(app_identifier="123", data=None, error="Some error")
+        return TransactionSessionResult(
+            app_identifier="123", response=None, error="Some error"
+        )
 
     def transaction_process_session(
         self,
         transaction_session_data: "TransactionSessionData",
         previous_value: Any,
     ):
-        return PaymentGatewayData(app_identifier="321", data=None, error="Some error")
+        return TransactionSessionResult(
+            app_identifier="321", response=None, error="Some error"
+        )
 
-    def checkout_fully_paid(self, checkout):
+    def checkout_fully_paid(self, checkout, previous_value):
         return None
 
-    def order_fully_refunded(self, order):
+    def order_fully_refunded(self, order, previous_value):
         return None
 
-    def order_paid(self, order):
+    def order_paid(self, order, previous_value):
         return None
 
-    def order_refunded(self, order):
+    def order_refunded(self, order, previous_value):
         return None
+
+    def list_stored_payment_methods(
+        self,
+        list_payment_method_data,
+        previous_value,
+    ):
+        return []
+
+    def stored_payment_method_request_delete(self, request_delete_data, previous_value):
+        return previous_value
+
+    def payment_gateway_initialize_tokenization(self, request_data, previous_value):
+        return previous_value
+
+    def payment_method_initialize_tokenization(self, request_data, previous_value):
+        return previous_value
+
+    def payment_method_process_tokenization(self, request_data, previous_value):
+        return previous_value
 
 
 class ChannelPluginSample(PluginSample):

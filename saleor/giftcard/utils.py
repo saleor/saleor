@@ -270,3 +270,14 @@ def is_gift_card_expired(gift_card: GiftCard):
     """Return True when gift card expiry date pass."""
     today = timezone.now().date()
     return bool(gift_card.expiry_date) and gift_card.expiry_date < today  # type: ignore
+
+
+def get_user_gift_cards(user: "User") -> "QuerySet":
+    from django.db.models import Q
+
+    return GiftCard.objects.filter(
+        Q(used_by_email=user.email)
+        | Q(created_by_email=user.email)
+        | Q(used_by=user)
+        | Q(created_by=user)
+    )

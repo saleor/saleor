@@ -45,7 +45,43 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
                 code
             }
         }
-    }"""
+    }
+"""
+
+
+MUTATION_CHECKOUT_SHIPPING_ADDRESS_WITH_METADATA_UPDATE = """
+    mutation checkoutShippingAddressUpdate(
+            $id: ID,
+            $shippingAddress: AddressInput!,
+            $validationRules: CheckoutAddressValidationRules
+        ) {
+        checkoutShippingAddressUpdate(
+                id: $id,
+                shippingAddress: $shippingAddress,
+                validationRules: $validationRules
+        ) {
+            checkout {
+                token
+                id
+                shippingMethods{
+                    id
+                    name
+                }
+                shippingAddress {
+                    metadata {
+                        key
+                        value
+                    }
+                }
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
 
 
 @mock.patch(
@@ -58,7 +94,7 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     "invalidate_checkout_prices",
     wraps=invalidate_checkout_prices,
 )
-def test_checkout_shipping_address_update(
+def test_checkout_shipping_address_with_metadata_update(
     mocked_invalidate_checkout_prices,
     mocked_update_shipping_method,
     user_api_client,
@@ -76,12 +112,14 @@ def test_checkout_shipping_address_update(
     }
 
     response = user_api_client.post_graphql(
-        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_WITH_METADATA_UPDATE, variables
     )
     content = get_graphql_content(response)
     data = content["data"]["checkoutShippingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
+    assert checkout.shipping_address.metadata == {"public": "public_value"}
+
     assert checkout.shipping_address is not None
     assert checkout.shipping_address.first_name == shipping_address["firstName"]
     assert checkout.shipping_address.last_name == shipping_address["lastName"]
@@ -914,3 +952,29 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
 
     assert checkout_with_item.shipping_address.country == new_address["country"]
     assert checkout_with_item.voucher_code is None
+
+
+def test_with_active_problems_flow(
+    api_client,
+    checkout_with_problems,
+    graphql_address_data,
+):
+    # given
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    new_address = graphql_address_data
+    variables = {
+        "id": to_global_id_or_none(checkout_with_problems),
+        "shippingAddress": new_address,
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutShippingAddressUpdate"]["errors"]

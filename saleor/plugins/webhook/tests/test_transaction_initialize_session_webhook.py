@@ -12,6 +12,7 @@ from ....payment.interface import (
     PaymentGatewayData,
     TransactionProcessActionData,
     TransactionSessionData,
+    TransactionSessionResult,
 )
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
@@ -110,9 +111,9 @@ def _assert_fields(payload, webhook, expected_response, response, mock_request):
     assert delivery.event_type == WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
     assert delivery.payload == event_payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(webhook_app.name, delivery)
-    assert response == PaymentGatewayData(
-        app_identifier=webhook_app.identifier, data=expected_response, error=None
+    mock_request.assert_called_once_with(delivery)
+    assert response == TransactionSessionResult(
+        app_identifier=webhook_app.identifier, response=expected_response, error=None
     )
 
 
@@ -162,7 +163,8 @@ def test_transaction_initialize_checkout_without_request_data_and_static_payload
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address="127.0.0.1",
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
         ),
@@ -230,7 +232,8 @@ def test_transaction_initialize_checkout_with_request_data_and_static_payload(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address="127.0.0.1",
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
         ),
@@ -298,7 +301,8 @@ def test_transaction_initialize_checkout_without_request_data(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address="127.0.0.1",
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
         ),
@@ -367,7 +371,8 @@ def test_transaction_initialize_checkout_with_request_data(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address="127.0.0.1",
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
         ),
@@ -436,7 +441,8 @@ def test_transaction_initialize_session_skips_app_without_identifier(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address="127.0.0.1",
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
         ),
@@ -447,8 +453,8 @@ def test_transaction_initialize_session_skips_app_without_identifier(
     assert not EventPayload.objects.first()
     assert not EventDelivery.objects.first()
     assert not mock_request.called
-    assert response == PaymentGatewayData(
-        app_identifier="", data=None, error="Missing app identifier"
+    assert response == TransactionSessionResult(
+        app_identifier="", response=None, error="Missing app identifier"
     )
 
 
@@ -498,7 +504,8 @@ def test_transaction_initialize_order_without_request_data_and_static_payload(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address="127.0.0.1",
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
         ),
@@ -566,7 +573,8 @@ def test_transaction_initialize_order_with_request_data_and_static_payload(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address="127.0.0.1",
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
         ),
@@ -634,7 +642,8 @@ def test_transaction_initialize_order_without_request_data(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address="127.0.0.1",
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
         ),
@@ -703,7 +712,8 @@ def test_transaction_initialize_order_with_request_data(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address="127.0.0.1",
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
         ),

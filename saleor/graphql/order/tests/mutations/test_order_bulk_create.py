@@ -128,9 +128,17 @@ ORDER_BULK_CREATE = """
                     }
                     billingAddress{
                         postalCode
+                        metadata{
+                            key
+                            value
+                        }
                     }
                     shippingAddress{
                         postalCode
+                        metadata{
+                            key
+                            value
+                        }
                     }
                     shippingMethodName
                     shippingTaxClass{
@@ -207,9 +215,9 @@ ORDER_BULK_CREATE = """
                     }
                     transactions {
                         id
-                        reference
-                        type
-                        status
+                        pspReference
+                        message
+                        name
                         authorizedAmount {
                             amount
                             currency
@@ -340,12 +348,12 @@ def order_bulk_input(
     fulfillment = {"trackingCode": "abc-123", "lines": [fulfillment_line]}
 
     transaction = {
-        "status": "Authorized for 10$",
-        "type": "Credit Card",
-        "reference": "PSP reference - 123",
+        "name": "Authorized for 10$",
+        "message": "Credit Card",
+        "pspReference": "PSP reference - 123",
         "availableActions": [
             TransactionActionEnum.CHARGE.name,
-            TransactionActionEnum.VOID.name,
+            TransactionActionEnum.CANCEL.name,
         ],
         "amountAuthorized": {
             "amount": Decimal("10"),
@@ -383,7 +391,6 @@ def order_bulk_input(
         "notes": [note],
         "fulfillments": [fulfillment],
         "weight": "10.15",
-        "trackingClientId": "tracking-id-123",
         "redirectUrl": "https://www.example.com",
         "transactions": [transaction],
         "invoices": [invoice],
@@ -532,7 +539,6 @@ def test_order_bulk_create(
     assert order["redirectUrl"] == "https://www.example.com"
     assert order["origin"] == OrderOrigin.BULK_CREATE.upper()
     assert order["weight"]["value"] == 10.15
-    assert order["trackingClientId"] == "tracking-id-123"
     assert order["displayGrossPrices"]
     assert order["metadata"][0]["key"] == "md key"
     assert order["metadata"][0]["value"] == "md value"
@@ -564,7 +570,6 @@ def test_order_bulk_create(
     assert db_order.redirect_url == "https://www.example.com"
     assert db_order.origin == OrderOrigin.BULK_CREATE
     assert db_order.weight.g == 10.15 * 1000
-    assert db_order.tracking_client_id == "tracking-id-123"
     assert db_order.display_gross_prices
     assert db_order.currency == "PLN"
     assert db_order.gift_cards.first().code == "never_expiry"
@@ -637,7 +642,18 @@ def test_order_bulk_create(
     assert order["shippingAddress"]["postalCode"] == graphql_address_data["postalCode"]
     assert db_order.billing_address.postal_code == graphql_address_data["postalCode"]
     assert db_order.shipping_address.postal_code == graphql_address_data["postalCode"]
-
+    assert order["billingAddress"]["metadata"] == graphql_address_data["metadata"]
+    assert db_order.billing_address.metadata == {
+        graphql_address_data["metadata"][0]["key"]: graphql_address_data["metadata"][0][
+            "value"
+        ]
+    }
+    assert order["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
+    assert db_order.shipping_address.metadata == {
+        graphql_address_data["metadata"][0]["key"]: graphql_address_data["metadata"][0][
+            "value"
+        ]
+    }
     note = order["events"][0]
     assert note["message"] == "Test message"
     assert note["user"]["id"] == graphene.Node.to_global_id("User", customer_user.id)
@@ -669,18 +685,18 @@ def test_order_bulk_create(
     assert db_fulfillment.lines.all()[0].id == db_fulfillment_line.id
 
     transaction = order["transactions"][0]
-    assert transaction["reference"] == "PSP reference - 123"
-    assert transaction["type"] == "Credit Card"
-    assert transaction["status"] == "Authorized for 10$"
+    assert transaction["pspReference"] == "PSP reference - 123"
+    assert transaction["message"] == "Credit Card"
+    assert transaction["name"] == "Authorized for 10$"
     assert transaction["authorizedAmount"]["amount"] == Decimal("10")
     assert transaction["authorizedAmount"]["currency"] == "PLN"
     db_transaction = TransactionItem.objects.get()
     assert db_transaction.authorized_value == Decimal("10")
     assert db_transaction.currency == "PLN"
     assert db_transaction.psp_reference == "PSP reference - 123"
-    assert db_transaction.status == "Authorized for 10$"
+    assert db_transaction.name == "Authorized for 10$"
     assert db_transaction.order_id == db_order.id
-    assert db_transaction.name == "Credit Card"
+    assert db_transaction.message == "Credit Card"
     assert db_transaction.metadata == {"test-1": "123"}
     assert db_transaction.private_metadata == {"test-2": "321"}
 
@@ -998,7 +1014,7 @@ def test_order_bulk_create_multiple_transactions(
     transactions_count = TransactionItem.objects.count()
 
     transaction_1 = {
-        "status": "Authorized for 10$",
+        "name": "Authorized for 10$",
         "amountAuthorized": {
             "amount": Decimal("20"),
             "currency": "PLN",
@@ -1006,7 +1022,7 @@ def test_order_bulk_create_multiple_transactions(
     }
 
     transaction_2 = {
-        "type": "Credit Card",
+        "message": "Credit Card",
         "amountCharged": {
             "amount": Decimal("100"),
             "currency": "PLN",
@@ -1014,7 +1030,7 @@ def test_order_bulk_create_multiple_transactions(
     }
 
     transaction_3 = {
-        "reference": "PSP reference - 123",
+        "pspReference": "PSP reference - 123",
         "amountRefunded": {
             "amount": Decimal("15"),
             "currency": "PLN",
@@ -1055,12 +1071,12 @@ def test_order_bulk_create_multiple_transactions(
     order = data[0]["order"]
 
     transaction_1, transaction_2, transaction_3, transaction_4 = order["transactions"]
-    assert transaction_1["status"] == "Authorized for 10$"
+    assert transaction_1["name"] == "Authorized for 10$"
     assert transaction_1["authorizedAmount"]["amount"] == Decimal("20")
-    assert transaction_2["type"] == "Credit Card"
+    assert transaction_2["message"] == "Credit Card"
     assert transaction_2["chargedAmount"]["amount"] == Decimal("100")
     assert transaction_2["chargedAmount"]["currency"] == "PLN"
-    assert transaction_3["reference"] == "PSP reference - 123"
+    assert transaction_3["pspReference"] == "PSP reference - 123"
     assert transaction_3["refundedAmount"]["amount"] == Decimal("15")
     assert transaction_3["refundedAmount"]["currency"] == "PLN"
     assert transaction_4["canceledAmount"]["amount"] == Decimal("20")
@@ -1073,9 +1089,9 @@ def test_order_bulk_create_multiple_transactions(
         db_transaction_3,
         db_transaction_4,
     ) = TransactionItem.objects.all()
-    assert db_transaction_1.status == "Authorized for 10$"
+    assert db_transaction_1.name == "Authorized for 10$"
     assert db_transaction_1.authorized_value == Decimal("20")
-    assert db_transaction_2.name == "Credit Card"
+    assert db_transaction_2.message == "Credit Card"
     assert db_transaction_2.charged_value == Decimal("100")
     assert db_transaction_3.psp_reference == "PSP reference - 123"
     assert db_transaction_3.refunded_value == Decimal("15")
@@ -3238,7 +3254,6 @@ def test_order_bulk_create_optional_fields_set_to_none(
     order["invoices"] = None
     order["discounts"] = None
     order["customerNote"] = None
-    order["trackingClientId"] = None
     order["weight"] = None
     order["lines"][0]["isShippingRequired"] = False
     order["deliveryMethod"] = None

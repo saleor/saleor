@@ -62,19 +62,12 @@ query OrdersQuery {
                     amount
                 }
                 transactions{
-                    reference
                     pspReference
-                    type
-                    status
                     modifiedAt
                     createdAt
                     authorizedAmount{
                         amount
                         currency
-                    }
-                    voidedAmount{
-                        currency
-                        amount
                     }
                     chargedAmount{
                         currency
@@ -84,12 +77,14 @@ query OrdersQuery {
                         currency
                         amount
                     }
+                    canceledAmount{
+                        currency
+                        amount
+                    }
                     events{
-                    status
-                    pspReference
-                    reference
-                    name
-                    createdAt
+                        pspReference
+                        message
+                        createdAt
                     }
                 }
                 subtotal {

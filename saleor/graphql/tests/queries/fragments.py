@@ -268,6 +268,17 @@ fragment BasicProductFields on Product {
 }
 """
 
+PRODUCT_EXPORT_DETAILS = """
+fragment ProductExportDetails on ExportFile{
+  id
+  createdAt
+  updatedAt
+  status
+  url
+  message
+}
+"""
+
 
 COLLECTION = (
     BASIC_PRODUCT_FIELDS
@@ -374,6 +385,17 @@ fragment GiftCardDetails on GiftCard{
 }
 """
 
+GIFT_CARD_EXPORT_DETAILS = """
+fragment GiftCardExportDetails on ExportFile{
+  id
+  createdAt
+  updatedAt
+  status
+  url
+  message
+}
+"""
+
 
 VOUCHER_DETAILS = """
 fragment VoucherDetails on Voucher{
@@ -453,7 +475,7 @@ fragment TransactionFragment on TransactionItem {
     currency
     amount
   }
-  voidedAmount {
+  canceledAmount {
     currency
     amount
   }
@@ -464,10 +486,7 @@ fragment TransactionFragment on TransactionItem {
   events {
     id
   }
-  status
-  type
   pspReference
-  reference
   order {
     id
   }

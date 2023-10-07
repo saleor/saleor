@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.test import override_settings
 from prices import Money, TaxedMoney
 from requests import RequestException
+from requests_hardened import HTTPSession
 
 from ....account.models import Address
 from ....checkout.fetch import (
@@ -4243,7 +4244,7 @@ def test_get_tax_code_from_object_meta(product, settings, plugin_configuration):
 
 def test_api_get_request_handles_request_errors(product, monkeypatch, avatax_config):
     mocked_response = Mock(side_effect=RequestException())
-    monkeypatch.setattr("saleor.plugins.avatax.requests.get", mocked_response)
+    monkeypatch.setattr(HTTPSession, "request", mocked_response)
 
     config = avatax_config
     url = "https://www.avatax.api.com/some-get-path"
@@ -4258,7 +4259,7 @@ def test_api_get_request_handles_request_errors(product, monkeypatch, avatax_con
 
 def test_api_get_request_handles_json_errors(product, monkeypatch, avatax_config):
     mocked_response = Mock(side_effect=JSONDecodeError("", "", 0))
-    monkeypatch.setattr("saleor.plugins.avatax.requests.get", mocked_response)
+    monkeypatch.setattr(HTTPSession, "request", mocked_response)
 
     config = avatax_config
     url = "https://www.avatax.api.com/some-get-path"
@@ -4273,7 +4274,7 @@ def test_api_get_request_handles_json_errors(product, monkeypatch, avatax_config
 
 def test_api_post_request_handles_request_errors(product, monkeypatch, avatax_config):
     mocked_response = Mock(side_effect=RequestException())
-    monkeypatch.setattr("saleor.plugins.avatax.requests.post", mocked_response)
+    monkeypatch.setattr(HTTPSession, "request", mocked_response)
 
     config = avatax_config
     url = "https://www.avatax.api.com/some-get-path"
@@ -4286,7 +4287,7 @@ def test_api_post_request_handles_request_errors(product, monkeypatch, avatax_co
 
 def test_api_post_request_handles_json_errors(product, monkeypatch, avatax_config):
     mocked_response = Mock(side_effect=JSONDecodeError("", "", 0))
-    monkeypatch.setattr("saleor.plugins.avatax.requests.post", mocked_response)
+    monkeypatch.setattr(HTTPSession, "request", mocked_response)
 
     config = avatax_config
     url = "https://www.avatax.api.com/some-get-path"

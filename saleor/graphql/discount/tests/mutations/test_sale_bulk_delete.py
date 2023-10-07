@@ -5,7 +5,7 @@ from unittest import mock
 import graphene
 import pytest
 
-from .....discount.models import Sale, SaleChannelListing
+from .....discount.models import Promotion, Sale, SaleChannelListing
 from .....discount.utils import fetch_catalogue_info
 from .....webhook.payloads import generate_sale_payload
 from ....tests.utils import get_graphql_content
@@ -87,6 +87,57 @@ def test_delete_sales(
     assert set(kwargs["variant_ids"]) == set(variant_pks)
 
 
+@mock.patch(
+    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+)
+def test_delete_sales_deletes_promotions(
+    update_products_discounted_prices_of_catalogues_task_mock,
+    staff_api_client,
+    sale_list,
+    permission_manage_discounts,
+    product_list,
+):
+    # given
+
+    variables = {
+        "ids": [graphene.Node.to_global_id("Sale", sale.id) for sale in sale_list]
+    }
+    category_pks = itertools.chain.from_iterable(
+        [list(sale.categories.values_list("id", flat=True)) for sale in sale_list]
+    )
+    collection_pks = itertools.chain.from_iterable(
+        [list(sale.collections.values_list("id", flat=True)) for sale in sale_list]
+    )
+    product_pks = itertools.chain.from_iterable(
+        [list(sale.products.values_list("id", flat=True)) for sale in sale_list]
+    )
+    variant_pks = itertools.chain.from_iterable(
+        [list(sale.variants.values_list("id", flat=True)) for sale in sale_list]
+    )
+
+    promotions = [Promotion(name="Test", old_sale_id=sale.pk) for sale in sale_list[:2]]
+    Promotion.objects.bulk_create(promotions)
+    ids = list(promotion.id for promotion in promotions)
+
+    # when
+    response = staff_api_client.post_graphql(
+        SALE_BULK_DELETE_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["saleBulkDelete"]["count"] == 3
+    assert not Sale.objects.filter(id__in=[sale.id for sale in sale_list]).exists()
+    args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
+    assert set(kwargs["category_ids"]) == set(category_pks)
+    assert set(kwargs["collection_ids"]) == set(collection_pks)
+    assert set(kwargs["product_ids"]) == set(product_pks)
+    assert set(kwargs["variant_ids"]) == set(variant_pks)
+
+    assert not Promotion.objects.filter(id__in=ids).exists()
+
+
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_sales_triggers_webhook(
@@ -150,6 +201,7 @@ def test_delete_sales_with_variants_triggers_webhook(
     variables = {
         "ids": [graphene.Node.to_global_id("Sale", sale.id) for sale in sale_list]
     }
+
     # when
     response = staff_api_client.post_graphql(
         SALE_BULK_DELETE_MUTATION, variables, permissions=[permission_manage_discounts]
@@ -157,8 +209,10 @@ def test_delete_sales_with_variants_triggers_webhook(
     content = get_graphql_content(response)
     # create a list of payloads with which the webhook was called
     called_payloads_list = []
+
     for arg_list in mocked_webhook_trigger.call_args_list:
-        called_arg = json.loads(arg_list[0][0])
+        data_generator = arg_list[1]["legacy_data_generator"]
+        called_arg = json.loads(data_generator())
         # we don't want to compare meta fields, only rest of payloads
         called_arg[0].pop("meta")
         called_payloads_list.append(called_arg)

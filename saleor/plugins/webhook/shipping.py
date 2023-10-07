@@ -1,10 +1,10 @@
 import base64
-import hashlib
 import json
 import logging
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Union
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db.models import QuerySet
 from graphql import GraphQLError
@@ -19,7 +19,7 @@ from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import ExcludedShippingMethod
 from ..const import APP_ID_PREFIX
-from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
+from .const import CACHE_EXCLUDED_SHIPPING_TIME
 from .tasks import trigger_webhook_sync
 
 logger = logging.getLogger(__name__)
@@ -118,7 +118,7 @@ def get_excluded_shipping_methods_or_fetch(
             payload,
             webhook,
             subscribable_object=subscribable_object,
-            timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+            timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         )
         if response_data:
             excluded_methods.extend(
@@ -206,16 +206,10 @@ def parse_excluded_shipping_methods(
     return excluded_methods_map
 
 
-def generate_cache_key_for_shipping_list_methods_for_checkout(
-    payload: str, target_url: str
-) -> str:
+def get_cache_data_for_shipping_list_methods_for_checkout(payload: str) -> dict:
     key_data = json.loads(payload)
 
     # drop fields that change between requests but are not relevant for cache key
     key_data[0].pop("last_change")
     key_data[0]["meta"].pop("issued_at")
-
-    # make cache key
-    key = json.dumps(key_data)
-    key = f"{target_url}-{hashlib.sha256(key.encode('utf-8')).hexdigest()}"
-    return key
+    return key_data

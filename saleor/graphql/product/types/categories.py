@@ -18,6 +18,7 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+from ...core.context import get_database_connection_name
 from ...core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_314,
@@ -45,14 +46,14 @@ from .products import ProductCountableConnection
 
 @federated_entity("id")
 class Category(ModelObjectType[models.Category]):
-    id = graphene.GlobalID(required=True)
-    seo_title = graphene.String()
-    seo_description = graphene.String()
-    name = graphene.String(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the category.")
+    seo_title = graphene.String(description="SEO title of category.")
+    seo_description = graphene.String(description="SEO description of category.")
+    name = graphene.String(required=True, description="Name of category")
     description = JSONString(description="Description of the category." + RICH_CONTENT)
-    slug = graphene.String(required=True)
-    parent = graphene.Field(lambda: Category)
-    level = graphene.Int(required=True)
+    slug = graphene.String(required=True, description="Slug of the category.")
+    parent = graphene.Field(lambda: Category, description="Parent category.")
+    level = graphene.Int(required=True, description="Level of the category.")
     description_json = JSONString(
         description="Description of the category." + RICH_CONTENT,
         deprecation_reason=(
@@ -87,7 +88,7 @@ class Category(ModelObjectType[models.Category]):
         lambda: CategoryCountableConnection,
         description="List of children of the category.",
     )
-    background_image = ThumbnailField()
+    background_image = ThumbnailField(description="Background image of the category.")
     translation = TranslationField(CategoryTranslation, type_name="category")
 
     class Meta:
@@ -166,7 +167,8 @@ class Category(ModelObjectType[models.Category]):
         tree = root.get_descendants(include_self=True)
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
-        qs = models.Product.objects.all()
+        connection_name = get_database_connection_name(info.context)
+        qs = models.Product.objects.using(connection_name).all()
         if not has_required_permissions:
             qs = (
                 qs.visible_to_user(requestor, channel)

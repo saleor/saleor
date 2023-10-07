@@ -39,12 +39,29 @@ class OrderErrorCode(Enum):
 class OrderGrantRefundCreateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
+    SHIPPING_COSTS_ALREADY_GRANTED = "shipping_costs_already_granted"
+    REQUIRED = "required"
+    INVALID = "invalid"
 
 
 class OrderGrantRefundUpdateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     REQUIRED = "required"
+    INVALID = "invalid"
+    SHIPPING_COSTS_ALREADY_GRANTED = "shipping_costs_already_granted"
+
+
+class OrderGrantRefundCreateLineErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    QUANTITY_GREATER_THAN_AVAILABLE = "quantity_greater_than_available"
+
+
+class OrderGrantRefundUpdateLineErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    QUANTITY_GREATER_THAN_AVAILABLE = "quantity_greater_than_available"
 
 
 class OrderBulkCreateErrorCode(Enum):
@@ -66,3 +83,14 @@ class OrderBulkCreateErrorCode(Enum):
     ORDER_LINE_FULFILLMENT_LINE_MISMATCH = "order_line_fulfillment_line_mismatch"
     METADATA_KEY_REQUIRED = "metadata_key_required"
     INCORRECT_CURRENCY = "incorrect_currency"
+
+
+class OrderNoteAddErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    REQUIRED = "required"
+
+
+class OrderNoteUpdateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"

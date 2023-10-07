@@ -42,6 +42,22 @@ def associate_attribute_values_to_instance(
     # Associate the attribute and the passed values
     assignment = _associate_attribute_to_instance(instance, attribute.pk)
     assignment.values.set(values)
+
+    # While migrating to a new structure we need to make sure we also
+    # copy the assigned product to AssignedProductAttributeValue
+    # where it will live after issue #12881 will be implemented
+    if isinstance(instance, Product):
+        AssignedProductAttributeValue.objects.filter(
+            assignment_id=assignment.pk
+        ).update(product_id=instance.pk)
+
+    # This code will be deleted in new release (3.17), it is temporary solution between
+    # releases to keep database in sync
+    elif isinstance(instance, Page):
+        AssignedPageAttributeValue.objects.filter(assignment_id=assignment.pk).update(
+            page_id=instance.pk
+        )
+
     sort_assigned_attribute_values(instance, assignment, values)
 
     return assignment
@@ -52,9 +68,12 @@ def validate_attribute_owns_values(attribute: Attribute, value_ids: Set[int]) ->
 
     :raise: AssertionError
     """
-    attribute_actual_value_ids = set(attribute.values.values_list("pk", flat=True))
-    found_associated_ids = attribute_actual_value_ids & value_ids
-    if found_associated_ids != value_ids:
+    attribute_actual_value_ids = set(
+        AttributeValue.objects.filter(
+            pk__in=value_ids, attribute=attribute
+        ).values_list("pk", flat=True)
+    )
+    if attribute_actual_value_ids != value_ids:
         raise AssertionError("Some values are not from the provided attribute.")
 
 

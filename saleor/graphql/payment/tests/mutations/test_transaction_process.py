@@ -14,20 +14,24 @@ from .....payment.interface import (
     PaymentGatewayData,
     TransactionProcessActionData,
     TransactionSessionData,
+    TransactionSessionResult,
 )
 from .....payment.models import TransactionEvent
 from ....core.enums import TransactionProcessErrorCode
 from ....core.utils import to_global_id_or_none
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 TRANSACTION_PROCESS = """
 mutation TransactionProcess(
   $id: ID!,
   $data: JSON
+  $customerIpAddress: String
+
 ) {
   transactionProcess(
     id: $id
     data: $data
+    customerIpAddress: $customerIpAddress
   ) {
     data
     transaction {
@@ -165,7 +169,8 @@ def _assert_fields(
                 amount=expected_amount,
                 currency=source_object.currency,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address="127.0.0.1",
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=app_identifier, data=data, error=None
             ),
         )
@@ -205,8 +210,8 @@ def test_for_checkout_without_data(
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
     del expected_response["data"]
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -266,8 +271,8 @@ def test_for_order_without_data(
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
     del expected_response["data"]
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -325,8 +330,8 @@ def test_for_checkout_with_data(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
     expected_data = {"some": "json-data"}
     variables = {
@@ -386,8 +391,8 @@ def test_for_order_with_data(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     expected_data = {"some": "json-data"}
@@ -447,8 +452,8 @@ def test_checkout_with_pending_amount(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_REQUEST.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -507,8 +512,8 @@ def test_order_with_pending_amount(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_REQUEST.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -566,8 +571,8 @@ def test_checkout_with_action_required_response(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -624,8 +629,8 @@ def test_order_with_action_required_response(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -878,8 +883,8 @@ def test_checkout_fully_paid(
     expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
     expected_response["result"] = result.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
@@ -931,4 +936,316 @@ def test_transaction_process_doesnt_accept_old_id(
     assert response_data["errors"][0]["field"] == "id"
     assert (
         response_data["errors"][0]["code"] == TransactionProcessErrorCode.INVALID.name
+    )
+
+
+def test_user_missing_permission_for_customer_ip_address(
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    transaction_item_generator,
+):
+    # given
+    checkout = checkout_with_prices
+
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, app=webhook_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+        "customerIpAddress": "127.0.0.1",
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_app_missing_permission_for_customer_ip_address(
+    app_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_item_generator,
+    transaction_session_response,
+):
+    # given
+    checkout = checkout_with_prices
+
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, app=webhook_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+        "customerIpAddress": "127.0.0.1",
+    }
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
+def test_with_customer_ip_address(
+    mocked_process,
+    app_api_client,
+    checkout_with_prices,
+    transaction_item_generator,
+    webhook_app,
+    transaction_session_response,
+    permission_manage_payments,
+):
+    # given
+    expected_amount = Decimal("10.00")
+
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=webhook_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=transaction_session_response
+    )
+
+    app_api_client.app.permissions.set([permission_manage_payments])
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+        "customerIpAddress": "127.0.0.2",
+    }
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    get_graphql_content(response)
+
+    mocked_process.assert_called_with(
+        TransactionSessionData(
+            transaction=transaction_item,
+            source_object=checkout,
+            action=TransactionProcessActionData(
+                action_type=TransactionFlowStrategy.CHARGE,
+                amount=expected_amount,
+                currency=checkout.currency,
+            ),
+            customer_ip_address="127.0.0.2",
+            payment_gateway_data=PaymentGatewayData(
+                app_identifier=webhook_app.identifier, data=None, error=None
+            ),
+        )
+    )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
+def test_sets_customer_ip_address_when_not_provided(
+    mocked_process,
+    app_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    transaction_item_generator,
+    permission_manage_payments,
+):
+    # given
+    expected_amount = Decimal("10.00")
+
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=webhook_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=transaction_session_response
+    )
+
+    app_api_client.app.permissions.set([permission_manage_payments])
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_PROCESS, variables, REMOTE_ADDR="127.0.0.2"
+    )
+
+    # then
+    get_graphql_content(response)
+
+    mocked_process.assert_called_with(
+        TransactionSessionData(
+            transaction=transaction_item,
+            source_object=checkout,
+            action=TransactionProcessActionData(
+                action_type=TransactionFlowStrategy.CHARGE,
+                amount=expected_amount,
+                currency=checkout.currency,
+            ),
+            customer_ip_address="127.0.0.2",
+            payment_gateway_data=PaymentGatewayData(
+                app_identifier=webhook_app.identifier, data=None, error=None
+            ),
+        )
+    )
+
+
+def test_customer_ip_address_wrong_format(
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    permission_manage_payments,
+    transaction_item_generator,
+    app_api_client,
+):
+    # given
+    expected_amount = Decimal("10.00")
+
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=webhook_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    app_api_client.app.permissions.set([permission_manage_payments])
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+        "customerIpAddress": "127.0.02",
+    }
+    # when
+    response = app_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    errors = content["data"]["transactionProcess"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "customerIpAddress"
+    assert errors[0]["code"] == TransactionProcessErrorCode.INVALID.name
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
+def test_customer_ip_address_ipv6(
+    mocked_process,
+    app_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    permission_manage_payments,
+    transaction_item_generator,
+):
+    # given
+    expected_amount = Decimal("10.00")
+
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=webhook_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=transaction_session_response
+    )
+
+    app_api_client.app.permissions.set([permission_manage_payments])
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+        "customerIpAddress": "::1",
+    }
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    get_graphql_content(response)
+
+    mocked_process.assert_called_with(
+        TransactionSessionData(
+            transaction=transaction_item,
+            source_object=checkout,
+            action=TransactionProcessActionData(
+                action_type=TransactionFlowStrategy.CHARGE,
+                amount=expected_amount,
+                currency=checkout.currency,
+            ),
+            customer_ip_address="::1",
+            payment_gateway_data=PaymentGatewayData(
+                app_identifier=webhook_app.identifier, data=None, error=None
+            ),
+        )
     )

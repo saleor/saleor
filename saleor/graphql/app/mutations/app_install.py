@@ -4,10 +4,12 @@ from ....app import models
 from ....app.manifest_validations import clean_manifest_url
 from ....app.tasks import install_app_task
 from ....permission.enums import AppPermission, get_permissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelMutation
 from ...core.types import AppError, BaseInputObjectType, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...decorators import staff_member_required
 from ...utils import get_user_or_app_from_context
 from ..types import AppInstallation
@@ -16,7 +18,7 @@ from ..utils import ensure_can_manage_permissions
 
 class AppInstallInput(BaseInputObjectType):
     app_name = graphene.String(description="Name of the app to install.")
-    manifest_url = graphene.String(description="Url to app's manifest in JSON format.")
+    manifest_url = graphene.String(description="URL to app's manifest in JSON format.")
     activate_after_installation = graphene.Boolean(
         default_value=True,
         required=False,
@@ -29,6 +31,12 @@ class AppInstallInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_APPS
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.APP_INSTALLED,
+                description="An app was installed.",
+            ),
+        ]
 
 
 class AppInstall(ModelMutation):
