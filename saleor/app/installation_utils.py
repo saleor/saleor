@@ -52,7 +52,9 @@ def validate_app_install_response(response: Response):
 
 
 def send_app_token(target_url: str, token: str):
-    domain = Site.objects.get_current().domain
+    # domain = Site.objects.get_current().domain
+    # for some reason, localhost is not working...perhaps a CORS issue?
+    domain = "127.0.0.1:8000"
     headers = {
         "Content-Type": "application/json",
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
@@ -61,6 +63,7 @@ def send_app_token(target_url: str, token: str):
         AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
     }
     json_data = {"auth_token": token}
+    logger.info("Sending %s token to %s", token, target_url)
     response = requests.post(
         target_url,
         json=json_data,
@@ -175,7 +178,7 @@ def fetch_brand_data_async(
     manifest_data: dict,
     *,
     app_installation: Optional[AppInstallation] = None,
-    app: Optional[App] = None
+    app: Optional[App] = None,
 ):
     if brand_data := manifest_data.get("brand"):
         app_id = app.pk if app else None

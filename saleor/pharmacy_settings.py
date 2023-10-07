@@ -133,34 +133,34 @@ google_secret_manager = GoogleSecretManager()
 sendgrid_config = google_secret_manager.get_secret("sendgrid")
 
 
-SENDGRID_USERNAME = sendgrid_config["username"]
-SENDGRID_PASSWORD = sendgrid_config["password"]
-EMAIL_URL = f"smtp://apikey:{SENDGRID_PASSWORD}@smtp.sendgrid.com:465/?ssl=True"
+EMAIL_URL = os.environ.get("EMAIL_URL")
+SENDGRID_USERNAME = os.environ.get("SENDGRID_USERNAME")
+SENDGRID_PASSWORD = os.environ.get("SENDGRID_PASSWORD")
+if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
+    EMAIL_URL = (
+        f"smtp://{SENDGRID_USERNAME}"
+        f":{SENDGRID_PASSWORD}@smtp.sendgrid.net:587/?tls=True"
+    )
 
-email_config = dj_email_url.parse(
-    EMAIL_URL or "console://demo@example.com:console@example/"
-)
+email_config = dj_email_url.parse(EMAIL_URL or "")
 
-EMAIL_FILE_PATH: str = email_config["EMAIL_FILE_PATH"]
-EMAIL_HOST_USER: str = email_config["EMAIL_HOST_USER"]
-EMAIL_HOST_PASSWORD: str = email_config["EMAIL_HOST_PASSWORD"]
-EMAIL_HOST: str = email_config["EMAIL_HOST"]
-EMAIL_PORT: int = email_config["EMAIL_PORT"]
-EMAIL_BACKEND: str = email_config["EMAIL_BACKEND"]
-EMAIL_USE_TLS: bool = email_config["EMAIL_USE_TLS"]
-EMAIL_USE_SSL: bool = email_config["EMAIL_USE_SSL"]
-
-# If enabled, make sure you have set proper storefront address in ALLOWED_CLIENT_HOSTS.
-ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = get_bool_from_env(
-    "ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL", True
-)
+EMAIL_FILE_PATH: str = email_config.get("EMAIL_FILE_PATH", "")
+EMAIL_HOST_USER: str = email_config.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD: str = email_config.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_HOST: str = email_config.get("EMAIL_HOST", "")
+EMAIL_PORT: str = str(email_config.get("EMAIL_PORT", ""))
+EMAIL_BACKEND: str = email_config.get("EMAIL_BACKEND", "")
+EMAIL_USE_TLS: bool = email_config.get("EMAIL_USE_TLS", False)
+EMAIL_USE_SSL: bool = email_config.get("EMAIL_USE_SSL", False)
 
 ENABLE_SSL = get_bool_from_env("ENABLE_SSL", False)
 
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
 
-DEFAULT_FROM_EMAIL = sendgrid_config["from"]
+DEFAULT_FROM_EMAIL: str = os.environ.get(
+    "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "noreply@example.com"
+)
 
 MEDIA_ROOT: str = os.path.join(PROJECT_ROOT, "media")
 MEDIA_URL: str = os.environ.get("MEDIA_URL", "/media/")
@@ -217,7 +217,7 @@ SECRET_KEY = jwt_secret_key
 
 jwt_private_key = google_secret_manager.get_secret_single_value("jwt_private_key")
 
-RSA_PRIVATE_KEY = jwt_private_key
+RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
 RSA_PRIVATE_PASSWORD = os.environ.get("RSA_PRIVATE_PASSWORD", None)
 JWT_MANAGER_PATH = os.environ.get(
     "JWT_MANAGER_PATH", "saleor.core.jwt_manager.JWTManager"
@@ -479,11 +479,11 @@ AWS_S3_FILE_OVERWRITE = get_bool_from_env("AWS_S3_FILE_OVERWRITE", True)
 
 # Google Cloud Storage configuration
 # See https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
-GS_PROJECT_ID = os.environ.get("GOOGLE_PROJECT_NAME")
+GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
 GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
 GS_LOCATION = os.environ.get("GS_LOCATION", "")
 GS_CUSTOM_ENDPOINT = os.environ.get("GS_CUSTOM_ENDPOINT")
-GS_MEDIA_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
+GS_MEDIA_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
 GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", False)
 GS_QUERYSTRING_AUTH = get_bool_from_env("GS_QUERYSTRING_AUTH", False)
 GS_DEFAULT_ACL = os.environ.get("GS_DEFAULT_ACL", None)
@@ -567,6 +567,11 @@ CELERY_TASK_ROUTES = {
     },
 }
 
+# Expire orders task setting
+BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA", "5 minutes"))
+)
+
 # Defines after how many seconds should the task triggered by the Celery beat
 # entry 'update-products-search-vectors' expire if it wasn't picked up by a worker.
 BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC = 20
@@ -594,6 +599,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.checkout.tasks.delete_expired_checkouts",
         "schedule": crontab(hour=0, minute=0),
     },
+    "delete_expired_orders": {
+        "task": "saleor.order.tasks.delete_expired_orders_task",
+        "schedule": crontab(hour=2, minute=0),
+    },
     "delete-outdated-event-data": {
         "task": "saleor.core.tasks.delete_event_payloads_task",
         "schedule": timedelta(days=1),
@@ -610,14 +619,18 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.csv.tasks.delete_old_export_files",
         "schedule": crontab(hour=1, minute=0),
     },
-    "send-sale-toggle-notifications": {
-        "task": "saleor.discount.tasks.send_sale_toggle_notifications",
+    "handle-sale-toggle": {
+        "task": "saleor.discount.tasks.handle_sale_toggle",
         "schedule": initiated_sale_webhook_schedule,
     },
     "update-products-search-vectors": {
         "task": "saleor.product.tasks.update_products_search_vector_task",
         "schedule": timedelta(seconds=20),
         "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
+    },
+    "expire-orders": {
+        "task": "saleor.order.tasks.expire_orders_task",
+        "schedule": BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA,
     },
 }
 
@@ -740,16 +753,6 @@ for entry_point in installed_plugins:
         EXTERNAL_PLUGINS.append(plugin_path)
 
 PLUGINS = BUILTIN_PLUGINS + EXTERNAL_PLUGINS
-
-if (
-    not DEBUG
-    and ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
-    and ALLOWED_CLIENT_HOSTS == get_list(_DEFAULT_CLIENT_HOSTS)
-):
-    raise ImproperlyConfigured(
-        "Make sure you've added storefront address to ALLOWED_CLIENT_HOSTS "
-        "if ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL is enabled."
-    )
 
 # Timeouts for webhook requests. Sync webhooks (eg. payment webhook) need more time
 # for getting response from the server.
