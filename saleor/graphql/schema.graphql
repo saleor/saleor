@@ -12199,7 +12199,7 @@ type Transaction implements Node @doc(category: "Payments") {
   """ID of the transaction."""
   id: ID!
 
-  """Date and time which transaction was created."""
+  """Date and time at which transaction was created."""
   created: DateTime!
 
   """Determines the payment associated with a transaction."""
