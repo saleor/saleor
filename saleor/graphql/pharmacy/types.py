@@ -5,7 +5,7 @@ from ...pharmacy import models
 
 class SiteSettingsType(graphene.ObjectType):
     class Meta:
-        description = "The customer extensions for a Patient object."
+        description = "The customer extensions for a Site Settings object."
         interfaces = [relay.Node]
         model = models.SiteSettings
 
