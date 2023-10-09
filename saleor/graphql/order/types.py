@@ -728,6 +728,10 @@ class OrderLine(ModelObjectType[models.OrderLine]):
             "permissions to access." + ADDED_IN_39
         ),
     )
+    voucher_code = graphene.String(
+        required=False,
+        description="Voucher code that was used for this order line." + ADDED_IN_314,
+    )
 
     class Meta:
         description = "Represents order line of particular order."
