@@ -1126,8 +1126,9 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
 def test_get_voucher_for_checkout_info(checkout_with_voucher, voucher):
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout_with_voucher, [], manager)
-    checkout_voucher = get_voucher_for_checkout_info(checkout_info)
+    checkout_voucher, code = get_voucher_for_checkout_info(checkout_info)
     assert checkout_voucher == voucher
+    assert code
 
 
 def test_get_voucher_for_checkout_info_expired_voucher(checkout_with_voucher, voucher):
@@ -1136,15 +1137,17 @@ def test_get_voucher_for_checkout_info_expired_voucher(checkout_with_voucher, vo
     voucher.save()
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout_with_voucher, [], manager)
-    checkout_voucher = get_voucher_for_checkout_info(checkout_info)
+    checkout_voucher, code = get_voucher_for_checkout_info(checkout_info)
     assert checkout_voucher is None
+    assert code is None
 
 
 def test_get_voucher_for_checkout_info_no_voucher_code(checkout):
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout, [], manager)
-    checkout_voucher = get_voucher_for_checkout_info(checkout_info)
+    checkout_voucher, code = get_voucher_for_checkout_info(checkout_info)
     assert checkout_voucher is None
+    assert code is None
 
 
 def test_remove_voucher_from_checkout(checkout_with_voucher, voucher_translation_fr):

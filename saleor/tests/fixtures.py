@@ -3920,6 +3920,7 @@ def voucher_percentage(channel_USD):
         code="saleor-percentage",
         discount_value_type=DiscountValueType.PERCENTAGE,
     )
+    VoucherCode.objects.create(code=voucher.code, voucher=voucher, used=voucher.used)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,

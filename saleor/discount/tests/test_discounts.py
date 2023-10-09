@@ -182,23 +182,33 @@ def test_voucher_queryset_active_in_other_channel(voucher, channel_PLN):
 
 
 def test_increase_voucher_usage(channel_USD):
+    # given
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.FIXED,
         usage_limit=100,
     )
+    code = voucher.codes.create(code=voucher.code, used=voucher.used)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
         discount=Money(10, channel_USD.currency_code),
     )
-    increase_voucher_usage(voucher)
+
+    # when
+    increase_voucher_usage(voucher, code)
+
+    # then
     voucher.refresh_from_db()
     assert voucher.used == 1
 
+    code.refresh_from_db()
+    assert code.used == 1
+
 
 def test_decrease_voucher_usage(channel_USD):
+    # given
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.ENTIRE_ORDER,
@@ -206,30 +216,46 @@ def test_decrease_voucher_usage(channel_USD):
         usage_limit=100,
         used=10,
     )
+    code = voucher.codes.create(code=voucher.code, used=voucher.used)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
         discount=Money(10, channel_USD.currency_code),
     )
-    decrease_voucher_usage(voucher)
+
+    # when
+    decrease_voucher_usage(voucher, code)
+
+    # then
     voucher.refresh_from_db()
     assert voucher.used == 9
 
+    code.refresh_from_db()
+    assert code.used == voucher.used
+
 
 def test_add_voucher_usage_by_customer(voucher, customer_user):
+    # given
     voucher_customer_count = VoucherCustomer.objects.all().count()
-    add_voucher_usage_by_customer(voucher, customer_user.email)
+    code = voucher.codes.first()
+
+    # when
+    add_voucher_usage_by_customer(voucher, code, customer_user.email)
+
+    # then
     assert VoucherCustomer.objects.all().count() == voucher_customer_count + 1
     voucherCustomer = VoucherCustomer.objects.first()
     assert voucherCustomer.voucher == voucher
+    assert voucherCustomer.voucher_code == code
     assert voucherCustomer.customer_email == customer_user.email
 
 
 def test_add_voucher_usage_by_customer_raise_not_applicable(voucher_customer):
     voucher = voucher_customer.voucher
+    code = voucher.codes.first()
     customer_email = voucher_customer.customer_email
     with pytest.raises(NotApplicable):
-        add_voucher_usage_by_customer(voucher, customer_email)
+        add_voucher_usage_by_customer(voucher, code, customer_email)
 
 
 def test_remove_voucher_usage_by_customer(voucher_customer):

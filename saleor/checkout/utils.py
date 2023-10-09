@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money
 
@@ -18,7 +19,7 @@ from ..core.utils.promo_code import (
 from ..core.utils.translations import get_translation
 from ..discount import VoucherType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
-from ..discount.models import NotApplicable, Voucher
+from ..discount.models import NotApplicable, Voucher, VoucherCode
 from ..discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
     get_products_voucher_discount,
@@ -517,31 +518,52 @@ def get_voucher_for_checkout(
     channel_slug: str,
     with_lock: bool = False,
     with_prefetch: bool = False,
-) -> Optional[Voucher]:
+) -> Tuple[Optional[Voucher], Optional[VoucherCode]]:
     """Return voucher assigned to checkout."""
-    if checkout.voucher_code is not None:
-        vouchers = Voucher.objects
-        vouchers = vouchers.active_in_channel(
+    code = checkout.voucher_code
+    if code is None:
+        return None, None
+
+    try:
+        voucher = Voucher.objects.active_in_channel(
             date=timezone.now(), channel_slug=channel_slug
+        ).get(code=code)
+    except Voucher.DoesNotExist:
+        return None, None
+
+    voucher_code = get_or_create_voucher_code(voucher)
+
+    if with_prefetch:
+        prefetch_related_objects(
+            [voucher],
+            "products",
+            "collections",
+            "categories",
+            "variants",
+            "channel_listings",
         )
-        if with_prefetch:
-            vouchers.prefetch_related(
-                "products", "collections", "categories", "variants", "channel_listings"
-            )
-        try:
-            qs = vouchers
-            voucher = qs.get(code=checkout.voucher_code)
-            if voucher and voucher.usage_limit is not None and with_lock:
-                voucher = vouchers.select_for_update().get(code=checkout.voucher_code)
-            return voucher
-        except Voucher.DoesNotExist:
-            return None
-    return None
+
+    if voucher.usage_limit is not None and with_lock:
+        voucher_code = VoucherCode.objects.select_for_update().get(id=voucher_code.id)
+        voucher = Voucher.objects.select_for_update().get(id=voucher.id)
+
+    return voucher, voucher_code
+
+
+def get_or_create_voucher_code(voucher: Voucher) -> VoucherCode:
+    """Return voucher code for a given voucher.
+
+    If the voucher code does not exist it will be created.
+    """
+    voucher_code, _ = VoucherCode.objects.get_or_create(
+        voucher=voucher, code=voucher.code, used=voucher.used
+    )
+    return voucher_code
 
 
 def get_voucher_for_checkout_info(
     checkout_info: "CheckoutInfo", with_lock: bool = False, with_prefetch: bool = False
-) -> Optional[Voucher]:
+) -> Tuple[Optional[Voucher], Optional[VoucherCode]]:
     """Return voucher with voucher code saved in checkout if active or None."""
     checkout = checkout_info.checkout
     return get_voucher_for_checkout(
@@ -700,6 +722,7 @@ def add_voucher_to_checkout(
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
+    voucher_code = get_or_create_voucher_code(voucher)
     checkout = checkout_info.checkout
     address = checkout_info.shipping_address or checkout_info.billing_address
     discount = get_voucher_discount_for_checkout(
@@ -729,6 +752,7 @@ def add_voucher_to_checkout(
         ]
     )
     checkout_info.voucher = voucher
+    checkout_info.voucher_code = voucher_code
 
 
 def remove_promo_code_from_checkout(
@@ -756,6 +780,7 @@ def remove_voucher_code_from_checkout(
     if existing_voucher and existing_voucher.code == voucher_code:
         remove_voucher_from_checkout(checkout_info.checkout)
         checkout_info.voucher = None
+        checkout_info.voucher_code = None
         return True
     return False
 

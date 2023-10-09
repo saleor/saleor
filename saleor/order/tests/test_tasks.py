@@ -84,9 +84,16 @@ def test_expire_orders_task_check_multiple_vouchers(
     voucher.used = 2
     voucher.usage_limit = 2
     voucher.save()
+    voucher_code = voucher.codes.first()
+    voucher_code.used = 2
+    voucher_code.save(update_fields=["used"])
+
     voucher_percentage.used = 1
     voucher_percentage.usage_limit = 1
     voucher_percentage.save()
+    voucher_percentage_code = voucher_percentage.codes.first()
+    voucher_percentage_code.used = 1
+    voucher_percentage_code.save(update_fields=["used"])
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
@@ -127,9 +134,14 @@ def test_expire_orders_task_check_multiple_vouchers(
     ).exists()
 
     voucher.refresh_from_db()
+    voucher_code.refresh_from_db()
     assert voucher.used == 1
+    assert voucher_code.used == 1
+
     voucher_percentage.refresh_from_db()
+    voucher_percentage_code.refresh_from_db()
     assert voucher_percentage.used == 0
+    assert voucher_percentage_code.used == 0
 
 
 def test_expire_orders_task_creates_order_events(order_list, allocations, channel_USD):
