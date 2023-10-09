@@ -20,6 +20,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="+",
                 to="discount.vouchercode",
+                db_index=False,
             ),
         ),
     ]
