@@ -97,6 +97,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     from ..app.models import App
+    from ..discount.models import Voucher, VoucherCode
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
 
@@ -511,8 +512,8 @@ def _prepare_order_data(
         manager.preprocess_order_creation(checkout_info, lines)
     except TaxError:
         release_voucher_usage(
-            order_data.get("voucher"),
-            order_data.get("voucher_code"),
+            checkout_info.voucher,
+            checkout_info.voucher_code,
             order_data.get("user_email"),
         )
         raise
@@ -808,6 +809,8 @@ def _process_payment(
     order_data: dict,
     manager: "PluginsManager",
     channel_slug: str,
+    voucher_code: Optional["VoucherCode"] = None,
+    voucher: Optional["Voucher"] = None,
 ) -> Transaction:
     """Process the payment assigned to checkout."""
     try:
@@ -834,8 +837,8 @@ def _process_payment(
             raise PaymentError(txn.error)
     except PaymentError as e:
         release_voucher_usage(
-            order_data.get("voucher"),
-            order_data.get("voucher_code"),
+            voucher,
+            voucher_code,
             order_data.get("user_email"),
         )
         raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
@@ -913,8 +916,8 @@ def complete_checkout_post_payment_part(
         if action_required:
             action_data = txn.action_required_data
             release_voucher_usage(
-                order_data.get("voucher"),
-                order_data.get("voucher_code"),
+                checkout_info.voucher,
+                checkout_info.voucher_code,
                 order_data.get("user_email"),
             )
 
@@ -936,8 +939,8 @@ def complete_checkout_post_payment_part(
             checkout_info.checkout.delete()
         except InsufficientStock as e:
             release_voucher_usage(
-                order_data.get("voucher"),
-                order_data.get("voucher_code"),
+                checkout_info.voucher,
+                checkout_info.voucher_code,
                 order_data.get("user_email"),
             )
             gateway.payment_refund_or_void(
@@ -947,8 +950,8 @@ def complete_checkout_post_payment_part(
             raise error
         except GiftCardNotApplicable as e:
             release_voucher_usage(
-                order_data.get("voucher"),
-                order_data.get("voucher_code"),
+                checkout_info.voucher,
+                checkout_info.voucher_code,
                 order_data.get("user_email"),
             )
             gateway.payment_refund_or_void(
@@ -1506,6 +1509,8 @@ def complete_checkout_with_payment(
     # who potentially can order the same product variants.
     txn = None
     channel_slug = checkout_info.channel.slug
+    voucher = checkout_info.voucher
+    voucher_code = checkout_info.voucher_code
     if payment:
         txn = _process_payment(
             payment=payment,
@@ -1515,6 +1520,8 @@ def complete_checkout_with_payment(
             order_data=order_data,
             manager=manager,
             channel_slug=channel_slug,
+            voucher_code=checkout_info.voucher_code,
+            voucher=checkout_info.voucher,
         )
 
         # As payment processing might take a while, we need to check if the payment
@@ -1543,7 +1550,10 @@ def complete_checkout_with_payment(
         lines, _ = fetch_checkout_lines(checkout, skip_recalculation=True)
         checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-        checkout_info.checkout.voucher_code = None
+        # reassign voucher data that was used during payment process to allow voucher
+        # usage releasing in case of checkout complete failure
+        checkout_info.voucher = voucher
+        checkout_info.voucher_code = voucher_code
         order, action_required, action_data = complete_checkout_post_payment_part(
             manager=manager,
             checkout_info=checkout_info,
