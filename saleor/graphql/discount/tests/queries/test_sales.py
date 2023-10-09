@@ -37,6 +37,9 @@ def test_sale_query(
                             discountValue
                         }
                         startDate
+                        endDate
+                        created
+                        updatedAt
                     }
                 }
             }
