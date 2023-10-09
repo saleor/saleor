@@ -7,7 +7,7 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0054_auto_20230821_0730"),
+        ("discount", "0053_move_codes_to_new_model"),
     ]
 
     operations = [
