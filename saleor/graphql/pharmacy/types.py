@@ -1,9 +1,11 @@
 import graphene
 from graphene import relay
+
+from ..core.types import BaseObjectType
 from ...pharmacy import models
 
 
-class SiteSettingsType(graphene.ObjectType):
+class SiteSettingsType(BaseObjectType):
     class Meta:
         description = "The customer extensions for a Site Settings object."
         interfaces = [relay.Node]
@@ -20,5 +22,5 @@ class SiteSettingsType(graphene.ObjectType):
     css = graphene.String()
 
 
-class SiteSettingsList(graphene.ObjectType):
+class SiteSettingsList(BaseObjectType):
     edge = graphene.List(SiteSettingsType)
