@@ -1601,6 +1601,9 @@ def test_checkout_with_voucher_complete(
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == voucher_used_count + 1
+    code = voucher_percentage.codes.first()
+    assert code.used == voucher_used_count + 1
+
     order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
     assert order_discount
     assert (
@@ -1683,6 +1686,9 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == voucher_used_count + 1
+    code = voucher_percentage.codes.first()
+    assert code.used == voucher_used_count + 1
+
     order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
     assert order_discount
     assert (
@@ -1811,6 +1817,8 @@ def test_checkout_with_voucher_complete_product_on_sale(
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == voucher_used_count + 1
+    code = voucher_percentage.codes.first()
+    assert code.used == voucher_used_count + 1
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -1884,6 +1892,8 @@ def test_checkout_with_voucher_on_specific_product_complete(
 
     voucher_specific_product_type.refresh_from_db()
     assert voucher_specific_product_type.used == voucher_used_count + 1
+    code = voucher_specific_product_type.codes.first()
+    assert code.used == voucher_used_count + 1
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -2227,6 +2237,8 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
 
     voucher_specific_product_type.refresh_from_db()
     assert voucher_specific_product_type.used == voucher_used_count + 1
+    code = voucher_specific_product_type.codes.first()
+    assert code.used == voucher_used_count + 1
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -2275,6 +2287,8 @@ def test_checkout_with_voucher_not_increase_uses_on_preprocess_order_creation_fa
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == 0
+    code = voucher_percentage.codes.first()
+    assert code.used == 0
 
     assert Checkout.objects.filter(
         pk=checkout.pk
