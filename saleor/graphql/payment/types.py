@@ -49,7 +49,7 @@ from .enums import (
 class Transaction(ModelObjectType[models.Transaction]):
     id = graphene.GlobalID(required=True, description="ID of the transaction.")
     created = graphene.DateTime(
-        required=True, description="Date and time which transaction was created."
+        required=True, description="Date and time at which transaction was created."
     )
     payment = graphene.Field(
         lambda: Payment,
