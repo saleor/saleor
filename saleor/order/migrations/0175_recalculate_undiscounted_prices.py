@@ -28,6 +28,7 @@ def recalculate_undiscounted_prices_for_order(apps, _schema_editor):
         )
         & Q(tax_rate__gt=0)
     ):
+        #exist dodac
         return
 
     sender = registry.get_app_config("order")

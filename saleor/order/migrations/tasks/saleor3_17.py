@@ -73,10 +73,13 @@ def recalculate_tax_for_prices(
 def get_order_prices_entered_with_tax_mapping(
     order_lines, order_model, channel_model, tax_configuration
 ):
-    orders = order_model.objects.filter(id__in=order_lines.values("order_id"))
-    channels = channel_model.objects.filter(id__in=orders.values("channel_id"))
+    orders = order_model.objects.filter(id__in=order_lines.values("order_id")).\
+        values_list("id", "channel_id")
+
+    channels = channel_model.objects.filter(id__in=orders.values("channel_id"))\
+        .values_list("tax_configuration_id", "id")#?
     tax_configurations = tax_configuration.objects.filter(
-        id__in=channels.values("tax_configuration__id")
+        id__in=channels.values("tax_configuration_id")
     )
     tax_conf_to_prices_entered_with_taxes = {
         tc_id: price_entered_with_taxes
@@ -86,13 +89,13 @@ def get_order_prices_entered_with_tax_mapping(
     }
 
     channel_to_prices_entered_with_taxes = dict()
-    for channel_id, tax_conf_id in channels.values_list("id", "tax_configuration__id"):
+    for channel_id, tax_conf_id in channels.values_list("id", "tax_configuration_id"):
         channel_to_prices_entered_with_taxes[
             channel_id
         ] = tax_conf_to_prices_entered_with_taxes[tax_conf_id]
 
     order_to_prices_entered_with_taxes = dict()
-    for order_id, channel_id in orders.values_list("id", "channel__id"):
+    for order_id, channel_id in orders.values_list("id", "channel_id"):
         order_to_prices_entered_with_taxes[
             order_id
         ] = channel_to_prices_entered_with_taxes[channel_id]
@@ -120,6 +123,7 @@ def recalculate_undiscounted_prices():
         )
         .order_by("-created_at")[:LINE_BATCH]
     )
+    # po pk bo created_at nie jest indexowane
 
     if not order_lines:
         task_logger.info("No order lines to update.")
