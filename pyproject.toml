@@ -11,7 +11,7 @@ documentation = "https://docs.saleor.io/"
 
   [tool.poetry.dependencies]
   python = "~3.9"
-  babel = ">=2.8,<2.13"
+  babel = ">=2.8,<2.14"
   boto3 = "^1.28"
   braintree = ">=4.2,<4.23"
   dj-database-url = "^2"
