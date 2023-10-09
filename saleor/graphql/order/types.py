@@ -73,6 +73,7 @@ from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_311,
     ADDED_IN_313,
+    ADDED_IN_314,
     ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
@@ -728,6 +729,13 @@ class OrderLine(ModelObjectType[models.OrderLine]):
             OrderPermissions.MANAGE_ORDERS,
         ],
     )
+    sale_id = graphene.ID(
+        required=False,
+        description=(
+            "Denormalized sale ID, set when order line is created for a product "
+            "variant that is on sale." + ADDED_IN_314
+        ),
+    )
     quantity_to_fulfill = graphene.Int(
         required=True,
         description="A quantity of items remaining to be fulfilled." + ADDED_IN_31,
@@ -764,6 +772,10 @@ class OrderLine(ModelObjectType[models.OrderLine]):
             "Denormalized private metadata of the tax class. Requires staff "
             "permissions to access." + ADDED_IN_39
         ),
+    )
+    voucher_code = graphene.String(
+        required=False,
+        description="Voucher code that was used for this order line." + ADDED_IN_314,
     )
 
     class Meta:

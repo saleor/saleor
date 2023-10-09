@@ -19,6 +19,7 @@ from ..core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_36,
     ADDED_IN_313,
+    ADDED_IN_314,
     ADDED_IN_315,
     PREVIEW_FEATURE,
 )
@@ -199,6 +200,13 @@ class Payment(ModelObjectType[models.Payment]):
     )
     credit_card = graphene.Field(
         CreditCard, description="The details of the card used for this payment."
+    )
+    partial = graphene.Boolean(
+        required=True,
+        description="Informs whether this is a partial payment." + ADDED_IN_314,
+    )
+    psp_reference = graphene.String(
+        required=False, description="PSP reference of the payment." + ADDED_IN_314
     )
 
     class Meta:
