@@ -23,7 +23,7 @@ from ..core.units import WeightUnits
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import zero_weight
 from ..discount import DiscountValueType
-from ..discount.models import Voucher
+from ..discount.models import Voucher, VoucherCode
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.model_helpers import get_subtotal
@@ -305,6 +305,9 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
 
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
+    )
+    voucher_code = models.ForeignKey(
+        VoucherCode, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
     )
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="orders")
     display_gross_prices = models.BooleanField(default=True)
