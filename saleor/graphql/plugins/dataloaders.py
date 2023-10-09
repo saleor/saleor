@@ -1,6 +1,7 @@
 from collections import defaultdict
 from functools import partial, wraps
 
+from django.utils.functional import SimpleLazyObject, empty
 from promise import Promise
 
 from ...plugins.manager import PluginsManager, get_plugins_manager
@@ -46,6 +47,12 @@ class AnonymousPluginManagerLoader(DataLoader):
 def plugin_manager_promise(context: SaleorContext, app) -> Promise[PluginsManager]:
     user = context.user
     requestor = app or user
+
+    if isinstance(requestor, SimpleLazyObject):
+        if requestor._wrapped is empty:  # type: ignore[attr-defined]
+            requestor._setup()  # type: ignore[attr-defined]
+        requestor = requestor._wrapped  # type: ignore[attr-defined]
+
     if requestor is None:
         return AnonymousPluginManagerLoader(context).load("Anonymous")
     return PluginManagerByRequestorDataloader(context).load(requestor)
