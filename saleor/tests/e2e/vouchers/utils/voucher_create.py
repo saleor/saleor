@@ -19,20 +19,9 @@ mutation VoucherCreate($input: VoucherInput!) {
 """
 
 
-def create_voucher(
-    staff_api_client,
-    discountValueType,
-    code,
-    type="ENTIRE_ORDER",
-    only_for_staff=False,
-):
+def create_voucher(staff_api_client, input):
     variables = {
-        "input": {
-            "code": code,
-            "discountValueType": discountValueType,
-            "type": type,
-            "onlyForStaff": only_for_staff,
-        }
+        "input": input,
     }
 
     response = staff_api_client.post_graphql(
@@ -46,8 +35,5 @@ def create_voucher(
 
     data = content["data"]["voucherCreate"]["voucher"]
     assert data["id"] is not None
-    assert data["startDate"] is not None
-    assert data["discountValueType"] == discountValueType
-    assert data["type"] == type
 
     return data
