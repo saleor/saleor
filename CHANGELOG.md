@@ -12,6 +12,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Add transaction items deletion to cleardb command. - #14198 by @jakubkuc
+
 # 3.17.0
 
 ### Highlights
@@ -105,7 +107,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - New environment variable `PUBLIC_URL` to define URL on which Saleor is hosted (e.g., https://api.example.com/). Takes precedence over `ENABLE_SSL` and `Shop.domain` for URL generation - #13841 by @przlada
 - Add a new `updatedAt` field and a filter for product categories. - #13825 by @rafiwts
 - Made the triggering frequency of update-search Celery beat tasks customizable (settable using `BEAT_UPDATE_SEARCH_FREQUENCY`) - #14152 by @NyanKiyoshi
-- Add transaction items deletion to cleardb command. - #14198 by @jakubkuc
 
 # 3.16.0
 
