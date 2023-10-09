@@ -10833,6 +10833,13 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   allocations: [Allocation!]
 
   """
+  Denormalized sale ID, set when order line is created for a product variant that is on sale.
+  
+  Added in Saleor 3.14.
+  """
+  saleId: ID
+
+  """
   A quantity of items remaining to be fulfilled.
   
   Added in Saleor 3.1.
@@ -10871,6 +10878,13 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Added in Saleor 3.9.
   """
   taxClassPrivateMetadata: [MetadataItem!]!
+
+  """
+  Voucher code that was used for this order line.
+  
+  Added in Saleor 3.14.
+  """
+  voucherCode: String
 }
 
 """
@@ -11178,6 +11192,20 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
 
   """The details of the card used for this payment."""
   creditCard: CreditCard
+
+  """
+  Informs whether this is a partial payment.
+  
+  Added in Saleor 3.14.
+  """
+  partial: Boolean!
+
+  """
+  PSP reference of the payment.
+  
+  Added in Saleor 3.14.
+  """
+  pspReference: String
 }
 
 """An object representing a single payment."""
