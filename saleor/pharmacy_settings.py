@@ -213,11 +213,10 @@ PASSWORD_HASHERS = [
     "saleor.core.hashers.SHA512Base64PBKDF2PasswordHasher",
 ]
 
-if not SECRET_KEY and DEBUG:
-    warnings.warn("SECRET_KEY not configured, using a random temporary key.")
-    SECRET_KEY = get_random_secret_key()
-
 jwt_secret_key = google_secret_manager.get_secret_single_value("jwt_secret_key")
+# below is important as it is needed to validate the JWT token
+SECRET_KEY = jwt_secret_key
+
 jwt_private_key = google_secret_manager.get_secret_single_value("jwt_private_key")
 
 RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
