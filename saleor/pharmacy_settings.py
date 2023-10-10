@@ -92,6 +92,7 @@ DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
 google_secret_manager = GoogleSecretManager()
 db_config = google_secret_manager.get_secret("saleor_pg")
+print(db_config)
 
 db_url = "postgres://{username}:{password}@{host}:{port}/{database}".format(
     username=db_config["username"],
@@ -201,9 +202,6 @@ TEMPLATES = [
     }
 ]
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = os.environ.get("SECRET_KEY")
-
 # Additional password algorithms that can be used by Saleor.
 # The first algorithm defined by Django is the preferred one; users not using the
 # first algorithm will automatically be upgraded to it upon login
@@ -214,10 +212,10 @@ PASSWORD_HASHERS = [
 ]
 
 jwt_secret_key = google_secret_manager.get_secret_single_value("jwt_secret_key")
+jwt_private_key = google_secret_manager.get_secret_single_value("jwt_private_key")
 # below is important as it is needed to validate the JWT token
 SECRET_KEY = jwt_secret_key
 
-jwt_private_key = google_secret_manager.get_secret_single_value("jwt_private_key")
 
 RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
 RSA_PRIVATE_PASSWORD = os.environ.get("RSA_PRIVATE_PASSWORD", None)
