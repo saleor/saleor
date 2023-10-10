@@ -101,7 +101,6 @@ db_url = "postgres://{username}:{password}@{host}:{port}/{database}".format(
     database=db_config["database"],
 )
 
-print(f"db_url: {db_url}")
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
