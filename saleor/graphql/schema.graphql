@@ -12775,33 +12775,18 @@ enum TimePeriodTypeEnum {
   YEAR
 }
 
-type SiteSettingsType {
-  """"""
+"""The customer extensions for a Site Settings object."""
+type SiteSettingsType implements Node {
   id: ID!
-
-  """"""
   name: String!
-
-  """"""
   slug: String!
-
-  """"""
   pharmacyName: String!
-
-  """"""
   npi: String!
-
-  """"""
   phoneNumber: String!
-
-  """"""
   faxNumber: String!
-
-  """"""
   image: String!
-
-  """"""
-  css: String!
+  cookiesSrc: String!
+  css: String
 }
 
 type SiteSettingsList {
@@ -20486,6 +20471,9 @@ input SiteSettingsInput {
 
   """Site Settings Image"""
   image: String
+
+  """Site Settings Cookies SRC"""
+  cookiesSrc: String
 
   """Site Settings CSS"""
   css: String

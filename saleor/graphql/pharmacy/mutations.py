@@ -18,6 +18,7 @@ class SiteSettingsInput(graphene.InputObjectType):
                                    required=True)
     fax_number = graphene.String(description="Site Settings Fax Number", required=True)
     image = graphene.String(description="Site Settings Image")
+    cookies_src = graphene.String(description="Site Settings Cookies SRC")
     css = graphene.String(description="Site Settings CSS")
 
 
@@ -41,6 +42,7 @@ class SiteSettingsCreate(graphene.Mutation):
             npi=input.npi,
             phone_number=input.phone_number,
             fax_number=input.fax_number,
+            cookies_src=input.cookies_src
         )
 
         site_settings.save()
@@ -101,6 +103,7 @@ class SiteSettingsUpdate(graphene.Mutation):
         site_settings.npi = input.npi
         site_settings.phone_number = input.phone_number
         site_settings.fax_number = input.fax_number
+        site_settings.cookies_src = input.cookies_src
 
         site_settings.save()
 

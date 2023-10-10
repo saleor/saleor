@@ -14,3 +14,4 @@ class SiteSettings(models.Model):
     fax_number = models.CharField(max_length=25)
     image = models.FileField(upload_to='site/images')
     css = models.FileField(upload_to='site/css')
+    cookies_src = models.CharField(max_length=255)

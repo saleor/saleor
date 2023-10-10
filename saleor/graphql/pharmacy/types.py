@@ -19,6 +19,7 @@ class SiteSettingsType(BaseObjectType):
     phone_number = graphene.String(required=True)
     fax_number = graphene.String(required=True)
     image = graphene.String(required=True)
+    cookies_src = graphene.String(required=True)
     css = graphene.String()
 
 
