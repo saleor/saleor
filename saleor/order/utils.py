@@ -64,6 +64,7 @@ if TYPE_CHECKING:
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
     from ..discount.interface import VariantPromotionRuleInfo
+    from ..discount.models import Promotion
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
 
@@ -282,13 +283,16 @@ def create_order_line(
     if unit_discount.gross:
         if rules_info:
             line_discounts = create_order_line_discounts(line, rules_info)
+            promotion = rules_info[0].promotion
+            line.sale_id = (
+                graphene.Node.to_global_id("Sale", promotion.old_sale_id)
+                if promotion.old_sale_id
+                else graphene.Node.to_global_id("Promotion", promotion.id)
+            )
             line.unit_discount_reason = (
-                prepare_promotion_discount_reason(line_discounts)
+                prepare_promotion_discount_reason(promotion, line.sale_id)
                 if line_discounts
                 else None
-            )
-            line.sale_id = graphene.Node.to_global_id(
-                "Promotion", rules_info[0].promotion.pk
             )
 
         tax_configuration = channel.tax_configuration
@@ -352,16 +356,8 @@ def create_order_line_discounts(
     return OrderLineDiscount.objects.bulk_create(line_discounts_to_create)
 
 
-def prepare_promotion_discount_reason(line_discounts: Iterable["OrderLineDiscount"]):
-    # TODO: for old sales it should be in format: "Sale: global_id"
-    unit_discount_reason = "Promotion rules discounts: " + ", ".join(
-        [
-            discount.name
-            or graphene.Node.to_global_id("PromotionRule", discount.promotion_rule_id)
-            for discount in line_discounts
-        ]
-    )
-    return unit_discount_reason
+def prepare_promotion_discount_reason(promotion: "Promotion", sale_id: str):
+    return f"{'Sale' if promotion.old_sale_id else 'Promotion'}: {sale_id}"
 
 
 @traced_atomic_transaction()

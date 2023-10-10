@@ -151,7 +151,6 @@ def test_order_products_on_percentage_sale_CORE_1003(
     assert order_line["unitDiscount"]["amount"] == discount
     assert order_line["unitDiscountValue"] == discount
     assert order_line["unitDiscountType"] == "FIXED"
-    # TODO: to fix in separate PR
-    # assert draft_line["unitDiscountReason"] == f"Sale: {sale_id}"
+    assert draft_line["unitDiscountReason"] == f"Sale: {sale_id}"
     product_price = order_line["undiscountedUnitPrice"]["gross"]["amount"]
     assert product_price == undiscounted_price

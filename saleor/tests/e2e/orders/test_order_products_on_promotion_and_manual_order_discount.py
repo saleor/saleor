@@ -104,10 +104,7 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
         order_lines["order"]["lines"][0]["unitPrice"]["gross"]["amount"] == unit_price
     )
     promotion_reason = order_lines["order"]["lines"][0]["unitDiscountReason"]
-    assert (
-        promotion_reason
-        == f"Promotion rules discounts: {promotion_name}: {promotion_rule_name}"
-    )
+    assert promotion_reason == f"Promotion: {promotion_id}"
 
     # Step 3 - Add manual discount to the order
     manual_discount_input = {
