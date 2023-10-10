@@ -13,7 +13,7 @@ from ..core import JobStatus
 from . import events
 from .models import ExportEvent, ExportFile
 from .notifications import send_export_failed_info
-from .utils.export import export_gift_cards, export_products
+from .utils.export import export_gift_cards, export_products, export_voucher_codes
 
 task_logger = get_task_logger(__name__)
 
@@ -23,6 +23,7 @@ class ExportTask(celery.Task):
     TASK_NAME_TO_DATA_TYPE_MAPPING = {
         "export-products": "products",
         "export-gift-cards": "gift cards",
+        "export-voucher-codes": "voucher codes",
     }
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
@@ -80,8 +81,15 @@ def export_gift_cards_task(
     export_gift_cards(export_file, scope, file_type, delimiter)
 
 
-def export_voucher_codes_task():
-    pass
+@app.task(name="export-voucher-codes", base=ExportTask)
+def export_voucher_codes_task(
+    export_file_id: int,
+    scope: Dict[str, Union[str, dict]],
+    file_type: str,
+    delimiter: str = ",",
+):
+    export_file = ExportFile.objects.get(pk=export_file_id)
+    export_voucher_codes(export_file, scope, file_type, delimiter)
 
 
 @app.task

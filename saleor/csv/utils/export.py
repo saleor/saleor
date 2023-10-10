@@ -6,7 +6,9 @@ from typing import IO, TYPE_CHECKING, Any, Dict, List, Set, Union
 import petl as etl
 from django.utils import timezone
 
+from ...discount.models import VoucherCode
 from ...giftcard.models import GiftCard
+from ...graphql.discount.filters import VoucherCodeFilter
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Product
 from .. import FileTypes
@@ -93,6 +95,36 @@ def export_gift_cards(
     send_export_download_link_notification(export_file, "gift cards")
     manager = get_plugins_manager()
     manager.gift_card_export_completed(export_file)
+
+
+def export_voucher_codes(
+    export_file: "ExportFile",
+    scope: Dict[str, Union[str, dict]],
+    file_type: str,
+    delimiter: str = ",",
+):
+    file_name = get_filename("voucher_code", file_type)
+
+    queryset = get_queryset(VoucherCode, VoucherCodeFilter, scope)
+
+    export_fields = ["code"]
+    temporary_file = create_file_with_headers(export_fields, delimiter, file_type)
+
+    export_voucher_codes_in_batches(
+        queryset,
+        export_fields,
+        delimiter,
+        temporary_file,
+        file_type,
+    )
+
+    save_csv_file_in_export_file(export_file, temporary_file, file_name)
+    temporary_file.close()
+
+    send_export_download_link_notification(export_file, "voucher codes")
+    # TODO voucher codes
+    # manager = get_plugins_manager()
+    # manager.voucher_code_export_completed(export_file)
 
 
 def get_filename(model_name: str, file_type: str) -> str:
@@ -197,6 +229,21 @@ def export_gift_cards_in_batches(
         gift_card_batch = GiftCard.objects.filter(pk__in=batch_pks)
 
         export_data = list(gift_card_batch.values(*export_fields))
+
+        append_to_file(export_data, export_fields, temporary_file, file_type, delimiter)
+
+
+def export_voucher_codes_in_batches(
+    queryset: "QuerySet",
+    export_fields: List[str],
+    delimiter: str,
+    temporary_file: Any,
+    file_type: str,
+):
+    for batch_pks in queryset_in_batches(queryset):
+        voucher_codes_batch = VoucherCode.objects.filter(pk__in=batch_pks)
+
+        export_data = list(voucher_codes_batch.values(*export_fields))
 
         append_to_file(export_data, export_fields, temporary_file, file_type, delimiter)
 

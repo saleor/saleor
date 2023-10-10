@@ -18183,6 +18183,18 @@ type Mutation {
   ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: [])
 
   """
+  Export voucher codes to csv/xlsx file.
+  
+  Added in Saleor 3.18. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  exportVoucherCodes(
+    """Fields required to export voucher codes."""
+    input: ExportVoucherCodesInput!
+  ): ExportVoucherCodes @doc(category: "Discounts")
+
+  """
   Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
   
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
@@ -28202,6 +28214,42 @@ input ExportGiftCardsInput @doc(category: "Gift cards") {
 
   """Type of exported file."""
   fileType: FileTypesEnum!
+}
+
+"""
+Export voucher codes to csv/xlsx file.
+
+Added in Saleor 3.18. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
+type ExportVoucherCodes @doc(category: "Discounts") {
+  """
+  The newly created export file job which is responsible for export data.
+  """
+  exportFile: ExportFile
+  errors: [ExportError!]!
+}
+
+input ExportVoucherCodesInput @doc(category: "Discounts") {
+  """The ID of the voucher."""
+  voucherId: ID!
+
+  """Determine which voucher codes should be exported."""
+  scope: ExportScope!
+
+  """Filtering options for voucher codes."""
+  filter: VoucherCodeFilterInput
+
+  """List of voucher code IDs to export."""
+  ids: [ID!]
+
+  """Type of exported file."""
+  fileType: FileTypesEnum!
+}
+
+input VoucherCodeFilterInput @doc(category: "Discounts") {
+  metadata: [MetadataFilter!]
 }
 
 """

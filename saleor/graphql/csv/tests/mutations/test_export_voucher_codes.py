@@ -55,17 +55,21 @@ EXPORT_VOUCHER_CODES_MUTATION = """
         # ),
     ],
 )
-@patch("saleor.graphql.csv.mutations.export_voucher_codes.export_voucher_codes_task.delay")
+@patch(
+    "saleor.graphql.csv.mutations.export_voucher_codes.export_voucher_codes_task.delay"
+)
 def test_export_voucher_codes(
     export_voucher_codes_mock,
     input,
     called_data,
     staff_api_client,
-    voucher_list,
+    voucher_with_many_codes,
     permission_manage_apps,
     permission_manage_discounts,
 ):
     user = staff_api_client.user
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher_with_many_codes.id)
+    input["voucherId"] = voucher_id
     variables = {"input": input}
     response = staff_api_client.post_graphql(
         EXPORT_VOUCHER_CODES_MUTATION,
