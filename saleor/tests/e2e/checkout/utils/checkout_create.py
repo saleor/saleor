@@ -75,6 +75,9 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
         undiscountedUnitPrice {
           amount
         }
+        variant {
+          id
+        }
       }
     }
   }
