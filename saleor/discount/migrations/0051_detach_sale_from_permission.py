@@ -32,13 +32,13 @@ def create_permissions(
     Permission = apps.get_model("permission", "Permission")
     searched_perms = []
     ctypes = set()
-    for klass in app_config.get_models():
+    for model in app_config.get_models():
         ctype = ContentType.objects.db_manager(using).get_for_model(
-            klass, for_concrete_model=False
+            model, for_concrete_model=False
         )
 
         ctypes.add(ctype)
-        for perm in _get_all_permissions(klass._meta):
+        for perm in _get_all_permissions(model._meta):
             searched_perms.append((ctype, perm))
     all_perms = set(
         Permission.objects.using(using)
