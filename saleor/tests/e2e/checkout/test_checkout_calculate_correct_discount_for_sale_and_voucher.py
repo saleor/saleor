@@ -57,12 +57,12 @@ def prepare_voucher(
     voucher_discount_type,
     voucher_discount_value,
 ):
-    voucher_data = create_voucher(
-        e2e_staff_api_client,
-        voucher_discount_type,
-        voucher_code,
-        "ENTIRE_ORDER",
-    )
+    input = {
+        "code": voucher_code,
+        "discountValueType": voucher_discount_type,
+        "type": "ENTIRE_ORDER",
+    }
+    voucher_data = create_voucher(e2e_staff_api_client, input)
     voucher_id = voucher_data["id"]
     channel_listing = [
         {

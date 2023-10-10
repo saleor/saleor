@@ -22,12 +22,13 @@ def prepare_fixed_voucher(
     voucher_discount_value,
     voucher_type,
 ):
-    voucher_data = create_voucher(
-        e2e_staff_api_client,
-        voucher_discount_type,
-        voucher_code,
-        voucher_type,
-    )
+    input = {
+        "code": voucher_code,
+        "discountValueType": voucher_discount_type,
+        "type": voucher_type,
+    }
+    voucher_data = create_voucher(e2e_staff_api_client, input)
+
     voucher_id = voucher_data["id"]
     channel_listing = [
         {
