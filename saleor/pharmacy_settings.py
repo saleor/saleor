@@ -92,7 +92,6 @@ DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
 google_secret_manager = GoogleSecretManager()
 db_config = google_secret_manager.get_secret("saleor_pg")
-print(db_config)
 
 db_url = "postgres://{username}:{password}@{host}:{port}/{database}".format(
     username=db_config["username"],
@@ -101,6 +100,8 @@ db_url = "postgres://{username}:{password}@{host}:{port}/{database}".format(
     port=db_config["port"],
     database=db_config["database"],
 )
+
+print(f"db_url: {db_url}")
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
