@@ -17,6 +17,7 @@ def sales_for_sorting_with_channels(db, channel_USD, channel_PLN):
             Promotion(name="Sale15"),
         ]
     )
+
     for promotion in promotions:
         promotion.assign_old_sale_id()
 
@@ -64,14 +65,8 @@ def sales_for_sorting_with_channels(db, channel_USD, channel_PLN):
             ),
         ]
     )
-    rules[0].channels.add(channel_USD)
-    rules[1].channels.add(channel_PLN)
-    rules[2].channels.add(channel_USD)
-    rules[3].channels.add(channel_PLN)
-    rules[4].channels.add(channel_USD)
-    rules[5].channels.add(channel_PLN)
-    rules[6].channels.add(channel_USD)
-    rules[7].channels.add(channel_PLN)
+    channel_USD.promotionrule_set.add(rules[0], rules[2], rules[4], rules[6])
+    channel_PLN.promotionrule_set.add(rules[1], rules[3], rules[5], rules[7])
 
     promotions[4].save()
     promotions[2].save()
