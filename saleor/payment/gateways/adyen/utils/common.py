@@ -339,7 +339,7 @@ def request_data_for_gateway_config(
 ) -> Dict[str, Any]:
     manager = get_plugins_manager()
     checkout = checkout_info.checkout
-    address = checkout_info.billing_address or checkout_info.shipping_address
+    address = checkout_info.shipping_address or checkout_info.billing_address
     lines = lines or []
     total = checkout_total(
         manager=manager,
