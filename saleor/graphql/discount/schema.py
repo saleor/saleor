@@ -19,7 +19,7 @@ from ..translations.mutations import (
     SaleTranslate,
     VoucherTranslate,
 )
-from .filters import PromotionWhereInput, SaleFilter, VoucherFilter
+from .filters import PromotionWhereInput, SaleFilter, VoucherCodeFilter, VoucherFilter
 from .mutations import (
     PromotionBulkDelete,
     PromotionCreate,
@@ -66,6 +66,12 @@ class VoucherFilterInput(FilterInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS
         filterset_class = VoucherFilter
+
+
+class VoucherCodeFilterInput(FilterInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+        filterset_class = VoucherCodeFilter
 
 
 class SaleFilterInput(FilterInputObjectType):
