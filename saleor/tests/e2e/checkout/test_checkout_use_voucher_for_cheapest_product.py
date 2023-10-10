@@ -183,6 +183,7 @@ def test_checkout_use_voucher_for_cheapest_product_0907(
 
     second_line = checkout_lines[1]
     assert second_line["unitPrice"]["gross"]["amount"] == float(second_variant_price)
+    assert second_line["undiscountedUnitPrice"]["amount"] == float(second_variant_price)
     subtotal_amount = checkout_data["subtotalPrice"]["gross"]["amount"]
     assert subtotal_amount == round(
         discounted_first_line_price + float(second_variant_price), 2
