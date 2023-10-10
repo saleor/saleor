@@ -7926,7 +7926,7 @@ type ProductPricingInfo @doc(category: "Products") {
   discountLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
 
   """
-  Determines whether displayed prices should include taxes.
+  Determines whether this product's price displayed in a storefront should include taxes.
 
   Added in Saleor 3.9.
   """
@@ -10754,7 +10754,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   transactions: [TransactionItem!]
 
   """
-  Determines whether displayed prices should include taxes.
+  Determines whether checkout prices should include taxes when displayed in a storefront.
 
   Added in Saleor 3.9.
   """
@@ -11634,7 +11634,7 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   errors: [OrderError!]!
 
   """
-  Determines whether displayed prices should include taxes.
+  Determines whether checkout prices should include taxes when displayed in a storefront.
 
   Added in Saleor 3.9.
   """

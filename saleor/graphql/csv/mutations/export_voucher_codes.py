@@ -18,6 +18,7 @@ from .base_export import BaseExportMutation
 
 
 class ExportVoucherCodesInput(BaseInputObjectType):
+    voucher_id = graphene.GlobalID(required=True, description="The ID of the voucher.")
     scope = ExportScope(
         description="Determine which voucher codes should be exported.", required=True
     )
@@ -47,6 +48,7 @@ class ExportVoucherCodes(BaseExportMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = ExportError
         webhook_events_info = [
+            # TODO voucher codes
             # WebhookEventInfo(
             #     type=WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED,
             #     description="A notification for the exported file.",
