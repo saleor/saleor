@@ -80,6 +80,10 @@ def export_gift_cards_task(
     export_gift_cards(export_file, scope, file_type, delimiter)
 
 
+def export_voucher_codes_task():
+    pass
+
+
 @app.task
 def delete_old_export_files():
     now = timezone.now()
