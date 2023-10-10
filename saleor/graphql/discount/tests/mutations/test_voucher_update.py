@@ -95,6 +95,45 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert data["codes"]["edges"][1]["node"]["code"] == new_code
 
 
+def test_update_voucher_without_codes(
+    staff_api_client, voucher, permission_manage_discounts
+):
+    # given
+    apply_once_per_order = not voucher.apply_once_per_order
+    single_use = not voucher.single_use
+    # Set discount value type to 'fixed' and change it in mutation
+    voucher.discount_value_type = DiscountValueType.FIXED
+    voucher.save(update_fields=["discount_value_type"])
+    assert voucher.codes.count() == 1
+
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {
+            "usageLimit": 10,
+            "singleUse": single_use,
+            "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
+            "applyOncePerOrder": apply_once_per_order,
+            "minCheckoutItemsQuantity": 10,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["voucherUpdate"]["voucher"]
+    voucher.refresh_from_db()
+
+    # then
+    assert voucher.codes.count() == 1
+    assert data["discountValueType"] == DiscountValueType.PERCENTAGE.upper()
+    assert data["applyOncePerOrder"] == apply_once_per_order
+    assert data["singleUse"] == single_use
+    assert data["minCheckoutItemsQuantity"] == 10
+    assert data["usageLimit"] == 10
+
+
 @freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
