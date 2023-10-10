@@ -40,7 +40,9 @@ class VoucherInput(BaseInputObjectType):
         required=False, description="Code to use the voucher." + DEPRECATED_IN_3X_FIELD
     )
     codes = NonNullList(
-        VoucherCodeInput, description="Codes to use the voucher." + ADDED_IN_318
+        VoucherCodeInput,
+        required=False,
+        description="Codes to use the voucher." + ADDED_IN_318,
     )
     start_date = graphene.types.datetime.DateTime(
         description="Start date of the voucher in ISO 8601 format."
@@ -192,7 +194,8 @@ class VoucherCreate(ModelMutation):
 
         if "code" in data:
             cls._clean_old_code(data)
-        else:
+
+        if "codes" in data:
             cls._clean_new_codes(data)
 
     @classmethod
@@ -206,7 +209,8 @@ class VoucherCreate(ModelMutation):
                     voucher=voucher_instance,
                 )
             ]
-        else:
+
+        if codes_data:
             return [
                 models.VoucherCode(
                     code=code_data["code"],
@@ -214,6 +218,8 @@ class VoucherCreate(ModelMutation):
                 )
                 for code_data in codes_data
             ]
+
+        return []
 
     @classmethod
     def clean_voucher_instance(cls, info: ResolveInfo, voucher_instance):
@@ -272,10 +278,12 @@ class VoucherCreate(ModelMutation):
         )
 
         cls.clean_voucher_instance(info, voucher_instance)
-        cls.clean_codes_instance(code_instances)
+
+        if code_instances:
+            cls.clean_codes_instance(code_instances)
 
         has_multiple_codes = bool(codes_data)
         cls.save(info, voucher_instance, code_instances, has_multiple_codes)
 
-        cls.post_save_action(info, voucher_instance, code_instances[0].code)
+        cls.post_save_action(info, voucher_instance, voucher_instance.code)
         return cls.success_response(voucher_instance)
