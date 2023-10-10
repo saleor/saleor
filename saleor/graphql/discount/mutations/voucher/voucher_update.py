@@ -39,7 +39,8 @@ class VoucherUpdate(VoucherCreate):
     def clean_codes(cls, data):
         if "code" in data:
             cls._clean_old_code(data)
-        else:
+
+        if "codes" in data:
             cls._clean_new_codes(data)
 
     @classmethod
@@ -69,6 +70,8 @@ class VoucherUpdate(VoucherCreate):
                         )
                     }
                 )
+
+        return []
 
     @classmethod
     def save(  # type: ignore[override]

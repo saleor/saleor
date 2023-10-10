@@ -228,7 +228,7 @@ def test_create_voucher_trigger_webhook(
             {
                 "id": graphene.Node.to_global_id("Voucher", voucher.id),
                 "name": voucher.name,
-                "code": code_1,
+                "code": code_2,
                 "meta": generate_meta(
                     requestor_data=generate_requestor(
                         SimpleLazyObject(lambda: staff_api_client.user)
