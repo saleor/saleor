@@ -150,7 +150,6 @@ def test_order_products_on_fixed_sale_CORE_1001(
     assert order_line["unitDiscount"]["amount"] == sale_discount_value
     assert order_line["unitDiscountValue"] == sale_discount_value
     assert order_line["unitDiscountType"] == "FIXED"
-    # TODO: to fix in separate PR
-    # assert draft_line["unitDiscountReason"] == f"Sale: {sale_id}"
+    assert draft_line["unitDiscountReason"] == f"Sale: {sale_id}"
     product_price = order_line["undiscountedUnitPrice"]["gross"]["amount"]
     assert product_price == undiscounted_price

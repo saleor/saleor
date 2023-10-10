@@ -311,11 +311,16 @@ def _create_line_for_order(
         # This is temporary solution until the discount API is implemented.
         # Ultimately, this info should be taken from the orderLineDiscount instances.
 
-        # TODO: this should be old_sale_id for old sales
-        line.sale_id = graphene.Node.to_global_id(
-            "Promotion", checkout_line_info.rules_info[0].promotion.pk
+        promotion = checkout_line_info.rules_info[0].promotion
+        sale_id = (
+            graphene.Node.to_global_id("Sale", promotion.old_sale_id)
+            if promotion.old_sale_id
+            else graphene.Node.to_global_id("Promotion", promotion.id)
         )
-        promotion_discount_reason = prepare_promotion_discount_reason(line_discounts)
+        line.sale_id = sale_id
+        promotion_discount_reason = prepare_promotion_discount_reason(
+            promotion, sale_id
+        )
         unit_discount_reason = (
             f"{unit_discount_reason} & {promotion_discount_reason}"
             if unit_discount_reason

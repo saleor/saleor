@@ -164,6 +164,7 @@ def prepare_product(
         product_variant_id_1,
         product_variant_id_2,
         shipping_method_id,
+        promotion_id,
     )
 
 
@@ -200,6 +201,7 @@ def test_order_products_from_category_on_fixed_promotion_CORE_2106(
         product_variant_id_1,
         product_variant_id_2,
         shipping_method_id,
+        promotion_id,
     ) = prepare_product(
         e2e_staff_api_client,
         permission_manage_products,
@@ -260,10 +262,7 @@ def test_order_products_from_category_on_fixed_promotion_CORE_2106(
     )
 
     promotion_reason = order_lines["order"]["lines"][0]["unitDiscountReason"]
-    assert (
-        promotion_reason
-        == f"Promotion rules discounts: {promotion_name}: {promotion_rule_name}"
-    )
+    assert promotion_reason == f"Promotion: {promotion_id}"
 
     # Step 3 - Add a shipping method to the order
     input = {"shippingMethod": shipping_method_id}

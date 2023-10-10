@@ -631,10 +631,7 @@ def test_order_lines_create_variant_on_promotion(
     )
     assert line.unit_discount_amount == reward_value
     assert line.unit_discount_value == reward_value
-    assert (
-        line.unit_discount_reason
-        == f"Promotion rules discounts: {promotion_without_rules.name}: {rule.name}"
-    )
+    assert line.unit_discount_reason == f"Promotion: {line.sale_id}"
     assert line.discounts.count() == 1
     discount = line.discounts.first()
     assert discount.promotion_rule == rule
