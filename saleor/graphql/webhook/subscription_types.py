@@ -1437,7 +1437,7 @@ class TransactionAction(SubscriptionObjectType, AbstractType):
 
     @staticmethod
     def resolve_amount(root: TransactionActionData, _info: ResolveInfo):
-        if root.action_value:
+        if root.action_value is not None:
             return quantize_price(root.action_value, root.transaction.currency)
         return None
 
