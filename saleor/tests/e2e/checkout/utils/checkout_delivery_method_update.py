@@ -17,6 +17,12 @@ mutation checkoutDeliveryMethodUpdate($checkoutId: ID!, $deliveryMethodId: ID!) 
         gross {
           amount
         }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
       }
       subtotalPrice {
         gross {
@@ -25,6 +31,17 @@ mutation checkoutDeliveryMethodUpdate($checkoutId: ID!, $deliveryMethodId: ID!) 
       }
       shippingMethods {
         id
+      }
+      shippingPrice {
+        gross {
+          amount
+        }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
       }
       deliveryMethod {
         ... on ShippingMethod {

@@ -21,6 +21,12 @@ mutation CheckoutComplete($checkoutId: ID!) {
         gross {
           amount
         }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
       }
       paymentStatus
       statusDisplay
@@ -45,6 +51,12 @@ mutation CheckoutComplete($checkoutId: ID!) {
       }
       shippingPrice {
         gross {
+          amount
+        }
+        net {
+          amount
+        }
+        tax {
           amount
         }
       }
