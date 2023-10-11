@@ -2,7 +2,6 @@ from decimal import Decimal
 from functools import wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
 
-import graphene
 from django.db.models import QuerySet, Sum
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -27,6 +26,8 @@ from ..discount.utils import (
     get_discount_name,
     get_discount_translated_name,
     get_products_voucher_discount,
+    get_sale_id,
+    prepare_promotion_discount_reason,
     validate_voucher_in_order,
 )
 from ..giftcard import events as gift_card_events
@@ -64,7 +65,6 @@ if TYPE_CHECKING:
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
     from ..discount.interface import VariantPromotionRuleInfo
-    from ..discount.models import Promotion
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
 
@@ -284,11 +284,7 @@ def create_order_line(
         if rules_info:
             line_discounts = create_order_line_discounts(line, rules_info)
             promotion = rules_info[0].promotion
-            line.sale_id = (
-                graphene.Node.to_global_id("Sale", promotion.old_sale_id)
-                if promotion.old_sale_id
-                else graphene.Node.to_global_id("Promotion", promotion.id)
-            )
+            line.sale_id = get_sale_id(promotion)
             line.unit_discount_reason = (
                 prepare_promotion_discount_reason(promotion, line.sale_id)
                 if line_discounts
@@ -354,10 +350,6 @@ def create_order_line_discounts(
         )
 
     return OrderLineDiscount.objects.bulk_create(line_discounts_to_create)
-
-
-def prepare_promotion_discount_reason(promotion: "Promotion", sale_id: str):
-    return f"{'Sale' if promotion.old_sale_id else 'Promotion'}: {sale_id}"
 
 
 @traced_atomic_transaction()
