@@ -40,7 +40,7 @@ class VoucherUpdate(VoucherCreate):
         if "code" in data:
             cls._clean_old_code(data)
 
-        if "codes" in data:
+        if "add_codes" in data:
             cls._clean_new_codes(data)
 
     @classmethod
@@ -50,10 +50,10 @@ class VoucherUpdate(VoucherCreate):
         if codes_data:
             return [
                 models.VoucherCode(
-                    code=code_data["code"],
+                    code=code,
                     voucher=voucher_instance,
                 )
-                for code_data in codes_data
+                for code in codes_data
             ]
 
         if code:

@@ -65,9 +65,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
         "input": {
-            "codes": [
-                {"code": new_code},
-            ],
+            "addCodes": [new_code],
             "usageLimit": 10,
             "singleUse": single_use,
             "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
@@ -92,7 +90,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert data["singleUse"] == single_use
     assert data["minCheckoutItemsQuantity"] == 10
     assert data["usageLimit"] == 10
-    assert data["codes"]["edges"][1]["node"]["code"] == new_code
+    assert data["codes"]["edges"][0]["node"]["code"] == new_code
 
 
 def test_update_voucher_without_codes(
@@ -153,11 +151,7 @@ def test_update_voucher_trigger_webhook(
 
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
-        "input": {
-            "codes": [
-                {"code": new_code},
-            ]
-        },
+        "input": {"addCodes": [new_code]},
     }
 
     # when
