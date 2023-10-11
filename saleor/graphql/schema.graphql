@@ -18183,7 +18183,7 @@ type Mutation {
   ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: [])
 
   """
-  Export voucher codes to csv/xlsx file.
+  Export active voucher codes to csv/xlsx file.
   
   Added in Saleor 3.18. 
   
@@ -28217,7 +28217,7 @@ input ExportGiftCardsInput @doc(category: "Gift cards") {
 }
 
 """
-Export voucher codes to csv/xlsx file.
+Export active voucher codes to csv/xlsx file.
 
 Added in Saleor 3.18. 
 

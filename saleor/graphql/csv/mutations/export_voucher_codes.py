@@ -13,7 +13,6 @@ from ...core.descriptions import ADDED_IN_318
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.types import BaseInputObjectType, ExportError, NonNullList
 from ...core.utils import WebhookEventInfo, raise_validation_error
-from ...discount.types import VoucherCode
 from ..enums import FileTypeEnum
 from .base_export import BaseExportMutation
 
@@ -44,7 +43,7 @@ class ExportVoucherCodes(BaseExportMutation):
         )
 
     class Meta:
-        description = "Export voucher codes to csv/xlsx file." + ADDED_IN_318
+        description = "Export active voucher codes to csv/xlsx file." + ADDED_IN_318
         doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = ExportError
@@ -69,6 +68,13 @@ class ExportVoucherCodes(BaseExportMutation):
                     ' or use "ids" to specify which codes to export.'
                 ),
                 code=ExportErrorCode.INVALID,
+            )
+
+        if not (voucher_id and ids):
+            raise_validation_error(
+                field=None,
+                message=('One of arguments: "voucherId" or "ids" must be provided.'),
+                code=ExportErrorCode.REQUIRED,
             )
 
         if voucher_id:
@@ -102,6 +108,8 @@ class ExportVoucherCodes(BaseExportMutation):
     ):
         cls.clean_input(input)
         file_type = input["file_type"]
+        ids = input.get("ids") or []
+        voucher_id = input.get("voucher_id")
 
         app = get_app_promise(info.context).get()
 
@@ -109,7 +117,7 @@ class ExportVoucherCodes(BaseExportMutation):
             app=app, user=info.context.user
         )
         export_started_event(export_file=export_file, app=app, user=info.context.user)
-        export_voucher_codes_task.delay(export_file.pk, file_type)
+        export_voucher_codes_task.delay(export_file.pk, voucher_id, ids, file_type)
 
         export_file.refresh_from_db()
         return cls(export_file=export_file)

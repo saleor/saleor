@@ -1,14 +1,13 @@
 import uuid
 from datetime import date, datetime
 from tempfile import NamedTemporaryFile
-from typing import IO, TYPE_CHECKING, Any, Dict, List, Set, Union
+from typing import IO, TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
 import petl as etl
 from django.utils import timezone
 
 from ...discount.models import VoucherCode
 from ...giftcard.models import GiftCard
-from ...graphql.discount.filters import VoucherCodeFilter
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Product
 from .. import FileTypes
@@ -99,19 +98,24 @@ def export_gift_cards(
 
 def export_voucher_codes(
     export_file: "ExportFile",
-    scope: Dict[str, Union[str, dict]],
+    voucher_id: Optional[int],
+    ids: List[int],
     file_type: str,
     delimiter: str = ",",
 ):
     file_name = get_filename("voucher_code", file_type)
 
-    queryset = get_queryset(VoucherCode, VoucherCodeFilter, scope)
+    qs = VoucherCode.objects.filter(is_active=True)
+    if voucher_id:
+        qs = qs.filter(voucher_id=voucher_id).all()
+    if ids:
+        qs = qs.filter(id__in=ids).all()
 
     export_fields = ["code"]
     temporary_file = create_file_with_headers(export_fields, delimiter, file_type)
 
     export_voucher_codes_in_batches(
-        queryset,
+        qs,
         export_fields,
         delimiter,
         temporary_file,
