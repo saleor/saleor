@@ -18,6 +18,7 @@ from typing import (
 )
 from uuid import UUID
 
+import graphene
 from django.db.models import Exists, F, OuterRef, QuerySet
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
@@ -86,6 +87,18 @@ def release_voucher_usage(voucher: Optional["Voucher"], user_email: Optional[str
         decrease_voucher_usage(voucher)
     if user_email:
         remove_voucher_usage_by_customer(voucher, user_email)
+
+
+def prepare_promotion_discount_reason(promotion: "Promotion", sale_id: str):
+    return f"{'Sale' if promotion.old_sale_id else 'Promotion'}: {sale_id}"
+
+
+def get_sale_id(promotion: "Promotion"):
+    return (
+        graphene.Node.to_global_id("Sale", promotion.old_sale_id)
+        if promotion.old_sale_id
+        else graphene.Node.to_global_id("Promotion", promotion.id)
+    )
 
 
 def calculate_discounted_price_for_rules(
