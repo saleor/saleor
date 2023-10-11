@@ -1,6 +1,8 @@
 import graphene
+from graphql import GraphQLError
 
 from ....csv import models as csv_models
+from ....csv.error_codes import ExportErrorCode
 from ....csv.events import export_started_event
 from ....csv.tasks import export_voucher_codes_task
 from ....permission.enums import DiscountPermissions
@@ -10,20 +12,19 @@ from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_318
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.types import BaseInputObjectType, ExportError, NonNullList
-from ...core.utils import WebhookEventInfo
-from ...discount.schema import VoucherCodeFilterInput
+from ...core.utils import WebhookEventInfo, raise_validation_error
 from ...discount.types import VoucherCode
-from ..enums import ExportScope, FileTypeEnum
+from ..enums import FileTypeEnum
 from .base_export import BaseExportMutation
 
 
 class ExportVoucherCodesInput(BaseInputObjectType):
-    voucher_id = graphene.GlobalID(required=True, description="The ID of the voucher.")
-    scope = ExportScope(
-        description="Determine which voucher codes should be exported.", required=True
-    )
-    filter = VoucherCodeFilterInput(
-        description="Filtering options for voucher codes.", required=False
+    voucher_id = graphene.GlobalID(
+        required=False,
+        description=(
+            "The ID of the voucher. "
+            "If provided, exports all codes belonging to the voucher."
+        ),
     )
     ids = NonNullList(
         graphene.ID,
@@ -56,10 +57,50 @@ class ExportVoucherCodes(BaseExportMutation):
         ]
 
     @classmethod
+    def clean_input(cls, input):
+        voucher_id = input.get("voucher_id")
+        ids = input.get("ids") or []
+        if voucher_id and ids:
+            raise_validation_error(
+                field=None,
+                message=(
+                    'You can\'t provide both "voucherId" and "ids".'
+                    'Use "voucherId" to export all the codes belonging to the voucher'
+                    ' or use "ids" to specify which codes to export.'
+                ),
+                code=ExportErrorCode.INVALID,
+            )
+
+        if voucher_id:
+            try:
+                input["voucher_id"] = cls.get_global_id_or_error(
+                    id=voucher_id, only_type="Voucher"
+                )
+            except GraphQLError as e:
+                raise_validation_error(
+                    field="voucherId",
+                    message=f"Invalid voucher id: {str(e)}.",
+                    code=ExportErrorCode.INVALID,
+                )
+
+        if ids:
+            try:
+                input["ids"] = cls.get_global_ids_or_error(
+                    ids=ids, only_type="VoucherCode"
+                )
+            except GraphQLError as e:
+                raise_validation_error(
+                    field="ids",
+                    message=f"Invalid voucher code ids: {str(e)}.",
+                    code=ExportErrorCode.INVALID,
+                )
+        return input
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, input
     ):
-        scope = cls.get_scope(input, VoucherCode)
+        cls.clean_input(input)
         file_type = input["file_type"]
 
         app = get_app_promise(info.context).get()
@@ -68,7 +109,7 @@ class ExportVoucherCodes(BaseExportMutation):
             app=app, user=info.context.user
         )
         export_started_event(export_file=export_file, app=app, user=info.context.user)
-        export_voucher_codes_task.delay(export_file.pk, scope, file_type)
+        export_voucher_codes_task.delay(export_file.pk, file_type)
 
         export_file.refresh_from_db()
         return cls(export_file=export_file)

@@ -28232,24 +28232,16 @@ type ExportVoucherCodes @doc(category: "Discounts") {
 }
 
 input ExportVoucherCodesInput @doc(category: "Discounts") {
-  """The ID of the voucher."""
-  voucherId: ID!
-
-  """Determine which voucher codes should be exported."""
-  scope: ExportScope!
-
-  """Filtering options for voucher codes."""
-  filter: VoucherCodeFilterInput
+  """
+  The ID of the voucher. If provided, exports all codes belonging to the voucher.
+  """
+  voucherId: ID
 
   """List of voucher code IDs to export."""
   ids: [ID!]
 
   """Type of exported file."""
   fileType: FileTypesEnum!
-}
-
-input VoucherCodeFilterInput @doc(category: "Discounts") {
-  metadata: [MetadataFilter!]
 }
 
 """
