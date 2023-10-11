@@ -104,6 +104,7 @@ def test_pay_for_checkout_with_gift_card_core_1101(
         e2e_logged_api_client,
         checkout_id,
         total_gross_amount,
+        token="fully_charged",
     )
     assert create_payment["errors"] == []
     assert create_payment["checkout"]["id"] == checkout_id

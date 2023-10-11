@@ -11,6 +11,13 @@ mutation VoidOrder ($id:ID!){
     order {
       id
       status
+      payments {
+        id
+      }
+      statusDisplay
+      events {
+        type
+      }
     }
   }
 }
@@ -46,4 +53,4 @@ def order_void(
 
     assert response["errors"] == []
 
-    return response["orderVoid"]
+    return response
