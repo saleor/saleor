@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "saleor"
-version = "3.17.0-a.0"
+version = "3.17.0"
 description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
 authors = [ "Saleor Commerce <hello@saleor.io>" ]
 license = "BSD-3-Clause"
@@ -16,7 +16,6 @@ documentation = "https://docs.saleor.io/"
   braintree = ">=4.2,<4.23"
   dj-database-url = "^2"
   dj-email-url = "^1"
-  django = {version = "^3.2.16", extras = ["bcrypt"]}
   django-countries = "^7.2"
   django-filter = "^23.1"
   django-measurement = "^3.0"
@@ -41,13 +40,12 @@ documentation = "https://docs.saleor.io/"
   sentry-sdk = "^1.28"
   stripe = "^3.0.0"
   text-unidecode = "^1.2"
-  # libpango >=1.44 is required
   weasyprint = ">=53.0"
   oauthlib = "^3.1"
   jaeger-client = "^4.5.0"
   openpyxl = "^3.0.3"
   django-cache-url = "^3.1.2"
-  pyjwt = "2.5.0" # Version 2.6.0 changed iat validation which causes tests to fail: https://github.com/saleor/saleor/issues/11047
+  pyjwt = "2.5.0"
   python-json-logger = ">=0.1.11,<2.1.0"
   pytimeparse = "^1.1.8"
   python-magic = "^0.4.27"
@@ -67,11 +65,18 @@ documentation = "https://docs.saleor.io/"
   posuto = "^2023.2.0"
   cryptography = "^41.0.4"
   graphene = "<3.0"
-  uvicorn = {extras = ["standard"], version = "^0.23.1"}
   Authlib = "^1.0.0"
   pillow-avif-plugin = "^1.3.1"
   semantic-version = "^2.10.0"
   requests-hardened = "1.0.0b2"
+
+    [tool.poetry.dependencies.django]
+    version = "^3.2.16"
+    extras = [ "bcrypt" ]
+
+    [tool.poetry.dependencies.uvicorn]
+    extras = [ "standard" ]
+    version = "^0.23.1"
 
     [tool.poetry.dependencies.celery]
     version = ">=4.4.5,<6.0.0"
