@@ -11,38 +11,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: rlespinasse/github-slug-action@e4699e49fcf890a3172a02c56ba78d867dbb9fd5
+      - run: exit 1
+    #   - uses: rlespinasse/github-slug-action@e4699e49fcf890a3172a02c56ba78d867dbb9fd5
 
-      - name: Build and push
-        uses: kciter/aws-ecr-action@deed28ca73d748eba97d98847f903a3a77e702ad
-        with:
-          access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          account_id: ${{ secrets.AWS_ACCOUNT_ID }}
-          repo: saleor-testenvs
-          region: us-east-1
-          tags: ${{ env.GITHUB_HEAD_REF_SLUG_URL }},${{ github.sha }}
+    #   - name: Build and push
+    #     uses: kciter/aws-ecr-action@deed28ca73d748eba97d98847f903a3a77e702ad
+    #     with:
+    #       access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #       secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #       account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+    #       repo: saleor-testenvs
+    #       region: us-east-1
+    #       tags: ${{ env.GITHUB_HEAD_REF_SLUG_URL }},${{ github.sha }}
 
-      - name: Get pull number
-        run: |
-          echo "PULL_ID=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+    #   - name: Get pull number
+    #     run: |
+    #       echo "PULL_ID=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
 
-      - name: Invoke deployment lambda
-        uses: gagoar/invoke-aws-lambda@d3a63ccabbed6ef817604ef6320096bde576ad40
-        with:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          REGION: us-east-1
-          FunctionName: migrations-perf-test-manager
-          Payload: >-
-            {
-              "action": "${{ github.event.action }}",
-              "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
-              "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
-              "pr_id": "${{ env.PULL_ID }}",
-              "commit_hash": "${{ github.sha }}"
-            }
-          LogType: Tail
+    #   - name: Invoke deployment lambda
+    #     uses: gagoar/invoke-aws-lambda@d3a63ccabbed6ef817604ef6320096bde576ad40
+    #     with:
+    #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #       REGION: us-east-1
+    #       FunctionName: migrations-perf-test-manager
+    #       Payload: >-
+    #         {
+    #           "action": "${{ github.event.action }}",
+    #           "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
+    #           "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
+    #           "pr_id": "${{ env.PULL_ID }}",
+    #           "commit_hash": "${{ github.sha }}"
+    #         }
+    #       LogType: Tail
 
   cleanup:
     name: Cleanup after migrations performance test
@@ -50,25 +51,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: rlespinasse/github-slug-action@e4699e49fcf890a3172a02c56ba78d867dbb9fd5
+      - run: exit 1
+    #   - uses: rlespinasse/github-slug-action@e4699e49fcf890a3172a02c56ba78d867dbb9fd5
 
-      - name: Get pull number
-        run: |
-          echo "PULL_ID=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+    #   - name: Get pull number
+    #     run: |
+    #       echo "PULL_ID=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
 
-      - name: Invoke deployment lambda
-        uses: gagoar/invoke-aws-lambda@d3a63ccabbed6ef817604ef6320096bde576ad40
-        with:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          REGION: us-east-1
-          FunctionName: migrations-perf-test-manager
-          Payload: >-
-            {
-              "action": "${{ github.event.action }}",
-              "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
-              "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
-              "pr_id": "${{ env.PULL_ID }}",
-              "commit_hash": "${{ github.sha }}"
-            }
-          LogType: Tail
+    #   - name: Invoke deployment lambda
+    #     uses: gagoar/invoke-aws-lambda@d3a63ccabbed6ef817604ef6320096bde576ad40
+    #     with:
+    #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #       REGION: us-east-1
+    #       FunctionName: migrations-perf-test-manager
+    #       Payload: >-
+    #         {
+    #           "action": "${{ github.event.action }}",
+    #           "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
+    #           "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
+    #           "pr_id": "${{ env.PULL_ID }}",
+    #           "commit_hash": "${{ github.sha }}"
+    #         }
+    #       LogType: Tail

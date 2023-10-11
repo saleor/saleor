@@ -1,0 +1,21 @@
+name: "Migration performance test required"
+on:
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - "**/migrations/**"
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+jobs:
+  # Enforcing the decision whether a change should have a migration performance test
+  # if migrations have been changed.
+  changelog:
+    # TODO: skip migrations perf test - trigger migrations perf test workflow
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check if migrations perf test is required
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip migrations perf test') && !contains(github.event.pull_request.labels.*.name, 'migrations perf test') }}
+        run: exit 1
