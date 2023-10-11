@@ -1,5 +1,5 @@
 import graphene
-from graphql import GraphQLError
+from django.core.exceptions import ValidationError
 
 from ....csv import models as csv_models
 from ....csv.error_codes import ExportErrorCode
@@ -70,10 +70,12 @@ class ExportVoucherCodes(BaseExportMutation):
                 code=ExportErrorCode.INVALID,
             )
 
-        if not (voucher_id and ids):
+        if not voucher_id and not ids:
             raise_validation_error(
                 field=None,
-                message=('One of arguments: "voucherId" or "ids" must be provided.'),
+                message=(
+                    'One of the following arguments is required: "voucherId" or "ids".'
+                ),
                 code=ExportErrorCode.REQUIRED,
             )
 
@@ -82,10 +84,10 @@ class ExportVoucherCodes(BaseExportMutation):
                 input["voucher_id"] = cls.get_global_id_or_error(
                     id=voucher_id, only_type="Voucher"
                 )
-            except GraphQLError as e:
+            except ValidationError:
                 raise_validation_error(
                     field="voucherId",
-                    message=f"Invalid voucher id: {str(e)}.",
+                    message="Invalid voucher ID.",
                     code=ExportErrorCode.INVALID,
                 )
 
@@ -94,10 +96,10 @@ class ExportVoucherCodes(BaseExportMutation):
                 input["ids"] = cls.get_global_ids_or_error(
                     ids=ids, only_type="VoucherCode"
                 )
-            except GraphQLError as e:
+            except ValidationError:
                 raise_validation_error(
                     field="ids",
-                    message=f"Invalid voucher code ids: {str(e)}.",
+                    message="Invalid voucher code IDs.",
                     code=ExportErrorCode.INVALID,
                 )
         return input
