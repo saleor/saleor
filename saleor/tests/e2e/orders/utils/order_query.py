@@ -9,6 +9,9 @@ query OrderDetails($id:ID!) {
     }
     paymentStatus
     isPaid
+    events {
+        type
+      }
     channel {
         id
         name
