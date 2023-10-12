@@ -52,8 +52,6 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
-        product.search_index_dirty = True
-        product.save(update_fields=["search_index_dirty"])
         if "category" in cleaned_input or "collections" in cleaned_input:
             update_product_discounted_price_task.delay(instance.id)
         manager = get_plugin_manager_promise(info.context).get()

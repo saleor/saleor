@@ -104,7 +104,7 @@ def test_product_variant_bulk_update(
     content = get_graphql_content(response)
     flush_post_commit_hooks()
     data = content["data"]["productVariantBulkUpdate"]
-    product_with_single_variant.refresh_from_db()
+    product_with_single_variant.refresh_from_db(fields=["search_index_dirty"])
 
     # then
     assert product_with_single_variant.search_index_dirty is True
