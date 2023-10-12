@@ -1,7 +1,8 @@
 import logging
 from unittest.mock import patch
 
-from ....discount.tests.sale_converter import convert_sales_to_promotions
+import graphene
+
 from ...tasks import (
     update_product_discounted_price_task,
     update_products_discounted_prices_of_sale_task,
@@ -13,22 +14,38 @@ from ...tasks import (
 )
 def test_update_products_discounted_prices_of_sale_task(
     update_discounted_prices_for_promotion_mock,
-    new_sale,
+    promotion_converted_from_sale_with_empty_predicate,
     product_list,
     product,
     category,
     collection,
 ):
     # given
-    new_sale.products.add(product)
+    promotion = promotion_converted_from_sale_with_empty_predicate
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variant_id = graphene.Node.to_global_id(
+        "ProductVariant", product_list[2].variants.first().id
+    )
+
     category.products.add(product_list[0])
-    new_sale.categories.add(category)
     collection.products.add(product_list[1])
-    new_sale.variants.add(product_list[2].variants.first())
-    convert_sales_to_promotions()
+
+    predicate = {
+        "OR": [
+            {"collectionPredicate": {"ids": [collection_id]}},
+            {"categoryPredicate": {"ids": [category_id]}},
+            {"productPredicate": {"ids": [product_id]}},
+            {"variantPredicate": {"ids": [variant_id]}},
+        ]
+    }
+    rule = promotion.rules.first()
+    rule.catalogue_predicate = predicate
+    rule.save(update_fields=["catalogue_predicate"])
 
     # when
-    update_products_discounted_prices_of_sale_task(new_sale.id)
+    update_products_discounted_prices_of_sale_task(promotion.old_sale_id)
 
     # then
     update_discounted_prices_for_promotion_mock.assert_called_once()

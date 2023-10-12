@@ -6,7 +6,7 @@ from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from ...discount import DiscountValueType
-from ...discount.models import PromotionRule, Sale, Voucher, VoucherQueryset
+from ...discount.models import Promotion, PromotionRule, Voucher, VoucherQueryset
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.filters import (
     BooleanWhereFilter,
@@ -133,7 +133,7 @@ class SaleFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method=filter_sale_search)
 
     class Meta:
-        model = Sale
+        model = Promotion
         fields = ["status", "sale_type", "started", "search"]
 
 

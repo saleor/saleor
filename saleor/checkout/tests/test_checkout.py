@@ -20,7 +20,6 @@ from ...discount.models import (
     Voucher,
     VoucherChannelListing,
 )
-from ...discount.tests.sale_converter import convert_sales_to_promotions
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import VariantChannelListingPromotionRule
@@ -1210,8 +1209,6 @@ def test_recalculate_checkout_discount_with_sale(
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-
-    convert_sales_to_promotions()
 
     # when
     recalculate_checkout_discount(manager, checkout_info, lines)

@@ -51,7 +51,7 @@ TRANSLATABLE_CONTENT_TO_MODEL = {
     ): shipping_models.ShippingMethod._meta.object_name,
     str(
         translation_types.SaleTranslatableContent
-    ): discount_models.Sale._meta.object_name,
+    ): discount_models.Promotion._meta.object_name,
     str(
         translation_types.VoucherTranslatableContent
     ): discount_models.Voucher._meta.object_name,

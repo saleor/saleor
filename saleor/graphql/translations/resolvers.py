@@ -26,7 +26,6 @@ TYPE_TO_TRANSLATION_LOADER_MAP = {
     product_models.ProductVariant: (
         dataloaders.ProductVariantTranslationByIdAndLanguageCodeLoader
     ),
-    discount_models.Sale: dataloaders.SaleTranslationByIdAndLanguageCodeLoader,
     shipping_models.ShippingMethod: (
         dataloaders.ShippingMethodTranslationByIdAndLanguageCodeLoader
     ),

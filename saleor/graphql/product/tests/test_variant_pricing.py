@@ -55,12 +55,16 @@ query ($channel: String, $address: AddressInput) {
 """
 
 
-def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
+def test_get_variant_pricing_on_promotion(
+    api_client, promotion_with_single_rule, product, channel_USD
+):
     # given
     variant_listing = product.variants.first().channel_listings.get()
     price = variant_listing.price
-    sale_discounted_value = sale.channel_listings.get().discount_value
-    discounted_price = price.amount - sale_discounted_value
+    promotion = promotion_with_single_rule
+    rule = promotion.rules.first()
+    discounted_value = rule.reward_value
+    discounted_price = price.amount - discounted_value
     variant_listing.discounted_price_amount = discounted_price
     variant_listing.save(update_fields=["discounted_price_amount"])
 
@@ -83,48 +87,6 @@ def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
     # check the discount
     assert pricing["discount"]["currency"] == price.currency
     assert pricing["discount"]["net"]["amount"] == discounted_price
-
-    # check the undiscounted price
-    assert pricing["priceUndiscounted"]["currency"] == price.currency
-    assert pricing["priceUndiscounted"]["net"]["amount"] == price.amount
-
-    # check the discounted price
-    assert pricing["price"]["currency"] == price.currency
-    assert pricing["price"]["net"]["amount"] == discounted_price
-
-
-def test_get_variant_pricing_on_promotion(api_client, promotion, product, channel_USD):
-    # given
-    variant_listing = product.variants.first().channel_listings.get()
-    price = variant_listing.price
-
-    rule = promotion.rules.first()
-
-    discount_amount = rule.reward_value / 100 * price.amount
-
-    discounted_price = price.amount - discount_amount
-    variant_listing.discounted_price_amount = discounted_price
-    variant_listing.save(update_fields=["discounted_price_amount"])
-
-    variables = {"channel": channel_USD.slug, "address": {"country": "US"}}
-
-    # when
-    response = api_client.post_graphql(QUERY_GET_VARIANT_PRICING, variables)
-
-    # then
-    content = get_graphql_content(response)
-
-    pricing = content["data"]["products"]["edges"][0]["node"]["variants"][0]["pricing"]
-
-    # ensure the availability was correctly retrieved and sent
-    assert pricing
-
-    # check availability
-    assert pricing["onSale"] is True
-
-    # check the discount
-    assert pricing["discount"]["currency"] == price.currency
-    assert pricing["discount"]["net"]["amount"] == discount_amount
 
     # check the undiscounted price
     assert pricing["priceUndiscounted"]["currency"] == price.currency

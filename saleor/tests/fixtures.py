@@ -51,7 +51,6 @@ from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
 from ..discount import (
-    DiscountInfo,
     DiscountType,
     DiscountValueType,
     PromotionEvents,
@@ -67,9 +66,6 @@ from ..discount.models import (
     PromotionRule,
     PromotionRuleTranslation,
     PromotionTranslation,
-    Sale,
-    SaleChannelListing,
-    SaleTranslation,
     Voucher,
     VoucherChannelListing,
     VoucherCustomer,
@@ -327,19 +323,18 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
-def checkout_with_item_on_sale(checkout_with_item):
+def checkout_with_item_on_sale(checkout_with_item, promotion_converted_from_sale):
     line = checkout_with_item.lines.first()
     channel = checkout_with_item.channel
-    sale = Sale.objects.create(name="Sale")
     discount_amount = Decimal("5.0")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel,
-        discount_value=discount_amount,
-        currency=channel.currency_code,
-    )
     variant = line.variant
-    sale.products.add(variant.product)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    predicate = {"variantPredicate": {"ids": [variant_id]}}
+    rule = promotion_converted_from_sale.rules.first()
+    rule.catalogue_predicate = predicate
+    rule.reward_value = discount_amount
+    rule.save(update_fields=["catalogue_predicate", "reward_value"])
+    rule.channels.add(channel)
     channel_listing = variant.channel_listings.get(channel=channel)
     channel_listing.discounted_price_amount = (
         channel_listing.price_amount - discount_amount
@@ -348,9 +343,9 @@ def checkout_with_item_on_sale(checkout_with_item):
 
     CheckoutLineDiscount.objects.create(
         line=line,
-        sale=sale,
+        promotion_rule=rule,
         type=DiscountType.SALE,
-        value_type=sale.type,
+        value_type=rule.reward_value_type,
         value=discount_amount,
         amount_value=discount_amount * line.quantity,
         currency=channel.currency_code,
@@ -5372,87 +5367,6 @@ def dummy_webhook_app_payment_data(dummy_payment_data, payment_app):
 
 
 @pytest.fixture
-def new_sale(category, channel_USD):
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-    )
-    return sale
-
-
-@pytest.fixture
-def sale(product, category, collection, variant, channel_USD):
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-    )
-    sale.products.add(product)
-    sale.categories.add(category)
-    sale.collections.add(collection)
-    sale.variants.add(variant)
-    return sale
-
-
-@pytest.fixture
-def sale_with_many_channels(product, category, collection, channel_USD, channel_PLN):
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-    )
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_PLN,
-        discount_value=5,
-        currency=channel_PLN.currency_code,
-    )
-    sale.products.add(product)
-    sale.categories.add(category)
-    sale.collections.add(collection)
-    return sale
-
-
-@pytest.fixture
-def discount_info(category, collection, sale, channel_USD):
-    sale_channel_listing = sale.channel_listings.get(channel=channel_USD)
-
-    return DiscountInfo(
-        sale=sale,
-        channel_listings={channel_USD.slug: sale_channel_listing},
-        product_ids=set(),
-        category_ids={category.id},  # assumes this category does not have children
-        collection_ids={collection.id},
-        variants_ids=set(),
-    )
-
-
-@pytest.fixture
-def discount_info_JPY(sale, product_in_channel_JPY, channel_JPY):
-    sale_channel_listing = sale.channel_listings.create(
-        channel=channel_JPY,
-        discount_value=5,
-        currency=channel_JPY.currency_code,
-    )
-
-    return DiscountInfo(
-        sale=sale,
-        channel_listings={channel_JPY.slug: sale_channel_listing},
-        product_ids={product_in_channel_JPY.id},
-        category_ids=set(),
-        collection_ids=set(),
-        variants_ids=set(),
-    )
-
-
-@pytest.fixture
 def promotion(channel_USD, product, collection):
     promotion = Promotion.objects.create(
         name="Promotion",
@@ -5503,6 +5417,20 @@ def promotion_without_rules(db):
         description=dummy_editorjs("Test description."),
         end_date=timezone.now() + timedelta(days=30),
     )
+    return promotion
+
+
+@pytest.fixture
+def promotion_with_single_rule(catalogue_predicate, channel_USD):
+    promotion = Promotion.objects.create(name="Promotion with single rule")
+    rule = PromotionRule.objects.create(
+        name="Sale rule",
+        promotion=promotion,
+        catalogue_predicate=catalogue_predicate,
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+    )
+    rule.channels.add(channel_USD)
     return promotion
 
 
@@ -5637,20 +5565,69 @@ def rule_info(
 
 
 @pytest.fixture
-def promotion_converted_from_sale(sale):
-    from ..discount.tests.sale_converter import convert_sales_to_promotions
-
-    convert_sales_to_promotions()
-    return Promotion.objects.filter(old_sale_id=sale.id).last()
+def catalogue_predicate(product, category, collection, variant):
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    return {
+        "OR": [
+            {"collectionPredicate": {"ids": [collection_id]}},
+            {"categoryPredicate": {"ids": [category_id]}},
+            {"productPredicate": {"ids": [product_id]}},
+            {"variantPredicate": {"ids": [variant_id]}},
+        ]
+    }
 
 
 @pytest.fixture
-def promotion_converted_from_sale_with_empty_predicate():
-    from ..discount.tests.sale_converter import convert_sales_to_promotions
+def promotion_converted_from_sale(catalogue_predicate, channel_USD):
+    promotion = Promotion.objects.create(name="Sale")
+    promotion.assign_old_sale_id()
 
-    sale = Sale.objects.create(name="Sale with no rules", type=DiscountValueType.FIXED)
-    convert_sales_to_promotions()
-    return Promotion.objects.filter(old_sale_id=sale.id).last()
+    rule = PromotionRule.objects.create(
+        name="Sale rule",
+        promotion=promotion,
+        catalogue_predicate=catalogue_predicate,
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+        old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
+    )
+    rule.channels.add(channel_USD)
+    return promotion
+
+
+@pytest.fixture
+def promotion_converted_from_sale_with_many_channels(
+    promotion_converted_from_sale, catalogue_predicate, channel_PLN
+):
+    promotion = promotion_converted_from_sale
+    rule = PromotionRule.objects.create(
+        name="Sale rule 2",
+        promotion=promotion,
+        catalogue_predicate=catalogue_predicate,
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+        old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
+    )
+    rule.channels.add(channel_PLN)
+    return promotion
+
+
+@pytest.fixture
+def promotion_converted_from_sale_with_empty_predicate(channel_USD):
+    promotion = Promotion.objects.create(name="Sale with empty predicate")
+    promotion.assign_old_sale_id()
+    rule = PromotionRule.objects.create(
+        name="Sale with empty predicate rule",
+        promotion=promotion,
+        catalogue_predicate={},
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+        old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
+    )
+    rule.channels.add(channel_USD)
+    return promotion
 
 
 @pytest.fixture
@@ -6402,20 +6379,6 @@ def promotion_rule_translation_fr(promotion_rule):
         promotion_rule=promotion_rule,
         name="French promotion rule name",
         description=dummy_editorjs("French promotion rule description."),
-    )
-
-
-@pytest.fixture
-def sale_translation_fr(sale):
-    return SaleTranslation.objects.create(
-        language_code="fr", sale=sale, name="French sale name"
-    )
-
-
-@pytest.fixture
-def new_sale_translation_fr(new_sale):
-    return SaleTranslation.objects.create(
-        language_code="fr", sale=new_sale, name="French sale name"
     )
 
 
@@ -8172,7 +8135,6 @@ def async_subscription_webhooks_with_root_objects(
     shipping_method,
     product,
     fulfilled_order,
-    sale,
     fulfillment,
     stock,
     customer_user,
@@ -8188,6 +8150,7 @@ def async_subscription_webhooks_with_root_objects(
     transaction_item_created_by_app,
     product_media_image,
     user_export_file,
+    promotion_converted_from_sale,
 ):
     events = WebhookEventAsyncType
     attr = numeric_attribute
@@ -8351,10 +8314,22 @@ def async_subscription_webhooks_with_root_objects(
             subscription_product_variant_metadata_updated_webhook,
             product,
         ],
-        events.SALE_CREATED: [subscription_sale_created_webhook, sale],
-        events.SALE_UPDATED: [subscription_sale_updated_webhook, sale],
-        events.SALE_DELETED: [subscription_sale_deleted_webhook, sale],
-        events.SALE_TOGGLE: [subscription_sale_toggle_webhook, sale],
+        events.SALE_CREATED: [
+            subscription_sale_created_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_UPDATED: [
+            subscription_sale_updated_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_DELETED: [
+            subscription_sale_deleted_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_TOGGLE: [
+            subscription_sale_toggle_webhook,
+            promotion_converted_from_sale,
+        ],
         events.INVOICE_REQUESTED: [subscription_invoice_requested_webhook, invoice],
         events.INVOICE_DELETED: [subscription_invoice_deleted_webhook, invoice],
         events.INVOICE_SENT: [subscription_invoice_sent_webhook, invoice],

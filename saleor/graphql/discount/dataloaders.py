@@ -12,46 +12,11 @@ from ...discount.models import (
     Promotion,
     PromotionEvent,
     PromotionRule,
-    SaleChannelListing,
     Voucher,
     VoucherChannelListing,
 )
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
-
-
-class SaleChannelListingBySaleIdAndChanneSlugLoader(DataLoader):
-    context_key = "salechannelisting_by_sale_and_channel"
-
-    def batch_load(self, keys):
-        sale_ids = [key[0] for key in keys]
-        channel_slugs = [key[1] for key in keys]
-        sale_channel_listings = (
-            SaleChannelListing.objects.using(self.database_connection_name)
-            .filter(sale_id__in=sale_ids, channel__slug__in=channel_slugs)
-            .annotate(channel_slug=F("channel__slug"))
-            .order_by("pk")
-        )
-        sale_channel_listings_by_sale_and_channel_map = {}
-        for sale_channel_listing in sale_channel_listings:
-            key = (sale_channel_listing.sale_id, sale_channel_listing.channel_slug)
-            sale_channel_listings_by_sale_and_channel_map[key] = sale_channel_listing
-        return [sale_channel_listings_by_sale_and_channel_map.get(key) for key in keys]
-
-
-class SaleChannelListingBySaleIdLoader(DataLoader):
-    context_key = "salechannelisting_by_sale"
-
-    def batch_load(self, keys):
-        sale_channel_listings = SaleChannelListing.objects.using(
-            self.database_connection_name
-        ).filter(sale_id__in=keys)
-        sale_channel_listings_by_sale_map = defaultdict(list)
-        for sale_channel_listing in sale_channel_listings:
-            sale_channel_listings_by_sale_map[sale_channel_listing.sale_id].append(
-                sale_channel_listing
-            )
-        return [sale_channel_listings_by_sale_map[sale_id] for sale_id in keys]
 
 
 class VoucherByIdLoader(DataLoader):

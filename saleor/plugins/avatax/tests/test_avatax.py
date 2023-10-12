@@ -425,7 +425,6 @@ def test_calculate_checkout_line_total_with_variant_on_promotion_and_voucher_onl
     plugin_configuration,
     voucher,
     channel_USD,
-    discount_info,
 ):
     # given
     plugin_configuration()
@@ -550,7 +549,6 @@ def test_calculate_checkout_line_without_sku_total_with_promotion(
     expected_net,
     expected_gross,
     prices_entered_with_tax,
-    discount_info,
     checkout_with_item_on_promotion,
     ship_to_pl_address,
     monkeypatch,
@@ -2719,7 +2717,6 @@ def test_calculate_checkout_line_unit_price_with_variant_on_promotion(
     shipping_zone,
     address,
     plugin_configuration,
-    discount_info,
 ):
     # given
     plugin_configuration()
@@ -2887,7 +2884,6 @@ def test_calculate_checkout_line_unit_price_with_variant_on_promotion_and_vouche
     plugin_configuration,
     voucher,
     channel_USD,
-    discount_info,
 ):
     # given
     plugin_configuration()
@@ -4729,7 +4725,7 @@ def test_get_order_request_data_draft_order_shipping_voucher_amount_too_high(
 
 
 def test_get_order_request_data_draft_order_on_promotion(
-    order_line_on_promotion, shipping_zone, sale, avatax_config
+    order_line_on_promotion, shipping_zone, promotion_with_single_rule, avatax_config
 ):
     # given
     order = order_line_on_promotion.order
@@ -4744,7 +4740,11 @@ def test_get_order_request_data_draft_order_on_promotion(
     line.undiscounted_base_unit_price_amount = line.unit_price_gross_amount
     line.save()
 
-    sale.variants.add(line.variant)
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.id)
+    predicate = {"variantPredicate": {"ids": [variant_id]}}
+    rule = promotion_with_single_rule.rules.first()
+    rule.catalogue_predicate = predicate
+    rule.save(update_fields=["catalogue_predicate"])
 
     order.status = OrderStatus.DRAFT
     order.shipping_address = order.billing_address.get_copy()

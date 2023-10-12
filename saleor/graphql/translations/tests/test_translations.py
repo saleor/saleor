@@ -10,8 +10,6 @@ from mock import ANY
 
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....discount.error_codes import DiscountErrorCode
-from ....discount.models import Promotion
-from ....discount.tests.sale_converter import convert_sales_to_promotions
 from ....permission.models import Permission
 from ....tests.utils import dummy_editorjs
 from ....webhook.event_types import WebhookEventAsyncType
@@ -1716,15 +1714,15 @@ def test_sale_create_translation(
 
 def test_sale_create_translation_by_translatable_content_id(
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
     permission_manage_translations,
 ):
     # given
+    promotion = promotion_converted_from_sale
     translatable_content_id = graphene.Node.to_global_id(
-        "SaleTranslatableContent", sale.id
+        "SaleTranslatableContent", promotion.old_sale_id
     )
     variables = {"saleId": translatable_content_id}
-    convert_sales_to_promotions()
 
     # when
     response = staff_api_client.post_graphql(
@@ -1747,7 +1745,7 @@ def test_sale_update_translation(
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
     permission_manage_translations,
     settings,
 ):
@@ -1755,13 +1753,11 @@ def test_sale_update_translation(
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
-    translation = sale.translations.create(language_code="pl", name="Sale")
+    promotion = promotion_converted_from_sale
+    translation = promotion.translations.create(language_code="pl", name="Sale")
+    sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
-    sale_id = graphene.Node.to_global_id("Sale", sale.id)
     variables = {"saleId": sale_id}
-    convert_sales_to_promotions()
-
-    translation = Promotion.objects.first().translations.get(language_code="pl")
 
     # when
     response = staff_api_client.post_graphql(
@@ -3542,15 +3538,14 @@ QUERY_TRANSLATION_SALE = """
 
 def test_translation_query_sale(
     staff_api_client,
-    sale,
-    sale_translation_fr,
+    promotion_converted_from_sale,
+    promotion_converted_from_sale_translation_fr,
     permission_manage_discounts,
     permission_manage_translations,
 ):
     # given
-    convert_sales_to_promotions()
-    promotion = Promotion.objects.first()
-    promotion_transaltion = promotion.translations.first()
+    promotion = promotion_converted_from_sale
+    promotion_translation = promotion.translations.first()
     sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
     variables = {
@@ -3570,7 +3565,7 @@ def test_translation_query_sale(
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
     assert data["name"] == promotion.name
-    assert data["translation"]["name"] == promotion_transaltion.name
+    assert data["translation"]["name"] == promotion_translation.name
 
 
 QUERY_TRANSLATION_VOUCHER = """

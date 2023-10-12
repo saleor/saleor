@@ -1,8 +1,6 @@
 import graphene
 import pytest
 
-from .....discount.models import Promotion
-from .....discount.tests.sale_converter import convert_sales_to_promotions
 from ....core.enums import LanguageCodeEnum
 from ....tests.utils import get_graphql_content
 from ...schema import TranslatableKinds
@@ -415,16 +413,15 @@ QUERY_TRANSLATION_SALE = """
 )
 def test_translation_query_sale(
     staff_api_client,
-    sale,
-    sale_translation_fr,
+    promotion_converted_from_sale,
+    promotion_converted_from_sale_translation_fr,
     perm_codenames,
     return_sale,
     permission_manage_translations,
     permission_manage_discounts,
 ):
     # given
-    convert_sales_to_promotions()
-    promotion = Promotion.objects.first()
+    promotion = promotion_converted_from_sale
     promotion_translation = promotion.translations.first()
     sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
