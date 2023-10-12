@@ -1016,6 +1016,14 @@ def subscription_voucher_metadata_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_voucher_code_export_completed_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.VOUCHER_CODE_EXPORT_COMPLETED,
+        WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED,
+    )
+
+
+@pytest.fixture
 def subscription_shop_metadata_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.SHOP_METADATA_UPDATED,
