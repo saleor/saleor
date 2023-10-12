@@ -1,6 +1,5 @@
 from typing import Optional, cast
 
-from django.contrib.auth import authenticate
 from django.http import HttpRequest
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
@@ -12,6 +11,7 @@ from ..core.jwt import jwt_decode_with_exception_handler
 from .api import API_PATH
 from .app.dataloaders import get_app_promise
 from .core import SaleorContext
+from .core.dataloaders import UserAuthenticateByBackends
 
 
 def get_context_value(request: HttpRequest) -> SaleorContext:
@@ -45,7 +45,9 @@ def set_app_on_context(request: SaleorContext):
 
 def get_user(request: SaleorContext) -> Optional[User]:
     if not hasattr(request, "_cached_user"):
-        request._cached_user = cast(Optional[User], authenticate(request=request))
+        request._cached_user = cast(
+            Optional[User], UserAuthenticateByBackends(request).load(request).get()
+        )
     return request._cached_user
 
 

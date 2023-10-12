@@ -487,8 +487,7 @@ class OpenIDConnectPlugin(BasePlugin):
         token = get_token_from_request(request)
         if not token:
             return previous_value
-        if user := previous_value:
-            return user
+        user = previous_value
         if self.use_authorization_flow and is_owner_of_token_valid(
             token, owner=self.PLUGIN_ID
         ):

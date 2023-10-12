@@ -3,6 +3,7 @@ from typing import DefaultDict, Generic, Iterable, List, Optional, Tuple, TypeVa
 
 import opentracing
 import opentracing.tags
+from django.contrib.auth import authenticate
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
@@ -76,3 +77,10 @@ class BaseThumbnailBySizeAndFormatLoader(
                 (getattr(thumbnail, f"{model_name}_id"), thumbnail.size, format)
             ] = thumbnail
         return [thumbnails_by_instance_id_size_and_format_map.get(key) for key in keys]
+
+
+class UserAuthenticateByBackends(DataLoader):
+    context_key = "user_authenticate_by_backends"
+
+    def batch_load(self, keys):
+        return [authenticate(request=request) for request in keys]

@@ -1,9 +1,10 @@
 from collections import defaultdict
 from functools import partial, wraps
 
-from django.utils.functional import SimpleLazyObject, empty
+from django.utils.functional import SimpleLazyObject
 from promise import Promise
 
+from ...core.utils.lazyobjects import unwrap_lazy
 from ...plugins.manager import PluginsManager, get_plugins_manager
 from ...plugins.models import EmailTemplate
 from ..app.dataloaders import get_app_promise
@@ -49,9 +50,7 @@ def plugin_manager_promise(context: SaleorContext, app) -> Promise[PluginsManage
     requestor = app or user
 
     if isinstance(requestor, SimpleLazyObject):
-        if requestor._wrapped is empty:  # type: ignore[attr-defined]
-            requestor._setup()  # type: ignore[attr-defined]
-        requestor = requestor._wrapped  # type: ignore[attr-defined]
+        requestor = unwrap_lazy(requestor)
 
     if requestor is None:
         return AnonymousPluginManagerLoader(context).load("Anonymous")
