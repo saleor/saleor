@@ -7,6 +7,7 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
       id
       shippingMethods { id }
       lines {
+        id
         quantity
         variant {
           id

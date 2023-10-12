@@ -10,18 +10,15 @@ mutation ShopSettingsUpdate($input: ShopSettingsInput!) {
     }
     shop {
       enableAccountConfirmationByEmail
+      fulfillmentAutoApprove
     }
   }
 }
 """
 
 
-def update_shop_settings(staff_api_client, enableAccountConfirmationByEmail=False):
-    variables = {
-        "input": {
-            "enableAccountConfirmationByEmail": enableAccountConfirmationByEmail,
-        }
-    }
+def update_shop_settings(staff_api_client, input):
+    variables = {"input": input}
 
     response = staff_api_client.post_graphql(SHOP_SETTING_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
@@ -29,6 +26,5 @@ def update_shop_settings(staff_api_client, enableAccountConfirmationByEmail=Fals
     assert content["data"]["shopSettingsUpdate"]["errors"] == []
 
     data = content["data"]["shopSettingsUpdate"]["shop"]
-    assert data["enableAccountConfirmationByEmail"] == enableAccountConfirmationByEmail
 
     return data
