@@ -181,6 +181,7 @@ def test_create_product(
     assert color_value_slug in values
 
     product = Product.objects.first()
+    assert product.search_index_dirty is True
     assert product.metadata == {metadata_key: metadata_value}
     assert product.private_metadata == {metadata_key: metadata_value}
 
