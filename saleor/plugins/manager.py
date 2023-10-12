@@ -1503,6 +1503,12 @@ class PluginsManager(PaymentInterface):
             "voucher_metadata_updated", default_value, voucher
         )
 
+    def voucher_code_export_completed(self, export: "ExportFile"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "voucher_code_export_completed", default_value, export
+        )
+
     def shop_metadata_updated(self, shop: "SiteSettings"):
         default_value = None
         return self.__run_method_on_plugins(

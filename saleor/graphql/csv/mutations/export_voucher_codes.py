@@ -48,11 +48,10 @@ class ExportVoucherCodes(BaseExportMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = ExportError
         webhook_events_info = [
-            # TODO voucher codes
-            # WebhookEventInfo(
-            #     type=WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED,
-            #     description="A notification for the exported file.",
-            # ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED,
+                description="A notification for the exported file.",
+            ),
         ]
 
     @classmethod

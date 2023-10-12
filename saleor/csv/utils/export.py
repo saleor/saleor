@@ -126,9 +126,6 @@ def export_voucher_codes(
     temporary_file.close()
 
     send_export_download_link_notification(export_file, "voucher codes")
-    # TODO voucher codes
-    # manager = get_plugins_manager()
-    # manager.voucher_code_export_completed(export_file)
 
 
 def get_filename(model_name: str, file_type: str) -> str:

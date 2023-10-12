@@ -2275,6 +2275,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   VOUCHER_METADATA_UPDATED
 
+  """
+  A voucher code export is completed.
+  
+  Added in Saleor 3.18.
+  """
+  VOUCHER_CODE_EXPORT_COMPLETED
+
   """An observability event is created."""
   OBSERVABILITY
 
@@ -2990,6 +2997,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   VOUCHER_METADATA_UPDATED
 
+  """
+  A voucher code export is completed.
+  
+  Added in Saleor 3.18.
+  """
+  VOUCHER_CODE_EXPORT_COMPLETED
+
   """An observability event is created."""
   OBSERVABILITY
 
@@ -3680,6 +3694,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   VOUCHER_UPDATED
   VOUCHER_DELETED
   VOUCHER_METADATA_UPDATED
+  VOUCHER_CODE_EXPORT_COMPLETED
   OBSERVABILITY
   THUMBNAIL_CREATED
   SHOP_METADATA_UPDATED
@@ -18188,11 +18203,14 @@ type Mutation {
   Added in Saleor 3.18. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - VOUCHER_CODE_EXPORT_COMPLETED (async): A notification for the exported file.
   """
   exportVoucherCodes(
     """Fields required to export voucher codes."""
     input: ExportVoucherCodesInput!
-  ): ExportVoucherCodes @doc(category: "Discounts")
+  ): ExportVoucherCodes @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CODE_EXPORT_COMPLETED], syncEvents: [])
 
   """
   Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -28222,8 +28240,11 @@ Export active voucher codes to csv/xlsx file.
 Added in Saleor 3.18. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- VOUCHER_CODE_EXPORT_COMPLETED (async): A notification for the exported file.
 """
-type ExportVoucherCodes @doc(category: "Discounts") {
+type ExportVoucherCodes @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CODE_EXPORT_COMPLETED], syncEvents: []) {
   """
   The newly created export file job which is responsible for export data.
   """
@@ -34678,6 +34699,28 @@ type VoucherMetadataUpdated implements Event @doc(category: "Discounts") {
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Voucher
+}
+
+"""
+Event sent when voucher code export is completed.
+
+Added in Saleor 3.16.
+"""
+type VoucherCodeExportCompleted implements Event @doc(category: "Discounts") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The export file for voucher codes."""
+  export: ExportFile
 }
 
 """

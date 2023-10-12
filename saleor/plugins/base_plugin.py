@@ -1215,6 +1215,8 @@ class BasePlugin:
     # metadata is updated.
     voucher_metadata_updated: Callable[["Voucher", None], None]
 
+    voucher_code_export_completed: Callable[["ExportFile", None], None]
+
     # Trigger when shop metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a shop
