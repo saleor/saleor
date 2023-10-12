@@ -33,6 +33,7 @@ def test_validate_app_install_response():
     error_message = "Test error msg"
     response = Mock(spec=requests.Response)
     response.raise_for_status.side_effect = requests.HTTPError
+    response.request = Mock()
     response.json.return_value = {"error": {"message": error_message}}
 
     with pytest.raises(AppInstallationError) as error:
@@ -95,7 +96,6 @@ def test_install_app_created_app(
             "Saleor-Schema-Version": schema_version,
         },
         json={"auth_token": ANY},
-        timeout=ANY,
         allow_redirects=False,
     )
     assert App.objects.get().id == app.id

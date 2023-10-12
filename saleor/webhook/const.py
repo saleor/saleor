@@ -1,0 +1,4 @@
+CACHE_EXCLUDED_SHIPPING_KEY = "webhook_exclude_shipping_id_"
+CACHE_EXCLUDED_SHIPPING_TIME = 60 * 3
+WEBHOOK_CACHE_DEFAULT_TIMEOUT: int = 5 * 60  # 5 minutes
+APP_ID_PREFIX = "app"

@@ -105,14 +105,6 @@ class ProductVariantTranslationByIdAndLanguageCodeLoader(
     relation_name = "product_variant_id"
 
 
-class SaleTranslationByIdAndLanguageCodeLoader(
-    BaseTranslationByIdAndLanguageCodeLoader
-):
-    context_key = "sale_translation_by_id_and_language_code"
-    model = discount_models.SaleTranslation
-    relation_name = "sale_id"
-
-
 class ShippingMethodTranslationByIdAndLanguageCodeLoader(
     BaseTranslationByIdAndLanguageCodeLoader
 ):
@@ -135,3 +127,19 @@ class VoucherTranslationByIdAndLanguageCodeLoader(
     context_key = "voucher_translation_by_id_and_language_code"
     model = discount_models.VoucherTranslation
     relation_name = "voucher_id"
+
+
+class PromotionTranslationByIdAndLanguageCodeLoader(
+    BaseTranslationByIdAndLanguageCodeLoader
+):
+    context_key = "promotion_translation_by_id_and_language_code"
+    model = discount_models.PromotionTranslation
+    relation_name = "promotion_id"
+
+
+class PromotionRuleTranslationByIdAndLanguageCodeLoader(
+    BaseTranslationByIdAndLanguageCodeLoader
+):
+    context_key = "promotion_rule_translation_by_id_and_language_code"
+    model = discount_models.PromotionRuleTranslation
+    relation_name = "promotion_rule_id"

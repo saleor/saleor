@@ -12,11 +12,17 @@ from prices import Money, TaxedMoney
 
 from ...account.models import Address
 from ...core.taxes import zero_money
-from ...discount import DiscountValueType, VoucherType
-from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
-from ...discount.utils import generate_sale_discount_objects_for_checkout
+from ...discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
+from ...discount.interface import VariantPromotionRuleInfo
+from ...discount.models import (
+    CheckoutLineDiscount,
+    NotApplicable,
+    Voucher,
+    VoucherChannelListing,
+)
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
+from ...product.models import VariantChannelListingPromotionRule
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingZone
 from .. import base_calculations, calculations
@@ -76,7 +82,7 @@ def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method(
     mock_send_request, checkout_with_item, address, settings, shipping_app
 ):
@@ -113,7 +119,7 @@ def test_is_valid_delivery_method_external_method(
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method_shipping_app_id_with_identifier(
     mock_send_request, checkout_with_item, address, settings, shipping_app
 ):
@@ -153,7 +159,7 @@ def test_is_valid_delivery_method_external_method_shipping_app_id_with_identifie
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method_old_shipping_app_id(
     mock_send_request, checkout_with_item, address, settings, shipping_app
 ):
@@ -193,7 +199,7 @@ def test_is_valid_delivery_method_external_method_old_shipping_app_id(
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method_no_longer_available(
     mock_send_request, checkout_with_item, address, settings, shipping_app
 ):
@@ -322,6 +328,7 @@ def test_get_discount_for_checkout_value_entire_order_voucher(
             product=line.variant.product,
             variant=line.variant,
             discounts=list(line.discounts.all()),
+            rules_info=[],
             product_type=line.variant.product.product_type,
             channel=channel_USD,
         )
@@ -477,6 +484,7 @@ def test_get_discount_for_checkout_value_specific_product_voucher(
             collections=[],
             channel=channel_USD,
             discounts=list(line.discounts.all()),
+            rules_info=[],
             product=line.variant.product,
             variant=line.variant,
             product_type=line.variant.product.product_type,
@@ -1186,28 +1194,128 @@ def test_recalculate_checkout_discount_percentage(
 
 
 def test_recalculate_checkout_discount_with_sale(
-    checkout_with_voucher_percentage,
-    sale,
+    checkout_with_item_on_sale,
+    voucher_percentage,
 ):
+    # given
+    checkout = checkout_with_item_on_sale
+    checkout.voucher_code = voucher_percentage.code
+    voucher_discount = (
+        voucher_percentage.channel_listings.filter(channel=checkout.channel)
+        .first()
+        .discount_value
+    )
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    recalculate_checkout_discount(manager, checkout_info, lines)
+
+    # then
+    discounted_subtotal = (
+        lines[0].channel_listing.discounted_price_amount * lines[0].line.quantity
+    )
+    voucher_discount = voucher_discount / 100 * discounted_subtotal
+    assert checkout.discount_amount == voucher_discount
+
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+    assert (
+        calculations.checkout_total(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            address=checkout.shipping_address,
+        ).gross.amount
+        == discounted_subtotal - voucher_discount
+    )
+
+
+def test_recalculate_checkout_discount_with_promotion(
+    checkout_with_voucher_percentage,
+    voucher_percentage,
+    promotion_without_rules,
+):
+    # given
     checkout = checkout_with_voucher_percentage
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    # To properly apply a sale at checkout, we need to generate discount objects.
-    generate_sale_discount_objects_for_checkout(checkout_info, lines)
+    voucher_discount = (
+        voucher_percentage.channel_listings.filter(channel=checkout.channel)
+        .first()
+        .discount_value
+    )
 
+    line_info = lines[0]
+    reward_value = Decimal("1")
+    rule = promotion_without_rules.rules.create(
+        name="Percentage promotion rule",
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [
+                    graphene.Node.to_global_id("Product", line_info.variant.product.id)
+                ]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(line_info.channel)
+
+    listing = line_info.channel_listing
+    discounted_price = listing.price.amount - reward_value
+    listing.discounted_price_amount = discounted_price
+    listing.save(update_fields=["discounted_price_amount"])
+
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=listing,
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=line_info.channel.currency_code,
+    )
+
+    line_discount = CheckoutLineDiscount.objects.create(
+        line=line_info.line,
+        type=DiscountType.PROMOTION,
+        value_type=DiscountValueType.FIXED,
+        amount_value=reward_value * line_info.line.quantity,
+        currency=line_info.channel.currency_code,
+        promotion_rule=rule,
+    )
+    line_info.discounts = [line_discount]
+    line_info.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=promotion_without_rules,
+            promotion_translation=None,
+            rule_translation=None,
+        )
+    ]
+
+    # when
     recalculate_checkout_discount(manager, checkout_info, lines)
-    assert checkout.discount == Money("1.50", "USD")
+
+    # then
+    discounted_subtotal = listing.discounted_price_amount * line_info.line.quantity
+    voucher_discount = voucher_discount / 100 * discounted_subtotal
+    assert checkout.discount.amount == voucher_discount
 
     checkout.price_expiration = timezone.now()
     checkout.save()
-    assert calculations.checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout.shipping_address,
-    ).gross == Money("13.50", "USD")
+    assert (
+        calculations.checkout_total(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            address=checkout.shipping_address,
+        ).gross.amount
+        == discounted_subtotal - voucher_discount
+    )
 
 
 def test_recalculate_checkout_discount_voucher_not_applicable(

@@ -26,7 +26,6 @@ TYPE_TO_TRANSLATION_LOADER_MAP = {
     product_models.ProductVariant: (
         dataloaders.ProductVariantTranslationByIdAndLanguageCodeLoader
     ),
-    discount_models.Sale: dataloaders.SaleTranslationByIdAndLanguageCodeLoader,
     shipping_models.ShippingMethod: (
         dataloaders.ShippingMethodTranslationByIdAndLanguageCodeLoader
     ),
@@ -37,6 +36,12 @@ TYPE_TO_TRANSLATION_LOADER_MAP = {
         dataloaders.SiteSettingsTranslationByIdAndLanguageCodeLoader
     ),
     discount_models.Voucher: (dataloaders.VoucherTranslationByIdAndLanguageCodeLoader),
+    discount_models.Promotion: (
+        dataloaders.PromotionTranslationByIdAndLanguageCodeLoader
+    ),
+    discount_models.PromotionRule: (
+        dataloaders.PromotionRuleTranslationByIdAndLanguageCodeLoader
+    ),
 }
 
 
@@ -66,7 +71,7 @@ def resolve_product_variants(_info):
 
 
 def resolve_sales(_info):
-    return discount_models.Sale.objects.all()
+    return discount_models.Promotion.objects.all()
 
 
 def resolve_vouchers(_info):
@@ -75,3 +80,11 @@ def resolve_vouchers(_info):
 
 def resolve_collections(_info):
     return product_models.Collection.objects.all()
+
+
+def resolve_promotions(_info):
+    return discount_models.Promotion.objects.all()
+
+
+def resolve_promotion_rules(_info):
+    return discount_models.PromotionRule.objects.all()

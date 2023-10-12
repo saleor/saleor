@@ -1002,6 +1002,13 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
     return HttpResponse("[accepted]")
 
 
+class HttpResponseRedirectWithTrustedProtocol(HttpResponseRedirect):
+    def __init__(self, redirect_to: str, *args, **kwargs) -> None:
+        parsed = urlparse(redirect_to)
+        self.allowed_schemes = [parsed.scheme]
+        super().__init__(redirect_to, *args, **kwargs)
+
+
 @transaction_with_commit_on_errors()
 def handle_additional_actions(
     request: WSGIRequest, payment_details: Callable, channel_slug: str
@@ -1070,10 +1077,7 @@ def handle_additional_actions(
         return HttpResponseBadRequest(str(e))
     handle_api_response(payment, checkout, result, channel_slug)
     redirect_url = prepare_redirect_url(payment_id, checkout_pk, result, return_url)
-    parsed = urlparse(return_url)
-    redirect_class = HttpResponseRedirect
-    redirect_class.allowed_schemes = [parsed.scheme]
-    return redirect_class(redirect_url)
+    return HttpResponseRedirectWithTrustedProtocol(redirect_url)
 
 
 def prepare_api_request_data(request: WSGIRequest, data: dict):

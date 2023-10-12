@@ -14,7 +14,9 @@ from .....order.models import Order
 from .....tests.fixtures import recalculate_order
 from .....webhook.event_types import WebhookEventSyncType
 from .....webhook.models import Webhook
-from ...tasks import create_delivery_for_subscription_sync_event
+from .....webhook.transport.synchronous.transport import (
+    create_delivery_for_subscription_sync_event,
+)
 
 TAXES_SUBSCRIPTION_QUERY = """
 subscription {

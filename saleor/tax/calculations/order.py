@@ -148,7 +148,7 @@ def update_taxes_for_order_lines(
             tax_rate = default_tax_rate
 
         line_total_price = line.base_unit_price * line.quantity
-        undiscounted_subtotal += line_total_price
+        undiscounted_subtotal += line.undiscounted_base_unit_price * line.quantity
 
         price_with_discounts = line.base_unit_price
         if total_discount_amount:

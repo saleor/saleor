@@ -31,6 +31,11 @@ query Product($id: ID!, $channel: String) {
             amount
           }
         }
+        price{
+          gross{
+            amount
+          }
+        }
       }
       attributes {
         attribute {
@@ -62,7 +67,7 @@ query Product($id: ID!, $channel: String) {
 
 
 def get_product(
-    api_client,
+    staff_api_client,
     product_id,
     slug="default-channel",
 ):
@@ -71,7 +76,7 @@ def get_product(
         "channel": slug,
     }
 
-    response = api_client.post_graphql(
+    response = staff_api_client.post_graphql(
         PRODUCT_QUERY,
         variables,
         check_no_permissions=False,

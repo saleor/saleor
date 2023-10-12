@@ -324,6 +324,7 @@ def test_report_fulfillment_connection_errors(
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["psp_reference"])
     response = Mock(
+        request=Mock(),
         spec=requests.Response,
         status_code=404,
     )

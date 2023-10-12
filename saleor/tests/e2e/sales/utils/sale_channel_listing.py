@@ -23,7 +23,7 @@ mutation SaleUpdate($id: ID!, $input: SaleChannelListingInput!) {
 """
 
 
-def create_sale_channel_listing(
+def raw_create_sale_channel_listing(
     staff_api_client,
     sale_id,
     add_channels=None,
@@ -50,7 +50,22 @@ def create_sale_channel_listing(
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["saleChannelListingUpdate"]["errors"] == []
-    data = content["data"]["saleChannelListingUpdate"]["sale"]
+    return content
 
+
+def create_sale_channel_listing(
+    staff_api_client,
+    sale_id,
+    add_channels=None,
+    remove_channels=None,
+):
+    response = raw_create_sale_channel_listing(
+        staff_api_client,
+        sale_id,
+        add_channels=add_channels,
+        remove_channels=remove_channels,
+    )
+
+    assert response["data"]["saleChannelListingUpdate"]["errors"] == []
+    data = response["data"]["saleChannelListingUpdate"]["sale"]
     return data

@@ -36,7 +36,7 @@ from ...product.models import (
 from ...product.search import search_products
 from ...warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
-from ..core.descriptions import ADDED_IN_38
+from ..core.descriptions import ADDED_IN_38, ADDED_IN_317
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.filters import (
     BooleanWhereFilter,
@@ -56,6 +56,7 @@ from ..core.filters import (
 from ..core.types import (
     BaseInputObjectType,
     ChannelFilterInputObjectType,
+    DateTimeFilterInput,
     DateTimeRangeInput,
     FilterInputObjectType,
     IntRangeInput,
@@ -943,11 +944,18 @@ def where_filter_quantity(qs, quantity_value, warehouse_ids=None):
         total_quantity=ExpressionWrapper(stocks, output_field=IntegerField())
     )
     variants = list(
-        filter_where_range_field(
-            variants, "total_quantity", quantity_value
-        ).values_list("product_id", flat=True)
+        _filter_range(variants, "total_quantity", quantity_value).values_list(
+            "product_id", flat=True
+        )
     )
     return qs.filter(pk__in=variants)
+
+
+def _filter_range(qs, field, value):
+    gte, lte = value.get("gte"), value.get("lte")
+    if gte is None and lte is None:
+        return qs.none()
+    return filter_range_field(qs, field, value)
 
 
 def where_filter_stock_availability(qs, _, value, channel_slug):
@@ -1073,7 +1081,7 @@ class ProductWhere(MetadataWhereFilterBase):
         help_text="Filter by product with preordered variants.",
     )
     updated_at = ObjectTypeWhereFilter(
-        input_class=DateTimeRangeInput,
+        input_class=DateTimeFilterInput,
         method=where_filter_updated_at_range,
         help_text="Filter by when was the most recent update.",
     )
@@ -1258,6 +1266,11 @@ class CategoryFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="category_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
     slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
+    updated_at = ObjectTypeFilter(
+        input_class=DateTimeRangeInput,
+        method=filter_updated_at_range,
+        help_text=f"Filter by when was the most recent update. {ADDED_IN_317}",
+    )
 
     class Meta:
         model = Category

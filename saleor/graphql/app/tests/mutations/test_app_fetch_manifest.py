@@ -12,7 +12,6 @@ from .....app.error_codes import AppErrorCode
 from .....thumbnail import IconThumbnailFormat
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import AppExtensionMountEnum, AppExtensionTargetEnum
-from ...mutations.app_fetch_manifest import FETCH_BRAND_DATA_TIMEOUT
 
 APP_FETCH_MANIFEST_MUTATION = """
 mutation AppFetchManifest(
@@ -818,9 +817,7 @@ def test_app_fetch_manifest_with_brand_data(
     )
 
     # then
-    mock_fetch_icon_image.assert_called_once_with(
-        logo_url, timeout=FETCH_BRAND_DATA_TIMEOUT
-    )
+    mock_fetch_icon_image.assert_called_once_with(logo_url, timeout=ANY)
     content = get_graphql_content(response)
     manifest = content["data"]["appFetchManifest"]["manifest"]
     assert len(content["data"]["appFetchManifest"]["errors"]) == 0

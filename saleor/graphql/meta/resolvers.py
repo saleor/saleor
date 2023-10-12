@@ -57,7 +57,7 @@ def resolve_object_with_metadata_type(instance):
             checkout_models.Checkout: checkout_types.Checkout,
             checkout_models.CheckoutMetadata: checkout_types.Checkout,
             checkout_models.CheckoutLine: checkout_types.CheckoutLine,
-            discount_models.Sale: discount_types.Sale,
+            discount_models.Promotion: discount_types.Promotion,
             discount_models.Voucher: discount_types.Voucher,
             giftcard_models.GiftCard: giftcard_types.GiftCard,
             invoice_models.Invoice: invoice_types.Invoice,
@@ -84,6 +84,10 @@ def resolve_object_with_metadata_type(instance):
             tax_models.TaxConfiguration: tax_types.TaxConfiguration,
             warehouse_models.Warehouse: warehouse_types.Warehouse,
         }
+        if instance.__class__ == discount_models.Promotion and getattr(
+            instance, "old_sale_id"
+        ):
+            return discount_types.Sale, instance.pk
         return MODEL_TO_TYPE_MAP.get(instance.__class__, None), instance.pk
 
     elif dataclasses.is_dataclass(instance):

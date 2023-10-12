@@ -30,7 +30,7 @@ def test_validate_plugin_configuration_invalid_credentials(
 ):
     # given
     plugin = np_atobarai_plugin()
-    response = Mock(spec=requests.Response, status_code=status_code)
+    response = Mock(spec=requests.Response, status_code=status_code, request=Mock())
     mocked_request.return_value = response
     # then
     with pytest.raises(ValidationError):

@@ -1,6 +1,3 @@
-from django.utils import timezone
-
-from ... import OrderStatus
 from decimal import Decimal
 from celery.utils.log import get_task_logger
 from django.db.models import Q, F
@@ -13,21 +10,9 @@ from ....celeryconf import app
 
 task_logger = get_task_logger(__name__)
 
-# Batch size of size 5000 is about 5MB memory usage in task
-BATCH_SIZE = 5000
 
-# Batch size of 500 uses Less than 5MB memory,
-# bigger batch size would raise task completion time over 1.5 seconds
-LINE_BATCH = 500
-
-
-@app.task
-def order_propagate_expired_at_task():
-    qs = Order.objects.filter(status=OrderStatus.EXPIRED, expired_at__isnull=True)
-    order_ids = qs.values_list("pk", flat=True)[:BATCH_SIZE]
-    if order_ids:
-        Order.objects.filter(id__in=order_ids).update(expired_at=timezone.now())
-        order_propagate_expired_at_task.delay()
+# Batch size of 700 uses less than 5MB memory, and task took around 1 sec to complete.
+LINE_BATCH = 700
 
 
 def add_taxes_to_price(price, tax_rate, prices_entered_with_tax):

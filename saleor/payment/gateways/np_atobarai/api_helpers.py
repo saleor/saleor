@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import requests
+from django.conf import settings
 from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
@@ -54,7 +55,7 @@ def _request(
         response = HTTPClient.send_request(
             method,
             get_url(config, path),
-            timeout=REQUEST_TIMEOUT,
+            timeout=(settings.REQUESTS_CONN_EST_TIMEOUT, REQUEST_TIMEOUT),
             json=json or {},
             auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
             headers={"X-NP-Terminal-Id": config.terminal_id},
@@ -64,7 +65,7 @@ def _request(
         # Because we want to pass those errors to the end user,
         # we treat 400 as valid response.
         if 400 < response.status_code <= 600:
-            raise requests.HTTPError
+            raise requests.HTTPError(request=response.request, response=response)
         return response
 
 

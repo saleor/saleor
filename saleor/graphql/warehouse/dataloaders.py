@@ -127,7 +127,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             | Q(warehouse_id__in=cc_warehouses.values("id"))
         )
 
-        stocks = stocks.annotate_available_quantity()
+        stocks = stocks.annotate_available_quantity().order_by("pk")
 
         stocks_reservations = self.prepare_stocks_reservations_map(variant_ids)
 
@@ -247,6 +247,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                 Stock.objects.using(self.database_connection_name)
                 .filter(product_variant_id__in=variant_ids)
                 .annotate_reserved_quantity()
+                .order_by("pk")
                 .values_list("id", "reserved_quantity")
             )
             for stock_id, quantity_reserved in reservations_qs:
@@ -448,7 +449,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                     ],
                 )
             )
-        stocks = stocks.annotate_available_quantity()
+        stocks = stocks.annotate_available_quantity().order_by("pk")
 
         stocks_by_variant_id_map: DefaultDict[int, List[Stock]] = defaultdict(list)
         for stock in stocks:
@@ -537,6 +538,7 @@ class PreorderQuantityReservedByVariantChannelListingIdLoader(DataLoader[int, in
                 ),
                 where=Q(preorder_reservations__reserved_until__gt=timezone.now()),
             )
+            .order_by("pk")
             .values("id", "quantity_reserved")
         )
 

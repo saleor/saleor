@@ -19,6 +19,12 @@ mutation orderCreateFromCheckout($id: ID!) {
                 amount
             }
         }
+        channel {
+            orderSettings {
+                expireOrdersAfter
+                deleteExpiredOrdersAfter
+            }
+        }
         billingAddress {
         streetAddress1
         }

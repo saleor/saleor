@@ -14,11 +14,9 @@ from typing import (
 )
 from uuid import UUID
 
-from prices import Money
-
 from ..core.utils.lazyobjects import lazy_no_retry
 from ..discount import DiscountType, VoucherType
-from ..discount.interface import fetch_voucher_info
+from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
@@ -31,7 +29,7 @@ from ..warehouse.models import Warehouse
 if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..discount.interface import VoucherInfo
+    from ..discount.interface import VariantPromotionRuleInfo, VoucherInfo
     from ..discount.models import CheckoutLineDiscount, Voucher
     from ..plugins.manager import PluginsManager
     from ..product.models import (
@@ -55,15 +53,17 @@ class CheckoutLineInfo:
     product_type: "ProductType"
     collections: List["Collection"]
     discounts: List["CheckoutLineDiscount"]
+    rules_info: List["VariantPromotionRuleInfo"]
     channel: "Channel"
     tax_class: Optional["TaxClass"] = None
     voucher: Optional["Voucher"] = None
 
-    def get_sale_discount(self) -> Optional["CheckoutLineDiscount"]:
-        for discount in self.discounts:
-            if discount.type == DiscountType.SALE:
-                return discount
-        return None
+    def get_promotion_discounts(self) -> List["CheckoutLineDiscount"]:
+        return [
+            discount
+            for discount in self.discounts
+            if discount.type == DiscountType.PROMOTION
+        ]
 
 
 @dataclass
@@ -240,6 +240,8 @@ def fetch_checkout_lines(
         "variant__product__product_type__tax_class__country_rates",
         "variant__product__tax_class__country_rates",
         "variant__channel_listings__channel",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
         "discounts",
     ]
     if prefetch_variant_attributes:
@@ -264,8 +266,12 @@ def fetch_checkout_lines(
         collections = list(product.collections.all())
         discounts = list(line.discounts.all())
 
-        variant_channel_listing = _get_variant_channel_listing(
+        variant_channel_listing = get_variant_channel_listing(
             variant, checkout.channel_id
+        )
+        translation_language_code = checkout.language_code
+        rules_info = fetch_variant_rules_info(
+            variant_channel_listing, translation_language_code
         )
 
         if not skip_recalculation and not _is_variant_valid(
@@ -283,6 +289,7 @@ def fetch_checkout_lines(
                         collections=collections,
                         tax_class=product.tax_class or product_type.tax_class,
                         discounts=discounts,
+                        rules_info=rules_info,
                         channel=channel,
                     )
                 )
@@ -298,6 +305,7 @@ def fetch_checkout_lines(
                 collections=collections,
                 tax_class=product.tax_class or product_type.tax_class,
                 discounts=discounts,
+                rules_info=rules_info,
                 channel=channel,
             )
         )
@@ -317,7 +325,7 @@ def fetch_checkout_lines(
     return lines_info, unavailable_variant_pks
 
 
-def _get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
+def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
     variant_channel_listing = None
     for channel_listing in variant.channel_listings.all():
         if channel_listing.channel_id == channel_id:
@@ -381,7 +389,7 @@ def apply_voucher_to_checkout_line(
         )
         lines_included_in_discount = discounted_lines_by_voucher
     if voucher.apply_once_per_order:
-        cheapest_line = _get_the_cheapest_line(checkout, lines_included_in_discount)
+        cheapest_line = _get_the_cheapest_line(lines_included_in_discount)
         if cheapest_line:
             discounted_lines_by_voucher = [cheapest_line]
     for line_info in lines_info:
@@ -390,30 +398,11 @@ def apply_voucher_to_checkout_line(
 
 
 def _get_the_cheapest_line(
-    checkout: "Checkout",
     lines_info: Iterable[CheckoutLineInfo],
 ):
-    channel = checkout.channel
-
-    def variant_price(line_info):
-        variant_price = line_info.variant.get_price(
-            product=line_info.product,
-            collections=line_info.collections,
-            channel=channel,
-            channel_listing=line_info.channel_listing,
-            discounts=[],
-            price_override=line_info.line.price_override,
-        )
-        for discount in line_info.discounts:
-            total_discount_amount_for_line = discount.amount_value
-            unit_discount_amount = (
-                total_discount_amount_for_line / line_info.line.quantity
-            )
-            unit_discount = Money(unit_discount_amount, variant_price.currency)
-            variant_price -= unit_discount
-        return variant_price
-
-    return min(lines_info, default=None, key=variant_price)
+    return min(
+        lines_info, key=lambda line_info: line_info.channel_listing.discounted_price
+    )
 
 
 def fetch_checkout_info(
@@ -474,7 +463,7 @@ def update_checkout_info_delivery_method_info(
 
     The attribute is lazy-evaluated avoid external API calls unless accessed.
     """
-    from ..plugins.webhook.shipping import convert_to_app_id_with_identifier
+    from ..webhook.transport.shipping import convert_to_app_id_with_identifier
     from .utils import get_external_shipping_id
 
     delivery_method: Optional[Union[ShippingMethodData, Warehouse, Callable]] = None

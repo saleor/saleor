@@ -31,6 +31,8 @@ def test_app_can_create_order_from_checkout_CORE_0215(
     app_permissions = [
         permission_manage_payments,
         permission_handle_checkouts,
+        permission_manage_orders,
+        permission_manage_channels,
     ]
     assign_permissions(e2e_app_api_client, app_permissions)
 
