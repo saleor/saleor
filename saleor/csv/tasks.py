@@ -84,12 +84,12 @@ def export_gift_cards_task(
 @app.task(name="export-voucher-codes", base=ExportTask)
 def export_voucher_codes_task(
     export_file_id: int,
+    file_type: str,
     voucher_id: Optional[int],
     ids: List[int],
-    file_type: str,
 ):
     export_file = ExportFile.objects.get(pk=export_file_id)
-    export_voucher_codes(export_file, voucher_id, ids, file_type)
+    export_voucher_codes(export_file, file_type, voucher_id, ids)
 
 
 @app.task

@@ -98,18 +98,18 @@ def export_gift_cards(
 
 def export_voucher_codes(
     export_file: "ExportFile",
-    voucher_id: Optional[int],
-    ids: List[int],
     file_type: str,
+    voucher_id: Optional[int] = None,
+    ids: Optional[List[int]] = None,
     delimiter: str = ",",
 ):
     file_name = get_filename("voucher_code", file_type)
 
-    qs = VoucherCode.objects.filter(is_active=True)
+    qs = VoucherCode.objects.all()
     if voucher_id:
-        qs = qs.filter(voucher_id=voucher_id).all()
+        qs = VoucherCode.objects.filter(voucher_id=voucher_id).all()
     if ids:
-        qs = qs.filter(id__in=ids).all()
+        qs = VoucherCode.objects.filter(id__in=ids).all()
 
     export_fields = ["code"]
     temporary_file = create_file_with_headers(export_fields, delimiter, file_type)
@@ -124,7 +124,6 @@ def export_voucher_codes(
 
     save_csv_file_in_export_file(export_file, temporary_file, file_name)
     temporary_file.close()
-
     send_export_download_link_notification(export_file, "voucher codes")
 
 
