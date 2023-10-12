@@ -1,19 +1,19 @@
 import pytest
 
-from ..orders.utils import order_void
-from ..product.utils.preparing_product import prepare_product
-from ..shop.utils.preparing_shop import prepare_shop
-from ..utils import assign_permissions
-from .utils import (
+from ..checkout.utils import (
     checkout_complete,
     checkout_create,
     checkout_delivery_method_update,
     raw_checkout_dummy_payment_create,
 )
+from ..product.utils.preparing_product import prepare_product
+from ..shop.utils.preparing_shop import prepare_shop
+from ..utils import assign_permissions
+from .utils import order_void
 
 
 @pytest.mark.e2e
-def test_checkout_void_payment_CORE_0116(
+def test_checkout_void_payment_CORE_0217(
     e2e_staff_api_client,
     e2e_app_api_client,
     permission_manage_products,
