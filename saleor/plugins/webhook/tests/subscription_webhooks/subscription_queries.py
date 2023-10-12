@@ -570,6 +570,22 @@ VOUCHER_METADATA_UPDATED = (
 )
 
 
+VOUCHER_CODE_EXPORT_COMPLETED = (
+    fragments.VOUCHER_CODE_EXPORT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on VoucherCodeExportCompleted{
+          export{
+            ...VoucherCodeExportDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 SHOP_METADATA_UPDATED = """
     subscription{
       event {

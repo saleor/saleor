@@ -8156,6 +8156,7 @@ def async_subscription_webhooks_with_root_objects(
     subscription_voucher_deleted_webhook,
     subscription_voucher_webhook_with_meta,
     subscription_voucher_metadata_updated_webhook,
+    subscription_voucher_code_export_completed_webhook,
     address,
     app,
     numeric_attribute,
@@ -8483,6 +8484,10 @@ def async_subscription_webhooks_with_root_objects(
         events.VOUCHER_METADATA_UPDATED: [
             subscription_voucher_metadata_updated_webhook,
             voucher,
+        ],
+        events.VOUCHER_CODE_EXPORT_COMPLETED: [
+            subscription_voucher_code_export_completed_webhook,
+            user_export_file,
         ],
         events.WAREHOUSE_CREATED: [subscription_warehouse_created_webhook, warehouse],
         events.WAREHOUSE_UPDATED: [subscription_warehouse_updated_webhook, warehouse],
