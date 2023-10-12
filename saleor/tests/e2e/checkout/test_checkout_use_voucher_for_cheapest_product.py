@@ -27,7 +27,7 @@ def prepare_voucher_for_cheapest_product(
     apply_once_per_order,
 ):
     input = {
-        "codes": [{"code": voucher_code}],
+        "addCodes": [voucher_code],
         "discountValueType": voucher_discount_type,
         "type": voucher_type,
         "applyOncePerOrder": apply_once_per_order,

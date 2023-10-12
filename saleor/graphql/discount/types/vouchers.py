@@ -68,6 +68,9 @@ class VoucherCode(ModelObjectType[models.VoucherCode]):
     code = graphene.String(description="Code to use the voucher.")
     used = graphene.Int(description="Number of times a code has been used.")
     is_active = graphene.Boolean(description="Whether a code is active or not.")
+    created_at = graphene.DateTime(
+        required=True, description="Date time of code creation."
+    )
 
     class Meta:
         description = "Represents voucher code." + ADDED_IN_318

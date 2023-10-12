@@ -212,10 +212,11 @@ class VoucherCode(models.Model):
     voucher = models.ForeignKey(
         Voucher, related_name="codes", on_delete=models.CASCADE, db_index=False
     )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         indexes = [BTreeIndex(fields=["voucher"], name="vouchercode_voucher_idx")]
-        ordering = ("code",)
+        ordering = ("-created_at", "code")
 
 
 class VoucherChannelListing(models.Model):
