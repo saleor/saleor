@@ -118,7 +118,9 @@ class ExportVoucherCodes(BaseExportMutation):
             app=app, user=info.context.user
         )
         export_started_event(export_file=export_file, app=app, user=info.context.user)
-        export_voucher_codes_task.delay(export_file.pk, voucher_id, ids, file_type)
+        export_voucher_codes_task.delay(
+            export_file.pk, file_type, voucher_id=voucher_id, ids=ids
+        )
 
         export_file.refresh_from_db()
         return cls(export_file=export_file)
