@@ -155,6 +155,7 @@ def test_update_product(
     product.refresh_from_db()
 
     # then
+    assert product.search_index_dirty is True
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
