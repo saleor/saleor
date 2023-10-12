@@ -43,9 +43,7 @@ def send_export_download_link_notification(export_file: "ExportFile", data_type:
     if data_type == "products":
         manager.product_export_completed(export_file)
     if data_type == "voucher codes":
-        pass
-        # TODO voucher codes
-        # manager.voucher_code_export_completed(export_file)
+        manager.voucher_code_export_completed(export_file)
 
 
 def send_export_failed_info(export_file: "ExportFile", data_type: str):
@@ -63,6 +61,4 @@ def send_export_failed_info(export_file: "ExportFile", data_type: str):
     if data_type == "products":
         manager.product_export_completed(export_file)
     if data_type == "voucher codes":
-        pass
-        # TODO voucher codes
-        # manager.voucher_code_export_completed(export_file)
+        manager.voucher_code_export_completed(export_file)

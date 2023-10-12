@@ -61,6 +61,7 @@ from ..core.descriptions import (
 )
 from ..core.doc_category import (
     DOC_CATEGORY_CHECKOUT,
+    DOC_CATEGORY_DISCOUNTS,
     DOC_CATEGORY_GIFT_CARDS,
     DOC_CATEGORY_MISC,
     DOC_CATEGORY_ORDERS,
@@ -2402,6 +2403,25 @@ class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
         description = "Event sent when voucher metadata is updated." + ADDED_IN_38
 
 
+class VoucherCodeExportCompleted(SubscriptionObjectType):
+    export = graphene.Field(
+        "saleor.graphql.csv.types.ExportFile",
+        description="The export file for voucher codes.",
+    )
+
+    class Meta:
+        root_type = "ExportFile"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when voucher code export is completed." + ADDED_IN_316
+        doc_category = DOC_CATEGORY_DISCOUNTS
+
+    @staticmethod
+    def resolve_export(root, _info: ResolveInfo):
+        _, export_file = root
+        return export_file
+
+
 class ShopMetadataUpdated(SubscriptionObjectType, AbstractType):
     shop = graphene.Field(Shop, description="Shop data.")
 
@@ -2816,6 +2836,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.VOUCHER_UPDATED: VoucherUpdated,
     WebhookEventAsyncType.VOUCHER_DELETED: VoucherDeleted,
     WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: VoucherMetadataUpdated,
+    WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED: VoucherCodeExportCompleted,
     WebhookEventAsyncType.WAREHOUSE_CREATED: WarehouseCreated,
     WebhookEventAsyncType.WAREHOUSE_UPDATED: WarehouseUpdated,
     WebhookEventAsyncType.WAREHOUSE_DELETED: WarehouseDeleted,

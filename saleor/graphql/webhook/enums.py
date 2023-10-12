@@ -9,6 +9,7 @@ from ..core.descriptions import (
     ADDED_IN_314,
     ADDED_IN_315,
     ADDED_IN_316,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_ENUM_VALUE,
     PREVIEW_FEATURE,
 )
@@ -235,6 +236,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.VOUCHER_DELETED: "A voucher is deleted.",
     WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: (
         "A voucher metadata is updated." + ADDED_IN_38
+    ),
+    WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED: (
+        "A voucher code export is completed." + ADDED_IN_318
     ),
     WebhookEventAsyncType.ANY: "All the events." + DEPRECATED_IN_3X_ENUM_VALUE,
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",

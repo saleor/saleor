@@ -356,3 +356,31 @@ def test_export_voucher_codes_error_invalid_voucher_code_ids(
     error = data["errors"][0]
     assert error["field"] == "ids"
     assert error["code"] == ExportErrorCode.INVALID.name
+
+
+@patch("saleor.plugins.manager.PluginsManager.voucher_code_export_completed")
+def test_export_voucher_webhooks(
+    export_completed_webhook_mock,
+    staff_api_client,
+    voucher_with_many_codes,
+    permission_manage_discounts,
+    media_root,
+):
+    # given
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher_with_many_codes.id)
+    variables = {
+        "input": {
+            "voucherId": voucher_id,
+            "fileType": FileTypeEnum.CSV.name,
+        }
+    }
+
+    # when
+    staff_api_client.post_graphql(
+        EXPORT_VOUCHER_CODES_MUTATION,
+        variables=variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    export_completed_webhook_mock.assert_called_once()
