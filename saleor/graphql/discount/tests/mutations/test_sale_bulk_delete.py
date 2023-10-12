@@ -1,33 +1,63 @@
+from decimal import Decimal
 from unittest import mock
 
 import graphene
 import pytest
 
+from .....discount import RewardValueType
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.models import Promotion, Sale, SaleChannelListing
-from .....discount.tests.sale_converter import convert_sales_to_promotions
+from .....discount.models import Promotion, PromotionRule
 from ....tests.utils import get_graphql_content
 
 
 @pytest.fixture
-def sale_list(channel_USD, product_list, category, collection):
-    sales = Sale.objects.bulk_create(
-        [Sale(name="Sale 1"), Sale(name="Sale 2"), Sale(name="Sale 3")]
+def promotion_converted_from_sale_list(channel_USD, product_list, category, collection):
+    promotions = Promotion.objects.bulk_create(
+        [Promotion(name="Sale 1"), Promotion(name="Sale 2"), Promotion(name="Sale 3")]
     )
-    for sale, product in zip(sales, product_list):
-        sale.products.add(product)
-        sale.variants.add(product.variants.first())
+    for promotion in promotions:
+        promotion.assign_old_sale_id()
+    predicates = [
+        {
+            "OR": [
+                {
+                    "productPredicate": {
+                        "ids": [graphene.Node.to_global_id("Product", product.id)]
+                    }
+                },
+                {
+                    "variantPredicate": {
+                        "ids": [
+                            graphene.Node.to_global_id(
+                                "Product", product.variants.first().id
+                            )
+                        ]
+                    }
+                },
+            ]
+        }
+        for product in product_list
+    ]
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
 
-    sales[0].categories.add(category)
-    sales[1].collections.add(collection)
+    predicates[0]["OR"].append({"categoryPredicate": {"ids": [category_id]}})
+    predicates[1]["OR"].append({"collectionPredicate": {"ids": [collection_id]}})
 
-    SaleChannelListing.objects.bulk_create(
-        [
-            SaleChannelListing(sale=sale, discount_value=5, channel=channel_USD)
-            for sale in sales
-        ]
-    )
-    return list(sales)
+    rules = [
+        PromotionRule(
+            promotion=promotion,
+            catalogue_predicate=predicate,
+            reward_value_type=RewardValueType.FIXED,
+            reward_value=Decimal("5"),
+        )
+        for promotion, predicate in zip(promotions, predicates)
+    ]
+    PromotionRule.objects.bulk_create(rules)
+    for rule in rules:
+        rule.channels.add(channel_USD)
+
+    return promotions
 
 
 SALE_BULK_DELETE_MUTATION = """
@@ -51,14 +81,17 @@ def test_delete_sales(
     update_products_discounted_prices_for_promotion_task,
     deleted_webhook_mock,
     staff_api_client,
-    sale_list,
+    promotion_converted_from_sale_list,
     permission_manage_discounts,
 ):
     # given
+    promotion_list = promotion_converted_from_sale_list
     variables = {
-        "ids": [graphene.Node.to_global_id("Sale", sale.id) for sale in sale_list]
+        "ids": [
+            graphene.Node.to_global_id("Sale", promotion.old_sale_id)
+            for promotion in promotion_list
+        ]
     }
-    convert_sales_to_promotions()
 
     # when
     response = staff_api_client.post_graphql(
@@ -70,10 +103,10 @@ def test_delete_sales(
 
     assert content["data"]["saleBulkDelete"]["count"] == 3
     assert not Promotion.objects.filter(
-        old_sale_id__in=[sale.id for sale in sale_list]
+        id__in=[promotion.id for promotion in promotion_list]
     ).exists()
     update_products_discounted_prices_for_promotion_task.called_once()
-    assert deleted_webhook_mock.call_count == len(sale_list)
+    assert deleted_webhook_mock.call_count == len(promotion_list)
 
 
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
@@ -82,7 +115,7 @@ def test_delete_sales_triggers_webhook(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
     staff_api_client,
-    sale_list,
+    promotion_converted_from_sale_list,
     permission_manage_discounts,
     any_webhook,
     settings,
@@ -90,10 +123,15 @@ def test_delete_sales_triggers_webhook(
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    promotion_list = promotion_converted_from_sale_list
+
     variables = {
-        "ids": [graphene.Node.to_global_id("Sale", sale.id) for sale in sale_list]
+        "ids": [
+            graphene.Node.to_global_id("Sale", promotion.old_sale_id)
+            for promotion in promotion_list
+        ]
     }
-    convert_sales_to_promotions()
+
     # when
     response = staff_api_client.post_graphql(
         SALE_BULK_DELETE_MUTATION, variables, permissions=[permission_manage_discounts]
@@ -112,7 +150,7 @@ def test_delete_sales_with_variants_triggers_webhook(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
     staff_api_client,
-    sale_list,
+    promotion_converted_from_sale_list,
     permission_manage_discounts,
     any_webhook,
     settings,
@@ -122,23 +160,44 @@ def test_delete_sales_with_variants_triggers_webhook(
     product_variant_list,
 ):
     # given
-    for sale in sale_list:
-        sale.products.add(product)
-        sale.collections.add(collection)
-        sale.categories.add(category)
-        sale.variants.add(*product_variant_list)
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variant_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.id)
+        for variant in product_variant_list
+    ]
+    predicate = {
+        "OR": [
+            {"collectionPredicate": {"ids": [collection_id]}},
+            {"categoryPredicate": {"ids": [category_id]}},
+            {"productPredicate": {"ids": [product_id]}},
+            {"variantPredicate": {"ids": variant_ids}},
+        ]
+    }
+
+    promotion_list = promotion_converted_from_sale_list
+    rules = [promotion.rules.first() for promotion in promotion_list]
+    for rule in rules:
+        rule.catalogue_predicate = predicate
+
+    PromotionRule.objects.bulk_update(rules, fields=["catalogue_predicate"])
 
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variables = {
-        "ids": [graphene.Node.to_global_id("Sale", sale.id) for sale in sale_list]
+        "ids": [
+            graphene.Node.to_global_id("Sale", promotion.old_sale_id)
+            for promotion in promotion_list
+        ]
     }
-    convert_sales_to_promotions()
 
     # when
     response = staff_api_client.post_graphql(
         SALE_BULK_DELETE_MUTATION, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["saleBulkDelete"]["count"] == 3
     assert mocked_webhook_trigger.call_count == 3
@@ -153,15 +212,14 @@ def test_delete_sales_with_promotion_ids(
     deleted_webhook_mock,
     staff_api_client,
     any_webhook,
-    sale_list,
+    promotion_converted_from_sale_list,
     permission_manage_discounts,
 ):
     # given
-    convert_sales_to_promotions()
     variables = {
         "ids": [
             graphene.Node.to_global_id("Promotion", promotion.id)
-            for promotion in Promotion.objects.all()
+            for promotion in promotion_converted_from_sale_list
         ]
     }
 

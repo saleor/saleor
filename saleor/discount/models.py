@@ -22,7 +22,6 @@ from ..core.models import ModelWithMetadata
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import Translation
-from ..permission.enums import DiscountPermissions
 from . import (
     DiscountType,
     DiscountValueType,
@@ -228,20 +227,6 @@ class VoucherCustomer(models.Model):
         unique_together = (("voucher", "customer_email"),)
 
 
-class SaleQueryset(models.QuerySet["Sale"]):
-    def active(self, date=None):
-        if date is None:
-            date = timezone.now()
-        return self.filter(
-            Q(end_date__isnull=True) | Q(end_date__gte=date), start_date__lte=date
-        )
-
-    def expired(self, date=None):
-        if date is None:
-            date = timezone.now()
-        return self.filter(end_date__lt=date, start_date__lt=date)
-
-
 class VoucherTranslation(Translation):
     voucher = models.ForeignKey(
         Voucher, related_name="translations", on_delete=models.CASCADE
@@ -254,113 +239,6 @@ class VoucherTranslation(Translation):
 
     def get_translated_object_id(self):
         return "Voucher", self.voucher_id
-
-    def get_translated_keys(self):
-        return {"name": self.name}
-
-
-SaleManager = models.Manager.from_queryset(SaleQueryset)
-
-
-class Sale(ModelWithMetadata):
-    name = models.CharField(max_length=255)
-    type = models.CharField(
-        max_length=10,
-        choices=DiscountValueType.CHOICES,
-        default=DiscountValueType.FIXED,
-    )
-    categories = models.ManyToManyField("product.Category", blank=True)
-    collections = models.ManyToManyField("product.Collection", blank=True)
-    products = models.ManyToManyField("product.Product", blank=True)
-    variants = models.ManyToManyField("product.ProductVariant", blank=True)
-    start_date = models.DateTimeField(default=timezone.now)
-    end_date = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    updated_at = models.DateTimeField(auto_now=True, db_index=True)
-
-    notification_sent_datetime = models.DateTimeField(null=True, blank=True)
-
-    objects = SaleManager()
-
-    class Meta:
-        ordering = ("name", "pk")
-        app_label = "discount"
-        permissions = (
-            (
-                DiscountPermissions.MANAGE_DISCOUNTS.codename,
-                "Manage sales and vouchers.",
-            ),
-        )
-
-    def __repr__(self):
-        return f"Sale(name={str(self.name)}, type={self.get_type_display()})"
-
-    def __str__(self):
-        return self.name
-
-    def get_discount(self, sale_channel_listing):
-        if not sale_channel_listing:
-            raise NotApplicable("This sale is not assigned to this channel.")
-        if self.type == DiscountValueType.FIXED:
-            discount_amount = Money(
-                sale_channel_listing.discount_value, sale_channel_listing.currency
-            )
-            return partial(fixed_discount, discount=discount_amount)
-        if self.type == DiscountValueType.PERCENTAGE:
-            return partial(
-                percentage_discount,
-                percentage=sale_channel_listing.discount_value,
-                rounding=ROUND_HALF_UP,
-            )
-        raise NotImplementedError("Unknown discount type")
-
-    def is_active(self, date=None):
-        if date is None:
-            date = datetime.now(pytz.utc)
-        return (not self.end_date or self.end_date >= date) and self.start_date <= date
-
-
-class SaleChannelListing(models.Model):
-    sale = models.ForeignKey(
-        Sale,
-        null=False,
-        blank=False,
-        related_name="channel_listings",
-        on_delete=models.CASCADE,
-    )
-    channel = models.ForeignKey(
-        Channel,
-        null=False,
-        blank=False,
-        related_name="sale_listings",
-        on_delete=models.CASCADE,
-    )
-    discount_value = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0.0"),
-    )
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-    )
-
-    class Meta:
-        unique_together = [["sale", "channel"]]
-        ordering = ("pk",)
-
-
-class SaleTranslation(Translation):
-    name = models.CharField(max_length=255, null=True, blank=True)
-    sale = models.ForeignKey(
-        Sale, related_name="translations", on_delete=models.CASCADE
-    )
-
-    class Meta:
-        ordering = ("language_code", "name", "pk")
-        unique_together = (("language_code", "sale"),)
-
-    def get_translated_object_id(self):
-        return "Sale", self.sale_id
 
     def get_translated_keys(self):
         return {"name": self.name}
@@ -522,9 +400,6 @@ class BaseDiscount(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     translated_name = models.CharField(max_length=255, null=True, blank=True)
     reason = models.TextField(blank=True, null=True)
-    sale = models.ForeignKey(
-        Sale, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
-    )
     promotion_rule = models.ForeignKey(
         PromotionRule,
         related_name="+",

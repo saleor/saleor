@@ -1625,9 +1625,7 @@ def test_checkout_prices_checkout_with_custom_prices(
     )
 
 
-def test_checkout_prices_with_sales(
-    user_api_client, checkout_with_item_on_sale, discount_info
-):
+def test_checkout_prices_with_sales(user_api_client, checkout_with_item_on_sale):
     # given
     query = QUERY_CHECKOUT_PRICES
     checkout = checkout_with_item_on_sale

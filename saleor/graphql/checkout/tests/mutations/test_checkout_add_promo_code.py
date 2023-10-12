@@ -12,7 +12,6 @@ from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import add_variant_to_checkout, set_external_shipping_id
 from .....discount import VoucherType
-from .....discount.tests.sale_converter import convert_sales_to_promotions
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductVariantChannelListing
 from .....warehouse.models import Stock
@@ -290,8 +289,6 @@ def test_checkout_add_voucher_code_checkout_with_sale(
     manager = get_plugins_manager()
     address = checkout.shipping_address
 
-    convert_sales_to_promotions()
-
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_info.checkout.price_expiration = timezone.now()
@@ -344,8 +341,6 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
 
     checkout.price_expiration = timezone.now()
 
-    convert_sales_to_promotions()
-
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -391,8 +386,6 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
     voucher.type = VoucherType.SPECIFIC_PRODUCT
     voucher.save()
     voucher.products.add(product)
-
-    convert_sales_to_promotions()
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
@@ -463,8 +456,6 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
         .discount_value
     )
 
-    convert_sales_to_promotions()
-
     manager = get_plugins_manager()
 
     checkout.price_expiration = timezone.now()
@@ -526,9 +517,6 @@ def test_checkout_add_category_code_checkout_with_sale(
     )
 
     checkout.price_expiration = timezone.now()
-
-    convert_sales_to_promotions()
-
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)

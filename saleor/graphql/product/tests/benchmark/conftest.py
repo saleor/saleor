@@ -1,25 +1,40 @@
 import pytest
 
-from .....discount.models import Sale, SaleChannelListing
+from .....discount import RewardValueType
+from .....discount.models import Promotion, PromotionRule
 from .....product.models import Category
 
 
 @pytest.fixture
-def sales_list(channel_USD):
-    sales = Sale.objects.bulk_create([Sale(name="Sale1"), Sale(name="Sale2")])
+def promotion_converted_from_sale_list(channel_USD):
+    promotions = Promotion.objects.bulk_create(
+        [Promotion(name="Sale1"), Promotion(name="Sale2")]
+    )
+    for promotion in promotions:
+        promotion.assign_old_sale_id()
+
     values = [15, 5]
-    SaleChannelListing.objects.bulk_create(
+
+    rules = PromotionRule.objects.bulk_create(
         [
-            SaleChannelListing(
-                sale=sale,
-                channel=channel_USD,
-                discount_value=values[i],
-                currency=channel_USD.currency_code,
+            PromotionRule(
+                promotion=promotion,
+                catalogue_predicate={},
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=value,
             )
-            for i, sale in enumerate(sales)
+            for promotion, value in zip(promotions, values)
         ]
     )
-    return list(sales)
+    PromotionRuleChannel = PromotionRule.channels.through
+
+    rules_channels = [
+        PromotionRuleChannel(promotionrule_id=rule.id, channel_id=channel_USD.id)
+        for rule in rules
+    ]
+    PromotionRuleChannel.objects.bulk_create(rules_channels)
+
+    return promotions
 
 
 @pytest.fixture
@@ -31,7 +46,7 @@ def category_with_products(
     product_with_variant_with_two_attributes,
     product_with_multiple_values_attributes,
     product_without_shipping,
-    sales_list,
+    promotion_converted_from_sale_list,
 ):
     category = categories_tree
     child = Category.objects.create(name="TestCategory", slug="test-cat")

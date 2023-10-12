@@ -62,7 +62,7 @@ class SaleChannelListing(BaseObjectType):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
 
-class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Sale]):
+class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
     id = graphene.GlobalID(required=True, description="The ID of the sale.")
     name = graphene.String(required=True, description="The name of the sale.")
     type = SaleType(required=True, description="Type of the sale, fixed or percentage.")

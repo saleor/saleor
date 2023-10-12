@@ -323,3 +323,19 @@ def subtract_catalogues_info(
     new_catalogue["products"] -= catalogue_2.get("products", set())
     new_catalogue["variants"] -= catalogue_2.get("variants", set())
     return new_catalogue
+
+
+def create_catalogue_predicate(collection_ids, category_ids, product_ids, variant_ids):
+    predicate: Dict[str, List] = {"OR": []}
+    if collection_ids:
+        predicate["OR"].append({"collectionPredicate": {"ids": collection_ids}})
+    if category_ids:
+        predicate["OR"].append({"categoryPredicate": {"ids": category_ids}})
+    if product_ids:
+        predicate["OR"].append({"productPredicate": {"ids": product_ids}})
+    if variant_ids:
+        predicate["OR"].append({"variantPredicate": {"ids": variant_ids}})
+    if not predicate.get("OR"):
+        predicate = {}
+
+    return predicate

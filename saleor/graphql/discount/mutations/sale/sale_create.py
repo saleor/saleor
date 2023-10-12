@@ -8,7 +8,6 @@ from .....core.tracing import traced_atomic_transaction
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion
-from .....discount.tests.sale_converter import create_catalogue_predicate
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_of_promotion_task
 from .....webhook.event_types import WebhookEventAsyncType
@@ -24,7 +23,10 @@ from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import DiscountValueTypeEnum
 from ...types import Sale
-from ...utils import convert_migrated_sale_predicate_to_catalogue_info
+from ...utils import (
+    convert_migrated_sale_predicate_to_catalogue_info,
+    create_catalogue_predicate,
+)
 
 
 class SaleInput(BaseInputObjectType):
