@@ -16,6 +16,8 @@ task_logger = get_task_logger(__name__)
 # Batch size of size 5000 is about 5MB memory usage in task
 BATCH_SIZE = 5000
 
+# Batch size of 500 uses Less than 5MB memory,
+# bigger batch size would raise task completion time over 1.5 seconds
 LINE_BATCH = 500
 
 
@@ -73,13 +75,15 @@ def recalculate_tax_for_prices(
 def get_order_prices_entered_with_tax_mapping(
     order_lines, order_model, channel_model, tax_configuration
 ):
-    orders = order_model.objects.filter(id__in=order_lines.values("order_id")).\
-        values_list("id", "channel_id")
+    orders = order_model.objects.filter(
+        id__in=order_lines.values("order_id")
+    ).values_list("id", "channel_id")
 
-    channels = channel_model.objects.filter(id__in=orders.values("channel_id"))\
-        .values_list("tax_configuration_id", "id")#?
+    channels = channel_model.objects.filter(
+        id__in=orders.values("channel_id")
+    ).values_list("id")
     tax_configurations = tax_configuration.objects.filter(
-        id__in=channels.values("tax_configuration_id")
+        channel_id__in=channels.values("id")
     )
     tax_conf_to_prices_entered_with_taxes = {
         tc_id: price_entered_with_taxes
@@ -89,7 +93,7 @@ def get_order_prices_entered_with_tax_mapping(
     }
 
     channel_to_prices_entered_with_taxes = dict()
-    for channel_id, tax_conf_id in channels.values_list("id", "tax_configuration_id"):
+    for channel_id, tax_conf_id in tax_configurations.values_list("channel_id", "id"):
         channel_to_prices_entered_with_taxes[
             channel_id
         ] = tax_conf_to_prices_entered_with_taxes[tax_conf_id]
@@ -121,14 +125,21 @@ def recalculate_undiscounted_prices():
             )
             & Q(tax_rate__gt=0)
         )
-        .order_by("-created_at")[:LINE_BATCH]
+        .only(
+            "pk",
+            "undiscounted_unit_price_gross_amount",
+            "undiscounted_unit_price_net_amount",
+            "undiscounted_total_price_gross_amount",
+            "undiscounted_total_price_net_amount",
+            "order_id",
+            "tax_rate",
+            "currency",
+        ).order_by("-pk")[:LINE_BATCH]
     )
-    # po pk bo created_at nie jest indexowane
 
     if not order_lines:
         task_logger.info("No order lines to update.")
         return
-
     order_to_prices_with_tax_map = get_order_prices_entered_with_tax_mapping(
         order_lines,
         order_model=Order,
@@ -140,10 +151,9 @@ def recalculate_undiscounted_prices():
     for line in order_lines:
         prices_entered_with_tax = order_to_prices_with_tax_map[line.order_id]
         tax_rate = line.tax_rate
-        if tax_rate > 0:
-            recalculate_tax_for_prices(
-                line, prices_entered_with_tax, tax_rate, lines_to_update
-            )
+        recalculate_tax_for_prices(
+            line, prices_entered_with_tax, tax_rate, lines_to_update
+        )
 
     if lines_to_update:
         OrderLine.objects.bulk_update(
