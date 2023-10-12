@@ -25,7 +25,7 @@ from .utils import (
 )
 
 
-def prepare_shop_with_few_shipping_zone_counties(
+def prepare_shop_with_few_shipping_zone_countries(
     e2e_staff_api_client,
     shipping_price,
 ):
@@ -126,7 +126,7 @@ def test_checkout_calculate_simple_tax_based_on_shipping_country_CORE_2001(
         channel_slug,
         shipping_method_id,
         shipping_price,
-    ) = prepare_shop_with_few_shipping_zone_counties(e2e_staff_api_client, "6.66")
+    ) = prepare_shop_with_few_shipping_zone_countries(e2e_staff_api_client, "6.66")
 
     shipping_country_tax_rate = prepare_tax_configuration(
         e2e_staff_api_client,
@@ -168,7 +168,6 @@ def test_checkout_calculate_simple_tax_based_on_shipping_country_CORE_2001(
     assert checkout_data["isShippingRequired"] is True
 
     # Step 2 - Set shipping address for checkout.
-
     shipping_address = {
         "firstName": "John",
         "lastName": "Muller",
@@ -241,6 +240,7 @@ def test_checkout_calculate_simple_tax_based_on_shipping_country_CORE_2001(
     total_gross_amount = calculated_total
     total_tax = calculated_tax + shipping_tax
     assert checkout_data["totalPrice"]["tax"]["amount"] == total_tax
+
     # Step 6 - Create payment for checkout.
     checkout_dummy_payment_create(
         e2e_not_logged_api_client,
