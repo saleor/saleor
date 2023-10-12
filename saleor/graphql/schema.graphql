@@ -9392,6 +9392,9 @@ type VoucherCode {
 
   """Whether a code is active or not."""
   isActive: Boolean
+
+  """Date time of code creation."""
+  createdAt: DateTime!
 }
 
 enum DiscountValueTypeEnum @doc(category: "Discounts") {
@@ -27822,11 +27825,13 @@ input VoucherInput @doc(category: "Discounts") {
   code: String
 
   """
-  Codes to use the voucher.
+  List of codes to add.
   
   Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  codes: [VoucherCodeInput!]
+  addCodes: [String!]
 
   """Start date of the voucher in ISO 8601 format."""
   startDate: DateTime
@@ -27877,16 +27882,6 @@ input VoucherInput @doc(category: "Discounts") {
 
   """Limit number of times this voucher can be used in total."""
   usageLimit: Int
-}
-
-"""
-Represents voucher code data.
-
-Added in Saleor 3.18.
-"""
-input VoucherCodeInput @doc(category: "Discounts") {
-  """Code to use the voucher."""
-  code: String
 }
 
 """

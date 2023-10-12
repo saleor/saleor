@@ -9,7 +9,12 @@ from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_31, ADDED_IN_318, DEPRECATED_IN_3X_FIELD
+from ....core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_318,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
@@ -23,14 +28,6 @@ from ...enums import DiscountValueTypeEnum, VoucherTypeEnum
 from ...types import Voucher
 
 
-class VoucherCodeInput(BaseInputObjectType):
-    code = graphene.String(description="Code to use the voucher.", required=False)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        description = "Represents voucher code data." + ADDED_IN_318
-
-
 class VoucherInput(BaseInputObjectType):
     type = VoucherTypeEnum(
         description="Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER."
@@ -39,10 +36,10 @@ class VoucherInput(BaseInputObjectType):
     code = graphene.String(
         required=False, description="Code to use the voucher." + DEPRECATED_IN_3X_FIELD
     )
-    codes = NonNullList(
-        VoucherCodeInput,
+    add_codes = NonNullList(
+        graphene.String,
         required=False,
-        description="Codes to use the voucher." + ADDED_IN_318,
+        description="List of codes to add." + ADDED_IN_318 + PREVIEW_FEATURE,
     )
     start_date = graphene.types.datetime.DateTime(
         description="Start date of the voucher in ISO 8601 format."
@@ -147,7 +144,7 @@ class VoucherCreate(ModelMutation):
 
     @classmethod
     def _clean_new_codes(cls, data):
-        codes = [code_data.code.strip() for code_data in data.codes if code_data.code]
+        codes = [code.strip() for code in data.add_codes]
         duplicated_codes = get_duplicated_values(codes)
 
         if duplicated_codes:
@@ -162,13 +159,16 @@ class VoucherCreate(ModelMutation):
             )
 
         existing_codes = []
-        for code_data in data.codes:
-            code_data["code"] = code_data.code.strip() if code_data.code else None
+        clean_add_codes = []
+        for code in data.add_codes:
+            cleaned_code = code.strip() if code else None
 
-            if not code_data["code"]:
-                code_data["code"] = generate_promo_code()
-            elif not is_available_promo_code(code_data["code"]):
-                existing_codes.append(code_data["code"])
+            if not cleaned_code:
+                cleaned_code = generate_promo_code()
+            elif not is_available_promo_code(cleaned_code):
+                existing_codes.append(cleaned_code)
+
+            clean_add_codes.append(cleaned_code)
 
         if existing_codes:
             raise ValidationError(
@@ -181,21 +181,23 @@ class VoucherCreate(ModelMutation):
                 }
             )
 
+        data["add_codes"] = clean_add_codes
+
     @classmethod
     def clean_codes(cls, data):
         if data.code != "":
             validate_one_of_args_is_in_mutation(
                 "code",
                 data.code,
-                "codes",
-                data.codes,
+                "add_codes",
+                data.add_codes,
                 use_camel_case=True,
             )
 
         if "code" in data:
             cls._clean_old_code(data)
 
-        if "codes" in data:
+        if "add_codes" in data:
             cls._clean_new_codes(data)
 
     @classmethod
@@ -213,10 +215,10 @@ class VoucherCreate(ModelMutation):
         if codes_data:
             return [
                 models.VoucherCode(
-                    code=code_data["code"],
+                    code=code,
                     voucher=voucher_instance,
                 )
-                for code_data in codes_data
+                for code in codes_data
             ]
 
         return []
@@ -265,7 +267,7 @@ class VoucherCreate(ModelMutation):
 
         metadata_list = cleaned_input.pop("metadata", None)
         private_metadata_list = cleaned_input.pop("private_metadata", None)
-        codes_data = cleaned_input.pop("codes", None)
+        codes_data = cleaned_input.pop("add_codes", None)
         code = cleaned_input.pop("code", None)
 
         voucher_instance = cls.construct_instance(voucher_instance, cleaned_input)

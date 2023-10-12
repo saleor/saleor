@@ -67,10 +67,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
         "input": {
             "name": name,
             "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-            "codes": [
-                {"code": "testcode123"},
-                {"code": "testcode456"},
-            ],
+            "addCodes": ["testcode123", "testcode456"],
             "discountValueType": DiscountValueTypeEnum.FIXED.name,
             "minCheckoutItemsQuantity": 10,
             "startDate": start_date.isoformat(),
@@ -118,7 +115,7 @@ def test_create_voucher_return_error_when_code_and_codes_args_combined(
             "name": "test voucher",
             "type": VoucherTypeEnum.ENTIRE_ORDER.name,
             "code": "testcode123",
-            "codes": [{"code": "testcode123"}, {"code": "testcode456"}],
+            "addCodes": ["testcode123", "testcode456"],
             "discountValueType": DiscountValueTypeEnum.FIXED.name,
             "minCheckoutItemsQuantity": 10,
             "startDate": start_date.isoformat(),
@@ -137,7 +134,7 @@ def test_create_voucher_return_error_when_code_and_codes_args_combined(
     data = content["data"]["voucherCreate"]
 
     # then
-    message = "Argument 'code' cannot be combined with 'codes'"
+    message = "Argument 'code' cannot be combined with 'addCodes'"
     assert data["errors"]
     assert data["errors"][0]["code"] == DiscountErrorCode.GRAPHQL_ERROR.name
     assert data["errors"][0]["message"] == message
@@ -172,7 +169,7 @@ def test_create_voucher_return_error_when_code_or_codes_arg_not_in_input(
     data = content["data"]["voucherCreate"]
 
     # then
-    message = "At least one of arguments is required: 'code', 'codes'."
+    message = "At least one of arguments is required: 'code', 'addCodes'."
     assert data["errors"]
     assert data["errors"][0]["code"] == DiscountErrorCode.GRAPHQL_ERROR.name
     assert data["errors"][0]["message"] == message
@@ -203,7 +200,7 @@ def test_create_voucher_trigger_webhook(
         "input": {
             "name": "test voucher",
             "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-            "codes": [{"code": code_1}, {"code": code_2}],
+            "addCodes": [code_1, code_2],
             "discountValueType": DiscountValueTypeEnum.FIXED.name,
             "minCheckoutItemsQuantity": 10,
             "startDate": start_date.isoformat(),
@@ -252,7 +249,7 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
         "input": {
             "name": "test voucher",
             "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-            "codes": [{"code": ""}],
+            "addCodes": [{"code": ""}],
             "discountValueType": DiscountValueTypeEnum.FIXED.name,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
@@ -283,7 +280,7 @@ def test_create_voucher_with_spaces_in_code(
         "input": {
             "name": "test voucher",
             "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-            "codes": [{"code": "  PROMO"}],
+            "addCodes": ["  PROMO"],
             "discountValueType": DiscountValueTypeEnum.FIXED.name,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
@@ -314,7 +311,7 @@ def test_create_voucher_with_duplicated_codes(
         "input": {
             "name": "test voucher",
             "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-            "codes": [{"code": "CODE"}, {"code": "CODE"}],
+            "addCodes": ["CODE", "CODE"],
             "discountValueType": DiscountValueTypeEnum.FIXED.name,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
@@ -348,7 +345,7 @@ def test_create_voucher_with_existing_gift_card_code(
         "input": {
             "name": "test voucher",
             "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-            "codes": [{"code": gift_card.code}],
+            "addCodes": [gift_card.code],
             "discountValueType": DiscountValueTypeEnum.FIXED.name,
             "minCheckoutItemsQuantity": 10,
             "startDate": start_date.isoformat(),
@@ -385,7 +382,7 @@ def test_create_voucher_with_existing_voucher_code(
         "input": {
             "name": "test voucher",
             "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-            "codes": [{"code": code}],
+            "addCodes": [code],
             "discountValueType": DiscountValueTypeEnum.FIXED.name,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
@@ -418,7 +415,7 @@ def test_create_voucher_with_enddate_before_startdate(
         "input": {
             "name": "test voucher",
             "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-            "codes": [{"code": "testcode123"}],
+            "addCodes": ["testcode123"],
             "discountValueType": DiscountValueTypeEnum.FIXED.name,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
