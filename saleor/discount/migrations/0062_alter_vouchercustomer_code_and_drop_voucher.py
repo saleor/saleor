@@ -6,7 +6,7 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0057_set_vouchercustomer_codes"),
+        ("discount", "0061_set_vouchercustomer_codes"),
     ]
 
     operations = [
