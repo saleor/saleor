@@ -2,18 +2,6 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-from django.db.models.signals import post_migrate
-from django.apps import apps as registry
-
-from .tasks.saleor3_16 import assign_products_to_attribute_values_task
-
-
-def enqueue_data_migration(apps, _schema_editor):
-    def on_migrations_complete(sender=None, **kwargs):
-        assign_products_to_attribute_values_task.delay()
-
-    sender = registry.get_app_config("attribute")
-    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 
 
 class Migration(migrations.Migration):
@@ -32,7 +20,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="attributevalues",
                 to="product.product",
+                db_index=False,
             ),
         ),
-        migrations.RunPython(enqueue_data_migration, migrations.RunPython.noop),
     ]

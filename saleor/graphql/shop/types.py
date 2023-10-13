@@ -9,7 +9,7 @@ from ... import __version__, schema_version
 from ...account import models as account_models
 from ...channel import models as channel_models
 from ...core.models import ModelWithMetadata
-from ...core.utils import build_absolute_uri
+from ...core.utils import build_absolute_uri, get_domain, is_ssl_enabled
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import SitePermissions, get_permissions
 from ...site import models as site_models
@@ -428,8 +428,8 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_domain(_, _info, site):
         return Domain(
-            host=site.domain,
-            ssl_enabled=settings.ENABLE_SSL,
+            host=get_domain(site),
+            ssl_enabled=is_ssl_enabled(),
             url=build_absolute_uri("/"),
         )
 

@@ -18,9 +18,11 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+from ...core.context import get_database_connection_name
 from ...core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_314,
+    ADDED_IN_317,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
     RICH_CONTENT,
@@ -58,6 +60,11 @@ class Category(ModelObjectType[models.Category]):
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
+    )
+    updated_at = graphene.DateTime(
+        required=True,
+        description="The date and time when the category was last updated."
+        + ADDED_IN_317,
     )
     ancestors = ConnectionField(
         lambda: CategoryCountableConnection,
@@ -166,7 +173,8 @@ class Category(ModelObjectType[models.Category]):
         tree = root.get_descendants(include_self=True)
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
-        qs = models.Product.objects.all()
+        connection_name = get_database_connection_name(info.context)
+        qs = models.Product.objects.using(connection_name).all()
         if not has_required_permissions:
             qs = (
                 qs.visible_to_user(requestor, channel)

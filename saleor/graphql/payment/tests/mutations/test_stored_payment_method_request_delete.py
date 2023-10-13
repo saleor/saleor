@@ -147,7 +147,7 @@ def test_stored_payment_method_request_delete_called_by_app(
 
 @patch.object(PluginsManager, "stored_payment_method_request_delete")
 @patch.object(PluginsManager, "is_event_active_for_any_plugin")
-def test_stored_payment_method_request_delete_called_by_anynoums_user(
+def test_stored_payment_method_request_delete_called_by_anonymous_user(
     mocked_is_event_active_for_any_plugin,
     mocked_stored_payment_method_request_delete,
     api_client,

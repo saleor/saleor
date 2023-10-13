@@ -17,7 +17,7 @@ from ....order.tasks import recalculate_orders_task
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.search import prepare_product_search_vector_value
-from ....product.tasks import update_products_discounted_prices_task
+from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_38
@@ -125,7 +125,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             )
 
         # Recalculate the "discounted price" for the related products
-        update_products_discounted_prices_task.delay(product_pks)
+        update_products_discounted_prices_for_promotion_task.delay(product_pks)
 
         return response
 

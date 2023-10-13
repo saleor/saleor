@@ -1,5 +1,6 @@
 import graphene
 import pytest
+from freezegun import freeze_time
 
 from ....product.models import (
     Category,
@@ -72,6 +73,86 @@ def test_categories_with_filtering(
     # then
     content = get_graphql_content(response)
     categories_nodes = content["data"]["categories"]["edges"]
+    assert len(categories_nodes) == categories_count
+
+
+@pytest.mark.parametrize(
+    "filter_by, categories_count",
+    [
+        ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 3),
+        ({"updatedAt": {"lte": "2012-01-14T12:00:05+00:00"}}, 3),
+        ({"updatedAt": {"gte": "2012-01-14T11:29:00+00:00"}}, 2),
+        ({"updatedAt": {"lte": "2012-01-14T11:31:00+00:00"}}, 2),
+        ({"updatedAt": {"gte": "2012-01-14T12:01:00+00:00"}}, 0),
+        ({"updatedAt": {"lte": "2012-01-14T10:59:00+00:00"}}, 0),
+        ({"updatedAt": {}}, 3),
+        (
+            {
+                "updatedAt": {
+                    "lte": "2012-01-14T12:01:00+00:00",
+                    "gte": "2012-01-14T11:59:00+00:00",
+                },
+            },
+            1,
+        ),
+        (
+            {
+                "updatedAt": {
+                    "lte": "2012-01-14T12:01:00+00:00",
+                    "gte": "2012-01-14T11:29:00+00:00",
+                },
+            },
+            2,
+        ),
+    ],
+)
+def test_order_query_with_filter_updated_at(
+    filter_by,
+    categories_count,
+    staff_api_client,
+):
+    # given
+    with freeze_time("2012-01-14 11:00:00"):
+        Category.objects.create(
+            name="Category1",
+            slug="category1",
+            lft=0,
+            rght=0,
+            tree_id=2,
+            level=0,
+        )
+
+    with freeze_time("2012-01-14 11:30:00"):
+        Category.objects.create(
+            name="Category2",
+            slug="category2",
+            lft=1,
+            rght=2,
+            tree_id=1,
+            level=0,
+        )
+
+    with freeze_time("2012-01-14 12:00:00"):
+        Category.objects.create(
+            name="Category3",
+            slug="category3",
+            lft=1,
+            rght=2,
+            tree_id=2,
+            level=0,
+        )
+
+    variables = {"filter": filter_by}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_CATEGORIES_WITH_FILTERING,
+        variables,
+    )
+
+    content = get_graphql_content(response)
+    categories_nodes = content["data"]["categories"]["edges"]
+    # then
     assert len(categories_nodes) == categories_count
 
 

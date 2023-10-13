@@ -12,7 +12,10 @@ from .mutations import (
     PaymentCapture,
     PaymentCheckBalance,
     PaymentGatewayInitialize,
+    PaymentGatewayInitializeTokenization,
     PaymentInitialize,
+    PaymentMethodInitializeTokenization,
+    PaymentMethodProcessTokenization,
     PaymentRefund,
     PaymentVoid,
     StoredPaymentMethodRequestDelete,
@@ -100,3 +103,8 @@ class PaymentMutations(graphene.ObjectType):
     transaction_process = TransactionProcess.Field()
 
     stored_payment_method_request_delete = StoredPaymentMethodRequestDelete.Field()
+    payment_gateway_initialize_tokenization = (
+        PaymentGatewayInitializeTokenization.Field()
+    )
+    payment_method_initialize_tokenization = PaymentMethodInitializeTokenization.Field()
+    payment_method_process_tokenization = PaymentMethodProcessTokenization.Field()

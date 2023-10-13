@@ -38,7 +38,11 @@ def prepare_free_shipping_voucher(
             "minAmountSpent": min_amount_spent,
         },
     ]
-    create_voucher_channel_listing(e2e_staff_api_client, voucher_id, channel_listing)
+    create_voucher_channel_listing(
+        e2e_staff_api_client,
+        voucher_id,
+        channel_listing,
+    )
 
     return voucher_code
 
@@ -63,12 +67,22 @@ def test_checkout_use_free_shipping_voucher_with_min_spent_amount_0903(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    warehouse_id, channel_id, channel_slug, shipping_method_id = prepare_shop(
-        e2e_staff_api_client
-    )
+    (
+        warehouse_id,
+        channel_id,
+        channel_slug,
+        shipping_method_id,
+    ) = prepare_shop(e2e_staff_api_client)
 
-    _, product_variant_id, product_variant_price = prepare_product(
-        e2e_staff_api_client, warehouse_id, channel_id, variant_price=25
+    (
+        _product_id,
+        product_variant_id,
+        product_variant_price,
+    ) = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        variant_price=25,
     )
 
     voucher_code = prepare_free_shipping_voucher(
@@ -83,7 +97,10 @@ def test_checkout_use_free_shipping_voucher_with_min_spent_amount_0903(
 
     # Step 1 - Create checkout for product
     lines = [
-        {"variantId": product_variant_id, "quantity": 1},
+        {
+            "variantId": product_variant_id,
+            "quantity": 1,
+        },
     ]
     checkout_data = checkout_create(
         e2e_not_logged_api_client,
@@ -111,9 +128,16 @@ def test_checkout_use_free_shipping_voucher_with_min_spent_amount_0903(
 
     # Step 3 Add lines to the checkout to increase the total amount
     lines_add = [
-        {"variantId": product_variant_id, "quantity": 2},
+        {
+            "variantId": product_variant_id,
+            "quantity": 2,
+        },
     ]
-    checkout_data = checkout_lines_add(e2e_staff_api_client, checkout_id, lines_add)
+    checkout_data = checkout_lines_add(
+        e2e_staff_api_client,
+        checkout_id,
+        lines_add,
+    )
     checkout_lines = checkout_data["lines"][0]
     assert checkout_lines["quantity"] == 3
     subtotal_amount = float(product_variant_price) * 3
@@ -132,18 +156,25 @@ def test_checkout_use_free_shipping_voucher_with_min_spent_amount_0903(
 
     # Step 5 Add free shipping voucher code to checkout
     checkout_data = checkout_add_promo_code(
-        e2e_not_logged_api_client, checkout_id, voucher_code
+        e2e_not_logged_api_client,
+        checkout_id,
+        voucher_code,
     )
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
     assert total_gross_amount == subtotal_amount
 
     # Step 6 - Create payment for checkout.
     checkout_dummy_payment_create(
-        e2e_not_logged_api_client, checkout_id, total_gross_amount
+        e2e_not_logged_api_client,
+        checkout_id,
+        total_gross_amount,
     )
 
     # Step 7 - Complete checkout.
-    order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
+    order_data = checkout_complete(
+        e2e_not_logged_api_client,
+        checkout_id,
+    )
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["discounts"][0]["type"] == "VOUCHER"
     assert order_data["discounts"][0]["value"] == shipping_price

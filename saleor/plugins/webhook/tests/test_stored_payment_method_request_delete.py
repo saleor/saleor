@@ -12,10 +12,13 @@ from ....payment.interface import (
     StoredPaymentMethodRequestDeleteResult,
 )
 from ....settings import WEBHOOK_SYNC_TIMEOUT
+from ....webhook.const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
-from ..const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
-from ..utils import generate_cache_key_for_webhook, to_payment_app_id
+from ....webhook.transport.utils import (
+    generate_cache_key_for_webhook,
+    to_payment_app_id,
+)
 
 STORED_PAYMENT_METHOD_DELETE_REQUESTED = """
 subscription {
@@ -41,7 +44,7 @@ def webhook_stored_payment_method_request_delete_response():
     }
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_stored_payment_method_request_delete_with_static_payload(
     mock_request,
     customer_user,
@@ -91,7 +94,7 @@ def test_stored_payment_method_request_delete_with_static_payload(
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_stored_payment_method_request_delete_with_subscription_payload(
     mock_request,
     customer_user,
@@ -145,7 +148,7 @@ def test_stored_payment_method_request_delete_with_subscription_payload(
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_stored_payment_method_request_delete_failure_from_app(
     mock_request,
     customer_user,
@@ -200,7 +203,7 @@ def test_stored_payment_method_request_delete_failure_from_app(
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_stored_payment_method_request_delete_missing_response_from_webhook(
     mock_request,
     customer_user,
@@ -249,7 +252,7 @@ def test_stored_payment_method_request_delete_missing_response_from_webhook(
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_stored_payment_method_request_delete_incorrect_result_response_from_webhook(
     mock_request,
     customer_user,
@@ -298,7 +301,7 @@ def test_stored_payment_method_request_delete_incorrect_result_response_from_web
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_stored_payment_method_request_delete_missing_result_in_response_from_webhook(
     mock_request,
     customer_user,
@@ -347,10 +350,10 @@ def test_stored_payment_method_request_delete_missing_result_in_response_from_we
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.cache.delete")
-@mock.patch("saleor.plugins.webhook.tasks.cache.set")
-@mock.patch("saleor.plugins.webhook.tasks.cache.get")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.cache.delete")
+@mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
+@mock.patch("saleor.webhook.transport.synchronous.transport.cache.get")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     mocked_request,
     mocked_cache_get,

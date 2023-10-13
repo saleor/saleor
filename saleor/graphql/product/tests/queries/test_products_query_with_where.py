@@ -1760,8 +1760,10 @@ def test_product_filter_by_updated_at(api_client, product_list, channel_USD):
         "channel": channel_USD.slug,
         "where": {
             "updatedAt": {
-                "gte": timestamp,
-                "lte": timezone.now() + timedelta(days=1),
+                "range": {
+                    "gte": timestamp,
+                    "lte": timezone.now() + timedelta(days=1),
+                }
             }
         },
     }
@@ -1777,7 +1779,13 @@ def test_product_filter_by_updated_at(api_client, product_list, channel_USD):
 
 
 @pytest.mark.parametrize(
-    "value", [{"gte": None}, {"lte": None}, {"gte": None, "lte": None}, None]
+    "value",
+    [
+        {"range": {"gte": None}},
+        {"range": {"lte": None}},
+        {"range": {"gte": None, "lte": None}},
+        None,
+    ],
 )
 def test_product_filter_by_updated_at_empty_values(
     value, api_client, product_list, channel_USD

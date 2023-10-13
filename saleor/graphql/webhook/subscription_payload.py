@@ -10,7 +10,7 @@ from promise import Promise
 
 from ...app.models import App
 from ...core.exceptions import PermissionDenied
-from ...settings import get_host
+from ...core.utils import get_domain
 from ..core import SaleorContext
 from ..utils import format_error
 
@@ -35,7 +35,7 @@ def initialize_request(
     request.path = "/graphql/"
     request.path_info = "/graphql/"
     request.method = "GET"
-    request.META = {"SERVER_NAME": SimpleLazyObject(get_host), "SERVER_PORT": "80"}
+    request.META = {"SERVER_NAME": SimpleLazyObject(get_domain), "SERVER_PORT": "80"}
     if settings.ENABLE_SSL:
         request.META["HTTP_X_FORWARDED_PROTO"] = "https"
         request.META["SERVER_PORT"] = "443"

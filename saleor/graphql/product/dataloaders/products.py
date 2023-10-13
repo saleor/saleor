@@ -15,6 +15,7 @@ from ....product.models import (
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
+    VariantChannelListingPromotionRule,
     VariantMedia,
 )
 from ...core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
@@ -28,6 +29,16 @@ class CategoryByIdLoader(DataLoader[int, Category]):
 
     def batch_load(self, keys):
         categories = Category.objects.using(self.database_connection_name).in_bulk(keys)
+        return [categories.get(category_id) for category_id in keys]
+
+
+class CategoryBySlugLoader(DataLoader[str, Category]):
+    context_key = "category_by_slug"
+
+    def batch_load(self, keys):
+        categories = Category.objects.using(self.database_connection_name).in_bulk(
+            keys, field_name="slug"
+        )
         return [categories.get(category_id) for category_id in keys]
 
 
@@ -204,6 +215,7 @@ class ProductVariantsByProductIdAndChannel(
             ProductVariant.objects.using(self.database_connection_name)
             .filter(**variants_filter)
             .annotate(channel_slug=F("channel_listings__channel__slug"))
+            .order_by("sort_order", "sku")
         )
         variant_map: DefaultDict[Tuple[int, str], List[ProductVariant]] = defaultdict(
             list
@@ -257,6 +269,7 @@ class VariantChannelListingByVariantIdLoader(DataLoader):
             ProductVariantChannelListing.objects.using(self.database_connection_name)
             .filter(variant_id__in=keys)
             .annotate_preorder_quantity_allocated()
+            .order_by("pk")
         )
 
         variant_id_variant_channel_listings_map = defaultdict(list)
@@ -312,6 +325,7 @@ class VariantChannelListingByVariantIdAndChannelLoader(
             .using(self.database_connection_name)
             .filter(**filter)
             .annotate_preorder_quantity_allocated()
+            .order_by("pk")
         )
 
         variant_channel_listings_map: Dict[int, ProductVariantChannelListing] = {}
@@ -384,6 +398,7 @@ class VariantsChannelListingByProductIdAndChannelSlugLoader(
                 price_amount__isnull=False,
             )
             .annotate(product_id=F("variant__product_id"))
+            .order_by("pk")
         )
 
         variants_channel_listings_map: Dict[
@@ -603,6 +618,7 @@ class CollectionChannelListingByCollectionIdAndChannelSlugLoader(DataLoader):
             CollectionChannelListing.objects.using(self.database_connection_name)
             .filter(collection_id__in=collection_ids, channel__slug__in=channel_slugs)
             .annotate(channel_slug=F("channel__slug"))
+            .order_by("pk")
         )
         collections_channel_listings_by_collection_and_channel_map = {}
         for collections_channel_listing in collections_channel_listings.iterator():
@@ -646,3 +662,23 @@ class ThumbnailByCollectionIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoa
 class ThumbnailByProductMediaIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoader):
     context_key = "thumbnail_by_productmedia_size_and_format"
     model_name = "product_media"
+
+
+class VariantChannelListingPromotionRuleByListingIdLoader(DataLoader):
+    context_key = "variant_channel_listing_promotion_rule_by_listing_id"
+
+    def batch_load(self, keys):
+        listing_promotion_rules = VariantChannelListingPromotionRule.objects.using(
+            self.database_connection_name
+        ).filter(variant_channel_listing_id__in=keys)
+
+        channel_listing_to_channel_rules_map = defaultdict(list)
+        for listing_rule in listing_promotion_rules:
+            channel_listing_to_channel_rules_map[
+                listing_rule.variant_channel_listing_id
+            ].append(listing_rule)
+
+        return [
+            channel_listing_to_channel_rules_map.get(listing_id, [])
+            for listing_id in keys
+        ]

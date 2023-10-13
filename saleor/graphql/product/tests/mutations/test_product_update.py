@@ -82,13 +82,15 @@ MUTATION_UPDATE_PRODUCT = """
 """
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_update_product(
     created_webhook_mock,
     updated_webhook_mock,
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     category,
     non_default_category,
@@ -181,12 +183,16 @@ def test_update_product(
 
     updated_webhook_mock.assert_called_once_with(product)
     created_webhook_mock.assert_not_called()
-    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_update_and_search_product_by_description(
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     category,
     non_default_category,
@@ -222,12 +228,16 @@ def test_update_and_search_product_by_description(
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["description"] == other_description_json
-    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_update_product_only_description(
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     other_description_json,
@@ -252,12 +262,14 @@ def test_update_product_only_description(
     data = content["data"]["productUpdate"]
     assert not data["errors"]
     assert data["product"]["description"] == other_description_json
-    update_product_discounted_price_task_mock.assert_not_called()
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_update_product_only_collections(
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     collection,
@@ -285,7 +297,9 @@ def test_update_product_only_collections(
     assert not data["errors"]
     assert len(data["product"]["collections"]) == 1
     assert data["product"]["collections"][0]["name"] == collection.name
-    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
 def test_update_product_clear_description_plaintext_when_description_is_none(

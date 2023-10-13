@@ -23,7 +23,10 @@ def prepare_shop_click_and_collect(
         is_private=False,
         click_and_collect_option="LOCAL",
     )
-    channel_data = create_channel(e2e_staff_api_client, warehouse_data["id"])
+    channel_data = create_channel(
+        e2e_staff_api_client,
+        warehouse_data["id"],
+    )
     channel_id = channel_data["id"]
     channel_slug = channel_data["slug"]
 
@@ -46,13 +49,21 @@ def test_unlogged_customer_buy_by_click_and_collect_CORE_0105(
     ]
 
     assign_permissions(e2e_staff_api_client, permissions)
-    channel_id, channel_slug, warehouse_id = prepare_shop_click_and_collect(
+    (
+        channel_id,
+        channel_slug,
+        warehouse_id,
+    ) = prepare_shop_click_and_collect(
         e2e_staff_api_client,
     )
 
     variant_price = 10
 
-    _, result_product_variant_id, _ = prepare_product(
+    (
+        _product_id,
+        product_variant_id,
+        _product_variant_price,
+    ) = prepare_product(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
@@ -61,7 +72,10 @@ def test_unlogged_customer_buy_by_click_and_collect_CORE_0105(
 
     # Step 1 - Create checkout and check collection point
     lines = [
-        {"variantId": result_product_variant_id, "quantity": 1},
+        {
+            "variantId": product_variant_id,
+            "quantity": 1,
+        },
     ]
     checkout_data = checkout_create(
         e2e_not_logged_api_client,
@@ -80,18 +94,25 @@ def test_unlogged_customer_buy_by_click_and_collect_CORE_0105(
 
     # Step 2 - Assign delivery method
     checkout_data = checkout_delivery_method_update(
-        e2e_not_logged_api_client, checkout_id, collection_point["id"]
+        e2e_not_logged_api_client,
+        checkout_id,
+        collection_point["id"],
     )
     assert checkout_data["deliveryMethod"]["id"] == warehouse_id
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
 
     # Step 3 - Create dummy payment
     checkout_dummy_payment_create(
-        e2e_not_logged_api_client, checkout_id, total_gross_amount
+        e2e_not_logged_api_client,
+        checkout_id,
+        total_gross_amount,
     )
 
     # Step 4 - Complete checkout and verify created order
-    order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
+    order_data = checkout_complete(
+        e2e_not_logged_api_client,
+        checkout_id,
+    )
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
     assert order_data["deliveryMethod"]["id"] == warehouse_id

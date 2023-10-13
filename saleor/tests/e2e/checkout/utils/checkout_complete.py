@@ -11,6 +11,8 @@ mutation CheckoutComplete($checkoutId: ID!) {
     order {
       id
       status
+      paymentStatus
+      isPaid
       user {
         email
       }
@@ -71,6 +73,10 @@ mutation CheckoutComplete($checkoutId: ID!) {
       }
       voucher {
         code
+      }
+      giftCards {
+        id
+        last4CodeChars
       }
     }
   }

@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, Mock, patch
 import graphene
 import pytest
 from django.core.files import File
+from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -610,6 +611,7 @@ MUTATION_CATEGORY_UPDATE_MUTATION = """
                 id
                 name
                 description
+                updatedAt
                 parent {
                     id
                 }
@@ -687,6 +689,45 @@ def test_category_update_mutation(
     assert data["category"]["backgroundImage"]["alt"] == image_alt
     assert category.metadata == {metadata_key: metadata_value, **old_meta}
     assert category.private_metadata == {metadata_key: metadata_value, **old_meta}
+
+
+@freeze_time("2023-09-01 12:00:00")
+def test_category_update_mutation_with_update_at_field(
+    monkeypatch, staff_api_client, category, permission_manage_products, media_root
+):
+    # given
+    query = MUTATION_CATEGORY_UPDATE_MUTATION
+
+    # create child category and test that the update mutation won't change
+    # it's parent
+    child_category = category.children.create(name="child")
+
+    category_name = "Updated name"
+    description = "description"
+    category_slug = slugify(category_name)
+    category_description = dummy_editorjs(description, True)
+
+    category_id = graphene.Node.to_global_id("Category", child_category.pk)
+    variables = {
+        "name": category_name,
+        "description": category_description,
+        "id": category_id,
+        "slug": category_slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["categoryUpdate"]
+
+    # then
+    assert data["category"]["id"] == category_id
+    assert data["category"]["name"] == category_name
+    assert data["category"]["description"] == category_description
+    assert data["category"]["updatedAt"] == timezone.now().isoformat()
 
 
 @freeze_time("2022-05-12 12:00:00")
@@ -1120,7 +1161,9 @@ MUTATION_CATEGORY_DELETE = """
 """
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_category_delete_mutation(
     delete_from_storage_task_mock,
@@ -1226,9 +1269,9 @@ def test_delete_category_with_background_image(
         category.refresh_from_db()
 
 
-@patch("saleor.product.utils.update_products_discounted_prices_task")
+@patch("saleor.product.utils.update_products_discounted_prices_for_promotion_task")
 def test_category_delete_mutation_for_categories_tree(
-    mock_update_products_discounted_prices_task,
+    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     categories_tree_with_published_products,
     permission_manage_products,
@@ -1249,11 +1292,11 @@ def test_category_delete_mutation_for_categories_tree(
     with pytest.raises(parent._meta.model.DoesNotExist):
         parent.refresh_from_db()
 
-    mock_update_products_discounted_prices_task.delay.assert_called_once()
+    mock_update_products_discounted_prices_for_promotion_task.delay.assert_called_once()
     (
         _call_args,
         call_kwargs,
-    ) = mock_update_products_discounted_prices_task.delay.call_args
+    ) = mock_update_products_discounted_prices_for_promotion_task.delay.call_args
     assert set(call_kwargs["product_ids"]) == set(p.pk for p in product_list)
 
     product_channel_listings = ProductChannelListing.objects.filter(
@@ -1265,9 +1308,9 @@ def test_category_delete_mutation_for_categories_tree(
     assert product_channel_listings.count() == 4
 
 
-@patch("saleor.product.utils.update_products_discounted_prices_task")
+@patch("saleor.product.utils.update_products_discounted_prices_for_promotion_task")
 def test_category_delete_mutation_for_children_from_categories_tree(
-    mock_update_products_discounted_prices_task,
+    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     categories_tree_with_published_products,
     permission_manage_products,
@@ -1287,7 +1330,7 @@ def test_category_delete_mutation_for_children_from_categories_tree(
     with pytest.raises(child._meta.model.DoesNotExist):
         child.refresh_from_db()
 
-    mock_update_products_discounted_prices_task.delay.assert_called_once_with(
+    mock_update_products_discounted_prices_for_promotion_task.delay.assert_called_once_with(
         product_ids=[child_product.pk]
     )
 

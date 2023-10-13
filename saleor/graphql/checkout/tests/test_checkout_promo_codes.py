@@ -4,20 +4,10 @@ from ....plugins.manager import get_plugins_manager
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
 
-# from .mutations.test_checkout_shipping_address_update import (
-#     MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
-# )
-# from .test_checkout_lines import MUTATION_CHECKOUT_LINE_DELETE
 
-
-def test_checkout_totals_use_discounts(
-    api_client, checkout_with_item, sale, channel_USD
-):
+def test_checkout_totals_use_discounts(api_client, checkout_with_item, channel_USD):
+    # given
     checkout = checkout_with_item
-    # make sure that we're testing a variant that is actually on sale
-    product = checkout.lines.first().variant.product
-    sale.products.add(product)
-
     query = """
     query getCheckout($id: ID) {
         checkout(id: $id) {
@@ -43,7 +33,11 @@ def test_checkout_totals_use_discounts(
     """
 
     variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
     response = api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 

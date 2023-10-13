@@ -8,7 +8,9 @@ from prices import Money, TaxedMoney
 from ..checkout import base_calculations
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, zero_money, zero_taxed_money
-from ..discount.utils import generate_sale_discount_objects_for_checkout
+from ..discount.utils import (
+    create_or_update_discount_objects_from_promotion_for_checkout,
+)
 from ..payment.models import TransactionItem
 from ..tax import TaxCalculationStrategy
 from ..tax.calculations.checkout import update_checkout_prices_with_flat_rates
@@ -243,7 +245,7 @@ def _fetch_checkout_prices_if_expired(
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     should_charge_tax = charge_taxes and not checkout.tax_exemption
 
-    generate_sale_discount_objects_for_checkout(checkout_info, lines)
+    create_or_update_discount_objects_from_promotion_for_checkout(lines)
 
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
@@ -414,19 +416,12 @@ def _apply_tax_data_from_plugins(
         )
         line.total_price = total_price
 
-        unit_price = manager.calculate_checkout_line_unit_price(
-            checkout_info,
-            lines,
-            line_info,
-            address,
-        )
-
         line.tax_rate = manager.get_checkout_line_tax_rate(
             checkout_info,
             lines,
             line_info,
             address,
-            unit_price,
+            total_price,
         )
 
     checkout.shipping_price = manager.calculate_checkout_shipping(

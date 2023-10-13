@@ -1,35 +1,50 @@
 import pytest
 
-from .....discount.models import Sale, SaleChannelListing
+from .....discount import RewardValueType
+from .....discount.models import Promotion, PromotionRule
 from ....tests.utils import get_graphql_content
 
 
 @pytest.fixture
-def sales_list(channel_USD, channel_PLN):
-    sales = Sale.objects.bulk_create(
-        [Sale(name="Sale1"), Sale(name="Sale2"), Sale(name="Sale2")]
+def promotion_converted_from_sale_list(channel_USD, channel_PLN):
+    promotions = Promotion.objects.bulk_create(
+        [Promotion(name="Sale1"), Promotion(name="Sale2"), Promotion(name="Sale2")]
     )
+    for promotion in promotions:
+        promotion.assign_old_sale_id()
+
     values = [15, 5, 25]
-    sale_channel_listings = []
-    for sale, value in zip(sales, values):
-        sale_channel_listings.append(
-            SaleChannelListing(
-                sale=sale,
-                channel=channel_USD,
-                discount_value=value,
-                currency=channel_USD.currency_code,
+    usd_rules, pln_rules = [], []
+    for promotion, value in zip(promotions, values):
+        usd_rules.append(
+            PromotionRule(
+                promotion=promotion,
+                catalogue_predicate={},
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=value,
             )
         )
-        sale_channel_listings.append(
-            SaleChannelListing(
-                sale=sale,
-                channel=channel_PLN,
-                discount_value=value * 2,
-                currency=channel_PLN.currency_code,
+        pln_rules.append(
+            PromotionRule(
+                promotion=promotion,
+                catalogue_predicate={},
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=value * 2,
             )
         )
-    SaleChannelListing.objects.bulk_create(sale_channel_listings)
-    return sales
+    PromotionRule.objects.bulk_create(usd_rules + pln_rules)
+    PromotionRuleChannel = PromotionRule.channels.through
+    usd_rules_channels = [
+        PromotionRuleChannel(promotionrule_id=rule.id, channel_id=channel_USD.id)
+        for rule in usd_rules
+    ]
+    pln_rules_channels = [
+        PromotionRuleChannel(promotionrule_id=rule.id, channel_id=channel_PLN.id)
+        for rule in usd_rules
+    ]
+    PromotionRuleChannel.objects.bulk_create(usd_rules_channels + pln_rules_channels)
+
+    return promotions
 
 
 SALES_QUERY = """
@@ -95,7 +110,7 @@ query GetSales($channel: String){
 @pytest.mark.count_queries(autouse=False)
 def test_sales_query_with_channel_slug(
     staff_api_client,
-    sales_list,
+    promotion_converted_from_sale_list,
     channel_USD,
     permission_manage_discounts,
     count_queries,
@@ -113,9 +128,9 @@ def test_sales_query_with_channel_slug(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_sales_query_withot_channel_slug(
+def test_sales_query_without_channel_slug(
     staff_api_client,
-    sales_list,
+    promotion_converted_from_sale_list,
     permission_manage_discounts,
     count_queries,
 ):

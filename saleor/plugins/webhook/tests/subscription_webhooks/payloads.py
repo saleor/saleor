@@ -5,7 +5,9 @@ from django.utils import timezone
 
 from ..... import __version__
 from .....core.utils import build_absolute_uri
+from .....discount.models import Promotion
 from .....graphql.attribute.enums import AttributeInputTypeEnum, AttributeTypeEnum
+from .....graphql.discount.utils import get_categories_from_predicate
 from .....graphql.shop.types import SHOP_ID
 from .....product.models import Product
 
@@ -343,10 +345,12 @@ def generate_shipping_method_payload(shipping_method):
     }
 
 
-def generate_sale_payload(sale):
+def generate_sale_payload(sale: Promotion):
+    predicate = sale.rules.first().catalogue_predicate
+    categories = get_categories_from_predicate(predicate)
     return {
         "sale": {
-            "id": graphene.Node.to_global_id("Sale", sale.pk),
+            "id": graphene.Node.to_global_id("Sale", sale.old_sale_id),
             "name": sale.name,
             "startDate": sale.start_date.isoformat(),
             "endDate": None,
@@ -358,8 +362,38 @@ def generate_sale_payload(sale):
                             "name": category.name,
                         }
                     }
-                    for category in sale.categories.all()
+                    for category in categories
                 ]
+            },
+        }
+    }
+
+
+def generate_promotion_payload(promotion):
+    return {
+        "promotion": {
+            "id": graphene.Node.to_global_id("Promotion", promotion.pk),
+            "name": promotion.name,
+            "startDate": promotion.start_date.isoformat(),
+            "endDate": promotion.end_date.isoformat(),
+            "rules": [{"name": rule.name} for rule in promotion.rules.all()],
+        }
+    }
+
+
+def generate_promotion_rule_payload(promotion_rule):
+    return {
+        "promotionRule": {
+            "id": graphene.Node.to_global_id("PromotionRule", promotion_rule.pk),
+            "name": promotion_rule.name,
+            "rewardValue": float(promotion_rule.reward_value),
+            "rewardValueType": promotion_rule.reward_value_type.upper(),
+            "cataloguePredicate": promotion_rule.catalogue_predicate,
+            "promotion": {
+                "id": graphene.Node.to_global_id(
+                    "Promotion", promotion_rule.promotion.pk
+                ),
+                "name": promotion_rule.promotion.name,
             },
         }
     }

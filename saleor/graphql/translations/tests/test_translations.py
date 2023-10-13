@@ -9,6 +9,7 @@ from freezegun import freeze_time
 from mock import ANY
 
 from ....attribute.utils import associate_attribute_values_to_instance
+from ....discount.error_codes import DiscountErrorCode
 from ....permission.models import Permission
 from ....tests.utils import dummy_editorjs
 from ....webhook.event_types import WebhookEventAsyncType
@@ -295,7 +296,10 @@ def test_voucher_translation(staff_api_client, voucher, permission_manage_discou
     assert data["voucher"]["translation"]["language"]["code"] == "PL"
 
 
-def test_sale_translation(staff_api_client, sale, permission_manage_discounts):
+def test_sale_translation(
+    staff_api_client, promotion_converted_from_sale, permission_manage_discounts
+):
+    sale = promotion_converted_from_sale
     sale.translations.create(language_code="pl", name="Wyprz")
 
     query = """
@@ -311,7 +315,7 @@ def test_sale_translation(staff_api_client, sale, permission_manage_discounts):
     }
     """
 
-    sale_id = graphene.Node.to_global_id("Sale", sale.id)
+    sale_id = graphene.Node.to_global_id("Sale", sale.old_sale_id)
     response = staff_api_client.post_graphql(
         query, {"saleId": sale_id}, permissions=[permission_manage_discounts]
     )
@@ -955,7 +959,7 @@ def test_product_create_translation_validates_name_length(
     product_id = graphene.Node.to_global_id("Product", product.id)
     variables = {
         "productId": product_id,
-        "input": {"description": None, "name": "Long" * 100},
+        "input": {"description": None, "name": "Long" * 255},
     }
     response = staff_api_client.post_graphql(
         PRODUCT_TRANSLATE_MUTATION,
@@ -1171,7 +1175,7 @@ def test_product_variant_translation_mutation_validates_inputs_length(
         PRODUCT_VARIANT_TRANSLATE_MUTATION,
         {
             "productVariantId": translatable_content_id,
-            "input": {"name": "Wariant PL" * 100},
+            "input": {"name": "Wariant PL" * 255},
         },
         permissions=[permission_manage_translations],
     )
@@ -1356,7 +1360,7 @@ def test_collection_translation_mutation_validates_inputs_length(
         COLLECTION_TRANSLATE_MUTATION,
         {
             "collectionId": collection_id,
-            "input": {"description": description, "name": "long" * 100},
+            "input": {"description": description, "name": "long" * 255},
         },
         permissions=[permission_manage_translations],
     )
@@ -1652,6 +1656,10 @@ SALE_TRANSLATION_MUTATION = """
                     }
                 }
             }
+            errors {
+                code
+                field
+            }
         }
     }
 """
@@ -1665,19 +1673,26 @@ def test_sale_create_translation(
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
     permission_manage_translations,
     settings,
 ):
+    # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
-    sale_id = graphene.Node.to_global_id("Sale", sale.id)
+    sale = promotion_converted_from_sale
+    sale_id = graphene.Node.to_global_id("Sale", sale.old_sale_id)
+    variables = {"saleId": sale_id}
+
+    # when
     response = staff_api_client.post_graphql(
         SALE_TRANSLATION_MUTATION,
-        {"saleId": sale_id},
+        variables,
         permissions=[permission_manage_translations],
     )
+
+    # then
     data = get_graphql_content(response)["data"]["saleTranslate"]
 
     assert data["sale"]["translation"]["name"] == "Wyprz PL"
@@ -1699,17 +1714,24 @@ def test_sale_create_translation(
 
 def test_sale_create_translation_by_translatable_content_id(
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
     permission_manage_translations,
 ):
+    # given
+    promotion = promotion_converted_from_sale
     translatable_content_id = graphene.Node.to_global_id(
-        "SaleTranslatableContent", sale.id
+        "SaleTranslatableContent", promotion.old_sale_id
     )
+    variables = {"saleId": translatable_content_id}
+
+    # when
     response = staff_api_client.post_graphql(
         SALE_TRANSLATION_MUTATION,
-        {"saleId": translatable_content_id},
+        variables,
         permissions=[permission_manage_translations],
     )
+
+    # then
     data = get_graphql_content(response)["data"]["saleTranslate"]
     assert data["sale"]["translation"]["name"] == "Wyprz PL"
     assert data["sale"]["translation"]["language"]["code"] == "PL"
@@ -1723,21 +1745,28 @@ def test_sale_update_translation(
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
     permission_manage_translations,
     settings,
 ):
+    # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
-    translation = sale.translations.create(language_code="pl", name="Sale")
+    promotion = promotion_converted_from_sale
+    translation = promotion.translations.create(language_code="pl", name="Sale")
+    sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
-    sale_id = graphene.Node.to_global_id("Sale", sale.id)
+    variables = {"saleId": sale_id}
+
+    # when
     response = staff_api_client.post_graphql(
         SALE_TRANSLATION_MUTATION,
-        {"saleId": sale_id},
+        variables,
         permissions=[permission_manage_translations],
     )
+
+    # then
     data = get_graphql_content(response)["data"]["saleTranslate"]
 
     assert data["sale"]["translation"]["name"] == "Wyprz PL"
@@ -1755,6 +1784,34 @@ def test_sale_update_translation(
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
+
+
+def test_sale_create_translation_with_promotion_id(
+    any_webhook,
+    staff_api_client,
+    promotion_converted_from_sale,
+    permission_manage_translations,
+    settings,
+):
+    # given
+    sale_id = graphene.Node.to_global_id("Promotion", promotion_converted_from_sale.id)
+    variables = {"saleId": sale_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        SALE_TRANSLATION_MUTATION,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["saleTranslate"]
+
+    assert not data["sale"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == DiscountErrorCode.INVALID.name
 
 
 PAGE_TRANSLATE_MUTATION = """
@@ -2277,7 +2334,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_long_text(
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.id
     )
-    expected_base_text = "Nowy Opis. " * 100
+    expected_base_text = "Nowy Opis. " * 250
     expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
 
     # when
@@ -2294,7 +2351,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_long_text(
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
     assert (
-        data["attributeValue"]["translation"]["name"] == expected_base_text[:99] + "…"
+        data["attributeValue"]["translation"]["name"] == expected_base_text[:249] + "…"
     )
     assert data["attributeValue"]["translation"]["richText"] == expected_rich_text
 
@@ -2467,7 +2524,7 @@ def test_plain_text_attribute_value_update_translation_only_plain_text_long_text
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.id
     )
-    expected_base_text = "Nowy Opis. " * 100
+    expected_base_text = "Nowy Opis. " * 250
 
     # when
     response = staff_api_client.post_graphql(
@@ -2483,7 +2540,7 @@ def test_plain_text_attribute_value_update_translation_only_plain_text_long_text
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
     assert (
-        data["attributeValue"]["translation"]["name"] == expected_base_text[:99] + "…"
+        data["attributeValue"]["translation"]["name"] == expected_base_text[:249] + "…"
     )
     assert data["attributeValue"]["translation"]["plainText"] == expected_base_text
 
@@ -2975,7 +3032,7 @@ def test_shop_translation_validates_values_lengths(
 
     response = staff_api_client.post_graphql(
         SHOP_SETTINGS_TRANSLATE_MUTATION,
-        {"input": {"headerText": "Nagłówek PL" * 100}},
+        {"input": {"headerText": "Nagłówek PL" * 255}},
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["shopSettingsTranslate"]
@@ -2994,6 +3051,8 @@ def test_shop_translation_validates_values_lengths(
         (TranslatableKinds.SHIPPING_METHOD, "ShippingMethodTranslatableContent"),
         (TranslatableKinds.VOUCHER, "VoucherTranslatableContent"),
         (TranslatableKinds.SALE, "SaleTranslatableContent"),
+        (TranslatableKinds.PROMOTION, "PromotionTranslatableContent"),
+        (TranslatableKinds.PROMOTION_RULE, "PromotionRuleTranslatableContent"),
         (TranslatableKinds.ATTRIBUTE, "AttributeTranslatableContent"),
         (TranslatableKinds.ATTRIBUTE_VALUE, "AttributeValueTranslatableContent"),
         (TranslatableKinds.VARIANT, "ProductVariantTranslatableContent"),
@@ -3006,18 +3065,50 @@ def test_translations_query(
     product,
     published_collection,
     voucher,
-    sale,
+    promotion,
     shipping_method,
     page,
     menu_item,
     kind,
     expected_typename,
 ):
+    query = f"""
+    query TranslationsQuery($kind: TranslatableKinds!) {{
+        translations(kind: $kind, first: 1) {{
+            edges {{
+                node {{
+                    ... on {expected_typename} {{
+                        id
+                    }}
+                    __typename
+                }}
+            }}
+            totalCount
+        }}
+    }}
+    """
+
+    response = staff_api_client.post_graphql(
+        query, {"kind": kind.name}, permissions=[permission_manage_translations]
+    )
+    data = get_graphql_content(response)["data"]["translations"]
+
+    assert data["edges"][0]["node"]["__typename"] == expected_typename
+    assert data["edges"][0]["node"]["id"]
+    assert data["totalCount"] > 0
+
+
+def test_translations_query_promotion_converted_from_sale(
+    staff_api_client, permission_manage_translations, promotion_converted_from_sale
+):
     query = """
     query TranslationsQuery($kind: TranslatableKinds!) {
         translations(kind: $kind, first: 1) {
             edges {
                 node {
+                    ... on SaleTranslatableContent {
+                        name
+                    }
                     __typename
                 }
             }
@@ -3027,11 +3118,14 @@ def test_translations_query(
     """
 
     response = staff_api_client.post_graphql(
-        query, {"kind": kind.name}, permissions=[permission_manage_translations]
+        query,
+        {"kind": TranslatableKinds.PROMOTION.name},
+        permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["translations"]
 
-    assert data["edges"][0]["node"]["__typename"] == expected_typename
+    assert data["edges"][0]["node"]["__typename"] == "SaleTranslatableContent"
+    assert data["edges"][0]["node"]["name"]
     assert data["totalCount"] > 0
 
 
@@ -3442,31 +3536,36 @@ QUERY_TRANSLATION_SALE = """
 """
 
 
-@pytest.mark.parametrize(
-    "perm_codenames, return_sale",
-    [
-        (["manage_translations"], False),
-        (["manage_translations", "manage_discounts"], True),
-    ],
-)
 def test_translation_query_sale(
-    staff_api_client, sale, sale_translation_fr, perm_codenames, return_sale
+    staff_api_client,
+    promotion_converted_from_sale,
+    promotion_converted_from_sale_translation_fr,
+    permission_manage_discounts,
+    permission_manage_translations,
 ):
-    sale_id = graphene.Node.to_global_id("Sale", sale.id)
-    perms = list(Permission.objects.filter(codename__in=perm_codenames))
+    # given
+    promotion = promotion_converted_from_sale
+    promotion_translation = promotion.translations.first()
+    sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
     variables = {
         "id": sale_id,
         "kind": TranslatableKinds.SALE.name,
         "languageCode": LanguageCodeEnum.FR.name,
     }
+
+    # when
     response = staff_api_client.post_graphql(
-        QUERY_TRANSLATION_SALE, variables, permissions=perms
+        QUERY_TRANSLATION_SALE,
+        variables,
+        permissions=[permission_manage_translations, permission_manage_discounts],
     )
+
+    # then
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
-    assert data["name"] == sale.name
-    assert data["translation"]["name"] == sale_translation_fr.name
+    assert data["name"] == promotion.name
+    assert data["translation"]["name"] == promotion_translation.name
 
 
 QUERY_TRANSLATION_VOUCHER = """
@@ -4084,3 +4183,103 @@ def test_nested_page_attribute_translation(
     attribute_response = data["translation"]["attributeValues"][0]["attribute"]
     assert attribute_response["name"] == plain_text_attribute_page_type.name
     assert attribute_response["translation"]["name"] == text
+
+
+QUERY_TRANSLATION_PROMOTION = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            ...on PromotionTranslatableContent{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                    description
+                }
+            }
+        }
+    }
+"""
+
+
+def test_translation_query_promotion(
+    staff_api_client,
+    promotion,
+    promotion_translation_fr,
+    permission_manage_translations,
+):
+    # given
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+
+    variables = {
+        "id": promotion_id,
+        "kind": TranslatableKinds.PROMOTION.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_PROMOTION,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["translation"]
+    assert data["name"] == promotion.name
+    assert data["translation"]["name"] == promotion_translation_fr.name
+    assert data["translation"]["description"] == json.dumps(
+        promotion_translation_fr.description
+    )
+
+
+QUERY_TRANSLATION_PROMOTION_RULE = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            ...on PromotionRuleTranslatableContent{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                    description
+                }
+            }
+        }
+    }
+"""
+
+
+def test_translation_query_promotion_rule(
+    staff_api_client,
+    promotion_rule,
+    promotion_rule_translation_fr,
+    permission_manage_translations,
+):
+    # given
+    rule_id = graphene.Node.to_global_id("PromotionRule", promotion_rule.id)
+
+    variables = {
+        "id": rule_id,
+        "kind": TranslatableKinds.PROMOTION_RULE.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_PROMOTION_RULE,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["translation"]
+    assert data["name"] == promotion_rule.name
+    assert data["translation"]["name"] == promotion_rule_translation_fr.name
+    assert data["translation"]["description"] == json.dumps(
+        promotion_rule_translation_fr.description
+    )

@@ -3,9 +3,10 @@ from unittest.mock import patch
 import graphene
 import pytest
 
-from .....discount.utils import fetch_catalogue_info
+from .....discount.error_codes import DiscountErrorCode
+from .....discount.models import Promotion, PromotionRule
 from ....tests.utils import get_graphql_content
-from ...mutations.utils import convert_catalogue_info_to_global_ids
+from ...utils import convert_migrated_sale_predicate_to_catalogue_info
 
 SALE_DELETE_MUTATION = """
     mutation DeleteSale($id: ID!) {
@@ -25,26 +26,24 @@ SALE_DELETE_MUTATION = """
 
 
 @patch(
-    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
 @patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 def test_sale_delete_mutation(
     deleted_webhook_mock,
-    update_products_discounted_prices_of_catalogues_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
     # given
     query = SALE_DELETE_MUTATION
-    variables = {"id": graphene.Node.to_global_id("Sale", sale.id)}
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
-    category_ids = set(sale.categories.values_list("id", flat=True))
-    collection_ids = set(sale.collections.values_list("id", flat=True))
-    product_ids = set(sale.products.values_list("id", flat=True))
-    variant_ids = set(sale.variants.values_list("id", flat=True))
+    variables = {"id": graphene.Node.to_global_id("Sale", promotion.old_sale_id)}
 
     # when
     response = staff_api_client.post_graphql(
@@ -53,14 +52,71 @@ def test_sale_delete_mutation(
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["saleDelete"]
-    assert data["sale"]["name"] == sale.name
-    deleted_webhook_mock.assert_called_once_with(sale, previous_catalogue)
-    with pytest.raises(sale._meta.model.DoesNotExist):
-        sale.refresh_from_db()
-    update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
-    args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert set(kwargs["category_ids"]) == category_ids
-    assert set(kwargs["collection_ids"]) == collection_ids
-    assert set(kwargs["product_ids"]) == product_ids
-    assert set(kwargs["variant_ids"]) == variant_ids
+    assert not content["data"]["saleDelete"]["errors"]
+    data = content["data"]["saleDelete"]["sale"]
+    assert data["name"] == promotion.name
+    assert data["id"] == graphene.Node.to_global_id("Sale", promotion.old_sale_id)
+
+    assert not Promotion.objects.filter(id=promotion.id).first()
+    assert not PromotionRule.objects.filter(promotion_id=promotion.id).first()
+    with pytest.raises(promotion._meta.model.DoesNotExist):
+        promotion.refresh_from_db()
+
+    deleted_webhook_mock.assert_called_once_with(promotion, previous_catalogue)
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
+
+
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
+@patch("saleor.plugins.manager.PluginsManager.sale_deleted")
+def test_sale_delete_mutation_with_promotion_id(
+    deleted_webhook_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
+    staff_api_client,
+    promotion_converted_from_sale,
+    permission_manage_discounts,
+):
+    # given
+    query = SALE_DELETE_MUTATION
+    promotion = promotion_converted_from_sale
+    variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["saleDelete"]["sale"]
+    errors = content["data"]["saleDelete"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == DiscountErrorCode.INVALID.name
+    assert errors[0]["message"] == (
+        "Provided ID refers to Promotion model. "
+        "Please use 'promotionDelete' mutation instead."
+    )
+
+    deleted_webhook_mock.assert_not_called()
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+
+
+def test_sale_delete_not_found_error(staff_api_client, permission_manage_discounts):
+    # given
+    query = SALE_DELETE_MUTATION
+    variables = {"id": graphene.Node.to_global_id("Sale", "0")}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["saleDelete"]["sale"]
+    errors = content["data"]["saleDelete"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == DiscountErrorCode.NOT_FOUND.name

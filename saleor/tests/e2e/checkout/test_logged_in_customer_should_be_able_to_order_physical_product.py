@@ -42,7 +42,11 @@ def test_process_checkout_with_physical_product_CORE_0103(
 
     variant_price = 10
 
-    _, result_product_variant_id, _ = prepare_product(
+    (
+        _product_id,
+        product_variant_id,
+        _product_variant_price,
+    ) = prepare_product(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
@@ -51,7 +55,7 @@ def test_process_checkout_with_physical_product_CORE_0103(
 
     # Step 1 - Create checkout.
     lines = [
-        {"variantId": result_product_variant_id, "quantity": 1},
+        {"variantId": product_variant_id, "quantity": 1},
     ]
     checkout_data = checkout_create(
         e2e_logged_api_client,
@@ -81,11 +85,16 @@ def test_process_checkout_with_physical_product_CORE_0103(
 
     # Step 4 - Create payment for checkout.
     checkout_dummy_payment_create(
-        e2e_logged_api_client, checkout_id, total_gross_amount
+        e2e_logged_api_client,
+        checkout_id,
+        total_gross_amount,
     )
 
     # Step 5 - Complete checkout.
-    order_data = checkout_complete(e2e_logged_api_client, checkout_id)
+    order_data = checkout_complete(
+        e2e_logged_api_client,
+        checkout_id,
+    )
     assert order_data["isShippingRequired"] is True
     assert order_data["user"]["email"] == expected_email
     assert order_data["status"] == "UNFULFILLED"

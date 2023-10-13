@@ -19,6 +19,7 @@ from ..core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_36,
     ADDED_IN_313,
+    ADDED_IN_314,
     ADDED_IN_315,
     PREVIEW_FEATURE,
 )
@@ -49,7 +50,7 @@ from .enums import (
 class Transaction(ModelObjectType[models.Transaction]):
     id = graphene.GlobalID(required=True, description="ID of the transaction.")
     created = graphene.DateTime(
-        required=True, description="Date and time which transaction was created."
+        required=True, description="Date and time at which transaction was created."
     )
     payment = graphene.Field(
         lambda: Payment,
@@ -199,6 +200,13 @@ class Payment(ModelObjectType[models.Payment]):
     )
     credit_card = graphene.Field(
         CreditCard, description="The details of the card used for this payment."
+    )
+    partial = graphene.Boolean(
+        required=True,
+        description="Informs whether this is a partial payment." + ADDED_IN_314,
+    )
+    psp_reference = graphene.String(
+        required=False, description="PSP reference of the payment." + ADDED_IN_314
     )
 
     class Meta:

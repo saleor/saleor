@@ -3,7 +3,6 @@ from datetime import datetime
 
 import graphene
 import pytz
-import requests
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db.models import F
@@ -11,6 +10,7 @@ from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 from text_unidecode import unidecode
 
+from ....core.http_client import HTTPClient
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
 from ....core.utils.editorjs import clean_editor_js
@@ -18,7 +18,7 @@ from ....core.utils.validators import get_oembed_data
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
-from ....product.tasks import update_products_discounted_prices_task
+from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....thumbnail.utils import get_filename_from_url
 from ....warehouse.models import Warehouse
 from ...attribute.types import AttributeValueInput
@@ -802,8 +802,8 @@ class ProductBulkCreate(BaseMutation):
                         media_url, "media_url", ProductBulkCreateErrorCode.INVALID.value
                     )
                     filename = get_filename_from_url(media_url)
-                    image_data = requests.get(
-                        media_url, stream=True, timeout=30, allow_redirects=False
+                    image_data = HTTPClient.send_request(
+                        "GET", media_url, stream=True, timeout=30, allow_redirects=False
                     )
                     image_data = File(image_data.raw, filename)
                     media_to_create.append(
@@ -840,7 +840,7 @@ class ProductBulkCreate(BaseMutation):
         for channel in channels:
             cls.call_event(manager.channel_updated, channel)
 
-        update_products_discounted_prices_task.delay(product_ids)
+        update_products_discounted_prices_for_promotion_task.delay(product_ids)
 
     @classmethod
     @traced_atomic_transaction()

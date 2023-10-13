@@ -24,9 +24,15 @@ def create_voucher(
     discountValueType,
     code,
     type="ENTIRE_ORDER",
+    only_for_staff=False,
 ):
     variables = {
-        "input": {"code": code, "discountValueType": discountValueType, "type": type}
+        "input": {
+            "code": code,
+            "discountValueType": discountValueType,
+            "type": type,
+            "onlyForStaff": only_for_staff,
+        }
     }
 
     response = staff_api_client.post_graphql(

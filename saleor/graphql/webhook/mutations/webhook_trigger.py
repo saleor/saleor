@@ -3,14 +3,16 @@ from celery.exceptions import Retry
 from graphene.utils.str_converters import to_camel_case
 
 from ....core import EventDeliveryStatus
+from ....discount import models as discount_models
 from ....permission.auth_filters import AuthorizationFilters
 from ....webhook.error_codes import WebhookTriggerErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.mutations import BaseMutation
 from ...core.types.common import WebhookTriggerError
-from ...core.utils import raise_validation_error
+from ...core.utils import from_global_id_or_error, raise_validation_error
 from ..subscription_query import SubscriptionQuery
 from ..subscription_types import WEBHOOK_TYPES_MAP
 from ..types import EventDelivery
@@ -106,13 +108,21 @@ class WebhookTrigger(BaseMutation):
         cls.validate_event_type(event_type, object_id)
         cls.validate_permissions(info, event_type)
 
-        object = cls.get_node_or_error(info, object_id, field="objectId")
+        object = cls.get_instance(info, object_id)
 
         return event_type, object, webhook
 
     @classmethod
+    def get_instance(cls, info: ResolveInfo, object_id):
+        type, _id = from_global_id_or_error(object_id, raise_error=False)
+        if type == "Sale":
+            object_id = cls.get_global_id_or_error(object_id, "Sale")
+            return discount_models.Promotion.objects.get(old_sale_id=object_id)
+        return cls.get_node_or_error(info, object_id, field="objectId")
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
-        from ....plugins.webhook.tasks import (
+        from ....webhook.transport.asynchronous.transport import (
             create_deliveries_for_subscriptions,
             send_webhook_request_async,
         )

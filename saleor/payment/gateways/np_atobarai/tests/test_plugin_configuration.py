@@ -4,11 +4,12 @@ from unittest.mock import Mock
 import pytest
 import requests
 from django.core.exceptions import ValidationError
+from requests_hardened import HTTPSession
 
 from ..plugin import NPAtobaraiGatewayPlugin
 
 
-@mock.patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@mock.patch.object(HTTPSession, "request")
 @pytest.mark.parametrize("status_code", [200, 400])
 def test_validate_plugin_configuration_valid_credentials(
     mocked_request, np_atobarai_plugin, status_code
@@ -22,14 +23,14 @@ def test_validate_plugin_configuration_valid_credentials(
     # then: no exception
 
 
-@mock.patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@mock.patch.object(HTTPSession, "request")
 @pytest.mark.parametrize("status_code", [401, 403])
 def test_validate_plugin_configuration_invalid_credentials(
     mocked_request, np_atobarai_plugin, status_code
 ):
     # given
     plugin = np_atobarai_plugin()
-    response = Mock(spec=requests.Response, status_code=status_code)
+    response = Mock(spec=requests.Response, status_code=status_code, request=Mock())
     mocked_request.return_value = response
     # then
     with pytest.raises(ValidationError):

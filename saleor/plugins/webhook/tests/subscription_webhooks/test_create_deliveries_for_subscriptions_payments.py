@@ -3,7 +3,9 @@ import json
 import graphene
 
 from .....webhook.event_types import WebhookEventSyncType
-from ...tasks import create_deliveries_for_subscriptions
+from .....webhook.transport.asynchronous.transport import (
+    create_deliveries_for_subscriptions,
+)
 from .payloads import generate_payment_payload
 
 

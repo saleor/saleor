@@ -1021,7 +1021,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.shipping_address = shipping_address
         order_data.voucher = voucher
 
-        if not (user or user_email) or not channel or not billing_address:
+        if not channel or not billing_address:
             order_data.is_critical_error = True
 
         return
@@ -1518,7 +1518,17 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             object_storage=object_storage,
             path=f"lines.{index}",
         )
-        if not variant:
+        if variant is None and not order_line_input.get("product_name"):
+            order_data.errors.append(
+                OrderBulkError(
+                    message=(
+                        "Order line input must contain product name when"
+                        " no variant provided."
+                    ),
+                    path=f"lines.{index}",
+                    code=OrderBulkCreateErrorCode.REQUIRED,
+                )
+            )
             return None
 
         warehouse = cls.get_instance_with_errors(
@@ -1559,12 +1569,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order=order_data.order,
             variant=variant,
             product_name=order_line_input.get("product_name") or variant.product.name,
-            variant_name=order_line_input.get("variant_name") or variant.name,
+            variant_name=order_line_input.get("variant_name")
+            or (variant.name if variant else ""),
             translated_product_name=order_line_input.get("translated_product_name")
             or "",
             translated_variant_name=order_line_input.get("translated_variant_name")
             or "",
-            product_variant_id=variant.get_global_id(),
+            product_variant_id=(variant.get_global_id() if variant else None),
             created_at=order_line_input["created_at"],
             is_shipping_required=order_line_input["is_shipping_required"],
             is_gift_card=order_line_input["is_gift_card"],
@@ -1650,8 +1661,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 object_storage=object_storage,
                 path=path,
             )
-            if not variant:
-                return None
 
             warehouse = cls.get_instance_with_errors(
                 input=line_input,
@@ -1700,7 +1709,18 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
                 return None
 
-            if order_line.line.variant.id != variant.id:
+            line_variant_missmatch = (
+                variant
+                and order_line.line.variant
+                and order_line.line.variant.id != variant.id
+            )
+            missing_only_variant = not variant and order_line.line.variant
+            missing_only_line_variant = variant and not order_line.line.variant
+            if (
+                line_variant_missmatch
+                or missing_only_variant
+                or missing_only_line_variant
+            ):
                 code = OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH
                 order_data.errors.append(
                     OrderBulkError(
@@ -1896,7 +1916,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order_data.user.email
             if order_data.user
             else order_input["user"].get("email")
-        )
+        ) or ""
         order_data.order.collection_point = delivery_method.warehouse
         order_data.order.collection_point_name = delivery_method.warehouse_name
         order_data.order.shipping_method = delivery_method.shipping_method

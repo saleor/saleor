@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
     from ...core.models import EventDelivery
-    from ...discount.models import Sale
+    from ...discount.models import Promotion
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductVariant
 
@@ -218,7 +218,7 @@ class PluginSample(BasePlugin):
 
     def sale_created(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         current_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ):
@@ -226,7 +226,7 @@ class PluginSample(BasePlugin):
 
     def sale_updated(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         previous_catalogue: DefaultDict[str, Set[str]],
         current_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
@@ -235,7 +235,7 @@ class PluginSample(BasePlugin):
 
     def sale_deleted(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         previous_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ):
@@ -243,11 +243,26 @@ class PluginSample(BasePlugin):
 
     def sale_toggle(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ):
         return sale, catalogue
+
+    def promotion_created(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_updated(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_deleted(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_started(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_ended(self, promotion: "Promotion", previous_value: Any):
+        return None
 
     def get_checkout_line_tax_rate(
         self,
@@ -354,6 +369,15 @@ class PluginSample(BasePlugin):
         return []
 
     def stored_payment_method_request_delete(self, request_delete_data, previous_value):
+        return previous_value
+
+    def payment_gateway_initialize_tokenization(self, request_data, previous_value):
+        return previous_value
+
+    def payment_method_initialize_tokenization(self, request_data, previous_value):
+        return previous_value
+
+    def payment_method_process_tokenization(self, request_data, previous_value):
         return previous_value
 
 

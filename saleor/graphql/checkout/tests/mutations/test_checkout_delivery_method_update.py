@@ -194,7 +194,7 @@ def test_checkout_delivery_method_update_no_checkout_metadata(
 
 
 @pytest.mark.parametrize("is_valid_delivery_method", (True, False))
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
     "clean_delivery_method"

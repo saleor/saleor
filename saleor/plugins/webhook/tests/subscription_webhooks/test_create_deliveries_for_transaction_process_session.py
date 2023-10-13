@@ -11,7 +11,9 @@ from .....payment.interface import (
 )
 from .....webhook.event_types import WebhookEventSyncType
 from .....webhook.models import Webhook
-from ...tasks import create_deliveries_for_subscriptions
+from .....webhook.transport.asynchronous.transport import (
+    create_deliveries_for_subscriptions,
+)
 
 TRANSACTION_PROCESS_SESSION = """
 subscription {
@@ -29,6 +31,9 @@ subscription {
         __typename
         ... on Checkout{
           id
+          user{
+            id
+          }
           totalPrice{
             gross{
               amount
@@ -37,6 +42,9 @@ subscription {
         }
         ... on Order{
           id
+          user{
+            id
+          }
         }
       }
     }
@@ -46,9 +54,15 @@ subscription {
 
 
 def test_transaction_process_session_checkout_with_data(
-    checkout, webhook_app, permission_manage_payments, transaction_item_generator
+    checkout,
+    webhook_app,
+    permission_manage_payments,
+    transaction_item_generator,
+    customer_user,
 ):
     # given
+    checkout.user = customer_user
+    checkout.save()
     webhook_app.permissions.add(permission_manage_payments)
     webhook = Webhook.objects.create(
         name="Webhook",
@@ -106,6 +120,7 @@ def test_transaction_process_session_checkout_with_data(
         "sourceObject": {
             "__typename": "Checkout",
             "id": checkout_id,
+            "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
             "totalPrice": {"gross": {"amount": 0.0}},
         },
     }
@@ -173,14 +188,22 @@ def test_transaction_process_session_checkout_without_data(
             "__typename": "Checkout",
             "id": checkout_id,
             "totalPrice": {"gross": {"amount": 0.0}},
+            "user": None,
         },
     }
 
 
 def test_transaction_process_session_order_with_data(
-    order, webhook_app, permission_manage_payments, transaction_item_generator
+    order,
+    webhook_app,
+    permission_manage_payments,
+    transaction_item_generator,
+    customer_user,
 ):
     # given
+    order.user = customer_user
+    order.save()
+
     webhook_app.permissions.add(permission_manage_payments)
     webhook = Webhook.objects.create(
         name="Webhook",
@@ -239,6 +262,7 @@ def test_transaction_process_session_order_with_data(
         "sourceObject": {
             "__typename": "Order",
             "id": order_id,
+            "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         },
     }
 
@@ -304,6 +328,7 @@ def test_transaction_process_session_order_without_data(
         "sourceObject": {
             "__typename": "Order",
             "id": order_id,
+            "user": {"id": graphene.Node.to_global_id("User", order.user.pk)},
         },
     }
 
@@ -369,5 +394,6 @@ def test_transaction_process_session_empty_customer_ip_address(
         "sourceObject": {
             "__typename": "Order",
             "id": order_id,
+            "user": {"id": graphene.Node.to_global_id("User", order.user.pk)},
         },
     }

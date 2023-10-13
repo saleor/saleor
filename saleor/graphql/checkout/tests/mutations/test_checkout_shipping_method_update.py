@@ -103,7 +103,7 @@ def test_checkout_shipping_method_update(
         assert checkout.last_change == previous_last_change
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_checkout_shipping_method_update_external_shipping_method(
     mock_send_request,
     staff_api_client,
@@ -147,7 +147,7 @@ def test_checkout_shipping_method_update_external_shipping_method(
     assert PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_checkout_shipping_method_update_external_shipping_method_with_tax_plugin(
     mock_send_request,
     staff_api_client,
