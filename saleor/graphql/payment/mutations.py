@@ -1417,7 +1417,7 @@ class TransactionRequestAction(BaseMutation):
             )
             request_cancelation_action(
                 **action_kwargs,
-                cancel_value=action_value,
+                cancel_value=None,
                 request_event=request_event,
                 action=action,
             )
