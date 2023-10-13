@@ -73,6 +73,9 @@ SALE_BULK_DELETE_MUTATION = """
     """
 
 
+@mock.patch(
+    ("saleor.graphql.discount.mutations." "bulk_mutations.get_webhooks_for_event")
+)
 @mock.patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 @mock.patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
@@ -80,12 +83,17 @@ SALE_BULK_DELETE_MUTATION = """
 def test_delete_sales(
     update_products_discounted_prices_for_promotion_task,
     deleted_webhook_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     promotion_converted_from_sale_list,
     permission_manage_discounts,
+    any_webhook,
+    settings,
 ):
     # given
     promotion_list = promotion_converted_from_sale_list
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variables = {
         "ids": [
             graphene.Node.to_global_id("Sale", promotion.old_sale_id)
@@ -109,7 +117,9 @@ def test_delete_sales(
     assert deleted_webhook_mock.call_count == len(promotion_list)
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch(
+    ("saleor.graphql.discount.mutations." "bulk_mutations.get_webhooks_for_event")
+)
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_sales_triggers_webhook(
     mocked_webhook_trigger,
@@ -144,7 +154,9 @@ def test_delete_sales_triggers_webhook(
     assert mocked_webhook_trigger.call_count == 3
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch(
+    ("saleor.graphql.discount.mutations." "bulk_mutations.get_webhooks_for_event")
+)
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_sales_with_variants_triggers_webhook(
     mocked_webhook_trigger,
@@ -203,6 +215,9 @@ def test_delete_sales_with_variants_triggers_webhook(
     assert mocked_webhook_trigger.call_count == 3
 
 
+@mock.patch(
+    ("saleor.graphql.discount.mutations." "bulk_mutations.get_webhooks_for_event")
+)
 @mock.patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 @mock.patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
@@ -210,12 +225,16 @@ def test_delete_sales_with_variants_triggers_webhook(
 def test_delete_sales_with_promotion_ids(
     update_products_discounted_prices_for_promotion_task,
     deleted_webhook_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     any_webhook,
     promotion_converted_from_sale_list,
     permission_manage_discounts,
+    settings,
 ):
     # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variables = {
         "ids": [
             graphene.Node.to_global_id("Promotion", promotion.id)

@@ -90,6 +90,33 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 - Deprecate `external_url` on `Invoice` GraphQL type in favour of `url`. No matter if the invoice is stored on Saleor or is a link to an external invoice it will get returned in the `url` field.
+- Extend methods of `BasePlugin` to accept optional `webhooks` parameter to reduce number of queries executed in bulk mutations.
+Affected methods:
+  - `channel_updated`
+  - `category_deleted`
+  - `gift_card_created`
+  - `gift_card_deleted`
+  - `gift_card_status_changed`
+  - `menu_deleted`
+  - `menu_item_deleted`
+  - `order_updated`
+  - `order_cancelled`
+  - `customer_updated`
+  - `customer_deleted`
+  - `customer_metadata_updated`
+  - `collection_deleted`
+  - `product_created`
+  - `product_updated`
+  - `product_deleted`
+  - `product_variant_created`
+  - `product_variant_updated`
+  - `product_variant_deleted`
+  - `product_variant_out_of_stock`
+  - `product_variant_back_in_stock`
+  - `product_variant_stock_updated`
+  - `shipping_price_deleted`
+  - `shipping_zone_deleted`
+  - `voucher_deleted`
 
 ### GraphQL API
 

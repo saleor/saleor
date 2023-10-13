@@ -4,6 +4,8 @@ from django.db.models import Exists, OuterRef
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.tasks import update_products_discounted_prices_for_promotion_task
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import CollectionError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -36,12 +38,14 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
             )
         )
         manager = get_plugin_manager_promise(info.context).get()
-        for collection in queryset.iterator():
-            manager.collection_deleted(collection)
+        if webhooks := get_webhooks_for_event(WebhookEventAsyncType.COLLECTION_DELETED):
+            for collection in queryset.iterator():
+                manager.collection_deleted(collection, webhooks=webhooks)
         queryset.delete()
 
-        for product in products:
-            manager.product_updated(product)
+        if webhooks := get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED):
+            for product in products:
+                manager.product_updated(product, webhooks=webhooks)
 
         update_products_discounted_prices_for_promotion_task.delay(
             [product.id for product in products]
