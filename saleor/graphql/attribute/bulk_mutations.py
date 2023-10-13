@@ -4,7 +4,6 @@ from django.db.models import Exists, OuterRef, Q
 from ...attribute import models
 from ...permission.enums import PageTypePermissions
 from ...product import models as product_models
-from ...product.search import update_products_search_vector
 from ...webhook.event_types import WebhookEventAsyncType
 from ..core import ResolveInfo
 from ..core.mutations import ModelBulkDeleteMutation
@@ -44,8 +43,8 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "Attribute")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
         response = super().perform_mutation(root, info, ids=ids)
-        update_products_search_vector(
-            product_models.Product.objects.filter(id__in=product_ids)
+        product_models.Product.objects.filter(id__in=product_ids).update(
+            search_index_dirty=True
         )
         return response
 
@@ -118,8 +117,8 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "AttributeValue")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
         response = super().perform_mutation(root, info, ids=ids)
-        update_products_search_vector(
-            product_models.Product.objects.filter(id__in=product_ids)
+        product_models.Product.objects.filter(id__in=product_ids).update(
+            search_index_dirty=True
         )
         return response
 
