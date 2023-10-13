@@ -15185,7 +15185,7 @@ type Mutation {
   ): ShopAddressUpdate @doc(category: "Shop")
 
   """
-  Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
+  Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order. This field will be removed in Saleor 4.0. Use `channelUpdate` instead to update order settings for a specific channel. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -20932,7 +20932,7 @@ type ShopAddressUpdate @doc(category: "Shop") {
 }
 
 """
-Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
+Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order. This field will be removed in Saleor 4.0. Use `channelUpdate` instead to update order settings for a specific channel. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -20961,6 +20961,7 @@ enum OrderSettingsErrorCode @doc(category: "Orders") {
   INVALID
 }
 
+"""This field will be removed in Saleor 4.0."""
 input OrderSettingsUpdateInput @doc(category: "Orders") {
   """
   When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately. By default set to True

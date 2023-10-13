@@ -6,6 +6,7 @@ from ....permission.enums import OrderPermissions
 from ....site.error_codes import OrderSettingsErrorCode
 from ...channel.types import OrderSettings
 from ...core import ResolveInfo
+from ...core.descriptions import DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, OrderSettingsError
@@ -26,6 +27,7 @@ class OrderSettingsUpdateInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
+        description = DEPRECATED_IN_3X_FIELD
 
 
 class OrderSettingsUpdate(BaseMutation):
@@ -40,6 +42,8 @@ class OrderSettingsUpdate(BaseMutation):
         description = (
             "Update shop order settings across all channels. "
             "Returns `orderSettings` for the first `channel` in alphabetical order. "
+            f"{DEPRECATED_IN_3X_FIELD} Use `channelUpdate` instead to update "
+            "order settings for a specific channel."
         )
         doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
