@@ -16,7 +16,7 @@ def set_voucher_code_to_voucher_customer(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0055_vouchercustomer_voucher_code_index"),
+        ("discount", "0059_vouchercustomer_voucher_code_index"),
     ]
 
     operations = [
