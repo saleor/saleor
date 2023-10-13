@@ -135,12 +135,6 @@ class VoucherFilter(MetadataFilterBase):
         fields = ["status", "times_used", "discount_type", "started", "search"]
 
 
-class VoucherCodeFilter(MetadataFilterBase):
-    class Meta:
-        model = VoucherCode
-        fields = []
-
-
 class SaleFilter(MetadataFilterBase):
     status = ListObjectTypeFilter(input_class=DiscountStatusEnum, method=filter_status)
     sale_type = ObjectTypeFilter(

@@ -2277,7 +2277,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """
   A voucher code export is completed.
-  
+
   Added in Saleor 3.18.
   """
   VOUCHER_CODE_EXPORT_COMPLETED
@@ -2999,7 +2999,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """
   A voucher code export is completed.
-  
+
   Added in Saleor 3.18.
   """
   VOUCHER_CODE_EXPORT_COMPLETED
@@ -18241,12 +18241,12 @@ type Mutation {
   ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: [])
 
   """
-  Export voucher codes to csv/xlsx file.
+  Export active voucher codes to csv/xlsx file.
 
   Added in Saleor 3.18.
 
   Requires one of the following permissions: MANAGE_DISCOUNTS.
-  
+
   Triggers the following webhook events:
   - VOUCHER_CODE_EXPORT_COMPLETED (async): A notification for the exported file.
   """
