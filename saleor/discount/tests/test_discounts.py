@@ -47,7 +47,6 @@ def test_valid_voucher_min_spent_amount(channel_USD):
 
 def test_valid_voucher_min_spent_amount_not_reached(channel_USD):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=DiscountValueType.FIXED,
     )
