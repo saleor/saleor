@@ -96,7 +96,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     usage_limit = graphene.Int(description="The number of times a voucher can be used.")
     used = graphene.Int(
         required=True,
-        description="Usage count of the voucher." + DEPRECATED_IN_3X_FIELD,
+        description="Usage count of the voucher.",
     )
     start_date = graphene.DateTime(
         required=True, description="The start date and time of voucher."
