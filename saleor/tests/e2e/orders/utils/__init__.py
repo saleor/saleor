@@ -7,6 +7,8 @@ from .order_create_from_checkout import order_create_from_checkout
 from .order_discount_add import order_discount_add
 from .order_fulfill import order_fulfill
 from .order_fulfill_add_tracking import order_add_tracking
+from .order_fulfillment_cancel import order_fulfillment_cancel
+from .order_invoice_create import order_invoice_create
 from .order_lines_create import order_lines_create
 from .order_mark_as_paid import mark_order_paid
 from .order_query import order_query
@@ -28,4 +30,6 @@ __all__ = [
     "order_void",
     "order_fulfill",
     "order_add_tracking",
+    "order_fulfillment_cancel",
+    "order_invoice_create",
 ]
