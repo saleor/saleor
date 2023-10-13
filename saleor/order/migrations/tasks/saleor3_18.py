@@ -119,7 +119,8 @@ def recalculate_undiscounted_prices():
             "order_id",
             "tax_rate",
             "currency",
-        ).order_by("-pk")[:LINE_BATCH]
+        )
+        .order_by("-pk")[:LINE_BATCH]
     )
 
     if not order_lines:

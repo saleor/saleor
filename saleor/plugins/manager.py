@@ -462,7 +462,7 @@ class PluginsManager(PaymentInterface):
             default_value * quantity,
         )
         default_taxed_value = TaxedMoney(
-            net=total_value / quantity, gross=total_value / quantity
+            net=total_value / quantity, gross=default_value
         )
         unit_price = self.__run_method_on_plugins(
             "calculate_checkout_line_unit_price",
