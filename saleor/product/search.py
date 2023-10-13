@@ -53,13 +53,6 @@ def update_products_search_vector(products: "QuerySet", use_batches=True):
         _prep_product_search_vector_index(products)
 
 
-def update_product_search_vector(product: "Product"):
-    product.search_vector = FlatConcatSearchVector(
-        *prepare_product_search_vector_value(product)
-    )
-    product.save(update_fields=["search_vector", "updated_at"])
-
-
 def prepare_product_search_vector_value(
     product: "Product", *, already_prefetched=False
 ) -> List[NoValidationSearchVector]:
