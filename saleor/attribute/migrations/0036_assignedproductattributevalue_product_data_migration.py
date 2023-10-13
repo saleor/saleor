@@ -10,20 +10,12 @@ def data_migration(apps, _schema_editor):
     AssignedProductAttributeValue = apps.get_model(
         "attribute", "AssignedProductAttributeValue"
     )
-    assign_products_to_attribute_values(AssignedProductAttributeValue)
-
-
-def assign_products_to_attribute_values(AssignedProductAttributeValue):
-    # Order events proceed from the newest to the oldest
-    assigned_values = (
+    while (
         AssignedProductAttributeValue.objects.filter(product__isnull=True)
         .values_list("pk", flat=True)
         .exists()
-    )
-    # If we found data, queue next execution of the task
-    if assigned_values:
+    ):
         update_product_assignment()
-        assign_products_to_attribute_values(AssignedProductAttributeValue)
 
 
 def update_product_assignment():

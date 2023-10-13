@@ -10,36 +10,12 @@ def data_migration(apps, _schema_editor):
     AssignedPageAttributeValue = apps.get_model(
         "attribute", "AssignedPageAttributeValue"
     )
-    assign_pages_to_attribute_values(AssignedPageAttributeValue)
-
-
-class Migration(migrations.Migration):
-    dependencies = [
-        ("page", "0028_add_default_page_type"),
-        ("attribute", "0033_assignedpageattributevalue_page_add_index"),
-    ]
-
-    operations = [
-        migrations.RunPython(data_migration, migrations.RunPython.noop),
-    ]
-
-
-def assign_pages_to_attribute_values(AssignedPageAttributeValue):
-    """Celery task to update 'AssignedPageAttributeValue' rows in batches.
-
-    Checks for rows where the 'page' is null and updates them based on their
-    related 'assignment'. After updating a batch, the task schedules
-    itself for the next batch if more rows need updating.
-    """
-    assigned_values = (
+    while (
         AssignedPageAttributeValue.objects.filter(page__isnull=True)
         .values_list("pk", flat=True)
         .exists()
-    )
-    # If we found data, queue next execution of the task
-    if assigned_values:
+    ):
         update_page_assignment()
-        assign_pages_to_attribute_values(AssignedPageAttributeValue)
 
 
 def update_page_assignment():
@@ -71,3 +47,14 @@ def update_page_assignment():
             """,  # noqa
                 [PAGE_BATCH_SIZE],
             )
+
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ("page", "0028_add_default_page_type"),
+        ("attribute", "0033_assignedpageattributevalue_page_add_index"),
+    ]
+
+    operations = [
+        migrations.RunPython(data_migration, migrations.RunPython.noop),
+    ]
