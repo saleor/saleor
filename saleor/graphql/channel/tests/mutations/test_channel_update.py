@@ -45,6 +45,7 @@ CHANNEL_UPDATE_MUTATION = """
                     defaultTransactionFlowStrategy
                     deleteExpiredOrdersAfter
                     allowUnpaidOrders
+                    includeDraftOrderInVoucherUsage
                 }
             }
             errors{
@@ -80,6 +81,7 @@ def test_channel_update_mutation_as_staff_user(
                 "automaticallyFulfillNonShippableGiftCard": False,
                 "expireOrdersAfter": 10,
                 "allowUnpaidOrders": True,
+                "includeDraftOrderInVoucherUsage": True,
             },
         },
     }
@@ -112,6 +114,7 @@ def test_channel_update_mutation_as_staff_user(
         is False
     )
     assert channel_data["orderSettings"]["expireOrdersAfter"] == 10
+    assert channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"] is True
     assert channel_data["orderSettings"]["allowUnpaidOrders"] is True
 
 
