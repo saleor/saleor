@@ -31,28 +31,12 @@ class SiteSettingsQueries(graphene.ObjectType):
     @staticmethod
     def resolve_site_settings(_root, _info: ResolveInfo, *, slug=None, **kwargs):
         if slug:
-            site_settings = resolve_site_settings_by_slug(slug)
-
-            site_settings.image = \
-                build_absolute_uri(f"{MEDIA_URL}{site_settings.image}")
-            site_settings.css = \
-                build_absolute_uri(f"{MEDIA_URL}{site_settings.css}") \
-                if site_settings.css else ""
-
-            return site_settings
+            return resolve_site_settings_by_slug(slug)
 
     @staticmethod
     def resolve_all_site_settings(_root, _info: ResolveInfo):
         site_settings_list = SiteSettingsList()
         all_site_settings = resolve_all_site_settings()
-
-        for site_settings in all_site_settings:
-            site_settings.image = \
-                build_absolute_uri(f"{MEDIA_URL}{site_settings.image}")
-            site_settings.css = \
-                build_absolute_uri(f"{MEDIA_URL}{site_settings.css}") \
-                    if site_settings.css else ""
-
         site_settings_list.edge = all_site_settings
         return site_settings_list
 

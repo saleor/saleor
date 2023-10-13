@@ -1,6 +1,7 @@
 import graphene
 
 from .types import SiteSettingsType
+from .utils import build_file_uri
 from ...core.utils import build_absolute_uri
 from ...permission.enums import OrderPermissions
 from ...pharmacy import models
@@ -68,11 +69,8 @@ class SiteSettingsCreate(graphene.Mutation):
         site_settings.slug = slug
         site_settings.save()
 
-        site_settings.image = \
-            build_absolute_uri(f"{MEDIA_URL}{site_settings.image}")
-        site_settings.css = \
-            build_absolute_uri(f"{MEDIA_URL}{site_settings.css}") \
-                if site_settings.css else ""
+        site_settings.image = build_file_uri(str(site_settings.image))
+        site_settings.css = build_file_uri(str(site_settings.css))
 
         return SiteSettingsCreate(site_settings=site_settings)
 
@@ -128,11 +126,8 @@ class SiteSettingsUpdate(graphene.Mutation):
         site_settings.slug = slug
         site_settings.save()
 
-        site_settings.image = \
-            build_absolute_uri(f"{MEDIA_URL}{site_settings.image}")
-        site_settings.css = \
-            build_absolute_uri(f"{MEDIA_URL}{site_settings.css}") \
-                if site_settings.css else ""
+        site_settings.image = build_file_uri(str(site_settings.image))
+        site_settings.css = build_file_uri(str(site_settings.css))
 
         return SiteSettingsUpdate(site_settings=site_settings)
 
