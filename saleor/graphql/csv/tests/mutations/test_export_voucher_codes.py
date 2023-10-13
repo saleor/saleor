@@ -266,7 +266,7 @@ def test_export_voucher_codes_error_too_many_arguments(
     assert not data["exportFile"]
     error = data["errors"][0]
     assert error["field"] is None
-    assert error["code"] == ExportErrorCode.INVALID.name
+    assert error["code"] == ExportErrorCode.GRAPHQL_ERROR.name
 
 
 def test_export_voucher_codes_error_lack_of_required_argument(
@@ -290,7 +290,7 @@ def test_export_voucher_codes_error_lack_of_required_argument(
     assert not data["exportFile"]
     error = data["errors"][0]
     assert error["field"] is None
-    assert error["code"] == ExportErrorCode.REQUIRED.name
+    assert error["code"] == ExportErrorCode.GRAPHQL_ERROR.name
 
 
 def test_export_voucher_codes_error_invalid_voucher_id(

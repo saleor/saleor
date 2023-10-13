@@ -9,10 +9,11 @@ from ....permission.enums import DiscountPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_318
+from ...core.descriptions import ADDED_IN_318, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.types import BaseInputObjectType, ExportError, NonNullList
 from ...core.utils import WebhookEventInfo, raise_validation_error
+from ...core.validators import validate_one_of_args_is_in_mutation
 from ..enums import FileTypeEnum
 from .base_export import BaseExportMutation
 
@@ -43,7 +44,11 @@ class ExportVoucherCodes(BaseExportMutation):
         )
 
     class Meta:
-        description = "Export active voucher codes to csv/xlsx file." + ADDED_IN_318
+        description = (
+            "Export active voucher codes to csv/xlsx file."
+            + ADDED_IN_318
+            + PREVIEW_FEATURE
+        )
         doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = ExportError
@@ -58,25 +63,7 @@ class ExportVoucherCodes(BaseExportMutation):
     def clean_input(cls, input):
         voucher_id = input.get("voucher_id")
         ids = input.get("ids") or []
-        if voucher_id and ids:
-            raise_validation_error(
-                field=None,
-                message=(
-                    'You can\'t provide both "voucherId" and "ids".'
-                    'Use "voucherId" to export all the codes belonging to the voucher'
-                    ' or use "ids" to specify which codes to export.'
-                ),
-                code=ExportErrorCode.INVALID,
-            )
-
-        if not voucher_id and not ids:
-            raise_validation_error(
-                field=None,
-                message=(
-                    'One of the following arguments is required: "voucherId" or "ids".'
-                ),
-                code=ExportErrorCode.REQUIRED,
-            )
+        validate_one_of_args_is_in_mutation("voucher_id", voucher_id, "ids", ids)
 
         if voucher_id:
             try:

@@ -107,9 +107,9 @@ def export_voucher_codes(
 
     qs = VoucherCode.objects.all()
     if voucher_id:
-        qs = VoucherCode.objects.filter(voucher_id=voucher_id).all()
+        qs = VoucherCode.objects.filter(voucher_id=voucher_id)
     if ids:
-        qs = VoucherCode.objects.filter(id__in=ids).all()
+        qs = VoucherCode.objects.filter(id__in=ids)
 
     export_fields = ["code"]
     temporary_file = create_file_with_headers(export_fields, delimiter, file_type)

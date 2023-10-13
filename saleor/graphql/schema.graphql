@@ -18200,7 +18200,9 @@ type Mutation {
   """
   Export active voucher codes to csv/xlsx file.
   
-  Added in Saleor 3.18. 
+  Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -28237,7 +28239,9 @@ input ExportGiftCardsInput @doc(category: "Gift cards") {
 """
 Export active voucher codes to csv/xlsx file.
 
-Added in Saleor 3.18. 
+Added in Saleor 3.18.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -34704,7 +34708,7 @@ type VoucherMetadataUpdated implements Event @doc(category: "Discounts") {
 """
 Event sent when voucher code export is completed.
 
-Added in Saleor 3.16.
+Added in Saleor 3.18.
 """
 type VoucherCodeExportCompleted implements Event @doc(category: "Discounts") {
   """Time of the event."""

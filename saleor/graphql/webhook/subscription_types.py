@@ -56,6 +56,7 @@ from ..core.descriptions import (
     ADDED_IN_315,
     ADDED_IN_316,
     ADDED_IN_317,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
@@ -2413,7 +2414,7 @@ class VoucherCodeExportCompleted(SubscriptionObjectType):
         root_type = "ExportFile"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when voucher code export is completed." + ADDED_IN_316
+        description = "Event sent when voucher code export is completed." + ADDED_IN_318
         doc_category = DOC_CATEGORY_DISCOUNTS
 
     @staticmethod
