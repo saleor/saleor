@@ -47,16 +47,17 @@ query Orders($period: ReportingPeriod, $channel: String) {
 """
 
 
-def test_orders_total(staff_api_client, permission_manage_orders, order_with_lines):
+def test_orders_total(
+    staff_api_client, permission_group_manage_orders, order_with_lines
+):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     variables = {"period": ReportingPeriod.TODAY.name}
 
     # when
     with warnings.catch_warnings(record=True) as warns:
-        response = staff_api_client.post_graphql(
-            QUERY_ORDER_TOTAL, variables, permissions=[permission_manage_orders]
-        )
+        response = staff_api_client.post_graphql(QUERY_ORDER_TOTAL, variables)
         content = get_graphql_content(response)
 
     # then
@@ -99,10 +100,11 @@ def test_order_line_remove_by_old_line_id(
     draft_order_updated_webhook_mock,
     status,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
 ):
     query = ORDER_LINE_DELETE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.status = status
     order.save(update_fields=["status"])
@@ -113,9 +115,7 @@ def test_order_line_remove_by_old_line_id(
     line_id = graphene.Node.to_global_id("OrderLine", line.old_id)
     variables = {"id": line_id}
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderLineDelete"]
     assert OrderEvent.objects.count() == 1
@@ -158,7 +158,7 @@ def test_order_line_update_by_old_line_id(
     draft_order_updated_webhook_mock,
     status,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
     staff_user,
 ):
@@ -175,7 +175,7 @@ def test_order_line_update_by_old_line_id(
     removed_quantity = 2
     line_id = graphene.Node.to_global_id("OrderLine", line.old_id)
     variables = {"lineId": line_id, "quantity": new_quantity}
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure the line has the expected quantity
     assert line.quantity == 3
@@ -231,10 +231,11 @@ def test_order_fulfill_old_line_id(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
     site_settings,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     site_settings.fulfillment_auto_approve = fulfillment_auto_approve
     site_settings.save(update_fields=["fulfillment_auto_approve"])
     order = order_with_lines
@@ -264,9 +265,7 @@ def test_order_fulfill_old_line_id(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
@@ -326,7 +325,7 @@ mutation OrderFulfillmentRefundProducts(
 def test_fulfillment_refund_products_order_lines_by_old_id(
     mocked_refund,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     payment_dummy,
 ):
@@ -345,7 +344,7 @@ def test_fulfillment_refund_products_order_lines_by_old_id(
         "order": order_id,
         "input": {"orderLines": [{"orderLineId": line_id, "quantity": 2}]},
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
@@ -435,7 +434,7 @@ mutation OrderFulfillmentReturnProducts(
 def test_fulfillment_return_products_order_lines_by_old_line_id(
     mocked_refund,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     payment_dummy,
 ):
@@ -477,7 +476,7 @@ def test_fulfillment_return_products_order_lines_by_old_line_id(
             ],
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
 
     order_with_lines.refresh_from_db()
@@ -584,7 +583,7 @@ def test_update_order_line_discount_old_id(
     status,
     draft_order_with_fixed_discount_order,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     order = draft_order_with_fixed_discount_order
     order.status = status
@@ -613,7 +612,7 @@ def test_update_order_line_discount_old_id(
             "reason": reason,
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_UPDATE, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderLineDiscountUpdate"]
@@ -671,7 +670,7 @@ def test_delete_discount_from_order_line_by_old_id(
     mocked_calculate_order_line_unit,
     draft_order_with_fixed_discount_order,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     order = draft_order_with_fixed_discount_order
     order.status = OrderStatus.DRAFT
@@ -703,7 +702,7 @@ def test_delete_discount_from_order_line_by_old_id(
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line.old_id),
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_REMOVE, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderLineDiscountRemove"]

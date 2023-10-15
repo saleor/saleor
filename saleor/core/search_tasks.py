@@ -28,7 +28,7 @@ def set_user_search_document_values(updated_count: int = 0) -> None:
     users = list(
         User.objects.filter(search_document="")
         .prefetch_related("addresses")
-        .order_by()[:BATCH_SIZE]
+        .order_by("-id")[:BATCH_SIZE]
     )
 
     if not users:
@@ -62,7 +62,7 @@ def set_order_search_document_values(updated_count: int = 0) -> None:
             "discounts",
             "lines",
         )
-        .order_by()[:BATCH_SIZE]
+        .order_by("-number")[:BATCH_SIZE]
     )
 
     if not orders:
@@ -87,7 +87,7 @@ def set_product_search_document_values(updated_count: int = 0) -> None:
     products = list(
         Product.objects.filter(search_vector=None)
         .prefetch_related(*PRODUCT_FIELDS_TO_PREFETCH)
-        .order_by()[:BATCH_SIZE]
+        .order_by("-id")[:BATCH_SIZE]
     )
 
     if not products:

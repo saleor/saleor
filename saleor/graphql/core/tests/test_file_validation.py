@@ -5,30 +5,15 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
+from requests_hardened import HTTPSession
 
 from ....product.error_codes import ProductErrorCode
 from ..validators.file import (
     clean_image_file,
-    get_filename_from_url,
     is_image_mimetype,
     is_supported_image_mimetype,
     validate_image_url,
 )
-
-
-def test_get_filename_from_url_unique():
-    # given
-    file_format = "jpg"
-    file_name = "lenna"
-    url = f"http://example.com/{file_name}.{file_format}"
-
-    # when
-    result = get_filename_from_url(url)
-
-    # then
-    assert result.startswith(file_name)
-    assert result.endswith(file_format)
-    assert result != f"{file_name}.{file_format}"
 
 
 def test_is_image_mimetype_valid_mimetype():
@@ -80,7 +65,8 @@ def test_validate_image_url_valid_image_response(monkeypatch):
     valid_image_response_mock = Mock()
     valid_image_response_mock.headers = {"content-type": "image/jpeg"}
     monkeypatch.setattr(
-        "saleor.graphql.core.validators.file.requests.head",
+        HTTPSession,
+        "request",
         Mock(return_value=valid_image_response_mock),
     )
     field = "image"
@@ -101,7 +87,8 @@ def test_validate_image_url_invalid_mimetype_response(monkeypatch):
     invalid_response_mock = Mock()
     invalid_response_mock.headers = {"content-type": "application/json"}
     monkeypatch.setattr(
-        "saleor.graphql.core.validators.file.requests.head",
+        HTTPSession,
+        "request",
         Mock(return_value=invalid_response_mock),
     )
     field = "image"
@@ -124,7 +111,8 @@ def test_validate_image_url_response_without_content_headers(monkeypatch):
     invalid_response_mock = Mock()
     invalid_response_mock.headers = {}
     monkeypatch.setattr(
-        "saleor.graphql.core.validators.file.requests.head",
+        HTTPSession,
+        "request",
         Mock(return_value=invalid_response_mock),
     )
     field = "image"

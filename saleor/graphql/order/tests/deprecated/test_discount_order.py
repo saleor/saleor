@@ -31,7 +31,7 @@ def test_delete_order_discount_from_order_with_old_id(
     status,
     draft_order_with_fixed_discount_order,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     # given
     order = draft_order_with_fixed_discount_order
@@ -53,7 +53,7 @@ def test_delete_order_discount_from_order_with_old_id(
             "OrderDiscount", order_discount.old_id
         ),
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDER_DISCOUNT_DELETE, variables)
@@ -107,7 +107,7 @@ def test_update_percentage_order_discount_by_old_id(
     status,
     draft_order_with_fixed_discount_order,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     # given
     order = draft_order_with_fixed_discount_order
@@ -130,7 +130,7 @@ def test_update_percentage_order_discount_by_old_id(
             "reason": reason,
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDER_DISCOUNT_UPDATE, variables)

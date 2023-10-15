@@ -38,7 +38,7 @@ ORDERS_PAYMENTS_EVENTS_QUERY = """
 
 def test_payment_information_order_events_query(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     permission_manage_apps,
     order,
     payment_dummy,
@@ -52,9 +52,8 @@ def test_payment_information_order_events_query(
         order=order, user=staff_user, app=None, amount=amount, payment=payment_dummy
     )
 
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders, permission_manage_apps
-    )
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
@@ -75,7 +74,7 @@ def test_payment_information_order_events_query(
 
 def test_payment_information_order_events_query_for_app(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     permission_manage_apps,
     order,
     payment_dummy,
@@ -89,9 +88,8 @@ def test_payment_information_order_events_query_for_app(
         order=order, user=None, app=app, amount=amount, payment=payment_dummy
     )
 
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders, permission_manage_apps
-    )
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content["data"]["orders"]["edges"][0]["node"]["events"][0]

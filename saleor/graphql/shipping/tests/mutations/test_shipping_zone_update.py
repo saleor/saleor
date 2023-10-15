@@ -2,6 +2,7 @@ import json
 from unittest import mock
 
 import graphene
+import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
@@ -59,10 +60,30 @@ UPDATE_SHIPPING_ZONE_MUTATION = """
     }
 """
 
+SHIPPING_ZONE_UPDATE_DEFAULT_TRUE_MUTATION = """
+    mutation ShippingZoneUpdate($id: ID!, $input: ShippingZoneUpdateInput!) {
+        shippingZoneUpdate(id: $id, input: $input) {
+            errors {
+                code
+                field
+                message
+            }
+            shippingZone {
+                id
+                default
+                countries {
+                    code
+                }
+            }
+        }
+    }
+"""
+
 
 def test_update_shipping_zone(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
+    # given
     name = "Parabolic name"
     description = "Description of a shipping zone."
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -72,11 +93,15 @@ def test_update_shipping_zone(
         "countries": [],
         "description": description,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert not data["errors"]
@@ -142,6 +167,7 @@ def test_update_shipping_zone_trigger_webhook(
 def test_update_shipping_zone_default_exists(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
+    # given
     default_zone = shipping_zone
     default_zone.default = True
     default_zone.pk = None
@@ -150,11 +176,15 @@ def test_update_shipping_zone_default_exists(
 
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     variables = {"id": shipping_id, "name": "Name", "countries": [], "default": True}
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert data["errors"][0]["field"] == "default"
@@ -167,6 +197,7 @@ def test_update_shipping_zone_add_warehouses(
     warehouses,
     permission_manage_shipping,
 ):
+    # given
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_ids = [
         graphene.Node.to_global_id("Warehouse", warehouse.pk)
@@ -179,11 +210,15 @@ def test_update_shipping_zone_add_warehouses(
         "name": shipping_zone.name,
         "addWarehouses": warehouse_ids,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert not data["errors"]
@@ -200,6 +235,7 @@ def test_update_shipping_zone_add_second_warehouses(
     warehouse_no_shipping_zone,
     permission_manage_shipping,
 ):
+    # given
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_id = graphene.Node.to_global_id(
         "Warehouse", warehouse_no_shipping_zone.pk
@@ -209,17 +245,23 @@ def test_update_shipping_zone_add_second_warehouses(
         "name": shipping_zone.name,
         "addWarehouses": [warehouse_id],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
-    assert data["warehouses"][1]["slug"] == warehouse.slug
-    assert data["warehouses"][0]["slug"] == warehouse_no_shipping_zone.slug
+    response_warehouses_slugs = set([wh["slug"] for wh in data["warehouses"]])
+    assert response_warehouses_slugs == set(
+        [warehouse.slug, warehouse_no_shipping_zone.slug]
+    )
 
 
 def test_update_shipping_zone_remove_warehouses(
@@ -228,6 +270,7 @@ def test_update_shipping_zone_remove_warehouses(
     warehouse,
     permission_manage_shipping,
 ):
+    # given
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
@@ -235,11 +278,15 @@ def test_update_shipping_zone_remove_warehouses(
         "name": shipping_zone.name,
         "removeWarehouses": [warehouse_id],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert not data["errors"]
@@ -253,6 +300,7 @@ def test_update_shipping_zone_remove_one_warehouses(
     warehouses,
     permission_manage_shipping,
 ):
+    # given
     for warehouse in warehouses:
         warehouse.shipping_zones.add(shipping_zone)
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -262,11 +310,15 @@ def test_update_shipping_zone_remove_one_warehouses(
         "name": shipping_zone.name,
         "removeWarehouses": [warehouse_id],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert not data["errors"]
@@ -282,6 +334,7 @@ def test_update_shipping_zone_replace_warehouse(
     warehouse_no_shipping_zone,
     permission_manage_shipping,
 ):
+    # given
     assert shipping_zone.warehouses.first() == warehouse
 
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -295,11 +348,15 @@ def test_update_shipping_zone_replace_warehouse(
         "addWarehouses": [add_warehouse_id],
         "removeWarehouses": [remove_warehouse_id],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert not data["errors"]
@@ -314,6 +371,7 @@ def test_update_shipping_zone_same_warehouse_id_in_add_and_remove(
     warehouse,
     permission_manage_shipping,
 ):
+    # given
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
@@ -322,11 +380,15 @@ def test_update_shipping_zone_same_warehouse_id_in_add_and_remove(
         "addWarehouses": [warehouse_id],
         "removeWarehouses": [warehouse_id],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert data["errors"]
@@ -342,6 +404,7 @@ def test_update_shipping_zone_add_channels(
     channel_PLN,
     permission_manage_shipping,
 ):
+    # given
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     channel_ids = [
         graphene.Node.to_global_id("Channel", channel.pk)
@@ -353,11 +416,15 @@ def test_update_shipping_zone_add_channels(
         "name": shipping_zone.name,
         "addChannels": channel_ids,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert not data["errors"]
@@ -367,7 +434,7 @@ def test_update_shipping_zone_add_channels(
 
 
 @mock.patch(
-    "saleor.graphql.shipping.mutations.shippings."
+    "saleor.graphql.shipping.mutations.base."
     "drop_invalid_shipping_methods_relations_for_given_channels.delay"
 )
 def test_update_shipping_zone_remove_channels(
@@ -378,6 +445,7 @@ def test_update_shipping_zone_remove_channels(
     channel_PLN,
     permission_manage_shipping,
 ):
+    # given
     shipping_zone.channels.add(channel_USD, channel_PLN)
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
@@ -395,11 +463,15 @@ def test_update_shipping_zone_remove_channels(
         "name": shipping_zone.name,
         "removeChannels": [channel_id],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert not data["errors"]
@@ -423,6 +495,7 @@ def test_update_shipping_zone_add_and_remove_channels(
     channel_PLN,
     permission_manage_shipping,
 ):
+    # given
     shipping_zone.channels.add(channel_USD)
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     add_channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
@@ -434,11 +507,15 @@ def test_update_shipping_zone_add_and_remove_channels(
         "removeChannels": [remove_channel_id],
         "addChannels": [add_channel_id],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert not data["errors"]
@@ -454,6 +531,7 @@ def test_update_shipping_zone_same_channel_id_in_add_and_remove_list(
     channel_PLN,
     permission_manage_shipping,
 ):
+    # given
     shipping_zone.channels.add(channel_USD)
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     add_channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
@@ -465,11 +543,15 @@ def test_update_shipping_zone_same_channel_id_in_add_and_remove_list(
         "removeChannels": [remove_channel_id],
         "addChannels": [add_channel_id],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert not data["errors"]
@@ -490,6 +572,7 @@ def test_update_shipping_zone_add_invalid_warehouses(
 ):
     """Ensure an error is raised when the warehouse that has not a common
     channel with shipping zone is added."""
+    # given
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     # warehouse with common USD channel
     warehouse_usd_id = graphene.Node.to_global_id("Warehouse", warehouses[0].pk)
@@ -513,11 +596,15 @@ def test_update_shipping_zone_add_invalid_warehouses(
         "addWarehouses": [warehouse_usd_id, warehouse_jpy_id, warehouse_pln_id],
         "addChannels": [channel_id],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert len(data["errors"]) == 1
@@ -535,6 +622,7 @@ def test_update_shipping_zone_add_warehouse_without_any_channel(
 ):
     """Ensure an error is raised when the warehouse that has not a common
     channel with shipping zone is added."""
+    # given
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
 
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
@@ -547,11 +635,15 @@ def test_update_shipping_zone_add_warehouse_without_any_channel(
         "addWarehouses": [warehouse_id],
         "addChannels": [channel_id],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert len(data["errors"]) == 1
@@ -641,3 +733,39 @@ def test_update_shipping_zone_remove_channels_remove_common_warehouse_channel(
     )
     assert len(shipping_zone_data["warehouses"]) == 1
     assert shipping_zone_data["warehouses"][0]["slug"] == warehouses[1].slug
+
+
+@pytest.mark.parametrize(
+    "input, expected_countries",
+    (
+        ({"default": True, "countries": ["PL"]}, [{"code": "PL"}]),
+        ({"default": True, "countries": []}, []),
+        ({"default": True, "countries": None}, []),
+        ({"default": True}, []),
+    ),
+)
+def test_shipping_method_update_countries(
+    staff_api_client,
+    shipping_zone,
+    permission_manage_shipping,
+    input,
+    expected_countries,
+):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id),
+        "input": input,
+    }
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+    response = staff_api_client.post_graphql(
+        SHIPPING_ZONE_UPDATE_DEFAULT_TRUE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneUpdate"]
+    assert data["errors"] == []
+    assert data["shippingZone"]["default"] is True
+    assert data["shippingZone"]["countries"] == expected_countries

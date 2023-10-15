@@ -45,7 +45,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         input["value_type"] = input.get("value_type") or order_line.unit_discount_type
 
         cls.validate_order_discount_input(
-            info, order_line.undiscounted_unit_price.gross, input
+            order_line.undiscounted_unit_price.gross, input
         )
 
     @classmethod
@@ -54,6 +54,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
     ):
         order_line = cls.get_node_or_error(info, order_line_id, only_type=OrderLine)
         order = order_line.order
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate(info, order, order_line, input)
         reason = input.get("reason")
         value_type = input.get("value_type")

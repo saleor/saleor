@@ -1,9 +1,9 @@
 import graphene
-from django.db.models import Min, Q, QuerySet
+from django.db.models import F, Min, Q, QuerySet
 
 from ..core.descriptions import CHANNEL_REQUIRED
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ..core.types import BaseEnum, ChannelSortInputObjectType
+from ..core.types import BaseEnum, ChannelSortInputObjectType, SortInputObjectType
 
 
 class SaleSortField(BaseEnum):
@@ -21,7 +21,7 @@ class SaleSortField(BaseEnum):
     @property
     def description(self):
         descrption_extras = {
-            SaleSortField.VALUE.name: [CHANNEL_REQUIRED]  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            SaleSortField.VALUE.name: [CHANNEL_REQUIRED],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in SaleSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
@@ -35,10 +35,14 @@ class SaleSortField(BaseEnum):
     def qs_with_value(queryset: QuerySet, channel_slug: str) -> QuerySet:
         return queryset.annotate(
             value=Min(
-                "channel_listings__discount_value",
-                filter=Q(channel_listings__channel__slug=str(channel_slug)),
+                "rules__reward_value",
+                filter=Q(rules__channels__slug=str(channel_slug)),
             )
         )
+
+    @staticmethod
+    def qs_with_type(queryset: QuerySet, **kwargs) -> QuerySet:
+        return queryset.annotate(type=F("rules__reward_value_type"))
 
 
 class SaleSortingInput(ChannelSortInputObjectType):
@@ -98,3 +102,28 @@ class VoucherSortingInput(ChannelSortInputObjectType):
         doc_category = DOC_CATEGORY_DISCOUNTS
         sort_enum = VoucherSortField
         type_name = "vouchers"
+
+
+class PromotionSortField(BaseEnum):
+    NAME = ["name", "pk"]
+    START_DATE = ["start_date", "name", "pk"]
+    END_DATE = ["end_date", "name", "pk"]
+    CREATED_AT = ["created_at", "pk"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+
+    @property
+    def description(self):
+        if self.name in PromotionSortField.__enum__._member_names_:
+            sort_name = self.name.lower().replace("_", " ")
+            description = f"Sort promotions by {sort_name}."
+            return description
+        raise ValueError(f"Unsupported enum value: {self.value}")
+
+
+class PromotionSortingInput(SortInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+        sort_enum = PromotionSortField
+        type_name = "promotions"

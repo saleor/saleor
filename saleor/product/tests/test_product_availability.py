@@ -1,6 +1,5 @@
 import datetime
 from decimal import Decimal
-from unittest.mock import Mock
 
 from django.utils import timezone
 from freezegun import freeze_time
@@ -32,50 +31,18 @@ def test_availability(stock, monkeypatch, settings, channel_USD):
     )
     taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
     availability = get_product_availability(
-        product=product,
         product_channel_listing=product_channel_listing,
-        variants=product.variants.all(),
         variants_channel_listing=variants_channel_listing,
-        channel=channel_USD,
-        collections=[],
-        discounts=[],
         tax_rate=tax_rate,
         tax_calculation_strategy=tc.tax_calculation_strategy,
         prices_entered_with_tax=tc.prices_entered_with_tax,
     )
     taxed_price_range = TaxedMoneyRange(start=taxed_price, stop=taxed_price)
     assert availability.price_range == taxed_price_range
-    assert availability.price_range_local_currency is None
-
-    monkeypatch.setattr(
-        "django_prices_openexchangerates.models.get_rates",
-        lambda c: {"PLN": Mock(rate=2)},
-    )
-    settings.DEFAULT_COUNTRY = "PL"
-    settings.OPENEXCHANGERATES_API_KEY = "fake-key"
-    availability = get_product_availability(
-        product=product,
-        product_channel_listing=product_channel_listing,
-        variants=variants,
-        variants_channel_listing=variants_channel_listing,
-        collections=[],
-        discounts=[],
-        channel=channel_USD,
-        local_currency="PLN",
-        tax_rate=tax_rate,
-        tax_calculation_strategy=tc.tax_calculation_strategy,
-        prices_entered_with_tax=tc.prices_entered_with_tax,
-    )
-    assert availability.price_range_local_currency.start.currency == "PLN"
 
     availability = get_product_availability(
-        product=product,
         product_channel_listing=product_channel_listing,
-        variants=variants,
         variants_channel_listing=variants_channel_listing,
-        collections=[],
-        discounts=[],
-        channel=channel_USD,
         tax_rate=tax_rate,
         tax_calculation_strategy=tc.tax_calculation_strategy,
         prices_entered_with_tax=tc.prices_entered_with_tax,
@@ -98,17 +65,13 @@ def test_availability_with_all_variant_channel_listings(stock, channel_USD):
     )
     [variant1_channel_listing, variant2_channel_listing] = variants_channel_listing
     variant2_channel_listing.price_amount = Decimal(15)
+    variant2_channel_listing.discounted_price_amount = Decimal(15)
     variant2_channel_listing.save()
 
     # when
     availability = get_product_availability(
-        product=product,
         product_channel_listing=product_channel_listing,
-        variants=variants,
         variants_channel_listing=variants_channel_listing,
-        channel=channel_USD,
-        collections=[],
-        discounts=[],
         prices_entered_with_tax=tax_config.prices_entered_with_tax,
         tax_calculation_strategy=tax_config.tax_calculation_strategy,
         tax_rate=Decimal(0),
@@ -118,6 +81,42 @@ def test_availability_with_all_variant_channel_listings(stock, channel_USD):
     price_range = availability.price_range
     assert price_range.start.gross.amount == variant1_channel_listing.price_amount
     assert price_range.stop.gross.amount == variant2_channel_listing.price_amount
+
+
+def test_availability_no_prices(stock, channel_USD):
+    # given
+    product = stock.product_variant.product
+    tax_class = product.tax_class or product.product_type.tax_class
+
+    tc = channel_USD.tax_configuration
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.charge_taxes = True
+    tc.prices_entered_with_tax = False
+    tc.save()
+
+    tax_rate = Decimal(23)
+    country = "PL"
+    tax_class.country_rates.update_or_create(rate=tax_rate, country=country)
+
+    product_channel_listing = product.channel_listings.first()
+    variants = product.variants.all()
+    variants_channel_listing = models.ProductVariantChannelListing.objects.filter(
+        variant__in=variants
+    )
+    variants_channel_listing.update(price_amount=None)
+
+    # when
+    availability = get_product_availability(
+        product_channel_listing=product_channel_listing,
+        variants_channel_listing=variants_channel_listing,
+        tax_rate=tax_rate,
+        tax_calculation_strategy=tc.tax_calculation_strategy,
+        prices_entered_with_tax=tc.prices_entered_with_tax,
+    )
+
+    # then
+    assert availability.price_range is None
+    assert availability.price_range_undiscounted is None
 
 
 def test_availability_with_missing_variant_channel_listings(stock, channel_USD):
@@ -134,13 +133,8 @@ def test_availability_with_missing_variant_channel_listings(stock, channel_USD):
 
     # when
     availability = get_product_availability(
-        product=product,
         product_channel_listing=product_channel_listing,
-        variants=variants,
         variants_channel_listing=variants_channel_listing,
-        channel=channel_USD,
-        collections=[],
-        discounts=[],
         prices_entered_with_tax=channel_USD.tax_configuration.prices_entered_with_tax,
         tax_calculation_strategy="TAX_APP",
         tax_rate=Decimal(0),
@@ -163,13 +157,8 @@ def test_availability_without_variant_channel_listings(stock, channel_USD):
 
     # when
     availability = get_product_availability(
-        product=product,
         product_channel_listing=product_channel_listing,
-        variants=variants,
         variants_channel_listing=[],
-        channel=channel_USD,
-        collections=[],
-        discounts=[],
         tax_rate=Decimal(0),
         tax_calculation_strategy="TAX_APP",
         prices_entered_with_tax=True,

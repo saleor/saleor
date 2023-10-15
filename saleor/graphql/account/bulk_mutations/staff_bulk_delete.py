@@ -5,12 +5,14 @@ from django.core.exceptions import ValidationError
 
 from ....account import models
 from ....permission.enums import AccountPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.types import StaffError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ..mutations.base import StaffDeleteMixin
 from ..types import User
-from ..utils import StaffDeleteMixin
 from .customer_bulk_delete import UserBulkDelete
 
 
@@ -25,6 +27,12 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_DELETED,
+                description="A staff account was deleted.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

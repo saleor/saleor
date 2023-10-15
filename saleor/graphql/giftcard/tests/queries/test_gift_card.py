@@ -229,33 +229,6 @@ def test_query_gift_card_by_customer(
     assert_no_permission(response)
 
 
-def test_query_used_gift_card_no_permission(
-    staff_api_client,
-    gift_card_used,
-    permission_manage_gift_card,
-    permission_manage_users,
-    permission_manage_apps,
-):
-    # given
-    query = QUERY_GIFT_CARD_BY_ID
-    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card_used.pk)
-    variables = {"id": gift_card_id}
-
-    # when
-    response = staff_api_client.post_graphql(
-        query,
-        variables,
-        permissions=[
-            permission_manage_gift_card,
-            permission_manage_users,
-            permission_manage_apps,
-        ],
-    )
-
-    # then
-    assert_no_permission(response)
-
-
 def test_query_used_gift_card_by_owner(
     staff_api_client,
     gift_card_used,

@@ -21,6 +21,7 @@ class OrderStatus:
     )
     RETURNED = "returned"  # order with all items marked as returned
     CANCELED = "canceled"  # permanently canceled order
+    EXPIRED = "expired"  # order marked as expired
 
     CHOICES = [
         (DRAFT, "Draft"),
@@ -31,6 +32,7 @@ class OrderStatus:
         (RETURNED, "Returned"),
         (FULFILLED, "Fulfilled"),
         (CANCELED, "Canceled"),
+        (EXPIRED, "Expired"),
     ]
 
 
@@ -41,11 +43,13 @@ class OrderOrigin:
     CHECKOUT = "checkout"  # order created from checkout
     DRAFT = "draft"  # order created from draft order
     REISSUE = "reissue"  # order created from reissue existing one
+    BULK_CREATE = "bulk_create"  # order created from bulk upload
 
     CHOICES = [
         (CHECKOUT, "Checkout"),
         (DRAFT, "Draft"),
         (REISSUE, "Reissue"),
+        (BULK_CREATE, "Bulk create"),
     ]
 
 
@@ -88,6 +92,7 @@ class OrderEvents:
 
     OVERSOLD_ITEMS = "oversold_items"
     CANCELED = "canceled"
+    EXPIRED = "expired"
 
     ORDER_MARKED_AS_PAID = "order_marked_as_paid"
     ORDER_FULLY_PAID = "order_fully_paid"
@@ -114,10 +119,8 @@ class OrderEvents:
     PAYMENT_FAILED = "payment_failed"
 
     TRANSACTION_EVENT = "transaction_event"
-    TRANSACTION_CAPTURE_REQUESTED = "transaction_capture_requested"
     TRANSACTION_CHARGE_REQUESTED = "transaction_charge_requested"
     TRANSACTION_REFUND_REQUESTED = "transaction_refund_requested"
-    TRANSACTION_VOID_REQUESTED = "transaction_void_requested"
     TRANSACTION_CANCEL_REQUESTED = "transaction_cancel_requested"
     TRANSACTION_MARK_AS_PAID_FAILED = "transaction_mark_as_paid_failed"
 
@@ -137,6 +140,7 @@ class OrderEvents:
     FULFILLMENT_AWAITS_APPROVAL = "fulfillment_awaits_approval"
     TRACKING_UPDATED = "tracking_updated"
     NOTE_ADDED = "note_added"
+    NOTE_UPDATED = "note_updated"
 
     # Used mostly for importing legacy data from before Enum-based events
     OTHER = "other"
@@ -150,6 +154,7 @@ class OrderEvents:
         (PLACED_FROM_DRAFT, "The draft order was placed"),
         (OVERSOLD_ITEMS, "The draft order was placed with oversold items"),
         (CANCELED, "The order was canceled"),
+        (EXPIRED, "The order was automatically expired"),
         (ORDER_MARKED_AS_PAID, "The order was manually marked as fully paid"),
         (ORDER_FULLY_PAID, "The order was fully paid"),
         (ORDER_REPLACEMENT_CREATED, "The draft order was created based on this order."),
@@ -175,9 +180,7 @@ class OrderEvents:
         (PAYMENT_FAILED, "The payment was failed"),
         (TRANSACTION_EVENT, "The transaction event"),
         (TRANSACTION_CHARGE_REQUESTED, "The charge requested for transaction"),
-        (TRANSACTION_CAPTURE_REQUESTED, "The capture requested for transaction"),
         (TRANSACTION_REFUND_REQUESTED, "The refund requested for transaction"),
-        (TRANSACTION_VOID_REQUESTED, "The void requested for transaction"),
         (TRANSACTION_CANCEL_REQUESTED, "The cancel requested for transaction"),
         (TRANSACTION_MARK_AS_PAID_FAILED, "The mark as paid failed for transaction"),
         (INVOICE_REQUESTED, "An invoice was requested"),
@@ -193,6 +196,7 @@ class OrderEvents:
         (FULFILLMENT_AWAITS_APPROVAL, "Fulfillments awaits approval"),
         (TRACKING_UPDATED, "The fulfillment's tracking code was updated"),
         (NOTE_ADDED, "A note was added to the order"),
+        (NOTE_UPDATED, "A note was updated in the order"),
         (OTHER, "An unknown order event containing a message"),
     ]
 
@@ -297,3 +301,22 @@ class FulfillmentLineData:
     line: "FulfillmentLine"
     quantity: int
     replace: bool = False
+
+
+class StockUpdatePolicy:
+    """Determine how stocks should be updated, while processing an order.
+
+    SKIP - stocks are not checked and not updated.
+    UPDATE - only do update, if there is enough stock.
+    FORCE - force update, if there is not enough stock.
+    """
+
+    SKIP = "skip"
+    UPDATE = "update"
+    FORCE = "force"
+
+    CHOICES = [
+        (SKIP, "Stocks are not checked and not updated."),
+        (UPDATE, "Only do update, if there is enough stocks."),
+        (FORCE, "Force update, if there is not enough stocks."),
+    ]

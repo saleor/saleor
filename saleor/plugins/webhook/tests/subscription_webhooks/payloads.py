@@ -4,8 +4,41 @@ import graphene
 from django.utils import timezone
 
 from ..... import __version__
+from .....core.utils import build_absolute_uri
+from .....discount.models import Promotion
 from .....graphql.attribute.enums import AttributeInputTypeEnum, AttributeTypeEnum
+from .....graphql.discount.utils import get_categories_from_predicate
+from .....graphql.shop.types import SHOP_ID
 from .....product.models import Product
+
+
+def generate_account_events_payload(customer_user):
+    payload = {
+        **generate_customer_payload(customer_user),
+    }
+
+    return json.dumps(payload)
+
+
+def generate_account_requested_events_payload(customer_user, channel, new_email=None):
+    payload = {
+        **generate_customer_payload(customer_user),
+        **{
+            "token": "token",
+            "redirectUrl": "http://www.mirumee.com?token=token",
+            "channel": {
+                "slug": channel.slug,
+                "id": graphene.Node.to_global_id("Channel", channel.id),
+            }
+            if channel
+            else None,
+            "shop": {"domain": {"host": "mirumee.com", "url": "http://mirumee.com/"}},
+        },
+    }
+    if new_email:
+        payload["newEmail"] = new_email
+
+    return json.dumps(payload)
 
 
 def generate_app_payload(app, app_global_id):
@@ -81,9 +114,9 @@ def generate_fulfillment_lines_payload(fulfillment):
     ]
 
 
-def generate_fulfillment_payload(fulfillment):
+def generate_fulfillment_payload(fulfillment, add_notify_customer_field=False):
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.pk)
-    return {
+    payload = {
         "fulfillment": {
             "id": fulfillment_id,
             "fulfillmentOrder": fulfillment.fulfillment_order,
@@ -95,6 +128,9 @@ def generate_fulfillment_payload(fulfillment):
             "id": graphene.Node.to_global_id("Order", fulfillment.order.pk),
         },
     }
+    if add_notify_customer_field:
+        payload["notifyCustomer"] = True
+    return payload
 
 
 def generate_address_payload(address):
@@ -120,7 +156,7 @@ def generate_customer_payload(customer):
             "email": customer.email,
             "firstName": customer.first_name,
             "lastName": customer.last_name,
-            "isStaff": False,
+            "isStaff": customer.is_staff,
             "isActive": customer.is_active,
             "addresses": [
                 {"id": graphene.Node.to_global_id("Address", address.pk)}
@@ -129,9 +165,13 @@ def generate_customer_payload(customer):
             "languageCode": customer.language_code.upper(),
             "defaultShippingAddress": (
                 generate_address_payload(customer.default_shipping_address)
+                if customer.default_shipping_address
+                else None
             ),
             "defaultBillingAddress": (
                 generate_address_payload(customer.default_billing_address)
+                if customer.default_billing_address
+                else None
             ),
         }
     }
@@ -305,10 +345,12 @@ def generate_shipping_method_payload(shipping_method):
     }
 
 
-def generate_sale_payload(sale):
+def generate_sale_payload(sale: Promotion):
+    predicate = sale.rules.first().catalogue_predicate
+    categories = get_categories_from_predicate(predicate)
     return {
         "sale": {
-            "id": graphene.Node.to_global_id("Sale", sale.pk),
+            "id": graphene.Node.to_global_id("Sale", sale.old_sale_id),
             "name": sale.name,
             "startDate": sale.start_date.isoformat(),
             "endDate": None,
@@ -320,8 +362,38 @@ def generate_sale_payload(sale):
                             "name": category.name,
                         }
                     }
-                    for category in sale.categories.all()
+                    for category in categories
                 ]
+            },
+        }
+    }
+
+
+def generate_promotion_payload(promotion):
+    return {
+        "promotion": {
+            "id": graphene.Node.to_global_id("Promotion", promotion.pk),
+            "name": promotion.name,
+            "startDate": promotion.start_date.isoformat(),
+            "endDate": promotion.end_date.isoformat(),
+            "rules": [{"name": rule.name} for rule in promotion.rules.all()],
+        }
+    }
+
+
+def generate_promotion_rule_payload(promotion_rule):
+    return {
+        "promotionRule": {
+            "id": graphene.Node.to_global_id("PromotionRule", promotion_rule.pk),
+            "name": promotion_rule.name,
+            "rewardValue": float(promotion_rule.reward_value),
+            "rewardValueType": promotion_rule.reward_value_type.upper(),
+            "cataloguePredicate": promotion_rule.catalogue_predicate,
+            "promotion": {
+                "id": graphene.Node.to_global_id(
+                    "Promotion", promotion_rule.promotion.pk
+                ),
+                "name": promotion_rule.promotion.name,
             },
         }
     }
@@ -385,6 +457,21 @@ def generate_gift_card_payload(gift_card, card_global_id):
                 "isActive": gift_card.is_active,
                 "code": gift_card.code,
                 "createdBy": {"email": gift_card.created_by.email},
+            }
+        }
+    )
+
+
+def generate_export_payload(export_file, export_global_id):
+    return json.dumps(
+        {
+            "export": {
+                "id": export_global_id,
+                "createdAt": export_file.created_at.isoformat(),
+                "updatedAt": export_file.updated_at.isoformat(),
+                "status": export_file.status.upper(),
+                "url": build_absolute_uri(export_file.content_file.url),
+                "message": export_file.message,
             }
         }
     )
@@ -463,3 +550,13 @@ def generate_payment_payload(payment):
             "isActive": payment.is_active,
         }
     }
+
+
+def generate_shop_payload():
+    return json.dumps(
+        {
+            "shop": {
+                "id": graphene.Node.to_global_id("Shop", SHOP_ID),
+            }
+        }
+    )

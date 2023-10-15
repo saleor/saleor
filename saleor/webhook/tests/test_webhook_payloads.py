@@ -20,8 +20,7 @@ from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
-from ...discount import DiscountValueType, OrderDiscountType
-from ...discount.utils import fetch_active_discounts
+from ...discount import DiscountType, DiscountValueType
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import FulfillmentLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
@@ -31,7 +30,6 @@ from ...payment import TransactionAction, TransactionEventType
 from ...payment.interface import RefundData, TransactionActionData, TransactionData
 from ...payment.models import TransactionItem
 from ...plugins.manager import get_plugins_manager
-from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
 from ...shipping.interface import ShippingMethodData
 from ...warehouse import WarehouseClickAndCollectOption
@@ -65,6 +63,7 @@ from ..payloads import (
     generate_translation_payload,
 )
 from ..serializers import serialize_checkout_lines
+from ..transport.utils import from_payment_app_id
 
 
 def parse_django_datetime(date):
@@ -84,14 +83,14 @@ def order_for_payload(fulfilled_order):
     order.save(update_fields=["origin", "original"])
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("20"),
         amount_value=Decimal("33.0"),
         reason="Discount from staff",
     )
     discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("10"),
         amount_value=Decimal("16.5"),
@@ -1525,8 +1524,11 @@ def test_generate_collection_point_payload(order_with_lines_for_cc):
     )
 
 
-def test_generate_sale_payload_no_previous_and_current_has_empty_catalogue_lists(sale):
-    payload = json.loads(generate_sale_payload(sale))[0]
+def test_generate_sale_payload_no_previous_and_current_has_empty_catalogue_lists(
+    promotion_converted_from_sale,
+):
+    promotion = promotion_converted_from_sale
+    payload = json.loads(generate_sale_payload(promotion))[0]
 
     assert not payload["categories_added"]
     assert not payload["categories_removed"]
@@ -1535,19 +1537,22 @@ def test_generate_sale_payload_no_previous_and_current_has_empty_catalogue_lists
     assert not payload["products_added"]
     assert not payload["products_removed"]
 
-    assert graphene.Node.to_global_id("Sale", sale.id) == payload["id"]
+    assert graphene.Node.to_global_id("Sale", promotion.old_sale_id) == payload["id"]
 
 
-def test_generate_sale_payload_with_current_only_has_empty_removed_fields(sale):
+def test_generate_sale_payload_with_current_only_has_empty_removed_fields(
+    promotion_converted_from_sale,
+):
     catalogue_info = {
         "categories": {1, 2, 3},
         "collections": {45, 70, 90},
         "products": {4, 5, 6},
         "variants": {"aa", "bb", "cc"},
     }
-    payload = json.loads(generate_sale_payload(sale, current_catalogue=catalogue_info))[
-        0
-    ]
+    promotion = promotion_converted_from_sale
+    payload = json.loads(
+        generate_sale_payload(promotion, current_catalogue=catalogue_info)
+    )[0]
 
     assert set(payload["categories_added"]) == catalogue_info["categories"]
     assert set(payload["collections_added"]) == catalogue_info["collections"]
@@ -1559,7 +1564,10 @@ def test_generate_sale_payload_with_current_only_has_empty_removed_fields(sale):
     assert not payload["variants_removed"]
 
 
-def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
+def test_generate_sale_payload_with_current_only_has_empty_added_fields(
+    promotion_converted_from_sale,
+):
+    promotion = promotion_converted_from_sale
     catalogue_info = {
         "categories": {1, 2, 3},
         "collections": {45, 70, 90},
@@ -1567,7 +1575,7 @@ def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
         "variants": {"aa", "bb", "cc"},
     }
     payload = json.loads(
-        generate_sale_payload(sale, previous_catalogue=catalogue_info)
+        generate_sale_payload(promotion, previous_catalogue=catalogue_info)
     )[0]
 
     assert set(payload["categories_removed"]) == catalogue_info["categories"]
@@ -1580,7 +1588,10 @@ def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
     assert not payload["variants_added"]
 
 
-def test_generate_sale_payload_calculates_set_differences(sale):
+def test_generate_sale_payload_calculates_set_differences(
+    promotion_converted_from_sale,
+):
+    promotion = promotion_converted_from_sale
     previous_info = {
         "categories": {1, 2, 3},
         "collections": {45, 70, 90},
@@ -1596,7 +1607,7 @@ def test_generate_sale_payload_calculates_set_differences(sale):
 
     payload = json.loads(
         generate_sale_payload(
-            sale, previous_catalogue=previous_info, current_catalogue=current_info
+            promotion, previous_catalogue=previous_info, current_catalogue=current_info
         )
     )[0]
 
@@ -1610,8 +1621,9 @@ def test_generate_sale_payload_calculates_set_differences(sale):
     assert set(payload["variants_removed"]) == {"ccc"}
 
 
-def test_generate_sale_toggle_payload(sale):
+def test_generate_sale_toggle_payload(promotion_converted_from_sale):
     # given
+    promotion = promotion_converted_from_sale
     current_info = {
         "categories": {4, 2, 3},
         "collections": set(),
@@ -1620,7 +1632,7 @@ def test_generate_sale_toggle_payload(sale):
     }
 
     # when
-    payload = json.loads(generate_sale_toggle_payload(sale, current_info))[0]
+    payload = json.loads(generate_sale_toggle_payload(promotion, current_info))[0]
 
     # then
     assert payload["is_active"] is True
@@ -1628,6 +1640,7 @@ def test_generate_sale_toggle_payload(sale):
     assert not payload["collections"]
     assert set(payload["products"]) == current_info["products"]
     assert set(payload["variants"]) == current_info["variants"]
+    assert graphene.Node.to_global_id("Sale", promotion.old_sale_id) == payload["id"]
 
 
 @patch("saleor.webhook.payloads.serialize_checkout_lines_for_tax_calculation")
@@ -1651,8 +1664,6 @@ def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
     checkout.discount_name = voucher.name
     checkout.save(update_fields=["voucher_code", "discount_amount", "discount_name"])
 
-    discounts_info = fetch_active_discounts()
-
     tax_configuration = checkout.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
@@ -1666,8 +1677,7 @@ def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
     # when
     lines, _ = fetch_checkout_lines(checkout_with_prices)
     manager = get_plugins_manager()
-    discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout_with_prices, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_prices, lines, manager)
     payload = json.loads(
         generate_checkout_payload_for_tax_calculation(checkout_info, lines)
     )[0]
@@ -1716,9 +1726,7 @@ def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
         "user_public_metadata": {"user_public_meta_key": "user_public_meta_value"},
         "total_amount": str(
             quantize_price(
-                base_calculations.base_checkout_total(
-                    checkout_info, discounts_info, lines
-                ).amount,
+                base_calculations.base_checkout_total(checkout_info, lines).amount,
                 currency,
             )
         ),
@@ -1728,7 +1736,6 @@ def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
     mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(
         checkout_info,
         lines,
-        discounts_info,
     )
 
 
@@ -1754,8 +1761,6 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
     checkout.discount_name = voucher.name
     checkout.save(update_fields=["voucher_code", "discount_amount", "discount_name"])
 
-    discounts_info = fetch_active_discounts()
-
     tax_configuration = checkout.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
@@ -1769,8 +1774,7 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
     # when
     lines, _ = fetch_checkout_lines(checkout_with_prices)
     manager = get_plugins_manager()
-    discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout_with_prices, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_prices, lines, manager)
     payload = json.loads(
         generate_checkout_payload_for_tax_calculation(checkout_info, lines)
     )[0]
@@ -1819,9 +1823,7 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
         "user_public_metadata": {"user_public_meta_key": "user_public_meta_value"},
         "total_amount": str(
             quantize_price(
-                base_calculations.base_checkout_total(
-                    checkout_info, discounts_info, lines
-                ).amount,
+                base_calculations.base_checkout_total(checkout_info, lines).amount,
                 currency,
             )
         ),
@@ -1831,7 +1833,6 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
     mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(
         checkout_info,
         lines,
-        discounts_info,
     )
 
 
@@ -1842,7 +1843,6 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     checkout_with_digital_item,
 ):
     prices_entered_with_tax = True
-    discounts_info = fetch_active_discounts()
     checkout = checkout_with_digital_item
     currency = checkout.currency
 
@@ -1857,8 +1857,7 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     )
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
-    discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     payload = json.loads(
@@ -1902,9 +1901,7 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
         "user_public_metadata": {},
         "total_amount": str(
             quantize_price(
-                base_calculations.base_checkout_total(
-                    checkout_info, discounts_info, lines
-                ).amount,
+                base_calculations.base_checkout_total(checkout_info, lines).amount,
                 currency,
             )
         ),
@@ -1913,7 +1910,6 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(
         checkout_info,
         lines,
-        discounts_info,
     )
 
 
@@ -2011,7 +2007,7 @@ def test_generate_checkout_payload(
                 )
             ),
         },
-        "lines": serialize_checkout_lines(checkout, []),
+        "lines": serialize_checkout_lines(checkout),
         "collection_point": json.loads(
             _generate_collection_point_payload(checkout.collection_point)
         )[0],
@@ -2130,7 +2126,7 @@ GROSS_AMOUNT = sentinel.GROSS_AMOUNT
     [
         (TransactionAction.CHARGE, Decimal("5.000")),
         (TransactionAction.REFUND, Decimal("9.000")),
-        (TransactionAction.VOID, None),
+        (TransactionAction.CANCEL, None),
     ],
 )
 @freeze_time("1914-06-28 10:50")
@@ -2144,10 +2140,9 @@ def test_generate_transaction_action_request_payload_for_order(
     requestor = get_user_or_app_from_context(request)
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["capture", "void"],
+        available_actions=["capture", "cancel"],
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
@@ -2181,7 +2176,6 @@ def test_generate_transaction_action_request_payload_for_order(
             "currency": currency,
         },
         "transaction": {
-            "status": transaction.status,
             "type": transaction.name,
             "name": transaction.name,
             "message": transaction.message,
@@ -2194,7 +2188,6 @@ def test_generate_transaction_action_request_payload_for_order(
                 quantize_price(transaction.authorized_value, currency)
             ),
             "refunded_value": str(quantize_price(transaction.refunded_value, currency)),
-            "voided_value": str(quantize_price(transaction.canceled_value, currency)),
             "canceled_value": str(quantize_price(transaction.canceled_value, currency)),
             "order_id": graphene.Node.to_global_id("Order", order.pk),
             "checkout_id": None,
@@ -2224,7 +2217,7 @@ def test_generate_transaction_action_request_payload_for_order(
             TransactionEventType.REFUND_REQUEST,
             Decimal("9.000"),
         ),
-        (TransactionAction.VOID, TransactionEventType.CANCEL_REQUEST, None),
+        (TransactionAction.CANCEL, TransactionEventType.CANCEL_REQUEST, None),
     ],
 )
 @freeze_time("1914-06-28 10:50")
@@ -2238,10 +2231,9 @@ def test_generate_transaction_action_request_payload_for_checkout(
     requestor = get_user_or_app_from_context(request)
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["capture", "void"],
+        available_actions=["capture", "cancel"],
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
@@ -2275,7 +2267,6 @@ def test_generate_transaction_action_request_payload_for_checkout(
             "currency": currency,
         },
         "transaction": {
-            "status": transaction.status,
             "type": transaction.name,
             "name": transaction.name,
             "message": transaction.message,
@@ -2288,7 +2279,6 @@ def test_generate_transaction_action_request_payload_for_checkout(
                 quantize_price(transaction.authorized_value, currency)
             ),
             "refunded_value": str(quantize_price(transaction.refunded_value, currency)),
-            "voided_value": str(quantize_price(transaction.canceled_value, currency)),
             "canceled_value": str(quantize_price(transaction.canceled_value, currency)),
             "order_id": None,
             "checkout_id": graphene.Node.to_global_id("Checkout", checkout.pk),

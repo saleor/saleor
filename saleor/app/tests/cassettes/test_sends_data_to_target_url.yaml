@@ -18,7 +18,7 @@ interactions:
         : \"Lorem ipsum\",\n  \"data_privacy\": \"Lorem ipsum\",\n  \"data_privacy_url\"\
         : \"http://localhost:8888/app-data-privacy\",\n  \"homepage_url\": \"http://localhost:8888/homepage\"\
         ,\n  \"support_url\": \"http://localhost:8888/support\",\n  \"configuration_url\"\
-        : \"htpp://localhost:8888/configuration\",\n  \"app_url\": \"http://localhost:8888/app\"\
+        : \"http://localhost:8888/configuration\",\n  \"app_url\": \"http://localhost:8888/app\"\
         ,\n  \"token_target_url\": \"http://localhost:3000/register\",\n  \"identificator\"\
         : \"app2\"\n}"
     headers:

@@ -7,8 +7,10 @@ from ....checkout import AddressType, models
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.utils import add_variants_to_checkout
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.country import get_active_country
 from ....product import models as product_models
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
+from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
@@ -20,13 +22,13 @@ from ...core.descriptions import (
     ADDED_IN_36,
     ADDED_IN_38,
     DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
 )
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_variants_available_in_channel
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
@@ -45,7 +47,7 @@ if TYPE_CHECKING:
     from ....account.models import Address
     from .utils import CheckoutLineData
 
-from ...meta.mutations import MetadataInput
+from ...meta.inputs import MetadataInput
 
 
 class CheckoutAddressValidationRules(BaseInputObjectType):
@@ -107,7 +109,6 @@ class CheckoutLineInput(BaseInputObjectType):
             "with `HANDLE_CHECKOUTS` permission. When the line with the same variant "
             "will be provided multiple times, the last price will be used."
             + ADDED_IN_31
-            + PREVIEW_FEATURE
         ),
     )
     force_new_line = graphene.Boolean(
@@ -115,7 +116,7 @@ class CheckoutLineInput(BaseInputObjectType):
         default_value=False,
         description=(
             "Flag that allow force splitting the same variant into multiple lines "
-            "by skipping the matching logic. " + ADDED_IN_36 + PREVIEW_FEATURE
+            "by skipping the matching logic. " + ADDED_IN_36
         ),
     )
     metadata = NonNullList(
@@ -155,9 +156,7 @@ class CheckoutCreateInput(BaseInputObjectType):
     validation_rules = CheckoutValidationRules(
         required=False,
         description=(
-            "The checkout validation rules that can be changed."
-            + ADDED_IN_35
-            + PREVIEW_FEATURE
+            "The checkout validation rules that can be changed." + ADDED_IN_35
         ),
     )
 
@@ -189,6 +188,12 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return_field_name = "checkout"
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_CREATED,
+                description="A checkout was created.",
+            )
+        ]
 
     @classmethod
     def clean_checkout_lines(
@@ -212,7 +217,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         variant_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variant_db_ids, channel.id)
         validate_variants_available_in_channel(
-            variant_db_ids, channel.id, CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL
+            variant_db_ids,
+            channel.id,
+            CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
         )
         validate_variants_are_published(variant_db_ids, channel.id)
 
@@ -276,16 +283,28 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
-
+        shipping_address_metadata = (
+            data.get("shipping_address", {}).pop("metadata", list())
+            if data.get("shipping_address")
+            else None
+        )
+        billing_address_metadata = (
+            data.get("billing_address", {}).pop("metadata", list())
+            if data.get("billing_address")
+            else None
+        )
         shipping_address = cls.retrieve_shipping_address(user, data)
         billing_address = cls.retrieve_billing_address(user, data)
-
         if shipping_address:
-            country = shipping_address.country.code
-        else:
-            country = channel.default_country
+            cls.update_metadata(shipping_address, shipping_address_metadata)
+        if billing_address:
+            cls.update_metadata(billing_address, billing_address_metadata)
 
-        # Resolve and process the lines, retrieving the variants and quantities
+        country = get_active_country(
+            channel,
+            shipping_address,
+            billing_address,
+        )
         lines = data.pop("lines", None)
         if lines:
             (
@@ -339,7 +358,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
             # Save addresses
             shipping_address = cleaned_input.get("shipping_address")
-            if shipping_address and instance.is_shipping_required():
+            if shipping_address:
                 shipping_address.save()
                 instance.shipping_address = shipping_address.get_copy()
 

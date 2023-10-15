@@ -6,7 +6,7 @@ import pytest
 @pytest.fixture
 def mocked_fetch_checkout():
     def mocked_fetch_side_effect(
-        checkout_info, manager, lines, address, discounts, force_update=False
+        checkout_info, manager, lines, address, force_update=False
     ):
         return checkout_info, lines
 

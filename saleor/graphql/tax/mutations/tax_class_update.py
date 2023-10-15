@@ -5,7 +5,7 @@ from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_39
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelMutation
 from ...core.types import BaseInputObjectType, Error, NonNullList
@@ -72,7 +72,7 @@ class TaxClassUpdate(ModelMutation):
         )
 
     class Meta:
-        description = "Update a tax class." + ADDED_IN_39 + PREVIEW_FEATURE
+        description = "Update a tax class." + ADDED_IN_39
         error_type_class = TaxClassUpdateError
         model = models.TaxClass
         object_type = TaxClass
@@ -109,7 +109,7 @@ class TaxClassUpdate(ModelMutation):
         for obj in to_update:
             data = input_data_by_country[obj.country]
             rate = data.get("rate")
-            if rate:
+            if rate is not None:
                 obj.rate = rate
                 updated_countries.append(obj.country.code)
         models.TaxClassCountryRate.objects.bulk_update(to_update, fields=("rate",))

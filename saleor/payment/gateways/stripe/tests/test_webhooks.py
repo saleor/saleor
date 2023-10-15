@@ -8,7 +8,7 @@ from django.utils import timezone
 from stripe.stripe_object import StripeObject
 
 from .....checkout.complete_checkout import complete_checkout
-from .....order.actions import order_captured, order_refunded, order_voided
+from .....order.actions import order_charged, order_refunded, order_voided
 from .... import ChargeStatus, TransactionKind
 from ....utils import price_to_minor_unit
 from ..consts import (
@@ -349,11 +349,11 @@ def test_handle_successful_payment_intent_different_checkout_channel_slug(
 
 
 @pytest.mark.parametrize("called", [True, False])
-@patch("saleor.payment.gateways.stripe.webhooks.order_captured", wraps=order_captured)
+@patch("saleor.payment.gateways.stripe.webhooks.order_charged", wraps=order_charged)
 @patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_successful_payment_intent_different_order_channel_slug(
     _wrapped_update_payment_method,
-    wrapped_order_captured,
+    wrapped_order_charged,
     payment_stripe_for_order,
     stripe_plugin,
     channel_USD,
@@ -375,7 +375,7 @@ def test_handle_successful_payment_intent_different_order_channel_slug(
     handle_successful_payment_intent(payment_intent, plugin.config, channel.slug)
 
     # then
-    assert wrapped_order_captured.called == called
+    assert wrapped_order_charged.called == called
 
 
 @patch(

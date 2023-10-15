@@ -50,6 +50,9 @@ class Invoice(ModelWithMetadata, Job):
         if url is not None:
             self.external_url = url
 
+    class Meta(ModelWithMetadata.Meta):
+        ordering = ("pk",)
+
 
 class InvoiceEvent(models.Model):
     """Model used to store events that happened during the invoice lifecycle."""

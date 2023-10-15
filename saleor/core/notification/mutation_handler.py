@@ -30,6 +30,6 @@ def trigger_notifications(
 
 def _get_extracted_payload_input(payload_input, extra_payload, payload_function):
     payload = payload_function(payload_input)
-    payload = payload[0] if type(payload) == list else payload
+    payload = payload[0] if isinstance(payload, list) else payload
     payload.update({"extra_payload": extra_payload})
     return payload

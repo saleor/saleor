@@ -59,6 +59,21 @@ def test_clean_order_cancel_draft_order(
     )
 
 
+def test_clean_order_cancel_expired_order(
+    fulfilled_order_with_all_cancelled_fulfillments,
+):
+    order = fulfilled_order_with_all_cancelled_fulfillments
+
+    order.status = OrderStatus.EXPIRED
+    order.save()
+
+    with pytest.raises(ValidationError) as e:
+        clean_order_cancel(order)
+    assert (
+        e.value.error_dict["order"][0].code == OrderErrorCode.CANNOT_CANCEL_ORDER.value
+    )
+
+
 def test_clean_order_cancel_canceled_order(
     fulfilled_order_with_all_cancelled_fulfillments,
 ):

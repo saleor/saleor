@@ -503,10 +503,9 @@ def transaction_event(
     user: Optional[User],
     app: Optional[App],
     reference: str,
-    status: Optional[str],
     message: str
 ) -> OrderEvent:
-    parameters = {"message": message, "reference": reference, "status": status}
+    parameters = {"message": message, "reference": reference}
     return OrderEvent.objects.create(
         order=order,
         type=OrderEvents.TRANSACTION_EVENT,
@@ -702,6 +701,24 @@ def order_note_added_event(
         type=OrderEvents.NOTE_ADDED,
         parameters={"message": message},
         **kwargs,
+    )
+
+
+def order_note_updated_event(
+    *,
+    order: Order,
+    user: Optional[User],
+    app: Optional[App],
+    message: str,
+    related_event: OrderEvent,
+) -> OrderEvent:
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.NOTE_UPDATED,
+        parameters={"message": message},
+        app=app,
+        user=user,
+        related=related_event,
     )
 
 

@@ -26,7 +26,7 @@ from ..attribute.models import AttributeValueTranslation
 from ..checkout import base_calculations
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout
-from ..checkout.utils import get_or_create_checkout_metadata
+from ..checkout.utils import get_checkout_metadata
 from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
@@ -36,13 +36,11 @@ from ..core.utils.anonymization import (
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..discount import VoucherType
-from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
-from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Collection, Product, ProductMedia
 from ..shipping.interface import ShippingMethodData
@@ -66,7 +64,7 @@ if TYPE_CHECKING:
 from ..payment.models import Payment, TransactionItem
 
 if TYPE_CHECKING:
-    from ..discount.models import Sale
+    from ..discount.models import Promotion
     from ..invoice.models import Invoice
     from ..payment.interface import (
         PaymentData,
@@ -423,7 +421,7 @@ def _calculate_removed(
 
 @traced_payload_generator
 def generate_sale_payload(
-    sale: "Sale",
+    promotion: "Promotion",
     previous_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
     current_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
     requestor: Optional["RequestorOrLazyObject"] = None,
@@ -434,12 +432,12 @@ def generate_sale_payload(
         current_catalogue = defaultdict(set)
 
     serializer = PayloadSerializer()
-    sale_fields = ("id",)
 
     return serializer.serialize(
-        [sale],
-        fields=sale_fields,
+        [promotion],
+        fields=[],
         extra_dict_data={
+            "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
             "categories_added": _calculate_added(
                 previous_catalogue, current_catalogue, "categories"
@@ -471,22 +469,22 @@ def generate_sale_payload(
 
 @traced_payload_generator
 def generate_sale_toggle_payload(
-    sale: "Sale",
+    promotion: "Promotion",
     catalogue: DefaultDict[str, Set[str]],
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):
     serializer = PayloadSerializer()
-    sale_fields = ("id",)
 
     extra_dict_data = {key: list(ids) for key, ids in catalogue.items()}
     extra_dict_data["meta"] = generate_meta(
         requestor_data=generate_requestor(requestor)
     )
-    extra_dict_data["is_active"] = sale.is_active()
+    extra_dict_data["is_active"] = promotion.is_active()
+    extra_dict_data["id"] = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
     return serializer.serialize(
-        [sale],
-        fields=sale_fields,
+        [promotion],
+        fields=[],
         extra_dict_data=extra_dict_data,
     )
 
@@ -551,8 +549,7 @@ def generate_checkout_payload(
     quantize_price_fields(checkout, checkout_price_fields, checkout.currency)
     user_fields = ("email", "first_name", "last_name")
 
-    discounts = fetch_active_discounts()
-    lines_dict_data = serialize_checkout_lines(checkout, discounts)
+    lines_dict_data = serialize_checkout_lines(checkout)
 
     # todo use the most appropriate warehouse
     warehouse = None
@@ -592,12 +589,12 @@ def generate_checkout_payload(
             # a checkout payload
             "token": graphene.Node.to_global_id("Checkout", checkout.token),
             "metadata": (
-                lambda c=checkout: get_or_create_checkout_metadata(c).metadata
+                lambda c=checkout: get_checkout_metadata(c).metadata
                 if hasattr(c, "metadata_storage")
                 else {}
             ),
             "private_metadata": (
-                lambda c=checkout: get_or_create_checkout_metadata(c).private_metadata
+                lambda c=checkout: get_checkout_metadata(c).private_metadata
                 if hasattr(c, "metadata_storage")
                 else {}
             ),
@@ -1045,6 +1042,8 @@ def _generate_refund_data_payload(data):
 def generate_payment_payload(
     payment_data: "PaymentData", requestor: Optional["RequestorOrLazyObject"] = None
 ):
+    from .transport.utils import from_payment_app_id
+
     data = asdict(payment_data)
 
     if refund_data := data.get("refund_data"):
@@ -1106,6 +1105,7 @@ def _generate_sample_order_payload(event_name):
     elif event_name in [
         WebhookEventAsyncType.ORDER_CANCELLED,
         WebhookEventAsyncType.ORDER_UPDATED,
+        WebhookEventAsyncType.ORDER_EXPIRED,
     ]:
         order = _get_sample_object(order_qs.filter(status=OrderStatus.CANCELED))
     if order:
@@ -1259,7 +1259,6 @@ def generate_checkout_payload_for_tax_calculation(
     checkout = checkout_info.checkout
     tax_configuration = checkout_info.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
-    discount_infos = fetch_active_discounts()
 
     serializer = PayloadSerializer()
 
@@ -1269,9 +1268,7 @@ def generate_checkout_payload_for_tax_calculation(
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     total_amount = quantize_price(
-        base_calculations.base_checkout_total(
-            checkout_info, discount_infos, lines
-        ).amount,
+        base_calculations.base_checkout_total(checkout_info, lines).amount,
         checkout.currency,
     )
 
@@ -1321,9 +1318,7 @@ def generate_checkout_payload_for_tax_calculation(
         )
 
     # Prepare line data
-    lines_dict_data = serialize_checkout_lines_for_tax_calculation(
-        checkout_info, lines, discount_infos
-    )
+    lines_dict_data = serialize_checkout_lines_for_tax_calculation(checkout_info, lines)
 
     checkout_data = serializer.serialize(
         [checkout],
@@ -1343,7 +1338,7 @@ def generate_checkout_payload_for_tax_calculation(
             "discounts": discounts,
             "lines": lines_dict_data,
             "metadata": (
-                lambda c=checkout: get_or_create_checkout_metadata(c).metadata
+                lambda c=checkout: get_checkout_metadata(c).metadata
                 if hasattr(c, "metadata_storage")
                 else {}
             ),
@@ -1475,7 +1470,6 @@ def generate_transaction_action_request_payload(
             "currency": transaction.currency,
         },
         "transaction": {
-            "status": transaction.status,
             "type": transaction.name,
             "name": transaction.name,
             "message": transaction.message,
@@ -1491,9 +1485,6 @@ def generate_transaction_action_request_payload(
             ),
             "refunded_value": quantize_price(
                 transaction.refunded_value, transaction.currency
-            ),
-            "voided_value": quantize_price(
-                transaction.canceled_value, transaction.currency
             ),
             "canceled_value": quantize_price(
                 transaction.canceled_value, transaction.currency

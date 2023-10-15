@@ -20,7 +20,11 @@ from prices import Money, TaxedMoney
 from ...account.models import User
 from ...core.taxes import TaxData, TaxLineData, TaxType
 from ...order.interface import OrderTaxedPricesData
-from ...payment.interface import PaymentGatewayData, TransactionSessionData
+from ...payment.interface import (
+    PaymentGatewayData,
+    TransactionSessionData,
+    TransactionSessionResult,
+)
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
@@ -28,8 +32,7 @@ if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
     from ...core.models import EventDelivery
-    from ...discount import DiscountInfo
-    from ...discount.models import Sale
+    from ...discount.models import Promotion
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductVariant
 
@@ -105,14 +108,12 @@ class PluginSample(BasePlugin):
             return JsonResponse(data={"received": True, "paid": False})
         return HttpResponseNotFound()
 
-    def calculate_checkout_total(
-        self, checkout_info, lines, address, discounts, previous_value
-    ):
+    def calculate_checkout_total(self, checkout_info, lines, address, previous_value):
         total = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(total, total)
 
     def calculate_checkout_shipping(
-        self, checkout_info, lines, address, discounts, previous_value
+        self, checkout_info, lines, address, previous_value
     ):
         price = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(price, price)
@@ -127,7 +128,6 @@ class PluginSample(BasePlugin):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ):
         # See if delivery method doesn't trigger infinite recursion
@@ -156,7 +156,6 @@ class PluginSample(BasePlugin):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ):
         currency = checkout_info.checkout.currency
@@ -219,7 +218,7 @@ class PluginSample(BasePlugin):
 
     def sale_created(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         current_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ):
@@ -227,7 +226,7 @@ class PluginSample(BasePlugin):
 
     def sale_updated(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         previous_catalogue: DefaultDict[str, Set[str]],
         current_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
@@ -236,7 +235,7 @@ class PluginSample(BasePlugin):
 
     def sale_deleted(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         previous_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ):
@@ -244,11 +243,26 @@ class PluginSample(BasePlugin):
 
     def sale_toggle(
         self,
-        sale: "Sale",
+        sale: "Promotion",
         catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ):
         return sale, catalogue
+
+    def promotion_created(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_updated(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_deleted(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_started(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_ended(self, promotion: "Promotion", previous_value: Any):
+        return None
 
     def get_checkout_line_tax_rate(
         self,
@@ -256,7 +270,6 @@ class PluginSample(BasePlugin):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
         previous_value: Decimal,
     ) -> Decimal:
         return Decimal("0.080").quantize(Decimal(".01"))
@@ -276,7 +289,6 @@ class PluginSample(BasePlugin):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
         previous_value: Decimal,
     ):
         return Decimal("0.080").quantize(Decimal(".01"))
@@ -324,17 +336,49 @@ class PluginSample(BasePlugin):
         transaction_session_data: "TransactionSessionData",
         previous_value: Any,
     ):
-        return PaymentGatewayData(app_identifier="123", data=None, error="Some error")
+        return TransactionSessionResult(
+            app_identifier="123", response=None, error="Some error"
+        )
 
     def transaction_process_session(
         self,
         transaction_session_data: "TransactionSessionData",
         previous_value: Any,
     ):
-        return PaymentGatewayData(app_identifier="321", data=None, error="Some error")
+        return TransactionSessionResult(
+            app_identifier="321", response=None, error="Some error"
+        )
 
-    def checkout_fully_paid(self, checkout):
+    def checkout_fully_paid(self, checkout, previous_value):
         return None
+
+    def order_fully_refunded(self, order, previous_value):
+        return None
+
+    def order_paid(self, order, previous_value):
+        return None
+
+    def order_refunded(self, order, previous_value):
+        return None
+
+    def list_stored_payment_methods(
+        self,
+        list_payment_method_data,
+        previous_value,
+    ):
+        return []
+
+    def stored_payment_method_request_delete(self, request_delete_data, previous_value):
+        return previous_value
+
+    def payment_gateway_initialize_tokenization(self, request_data, previous_value):
+        return previous_value
+
+    def payment_method_initialize_tokenization(self, request_data, previous_value):
+        return previous_value
+
+    def payment_method_process_tokenization(self, request_data, previous_value):
+        return previous_value
 
 
 class ChannelPluginSample(PluginSample):

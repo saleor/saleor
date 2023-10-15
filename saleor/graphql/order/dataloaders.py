@@ -9,6 +9,7 @@ from ...order.models import (
     Order,
     OrderEvent,
     OrderGrantedRefund,
+    OrderGrantedRefundLine,
     OrderLine,
 )
 from ...payment.models import TransactionItem
@@ -28,6 +29,7 @@ class OrderLinesByVariantIdAndChannelIdLoader(
             OrderLine.objects.using(self.database_connection_name)
             .filter(order__channel_id__in=channel_ids, variant_id__in=variant_ids)
             .annotate(channel_id=F("order__channel_id"))
+            .order_by("created_at", "id")
         )
 
         order_line_by_variant_and_channel_map: DefaultDict[
@@ -115,6 +117,18 @@ class OrderEventsByOrderIdLoader(DataLoader):
         return [events_map.get(order_id, []) for order_id in keys]
 
 
+class OrderEventsByIdLoader(DataLoader):
+    context_key = "orderevents_by_id"
+
+    def batch_load(self, keys):
+        events = (
+            OrderEvent.objects.using(self.database_connection_name)
+            .filter(id__in=keys)
+            .in_bulk()
+        )
+        return [events.get(event_id) for event_id in keys]
+
+
 class OrderGrantedRefundsByOrderIdLoader(DataLoader):
     context_key = "order_granted_refunds_by_order_id"
 
@@ -127,6 +141,22 @@ class OrderGrantedRefundsByOrderIdLoader(DataLoader):
         for refund in refunds.iterator():
             refunds_map[refund.order_id].append(refund)
         return [refunds_map.get(order_id, []) for order_id in keys]
+
+
+class OrderGrantedRefundLinesByOrderGrantedRefundIdLoader(DataLoader):
+    context_key = "order_granted_refund_lines_by_granted_refund_id"
+
+    def batch_load(self, keys):
+        refund_lines = OrderGrantedRefundLine.objects.using(
+            self.database_connection_name
+        ).filter(granted_refund_id__in=keys)
+        refund_lines_map = defaultdict(list)
+
+        for refund_line in refund_lines.iterator():
+            refund_lines_map[refund_line.granted_refund_id].append(refund_line)
+        return [
+            refund_lines_map.get(granted_refund_id, []) for granted_refund_id in keys
+        ]
 
 
 class AllocationsByOrderLineIdLoader(DataLoader):

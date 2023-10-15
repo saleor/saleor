@@ -74,7 +74,11 @@ PRODUCT_BULK_CREATE_MUTATION = """
 """
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_product_bulk_create_with_base_data(
+    update_products_discounted_price_task_mock,
     staff_api_client,
     product_type,
     category,
@@ -141,6 +145,10 @@ def test_product_bulk_create_with_base_data(
         assert product.category == category
         assert product.product_type == product_type
 
+    update_products_discounted_price_task_mock.assert_called_once()
+    args = set(update_products_discounted_price_task_mock.call_args.args[0])
+    assert args == {product.id for product in products}
+
 
 @patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_product_bulk_create_send_product_created_webhook(
@@ -198,6 +206,8 @@ def test_product_bulk_create_send_product_created_webhook(
     assert not data["results"][1]["errors"]
     assert data["count"] == 2
     assert created_webhook_mock.call_count == 2
+    for call in created_webhook_mock.call_args_list:
+        assert isinstance(call.args[0], Product)
 
 
 def test_product_bulk_create_with_same_name_and_no_slug(
@@ -562,7 +572,10 @@ def test_product_bulk_create_with_attributes(
             "taxCode": product_tax_rate,
             "weight": 2,
             "attributes": [
-                {"id": color_attr_id, "values": [color_value_name]},
+                {
+                    "externalReference": color_attr.external_reference,
+                    "values": [color_value_name],
+                },
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
             ],
         },
@@ -609,6 +622,214 @@ def test_product_bulk_create_with_attributes(
         assert product.attributes.count() == 2
         assert first_attribute_assignment.attribute == color_attr
         assert first_attribute_assignment.values.count() == 1
+
+
+def test_product_bulk_create_with_attributes_using_external_refs(
+    staff_api_client,
+    product_type,
+    category,
+    size_attribute,
+    description_json,
+    permission_manage_products,
+    media_root,
+    channel_USD,
+):
+    # given
+    description_json = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name_1 = "test name 1"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    # Default attribute defined in product_type fixture
+    color_attr = product_type.product_attributes.get(name="Color")
+    color_value_external_reference = color_attr.values.first().external_reference
+
+    # Add second attribute
+    product_type.product_attributes.add(size_attribute)
+    size_attr_id = graphene.Node.to_global_id("Attribute", size_attribute.id)
+    non_existent_attr_value = "The cake is a lie"
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+            "attributes": [
+                {
+                    "externalReference": color_attr.external_reference,
+                    "dropdown": {"externalReference": color_value_external_reference},
+                },
+                {"id": size_attr_id, "values": [non_existent_attr_value]},
+            ],
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    products = Product.objects.all()
+
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    assert (
+        data["results"][0]["product"]["attributes"][0]["attribute"]["slug"]
+        == color_attr.slug
+    )
+
+    for product in products:
+        first_attribute_assignment = product.attributes.first()
+        assert product.attributes.count() == 2
+        assert first_attribute_assignment.attribute == color_attr
+        assert first_attribute_assignment.values.count() == 1
+
+
+def test_product_bulk_create_with_attributes_and_create_new_value_with_external_ref(
+    staff_api_client,
+    product_type,
+    category,
+    size_attribute,
+    description_json,
+    permission_manage_products,
+    media_root,
+    channel_USD,
+):
+    # given
+    description_json = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name_1 = "test name 1"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    # Default attribute defined in product_type fixture
+    color_attr = product_type.product_attributes.get(name="Color")
+    color_attr_values_count = color_attr.values.count()
+    color_value_external_reference = color_attr.values.first().external_reference
+
+    new_value = "NewTestValue"
+    new_external_ref = color_value_external_reference + "New"
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+            "attributes": [
+                {
+                    "externalReference": color_attr.external_reference,
+                    "dropdown": {
+                        "externalReference": new_external_ref,
+                        "value": new_value,
+                    },
+                },
+            ],
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    product = Product.objects.last()
+
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    assert (
+        data["results"][0]["product"]["attributes"][0]["attribute"]["slug"]
+        == color_attr.slug
+    )
+    assert color_attr.values.count() == color_attr_values_count + 1
+    first_attribute_assignment = product.attributes.first()
+    assert product.attributes.count() == 1
+    assert first_attribute_assignment.attribute == color_attr
+    assert first_attribute_assignment.values.count() == 1
+
+
+def test_product_bulk_create_return_error_when_attribute_id_and_external_ref_provided(
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+    media_root,
+    channel_USD,
+):
+    # given
+    description_json = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name_1 = "test name 1"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    # Default attribute defined in product_type fixture
+    color_attr = product_type.product_attributes.get(name="Color")
+    color_value_external_reference = color_attr.values.first().external_reference
+    color_attr_id = graphene.Node.to_global_id("Attribute", color_attr.id)
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+            "attributes": [
+                {
+                    "id": color_attr_id,
+                    "externalReference": color_attr.external_reference,
+                    "dropdown": {"externalReference": color_value_external_reference},
+                }
+            ],
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["results"][0]["errors"]
+    error = data["results"][0]["errors"][0]
+    assert error["path"] == "attributes"
+    assert error["message"] == (
+        "Argument 'id' cannot be combined with 'externalReference'"
+    )
 
 
 def test_product_bulk_create_with_meta_data(
@@ -1275,7 +1496,7 @@ def test_product_bulk_create_with_variants_and_invalid_stock(
     assert not data["results"][0]["product"]
     errors = data["results"][0]["errors"]
     assert errors
-    assert errors[0]["path"] == "variants.1.warehouses"
+    assert errors[0]["path"] == "variants.1.stocks.0.warehouse"
     assert errors[0]["code"] == ProductBulkCreateErrorCode.NOT_FOUND.name
     assert data["count"] == 0
 
@@ -1500,9 +1721,9 @@ def test_product_bulk_create_with_variants_and_channel_listings_with_wrong_price
     assert not data["results"][0]["product"]
     errors = data["results"][0]["errors"]
     assert len(errors) == 2
-    assert errors[0]["path"] == "variants.0.price"
+    assert errors[0]["path"] == "variants.0.channelListings.0.price"
     assert errors[0]["code"] == ProductBulkCreateErrorCode.INVALID_PRICE.name
     assert errors[0]["channels"] == [channel_id]
-    assert errors[1]["path"] == "variants.0.costPrice"
+    assert errors[1]["path"] == "variants.0.channelListings.0.costPrice"
     assert errors[1]["code"] == ProductBulkCreateErrorCode.INVALID_PRICE.name
     assert errors[1]["channels"] == [channel_id]

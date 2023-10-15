@@ -21,7 +21,7 @@ from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
 from .types import AppExtensionMount, AppExtensionTarget
-from .validators import AppURLValidator
+from .validators import AppURLValidator, brand_validator
 
 logger = logging.getLogger(__name__)
 
@@ -133,6 +133,11 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
     except ValidationError as e:
         errors["author"].append(e)
 
+    try:
+        brand_validator(manifest_data.get("brand"))
+    except ValidationError as e:
+        errors["brand"].append(e)
+
     saleor_permissions = get_permissions().annotate(
         formated_codename=Concat("content_type__app_label", Value("."), "codename")
     )
@@ -224,6 +229,15 @@ def clean_webhooks(manifest_data, errors):
     )
 
     for webhook in webhooks:
+        webhook["isActive"] = webhook.get("isActive", True)
+        if not isinstance(webhook["isActive"], bool):
+            errors["webhooks"].append(
+                ValidationError(
+                    "Incorrect value for field: isActive.",
+                    code=AppErrorCode.INVALID.value,
+                )
+            )
+
         webhook["events"] = []
         for e_type in webhook.get("asyncEvents", []):
             try:

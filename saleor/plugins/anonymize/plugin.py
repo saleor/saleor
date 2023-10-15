@@ -39,8 +39,8 @@ class AnonymizePlugin(BasePlugin):
         address: "Address",
         address_type: Optional[str],
         user: Optional["User"],
+        save: bool,
         previous_value: "Address",
-        save: bool = True,
     ) -> "Address":
         if address.phone:
             address.phone = ""  # type: ignore

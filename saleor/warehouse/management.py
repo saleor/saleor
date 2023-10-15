@@ -613,6 +613,30 @@ def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
 
 
 @traced_atomic_transaction()
+def deallocate_stock_for_orders(orders_id, manager: PluginsManager):
+    """Remove all allocations for given order."""
+    lines = OrderLine.objects.filter(order_id__in=orders_id)
+    allocations = Allocation.objects.filter(
+        Exists(lines.filter(id=OuterRef("order_line_id"))), quantity_allocated__gt=0
+    ).select_related("stock")
+
+    stocks_to_update = []
+    for alloc in allocations:
+        stock = alloc.stock
+        stock.quantity_allocated = F("quantity_allocated") - alloc.quantity_allocated
+        stocks_to_update.append(stock)
+
+    for allocation in allocations.annotate_stock_available_quantity():
+        if allocation.stock_available_quantity <= 0:
+            transaction.on_commit(
+                lambda: manager.product_variant_back_in_stock(allocation.stock)
+            )
+
+    allocations.update(quantity_allocated=0)
+    Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
+
+
+@traced_atomic_transaction()
 def allocate_preorders(
     order_lines_info: Iterable["OrderLineInfo"],
     channel_slug: str,

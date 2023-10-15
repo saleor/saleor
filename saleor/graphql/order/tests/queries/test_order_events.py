@@ -51,7 +51,7 @@ ORDERS_FULFILLED_EVENTS = """
 
 def test_nested_order_events_query(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     permission_manage_apps,
     fulfilled_order,
     fulfillment,
@@ -78,9 +78,8 @@ def test_nested_order_events_query(
     )
     event.save()
 
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders, permission_manage_apps
-    )
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
@@ -110,7 +109,7 @@ def test_nested_order_events_query(
 
 def test_nested_order_events_query_for_app(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     permission_manage_apps,
     fulfilled_order,
     fulfillment,
@@ -137,9 +136,8 @@ def test_nested_order_events_query_for_app(
     )
     event.save()
 
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders, permission_manage_apps
-    )
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
@@ -190,7 +188,7 @@ ORDERS_WITH_EVENTS = """
 
 
 def test_related_order_events_query(
-    staff_api_client, permission_manage_orders, order, payment_dummy, staff_user
+    staff_api_client, permission_group_manage_orders, order, payment_dummy, staff_user
 ):
     new_order = deepcopy(order)
     new_order.id = None
@@ -203,7 +201,7 @@ def test_related_order_events_query(
         original_order=order, replace_order=new_order, user=staff_user, app=None
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDERS_WITH_EVENTS)
     content = get_graphql_content(response)
 
@@ -215,7 +213,7 @@ def test_related_order_events_query(
 
 
 def test_related_order_events_query_for_app(
-    staff_api_client, permission_manage_orders, order, payment_dummy, app
+    staff_api_client, permission_group_manage_orders, order, payment_dummy, app
 ):
     new_order = deepcopy(order)
     new_order.id = None
@@ -228,7 +226,7 @@ def test_related_order_events_query_for_app(
         original_order=order, replace_order=new_order, user=None, app=app
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDERS_WITH_EVENTS)
     content = get_graphql_content(response)
 
@@ -240,7 +238,7 @@ def test_related_order_events_query_for_app(
 
 
 def test_related_order_eventes_old_order_id(
-    staff_api_client, permission_manage_orders, order, payment_dummy, app
+    staff_api_client, permission_group_manage_orders, order, payment_dummy, app
 ):
     # given
     new_order = deepcopy(order)
@@ -259,7 +257,7 @@ def test_related_order_eventes_old_order_id(
         parameters=parameters,
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_WITH_EVENTS)
@@ -276,7 +274,7 @@ def test_related_order_eventes_old_order_id(
 
 def test_order_events_without_permission(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines_and_events,
     customer_user,
 ):
@@ -284,7 +282,7 @@ def test_order_events_without_permission(
     last_event.user = customer_user
     last_event.save()
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDERS_WITH_EVENTS)
     content = get_graphql_content(response)
 
@@ -316,7 +314,7 @@ QUERY_GET_FIRST_EVENT = """
 
 
 def test_retrieving_event_lines_with_deleted_line(
-    staff_api_client, order_with_lines, staff_user, permission_manage_orders
+    staff_api_client, order_with_lines, staff_user, permission_group_manage_orders
 ):
     order = order_with_lines
     lines = order_with_lines.lines.all()
@@ -331,7 +329,7 @@ def test_retrieving_event_lines_with_deleted_line(
     deleted_line.delete()
 
     # Prepare the query
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Send the query and retrieve the data
     content = get_graphql_content(staff_api_client.post_graphql(QUERY_GET_FIRST_EVENT))
@@ -355,7 +353,7 @@ def test_retrieving_event_lines_with_deleted_line(
 
 
 def test_retrieving_event_lines_with_missing_line_pk_in_data(
-    staff_api_client, order_with_lines, staff_user, permission_manage_orders
+    staff_api_client, order_with_lines, staff_user, permission_group_manage_orders
 ):
     order = order_with_lines
     line = order_with_lines.lines.first()
@@ -368,7 +366,7 @@ def test_retrieving_event_lines_with_missing_line_pk_in_data(
     event.save(update_fields=["parameters"])
 
     # Prepare the query
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Send the query and retrieve the data
     content = get_graphql_content(staff_api_client.post_graphql(QUERY_GET_FIRST_EVENT))

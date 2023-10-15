@@ -5,6 +5,7 @@ from urllib.parse import urlsplit
 
 import requests
 
+from .....core.http_client import HTTPClient
 from .... import PaymentError
 
 # https://developer.apple.com/documentation/apple_pay_on_the_web/
@@ -101,11 +102,17 @@ def make_request_to_initialize_apple_pay(
     with NamedTemporaryFile() as f:
         f.write(certificate.encode())
         f.flush()  # ensure all data written
-        return requests.post(validation_url, json=request_data, cert=f.name)
+        return HTTPClient.send_request(
+            "POST",
+            validation_url,
+            json=request_data,
+            cert=f.name,
+            allow_redirects=False,
+        )
 
 
 def initialize_apple_pay(payment_data: dict, certificate: str) -> dict:
-    # The apple pay on the web requires additional step
+    # The Apple Pay on the web requires additional step
     validation_url = payment_data.get("validationUrl", "")
     merchant_identifier = payment_data.get("merchantIdentifier", "")
     domain = payment_data.get("domain", "")

@@ -14,6 +14,7 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
 from ..core.scalars import Date
@@ -31,9 +32,9 @@ from .dataloaders import (
 
 @federated_entity("id")
 class PageType(ModelObjectType[models.PageType]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
-    slug = graphene.String(required=True)
+    id = graphene.GlobalID(required=True, description="ID of the page type.")
+    name = graphene.String(required=True, description="Name of the page type.")
+    slug = graphene.String(required=True, description="Slug of the page type.")
     attributes = NonNullList(
         Attribute, description="Page attributes of that page type."
     )
@@ -97,14 +98,15 @@ class PageType(ModelObjectType[models.PageType]):
 
 class PageTypeCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PAGES
         node = PageType
 
 
 class Page(ModelObjectType[models.Page]):
-    id = graphene.GlobalID(required=True)
-    seo_title = graphene.String()
-    seo_description = graphene.String()
-    title = graphene.String(required=True)
+    id = graphene.GlobalID(required=True, description="ID of the page.")
+    seo_title = graphene.String(description="Title of the page for SEO.")
+    seo_description = graphene.String(description="Description of the page for SEO.")
+    title = graphene.String(required=True, description="Title of the page.")
     content = JSONString(description="Content of the page." + RICH_CONTENT)
     publication_date = Date(
         deprecation_reason=(
@@ -115,10 +117,16 @@ class Page(ModelObjectType[models.Page]):
     published_at = graphene.DateTime(
         description="The page publication date." + ADDED_IN_33
     )
-    is_published = graphene.Boolean(required=True)
-    slug = graphene.String(required=True)
-    page_type = graphene.Field(PageType, required=True)
-    created = graphene.DateTime(required=True)
+    is_published = graphene.Boolean(
+        required=True, description="Determines if the page is published."
+    )
+    slug = graphene.String(required=True, description="Slug of the page.")
+    page_type = graphene.Field(
+        PageType, required=True, description="Determines the type of page"
+    )
+    created = graphene.DateTime(
+        required=True, description="Date and time at which page was created."
+    )
     content_json = JSONString(
         description="Content of the page." + RICH_CONTENT,
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
@@ -163,4 +171,5 @@ class Page(ModelObjectType[models.Page]):
 
 class PageCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PAGES
         node = Page

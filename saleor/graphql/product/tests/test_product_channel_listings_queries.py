@@ -88,6 +88,46 @@ def test_product_channel_listing_pricing_field(
     )
 
 
+def test_product_channel_listing_pricing_no_prices(
+    address_usa,
+    staff_api_client,
+    permission_manage_products,
+    channel_USD,
+    product,
+):
+    # given
+
+    # Changing the address of a warehouse used by the product to address_usa, so that
+    # we can query pricing in two countries: US and PL.
+    warehouse = Warehouse.objects.first()
+    warehouse.address = address_usa
+    warehouse.save()
+
+    country = "PL"
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+        "address": {"country": country},
+    }
+    product.channel_listings.exclude(channel__slug=channel_USD.slug).delete()
+    product.variants.first().channel_listings.update(price_amount=None)
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRICING_ON_PRODUCT_CHANNEL_LISTING,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    product_channel_listing_data = product_data["channelListings"][0]
+    assert product_channel_listing_data["pricing"] is None
+    assert product_data["pricing"] is None
+
+
 QUERY_PRICING_ON_PRODUCT_CHANNEL_LISTING_NO_ADDRESS = """
 fragment Pricing on ProductPricingInfo {
   priceRangeUndiscounted {

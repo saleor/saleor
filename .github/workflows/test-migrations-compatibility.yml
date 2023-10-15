@@ -30,37 +30,39 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install system dependencies
-        run: apt-get install -y libpq-dev
+        run: |
+          apt-get install -y libpq-dev
 
-      - name: Cache pip
+      - name: Install and configure poetry
+        run: |
+          python -m pip install poetry==1.5.0
+
+      - name: Cache the venv
+        id: cached-poetry-dependencies
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements_dev.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          path: ~/.venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
 
-      # To remove once the issue is resolved.
       - name: Install dependencies
         run: |
-          python -m pip install wheel
-          python -m pip install -r requirements_dev.txt
+          python -m poetry install --no-root
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
 
       - name: Migrate
         run: |
           export DJANGO_SETTINGS_MODULE=saleor.tests.settings
-          ./manage.py migrate
+          python -m poetry run python manage.py migrate
 
       - name: Checkout base
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github['base_ref'] }}
 
       - name: Run tests
         run: |
           export PYTEST_DB_URL=$DATABASE_URL
-          pytest -n 0 --reuse-db
+          python -m poetry run pytest -n 0 --reuse-db

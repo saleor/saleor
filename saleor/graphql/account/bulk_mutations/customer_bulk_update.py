@@ -1,5 +1,6 @@
 from collections import defaultdict
-from copy import copy
+from copy import deepcopy
+from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -11,9 +12,11 @@ from ....account.events import CustomerEvents
 from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
+from ....giftcard.search import mark_gift_cards_search_index_as_dirty_by_users
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
 from ....permission.enums import AccountPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import CustomerBulkUpdateErrorCode, ErrorPolicyEnum
@@ -24,12 +27,16 @@ from ...core.types import (
     CustomerBulkUpdateError,
     NonNullList,
 )
-from ...core.utils import get_duplicated_values
+from ...core.utils import WebhookEventInfo, get_duplicated_values
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...payment.utils import metadata_contains_empty_key
 from ...plugins.dataloaders import get_app_promise, get_plugin_manager_promise
 from ..i18n import I18nMixin
-from ..mutations.base import BILLING_ADDRESS_FIELD, SHIPPING_ADDRESS_FIELD
-from ..mutations.staff import CustomerInput
+from ..mutations.base import (
+    BILLING_ADDRESS_FIELD,
+    SHIPPING_ADDRESS_FIELD,
+    CustomerInput,
+)
 from ..types import User
 
 
@@ -91,6 +98,16 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         doc_category = DOC_CATEGORY_USERS
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = CustomerBulkUpdateError
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A customer account was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
+                description="Optionally called when customer's metadata was updated.",
+            ),
+        ]
 
     @classmethod
     def format_errors(cls, index, errors, index_error_map, field_prefix=None):
@@ -182,6 +199,26 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             cls.format_errors(index, exc, index_error_map, field_prefix=field)
 
     @classmethod
+    def clean_metadata(
+        cls,
+        field_name: str,
+        metadata_list: List[dict],
+        errors_count: int,
+        index: int,
+        index_error_map: dict,
+    ):
+        if metadata_contains_empty_key(metadata_list):
+            index_error_map[index].append(
+                CustomerBulkUpdateError(
+                    path=f"input.{field_name}",
+                    message="Metadata key cannot be empty.",
+                    code=CustomerBulkUpdateErrorCode.REQUIRED.value,
+                )
+            )
+            errors_count += 1
+        return errors_count
+
+    @classmethod
     def clean_customers(cls, info, customers_input, index_error_map):
         cleaned_inputs_map: dict = {}
 
@@ -270,6 +307,20 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     )
                     base_error_count += 1
 
+            if metadata := customer_input["input"].get("metadata"):
+                base_error_count = cls.clean_metadata(
+                    "metadata", metadata, base_error_count, index, index_error_map
+                )
+
+            if private_metadata := customer_input["input"].get("private_metadata"):
+                base_error_count = cls.clean_metadata(
+                    "privateMetadata",
+                    private_metadata,
+                    base_error_count,
+                    index,
+                    index_error_map,
+                )
+
             if base_error_count > 0:
                 cleaned_inputs_map[index] = None
             else:
@@ -307,6 +358,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
     @classmethod
     def update_address(cls, info, instance, data, field):
         address = getattr(instance, field) or models.Address()
+        address_metadata = data.pop("metadata", list())
+        cls.update_metadata(address, address_metadata)
         address = cls.construct_instance(address, data)
         cls.clean_instance(info, address)
         return address
@@ -328,6 +381,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             data = cleaned_input["input"]
             shipping_address_input = data.pop(SHIPPING_ADDRESS_FIELD, None)
             billing_address_input = data.pop(BILLING_ADDRESS_FIELD, None)
+            metadata_list = data.pop("metadata", None)
+            private_metadata_list = data.pop("private_metadata", None)
 
             filtered_customers = list(
                 filter(
@@ -341,7 +396,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     billing_address = None
 
                     old_instance = filtered_customers[0]
-                    new_instance = cls.construct_instance(copy(old_instance), data)
+                    new_instance = cls.construct_instance(deepcopy(old_instance), data)
                     new_instance.full_clean(exclude=["password"])
 
                     if shipping_address_input:
@@ -357,6 +412,14 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                             new_instance,
                             billing_address_input,
                             BILLING_ADDRESS_FIELD,
+                        )
+
+                    if metadata_list is not None:
+                        cls.update_metadata(new_instance, metadata_list)
+
+                    if private_metadata_list is not None:
+                        cls.update_metadata(
+                            new_instance, private_metadata_list, is_private=True
                         )
 
                     instances_data_and_errors_list.append(
@@ -446,6 +509,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 "country",
                 "country_area",
                 "phone",
+                "metadata",
             ],
         )
 
@@ -460,6 +524,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 "language_code",
                 "external_reference",
                 "updated_at",
+                "metadata",
+                "private_metadata",
             ],
         )
 
@@ -489,7 +555,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         customer_events = []
         app = get_app_promise(info.context).get()
         staff_user = info.context.user
-
+        users_with_name_or_email_updated = []
         for updated_instance, old_instance in zip(instances, old_instances):
             cls.call_event(manager.customer_updated, updated_instance)
             new_email = updated_instance.email
@@ -500,6 +566,14 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             has_new_email = old_instance.email != new_email
             was_activated = not old_instance.is_active and updated_instance.is_active
             was_deactivated = old_instance.is_active and not updated_instance.is_active
+            metadata_update = old_instance.metadata != updated_instance.metadata
+            being_confirmed = (
+                not old_instance.is_confirmed and updated_instance.is_confirmed
+            )
+
+            if has_new_email or being_confirmed:
+                assign_user_gift_cards(updated_instance)
+                match_orders_with_new_user(updated_instance)
 
             # Generate the events accordingly
             if has_new_email:
@@ -512,8 +586,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                         parameters={"message": new_email},
                     )
                 )
-                assign_user_gift_cards(updated_instance)
-                match_orders_with_new_user(updated_instance)
+                users_with_name_or_email_updated.append(updated_instance)
 
             if has_new_name:
                 customer_events.append(
@@ -525,6 +598,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                         parameters={"message": new_fullname},
                     )
                 )
+                users_with_name_or_email_updated.append(updated_instance)
+
             if was_activated:
                 customer_events.append(
                     models.CustomerEvent(
@@ -544,7 +619,11 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     )
                 )
 
+            if metadata_update:
+                cls.call_event(manager.customer_metadata_updated, updated_instance)
+
         models.CustomerEvent.objects.bulk_create(customer_events)
+        mark_gift_cards_search_index_as_dirty_by_users(users_with_name_or_email_updated)
 
     @classmethod
     def get_results(cls, instances_data_with_errors_list, reject_everything=False):

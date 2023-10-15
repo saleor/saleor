@@ -23,7 +23,7 @@ query OrdersQuery {
 
 def test_total_balance_only_charged(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     permission_manage_shipping,
     fulfilled_order,
 ):
@@ -49,7 +49,7 @@ def test_total_balance_only_charged(
         ]
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
@@ -70,7 +70,7 @@ def test_total_balance_only_charged(
 
 def test_total_balance_charged_and_pending_charged(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     permission_manage_shipping,
     fulfilled_order,
 ):
@@ -96,7 +96,7 @@ def test_total_balance_charged_and_pending_charged(
         ]
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
@@ -118,7 +118,7 @@ def test_total_balance_charged_and_pending_charged(
 
 def test_total_balance_only_refunded(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     permission_manage_shipping,
     fulfilled_order,
 ):
@@ -144,7 +144,7 @@ def test_total_balance_only_refunded(
         ]
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
@@ -162,7 +162,7 @@ def test_total_balance_only_refunded(
 
 def test_total_balance_refunded_and_pending_refund(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     permission_manage_shipping,
     fulfilled_order,
 ):
@@ -188,7 +188,7 @@ def test_total_balance_refunded_and_pending_refund(
         ]
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
@@ -206,7 +206,7 @@ def test_total_balance_refunded_and_pending_refund(
 
 def test_total_balance_refunded_and_charged(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     permission_manage_shipping,
     fulfilled_order,
 ):
@@ -232,7 +232,7 @@ def test_total_balance_refunded_and_charged(
         ]
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
@@ -253,7 +253,7 @@ def test_total_balance_refunded_and_charged(
 
 def test_total_balance_with_granted_refund(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     permission_manage_shipping,
     fulfilled_order,
 ):
@@ -263,7 +263,7 @@ def test_total_balance_with_granted_refund(
         amount_value=Decimal("10.15"), currency=order.currency, order_id=order.pk
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
@@ -283,7 +283,7 @@ def test_total_balance_with_granted_refund(
 
 def test_total_balance_with_granted_refund_and_transactions(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     permission_manage_shipping,
     fulfilled_order,
 ):
@@ -328,7 +328,7 @@ def test_total_balance_with_granted_refund_and_transactions(
         ]
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when

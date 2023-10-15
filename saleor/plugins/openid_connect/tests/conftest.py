@@ -18,6 +18,8 @@ def plugin_configuration():
         user_info_url=None,
         use_oauth_scope_permissions=False,
         audience=None,
+        staff_user_domains=None,
+        default_group_name_for_new_staff_users=None,
     ):
         return [
             {"name": "client_id", "value": client_id},
@@ -33,6 +35,11 @@ def plugin_configuration():
                 "value": use_oauth_scope_permissions,
             },
             {"name": "audience", "value": audience},
+            {"name": "staff_user_domains", "value": staff_user_domains},
+            {
+                "name": "default_group_name_for_new_staff_users",
+                "value": default_group_name_for_new_staff_users,
+            },
         ]
 
     return fun
@@ -52,6 +59,8 @@ def openid_plugin(settings, plugin_configuration):
         use_oauth_scope_permissions=False,
         user_info_url="https://saleor.io/userinfo",
         audience="perms",
+        staff_user_domains="",
+        default_group_name_for_new_staff_users="OpenID test group",
     ):
         settings.PLUGINS = ["saleor.plugins.openid_connect.plugin.OpenIDConnectPlugin"]
         manager = get_plugins_manager()
@@ -71,6 +80,8 @@ def openid_plugin(settings, plugin_configuration):
                     use_oauth_scope_permissions=use_oauth_scope_permissions,
                     user_info_url=user_info_url,
                     audience=audience,
+                    staff_user_domains=staff_user_domains,
+                    default_group_name_for_new_staff_users=default_group_name_for_new_staff_users,
                 ),
             },
         )

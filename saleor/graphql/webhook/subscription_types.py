@@ -6,12 +6,27 @@ from rx import Observable
 from ... import __version__
 from ...account.models import User
 from ...attribute.models import AttributeTranslation, AttributeValueTranslation
+from ...channel.models import Channel
 from ...core.prices import quantize_price
-from ...discount.models import SaleTranslation, VoucherTranslation
+from ...discount.models import (
+    PromotionRuleTranslation,
+    PromotionTranslation,
+    SaleTranslation,
+    VoucherTranslation,
+)
+from ...graphql.shop.types import Shop
 from ...menu.models import MenuItemTranslation
 from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
-from ...payment.interface import TransactionActionData, TransactionSessionData
+from ...payment.interface import (
+    ListStoredPaymentMethodsRequestData,
+    PaymentMethodInitializeTokenizationRequestData,
+    PaymentMethodProcessTokenizationRequestData,
+    PaymentMethodTokenizationBaseRequestData,
+    StoredPaymentMethodRequestDeleteData,
+    TransactionActionData,
+    TransactionSessionData,
+)
 from ...product.models import (
     CategoryTranslation,
     CollectionTranslation,
@@ -38,13 +53,30 @@ from ..core.descriptions import (
     ADDED_IN_311,
     ADDED_IN_312,
     ADDED_IN_313,
+    ADDED_IN_314,
+    ADDED_IN_315,
+    ADDED_IN_316,
+    ADDED_IN_317,
+    DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
+)
+from ..core.doc_category import (
+    DOC_CATEGORY_CHECKOUT,
+    DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_MISC,
+    DOC_CATEGORY_ORDERS,
+    DOC_CATEGORY_PAYMENTS,
+    DOC_CATEGORY_PRODUCTS,
+    DOC_CATEGORY_SHIPPING,
+    DOC_CATEGORY_TAXES,
+    DOC_CATEGORY_USERS,
 )
 from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
 from ..order.dataloaders import OrderByIdLoader
-from ..payment.enums import TransactionActionEnum
+from ..order.types import Order, OrderGrantedRefund
+from ..payment.enums import TokenizedPaymentFlowEnum, TransactionActionEnum
 from ..payment.types import TransactionItem
 from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..product.dataloaders import ProductVariantByIdLoader
@@ -66,6 +98,8 @@ TRANSLATIONS_TYPES_MAP = {
     SaleTranslation: translation_types.SaleTranslation,
     VoucherTranslation: translation_types.VoucherTranslation,
     MenuItemTranslation: translation_types.MenuItemTranslation,
+    PromotionTranslation: translation_types.PromotionTranslation,
+    PromotionRuleTranslation: translation_types.PromotionRuleTranslation,
 }
 
 
@@ -120,6 +154,131 @@ class Event(graphene.Interface):
         return info.context.requestor
 
 
+class AccountOperationBase(AbstractType):
+    redirect_url = graphene.String(
+        description="The URL to redirect the user after he accepts the request.",
+        required=False,
+    )
+    user = graphene.Field(
+        UserType,
+        description="The user the event relates to.",
+    )
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description="The channel data.",
+    )
+    token = graphene.String(description="The token required to confirm request.")
+    shop = graphene.Field(Shop, description="Shop data.")
+
+    @staticmethod
+    def resolve_user(root, _info: ResolveInfo):
+        _, data = root
+        return data["user"]
+
+    @staticmethod
+    def resolve_redirect_url(root, _info: ResolveInfo):
+        _, data = root
+        return data.get("redirect_url")
+
+    @staticmethod
+    def resolve_channel(root, _info: ResolveInfo):
+        _, data = root
+        return Channel.objects.get(slug=data["channel_slug"])
+
+    @staticmethod
+    def resolve_token(root, _info: ResolveInfo):
+        _, data = root
+        return data["token"]
+
+    @staticmethod
+    def resolve_shop(root, _info: ResolveInfo):
+        return Shop()
+
+
+class AccountConfirmed(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when account is confirmed." + ADDED_IN_315
+        doc_category = DOC_CATEGORY_USERS
+
+
+class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when account confirmation requested. This event is always sent."
+            " enableAccountConfirmationByEmail flag set to True is not required."
+            + ADDED_IN_315
+        )
+        doc_category = DOC_CATEGORY_USERS
+
+
+class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
+    new_email = graphene.String(
+        description="The new email address the user wants to change to.",
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when account change email is requested." + ADDED_IN_315
+        )
+        doc_category = DOC_CATEGORY_USERS
+
+    @staticmethod
+    def resolve_new_email(root, _info: ResolveInfo):
+        _, data = root
+        return data["new_email"]
+
+
+class AccountEmailChanged(SubscriptionObjectType, AccountOperationBase):
+    new_email = graphene.String(
+        description="The new email address.",
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when account email is changed." + ADDED_IN_315
+        doc_category = DOC_CATEGORY_USERS
+
+
+class AccountSetPasswordRequested(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when setting a new password is requested." + ADDED_IN_315
+        )
+        doc_category = DOC_CATEGORY_USERS
+
+
+class AccountDeleteRequested(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when account delete is requested." + ADDED_IN_315
+        doc_category = DOC_CATEGORY_USERS
+
+
+class AccountDeleted(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when account is deleted." + ADDED_IN_315
+        doc_category = DOC_CATEGORY_USERS
+
+
 class AddressBase(AbstractType):
     address = graphene.Field(
         "saleor.graphql.account.types.Address",
@@ -137,9 +296,7 @@ class AddressCreated(SubscriptionObjectType, AddressBase):
         root_type = "Address"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new address is created." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new address is created." + ADDED_IN_35
 
 
 class AddressUpdated(SubscriptionObjectType, AddressBase):
@@ -147,9 +304,7 @@ class AddressUpdated(SubscriptionObjectType, AddressBase):
         root_type = "Address"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when address is updated." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when address is updated." + ADDED_IN_35
 
 
 class AddressDeleted(SubscriptionObjectType, AddressBase):
@@ -157,9 +312,7 @@ class AddressDeleted(SubscriptionObjectType, AddressBase):
         root_type = "Address"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when address is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when address is deleted." + ADDED_IN_35
 
 
 class AppBase(AbstractType):
@@ -179,9 +332,7 @@ class AppInstalled(SubscriptionObjectType, AppBase):
         root_type = "App"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new app is installed." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new app is installed." + ADDED_IN_34
 
 
 class AppUpdated(SubscriptionObjectType, AppBase):
@@ -189,7 +340,7 @@ class AppUpdated(SubscriptionObjectType, AppBase):
         root_type = "App"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when app is updated." + ADDED_IN_34 + PREVIEW_FEATURE
+        description = "Event sent when app is updated." + ADDED_IN_34
 
 
 class AppDeleted(SubscriptionObjectType, AppBase):
@@ -197,7 +348,7 @@ class AppDeleted(SubscriptionObjectType, AppBase):
         root_type = "App"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when app is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
+        description = "Event sent when app is deleted." + ADDED_IN_34
 
 
 class AppStatusChanged(SubscriptionObjectType, AppBase):
@@ -205,9 +356,7 @@ class AppStatusChanged(SubscriptionObjectType, AppBase):
         root_type = "App"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when app status has changed." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when app status has changed." + ADDED_IN_34
 
 
 class AttributeBase(AbstractType):
@@ -227,9 +376,7 @@ class AttributeCreated(SubscriptionObjectType, AttributeBase):
         root_type = "Attribute"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new attribute is created." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new attribute is created." + ADDED_IN_35
 
 
 class AttributeUpdated(SubscriptionObjectType, AttributeBase):
@@ -237,9 +384,7 @@ class AttributeUpdated(SubscriptionObjectType, AttributeBase):
         root_type = "Attribute"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when attribute is updated." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when attribute is updated." + ADDED_IN_35
 
 
 class AttributeDeleted(SubscriptionObjectType, AttributeBase):
@@ -247,9 +392,7 @@ class AttributeDeleted(SubscriptionObjectType, AttributeBase):
         root_type = "Attribute"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when attribute is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when attribute is deleted." + ADDED_IN_35
 
 
 class AttributeValueBase(AbstractType):
@@ -269,11 +412,7 @@ class AttributeValueCreated(SubscriptionObjectType, AttributeValueBase):
         root_type = "AttributeValue"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new attribute value is created."
-            + ADDED_IN_35
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new attribute value is created." + ADDED_IN_35
 
 
 class AttributeValueUpdated(SubscriptionObjectType, AttributeValueBase):
@@ -281,11 +420,7 @@ class AttributeValueUpdated(SubscriptionObjectType, AttributeValueBase):
         root_type = "AttributeValue"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when attribute value is updated."
-            + ADDED_IN_35
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when attribute value is updated." + ADDED_IN_35
 
 
 class AttributeValueDeleted(SubscriptionObjectType, AttributeValueBase):
@@ -293,11 +428,7 @@ class AttributeValueDeleted(SubscriptionObjectType, AttributeValueBase):
         root_type = "AttributeValue"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when attribute value is deleted."
-            + ADDED_IN_35
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when attribute value is deleted." + ADDED_IN_35
 
 
 class CategoryBase(AbstractType):
@@ -317,9 +448,7 @@ class CategoryCreated(SubscriptionObjectType, CategoryBase):
         root_type = "Category"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new category is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new category is created." + ADDED_IN_32
 
 
 class CategoryUpdated(SubscriptionObjectType, CategoryBase):
@@ -327,9 +456,7 @@ class CategoryUpdated(SubscriptionObjectType, CategoryBase):
         root_type = "Category"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when category is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when category is updated." + ADDED_IN_32
 
 
 class CategoryDeleted(SubscriptionObjectType, CategoryBase):
@@ -337,9 +464,7 @@ class CategoryDeleted(SubscriptionObjectType, CategoryBase):
         root_type = "Category"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when category is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when category is deleted." + ADDED_IN_32
 
 
 class ChannelBase(AbstractType):
@@ -359,9 +484,7 @@ class ChannelCreated(SubscriptionObjectType, ChannelBase):
         root_type = "Channel"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new channel is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new channel is created." + ADDED_IN_32
 
 
 class ChannelUpdated(SubscriptionObjectType, ChannelBase):
@@ -369,9 +492,7 @@ class ChannelUpdated(SubscriptionObjectType, ChannelBase):
         root_type = "Channel"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when channel is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when channel is updated." + ADDED_IN_32
 
 
 class ChannelDeleted(SubscriptionObjectType, ChannelBase):
@@ -379,9 +500,7 @@ class ChannelDeleted(SubscriptionObjectType, ChannelBase):
         root_type = "Channel"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when channel is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when channel is deleted." + ADDED_IN_32
 
 
 class ChannelStatusChanged(SubscriptionObjectType, ChannelBase):
@@ -389,11 +508,15 @@ class ChannelStatusChanged(SubscriptionObjectType, ChannelBase):
         root_type = "Channel"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when channel status has changed."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when channel status has changed." + ADDED_IN_32
+
+
+class ChannelMetadataUpdated(SubscriptionObjectType, ChannelBase):
+    class Meta:
+        root_type = "Channel"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when channel metadata is updated." + ADDED_IN_315
 
 
 class OrderBase(AbstractType):
@@ -413,9 +536,7 @@ class OrderCreated(SubscriptionObjectType, OrderBase):
         root_type = "Order"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new order is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new order is created." + ADDED_IN_32
 
 
 class OrderUpdated(SubscriptionObjectType, OrderBase):
@@ -423,9 +544,7 @@ class OrderUpdated(SubscriptionObjectType, OrderBase):
         root_type = "Order"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when order is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when order is updated." + ADDED_IN_32
 
 
 class OrderConfirmed(SubscriptionObjectType, OrderBase):
@@ -433,9 +552,7 @@ class OrderConfirmed(SubscriptionObjectType, OrderBase):
         root_type = "Order"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when order is confirmed." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when order is confirmed." + ADDED_IN_32
 
 
 class OrderFullyPaid(SubscriptionObjectType, OrderBase):
@@ -443,9 +560,39 @@ class OrderFullyPaid(SubscriptionObjectType, OrderBase):
         root_type = "Order"
         enable_dry_run = True
         interfaces = (Event,)
+        description = "Event sent when order is fully paid." + ADDED_IN_32
+
+
+class OrderPaid(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
         description = (
-            "Event sent when order is fully paid." + ADDED_IN_32 + PREVIEW_FEATURE
+            "Payment has been made. The order may be partially or fully paid."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
         )
+
+
+class OrderRefunded(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "The order received a refund. The order may be partially or fully refunded."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
+        )
+
+
+class OrderFullyRefunded(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "The order is fully refunded." + ADDED_IN_314 + PREVIEW_FEATURE
 
 
 class OrderFulfilled(SubscriptionObjectType, OrderBase):
@@ -453,9 +600,7 @@ class OrderFulfilled(SubscriptionObjectType, OrderBase):
         root_type = "Order"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when order is fulfilled." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when order is fulfilled." + ADDED_IN_32
 
 
 class OrderCancelled(SubscriptionObjectType, OrderBase):
@@ -463,8 +608,16 @@ class OrderCancelled(SubscriptionObjectType, OrderBase):
         root_type = "Order"
         enable_dry_run = True
         interfaces = (Event,)
+        description = "Event sent when order is canceled." + ADDED_IN_32
+
+
+class OrderExpired(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
         description = (
-            "Event sent when order is canceled." + ADDED_IN_32 + PREVIEW_FEATURE
+            "Event sent when order becomes expired." + ADDED_IN_313 + PREVIEW_FEATURE
         )
 
 
@@ -473,9 +626,28 @@ class OrderMetadataUpdated(SubscriptionObjectType, OrderBase):
         root_type = "Order"
         enable_dry_run = True
         interfaces = (Event,)
+        description = "Event sent when order metadata is updated." + ADDED_IN_38
+
+
+class OrderBulkCreated(SubscriptionObjectType):
+    orders = NonNullList(
+        Order,
+        description="The orders the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_orders(root, _info: ResolveInfo):
+        _, orders = root
+        return orders
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
         description = (
-            "Event sent when order metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
+            "Event sent when orders are imported." + ADDED_IN_314 + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class DraftOrderCreated(SubscriptionObjectType, OrderBase):
@@ -483,11 +655,7 @@ class DraftOrderCreated(SubscriptionObjectType, OrderBase):
         root_type = "Order"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new draft order is created."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new draft order is created." + ADDED_IN_32
 
 
 class DraftOrderUpdated(SubscriptionObjectType, OrderBase):
@@ -495,9 +663,7 @@ class DraftOrderUpdated(SubscriptionObjectType, OrderBase):
         root_type = "Order"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when draft order is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when draft order is updated." + ADDED_IN_32
 
 
 class DraftOrderDeleted(SubscriptionObjectType, OrderBase):
@@ -505,9 +671,7 @@ class DraftOrderDeleted(SubscriptionObjectType, OrderBase):
         root_type = "Order"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when draft order is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when draft order is deleted." + ADDED_IN_32
 
 
 class GiftCardBase(AbstractType):
@@ -527,9 +691,7 @@ class GiftCardCreated(SubscriptionObjectType, GiftCardBase):
         root_type = "GiftCard"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new gift card is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new gift card is created." + ADDED_IN_32
 
 
 class GiftCardUpdated(SubscriptionObjectType, GiftCardBase):
@@ -537,9 +699,7 @@ class GiftCardUpdated(SubscriptionObjectType, GiftCardBase):
         root_type = "GiftCard"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when gift card is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when gift card is updated." + ADDED_IN_32
 
 
 class GiftCardDeleted(SubscriptionObjectType, GiftCardBase):
@@ -547,9 +707,40 @@ class GiftCardDeleted(SubscriptionObjectType, GiftCardBase):
         root_type = "GiftCard"
         enable_dry_run = True
         interfaces = (Event,)
+        description = "Event sent when gift card is deleted." + ADDED_IN_32
+
+
+class GiftCardSent(SubscriptionObjectType, GiftCardBase):
+    channel = graphene.String(
+        description="Slug of a channel for which this gift card email was sent."
+    )
+    sent_to_email = graphene.String(
+        description="E-mail address to which gift card was sent.",
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
         description = (
-            "Event sent when gift card is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+            "Event sent when gift card is e-mailed." + ADDED_IN_313 + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_GIFT_CARDS
+
+    @staticmethod
+    def resolve_gift_card(root, info: ResolveInfo):
+        _, data = root
+        return data["gift_card"]
+
+    @staticmethod
+    def resolve_channel(root, info: ResolveInfo):
+        _, data = root
+        return data["channel_slug"]
+
+    @staticmethod
+    def resolve_sent_to_email(root, info: ResolveInfo):
+        _, data = root
+        return data["sent_to_email"]
 
 
 class GiftCardStatusChanged(SubscriptionObjectType, GiftCardBase):
@@ -557,11 +748,7 @@ class GiftCardStatusChanged(SubscriptionObjectType, GiftCardBase):
         root_type = "GiftCard"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when gift card status has changed."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when gift card status has changed." + ADDED_IN_32
 
 
 class GiftCardMetadataUpdated(SubscriptionObjectType, GiftCardBase):
@@ -569,11 +756,26 @@ class GiftCardMetadataUpdated(SubscriptionObjectType, GiftCardBase):
         root_type = "GiftCard"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when gift card metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when gift card metadata is updated." + ADDED_IN_38
+
+
+class GiftCardExportCompleted(SubscriptionObjectType):
+    export = graphene.Field(
+        "saleor.graphql.csv.types.ExportFile",
+        description="The export file for gift cards.",
+    )
+
+    class Meta:
+        root_type = "ExportFile"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when gift card export is completed." + ADDED_IN_316
+        doc_category = DOC_CATEGORY_GIFT_CARDS
+
+    @staticmethod
+    def resolve_export(root, info: ResolveInfo):
+        _, export_file = root
+        return export_file
 
 
 class MenuBase(AbstractType):
@@ -596,9 +798,7 @@ class MenuCreated(SubscriptionObjectType, MenuBase):
         root_type = "Menu"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new menu is created." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new menu is created." + ADDED_IN_34
 
 
 class MenuUpdated(SubscriptionObjectType, MenuBase):
@@ -606,7 +806,7 @@ class MenuUpdated(SubscriptionObjectType, MenuBase):
         root_type = "Menu"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when menu is updated." + ADDED_IN_34 + PREVIEW_FEATURE
+        description = "Event sent when menu is updated." + ADDED_IN_34
 
 
 class MenuDeleted(SubscriptionObjectType, MenuBase):
@@ -614,7 +814,7 @@ class MenuDeleted(SubscriptionObjectType, MenuBase):
         root_type = "Menu"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when menu is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
+        description = "Event sent when menu is deleted." + ADDED_IN_34
 
 
 class MenuItemBase(AbstractType):
@@ -637,9 +837,7 @@ class MenuItemCreated(SubscriptionObjectType, MenuItemBase):
         root_type = "MenuItem"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new menu item is created." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new menu item is created." + ADDED_IN_34
 
 
 class MenuItemUpdated(SubscriptionObjectType, MenuItemBase):
@@ -647,9 +845,7 @@ class MenuItemUpdated(SubscriptionObjectType, MenuItemBase):
         root_type = "MenuItem"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when menu item is updated." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when menu item is updated." + ADDED_IN_34
 
 
 class MenuItemDeleted(SubscriptionObjectType, MenuItemBase):
@@ -657,9 +853,7 @@ class MenuItemDeleted(SubscriptionObjectType, MenuItemBase):
         root_type = "MenuItem"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when menu item is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when menu item is deleted." + ADDED_IN_34
 
 
 class ProductBase(AbstractType):
@@ -691,9 +885,7 @@ class ProductCreated(SubscriptionObjectType, ProductBase):
         root_type = "Product"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new product is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new product is created." + ADDED_IN_32
 
 
 class ProductUpdated(SubscriptionObjectType, ProductBase):
@@ -701,9 +893,7 @@ class ProductUpdated(SubscriptionObjectType, ProductBase):
         root_type = "Product"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when product is updated." + ADDED_IN_32
 
 
 class ProductDeleted(SubscriptionObjectType, ProductBase):
@@ -711,9 +901,7 @@ class ProductDeleted(SubscriptionObjectType, ProductBase):
         root_type = "Product"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when product is deleted." + ADDED_IN_32
 
 
 class ProductMetadataUpdated(SubscriptionObjectType, ProductBase):
@@ -721,11 +909,7 @@ class ProductMetadataUpdated(SubscriptionObjectType, ProductBase):
         root_type = "Product"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when product metadata is updated." + ADDED_IN_38
 
 
 class ProductMediaBase(AbstractType):
@@ -784,11 +968,7 @@ class ProductVariantCreated(SubscriptionObjectType, ProductVariantBase):
         root_type = "Product"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new product variant is created."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new product variant is created." + ADDED_IN_32
 
 
 class ProductVariantUpdated(SubscriptionObjectType, ProductVariantBase):
@@ -796,11 +976,7 @@ class ProductVariantUpdated(SubscriptionObjectType, ProductVariantBase):
         root_type = "Product"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product variant is updated."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when product variant is updated." + ADDED_IN_32
 
 
 class ProductVariantDeleted(SubscriptionObjectType, ProductVariantBase):
@@ -808,11 +984,7 @@ class ProductVariantDeleted(SubscriptionObjectType, ProductVariantBase):
         root_type = "Product"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product variant is deleted."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when product variant is deleted." + ADDED_IN_32
 
 
 class ProductVariantMetadataUpdated(SubscriptionObjectType, ProductVariantBase):
@@ -821,9 +993,7 @@ class ProductVariantMetadataUpdated(SubscriptionObjectType, ProductVariantBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when product variant metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
+            "Event sent when product variant metadata is updated." + ADDED_IN_38
         )
 
 
@@ -836,11 +1006,7 @@ class ProductVariantOutOfStock(SubscriptionObjectType, ProductVariantBase):
         root_type = "Stock"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product variant is out of stock."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when product variant is out of stock." + ADDED_IN_32
 
     @staticmethod
     def resolve_product_variant(root, info: ResolveInfo, channel=None):
@@ -863,11 +1029,7 @@ class ProductVariantBackInStock(SubscriptionObjectType, ProductVariantBase):
         root_type = "Stock"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product variant is back in stock."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when product variant is back in stock." + ADDED_IN_32
 
     @staticmethod
     def resolve_product_variant(root, _info: ResolveInfo, channel=None):
@@ -895,6 +1057,7 @@ class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
             + ADDED_IN_311
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @staticmethod
     def resolve_product_variant(root, info: ResolveInfo, channel=None):
@@ -909,6 +1072,25 @@ class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
     def resolve_warehouse(root, info: ResolveInfo):
         _, stock = root
         return WarehouseByIdLoader(info.context).load(stock.warehouse_id)
+
+
+class ProductExportCompleted(SubscriptionObjectType):
+    export = graphene.Field(
+        "saleor.graphql.csv.types.ExportFile",
+        description="The export file for products.",
+    )
+
+    class Meta:
+        root_type = "ExportFile"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when product export is completed." + ADDED_IN_316
+        doc_category = DOC_CATEGORY_PRODUCTS
+
+    @staticmethod
+    def resolve_export(root, info: ResolveInfo):
+        _, export_file = root
+        return export_file
 
 
 class SaleBase(AbstractType):
@@ -932,7 +1114,10 @@ class SaleCreated(SubscriptionObjectType, SaleBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when new sale is created." + ADDED_IN_32 + PREVIEW_FEATURE
+            "Event sent when new sale is created."
+            + ADDED_IN_32
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `PromotionCreated` event instead."
         )
 
 
@@ -941,7 +1126,12 @@ class SaleUpdated(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when sale is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        description = (
+            "Event sent when sale is updated."
+            + ADDED_IN_32
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `PromotionUpdated` event instead."
+        )
 
 
 class SaleDeleted(SubscriptionObjectType, SaleBase):
@@ -949,7 +1139,12 @@ class SaleDeleted(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when sale is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        description = (
+            "Event sent when sale is deleted."
+            + ADDED_IN_32
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `PromotionDeleted` event instead."
+        )
 
 
 class SaleToggle(SubscriptionObjectType, SaleBase):
@@ -958,7 +1153,7 @@ class SaleToggle(SubscriptionObjectType, SaleBase):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="The sale the event relates to." + ADDED_IN_35 + PREVIEW_FEATURE,
+        description="The sale the event relates to." + ADDED_IN_35,
     )
 
     class Meta:
@@ -967,9 +1162,124 @@ class SaleToggle(SubscriptionObjectType, SaleBase):
         description = (
             "The event informs about the start or end of the sale."
             + ADDED_IN_35
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `PromotionStarted` and `PromotionEnded` events instead."
+        )
+        interfaces = (Event,)
+
+
+class PromotionBase(AbstractType):
+    promotion = graphene.Field(
+        "saleor.graphql.discount.types.Promotion",
+        description="The promotion the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_promotion(root, info: ResolveInfo, channel=None):
+        _, promotion = root
+        return promotion
+
+
+class PromotionCreated(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when new promotion is created." + ADDED_IN_317 + PREVIEW_FEATURE
+        )
+
+
+class PromotionUpdated(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when promotion is updated." + ADDED_IN_317 + PREVIEW_FEATURE
+        )
+
+
+class PromotionDeleted(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when promotion is deleted." + ADDED_IN_317 + PREVIEW_FEATURE
+        )
+
+
+class PromotionStarted(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        description = (
+            "The event informs about the start of the promotion."
+            + ADDED_IN_317
             + PREVIEW_FEATURE
         )
         interfaces = (Event,)
+
+
+class PromotionEnded(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        description = (
+            "The event informs about the end of the promotion."
+            + ADDED_IN_317
+            + PREVIEW_FEATURE
+        )
+        interfaces = (Event,)
+
+
+class PromotionRuleBase(AbstractType):
+    promotion_rule = graphene.Field(
+        "saleor.graphql.discount.types.PromotionRule",
+        description="The promotion rule the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_promotion_rule(root, _info: ResolveInfo):
+        _, promotion_rule = root
+        return promotion_rule
+
+
+class PromotionRuleCreated(SubscriptionObjectType, PromotionRuleBase):
+    class Meta:
+        root_type = "PromotionRule"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when new promotion rule is created."
+            + ADDED_IN_317
+            + PREVIEW_FEATURE
+        )
+
+
+class PromotionRuleUpdated(SubscriptionObjectType, PromotionRuleBase):
+    class Meta:
+        root_type = "PromotionRule"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when new promotion rule is updated."
+            + ADDED_IN_317
+            + PREVIEW_FEATURE
+        )
+
+
+class PromotionRuleDeleted(SubscriptionObjectType, PromotionRuleBase):
+    class Meta:
+        root_type = "PromotionRule"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when new promotion rule is deleted."
+            + ADDED_IN_317
+            + PREVIEW_FEATURE
+        )
 
 
 class InvoiceBase(AbstractType):
@@ -1004,9 +1314,7 @@ class InvoiceRequested(SubscriptionObjectType, InvoiceBase):
         root_type = "Invoice"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when invoice is requested." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when invoice is requested." + ADDED_IN_32
 
 
 class InvoiceDeleted(SubscriptionObjectType, InvoiceBase):
@@ -1014,9 +1322,7 @@ class InvoiceDeleted(SubscriptionObjectType, InvoiceBase):
         root_type = "Invoice"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when invoice is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when invoice is deleted." + ADDED_IN_32
 
 
 class InvoiceSent(SubscriptionObjectType, InvoiceBase):
@@ -1024,7 +1330,7 @@ class InvoiceSent(SubscriptionObjectType, InvoiceBase):
         root_type = "Invoice"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when invoice is sent." + ADDED_IN_32 + PREVIEW_FEATURE
+        description = "Event sent when invoice is sent." + ADDED_IN_32
 
 
 class FulfillmentBase(AbstractType):
@@ -1048,16 +1354,45 @@ class FulfillmentBase(AbstractType):
         return fulfillment.order
 
 
-class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
+class FulfillmentTrackingNumberUpdated(SubscriptionObjectType, FulfillmentBase):
     class Meta:
         root_type = "Fulfillment"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new fulfillment is created."
-            + ADDED_IN_34
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when the tracking number is updated." + ADDED_IN_316
+        doc_category = DOC_CATEGORY_ORDERS
+
+
+class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
+    notify_customer = graphene.Boolean(
+        description=(
+            "If true, the app should send a notification to the customer."
+            + ADDED_IN_316
+        ),
+        required=True,
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when new fulfillment is created." + ADDED_IN_34
+        doc_category = DOC_CATEGORY_ORDERS
+
+    @staticmethod
+    def resolve_fulfillment(root, info: ResolveInfo):
+        _, data = root
+        return data["fulfillment"]
+
+    @staticmethod
+    def resolve_order(root, info: ResolveInfo):
+        _, data = root
+        return data["fulfillment"].order
+
+    @staticmethod
+    def resolve_notify_customer(root, _info: ResolveInfo):
+        _, data = root
+        return data["notify_customer"]
 
 
 class FulfillmentCanceled(SubscriptionObjectType, FulfillmentBase):
@@ -1065,19 +1400,36 @@ class FulfillmentCanceled(SubscriptionObjectType, FulfillmentBase):
         root_type = "Fulfillment"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when fulfillment is canceled." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when fulfillment is canceled." + ADDED_IN_34
 
 
 class FulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
+    notify_customer = graphene.Boolean(
+        description="If true, send a notification to the customer." + ADDED_IN_316,
+        required=True,
+    )
+
     class Meta:
-        root_type = "Fulfillment"
-        enable_dry_run = True
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Event sent when fulfillment is approved." + ADDED_IN_37 + PREVIEW_FEATURE
-        )
+        description = "Event sent when fulfillment is approved." + ADDED_IN_37
+        doc_category = DOC_CATEGORY_ORDERS
+
+    @staticmethod
+    def resolve_fulfillment(root, info: ResolveInfo):
+        _, data = root
+        return data["fulfillment"]
+
+    @staticmethod
+    def resolve_order(root, info: ResolveInfo):
+        _, data = root
+        return data["fulfillment"].order
+
+    @staticmethod
+    def resolve_notify_customer(root, _info: ResolveInfo):
+        _, data = root
+        return data["notify_customer"]
 
 
 class FulfillmentMetadataUpdated(SubscriptionObjectType, FulfillmentBase):
@@ -1085,11 +1437,7 @@ class FulfillmentMetadataUpdated(SubscriptionObjectType, FulfillmentBase):
         root_type = "Fulfillment"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when fulfillment metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when fulfillment metadata is updated." + ADDED_IN_38
 
 
 class UserBase(AbstractType):
@@ -1109,11 +1457,7 @@ class CustomerCreated(SubscriptionObjectType, UserBase):
         root_type = "User"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new customer user is created."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new customer user is created." + ADDED_IN_32
 
 
 class CustomerUpdated(SubscriptionObjectType, UserBase):
@@ -1121,9 +1465,7 @@ class CustomerUpdated(SubscriptionObjectType, UserBase):
         root_type = "User"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when customer user is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when customer user is updated." + ADDED_IN_32
 
 
 class CustomerMetadataUpdated(SubscriptionObjectType, UserBase):
@@ -1131,11 +1473,7 @@ class CustomerMetadataUpdated(SubscriptionObjectType, UserBase):
         root_type = "User"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when customer user metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when customer user metadata is updated." + ADDED_IN_38
 
 
 class CollectionBase(AbstractType):
@@ -1158,9 +1496,7 @@ class CollectionCreated(SubscriptionObjectType, CollectionBase):
         root_type = "Collection"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new collection is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new collection is created." + ADDED_IN_32
 
 
 class CollectionUpdated(SubscriptionObjectType, CollectionBase):
@@ -1168,9 +1504,7 @@ class CollectionUpdated(SubscriptionObjectType, CollectionBase):
         root_type = "Collection"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when collection is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when collection is updated." + ADDED_IN_32
 
 
 class CollectionDeleted(SubscriptionObjectType, CollectionBase):
@@ -1178,9 +1512,7 @@ class CollectionDeleted(SubscriptionObjectType, CollectionBase):
         root_type = "Collection"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when collection is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when collection is deleted." + ADDED_IN_32
 
 
 class CollectionMetadataUpdated(SubscriptionObjectType, CollectionBase):
@@ -1188,11 +1520,7 @@ class CollectionMetadataUpdated(SubscriptionObjectType, CollectionBase):
         root_type = "Collection"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when collection metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when collection metadata is updated." + ADDED_IN_38
 
 
 class CheckoutBase(AbstractType):
@@ -1212,9 +1540,7 @@ class CheckoutCreated(SubscriptionObjectType, CheckoutBase):
         root_type = "Checkout"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new checkout is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new checkout is created." + ADDED_IN_32
 
 
 class CheckoutUpdated(SubscriptionObjectType, CheckoutBase):
@@ -1222,9 +1548,7 @@ class CheckoutUpdated(SubscriptionObjectType, CheckoutBase):
         root_type = "Checkout"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when checkout is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when checkout is updated." + ADDED_IN_32
 
 
 class CheckoutFullyPaid(SubscriptionObjectType, CheckoutBase):
@@ -1244,11 +1568,7 @@ class CheckoutMetadataUpdated(SubscriptionObjectType, CheckoutBase):
         root_type = "Checkout"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when checkout metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when checkout metadata is updated." + ADDED_IN_38
 
 
 class PageBase(AbstractType):
@@ -1267,9 +1587,7 @@ class PageCreated(SubscriptionObjectType, PageBase):
         root_type = "Page"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new page is created." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new page is created." + ADDED_IN_32
 
 
 class PageUpdated(SubscriptionObjectType, PageBase):
@@ -1277,7 +1595,7 @@ class PageUpdated(SubscriptionObjectType, PageBase):
         root_type = "Page"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when page is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        description = "Event sent when page is updated." + ADDED_IN_32
 
 
 class PageDeleted(SubscriptionObjectType, PageBase):
@@ -1285,7 +1603,7 @@ class PageDeleted(SubscriptionObjectType, PageBase):
         root_type = "Page"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when page is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        description = "Event sent when page is deleted." + ADDED_IN_32
 
 
 class PageTypeBase(AbstractType):
@@ -1305,9 +1623,7 @@ class PageTypeCreated(SubscriptionObjectType, PageTypeBase):
         root_type = "PageType"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new page type is created." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new page type is created." + ADDED_IN_35
 
 
 class PageTypeUpdated(SubscriptionObjectType, PageTypeBase):
@@ -1315,9 +1631,7 @@ class PageTypeUpdated(SubscriptionObjectType, PageTypeBase):
         root_type = "PageType"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when page type is updated." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when page type is updated." + ADDED_IN_35
 
 
 class PageTypeDeleted(SubscriptionObjectType, PageTypeBase):
@@ -1325,9 +1639,7 @@ class PageTypeDeleted(SubscriptionObjectType, PageTypeBase):
         root_type = "PageType"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when page type is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when page type is deleted." + ADDED_IN_35
 
 
 class PermissionGroupBase(AbstractType):
@@ -1347,11 +1659,7 @@ class PermissionGroupCreated(SubscriptionObjectType, PermissionGroupBase):
         root_type = "Group"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new permission group is created."
-            + ADDED_IN_36
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new permission group is created." + ADDED_IN_36
 
 
 class PermissionGroupUpdated(SubscriptionObjectType, PermissionGroupBase):
@@ -1359,11 +1667,7 @@ class PermissionGroupUpdated(SubscriptionObjectType, PermissionGroupBase):
         root_type = "Group"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when permission group is updated."
-            + ADDED_IN_36
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when permission group is updated." + ADDED_IN_36
 
 
 class PermissionGroupDeleted(SubscriptionObjectType, PermissionGroupBase):
@@ -1371,11 +1675,7 @@ class PermissionGroupDeleted(SubscriptionObjectType, PermissionGroupBase):
         root_type = "Group"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when permission group is deleted."
-            + ADDED_IN_36
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when permission group is deleted." + ADDED_IN_36
 
 
 class ShippingPriceBase(AbstractType):
@@ -1410,11 +1710,8 @@ class ShippingPriceCreated(SubscriptionObjectType, ShippingPriceBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Event sent when new shipping price is created."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new shipping price is created." + ADDED_IN_32
+        doc_category = DOC_CATEGORY_SHIPPING
 
 
 class ShippingPriceUpdated(SubscriptionObjectType, ShippingPriceBase):
@@ -1422,9 +1719,8 @@ class ShippingPriceUpdated(SubscriptionObjectType, ShippingPriceBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Event sent when shipping price is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when shipping price is updated." + ADDED_IN_32
+        doc_category = DOC_CATEGORY_SHIPPING
 
 
 class ShippingPriceDeleted(SubscriptionObjectType, ShippingPriceBase):
@@ -1432,9 +1728,8 @@ class ShippingPriceDeleted(SubscriptionObjectType, ShippingPriceBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Event sent when shipping price is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when shipping price is deleted." + ADDED_IN_32
+        doc_category = DOC_CATEGORY_SHIPPING
 
 
 class ShippingZoneBase(AbstractType):
@@ -1457,11 +1752,7 @@ class ShippingZoneCreated(SubscriptionObjectType, ShippingZoneBase):
         root_type = "ShippingZone"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new shipping zone is created."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new shipping zone is created." + ADDED_IN_32
 
 
 class ShippingZoneUpdated(SubscriptionObjectType, ShippingZoneBase):
@@ -1469,9 +1760,7 @@ class ShippingZoneUpdated(SubscriptionObjectType, ShippingZoneBase):
         root_type = "ShippingZone"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when shipping zone is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when shipping zone is updated." + ADDED_IN_32
 
 
 class ShippingZoneDeleted(SubscriptionObjectType, ShippingZoneBase):
@@ -1479,9 +1768,7 @@ class ShippingZoneDeleted(SubscriptionObjectType, ShippingZoneBase):
         root_type = "ShippingZone"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when shipping zone is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when shipping zone is deleted." + ADDED_IN_32
 
 
 class ShippingZoneMetadataUpdated(SubscriptionObjectType, ShippingZoneBase):
@@ -1489,11 +1776,7 @@ class ShippingZoneMetadataUpdated(SubscriptionObjectType, ShippingZoneBase):
         root_type = "ShippingZone"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when shipping zone metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when shipping zone metadata is updated." + ADDED_IN_38
 
 
 class StaffCreated(SubscriptionObjectType, UserBase):
@@ -1501,9 +1784,7 @@ class StaffCreated(SubscriptionObjectType, UserBase):
         root_type = "User"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new staff user is created." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new staff user is created." + ADDED_IN_35
 
 
 class StaffUpdated(SubscriptionObjectType, UserBase):
@@ -1511,9 +1792,7 @@ class StaffUpdated(SubscriptionObjectType, UserBase):
         root_type = "User"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when staff user is updated." + ADDED_IN_35 + PREVIEW_FEATURE
-        )
+        description = "Event sent when staff user is updated." + ADDED_IN_35
 
 
 class StaffDeleted(SubscriptionObjectType, UserBase):
@@ -1521,9 +1800,19 @@ class StaffDeleted(SubscriptionObjectType, UserBase):
         root_type = "User"
         enable_dry_run = True
         interfaces = (Event,)
+        description = "Event sent when staff user is deleted." + ADDED_IN_35
+
+
+class StaffSetPasswordRequested(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
         description = (
-            "Event sent when staff user is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
+            "Event sent when setting a new password for staff is requested."
+            + ADDED_IN_315
         )
+        doc_category = DOC_CATEGORY_USERS
 
 
 class TransactionAction(SubscriptionObjectType, AbstractType):
@@ -1535,12 +1824,23 @@ class TransactionAction(SubscriptionObjectType, AbstractType):
     amount = PositiveDecimal(
         description="Transaction request amount. Null when action type is VOID.",
     )
+    currency = graphene.String(
+        description="Currency code." + ADDED_IN_316,
+        required=True,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
     @staticmethod
     def resolve_amount(root: TransactionActionData, _info: ResolveInfo):
         if root.action_value:
             return quantize_price(root.action_value, root.transaction.currency)
         return None
+
+    @staticmethod
+    def resolve_currency(root: TransactionActionData, _info: ResolveInfo):
+        return root.transaction.currency
 
 
 class TransactionActionBase(AbstractType):
@@ -1567,20 +1867,6 @@ class TransactionActionBase(AbstractType):
         return transaction_action_data
 
 
-class TransactionActionRequest(TransactionActionBase, SubscriptionObjectType):
-    class Meta:
-        root_type = None
-        enable_dry_run = False
-        interfaces = (Event,)
-        description = (
-            "Event sent when transaction action is requested."
-            + ADDED_IN_34
-            + "\n\nDEPRECATED: this subscription will be removed in Saleor 3.14 "
-            + "(Preview Feature). Use `TransactionChargeRequested`, "
-            + "`TransactionRefundRequested`, `TransactionCancelationRequested` instead."
-        )
-
-
 class TransactionChargeRequested(TransactionActionBase, SubscriptionObjectType):
     class Meta:
         interfaces = (Event,)
@@ -1591,9 +1877,17 @@ class TransactionChargeRequested(TransactionActionBase, SubscriptionObjectType):
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
+    granted_refund = graphene.Field(
+        OrderGrantedRefund,
+        description="Granted refund related to refund request."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
+    )
+
     class Meta:
         interfaces = (Event,)
         root_type = None
@@ -1603,6 +1897,13 @@ class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+    @staticmethod
+    def resolve_granted_refund(root, _info: ResolveInfo):
+        _, transaction_action_data = root
+        transaction_action_data: TransactionActionData
+        return transaction_action_data.granted_refund
 
 
 class TransactionCancelationRequested(TransactionActionBase, SubscriptionObjectType):
@@ -1615,6 +1916,7 @@ class TransactionCancelationRequested(TransactionActionBase, SubscriptionObjectT
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentGatewayInitializeSession(SubscriptionObjectType):
@@ -1623,7 +1925,7 @@ class PaymentGatewayInitializeSession(SubscriptionObjectType):
     )
     data = graphene.Field(
         JSON,
-        description="Payment gateway data in JSON format, recieved from storefront.",
+        description="Payment gateway data in JSON format, received from storefront.",
     )
     amount = graphene.Field(
         PositiveDecimal,
@@ -1639,6 +1941,7 @@ class PaymentGatewayInitializeSession(SubscriptionObjectType):
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
     @staticmethod
     def resolve_source_object(root, _info: ResolveInfo):
@@ -1666,6 +1969,9 @@ class TransactionProcessAction(SubscriptionObjectType, AbstractType):
     currency = graphene.String(description="Currency of the amount.", required=True)
     action_type = graphene.Field(TransactionFlowStrategyEnum, required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
 
 class TransactionSessionBase(SubscriptionObjectType, AbstractType):
     transaction = graphene.Field(
@@ -1676,10 +1982,17 @@ class TransactionSessionBase(SubscriptionObjectType, AbstractType):
     )
     data = graphene.Field(
         JSON,
-        description="Payment gateway data in JSON format, recieved from storefront.",
+        description="Payment gateway data in JSON format, received from storefront.",
     )
     merchant_reference = graphene.String(
         description="Merchant reference assigned to this payment.", required=True
+    )
+    customer_ip_address = graphene.String(
+        description=(
+            "The customer's IP address. If not provided as a parameter in the "
+            "mutation, Saleor will try to determine the customer's IP address on its "
+            "own." + ADDED_IN_316
+        ),
     )
     action = graphene.Field(
         TransactionProcessAction,
@@ -1707,7 +2020,7 @@ class TransactionSessionBase(SubscriptionObjectType, AbstractType):
     @classmethod
     def resolve_data(cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo):
         _, transaction_session_data = root
-        return transaction_session_data.payment_gateway.data
+        return transaction_session_data.payment_gateway_data.data
 
     @classmethod
     def resolve_merchant_reference(
@@ -1723,6 +2036,13 @@ class TransactionSessionBase(SubscriptionObjectType, AbstractType):
         _, transaction_session_data = root
         return transaction_session_data.action
 
+    @classmethod
+    def resolve_customer_ip_address(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        _, transaction_session_data = root
+        return transaction_session_data.customer_ip_address
+
 
 class TransactionInitializeSession(TransactionSessionBase):
     class Meta:
@@ -1734,6 +2054,7 @@ class TransactionInitializeSession(TransactionSessionBase):
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionProcessSession(TransactionSessionBase):
@@ -1746,12 +2067,55 @@ class TransactionProcessSession(TransactionSessionBase):
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class ListStoredPaymentMethods(SubscriptionObjectType):
+    user = graphene.Field(
+        UserType,
+        description=(
+            "The user for which the app should return a list of payment methods."
+        ),
+        required=True,
+    )
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description=(
+            "Channel in context which was used to fetch the list of payment methods."
+        ),
+        required=True,
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "List payment methods stored for the user by payment gateway."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+    @classmethod
+    def resolve_user(
+        cls, root: tuple[str, ListStoredPaymentMethodsRequestData], _info: ResolveInfo
+    ):
+        _, payment_method_data = root
+        return payment_method_data.user
+
+    @classmethod
+    def resolve_channel(
+        cls, root: tuple[str, ListStoredPaymentMethodsRequestData], _info: ResolveInfo
+    ):
+        _, payment_method_data = root
+        return payment_method_data.channel
 
 
 class TransactionItemMetadataUpdated(SubscriptionObjectType):
     transaction = graphene.Field(
         TransactionItem,
-        description="Look up a transaction." + PREVIEW_FEATURE,
+        description="Look up a transaction.",
     )
 
     class Meta:
@@ -1759,15 +2123,192 @@ class TransactionItemMetadataUpdated(SubscriptionObjectType):
         enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when transaction item metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
+            "Event sent when transaction item metadata is updated." + ADDED_IN_38
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
     @staticmethod
     def resolve_transaction(root, _info: ResolveInfo):
         _, transaction_item = root
         return transaction_item
+
+
+class StoredPaymentMethodDeleteRequested(SubscriptionObjectType):
+    user = graphene.Field(
+        UserType,
+        description=(
+            "The user for which the app should proceed with payment method delete "
+            "request."
+        ),
+        required=True,
+    )
+    payment_method_id = graphene.Field(
+        graphene.String,
+        description=(
+            "The ID of the payment method that should be deleted by the payment "
+            "gateway."
+        ),
+        required=True,
+    )
+
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description="Channel related to the requested delete action.",
+        required=True,
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user requests to delete a payment method."
+            + ADDED_IN_316
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+    @classmethod
+    def resolve_user(
+        cls, root: tuple[str, StoredPaymentMethodRequestDeleteData], _info: ResolveInfo
+    ):
+        _, payment_method_data = root
+        return payment_method_data.user
+
+    @classmethod
+    def resolve_payment_method_id(
+        cls, root: tuple[str, StoredPaymentMethodRequestDeleteData], _info: ResolveInfo
+    ):
+        _, payment_method_data = root
+        return payment_method_data.payment_method_id
+
+    @classmethod
+    def resolve_channel(
+        cls, root: tuple[str, StoredPaymentMethodRequestDeleteData], _info: ResolveInfo
+    ):
+        _, payment_method_data = root
+        return payment_method_data.channel
+
+
+class PaymentMethodTokenizationBase(AbstractType):
+    user = graphene.Field(
+        UserType,
+        description="The user related to the requested action.",
+        required=True,
+    )
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description="Channel related to the requested action.",
+        required=True,
+    )
+    data = graphene.Field(
+        JSON,
+        description="Payment gateway data in JSON format, received from storefront.",
+    )
+
+    @classmethod
+    def resolve_channel(
+        cls,
+        root: tuple[str, PaymentMethodTokenizationBaseRequestData],
+        _info: ResolveInfo,
+    ):
+        _, payment_method_data = root
+        return payment_method_data.channel
+
+    @classmethod
+    def resolve_user(
+        cls,
+        root: tuple[str, PaymentMethodTokenizationBaseRequestData],
+        _info: ResolveInfo,
+    ):
+        _, payment_method_data = root
+        return payment_method_data.user
+
+    @classmethod
+    def resolve_data(
+        cls,
+        root: tuple[str, PaymentMethodTokenizationBaseRequestData],
+        _info: ResolveInfo,
+    ):
+        _, payment_method_data = root
+        return payment_method_data.data
+
+
+class PaymentGatewayInitializeTokenizationSession(
+    SubscriptionObjectType, PaymentMethodTokenizationBase
+):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent to initialize a new session in payment gateway to store the "
+            "payment method. " + ADDED_IN_316 + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class PaymentMethodInitializeTokenizationSession(
+    SubscriptionObjectType, PaymentMethodTokenizationBase
+):
+    payment_flow_to_support = TokenizedPaymentFlowEnum(
+        description=(
+            "The payment flow that the tokenized payment method should support."
+        ),
+        required=True,
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user requests a tokenization of payment method."
+            + ADDED_IN_316
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+    @classmethod
+    def resolve_payment_flow_to_support(
+        cls,
+        root: tuple[str, PaymentMethodInitializeTokenizationRequestData],
+        _info: ResolveInfo,
+    ):
+        _, payment_method_data = root
+        return payment_method_data.payment_flow_to_support
+
+
+class PaymentMethodProcessTokenizationSession(
+    SubscriptionObjectType, PaymentMethodTokenizationBase
+):
+    id = graphene.String(
+        description=(
+            "The ID returned by app from "
+            "`PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION` webhook."
+        ),
+        required=True,
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user continues a tokenization of payment method."
+            + ADDED_IN_316
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+    @classmethod
+    def resolve_id(
+        cls,
+        root: tuple[str, PaymentMethodProcessTokenizationRequestData],
+        _info: ResolveInfo,
+    ):
+        _, payment_method_data = root
+        return payment_method_data.id
 
 
 class TranslationTypes(Union):
@@ -1777,6 +2318,8 @@ class TranslationTypes(Union):
     @classmethod
     def resolve_type(cls, instance, info: ResolveInfo):
         instance_type = type(instance)
+        if instance_type == PromotionTranslation and instance.promotion.old_sale_id:
+            return translation_types.SaleTranslation
         if instance_type in TRANSLATIONS_TYPES_MAP:
             return TRANSLATIONS_TYPES_MAP[instance_type]
 
@@ -1799,11 +2342,8 @@ class TranslationCreated(SubscriptionObjectType, TranslationBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Event sent when new translation is created."
-            + ADDED_IN_32
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new translation is created." + ADDED_IN_32
+        doc_category = DOC_CATEGORY_MISC
 
 
 class TranslationUpdated(SubscriptionObjectType, TranslationBase):
@@ -1811,9 +2351,8 @@ class TranslationUpdated(SubscriptionObjectType, TranslationBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Event sent when translation is updated." + ADDED_IN_32 + PREVIEW_FEATURE
-        )
+        description = "Event sent when translation is updated." + ADDED_IN_32
+        doc_category = DOC_CATEGORY_MISC
 
 
 class VoucherBase(AbstractType):
@@ -1836,9 +2375,7 @@ class VoucherCreated(SubscriptionObjectType, VoucherBase):
         root_type = "Voucher"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new voucher is created." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new voucher is created." + ADDED_IN_34
 
 
 class VoucherUpdated(SubscriptionObjectType, VoucherBase):
@@ -1846,9 +2383,7 @@ class VoucherUpdated(SubscriptionObjectType, VoucherBase):
         root_type = "Voucher"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when voucher is updated." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when voucher is updated." + ADDED_IN_34
 
 
 class VoucherDeleted(SubscriptionObjectType, VoucherBase):
@@ -1856,9 +2391,7 @@ class VoucherDeleted(SubscriptionObjectType, VoucherBase):
         root_type = "Voucher"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when voucher is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when voucher is deleted." + ADDED_IN_34
 
 
 class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
@@ -1866,11 +2399,21 @@ class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
         root_type = "Voucher"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when voucher metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when voucher metadata is updated." + ADDED_IN_38
+
+
+class ShopMetadataUpdated(SubscriptionObjectType, AbstractType):
+    shop = graphene.Field(Shop, description="Shop data.")
+
+    class Meta:
+        root_type = "Shop"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when shop metadata is updated." + ADDED_IN_315
+
+    @staticmethod
+    def resolve_shop(root, _info: ResolveInfo):
+        return Shop()
 
 
 class PaymentBase(AbstractType):
@@ -1890,7 +2433,8 @@ class PaymentAuthorize(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Authorize payment." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "Authorize payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentCaptureEvent(SubscriptionObjectType, PaymentBase):
@@ -1898,7 +2442,8 @@ class PaymentCaptureEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Capture payment." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "Capture payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentRefundEvent(SubscriptionObjectType, PaymentBase):
@@ -1906,7 +2451,8 @@ class PaymentRefundEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Refund payment." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "Refund payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentVoidEvent(SubscriptionObjectType, PaymentBase):
@@ -1914,7 +2460,8 @@ class PaymentVoidEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Void payment." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "Void payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentConfirmEvent(SubscriptionObjectType, PaymentBase):
@@ -1922,7 +2469,8 @@ class PaymentConfirmEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Confirm payment." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "Confirm payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentProcessEvent(SubscriptionObjectType, PaymentBase):
@@ -1930,7 +2478,8 @@ class PaymentProcessEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Process payment." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "Process payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentListGateways(SubscriptionObjectType, CheckoutBase):
@@ -1938,15 +2487,15 @@ class PaymentListGateways(SubscriptionObjectType, CheckoutBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "List payment gateways." + ADDED_IN_36 + PREVIEW_FEATURE
+        description = "List payment gateways." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
-        + ADDED_IN_36
-        + PREVIEW_FEATURE,
+        + ADDED_IN_36,
     )
 
     @staticmethod
@@ -1959,9 +2508,8 @@ class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "List shipping methods for checkout." + ADDED_IN_36 + PREVIEW_FEATURE
-        )
+        description = "List shipping methods for checkout." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
 class CalculateTaxes(SubscriptionObjectType):
@@ -1974,10 +2522,9 @@ class CalculateTaxes(SubscriptionObjectType):
         enable_dry_run = False
         interfaces = (Event,)
         description = (
-            "Synchronous webhook for calculating checkout/order taxes."
-            + ADDED_IN_37
-            + PREVIEW_FEATURE
+            "Synchronous webhook for calculating checkout/order taxes." + ADDED_IN_37
         )
+        doc_category = DOC_CATEGORY_TAXES
 
     @staticmethod
     def resolve_tax_base(root, _info: ResolveInfo):
@@ -1989,8 +2536,7 @@ class CheckoutFilterShippingMethods(SubscriptionObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
-        + ADDED_IN_36
-        + PREVIEW_FEATURE,
+        + ADDED_IN_36,
     )
 
     @staticmethod
@@ -2003,17 +2549,15 @@ class CheckoutFilterShippingMethods(SubscriptionObjectType, CheckoutBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Filter shipping methods for checkout." + ADDED_IN_36 + PREVIEW_FEATURE
-        )
+        description = "Filter shipping methods for checkout." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
 class OrderFilterShippingMethods(SubscriptionObjectType, OrderBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
-        + ADDED_IN_36
-        + PREVIEW_FEATURE,
+        + ADDED_IN_36,
     )
 
     @staticmethod
@@ -2036,9 +2580,8 @@ class OrderFilterShippingMethods(SubscriptionObjectType, OrderBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = (
-            "Filter shipping methods for order." + ADDED_IN_36 + PREVIEW_FEATURE
-        )
+        description = "Filter shipping methods for order." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class WarehouseBase(AbstractType):
@@ -2058,9 +2601,7 @@ class WarehouseCreated(SubscriptionObjectType, WarehouseBase):
         root_type = "Warehouse"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new warehouse is created." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when new warehouse is created." + ADDED_IN_34
 
 
 class WarehouseUpdated(SubscriptionObjectType, WarehouseBase):
@@ -2068,9 +2609,7 @@ class WarehouseUpdated(SubscriptionObjectType, WarehouseBase):
         root_type = "Warehouse"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when warehouse is updated." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when warehouse is updated." + ADDED_IN_34
 
 
 class WarehouseDeleted(SubscriptionObjectType, WarehouseBase):
@@ -2078,9 +2617,7 @@ class WarehouseDeleted(SubscriptionObjectType, WarehouseBase):
         root_type = "Warehouse"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when warehouse is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Event sent when warehouse is deleted." + ADDED_IN_34
 
 
 class WarehouseMetadataUpdated(SubscriptionObjectType, WarehouseBase):
@@ -2088,18 +2625,17 @@ class WarehouseMetadataUpdated(SubscriptionObjectType, WarehouseBase):
         root_type = "Warehouse"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when warehouse metadata is updated."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when warehouse metadata is updated." + ADDED_IN_38
 
 
 class Subscription(SubscriptionObjectType):
     event = graphene.Field(
         Event,
-        description="Look up subscription event." + ADDED_IN_32 + PREVIEW_FEATURE,
+        description="Look up subscription event." + ADDED_IN_32,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_MISC
 
     @staticmethod
     def resolve_event(root, info: ResolveInfo):
@@ -2119,6 +2655,7 @@ class ThumbnailCreated(SubscriptionObjectType):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when thumbnail is created." + ADDED_IN_312
+        doc_category = DOC_CATEGORY_MISC
 
     @staticmethod
     def resolve_id(root, info: ResolveInfo):
@@ -2146,6 +2683,13 @@ class ThumbnailCreated(SubscriptionObjectType):
 
 
 WEBHOOK_TYPES_MAP = {
+    WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: AccountConfirmationRequested,
+    WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED: AccountChangeEmailRequested,
+    WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED: AccountEmailChanged,
+    WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED: AccountSetPasswordRequested,
+    WebhookEventAsyncType.ACCOUNT_CONFIRMED: AccountConfirmed,
+    WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: AccountDeleteRequested,
+    WebhookEventAsyncType.ACCOUNT_DELETED: AccountDeleted,
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
     WebhookEventAsyncType.ADDRESS_DELETED: AddressDeleted,
@@ -2166,11 +2710,14 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.CHANNEL_UPDATED: ChannelUpdated,
     WebhookEventAsyncType.CHANNEL_DELETED: ChannelDeleted,
     WebhookEventAsyncType.CHANNEL_STATUS_CHANGED: ChannelStatusChanged,
+    WebhookEventAsyncType.CHANNEL_METADATA_UPDATED: ChannelMetadataUpdated,
     WebhookEventAsyncType.GIFT_CARD_CREATED: GiftCardCreated,
     WebhookEventAsyncType.GIFT_CARD_UPDATED: GiftCardUpdated,
     WebhookEventAsyncType.GIFT_CARD_DELETED: GiftCardDeleted,
+    WebhookEventAsyncType.GIFT_CARD_SENT: GiftCardSent,
     WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: GiftCardStatusChanged,
     WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED: GiftCardMetadataUpdated,
+    WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED: GiftCardExportCompleted,
     WebhookEventAsyncType.MENU_CREATED: MenuCreated,
     WebhookEventAsyncType.MENU_UPDATED: MenuUpdated,
     WebhookEventAsyncType.MENU_DELETED: MenuDeleted,
@@ -2181,9 +2728,14 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ORDER_UPDATED: OrderUpdated,
     WebhookEventAsyncType.ORDER_CONFIRMED: OrderConfirmed,
     WebhookEventAsyncType.ORDER_FULLY_PAID: OrderFullyPaid,
+    WebhookEventAsyncType.ORDER_PAID: OrderPaid,
+    WebhookEventAsyncType.ORDER_REFUNDED: OrderRefunded,
+    WebhookEventAsyncType.ORDER_FULLY_REFUNDED: OrderFullyRefunded,
     WebhookEventAsyncType.ORDER_FULFILLED: OrderFulfilled,
     WebhookEventAsyncType.ORDER_CANCELLED: OrderCancelled,
+    WebhookEventAsyncType.ORDER_EXPIRED: OrderExpired,
     WebhookEventAsyncType.ORDER_METADATA_UPDATED: OrderMetadataUpdated,
+    WebhookEventAsyncType.ORDER_BULK_CREATED: OrderBulkCreated,
     WebhookEventAsyncType.DRAFT_ORDER_CREATED: DraftOrderCreated,
     WebhookEventAsyncType.DRAFT_ORDER_UPDATED: DraftOrderUpdated,
     WebhookEventAsyncType.DRAFT_ORDER_DELETED: DraftOrderDeleted,
@@ -2191,6 +2743,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_UPDATED: ProductUpdated,
     WebhookEventAsyncType.PRODUCT_DELETED: ProductDeleted,
     WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: ProductMetadataUpdated,
+    WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED: ProductExportCompleted,
     WebhookEventAsyncType.PRODUCT_MEDIA_CREATED: ProductMediaCreated,
     WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED: ProductMediaUpdated,
     WebhookEventAsyncType.PRODUCT_MEDIA_DELETED: ProductMediaDeleted,
@@ -2207,10 +2760,19 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.SALE_UPDATED: SaleUpdated,
     WebhookEventAsyncType.SALE_DELETED: SaleDeleted,
     WebhookEventAsyncType.SALE_TOGGLE: SaleToggle,
+    WebhookEventAsyncType.PROMOTION_CREATED: PromotionCreated,
+    WebhookEventAsyncType.PROMOTION_UPDATED: PromotionUpdated,
+    WebhookEventAsyncType.PROMOTION_DELETED: PromotionDeleted,
+    WebhookEventAsyncType.PROMOTION_STARTED: PromotionStarted,
+    WebhookEventAsyncType.PROMOTION_ENDED: PromotionEnded,
+    WebhookEventAsyncType.PROMOTION_RULE_CREATED: PromotionRuleCreated,
+    WebhookEventAsyncType.PROMOTION_RULE_UPDATED: PromotionRuleUpdated,
+    WebhookEventAsyncType.PROMOTION_RULE_DELETED: PromotionRuleDeleted,
     WebhookEventAsyncType.INVOICE_REQUESTED: InvoiceRequested,
     WebhookEventAsyncType.INVOICE_DELETED: InvoiceDeleted,
     WebhookEventAsyncType.INVOICE_SENT: InvoiceSent,
     WebhookEventAsyncType.FULFILLMENT_CREATED: FulfillmentCreated,
+    WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED: FulfillmentTrackingNumberUpdated,  # noqa: E501
     WebhookEventAsyncType.FULFILLMENT_CANCELED: FulfillmentCanceled,
     WebhookEventAsyncType.FULFILLMENT_APPROVED: FulfillmentApproved,
     WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED: FulfillmentMetadataUpdated,
@@ -2244,7 +2806,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.STAFF_CREATED: StaffCreated,
     WebhookEventAsyncType.STAFF_UPDATED: StaffUpdated,
     WebhookEventAsyncType.STAFF_DELETED: StaffDeleted,
-    WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: TransactionActionRequest,
+    WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED: StaffSetPasswordRequested,
     WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: (
         TransactionItemMetadataUpdated
     ),
@@ -2271,7 +2833,7 @@ WEBHOOK_TYPES_MAP = {
     ),
     WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED: TransactionChargeRequested,
     WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED: TransactionRefundRequested,
-    WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: (OrderFilterShippingMethods),
+    WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: OrderFilterShippingMethods,
     WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
         CheckoutFilterShippingMethods
     ),
@@ -2285,4 +2847,18 @@ WEBHOOK_TYPES_MAP = {
     ),
     WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: TransactionInitializeSession,
     WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
+    WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
+    WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS: ListStoredPaymentMethods,
+    WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED: (
+        StoredPaymentMethodDeleteRequested
+    ),
+    WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION: (
+        PaymentGatewayInitializeTokenizationSession
+    ),
+    WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION: (
+        PaymentMethodInitializeTokenizationSession
+    ),
+    WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION: (
+        PaymentMethodProcessTokenizationSession
+    ),
 }

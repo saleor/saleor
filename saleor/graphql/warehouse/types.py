@@ -15,7 +15,6 @@ from ..core.descriptions import (
     ADDED_IN_310,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.fields import ConnectionField, PermissionsField
@@ -70,14 +69,12 @@ class WarehouseUpdateInput(WarehouseInput):
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
         description=(
-            "Click and collect options: local, all or disabled."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            "Click and collect options: local, all or disabled." + ADDED_IN_31
         ),
         required=False,
     )
     is_private = graphene.Boolean(
-        description="Visibility of warehouse stocks." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="Visibility of warehouse stocks." + ADDED_IN_31,
         required=False,
     )
 
@@ -86,12 +83,18 @@ class WarehouseUpdateInput(WarehouseInput):
 
 
 class Warehouse(ModelObjectType[models.Warehouse]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
-    slug = graphene.String(required=True)
-    email = graphene.String(required=True)
-    is_private = graphene.Boolean(required=True)
-    address = graphene.Field("saleor.graphql.account.types.Address", required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the warehouse.")
+    name = graphene.String(required=True, description="Warehouse name.")
+    slug = graphene.String(required=True, description="Warehouse slug.")
+    email = graphene.String(required=True, description="Warehouse email.")
+    is_private = graphene.Boolean(
+        required=True, description="Determine if the warehouse is private."
+    )
+    address = graphene.Field(
+        "saleor.graphql.account.types.Address",
+        required=True,
+        description="Address of the warehouse.",
+    )
     company_name = graphene.String(
         required=True,
         description="Warehouse company name.",
@@ -101,15 +104,14 @@ class Warehouse(ModelObjectType[models.Warehouse]):
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
         description=(
-            "Click and collect options: local, all or disabled."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            "Click and collect options: local, all or disabled." + ADDED_IN_31
         ),
         required=True,
     )
     shipping_zones = ConnectionField(
         "saleor.graphql.shipping.types.ShippingZoneCountableConnection",
         required=True,
+        description="Shipping zones supported by the warehouse.",
     )
     external_reference = graphene.String(
         description=f"External ID of this warehouse. {ADDED_IN_310}", required=False
@@ -164,10 +166,14 @@ class WarehouseCountableConnection(CountableConnection):
 
 
 class Stock(ModelObjectType[models.Stock]):
-    id = graphene.GlobalID(required=True)
-    warehouse = graphene.Field(Warehouse, required=True)
+    id = graphene.GlobalID(required=True, description="The ID of stock.")
+    warehouse = graphene.Field(
+        Warehouse, required=True, description="The warehouse associated with the stock."
+    )
     product_variant = graphene.Field(
-        "saleor.graphql.product.types.ProductVariant", required=True
+        "saleor.graphql.product.types.ProductVariant",
+        required=True,
+        description="Information about the product variant.",
     )
     quantity = PermissionsField(
         graphene.Int,
@@ -253,7 +259,7 @@ class StockCountableConnection(CountableConnection):
 
 
 class Allocation(BaseObjectType):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of allocation.")
     quantity = PermissionsField(
         graphene.Int,
         required=True,

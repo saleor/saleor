@@ -60,6 +60,17 @@ def test_validate_end_is_after_start_raise_error():
     assert error.value.message == "End date cannot be before the start date."
 
 
+@pytest.mark.parametrize(
+    "start_date, end_date",
+    [
+        (timezone.now() - timedelta(days=365), timezone.now() + timedelta(days=365)),
+        (timezone.now() + timedelta(days=365), None),
+    ],
+)
+def test_validate_end_is_after_start(start_date, end_date):
+    validate_end_is_after_start(start_date, end_date)
+
+
 def test_validate_one_of_args_is_in_query():
     assert validate_one_of_args_is_in_query("arg1", "present", "arg2", None) is None
 
@@ -99,6 +110,12 @@ def test_clean_seo_fields():
     clean_seo_fields(data)
     assert data["seo_title"] == title
     assert data["seo_description"] == description
+
+
+def test_clean_seo_fields_accepts_null():
+    data = {"seo": None}
+    clean_seo_fields(data)
+    assert not data
 
 
 @pytest.mark.parametrize(

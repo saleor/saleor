@@ -36,7 +36,7 @@ def test_query_orders_with_sort(
     order_sort,
     result_order,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     address,
     channel_USD,
 ):
@@ -82,7 +82,7 @@ def test_query_orders_with_sort(
         )
     )
     variables = {"sort_by": order_sort}
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(QUERY_ORDER_WITH_SORT, variables)
     content = get_graphql_content(response)
     orders = content["data"]["orders"]["edges"]
@@ -116,8 +116,10 @@ SEARCH_ORDERS_QUERY = """
 """
 
 
-def test_sort_order_by_rank_without_search(staff_api_client, permission_manage_orders):
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+def test_sort_order_by_rank_without_search(
+    staff_api_client, permission_group_manage_orders
+):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     variables = {
         "sortBy": {"field": "RANK", "direction": "DESC"},
@@ -130,3 +132,26 @@ def test_sort_order_by_rank_without_search(staff_api_client, permission_manage_o
         content["errors"][0]["message"]
         == "Sorting by RANK is available only when using a search filter."
     )
+
+
+def test_sort_order_by_rank_with_nonetype_search(
+    staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    variables = {
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "search": None,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(SEARCH_ORDERS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+
+    errors = content["errors"]
+    expected_message = "Sorting by RANK is available only when using a search filter."
+    assert len(errors) == 1
+    assert errors[0]["message"] == expected_message

@@ -7,18 +7,14 @@ from ....checkout.utils import (
     invalidate_checkout_prices,
 )
 from ....core.tracing import traced_atomic_transaction
+from ....webhook.event_types import WebhookEventAsyncType
 from ...account.types import AddressInput
 from ...core import ResolveInfo
-from ...core.descriptions import (
-    ADDED_IN_34,
-    ADDED_IN_35,
-    DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
-)
+from ...core.descriptions import ADDED_IN_34, ADDED_IN_35, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...discount.dataloaders import load_discounts
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
@@ -52,7 +48,6 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             description=(
                 "The rules for changing validation for received billing address data."
                 + ADDED_IN_35
-                + PREVIEW_FEATURE
             ),
         )
 
@@ -61,6 +56,12 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
+                description="A checkout was updated.",
+            )
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -96,13 +97,11 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 checkout, billing_address
             )
             lines, _ = fetch_checkout_lines(checkout)
-            discounts = load_discounts(info.context)
-            checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+            checkout_info = fetch_checkout_info(checkout, lines, manager)
             invalidate_prices_updated_fields = invalidate_checkout_prices(
                 checkout_info,
                 lines,
                 manager,
-                discounts,
                 recalculate_discount=False,
                 save=False,
             )

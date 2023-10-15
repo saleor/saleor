@@ -112,14 +112,18 @@ class CostValidator(ValidationRule):
                     fragment_type = self.context.get_schema().get_type(
                         fragment.type_condition.name.value
                     )
-                    node_cost = self.compute_node_cost(fragment, fragment_type)
+                    node_cost = self.compute_node_cost(
+                        fragment, fragment_type, self.operation_multipliers
+                    )
             if isinstance(child_node, InlineFragment):
                 inline_fragment_type = type_def
                 if child_node.type_condition and child_node.type_condition.name:
                     inline_fragment_type = self.context.get_schema().get_type(
                         child_node.type_condition.name.value
                     )
-                node_cost = self.compute_node_cost(child_node, inline_fragment_type)
+                node_cost = self.compute_node_cost(
+                    child_node, inline_fragment_type, self.operation_multipliers
+                )
             total += node_cost
         return total
 

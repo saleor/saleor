@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Union
 from ...core.taxes import TaxedMoney, zero_taxed_money
 from ...core.tracing import traced_atomic_transaction
 from ..models import Product, ProductChannelListing
-from ..tasks import update_products_discounted_prices_task
+from ..tasks import update_products_discounted_prices_for_promotion_task
 
 if TYPE_CHECKING:
     from datetime import date, datetime
@@ -61,7 +61,7 @@ def delete_categories(categories_ids: List[Union[str, int]], manager):
     for product in products:
         manager.product_updated(product)
 
-    update_products_discounted_prices_task.delay(
+    update_products_discounted_prices_for_promotion_task.delay(
         product_ids=[product.id for product in products]
     )
 

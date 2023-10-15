@@ -14,11 +14,9 @@ from typing import (
 )
 from uuid import UUID
 
-from django.utils.functional import SimpleLazyObject
-
-from ..discount import DiscountInfo, VoucherType
-from ..discount.interface import fetch_voucher_info
-from ..discount.utils import fetch_active_discounts
+from ..core.utils.lazyobjects import lazy_no_retry
+from ..discount import DiscountType, VoucherType
+from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
@@ -31,8 +29,8 @@ from ..warehouse.models import Warehouse
 if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..discount.interface import VoucherInfo
-    from ..discount.models import Voucher
+    from ..discount.interface import VariantPromotionRuleInfo, VoucherInfo
+    from ..discount.models import CheckoutLineDiscount, Voucher
     from ..plugins.manager import PluginsManager
     from ..product.models import (
         Collection,
@@ -54,8 +52,18 @@ class CheckoutLineInfo:
     product: "Product"
     product_type: "ProductType"
     collections: List["Collection"]
+    discounts: List["CheckoutLineDiscount"]
+    rules_info: List["VariantPromotionRuleInfo"]
+    channel: "Channel"
     tax_class: Optional["TaxClass"] = None
     voucher: Optional["Voucher"] = None
+
+    def get_promotion_discounts(self) -> List["CheckoutLineDiscount"]:
+        return [
+            discount
+            for discount in self.discounts
+            if discount.type == DiscountType.PROMOTION
+        ]
 
 
 @dataclass
@@ -217,8 +225,10 @@ def get_delivery_method_info(
 
 def fetch_checkout_lines(
     checkout: "Checkout",
-    prefetch_variant_attributes=False,
-    skip_lines_with_unavailable_variants=True,
+    prefetch_variant_attributes: bool = False,
+    skip_lines_with_unavailable_variants: bool = True,
+    skip_recalculation: bool = False,
+    voucher: Optional["Voucher"] = None,
 ) -> Tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
@@ -230,6 +240,9 @@ def fetch_checkout_lines(
         "variant__product__product_type__tax_class__country_rates",
         "variant__product__tax_class__country_rates",
         "variant__channel_listings__channel",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
+        "discounts",
     ]
     if prefetch_variant_attributes:
         prefetch_related_fields.extend(
@@ -244,18 +257,24 @@ def fetch_checkout_lines(
     lines_info = []
     unavailable_variant_pks = []
     product_channel_listing_mapping: Dict[int, Optional["ProductChannelListing"]] = {}
+    channel = checkout.channel
 
     for line in lines:
         variant = line.variant
         product = variant.product
         product_type = product.product_type
         collections = list(product.collections.all())
+        discounts = list(line.discounts.all())
 
-        variant_channel_listing = _get_variant_channel_listing(
+        variant_channel_listing = get_variant_channel_listing(
             variant, checkout.channel_id
         )
+        translation_language_code = checkout.language_code
+        rules_info = fetch_variant_rules_info(
+            variant_channel_listing, translation_language_code
+        )
 
-        if not _is_variant_valid(
+        if not skip_recalculation and not _is_variant_valid(
             checkout, product, variant_channel_listing, product_channel_listing_mapping
         ):
             unavailable_variant_pks.append(variant.pk)
@@ -269,6 +288,9 @@ def fetch_checkout_lines(
                         product_type=product_type,
                         collections=collections,
                         tax_class=product.tax_class or product_type.tax_class,
+                        discounts=discounts,
+                        rules_info=rules_info,
+                        channel=channel,
                     )
                 )
             continue
@@ -282,28 +304,28 @@ def fetch_checkout_lines(
                 product_type=product_type,
                 collections=collections,
                 tax_class=product.tax_class or product_type.tax_class,
+                discounts=discounts,
+                rules_info=rules_info,
+                channel=channel,
             )
         )
 
-    if checkout.voucher_code and lines_info:
-        channel_slug = checkout.channel.slug
-        voucher = get_voucher_for_checkout(
-            checkout, channel_slug=channel_slug, with_prefetch=True
-        )
+    if not skip_recalculation and checkout.voucher_code and lines_info:
+        if not voucher:
+            voucher = get_voucher_for_checkout(
+                checkout, channel_slug=channel.slug, with_prefetch=True
+            )
         if not voucher:
             # in case when voucher is expired, it will be null so no need to apply any
             # discount from voucher
             return lines_info, unavailable_variant_pks
         if voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order:
-            discounts = fetch_active_discounts()
             voucher_info = fetch_voucher_info(voucher)
-            apply_voucher_to_checkout_line(
-                voucher_info, checkout, lines_info, discounts
-            )
+            apply_voucher_to_checkout_line(voucher_info, checkout, lines_info)
     return lines_info, unavailable_variant_pks
 
 
-def _get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
+def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
     variant_channel_listing = None
     for channel_listing in variant.channel_listings.all():
         if channel_listing.channel_id == channel_id:
@@ -350,7 +372,6 @@ def apply_voucher_to_checkout_line(
     voucher_info: "VoucherInfo",
     checkout: "Checkout",
     lines_info: Iterable[CheckoutLineInfo],
-    discounts: Iterable["DiscountInfo"],
 ):
     """Attach voucher to valid checkout lines info.
 
@@ -368,9 +389,7 @@ def apply_voucher_to_checkout_line(
         )
         lines_included_in_discount = discounted_lines_by_voucher
     if voucher.apply_once_per_order:
-        cheapest_line = _get_the_cheapest_line(
-            checkout, lines_included_in_discount, discounts
-        )
+        cheapest_line = _get_the_cheapest_line(lines_included_in_discount)
         if cheapest_line:
             discounted_lines_by_voucher = [cheapest_line]
     for line_info in lines_info:
@@ -379,34 +398,22 @@ def apply_voucher_to_checkout_line(
 
 
 def _get_the_cheapest_line(
-    checkout: "Checkout",
     lines_info: Iterable[CheckoutLineInfo],
-    discounts: Iterable["DiscountInfo"],
 ):
-    channel = checkout.channel
-
-    def variant_price(line_info):
-        return line_info.variant.get_price(
-            product=line_info.product,
-            collections=line_info.collections,
-            channel=channel,
-            channel_listing=line_info.channel_listing,
-            discounts=discounts,
-            price_override=line_info.line.price_override,
-        )
-
-    return min(lines_info, default=None, key=variant_price)
+    return min(
+        lines_info, key=lambda line_info: line_info.channel_listing.discounted_price
+    )
 
 
 def fetch_checkout_info(
     checkout: "Checkout",
     lines: Iterable[CheckoutLineInfo],
-    discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
     shipping_channel_listings: Optional[
         Iterable["ShippingMethodChannelListing"]
     ] = None,
     fetch_delivery_methods=True,
+    voucher: Optional["Voucher"] = None,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
     from .utils import get_voucher_for_checkout
@@ -416,7 +423,8 @@ def fetch_checkout_info(
     shipping_address = checkout.shipping_address
     if shipping_channel_listings is None:
         shipping_channel_listings = channel.shipping_method_listings.all()
-    voucher = get_voucher_for_checkout(checkout, channel_slug=channel.slug)
+    if not voucher:
+        voucher = get_voucher_for_checkout(checkout, channel_slug=channel.slug)
 
     delivery_method_info = get_delivery_method_info(None, shipping_address)
     checkout_info = CheckoutInfo(
@@ -438,7 +446,6 @@ def fetch_checkout_info(
             checkout.collection_point,
             shipping_address,
             lines,
-            discounts,
             manager,
             shipping_channel_listings,
         )
@@ -456,7 +463,7 @@ def update_checkout_info_delivery_method_info(
 
     The attribute is lazy-evaluated avoid external API calls unless accessed.
     """
-    from ..plugins.webhook.shipping import convert_to_app_id_with_identifier
+    from ..webhook.transport.shipping import convert_to_app_id_with_identifier
     from .utils import get_external_shipping_id
 
     delivery_method: Optional[Union[ShippingMethodData, Warehouse, Callable]] = None
@@ -493,7 +500,7 @@ def update_checkout_info_delivery_method_info(
     else:
         delivery_method = collection_point
 
-    checkout_info.delivery_method_info = SimpleLazyObject(
+    checkout_info.delivery_method_info = lazy_no_retry(
         lambda: get_delivery_method_info(
             delivery_method,
             checkout_info.shipping_address,
@@ -505,7 +512,6 @@ def update_checkout_info_shipping_address(
     checkout_info: CheckoutInfo,
     address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
-    discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
 ):
@@ -517,7 +523,6 @@ def update_checkout_info_shipping_address(
         checkout_info.checkout.collection_point,
         address,
         lines,
-        discounts,
         manager,
         shipping_channel_listings,
     )
@@ -527,7 +532,6 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
-    discounts: Iterable["DiscountInfo"],
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
 ) -> List["ShippingMethodData"]:
     from . import base_calculations
@@ -539,7 +543,6 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
         lines,
         checkout_info.channel,
         checkout_info.checkout.currency,
-        discounts,
     )
 
     # if a voucher is applied to shipping, we don't want to subtract the discount amount
@@ -548,7 +551,13 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     is_shipping_voucher = (
         checkout_info.voucher and checkout_info.voucher.type == VoucherType.SHIPPING
     )
-    if not is_shipping_voucher:
+
+    is_voucher_for_specific_product = (
+        checkout_info.voucher
+        and checkout_info.voucher.type == VoucherType.SPECIFIC_PRODUCT
+    )
+
+    if not is_shipping_voucher and not is_voucher_for_specific_product:
         subtotal -= checkout_info.checkout.discount
 
     valid_shipping_methods = get_valid_internal_shipping_methods_for_checkout(
@@ -566,7 +575,6 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
-    discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
 ) -> List["ShippingMethodData"]:
     return manager.list_shipping_methods_for_checkout(
@@ -578,7 +586,6 @@ def get_all_shipping_methods_list(
     checkout_info,
     shipping_address,
     lines,
-    discounts,
     shipping_channel_listings,
     manager,
 ):
@@ -588,11 +595,10 @@ def get_all_shipping_methods_list(
                 checkout_info,
                 shipping_address,
                 lines,
-                discounts,
                 shipping_channel_listings,
             ),
             get_valid_external_shipping_method_list_for_checkout_info(
-                checkout_info, shipping_address, lines, discounts, manager
+                checkout_info, shipping_address, lines, manager
             ),
         )
     )
@@ -604,7 +610,6 @@ def update_delivery_method_lists_for_checkout_info(
     collection_point: Optional["Warehouse"],
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
-    discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
 ):
@@ -623,7 +628,6 @@ def update_delivery_method_lists_for_checkout_info(
             checkout_info,
             shipping_address,
             lines,
-            discounts,
             shipping_channel_listings,
             manager,
         )
@@ -634,10 +638,10 @@ def update_delivery_method_lists_for_checkout_info(
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods
 
-    checkout_info.all_shipping_methods = SimpleLazyObject(
+    checkout_info.all_shipping_methods = lazy_no_retry(
         _resolve_all_shipping_methods
     )  # type: ignore[assignment] # using lazy object breaks protocol
-    checkout_info.valid_pick_up_points = SimpleLazyObject(
+    checkout_info.valid_pick_up_points = lazy_no_retry(
         lambda: (get_valid_collection_points_for_checkout_info(lines, checkout_info))
     )  # type: ignore[assignment] # using lazy object breaks protocol
     update_checkout_info_delivery_method_info(
@@ -657,7 +661,7 @@ def get_valid_collection_points_for_checkout_info(
     valid_collection_points = get_valid_collection_points_for_checkout(
         lines, checkout_info.channel.id, quantity_check=False
     )
-    return SimpleLazyObject(lambda: list(valid_collection_points))
+    return list(valid_collection_points)
 
 
 def update_checkout_info_delivery_method(

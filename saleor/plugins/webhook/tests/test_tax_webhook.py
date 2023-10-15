@@ -12,11 +12,15 @@ from ....core.taxes import TaxType
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
 from ....webhook.payloads import generate_order_payload_for_tax_calculation
+from ....webhook.transport.utils import (
+    DEFAULT_TAX_CODE,
+    DEFAULT_TAX_DESCRIPTION,
+    parse_tax_data,
+)
 from ...manager import get_plugins_manager
-from ..utils import DEFAULT_TAX_CODE, DEFAULT_TAX_DESCRIPTION, parse_tax_data
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_taxes_for_checkout_no_permission(
     mock_request,
     webhook_plugin,
@@ -25,7 +29,7 @@ def test_get_taxes_for_checkout_no_permission(
     # given
     plugin = webhook_plugin()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], plugin)
+    checkout_info = fetch_checkout_info(checkout, lines, plugin)
 
     # when
     tax_data = plugin.get_taxes_for_checkout(checkout_info, lines, None)
@@ -37,7 +41,7 @@ def test_get_taxes_for_checkout_no_permission(
 
 @freeze_time()
 @mock.patch("saleor.order.calculations.fetch_order_prices_if_expired")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_taxes_for_order(
     mock_request,
     mock_fetch,
@@ -63,12 +67,12 @@ def test_get_taxes_for_order(
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
     assert delivery.payload == payload
     assert delivery.webhook == tax_order_webhook
-    mock_request.assert_called_once_with(tax_order_webhook.app.name, delivery)
+    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_taxes_for_order_no_permission(
     mock_request,
     webhook_plugin,
@@ -148,7 +152,7 @@ def test_get_tax_code_from_object_meta_default_code(
 
 @freeze_time()
 @mock.patch("saleor.order.calculations.fetch_order_prices_if_expired")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_taxes_for_order_with_sync_subscription(
     mock_request,
     mock_fetch,
@@ -181,14 +185,14 @@ def test_get_taxes_for_order_with_sync_subscription(
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
     assert delivery.payload == payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(webhook.app.name, delivery)
+    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
 
 
 @freeze_time()
 @mock.patch("saleor.checkout.calculations.fetch_checkout_data")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_taxes_for_checkout_with_sync_subscription(
     mock_request,
     mock_fetch,
@@ -198,7 +202,7 @@ def test_get_taxes_for_checkout_with_sync_subscription(
     tax_app,
 ):
     # given
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
     mock_request.return_value = tax_data_response
     plugin = webhook_plugin()
     webhook = Webhook.objects.create(
@@ -222,6 +226,6 @@ def test_get_taxes_for_checkout_with_sync_subscription(
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     assert delivery.payload == payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(webhook.app.name, delivery)
+    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)

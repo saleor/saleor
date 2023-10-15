@@ -208,3 +208,22 @@ def test_checkout_customer_attach_user_to_checkout_with_user(
     variables = {"id": checkout_id, "customerId": customer_id}
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)
+
+
+def test_with_active_problems_flow(user_api_client, checkout_with_problems):
+    # given
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    variables = {"id": to_global_id_or_none(checkout_with_problems), "customerId": None}
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CUSTOMER_ATTACH,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutCustomerAttach"]["errors"]

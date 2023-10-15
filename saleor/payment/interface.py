@@ -10,12 +10,101 @@ from ..order.fetch import OrderLineInfo
 from ..payment.models import TransactionEvent, TransactionItem
 
 if TYPE_CHECKING:
+    from ..account.models import User
     from ..app.models import App
+    from ..channel.models import Channel
     from ..checkout.models import Checkout
-    from ..order.models import Order
+    from ..order.models import Order, OrderGrantedRefund
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
+
+
+@dataclass
+class StoredPaymentMethodRequestDeleteResult(str, Enum):
+    """Result of deleting a stored payment method.
+
+    This enum is used to determine the result of deleting a stored payment method.
+    SUCCESSFULLY_DELETED - The stored payment method was successfully deleted.
+    FAILED_TO_DELETE - The stored payment method was not deleted.
+    FAILED_TO_DELIVER - The request to delete the stored payment method was not
+    delivered.
+    """
+
+    SUCCESSFULLY_DELETED = "successfully_deleted"
+    FAILED_TO_DELETE = "failed_to_delete"
+    FAILED_TO_DELIVER = "failed_to_deliver"
+
+
+@dataclass
+class StoredPaymentMethodRequestDeleteResponseData:
+    """Dataclass for storing the response information from payment app."""
+
+    result: StoredPaymentMethodRequestDeleteResult
+    error: Optional[str] = None
+
+
+@dataclass
+class StoredPaymentMethodRequestDeleteData:
+    """Dataclass for storing the request information for payment app."""
+
+    payment_method_id: str
+    user: "User"
+    channel: "Channel"
+
+
+@dataclass
+class PaymentGateway:
+    """Dataclass for storing information about a payment gateway."""
+
+    id: str
+    name: str
+    currencies: List[str]
+    config: List[Dict[str, Any]]
+
+
+@dataclass
+class ListStoredPaymentMethodsRequestData:
+    channel: "Channel"
+    user: "User"
+
+
+@dataclass
+class PaymentMethodCreditCardInfo:
+    brand: str
+    last_digits: str
+    exp_month: int
+    exp_year: int
+    first_digits: Optional[str] = None
+
+
+@dataclass
+class PaymentMethodData:
+    """Payment method data.
+
+    Represents a payment method stored for user (tokenized) in payment gateway, such
+    as credit card or SEPA direct debit
+
+    id - ID of stored payment method used to make payment actions
+    type - Type of the payment method
+    gateway - The app that owns the payment method
+    external_id - ID of the payment method in the payment gateway
+    supported_payment_flows - List of supported flows that can be performed with this
+    payment method
+    credit_card_info - Credit card information if the payment method is a credit card
+    name -  Name of the payment method. Example: last 4 digits of credit card,
+    obfuscated email
+    data - JSON data returned by Payment Provider app for this payment method
+    """
+
+    id: str
+    type: str
+    external_id: str
+    gateway: PaymentGateway
+    supported_payment_flows: List[str] = field(default_factory=list)
+    credit_card_info: Optional[PaymentMethodCreditCardInfo] = None
+    name: Optional[str] = None
+    data: Optional[JSONType] = None
 
 
 @dataclass
@@ -25,6 +114,7 @@ class TransactionActionData:
     event: "TransactionEvent"
     transaction_app_owner: Optional["App"]
     action_value: Optional[Decimal] = None
+    granted_refund: Optional["OrderGrantedRefund"] = None
 
 
 @dataclass
@@ -40,6 +130,7 @@ class TransactionRequestEventResponse:
 @dataclass
 class TransactionRequestResponse:
     psp_reference: Optional[str]
+    available_actions: Optional[List[str]] = None
     event: Optional["TransactionRequestEventResponse"] = None
 
 
@@ -71,7 +162,105 @@ class TransactionSessionData:
     transaction: "TransactionItem"
     source_object: Union["Checkout", "Order"]
     action: TransactionProcessActionData
-    payment_gateway: PaymentGatewayData
+    payment_gateway_data: PaymentGatewayData
+    customer_ip_address: Optional[str]
+
+
+@dataclass
+class TransactionSessionResult:
+    app_identifier: str
+    response: Optional[Dict[Any, Any]] = None
+    error: Optional[str] = None
+
+
+@dataclass
+class PaymentMethodTokenizationBaseRequestData:
+    channel: "Channel"
+    user: "User"
+    data: Optional[dict]
+
+
+@dataclass
+class PaymentMethodTokenizationBaseResponseData:
+    error: Optional[str]
+    data: Optional[dict]
+
+
+@dataclass
+class PaymentGatewayInitializeTokenizationRequestData(
+    PaymentMethodTokenizationBaseRequestData
+):
+    """Dataclass for storing the request information for payment app."""
+
+    app_identifier: str
+
+
+class PaymentGatewayInitializeTokenizationResult(str, Enum):
+    """Result of initialize payment gateway for tokenization of payment method.
+
+    The result of initialize payment gateway for tokenization of payment method.
+    SUCCESSFULLY_INITIALIZED - The payment gateway was successfully initialized.
+    FAILED_TO_INITIALIZE - The payment gateway was not initialized.
+    FAILED_TO_DELIVER - The request to initialize payment gateway was not delivered.
+    """
+
+    SUCCESSFULLY_INITIALIZED = "successfully_initialized"
+    FAILED_TO_INITIALIZE = "failed_to_initialize"
+    FAILED_TO_DELIVER = "failed_to_deliver"
+
+
+@dataclass
+class PaymentGatewayInitializeTokenizationResponseData(
+    PaymentMethodTokenizationBaseResponseData
+):
+    """Dataclass for storing the response information from payment app."""
+
+    result: PaymentGatewayInitializeTokenizationResult
+
+
+@dataclass
+class PaymentMethodInitializeTokenizationRequestData(
+    PaymentMethodTokenizationBaseRequestData
+):
+    """Dataclass for storing the request information for payment app."""
+
+    app_identifier: str
+    payment_flow_to_support: str
+
+
+@dataclass
+class PaymentMethodProcessTokenizationRequestData(
+    PaymentMethodTokenizationBaseRequestData
+):
+    """Dataclass for storing the request information for payment app."""
+
+    id: str
+
+
+class PaymentMethodTokenizationResult(str, Enum):
+    """Result of tokenization of payment method.
+
+    SUCCESSFULLY_TOKENIZED - The payment method was successfully tokenized.
+    ADDITIONAL_ACTION_REQUIRED - The additional action is required to tokenize payment
+    method.
+    PENDING - The payment method is pending tokenization.
+    FAILED_TO_TOKENIZE - The payment method was not tokenized.
+    FAILED_TO_DELIVER - The request to tokenize payment method was not delivered.
+    """
+
+    SUCCESSFULLY_TOKENIZED = "successfully_tokenized"
+    PENDING = "pending"
+    ADDITIONAL_ACTION_REQUIRED = "additional_action_required"
+    FAILED_TO_TOKENIZE = "failed_to_tokenize"
+    FAILED_TO_DELIVER = "failed_to_deliver"
+
+
+@dataclass
+class PaymentMethodTokenizationResponseData(PaymentMethodTokenizationBaseResponseData):
+    """Dataclass for storing the response information from payment app."""
+
+    result: PaymentMethodTokenizationResult
+    id: Optional[str] = None
 
 
 @dataclass
@@ -236,16 +425,6 @@ class CustomerSource:
     gateway: str
     credit_card_info: Optional[PaymentMethodInfo] = None
     metadata: Optional[Dict[str, str]] = None
-
-
-@dataclass
-class PaymentGateway:
-    """Dataclass for storing information about a payment gateway."""
-
-    id: str
-    name: str
-    currencies: List[str]
-    config: List[Dict[str, Any]]
 
 
 @dataclass

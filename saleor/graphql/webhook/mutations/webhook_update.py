@@ -1,8 +1,10 @@
 import graphene
 
+from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
 from ....webhook import models
 from ....webhook.validators import HEADERS_LENGTH_LIMIT, HEADERS_NUMBER_LIMIT
+from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_32,
@@ -14,6 +16,7 @@ from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.fields import JSONString
 from ...core.types import BaseInputObjectType, NonNullList, WebhookError
 from .. import enums
+from ..mixins import NotifyUserEventValidationMixin
 from ..types import Webhook
 from . import WebhookCreate
 
@@ -56,7 +59,7 @@ class WebhookUpdateInput(BaseInputObjectType):
     )
     query = graphene.String(
         description="Subscription query used to define a webhook payload."
-        f"{ADDED_IN_32}{PREVIEW_FEATURE}",
+        + ADDED_IN_32,
         required=False,
     )
     custom_headers = JSONString(
@@ -64,7 +67,8 @@ class WebhookUpdateInput(BaseInputObjectType):
         f"There is a limitation of {HEADERS_NUMBER_LIMIT} headers per webhook "
         f"and {HEADERS_LENGTH_LIMIT} characters per header."
         f'Only "X-*" and "Authorization*" keys are allowed.'
-        f"{ADDED_IN_312}{PREVIEW_FEATURE}",
+        + ADDED_IN_312
+        + PREVIEW_FEATURE,
         required=False,
     )
 
@@ -72,7 +76,7 @@ class WebhookUpdateInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_WEBHOOKS
 
 
-class WebhookUpdate(WebhookCreate):
+class WebhookUpdate(WebhookCreate, NotifyUserEventValidationMixin):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a webhook to update.")
         input = WebhookUpdateInput(
@@ -83,7 +87,10 @@ class WebhookUpdate(WebhookCreate):
         description = "Updates a webhook subscription."
         model = models.Webhook
         object_type = Webhook
-        permissions = (AppPermission.MANAGE_APPS,)
+        permissions = (
+            AppPermission.MANAGE_APPS,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
 
@@ -91,6 +98,7 @@ class WebhookUpdate(WebhookCreate):
     def save(cls, _info: ResolveInfo, instance, cleaned_input):
         instance.save()
         events = set(cleaned_input.get("events", []))
+        cls.validate_events(events)
         if events:
             instance.events.all().delete()
             models.WebhookEvent.objects.bulk_create(
@@ -102,4 +110,6 @@ class WebhookUpdate(WebhookCreate):
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
+        if app := get_app_promise(info.context).get():
+            data["qs"] = app.webhooks
         return super(WebhookCreate, cls).get_instance(info, **data)

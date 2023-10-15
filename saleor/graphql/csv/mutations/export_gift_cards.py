@@ -4,11 +4,13 @@ from ....csv import models as csv_models
 from ....csv.events import export_started_event
 from ....csv.tasks import export_gift_cards_task
 from ....permission.enums import GiftcardPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_31
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.types import BaseInputObjectType, ExportError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...giftcard.filters import GiftCardFilterInput
 from ...giftcard.types import GiftCard
 from ..enums import ExportScope, FileTypeEnum
@@ -40,10 +42,20 @@ class ExportGiftCards(BaseExportMutation):
         )
 
     class Meta:
-        description = "Export gift cards to csv file." + ADDED_IN_31 + PREVIEW_FEATURE
+        description = "Export gift cards to csv file." + ADDED_IN_31
         doc_category = DOC_CATEGORY_GIFT_CARDS
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = ExportError
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for the exported file.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED,
+                description="A notification for the exported file.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

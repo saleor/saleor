@@ -5,13 +5,12 @@ from typing import Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 
 import stripe
-from django.contrib.sites.models import Site
 from django.urls import reverse
 from stripe.error import AuthenticationError, InvalidRequestError, StripeError
 from stripe.stripe_object import StripeObject
 
 from ....core.tracing import opentracing_trace
-from ....core.utils import build_absolute_uri
+from ....core.utils import build_absolute_uri, get_domain
 from ...interface import PaymentMethodInfo
 from ...utils import price_to_minor_unit
 from .consts import (
@@ -60,7 +59,7 @@ def _extra_log_data(error: StripeError, payment_intent_id: Optional[str] = None)
 
 
 def subscribe_webhook(api_key: str, channel_slug: str) -> Optional[StripeObject]:
-    domain = Site.objects.get_current().domain
+    domain = get_domain()
     api_path = reverse(
         "plugins-per-channel",
         kwargs={"plugin_id": PLUGIN_ID, "channel_slug": channel_slug},

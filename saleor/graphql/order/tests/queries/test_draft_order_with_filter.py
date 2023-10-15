@@ -37,11 +37,11 @@ def test_draft_orders_query_with_filter_search_by_number(
     draft_orders_query_with_filter,
     draft_order,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     update_order_search_vector(draft_order)
     variables = {"filter": {"search": draft_order.number}}
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["draftOrders"]["totalCount"] == 1
@@ -51,11 +51,11 @@ def test_draft_orders_query_with_filter_search_by_number_with_hash(
     draft_orders_query_with_filter,
     draft_order,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     update_order_search_vector(draft_order)
     variables = {"filter": {"search": f"#{draft_order.number}"}}
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["draftOrders"]["totalCount"] == 1
@@ -75,7 +75,7 @@ def test_draft_order_query_with_filter_customer_fields(
     user_value,
     draft_orders_query_with_filter,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     customer_user,
     channel_USD,
 ):
@@ -96,7 +96,7 @@ def test_draft_order_query_with_filter_customer_fields(
     )
 
     variables = {"filter": orders_filter}
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
     orders = content["data"]["draftOrders"]["edges"]
@@ -126,19 +126,19 @@ def test_draft_order_query_with_filter_customer_fields(
         ({"created": {"lte": None}}, 2),
     ],
 )
-def test_draft_order_query_with_filter_created_(
+def test_draft_order_query_with_filter_created(
     orders_filter,
     count,
     draft_orders_query_with_filter,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     channel_USD,
 ):
     Order.objects.create(status=OrderStatus.DRAFT, channel=channel_USD)
     with freeze_time("2012-01-14"):
         Order.objects.create(status=OrderStatus.DRAFT, channel=channel_USD)
     variables = {"filter": orders_filter}
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
     orders = content["data"]["draftOrders"]["edges"]
@@ -164,7 +164,7 @@ def test_draft_orders_query_with_filter_search(
     count,
     draft_orders_query_with_filter,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     customer_user,
     channel_USD,
 ):
@@ -214,7 +214,7 @@ def test_draft_orders_query_with_filter_search(
 
     variables = {"filter": draft_orders_filter}
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["draftOrders"]["totalCount"] == count

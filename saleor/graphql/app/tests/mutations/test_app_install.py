@@ -60,6 +60,7 @@ def test_install_app_mutation(
     assert app_installation_data["status"] == JobStatus.PENDING.upper()
     assert app_installation_data["manifestUrl"] == app_installation.manifest_url
     mocked_task.assert_called_with(app_installation.pk, True)
+    assert app_installation.uuid is not None
 
 
 def test_app_is_not_allowed_to_install_app(

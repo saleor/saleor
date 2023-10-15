@@ -14,8 +14,13 @@ from ..mutations.utils import try_payment_action
     ((True, "orderRefund"), (False, "orderVoid"), (True, "orderCapture")),
 )
 def test_clean_payment_without_payment_associated_to_order(
-    staff_api_client, permission_manage_orders, order, requires_amount, mutation_name
+    staff_api_client,
+    permission_group_manage_orders,
+    order,
+    requires_amount,
+    mutation_name,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     assert not OrderEvent.objects.exists()
 
     additional_arguments = ", amount: 2" if requires_amount else ""
@@ -35,9 +40,7 @@ def test_clean_payment_without_payment_associated_to_order(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     errors = get_graphql_content(response)["data"][mutation_name].get("errors")
 
     message = "There's no payment associated with the order."

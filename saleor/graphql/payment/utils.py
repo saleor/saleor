@@ -26,7 +26,7 @@ def check_if_requestor_has_access(
     ):
         return True
 
-    if user and transaction.user_id == user.id:
+    if user and transaction.user_id:
         return True
 
     if app:

@@ -15,7 +15,7 @@ from .....product.models import ProductVariant
 from .....warehouse.models import Allocation, PreorderAllocation, Stock
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from ....payment.types import PaymentChargeStatusEnum
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_ORDER_COMPLETE_MUTATION = """
     mutation draftComplete($id: ID!) {
@@ -40,11 +40,12 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
 def test_draft_order_complete(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     draft_order,
 ):
     order = draft_order
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created
     assert not OrderEvent.objects.exists()
@@ -54,9 +55,7 @@ def test_draft_order_complete(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
@@ -86,15 +85,68 @@ def test_draft_order_complete(
     )
 
 
+def test_draft_order_complete_by_user_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    draft_order,
+    channel_PLN,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    order = draft_order
+    order.channel = channel_PLN
+    order.save(update_fields=["channel"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_draft_order_complete_by_app(
+    product_variant_out_of_stock_webhook_mock,
+    app_api_client,
+    draft_order,
+    permission_manage_orders,
+    channel_PLN,
+):
+    # given
+    order = draft_order
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION,
+        variables,
+        permissions=(permission_manage_orders,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+    assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.DRAFT.upper()
+    assert order.search_vector
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_draft_order_complete_0_total(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     draft_order,
 ):
     """Ensure the payment status is FULLY_CHARGED when the total order price is 0."""
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     price = zero_taxed_money(order.currency)
     order.shipping_price = price
@@ -116,9 +168,7 @@ def test_draft_order_complete_0_total(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
@@ -154,10 +204,11 @@ def test_draft_order_complete_0_total(
 def test_draft_order_complete_without_sku(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     draft_order,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     ProductVariant.objects.update(sku=None)
     draft_order.lines.update(product_sku=None)
 
@@ -171,9 +222,7 @@ def test_draft_order_complete_without_sku(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
@@ -206,9 +255,10 @@ def test_draft_order_complete_without_sku(
 def test_draft_order_complete_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     draft_order,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     first_line = order.lines.first()
     first_line.quantity = 5
@@ -218,9 +268,7 @@ def test_draft_order_complete_with_out_of_stock_webhook(
     assert not Allocation.objects.filter(order_line__order=order).exists()
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
 
     total_stock = Stock.objects.aggregate(Sum("quantity"))["quantity__sum"]
     total_allocation = Allocation.objects.filter(order_line__order=order).aggregate(
@@ -233,10 +281,11 @@ def test_draft_order_complete_with_out_of_stock_webhook(
 
 def test_draft_order_from_reissue_complete(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     draft_order,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.origin = OrderOrigin.REISSUE
     order.save(update_fields=["origin"])
@@ -249,9 +298,7 @@ def test_draft_order_from_reissue_complete(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
@@ -279,10 +326,11 @@ def test_draft_order_from_reissue_complete(
 
 def test_draft_order_complete_with_inactive_channel(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     draft_order,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     channel = order.channel
     channel.is_active = False
@@ -290,9 +338,7 @@ def test_draft_order_complete_with_inactive_channel(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
     assert data["errors"][0]["code"] == OrderErrorCode.CHANNEL_INACTIVE.name
@@ -301,10 +347,11 @@ def test_draft_order_complete_with_inactive_channel(
 
 def test_draft_order_complete_with_unavailable_variant(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     draft_order,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     variant = order.lines.first().variant
     variant.channel_listings.filter(channel=order.channel).delete()
@@ -313,9 +360,7 @@ def test_draft_order_complete_with_unavailable_variant(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
 
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
     assert data["errors"][0]["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
@@ -325,10 +370,11 @@ def test_draft_order_complete_with_unavailable_variant(
 
 def test_draft_order_complete_channel_without_shipping_zones(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     draft_order,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.channel.shipping_zones.clear()
 
@@ -340,9 +386,7 @@ def test_draft_order_complete_channel_without_shipping_zones(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
 
@@ -357,10 +401,11 @@ def test_draft_order_complete_channel_without_shipping_zones(
 def test_draft_order_complete_product_without_inventory_tracking(
     staff_api_client,
     shipping_method,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     draft_order_without_inventory_tracking,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order_without_inventory_tracking
     order.shipping_method = shipping_method
     order.save()
@@ -373,9 +418,7 @@ def test_draft_order_complete_product_without_inventory_tracking(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
 
@@ -404,11 +447,12 @@ def test_draft_order_complete_product_without_inventory_tracking(
 
 def test_draft_order_complete_not_available_shipping_method(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     draft_order,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.channel.shipping_zones.clear()
 
@@ -422,9 +466,7 @@ def test_draft_order_complete_not_available_shipping_method(
     variables = {"id": order_id}
 
     # when
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
 
     # then
     content = get_graphql_content(response)
@@ -446,9 +488,10 @@ def test_draft_order_complete_with_excluded_shipping_method(
     draft_order,
     shipping_method,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     settings,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "archives-are-incomplete"
     mocked_webhook.return_value = [
@@ -461,9 +504,7 @@ def test_draft_order_complete_with_excluded_shipping_method(
     query = DRAFT_ORDER_COMPLETE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
     assert (
@@ -478,9 +519,10 @@ def test_draft_order_complete_with_not_excluded_shipping_method(
     draft_order,
     shipping_method,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     settings,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "archives-are-incomplete"
     other_shipping_method_id = "1337"
@@ -495,17 +537,16 @@ def test_draft_order_complete_with_not_excluded_shipping_method(
     query = DRAFT_ORDER_COMPLETE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
     assert len(data["errors"]) == 0
 
 
 def test_draft_order_complete_out_of_stock_variant(
-    staff_api_client, permission_manage_orders, staff_user, draft_order
+    staff_api_client, permission_group_manage_orders, staff_user, draft_order
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
 
     # Ensure no events were created
@@ -518,9 +559,7 @@ def test_draft_order_complete_out_of_stock_variant(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderComplete"]["errors"][0]
     order.refresh_from_db()
@@ -532,17 +571,16 @@ def test_draft_order_complete_out_of_stock_variant(
 
 
 def test_draft_order_complete_existing_user_email_updates_user_field(
-    staff_api_client, draft_order, customer_user, permission_manage_orders
+    staff_api_client, draft_order, customer_user, permission_group_manage_orders
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.user_email = customer_user.email
     order.user = None
     order.save()
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     assert "errors" not in content
     order.refresh_from_db()
@@ -550,17 +588,16 @@ def test_draft_order_complete_existing_user_email_updates_user_field(
 
 
 def test_draft_order_complete_anonymous_user_email_sets_user_field_null(
-    staff_api_client, draft_order, permission_manage_orders
+    staff_api_client, draft_order, permission_group_manage_orders
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.user_email = "anonymous@example.com"
     order.user = None
     order.save()
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     assert "errors" not in content
     order.refresh_from_db()
@@ -568,17 +605,16 @@ def test_draft_order_complete_anonymous_user_email_sets_user_field_null(
 
 
 def test_draft_order_complete_anonymous_user_no_email(
-    staff_api_client, draft_order, permission_manage_orders
+    staff_api_client, draft_order, permission_group_manage_orders
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.user_email = ""
     order.user = None
     order.save()
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     assert data["status"] == OrderStatus.UNFULFILLED.upper()
@@ -586,11 +622,12 @@ def test_draft_order_complete_anonymous_user_no_email(
 
 def test_draft_order_complete_drops_shipping_address(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     draft_order,
     address,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.shipping_address = address.get_copy()
     order.billing_address = address.get_copy()
@@ -599,9 +636,7 @@ def test_draft_order_complete_drops_shipping_address(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
@@ -612,9 +647,10 @@ def test_draft_order_complete_drops_shipping_address(
 
 
 def test_draft_order_complete_unavailable_for_purchase(
-    staff_api_client, permission_manage_orders, staff_user, draft_order
+    staff_api_client, permission_group_manage_orders, staff_user, draft_order
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
 
     # Ensure no events were created
@@ -629,9 +665,7 @@ def test_draft_order_complete_unavailable_for_purchase(
     variables = {"id": order_id}
 
     # when
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
 
     # then
     content = get_graphql_content(response)
@@ -646,10 +680,11 @@ def test_draft_order_complete_unavailable_for_purchase(
 
 def test_draft_order_complete_preorders(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     draft_order_with_preorder_lines,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order_with_preorder_lines
 
     # Ensure no events were created
@@ -660,9 +695,7 @@ def test_draft_order_complete_preorders(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
@@ -690,11 +723,12 @@ def test_draft_order_complete_preorders(
 
 def test_draft_order_complete_insufficient_stock_preorders(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     draft_order_with_preorder_lines,
     channel_USD,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order_with_preorder_lines
 
     # Ensure no events were created
@@ -707,9 +741,7 @@ def test_draft_order_complete_insufficient_stock_preorders(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderComplete"]["errors"][0]
     order.refresh_from_db()
@@ -722,14 +754,13 @@ def test_draft_order_complete_insufficient_stock_preorders(
 
 def test_draft_order_complete_not_draft_order(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
     assert data["errors"][0]["code"] == OrderErrorCode.INVALID.name
@@ -738,10 +769,11 @@ def test_draft_order_complete_not_draft_order(
 
 def test_draft_order_complete_display_gross_prices(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     draft_order,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     channel = order.channel
     tax_config = channel.tax_configuration
@@ -756,9 +788,7 @@ def test_draft_order_complete_display_gross_prices(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderComplete"]["errors"]
     order.refresh_from_db()

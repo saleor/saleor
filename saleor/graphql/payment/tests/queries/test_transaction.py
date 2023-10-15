@@ -3,7 +3,7 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from .....payment import TransactionEventStatus, TransactionEventType
+from .....payment import TransactionEventType
 from .....payment.models import TransactionEvent
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -25,10 +25,6 @@ TRANSACTION_QUERY = """
                 amount
             }
             canceledAmount{
-                currency
-                amount
-            }
-            voidedAmount{
                 currency
                 amount
             }
@@ -55,9 +51,7 @@ TRANSACTION_QUERY = """
             events{
                 id
                 createdAt
-                status
                 pspReference
-                name
                 message
                 externalUrl
                 amount{
@@ -74,11 +68,9 @@ TRANSACTION_QUERY = """
                     }
                 }
             }
-            status
-            type
             name
             message
-            reference
+            pspReference
             order {
                 id
             }
@@ -108,14 +100,11 @@ def _assert_transaction_fields(content, transaction_item, event):
         data["authorizedAmount"]["amount"] == transaction_item.amount_authorized.amount
     )
     assert data["refundedAmount"]["amount"] == transaction_item.amount_refunded.amount
-    assert data["voidedAmount"]["amount"] == transaction_item.amount_canceled.amount
     assert data["canceledAmount"]["amount"] == transaction_item.amount_canceled.amount
     assert data["chargedAmount"]["amount"] == transaction_item.amount_charged.amount
     events_data = [e for e in data["events"] if e["type"] == event.type.upper()]
     assert len(events_data) == 1
     assert events_data[0]["id"] == to_global_id_or_none(event)
-    assert data["status"] == transaction_item.status
-    assert data["type"] == transaction_item.name
     assert data["name"] == transaction_item.name
     assert data["message"] == transaction_item.message
     if transaction_item.order_id:
@@ -138,7 +127,11 @@ def test_transaction_created_by_app_query_by_app(
         type=TransactionEventType.CHARGE_SUCCESS
     ).get()
 
-    variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.token
+        )
+    }
 
     # when
     response = app_api_client.post_graphql(
@@ -155,6 +148,57 @@ def test_transaction_created_by_app_query_by_app(
     )
 
 
+def test_transaction_created_by_app_query_by_app_with_old_id(
+    app_api_client, transaction_item_created_by_app, permission_manage_payments, app
+):
+    # given
+    transaction_item_created_by_app.use_old_id = True
+    transaction_item_created_by_app.save()
+    event = transaction_item_created_by_app.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
+
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.id
+        )
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_QUERY, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    _assert_transaction_fields_created_by(
+        content,
+        transaction_item_created_by_app,
+        event,
+        app,
+    )
+
+
+def test_transaction_created_with_old_id_for_new_transaction(
+    app_api_client, transaction_item_created_by_app, permission_manage_payments, app
+):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.id
+        )
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_QUERY, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transaction"]
+
+
 def test_transaction_creted_by_app_query_no_order(
     app_api_client, transaction_item_created_by_app, permission_manage_payments, app
 ):
@@ -166,7 +210,11 @@ def test_transaction_creted_by_app_query_no_order(
         type=TransactionEventType.CHARGE_SUCCESS
     ).get()
 
-    variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.token
+        )
+    }
 
     # when
     response = app_api_client.post_graphql(
@@ -191,7 +239,11 @@ def test_transaction_created_by_app_query_by_staff(
         type=TransactionEventType.CHARGE_SUCCESS
     ).get()
 
-    variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.token
+        )
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -212,7 +264,11 @@ def test_transaction_create_by_app_query_no_permission(
     app_api_client, transaction_item_created_by_app
 ):
     # given
-    variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.token
+        )
+    }
 
     # when
     response = app_api_client.post_graphql(TRANSACTION_QUERY, variables)
@@ -232,7 +288,11 @@ def test_transaction_created_by_user_query_by_app(
         type=TransactionEventType.CHARGE_SUCCESS
     ).get()
 
-    variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_user.token
+        )
+    }
 
     # when
     response = app_api_client.post_graphql(
@@ -265,7 +325,11 @@ def test_transaction_creted_by_user_query_no_order(
         type=TransactionEventType.CHARGE_SUCCESS
     ).get()
 
-    variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_user.token
+        )
+    }
 
     # when
     response = app_api_client.post_graphql(
@@ -295,7 +359,48 @@ def test_transaction_created_by_user_query_by_staff(
         type=TransactionEventType.CHARGE_SUCCESS
     ).get()
 
-    variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_user.token
+        )
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_QUERY,
+        variables,
+        permissions=[permission_manage_payments, permission_manage_staff],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    _assert_transaction_fields_created_by(
+        content,
+        transaction_item_created_by_user,
+        event,
+        transaction_item_created_by_user.user,
+    )
+
+
+def test_transaction_created_by_user_with_old_id(
+    staff_api_client,
+    transaction_item_created_by_user,
+    permission_manage_payments,
+    permission_manage_staff,
+):
+    # given
+    transaction_item_created_by_user.use_old_id = True
+    transaction_item_created_by_user.save()
+
+    event = transaction_item_created_by_user.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
+
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_user.id
+        )
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -318,7 +423,11 @@ def test_transaction_create_by_user_query_no_permission(
     app_api_client, transaction_item_created_by_user
 ):
     # given
-    variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_user.token
+        )
+    }
 
     # when
     response = app_api_client.post_graphql(TRANSACTION_QUERY, variables)
@@ -350,7 +459,11 @@ def test_transaction_with_pending_amount(
     setattr(transaction_item_created_by_user, db_field, expected_value)
     transaction_item_created_by_user.save(update_fields=[db_field])
 
-    variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_user.token
+        )
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -385,7 +498,11 @@ def test_transaction_event_by_user(
         user=staff_api_client.user,
     )
 
-    variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_user.token
+        )
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -403,9 +520,7 @@ def test_transaction_event_by_user(
     ]
     assert event_data["id"] == to_global_id_or_none(event)
     assert event_data["createdAt"] == event.created_at.isoformat()
-    assert event_data["status"] == event.status.upper()
     assert event_data["pspReference"] == event.psp_reference
-    assert event_data["name"] == event.message
     assert event_data["message"] == event.message
     assert event_data["externalUrl"] == event.external_url
     assert event_data["amount"]["amount"] == event.amount_value
@@ -424,7 +539,6 @@ def test_transaction_event_by_app(
     psp_reference = "psp-ref-123"
     event = TransactionEvent.objects.create(
         transaction=transaction_item_created_by_app,
-        status=TransactionEventStatus.SUCCESS,
         psp_reference=psp_reference,
         message="Sucesfull charge",
         currency="USD",
@@ -435,7 +549,11 @@ def test_transaction_event_by_app(
         app=app_api_client.app,
     )
 
-    variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.token
+        )
+    }
 
     # when
     response = app_api_client.post_graphql(
@@ -453,9 +571,7 @@ def test_transaction_event_by_app(
     ]
     assert event_data["id"] == to_global_id_or_none(event)
     assert event_data["createdAt"] == event.created_at.isoformat()
-    assert event_data["status"] == event.status.upper()
     assert event_data["pspReference"] == event.psp_reference
-    assert event_data["name"] == event.message
     assert event_data["message"] == event.message
     assert event_data["externalUrl"] == event.external_url
     assert event_data["amount"]["amount"] == event.amount_value
@@ -474,7 +590,6 @@ def test_transaction_event_by_reinstalled_app(
     psp_reference = "psp-ref-123"
     event = TransactionEvent.objects.create(
         transaction=transaction_item_created_by_app,
-        status=TransactionEventStatus.SUCCESS,
         psp_reference=psp_reference,
         message="Sucesfull charge",
         currency="USD",
@@ -485,7 +600,11 @@ def test_transaction_event_by_reinstalled_app(
         app=None,
     )
 
-    variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.token
+        )
+    }
 
     # when
     response = app_api_client.post_graphql(
@@ -503,9 +622,7 @@ def test_transaction_event_by_reinstalled_app(
     ]
     assert event_data["id"] == to_global_id_or_none(event)
     assert event_data["createdAt"] == event.created_at.isoformat()
-    assert event_data["status"] == event.status.upper()
     assert event_data["pspReference"] == event.psp_reference
-    assert event_data["name"] == event.message
     assert event_data["message"] == event.message
     assert event_data["externalUrl"] == event.external_url
     assert event_data["amount"]["amount"] == event.amount_value

@@ -12,6 +12,7 @@ from ....payment.interface import (
     PaymentGatewayData,
     TransactionProcessActionData,
     TransactionSessionData,
+    TransactionSessionResult,
 )
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
@@ -110,14 +111,14 @@ def _assert_fields(payload, webhook, expected_response, response, mock_request):
     assert delivery.event_type == WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
     assert delivery.payload == event_payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(webhook_app.name, delivery)
-    assert response == PaymentGatewayData(
-        app_identifier=webhook_app.identifier, data=expected_response, error=None
+    mock_request.assert_called_once_with(delivery)
+    assert response == TransactionSessionResult(
+        app_identifier=webhook_app.identifier, response=expected_response, error=None
     )
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_process_checkout_without_request_data_and_static_payload(
     mock_request,
     webhook_plugin,
@@ -162,7 +163,8 @@ def test_transaction_process_checkout_without_request_data_and_static_payload(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address=None,
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
         ),
@@ -184,7 +186,7 @@ def test_transaction_process_checkout_without_request_data_and_static_payload(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_process_checkout_with_request_data_and_static_payload(
     mock_request,
     webhook_plugin,
@@ -230,7 +232,8 @@ def test_transaction_process_checkout_with_request_data_and_static_payload(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address=None,
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
         ),
@@ -252,7 +255,7 @@ def test_transaction_process_checkout_with_request_data_and_static_payload(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_process_checkout_without_request_data(
     mock_request,
     webhook_plugin,
@@ -298,7 +301,8 @@ def test_transaction_process_checkout_without_request_data(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address=None,
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
         ),
@@ -320,7 +324,7 @@ def test_transaction_process_checkout_without_request_data(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_process_checkout_with_request_data(
     mock_request,
     webhook_plugin,
@@ -367,7 +371,8 @@ def test_transaction_process_checkout_with_request_data(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address=None,
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
         ),
@@ -389,7 +394,7 @@ def test_transaction_process_checkout_with_request_data(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_process_session_skips_app_without_identifier(
     mock_request,
     webhook_plugin,
@@ -436,7 +441,8 @@ def test_transaction_process_session_skips_app_without_identifier(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address=None,
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
         ),
@@ -447,13 +453,13 @@ def test_transaction_process_session_skips_app_without_identifier(
     assert not EventPayload.objects.first()
     assert not EventDelivery.objects.first()
     assert not mock_request.called
-    assert response == PaymentGatewayData(
-        app_identifier="", data=None, error="Missing app identifier"
+    assert response == TransactionSessionResult(
+        app_identifier="", response=None, error="Missing app identifier"
     )
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_process_order_without_request_data_and_static_payload(
     mock_request,
     webhook_plugin,
@@ -498,7 +504,8 @@ def test_transaction_process_order_without_request_data_and_static_payload(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address=None,
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
         ),
@@ -520,7 +527,7 @@ def test_transaction_process_order_without_request_data_and_static_payload(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_process_order_with_request_data_and_static_payload(
     mock_request,
     webhook_plugin,
@@ -566,7 +573,8 @@ def test_transaction_process_order_with_request_data_and_static_payload(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address=None,
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
         ),
@@ -588,7 +596,7 @@ def test_transaction_process_order_with_request_data_and_static_payload(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_process_order_without_request_data(
     mock_request,
     webhook_plugin,
@@ -634,7 +642,8 @@ def test_transaction_process_order_without_request_data(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address=None,
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
         ),
@@ -656,7 +665,7 @@ def test_transaction_process_order_without_request_data(
 
 
 @freeze_time()
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_transaction_process_order_with_request_data(
     mock_request,
     webhook_plugin,
@@ -703,7 +712,8 @@ def test_transaction_process_order_with_request_data(
                 currency=transaction.currency,
                 action_type=action_type,
             ),
-            payment_gateway=PaymentGatewayData(
+            customer_ip_address=None,
+            payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
         ),

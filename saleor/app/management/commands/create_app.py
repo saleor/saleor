@@ -1,15 +1,15 @@
 import json
 from typing import Any, Dict, Optional
 
-import requests
-from django.contrib.sites.models import Site
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
 from django.urls import reverse
 from requests.exceptions import RequestException
 
+from .... import schema_version
 from ....app.headers import AppHeaders, DeprecatedAppHeaders
-from ....core.utils import build_absolute_uri
+from ....core.http_client import HTTPClient
+from ....core.utils import build_absolute_uri, get_domain
 from ...models import App
 from .utils import clean_permissions
 
@@ -36,21 +36,28 @@ class Command(BaseCommand):
         parser.add_argument(
             "--target-url",
             dest="target_url",
-            help="Url which will receive newly created data of app object. "
+            help="URL which will receive newly created data of app object. "
             "Command doesn't return app data to stdout when this "
             "argument is provided.",
         )
 
     def send_app_data(self, target_url, data: Dict[str, Any]):
-        domain = Site.objects.get_current().domain
+        domain = get_domain()
         headers = {
             # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
             DeprecatedAppHeaders.DOMAIN: domain,
             AppHeaders.DOMAIN: domain,
             AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
+            AppHeaders.SCHEMA_VERSION: schema_version,
         }
         try:
-            response = requests.post(target_url, json=data, headers=headers, timeout=15)
+            response = HTTPClient.send_request(
+                "POST",
+                target_url,
+                json=data,
+                headers=headers,
+                allow_redirects=False,
+            )
         except RequestException as e:
             raise CommandError(f"Request failed. Exception: {e}")
         response.raise_for_status()

@@ -6,13 +6,12 @@ from django.core.management import CommandError, call_command
 from django.db.utils import DataError
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
-from django_countries.fields import Country
 
 from ...account.models import Address, User
 from ...account.utils import create_superuser
 from ...attribute.models import AttributeValue
 from ...channel.models import Channel
-from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
+from ...discount.models import Promotion, PromotionRule, Voucher, VoucherChannelListing
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.models import Order
 from ...product import ProductTypeKind
@@ -23,7 +22,9 @@ from ..utils import (
     build_absolute_uri,
     generate_unique_slug,
     get_client_ip,
-    get_currency_for_country,
+    get_domain,
+    is_ssl_enabled,
+    prepare_unique_attribute_value_slug,
     random_data,
 )
 
@@ -60,15 +61,6 @@ def test_get_client_ip(ip_address, expected_ip):
     headers = {"HTTP_X_FORWARDED_FOR": ip_address} if ip_address else {}
     request = RequestFactory(**headers).get("/")
     assert get_client_ip(request) == expected_ip
-
-
-@pytest.mark.parametrize(
-    "country, expected_currency",
-    [(Country("PL"), "PLN"), (Country("US"), "USD"), (Country("GB"), "GBP")],
-)
-def test_get_currency_for_country(country, expected_currency, monkeypatch):
-    currency = get_currency_for_country(country.code)
-    assert currency == expected_currency
 
 
 def test_create_superuser(db, client, media_root):
@@ -152,15 +144,15 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
     assert Order.objects.all().count() == how_many_orders
 
 
-def test_create_product_sales(db):
+def test_create_product_promotions(db):
     how_many = 5
     channel_count = 0
     for _ in random_data.create_channels():
         channel_count += 1
-    for _ in random_data.create_product_sales(how_many):
+    for _ in random_data.create_product_promotions(how_many):
         pass
-    assert Sale.objects.all().count() == how_many
-    assert SaleChannelListing.objects.all().count() == how_many * channel_count
+    assert Promotion.objects.all().count() == how_many
+    assert PromotionRule.objects.all().count() == how_many * 2
 
 
 def test_create_vouchers(db):
@@ -233,6 +225,68 @@ def test_build_absolute_uri_with_host(site_settings, settings):
 
     # then
     assert url == f"http://{host}/{location}"
+
+
+@pytest.mark.parametrize(
+    "public_url", ["https://api.example.com", "http://api.example.com"]
+)
+@pytest.mark.parametrize("enable_ssl", [True, False])
+@pytest.mark.parametrize("host", [None, "test.com"])
+def test_build_absolute_uri_with_public_url(
+    public_url, enable_ssl, host, site_settings, settings
+):
+    # given
+    location = "images/close.svg"
+    settings.PUBLIC_URL = public_url
+    settings.ENABLE_SSL = enable_ssl
+    # when
+    url = build_absolute_uri(location, host)
+    # then
+    assert url == f"{public_url}/{location}"
+
+
+def test_build_absolute_uri_with_public_url_and_absolute_location(
+    site_settings, settings
+):
+    # given
+    location = "https://example.com/static/images/image.jpg"
+    settings.PUBLIC_URL = "https://api.example.com"
+    # when
+    url = build_absolute_uri(location)
+    # then
+    assert url == location
+
+
+@pytest.mark.parametrize("enable_ssl", [True, False])
+def test_is_ssl_enabled(enable_ssl, settings):
+    # given
+    settings.ENABLE_SSL = enable_ssl
+    # then
+    assert is_ssl_enabled() == enable_ssl
+
+
+@pytest.mark.parametrize(
+    "public_url, expected",
+    [("https://api.example.com", True), ("http://api.example.com", False)],
+)
+@pytest.mark.parametrize("enable_ssl", [True, False])
+def test_is_ssl_enabled_with_public_url(public_url, expected, enable_ssl, settings):
+    # given
+    settings.PUBLIC_URL = public_url
+    settings.ENABLE_SSL = enable_ssl
+    # then
+    assert is_ssl_enabled() == expected
+
+
+def test_get_domain(site_settings, settings):
+    assert get_domain() == site_settings.site.domain
+
+
+def test_get_domain_with_public_url(site_settings, settings):
+    # given
+    domain = "api.example.com"
+    settings.PUBLIC_URL = f"https://{domain}"
+    assert get_domain() == domain
 
 
 def test_delete_sort_order_with_null_value(menu_item):
@@ -364,3 +418,28 @@ def test_cleardb_preserves_data(admin_user, app, site_settings, staff_user):
     app.refresh_from_db()
     site_settings.refresh_from_db()
     staff_user.refresh_from_db()
+
+
+def test_prepare_unique_attribute_value_slug(color_attribute):
+    # given
+    value_1 = color_attribute.values.first()
+
+    # when
+    value_2 = AttributeValue(
+        name=value_1.name, attribute=color_attribute, slug=value_1.slug
+    )
+
+    # then
+    result = prepare_unique_attribute_value_slug(value_2.attribute, value_2.slug)
+
+    assert result == f"{value_1.slug}-2"
+
+
+def test_prepare_unique_attribute_value_slug_non_existing_slug(color_attribute):
+    # when
+    non_existing_slug = "non-existing-slug"
+
+    # then
+    result = prepare_unique_attribute_value_slug(color_attribute, non_existing_slug)
+
+    assert result == non_existing_slug

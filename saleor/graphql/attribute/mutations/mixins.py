@@ -5,6 +5,7 @@ from text_unidecode import unidecode
 from ....attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
+from ....core.utils import prepare_unique_slug
 from ...core import ResolveInfo
 from ...core.validators import validate_slug_and_generate_if_needed
 
@@ -43,8 +44,11 @@ class AttributeMixin:
             )
 
         is_swatch_attr = attribute_input_type == AttributeInputType.SWATCH
+
+        slug_list = list(attribute.values.values_list("slug", flat=True))
+
         for value_data in values_input:
-            cls._validate_value(attribute, value_data, is_swatch_attr)
+            cls._validate_value(attribute, value_data, is_swatch_attr, slug_list)
 
         cls.check_values_are_unique(values_input, attribute)
 
@@ -54,6 +58,7 @@ class AttributeMixin:
         attribute: models.Attribute,
         value_data: dict,
         is_swatch_attr: bool,
+        slug_list: list,
     ):
         """Validate the new attribute value."""
         value = value_data.get("name")
@@ -72,8 +77,9 @@ class AttributeMixin:
         else:
             cls.validate_non_swatch_attr_value(value_data)
 
-        slug_value = value
-        value_data["slug"] = slugify(unidecode(slug_value))
+        slug_value = prepare_unique_slug(slugify(unidecode(value)), slug_list)
+        value_data["slug"] = slug_value
+        slug_list.append(slug_value)
 
         attribute_value = models.AttributeValue(**value_data, attribute=attribute)
         try:
@@ -116,10 +122,11 @@ class AttributeMixin:
     @classmethod
     def check_values_are_unique(cls, values_input: dict, attribute: models.Attribute):
         # Check values uniqueness in case of creating new attribute.
-        existing_values = attribute.values.values_list("slug", flat=True)
+        existing_names = attribute.values.values_list("name", flat=True)
+        existing_names = [name.lower().strip() for name in existing_names]
         for value_data in values_input:
-            slug = slugify(unidecode(value_data["name"]))
-            if slug in existing_values:
+            name = unidecode(value_data["name"]).lower().strip()
+            if name in existing_names:
                 msg = (
                     f'Value {value_data["name"]} already exists within this attribute.'
                 )
@@ -131,10 +138,8 @@ class AttributeMixin:
                     }
                 )
 
-        new_slugs = [
-            slugify(unidecode(value_data["name"])) for value_data in values_input
-        ]
-        if len(set(new_slugs)) != len(new_slugs):
+        new_names = [value_data["name"].lower().strip() for value_data in values_input]
+        if len(set(new_names)) != len(new_names):
             raise ValidationError(
                 {
                     cls.ATTRIBUTE_VALUES_FIELD: ValidationError(

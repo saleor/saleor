@@ -1,0 +1,43 @@
+rules:
+  - id: no-requests-lib
+    version: "1.0.0"
+    message: |
+      In order to not introduce SSRF vulnerabilities,
+      the `requests` library shouldn't be used directly.
+      Replace its usage(s) by `HTTPClient.send_request(...)`.
+    metadata:
+      tags: [security]
+    pattern-either:
+      - patterns:
+        - pattern-either:
+            - pattern: requests.request(...)
+            - pattern: requests.get(...)
+            - pattern: requests.post(...)
+            - pattern: requests.put(...)
+            - pattern: requests.delete(...)
+            - pattern: requests.head(...)
+            - pattern: requests.patch(...)
+      - patterns:
+          - pattern-inside: |
+              $SESSION = requests.Session(...)
+              ...
+          - pattern-not: |
+              $SESSION.$W(..., timeout=$N, ...)
+          - pattern-either:
+              - pattern: $SESSION.get(...)
+              - pattern: $SESSION.post(...)
+              - pattern: $SESSION.put(...)
+              - pattern: $SESSION.delete(...)
+              - pattern: $SESSION.head(...)
+              - pattern: $SESSION.patch(...)
+    fix-regex:
+      # The regex extracts the function arguments into a group
+      # Input:
+      #   requests.get(arg1, arg2)
+      # Output:
+      #   safe_requests_generic("get", arg1, arg2)
+      regex: (\s*)[a-z]+\.([a-z]+)\(((.|\n)*)\)
+      replacement: \1HTTPClient.send_request("\2",\3)
+    languages:
+      - python
+    severity: ERROR

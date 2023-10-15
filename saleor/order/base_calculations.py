@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Iterable
 from prices import Money, TaxedMoney
 
 from ..core.taxes import zero_money
-from ..discount import DiscountValueType, OrderDiscountType
+from ..discount import DiscountType, DiscountValueType
 from ..discount.models import OrderDiscount
 from ..discount.utils import apply_discount_to_value
 from .interface import OrderTaxedPricesData
@@ -34,9 +34,9 @@ def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     Shipping vouchers are included in the shipping price.
     Specific product vouchers are included in line base prices.
     Entire order vouchers are recalculated and updated in this function
-    (OrderDiscounts with type `order_discount.type == OrderDiscountType.VOUCHER`).
+    (OrderDiscounts with type `order_discount.type == DiscountType.VOUCHER`).
     Staff order discounts are recalculated and updated in this function
-    (OrderDiscounts with type `order_discount.type == OrderDiscountType.MANUAL`).
+    (OrderDiscounts with type `order_discount.type == DiscountType.MANUAL`).
     """
     currency = order.currency
     subtotal = base_order_subtotal(order, lines)
@@ -46,7 +46,7 @@ def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     for order_discount in order_discounts:
         subtotal_before_discount = subtotal
         shipping_price_before_discount = shipping_price
-        if order_discount.type == OrderDiscountType.VOUCHER:
+        if order_discount.type == DiscountType.VOUCHER:
             subtotal = apply_discount_to_value(
                 value=order_discount.value,
                 value_type=order_discount.value_type,

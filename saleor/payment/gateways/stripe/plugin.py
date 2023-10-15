@@ -1,12 +1,12 @@
 import logging
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
-from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.http.request import split_domain_port
 
+from ....core.utils import get_domain
 from ....graphql.core.enums import PluginErrorCode
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import TransactionKind
@@ -21,6 +21,15 @@ from ...interface import (
 from ...models import Transaction
 from ...utils import price_from_minor_unit, price_to_minor_unit
 from ..utils import get_supported_currencies
+from .consts import (
+    ACTION_REQUIRED_STATUSES,
+    AUTHORIZED_STATUS,
+    PLUGIN_ID,
+    PLUGIN_NAME,
+    PROCESSING_STATUS,
+    SUCCESS_STATUS,
+    WEBHOOK_PATH,
+)
 from .stripe_api import (
     cancel_payment_intent,
     capture_payment_intent,
@@ -39,15 +48,6 @@ from .webhooks import handle_webhook
 if TYPE_CHECKING:
     from ....plugins.models import PluginConfiguration
 
-from .consts import (
-    ACTION_REQUIRED_STATUSES,
-    AUTHORIZED_STATUS,
-    PLUGIN_ID,
-    PLUGIN_NAME,
-    PROCESSING_STATUS,
-    SUCCESS_STATUS,
-    WEBHOOK_PATH,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +62,7 @@ class StripeGatewayPlugin(BasePlugin):
         {"name": "supported_currencies", "value": ""},
         {"name": "webhook_endpoint_id", "value": None},
         {"name": "webhook_secret_key", "value": None},
+        {"name": "include_receipt_email", "value": True},
     ]
 
     CONFIG_STRUCTURE = {
@@ -85,6 +86,16 @@ class StripeGatewayPlugin(BasePlugin):
             "help_text": "Determines currencies supported by gateway."
             " Please enter currency codes separated by a comma.",
             "label": "Supported currencies",
+        },
+        "include_receipt_email": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": "Determine whether the `receipt_email` should be included in "
+            "the payment request sent to Stripe. If `receipt_email` is specified for a "
+            "payment in live mode, a receipt will be sent by Stripe, regardless of "
+            "your email settings. More info: "
+            "https://stripe.com/docs/api/payment_intents/create#"
+            "create_payment_intent-receipt_email",
+            "label": "Include receipt email",
         },
         "webhook_endpoint_id": {
             "type": ConfigurationTypeField.OUTPUT,
@@ -110,6 +121,7 @@ class StripeGatewayPlugin(BasePlugin):
                 "secret_api_key": configuration["secret_api_key"],
                 "webhook_id": configuration["webhook_endpoint_id"],
                 "webhook_secret": webhook_secret,
+                "include_receipt_email": configuration["include_receipt_email"],
             },
             store_customer=True,
         )
@@ -179,6 +191,7 @@ class StripeGatewayPlugin(BasePlugin):
             return previous_value
 
         api_key = self.config.connection_params["secret_api_key"]
+        include_receipt_email = self.config.connection_params["include_receipt_email"]
 
         auto_capture = self.config.auto_capture
         if self.order_auto_confirmation is False:
@@ -227,7 +240,9 @@ class StripeGatewayPlugin(BasePlugin):
             setup_future_usage=setup_future_usage,
             off_session=off_session,
             payment_method_types=payment_method_types,
-            customer_email=payment_information.customer_email,
+            customer_email=payment_information.customer_email
+            if include_receipt_email
+            else None,
         )
 
         raw_response = None
@@ -494,7 +509,7 @@ class StripeGatewayPlugin(BasePlugin):
 
         # check saved domain. Make sure that it is not localhost domain. We are not able
         # to subscribe to stripe webhooks with localhost.
-        domain = Site.objects.get_current().domain
+        domain = get_domain()
         localhost_domains = ["localhost", "127.0.0.1"]
         domain, _ = split_domain_port(domain)
         if not domain:

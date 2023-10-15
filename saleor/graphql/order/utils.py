@@ -1,10 +1,12 @@
 from collections import defaultdict
+from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
 
 import graphene
 from django.core.exceptions import ValidationError
 
 from ...core.exceptions import InsufficientStock
+from ...discount.interface import VariantPromotionRuleInfo
 from ...order.error_codes import OrderErrorCode
 from ...order.utils import get_valid_shipping_methods_for_order
 from ...plugins.manager import PluginsManager
@@ -17,6 +19,7 @@ from ..core.validators import validate_variants_available_in_channel
 if TYPE_CHECKING:
     from ...channel.models import Channel
     from ...order.models import Order
+
 from dataclasses import dataclass
 
 T_ERRORS = Dict[str, List[ValidationError]]
@@ -27,7 +30,9 @@ class OrderLineData:
     variant_id: Optional[str] = None
     variant: Optional[ProductVariant] = None
     line_id: Optional[str] = None
+    price_override: Optional[Decimal] = None
     quantity: int = 0
+    rules_info: Optional[Iterable[VariantPromotionRuleInfo]] = None
 
 
 def validate_total_quantity(order: "Order", errors: T_ERRORS):
@@ -152,7 +157,9 @@ def validate_variants_is_available(order: "Order", errors: T_ERRORS):
     variants_ids = {line.variant_id for line in order.lines.all()}
     try:
         validate_variants_available_in_channel(
-            variants_ids, order.channel_id, OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL
+            variants_ids,
+            order.channel_id,
+            OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
         )
     except ValidationError as e:
         errors["lines"].extend(e.error_dict["lines"])
@@ -223,7 +230,7 @@ def validate_variant_channel_listings(
 
     variant_ids = {variant.id for variant in variants}
     validate_variants_available_in_channel(
-        variant_ids, channel.id, OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL
+        variant_ids, channel.id, OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value
     )
 
 
@@ -300,9 +307,10 @@ def prepare_insufficient_stock_order_validation_errors(exc):
             if item.warehouse_pk
             else None
         )
+
         errors.append(
             ValidationError(
-                f"Insufficient product stock: {item.order_line or item.variant}",
+                "Insufficient product stock.",
                 code=OrderErrorCode.INSUFFICIENT_STOCK.value,
                 params={
                     "order_lines": [order_line_global_id]

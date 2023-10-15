@@ -3,7 +3,6 @@ from datetime import datetime
 
 import graphene
 import pytz
-import requests
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db.models import F
@@ -11,6 +10,7 @@ from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 from text_unidecode import unidecode
 
+from ....core.http_client import HTTPClient
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
 from ....core.utils.editorjs import clean_editor_js
@@ -18,6 +18,8 @@ from ....core.utils.validators import get_oembed_data
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
+from ....product.tasks import update_products_discounted_prices_for_promotion_task
+from ....thumbnail.utils import get_filename_from_url
 from ....warehouse.models import Warehouse
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
@@ -38,13 +40,8 @@ from ...core.types import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import clean_seo_fields
-from ...core.validators.file import (
-    clean_image_file,
-    get_filename_from_url,
-    is_image_url,
-    validate_image_url,
-)
-from ...meta.mutations import MetadataInput
+from ...core.validators.file import clean_image_file, is_image_url, validate_image_url
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
 from ..types import Product
@@ -86,7 +83,11 @@ class ProductChannelListingCreateInput(BaseInputObjectType):
         )
     )
     is_available_for_purchase = graphene.Boolean(
-        description="Determine if product should be available for purchase.",
+        description=(
+            "Determines if product should be available for purchase in this channel. "
+            "This does not guarantee the availability of stock. When set to `False`, "
+            "this product is still visible to customers, but it cannot be purchased."
+        ),
     )
     available_for_purchase_at = graphene.DateTime(
         description=(
@@ -191,8 +192,8 @@ class ProductBulkCreate(BaseMutation):
         )
         error_policy = ErrorPolicyEnum(
             required=False,
-            default_value=ErrorPolicyEnum.REJECT_EVERYTHING.value,
-            description="Policies of error handling.",
+            description="Policies of error handling. DEFAULT: "
+            + ErrorPolicyEnum.REJECT_EVERYTHING.name,
         )
 
     class Meta:
@@ -466,6 +467,10 @@ class ProductBulkCreate(BaseMutation):
             graphene.Node.to_global_id("Attribute", variant_attribute.id)
             for variant_attribute in variant_attributes
         }
+        variant_attributes_external_refs = {
+            variant_attribute.external_reference
+            for variant_attribute in variant_attributes
+        }
 
         for index, variant_data in enumerate(variant_inputs):
             variant_data["product_type"] = product_type
@@ -477,6 +482,7 @@ class ProductBulkCreate(BaseMutation):
                 variant_attributes,
                 [],
                 variant_attributes_ids,
+                variant_attributes_external_refs,
                 duplicated_sku,
                 variant_index_error_map,
                 index,
@@ -488,8 +494,8 @@ class ProductBulkCreate(BaseMutation):
             for error in errors:
                 index_error_map[product_index].append(
                     ProductBulkCreateError(
-                        path=f"variants.{index}.{error.field}"
-                        if error.field
+                        path=f"variants.{index}.{error.path}"
+                        if error.path
                         else f"variants.{index}",
                         message=error.message,
                         code=error.code,
@@ -744,7 +750,7 @@ class ProductBulkCreate(BaseMutation):
             AttributeAssignmentMixin.save(product, attributes)
 
         if variants_input_data:
-            variants = cls.save_variants(variants_input_data)
+            variants = cls.save_variants(info, variants_input_data)
 
         return variants, updated_channels
 
@@ -769,8 +775,8 @@ class ProductBulkCreate(BaseMutation):
         )
 
     @classmethod
-    def save_variants(cls, variants_input_data):
-        return ProductVariantBulkCreate.save_variants(variants_input_data, None)
+    def save_variants(cls, info, variants_input_data):
+        return ProductVariantBulkCreate.save_variants(info, variants_input_data, None)
 
     @classmethod
     def prepare_media(cls, info, product, media_inputs, media_to_create):
@@ -796,7 +802,9 @@ class ProductBulkCreate(BaseMutation):
                         media_url, "media_url", ProductBulkCreateErrorCode.INVALID.value
                     )
                     filename = get_filename_from_url(media_url)
-                    image_data = requests.get(media_url, stream=True)
+                    image_data = HTTPClient.send_request(
+                        "GET", media_url, stream=True, timeout=30, allow_redirects=False
+                    )
                     image_data = File(image_data.raw, filename)
                     media_to_create.append(
                         models.ProductMedia(
@@ -821,8 +829,10 @@ class ProductBulkCreate(BaseMutation):
     @classmethod
     def post_save_actions(cls, info, products, variants, channels):
         manager = get_plugin_manager_promise(info.context).get()
+        product_ids = []
         for product in products:
-            cls.call_event(manager.product_created, product)
+            cls.call_event(manager.product_created, product.node)
+            product_ids.append(product.node.id)
 
         for variant in variants:
             cls.call_event(manager.product_variant_created, variant)
@@ -830,11 +840,13 @@ class ProductBulkCreate(BaseMutation):
         for channel in channels:
             cls.call_event(manager.channel_updated, channel)
 
+        update_products_discounted_prices_for_promotion_task.delay(product_ids)
+
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         index_error_map: dict = defaultdict(list)
-        error_policy = data["error_policy"]
+        error_policy = data.get("error_policy", ErrorPolicyEnum.REJECT_EVERYTHING.value)
 
         # clean and validate inputs
         cleaned_inputs_map = cls.clean_products(info, data["products"], index_error_map)

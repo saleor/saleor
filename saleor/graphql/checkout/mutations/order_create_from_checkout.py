@@ -4,18 +4,18 @@ from django.core.exceptions import ValidationError
 from ....checkout.checkout_cleaner import validate_checkout
 from ....checkout.complete_checkout import create_order_from_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....core import analytics
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....discount.models import NotApplicable
 from ....permission.enums import CheckoutPermissions
+from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_32, ADDED_IN_38, PREVIEW_FEATURE
-from ...core.doc_category import DOC_CATEGORY_CHECKOUT
+from ...core.descriptions import ADDED_IN_32, ADDED_IN_38
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
-from ...discount.dataloaders import load_discounts
-from ...meta.mutations import MetadataInput
+from ...core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo
+from ...meta.inputs import MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import OrderCreateFromCheckoutErrorCode
@@ -39,7 +39,7 @@ class OrderCreateFromCheckoutError(Error):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderCreateFromCheckout(BaseMutation):
@@ -78,14 +78,66 @@ class OrderCreateFromCheckout(BaseMutation):
             "Create new order from existing checkout. Requires the "
             "following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS."
             + ADDED_IN_32
-            + PREVIEW_FEATURE
         )
-        doc_category = DOC_CATEGORY_CHECKOUT
+        doc_category = DOC_CATEGORY_ORDERS
         object_type = Order
         permissions = (CheckoutPermissions.HANDLE_CHECKOUTS,)
         error_type_class = OrderCreateFromCheckoutError
         support_meta_field = True
         support_private_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                description=(
+                    "Optionally triggered when cached external shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                description=(
+                    "Optionally triggered when cached filtered shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_CREATED,
+                description="Triggered when order is created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for order placement.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A staff notification for order placement.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_UPDATED,
+                description=(
+                    "Triggered when order received the update after placement."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_PAID,
+                description="Triggered when newly created order is paid.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_FULLY_PAID,
+                description="Triggered when newly created order is fully paid.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_CONFIRMED,
+                description=(
+                    "Optionally triggered when newly created order are automatically "
+                    "marked as confirmed."
+                ),
+            ),
+        ]
 
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):
@@ -106,7 +158,7 @@ class OrderCreateFromCheckout(BaseMutation):
         id,
         metadata=None,
         private_metadata=None,
-        remove_checkout
+        remove_checkout,
     ):
         user = info.context.user
         checkout = cls.get_node_or_error(
@@ -124,32 +176,23 @@ class OrderCreateFromCheckout(BaseMutation):
             cls.check_metadata_permissions(info, id, private=True)
             cls.validate_metadata_keys(private_metadata)
 
-        tracking_code = analytics.get_client_id(info.context)
-
         manager = get_plugin_manager_promise(info.context).get()
-        discounts = load_discounts(info.context)
         checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(
-            checkout, checkout_lines, discounts, manager
-        )
+        checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 
         validate_checkout(
             checkout_info=checkout_info,
             lines=checkout_lines,
             unavailable_variant_pks=unavailable_variant_pks,
-            discounts=discounts,
             manager=manager,
         )
         app = get_app_promise(info.context).get()
         try:
             order = create_order_from_checkout(
                 checkout_info=checkout_info,
-                checkout_lines=checkout_lines,
-                discounts=discounts,
                 manager=manager,
                 user=user,
                 app=app,
-                tracking_code=tracking_code,
                 delete_checkout=remove_checkout,
                 metadata_list=metadata,
                 private_metadata_list=private_metadata,

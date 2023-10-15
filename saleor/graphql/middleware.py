@@ -16,7 +16,7 @@ class ReadOnlyMiddleware:
         "checkoutCustomerDetach",
         "checkoutDeliveryMethodUpdate",
         "checkoutEmailUpdate",
-        "checkoutLineDelete",
+        "checkoutLinesDelete",
         "checkoutLinesAdd",
         "checkoutLinesUpdate",
         "checkoutRemovePromoCode",
@@ -26,6 +26,12 @@ class ReadOnlyMiddleware:
         "tokenCreate",
         "tokenVerify",
         "tokenRefresh",
+        "paymentGatewayInitialize",
+        "transactionInitialize",
+        "transactionProcess",
+        "transactionRequestAction",
+        "orderGrantRefundCreate",
+        "orderGrantRefundUpdate",
     ]
 
     @staticmethod

@@ -23,7 +23,6 @@ from .products import (
     ProductChannelListingByIdLoader,
     ProductChannelListingByProductIdAndChannelSlugLoader,
     ProductChannelListingByProductIdLoader,
-    ProductImageByProductIdLoader,
     ProductMediaByIdLoader,
     ProductTypeByIdLoader,
     ProductTypeByProductIdLoader,
@@ -38,6 +37,7 @@ from .products import (
     VariantChannelListingByVariantIdAndChannelIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantChannelListingByVariantIdLoader,
+    VariantChannelListingPromotionRuleByListingIdLoader,
     VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
 
@@ -60,7 +60,6 @@ __all__ = [
     "ProductTypeByVariantIdLoader",
     "ProductChannelListingByIdLoader",
     "ProductChannelListingByProductIdLoader",
-    "ProductImageByProductIdLoader",
     "ProductChannelListingByProductIdAndChannelSlugLoader",
     "ProductTypeByIdLoader",
     "ProductVariantByIdLoader",
@@ -78,6 +77,7 @@ __all__ = [
     "VariantChannelListingByVariantIdAndChannelIdLoader",
     "VariantChannelListingByVariantIdLoader",
     "VariantsChannelListingByProductIdAndChannelSlugLoader",
+    "VariantChannelListingPromotionRuleByListingIdLoader",
     "ProductVariantsByProductIdAndChannel",
     "AvailableProductVariantsByProductIdAndChannel",
 ]

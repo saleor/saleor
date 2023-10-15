@@ -1,6 +1,8 @@
 import graphene
 
+from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions, OrderPermissions
+from ...permission.utils import message_one_of_permissions_required
 from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
@@ -27,8 +29,10 @@ from .mutations.account import (
     AccountRequestDeletion,
     AccountSetDefaultAddress,
     AccountUpdate,
+    ConfirmAccount,
     ConfirmEmailChange,
     RequestEmailChange,
+    SendConfirmationEmail,
 )
 from .mutations.authentication import (
     CreateToken,
@@ -38,14 +42,11 @@ from .mutations.authentication import (
     ExternalObtainAccessTokens,
     ExternalRefresh,
     ExternalVerify,
-    RefreshToken,
-    VerifyToken,
-)
-from .mutations.base import (
-    ConfirmAccount,
     PasswordChange,
+    RefreshToken,
     RequestPasswordReset,
     SetPassword,
+    VerifyToken,
 )
 from .mutations.permission_group import (
     PermissionGroupCreate,
@@ -127,7 +128,10 @@ class AccountQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of an address.", required=True
         ),
-        description="Look up an address by ID.",
+        description="Look up an address by ID."
+        + message_one_of_permissions_required(
+            [AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER]
+        ),
         doc_category=DOC_CATEGORY_USERS,
     )
     customers = FilterConnectionField(
@@ -196,7 +200,7 @@ class AccountQueries(graphene.ObjectType):
         country_code,
         country_area=None,
         city=None,
-        city_area=None
+        city_area=None,
     ):
         return resolve_address_validation_rules(
             info,
@@ -264,6 +268,7 @@ class AccountMutations(graphene.ObjectType):
     external_verify = ExternalVerify.Field()
 
     request_password_reset = RequestPasswordReset.Field()
+    send_confirmation_email = SendConfirmationEmail.Field()
     confirm_account = ConfirmAccount.Field()
     set_password = SetPassword.Field()
     password_change = PasswordChange.Field()

@@ -1,7 +1,6 @@
 import json
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import requests
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import (
     constants,
@@ -11,6 +10,7 @@ from authorizenet.apicontrollers import (
 from lxml import etree
 from lxml.objectify import ObjectifiedElement
 
+from ....core.http_client import HTTPClient
 from ... import TransactionKind
 from ...interface import (
     CustomerSource,
@@ -38,8 +38,12 @@ def authenticate_test(
             "merchantAuthentication": {"name": name, "transactionKey": transaction_key}
         }
     }
-    response = requests.post(
-        url, json=data, headers={"content-type": "application/json"}
+    response = HTTPClient.send_request(
+        "POST",
+        url,
+        json=data,
+        headers={"content-type": "application/json"},
+        allow_redirects=False,
     )
     # Response content is utf-8-sig, which requires usage of json.loads
     result = json.loads(response.content)

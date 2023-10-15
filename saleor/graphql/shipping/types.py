@@ -21,12 +21,7 @@ from ..channel.types import (
     ChannelContextTypeWithMetadataForObjectType,
 )
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import (
-    ADDED_IN_36,
-    DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
-    RICH_CONTENT,
-)
+from ..core.descriptions import ADDED_IN_36, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import ConnectionField, JSONString, PermissionsField
 from ..core.tracing import traced_resolver
@@ -45,6 +40,7 @@ from ..tax.dataloaders import TaxClassByIdLoader
 from ..tax.types import TaxClass
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
+from ..warehouse.dataloaders import WarehousesByShippingZoneIdLoader
 from ..warehouse.types import Warehouse
 from .dataloaders import (
     ChannelsByShippingZoneIdLoader,
@@ -60,11 +56,19 @@ from .enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 class ShippingMethodChannelListing(
     ModelObjectType[models.ShippingMethodChannelListing]
 ):
-    id = graphene.GlobalID(required=True)
-    channel = graphene.Field(Channel, required=True)
-    maximum_order_price = graphene.Field(Money)
-    minimum_order_price = graphene.Field(Money)
-    price = graphene.Field(Money)
+    id = graphene.GlobalID(
+        required=True, description="The ID of shipping method channel listing."
+    )
+    channel = graphene.Field(
+        Channel,
+        required=True,
+        description="The channel associated with the shipping method channel listing.",
+    )
+    maximum_order_price = graphene.Field(Money, description="Maximum order price.")
+    minimum_order_price = graphene.Field(Money, description="Minimum order price.")
+    price = graphene.Field(
+        Money, description="Price of the shipping method in the associated channel."
+    )
 
     class Meta:
         description = "Represents shipping method channel listing."
@@ -256,9 +260,11 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
 
 
 class ShippingZone(ChannelContextTypeWithMetadata[models.ShippingZone]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
-    default = graphene.Boolean(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of shipping zone.")
+    name = graphene.String(required=True, description="Shipping zone name.")
+    default = graphene.Boolean(
+        required=True, description="Indicates if the shipping zone is default one."
+    )
     price_range = graphene.Field(
         MoneyRange, description="Lowest and highest prices for the shipping."
     )
@@ -332,8 +338,8 @@ class ShippingZone(ChannelContextTypeWithMetadata[models.ShippingZone]):
         )
 
     @staticmethod
-    def resolve_warehouses(root: ChannelContext[models.ShippingZone], _info):
-        return root.node.warehouses.all()
+    def resolve_warehouses(root: ChannelContext[models.ShippingZone], info):
+        return WarehousesByShippingZoneIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_channels(root: ChannelContext[models.ShippingZone], info):
@@ -409,6 +415,7 @@ class ShippingMethod(BaseObjectType):
 
 class ShippingZoneCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_SHIPPING
         node = ShippingZone
 
 
@@ -423,7 +430,5 @@ class ShippingMethodsPerCountry(BaseObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_SHIPPING
         description = (
-            "List of shipping methods available for the country."
-            + ADDED_IN_36
-            + PREVIEW_FEATURE
+            "List of shipping methods available for the country." + ADDED_IN_36
         )

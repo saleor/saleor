@@ -18,7 +18,16 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ...core.context import get_database_connection_name
+from ...core.descriptions import (
+    ADDED_IN_310,
+    ADDED_IN_314,
+    ADDED_IN_317,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+    RICH_CONTENT,
+)
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
 from ...core.tracing import traced_resolver
@@ -31,26 +40,31 @@ from ..dataloaders import (
     CategoryChildrenByCategoryIdLoader,
     ThumbnailByCategoryIdSizeAndFormatLoader,
 )
-from ..filters import ProductFilterInput
+from ..filters import ProductFilterInput, ProductWhereInput
 from ..sorters import ProductOrder
 from .products import ProductCountableConnection
 
 
 @federated_entity("id")
 class Category(ModelObjectType[models.Category]):
-    id = graphene.GlobalID(required=True)
-    seo_title = graphene.String()
-    seo_description = graphene.String()
-    name = graphene.String(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the category.")
+    seo_title = graphene.String(description="SEO title of category.")
+    seo_description = graphene.String(description="SEO description of category.")
+    name = graphene.String(required=True, description="Name of category")
     description = JSONString(description="Description of the category." + RICH_CONTENT)
-    slug = graphene.String(required=True)
-    parent = graphene.Field(lambda: Category)
-    level = graphene.Int(required=True)
+    slug = graphene.String(required=True, description="Slug of the category.")
+    parent = graphene.Field(lambda: Category, description="Parent category.")
+    level = graphene.Int(required=True, description="Level of the category.")
     description_json = JSONString(
         description="Description of the category." + RICH_CONTENT,
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
+    )
+    updated_at = graphene.DateTime(
+        required=True,
+        description="The date and time when the category was last updated."
+        + ADDED_IN_317,
     )
     ancestors = ConnectionField(
         lambda: CategoryCountableConnection,
@@ -60,6 +74,11 @@ class Category(ModelObjectType[models.Category]):
         ProductCountableConnection,
         filter=ProductFilterInput(
             description="Filtering options for products." + ADDED_IN_310
+        ),
+        where=ProductWhereInput(
+            description="Filtering options for products."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
         ),
         sort_by=ProductOrder(description="Sort products." + ADDED_IN_310),
         channel=graphene.String(
@@ -75,7 +94,7 @@ class Category(ModelObjectType[models.Category]):
         lambda: CategoryCountableConnection,
         description="List of children of the category.",
     )
-    background_image = ThumbnailField()
+    background_image = ThumbnailField(description="Background image of the category.")
     translation = TranslationField(CategoryTranslation, type_name="category")
 
     class Meta:
@@ -154,7 +173,8 @@ class Category(ModelObjectType[models.Category]):
         tree = root.get_descendants(include_self=True)
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
-        qs = models.Product.objects.all()
+        connection_name = get_database_connection_name(info.context)
+        qs = models.Product.objects.using(connection_name).all()
         if not has_required_permissions:
             qs = (
                 qs.visible_to_user(requestor, channel)
@@ -179,4 +199,5 @@ class Category(ModelObjectType[models.Category]):
 
 class CategoryCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = Category

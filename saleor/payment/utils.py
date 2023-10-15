@@ -3,9 +3,10 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, Iterable, Optional, Union, cast, overload
+from typing import Any, Dict, Optional, Union, cast, overload
 
 import graphene
+from aniso8601 import parse_datetime
 from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
@@ -20,9 +21,8 @@ from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
-from ..discount import DiscountInfo
-from ..discount.utils import fetch_active_discounts
 from ..graphql.core.utils import str_to_enum
+from ..order.fetch import fetch_order_info
 from ..order.models import Order
 from ..order.search import update_order_search_vector
 from ..order.utils import update_order_authorize_data, updates_amounts_for_order
@@ -32,6 +32,7 @@ from . import (
     GatewayError,
     PaymentError,
     StorePaymentMethod,
+    TransactionAction,
     TransactionEventType,
     TransactionKind,
 )
@@ -85,8 +86,7 @@ def create_checkout_payment_lines_information(
 ) -> PaymentLinesData:
     line_items = []
     lines, _ = fetch_checkout_lines(checkout)
-    discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     for line_info in lines:
@@ -95,7 +95,6 @@ def create_checkout_payment_lines_information(
             lines,
             line_info,
             address,
-            discounts,
         )
         unit_gross = unit_price.gross.amount
 
@@ -115,7 +114,6 @@ def create_checkout_payment_lines_information(
         checkout_info=checkout_info,
         lines=lines,
         address=address,
-        discounts=discounts,
     ).gross.amount
 
     voucher_amount = -checkout.discount_amount
@@ -193,9 +191,9 @@ def create_payment_information(
         email = cast(str, checkout.get_customer_email())
         user_id = checkout.user_id
         checkout_token = str(checkout.token)
-        from ..checkout.utils import get_or_create_checkout_metadata
+        from ..checkout.utils import get_checkout_metadata
 
-        checkout_metadata = get_or_create_checkout_metadata(checkout).metadata
+        checkout_metadata = get_checkout_metadata(checkout).metadata
     elif order := payment.order:
         billing = order.billing_address
         shipping = order.shipping_address
@@ -797,8 +795,17 @@ def parse_transaction_event_data(
                 datetime.fromisoformat(event_time_data) if event_time_data else None
             )
         except ValueError:
-            logger.warning(invalid_msg, "time", event_time_data)
-            error_field_msg.append(invalid_msg % ("time", event_time_data))
+            try:
+                # datetime.fromisoformat supports only formats of the objects that were
+                # created by date.isoformat() or datetime.isoformat(). It is fixed in
+                # 3.11
+                # This try except block can be removed after moving to python 3.11
+                # ref: https://docs.python.org/3/library/datetime.html#datetime.
+                # datetime.fromisoformat
+                parsed_event_data["time"] = parse_datetime(event_time_data)
+            except ValueError:
+                logger.warning(invalid_msg, "time", event_time_data)
+                error_field_msg.append(invalid_msg % ("time", event_time_data))
     else:
         parsed_event_data["time"] = timezone.now()
 
@@ -827,6 +834,18 @@ def parse_transaction_action_data(
         logger.error(msg)
         return None, msg
 
+    available_actions = response_data.get("actions", None)
+    if available_actions is not None:
+        possible_actions = {
+            str_to_enum(event_action): event_action
+            for event_action, _ in TransactionAction.CHOICES
+        }
+        available_actions = [
+            possible_actions[action]
+            for action in available_actions
+            if action in possible_actions
+        ]
+
     parsed_event_data: dict = {}
     error_field_msg: list[str] = []
     parse_transaction_event_data(
@@ -849,6 +868,7 @@ def parse_transaction_action_data(
     return (
         TransactionRequestResponse(
             psp_reference=psp_reference,
+            available_actions=available_actions,
             event=TransactionRequestEventResponse(**parsed_event_data)
             if parsed_event_data
             else None,
@@ -1059,7 +1079,6 @@ def create_transaction_event_for_transaction_session(
     request_event: TransactionEvent,
     app: App,
     manager: "PluginsManager",
-    discounts: Optional[Iterable["DiscountInfo"]],
     transaction_webhook_response: Optional[Dict[str, Any]] = None,
 ):
     request_event_type = "session-request"
@@ -1095,12 +1114,14 @@ def create_transaction_event_for_transaction_session(
         request_event.amount_value = response_event.amount
         request_event.psp_reference = response_event.psp_reference
         request_event.include_in_calculations = True
+        request_event.app = app
         request_event_update_fields.extend(
             [
                 "type",
                 "amount_value",
                 "psp_reference",
                 "include_in_calculations",
+                "app",
             ]
         )
         event = request_event
@@ -1127,7 +1148,15 @@ def create_transaction_event_for_transaction_session(
         TransactionEventType.CHARGE_SUCCESS,
     ]:
         transaction_item = event.transaction
+        previous_authorized_value = transaction_item.authorized_value
+        previous_charged_value = transaction_item.charged_value
+        previous_refunded_value = transaction_item.refunded_value
+
         transaction_item.psp_reference = event.psp_reference
+        available_actions = transaction_request_response.available_actions
+        if available_actions is not None:
+            transaction_item.available_actions = list(set(available_actions))
+
         recalculate_transaction_amounts(transaction_item, save=False)
         transaction_item.save(
             update_fields=[
@@ -1140,14 +1169,28 @@ def create_transaction_event_for_transaction_session(
                 "refund_pending_value",
                 "cancel_pending_value",
                 "psp_reference",
+                "available_actions",
             ]
         )
         if transaction_item.order_id:
+            # circular import
+            from ..order.actions import order_transaction_updated
+
             update_order_with_transaction_details(transaction_item)
-        elif transaction_item.checkout_id:
-            transaction_amounts_for_checkout_updated(
-                transaction_item, discounts, manager
+            order = cast(Order, transaction_item.order)
+            order_info = fetch_order_info(order)
+            order_transaction_updated(
+                order_info=order_info,
+                transaction_item=transaction_item,
+                manager=manager,
+                user=None,
+                app=app,
+                previous_authorized_value=previous_authorized_value,
+                previous_charged_value=previous_charged_value,
+                previous_refunded_value=previous_refunded_value,
             )
+        elif transaction_item.checkout_id:
+            transaction_amounts_for_checkout_updated(transaction_item, manager)
     return event
 
 
@@ -1178,14 +1221,49 @@ def create_transaction_event_from_request_and_webhook_response(
             return create_failed_transaction_event(request_event, cause=error_msg)
 
     transaction_item = request_event.transaction
-    recalculate_transaction_amounts(transaction_item)
+    previous_authorized_value = transaction_item.authorized_value
+    previous_charged_value = transaction_item.charged_value
+    previous_refunded_value = transaction_item.refunded_value
+    recalculate_transaction_amounts(transaction_item, save=False)
+    available_actions = transaction_request_response.available_actions
+    if available_actions is not None:
+        transaction_item.available_actions = list(set(available_actions))
+
+    transaction_item.save(
+        update_fields=[
+            "available_actions",
+            "authorized_value",
+            "charged_value",
+            "refunded_value",
+            "canceled_value",
+            "authorize_pending_value",
+            "charge_pending_value",
+            "refund_pending_value",
+            "cancel_pending_value",
+        ]
+    )
 
     if transaction_item.order_id:
-        update_order_with_transaction_details(transaction_item)
-    elif transaction_item.checkout_id:
-        discounts = fetch_active_discounts()
+        # circular import
+        from ..order.actions import order_transaction_updated
+
         manager = get_plugins_manager()
-        transaction_amounts_for_checkout_updated(transaction_item, discounts, manager)
+        order = cast(Order, transaction_item.order)
+        order_info = fetch_order_info(order)
+        update_order_with_transaction_details(transaction_item)
+        order_transaction_updated(
+            order_info=order_info,
+            transaction_item=transaction_item,
+            manager=manager,
+            user=None,
+            app=app,
+            previous_authorized_value=previous_authorized_value,
+            previous_charged_value=previous_charged_value,
+            previous_refunded_value=previous_refunded_value,
+        )
+    elif transaction_item.checkout_id:
+        manager = get_plugins_manager()
+        transaction_amounts_for_checkout_updated(transaction_item, manager)
     return event
 
 
@@ -1309,8 +1387,11 @@ def create_transaction_item(
     user: Optional[User],
     app: Optional[App],
     psp_reference: Optional[str],
+    available_actions: Optional[list[str]] = None,
+    name: str = "",
 ):
     return TransactionItem.objects.create(
+        name=name,
         checkout_id=source_object.pk if isinstance(source_object, Checkout) else None,
         order_id=source_object.pk if isinstance(source_object, Order) else None,
         currency=source_object.currency,
@@ -1318,6 +1399,7 @@ def create_transaction_item(
         app_identifier=app.identifier if app else None,
         user=user,
         psp_reference=psp_reference,
+        available_actions=available_actions if available_actions else [],
     )
 
 
@@ -1327,9 +1409,16 @@ def create_transaction_for_order(
     app: Optional["App"],
     psp_reference: Optional[str],
     charged_value: Decimal,
+    available_actions: Optional[list[str]] = None,
+    name: str = "",
 ) -> TransactionItem:
     transaction = create_transaction_item(
-        source_object=order, user=user, app=app, psp_reference=psp_reference
+        source_object=order,
+        user=user,
+        app=app,
+        psp_reference=psp_reference,
+        available_actions=available_actions,
+        name=name,
     )
     create_manual_adjustment_events(
         transaction=transaction,
@@ -1343,12 +1432,12 @@ def create_transaction_for_order(
 
 def handle_transaction_initialize_session(
     source_object: Union[Checkout, Order],
-    payment_gateway: PaymentGatewayData,
+    payment_gateway_data: PaymentGatewayData,
     amount: Decimal,
     action: str,
+    customer_ip_address: Optional[str],
     app: App,
     manager: PluginsManager,
-    discounts: Optional[Iterable["DiscountInfo"]],
 ):
     transaction_item = create_transaction_item(
         source_object=source_object, user=None, app=app, psp_reference=None
@@ -1356,10 +1445,11 @@ def handle_transaction_initialize_session(
     session_data = TransactionSessionData(
         transaction=transaction_item,
         source_object=source_object,
-        payment_gateway=payment_gateway,
+        payment_gateway_data=payment_gateway_data,
         action=TransactionProcessActionData(
             action_type=action, currency=source_object.currency, amount=amount
         ),
+        customer_ip_address=customer_ip_address,
     )
 
     request_event = transaction_item.events.create(
@@ -1370,16 +1460,15 @@ def handle_transaction_initialize_session(
         currency=transaction_item.currency,
         amount_value=amount,
     )
-    response = manager.transaction_initialize_session(session_data)
+    result = manager.transaction_initialize_session(session_data)
 
-    response_data = response.data if response else None
+    response_data = result.response if result else None
 
     created_event = create_transaction_event_for_transaction_session(
         request_event,
         app,
         transaction_webhook_response=response_data,
         manager=manager,
-        discounts=discounts,
     )
     data_to_return = response_data.get("data") if response_data else None
     return created_event.transaction, created_event, data_to_return
@@ -1388,34 +1477,34 @@ def handle_transaction_initialize_session(
 def handle_transaction_process_session(
     transaction_item: TransactionItem,
     source_object: Union[Checkout, Order],
-    payment_gateway: PaymentGatewayData,
+    payment_gateway_data: PaymentGatewayData,
     action: str,
     app: App,
+    customer_ip_address: Optional[str],
     manager: PluginsManager,
     request_event: TransactionEvent,
-    discounts: Optional[Iterable["DiscountInfo"]],
 ):
     session_data = TransactionSessionData(
         transaction=transaction_item,
         source_object=source_object,
-        payment_gateway=payment_gateway,
+        payment_gateway_data=payment_gateway_data,
         action=TransactionProcessActionData(
             action_type=action,
             currency=source_object.currency,
             amount=request_event.amount_value,
         ),
+        customer_ip_address=customer_ip_address,
     )
 
-    response = manager.transaction_process_session(session_data)
+    result = manager.transaction_process_session(session_data)
 
-    response_data = response.data if response else None
+    response_data = result.response if result else None
 
     created_event = create_transaction_event_for_transaction_session(
         request_event,
         app,
         transaction_webhook_response=response_data,
         manager=manager,
-        discounts=discounts,
     )
     data_to_return = response_data.get("data") if response_data else None
     return created_event, data_to_return

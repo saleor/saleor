@@ -3,7 +3,7 @@ from typing import Optional
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....order.actions import order_captured
+from ....order.actions import order_charged
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....payment import TransactionKind, gateway
@@ -68,6 +68,7 @@ class OrderCapture(BaseMutation):
             )
 
         order = cls.get_node_or_error(info, id, only_type=Order)
+        cls.check_channel_permissions(info, [order.channel_id])
 
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
@@ -90,7 +91,7 @@ class OrderCapture(BaseMutation):
         # asynchronous webhook with update status
         if transaction.kind == TransactionKind.CAPTURE:
             site = get_site_promise(info.context).get()
-            order_captured(
+            order_charged(
                 order_info,
                 info.context.user,
                 app,

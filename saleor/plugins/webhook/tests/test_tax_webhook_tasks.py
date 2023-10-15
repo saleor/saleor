@@ -6,8 +6,8 @@ from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventPayload
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook, WebhookEvent
-from ..tasks import trigger_all_webhooks_sync
-from ..utils import parse_tax_data
+from ....webhook.transport.synchronous.transport import trigger_all_webhooks_sync
+from ....webhook.transport.utils import parse_tax_data
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def tax_checkout_webhooks(tax_app):
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_trigger_tax_webhook_sync(
     mock_request,
     tax_checkout_webhook,
@@ -58,11 +58,11 @@ def test_trigger_tax_webhook_sync(
     assert delivery.event_type == event_type
     assert delivery.payload == payload
     assert delivery.webhook == tax_checkout_webhook
-    mock_request.assert_called_once_with(tax_checkout_webhook.app.name, delivery)
+    mock_request.assert_called_once_with(delivery)
     assert tax_data == parse_tax_data(tax_data_response)
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_trigger_tax_webhook_sync_multiple_webhooks_first(
     mock_request,
     tax_checkout_webhooks,
@@ -86,11 +86,11 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
     assert delivery.event_type == event_type
     assert delivery.payload == payload
     assert delivery.webhook == successful_webhook
-    mock_request.assert_called_once_with(successful_webhook.app.name, delivery)
+    mock_request.assert_called_once_with(delivery)
     assert tax_data == parse_tax_data(tax_data_response)
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_trigger_tax_webhook_sync_multiple_webhooks_last(
     mock_request,
     tax_checkout_webhooks,
@@ -116,13 +116,13 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
         assert delivery.event_type == event_type
         assert delivery.payload == payload
         assert delivery.webhook == webhook
-        assert call[0] == (webhook.app.name, delivery)
+        assert call[0] == (delivery,)
 
     assert mock_request.call_count == 3
     assert tax_data == parse_tax_data(tax_data_response)
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_trigger_tax_webhook_sync_invalid_webhooks(
     mock_request,
     tax_checkout_webhooks,

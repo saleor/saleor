@@ -5,6 +5,7 @@ from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....warehouse.reservations import is_reservation_enabled
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...checkout.types import CheckoutLine
 from ...core import ResolveInfo
@@ -13,11 +14,11 @@ from ...core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_36,
     DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
 )
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID, PositiveDecimal
 from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
@@ -51,7 +52,6 @@ class CheckoutLineUpdateInput(BaseInputObjectType):
             "with `HANDLE_CHECKOUTS` permission. When the line with the same variant "
             "will be provided multiple times, the last price will be used."
             + ADDED_IN_31
-            + PREVIEW_FEATURE
         ),
     )
     line_id = graphene.ID(
@@ -95,6 +95,12 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
+                description="A checkout was updated.",
+            )
+        ]
 
     @classmethod
     def validate_checkout_lines(
@@ -134,7 +140,6 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         checkout_info,
         lines,
         manager,
-        discounts,
         replace,
     ):
         app = get_app_promise(info.context).get()
@@ -163,7 +168,6 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             checkout_info,
             lines,
             manager,
-            discounts,
             replace,
         )
 

@@ -48,6 +48,15 @@ class TransactionRequestActionErrorCode(Enum):
     )
 
 
+class TransactionRequestRefundForGrantedRefundErrorCode(Enum):
+    INVALID = "invalid"
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK = (
+        "missing_transaction_action_request_webhook"
+    )
+
+
 class TransactionEventReportErrorCode(Enum):
     INVALID = "invalid"
     GRAPHQL_ERROR = "graphql_error"
@@ -81,3 +90,35 @@ class TransactionProcessErrorCode(Enum):
     TRANSACTION_ALREADY_PROCESSED = "transaction_already_processed"
     MISSING_PAYMENT_APP_RELATION = "missing_payment_app_relation"
     MISSING_PAYMENT_APP = "missing_payment_app"
+
+
+class StoredPaymentMethodRequestDeleteErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    CHANNEL_INACTIVE = "channel_inactive"
+    GATEWAY_ERROR = "gateway_error"
+
+
+class PaymentGatewayInitializeTokenizationErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    CHANNEL_INACTIVE = "channel_inactive"
+    GATEWAY_ERROR = "gateway_error"
+
+
+class PaymentMethodInitializeTokenizationErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    CHANNEL_INACTIVE = "channel_inactive"
+    GATEWAY_ERROR = "gateway_error"
+
+
+class PaymentMethodProcessTokenizationErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    CHANNEL_INACTIVE = "channel_inactive"
+    GATEWAY_ERROR = "gateway_error"

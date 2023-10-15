@@ -38,7 +38,7 @@ def create_tax_configurations(apps, vatlayer_configs):
         # Migrate `countries_to_calculate_taxes_from_origin` setting.
         origin_country = _clear_country_code(config_dict.get("origin_country", ""))
         countries_to_calculate_taxes_from_origin = _clear_str_list_country_codes(
-            config_dict.get("countries_to_calculate_taxes_from_origin", [])
+            config_dict.get("countries_to_calculate_taxes_from_origin", "")
         )
         if origin_country and countries_to_calculate_taxes_from_origin:
             for country in countries_to_calculate_taxes_from_origin:
@@ -46,7 +46,7 @@ def create_tax_configurations(apps, vatlayer_configs):
 
         # Migrate `excluded_countries` to new tax configuration.
         excluded_countries = _clear_str_list_country_codes(
-            config_dict.get("excluded_countries", [])
+            config_dict.get("excluded_countries", "")
         )
         if excluded_countries:
             tax_configuration = channel.tax_configuration
@@ -63,10 +63,17 @@ def create_tax_configurations(apps, vatlayer_configs):
 def create_tax_rates(apps, use_origin_country_map):
     TaxClass = apps.get_model("tax", "TaxClass")
     TaxClassCountryRate = apps.get_model("tax", "TaxClassCountryRate")
-    VAT = apps.get_model("django_prices_vatlayer", "VAT")
 
     tax_classes = TaxClass.objects.exclude(name=TAX_CLASS_ZERO_RATE)
-    vat_rates = VAT.objects.all()
+
+    # django_prices_vatlayer is removed in Saleor 3.15; if it's not installed, we're
+    # skipping this part of the migration.
+    try:
+        VAT = apps.get_model("django_prices_vatlayer", "VAT")
+    except LookupError:
+        vat_rates = []
+    else:
+        vat_rates = VAT.objects.all()
 
     rates = {}
     for tax_class in tax_classes:

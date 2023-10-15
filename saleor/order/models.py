@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List, Optional, cast
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import connection, models
@@ -85,7 +85,9 @@ class OrderQueryset(models.QuerySet["Order"]):
             is_active=True, charge_status=ChargeStatus.NOT_CHARGED
         ).values("id")
         qs = self.filter(Exists(payments.filter(order_id=OuterRef("id"))))
-        return qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
+        return qs.exclude(
+            status={OrderStatus.DRAFT, OrderStatus.CANCELED, OrderStatus.EXPIRED}
+        )
 
     def ready_to_confirm(self):
         """Return unconfirmed orders."""
@@ -106,9 +108,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     number = models.IntegerField(unique=True, default=get_order_number, editable=False)
     use_old_id = models.BooleanField(default=False)
-
     created_at = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
+    expired_at = models.DateTimeField(blank=True, null=True)
+
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED, choices=OrderStatus.CHOICES
     )
@@ -322,7 +325,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
 
     class Meta:
         ordering = ("-number",)
-        permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
+        permissions = (
+            (OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),
+            (OrderPermissions.MANAGE_ORDERS_IMPORT.codename, "Manage orders import."),
+        )
         indexes = [
             *ModelWithMetadata.Meta.indexes,
             GinIndex(
@@ -341,6 +347,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
                 fields=["user_email"],
                 opclasses=["gin_trgm_ops"],
             ),
+            models.Index(fields=["created_at"], name="idx_order_created_at"),
         ]
 
     def is_fully_paid(self):
@@ -407,6 +414,9 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     def is_unconfirmed(self):
         return self.status == OrderStatus.UNCONFIRMED
 
+    def is_expired(self):
+        return self.status == OrderStatus.EXPIRED
+
     def is_open(self):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         return self.status in statuses
@@ -423,14 +433,22 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
             not self.fulfillments.exclude(
                 status__in=statuses_allowed_to_cancel
             ).exists()
-        ) and self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
+        ) and self.status not in {
+            OrderStatus.CANCELED,
+            OrderStatus.DRAFT,
+            OrderStatus.EXPIRED,
+        }
 
     def can_capture(self, payment=None):
         if not payment:
             payment = self.get_last_payment()
         if not payment:
             return False
-        order_status_ok = self.status not in {OrderStatus.DRAFT, OrderStatus.CANCELED}
+        order_status_ok = self.status not in {
+            OrderStatus.DRAFT,
+            OrderStatus.CANCELED,
+            OrderStatus.EXPIRED,
+        }
         return payment.can_capture() and order_status_ok
 
     def can_void(self, payment=None):
@@ -786,9 +804,20 @@ class OrderEvent(models.Model):
         related_name="+",
     )
     app = models.ForeignKey(App, related_name="+", on_delete=models.SET_NULL, null=True)
+    related = models.ForeignKey(
+        "self",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="related_events",
+        db_index=False,
+    )
 
     class Meta:
         ordering = ("date",)
+        indexes = [
+            BTreeIndex(fields=["related"], name="order_orderevent_related_id_idx")
+        ]
 
     def __repr__(self):
         return f"{self.__class__.__name__}(type={self.type!r}, user={self.user!r})"
@@ -823,6 +852,22 @@ class OrderGrantedRefund(models.Model):
     order = models.ForeignKey(
         Order, related_name="granted_refunds", on_delete=models.CASCADE
     )
+    shipping_costs_included = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("created_at", "id")
+
+
+class OrderGrantedRefundLine(models.Model):
+    """Model used to store granted refund line for the order."""
+
+    order_line = models.ForeignKey(
+        OrderLine, related_name="granted_refund_lines", on_delete=models.CASCADE
+    )
+    quantity = models.PositiveIntegerField()
+
+    granted_refund = models.ForeignKey(
+        OrderGrantedRefund, related_name="lines", on_delete=models.CASCADE
+    )
+
+    reason = models.TextField(blank=True, null=True, default="")

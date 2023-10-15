@@ -12,25 +12,21 @@ from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.search import update_product_search_vector
-from .....product.tasks import update_product_discounted_price_task
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_38,
-    ADDED_IN_310,
-    PREVIEW_FEATURE,
-)
+from ....core.descriptions import ADDED_IN_31, ADDED_IN_38, ADDED_IN_310
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.utils import get_duplicated_values
-from ....meta.mutations import MetadataInput
+from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ....shop.utils import get_track_inventory_by_default
 from ....warehouse.types import Warehouse
 from ...types import ProductVariant
 from ...utils import (
@@ -64,20 +60,19 @@ class ProductVariantInput(BaseInputObjectType):
     track_inventory = graphene.Boolean(
         description=(
             "Determines if the inventory of this variant should be tracked. If false, "
-            "the quantity won't change when customers buy this item."
+            "the quantity won't change when customers buy this item. "
+            "If the field is not provided, `Shop.trackInventoryByDefault` will be used."
         )
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
     preorder = PreorderSettingsInput(
-        description=(
-            "Determines if variant is in preorder." + ADDED_IN_31 + PREVIEW_FEATURE
-        )
+        description=("Determines if variant is in preorder." + ADDED_IN_31)
     )
     quantity_limit_per_customer = graphene.Int(
         required=False,
         description=(
             "Determines maximum quantity of `ProductVariant`,"
-            "that can be bought in a single checkout." + ADDED_IN_31 + PREVIEW_FEATURE
+            "that can be bought in a single checkout." + ADDED_IN_31
         ),
     )
     metadata = NonNullList(
@@ -302,19 +297,32 @@ class ProductVariantCreate(ModelMutation):
             )
 
     @classmethod
+    def set_track_inventory(cls, _info, instance, cleaned_input):
+        track_inventory_by_default = get_track_inventory_by_default(_info)
+        track_inventory = cleaned_input.get("track_inventory")
+        if track_inventory_by_default is not None:
+            instance.track_inventory = (
+                track_inventory_by_default
+                if track_inventory is None
+                else track_inventory
+            )
+
+    @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
         new_variant = instance.pk is None
+        cls.set_track_inventory(info, instance, cleaned_input)
         with traced_atomic_transaction():
             instance.save()
             if not instance.product.default_variant:
                 instance.product.default_variant = instance
                 instance.product.save(update_fields=["default_variant", "updated_at"])
             # Recalculate the "discounted price" for the parent product
-            update_product_discounted_price_task.delay(instance.product_id)
+            update_products_discounted_prices_for_promotion_task.delay(
+                [instance.product_id]
+            )
             stocks = cleaned_input.get("stocks")
             if stocks:
                 cls.create_variant_stocks(instance, stocks)
-
             attributes = cleaned_input.get("attributes")
             if attributes:
                 AttributeAssignmentMixin.save(instance, attributes)

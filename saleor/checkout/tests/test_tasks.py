@@ -1,4 +1,6 @@
 from datetime import timedelta
+from unittest import mock
+from uuid import UUID
 
 import pytest
 from django.utils import timezone
@@ -168,12 +170,7 @@ def test_delete_empty_checkouts(checkouts_list, customer_user, variant):
     )
 
     Checkout.objects.bulk_update(
-        [
-            empty_checkout_1,
-            empty_checkout_2,
-            empty_checkout_3,
-            not_empty_checkout,
-        ],
+        [empty_checkout_1, empty_checkout_2, empty_checkout_3, not_empty_checkout],
         ["last_change", "email", "user"],
     )
 
@@ -213,11 +210,7 @@ def test_delete_expired_checkouts(checkouts_list, customer_user, variant):
     assert empty_checkout.lines.count() == 0
 
     Checkout.objects.bulk_update(
-        [
-            expired_anonymous_checkout,
-            expired_user_checkout,
-            empty_checkout,
-        ],
+        [expired_anonymous_checkout, expired_user_checkout, empty_checkout],
         ["created_at", "last_change", "email", "user"],
     )
 
@@ -240,3 +233,122 @@ def test_delete_expired_checkouts_no_checkouts_to_delete(checkout):
 
     # then
     assert Checkout.objects.count() == checkout_count
+
+
+@mock.patch("saleor.checkout.tasks.delete_expired_checkouts.delay")
+def test_delete_checkouts_until_done(mocked_task: mock.MagicMock, channel_USD):
+    """
+    Ensure the Celery task ``delete_expired_checkouts`` deletes all inactive
+    checkouts from the database until there are none left to delete.
+
+    Given the settings:
+    - Max 2 inactive checkouts to delete per single ``DELETE FROM`` SQL statement
+    - A maximum of 3 ``DELETE FROM`` SQL statements may be run per task (totalling
+      to a max 6 inactivate checkout/task).
+
+    Database data:
+    - 7 inactive checkouts
+
+    The expected flow is:
+    1. Deletes 2 checkouts three times (three SQL statement expected)
+    2. Triggers a new task due to having still inactive checkouts left to be
+       deleted (1 checkout left).
+    """
+
+    # Create 7 empty checkouts in DB
+    Checkout.objects.bulk_create(
+        [
+            Checkout(
+                currency=channel_USD.currency_code,
+                channel=channel_USD,
+                token=UUID(int=checkout_id),
+            )
+            for checkout_id in range(7)
+        ]
+    )
+    Checkout.objects.update(last_change=timezone.now() - timedelta(hours=7))
+
+    task_params = {
+        "batch_size": 2,
+        "batch_count": 3,
+        "invocation_limit": 10,
+    }
+    mocked_task.assert_not_called()
+
+    # Delete inactive checkouts.
+    deleted_count, has_more = delete_expired_checkouts(
+        **task_params, invocation_count=1
+    )
+    assert deleted_count == 6
+    assert has_more is True
+    assert (
+        Checkout.objects.count() == 1
+    ), "Should have deleted 6 checkouts thus only 1 should be left"
+
+    # Should have triggered a new task to delete more checkouts
+    mocked_task.assert_called_once_with(**task_params, invocation_count=2)
+    mocked_task.reset_mock()
+
+    # Ensure we delete the remaining, and we do not trigger anymore task.
+    deleted_count, has_more = delete_expired_checkouts(
+        **task_params, invocation_count=2
+    )
+    assert deleted_count == 1
+    assert has_more is False
+    assert (
+        Checkout.objects.count() == 0
+    ), "Should have deleted the last remaining checkout (one)"
+
+    # Shouldn't have triggered a new task as nothing is left to be deleted.
+    mocked_task.assert_not_called()
+
+
+@mock.patch("saleor.checkout.tasks.delete_expired_checkouts.delay")
+def test_aborts_deleting_checkouts_when_invocation_count_exhausted(
+    mocked_task: mock.MagicMock, channel_USD
+):
+    """
+    Ensure the Celery task stops triggering tasks when the invocation limit is reached.
+    """
+
+    # Create 3 empty checkouts in DB
+    Checkout.objects.bulk_create(
+        [
+            Checkout(
+                currency=channel_USD.currency_code,
+                channel=channel_USD,
+                token=UUID(int=checkout_id),
+            )
+            for checkout_id in range(3)
+        ]
+    )
+    Checkout.objects.update(last_change=timezone.now() - timedelta(hours=7))
+
+    mocked_task.assert_not_called()
+    task_params = {
+        "batch_size": 1,
+        "batch_count": 1,
+        "invocation_limit": 2,
+    }
+
+    # Invocation #1, should delete 1 checkout
+    deleted_count, has_more = delete_expired_checkouts(
+        **task_params, invocation_count=1
+    )
+    assert deleted_count == 1
+    assert has_more is True
+
+    # Should have triggered a new task to delete more checkouts
+    mocked_task.assert_called_once_with(**task_params, invocation_count=2)
+    mocked_task.reset_mock()
+
+    # Invocation #2, should delete 1 checkout and should stop there (has_more=True
+    # & no more task.delay()).
+    deleted_count, has_more = delete_expired_checkouts(
+        **task_params, invocation_count=2
+    )
+    assert deleted_count == 1
+    assert has_more is True
+
+    # Should have stopped there
+    mocked_task.assert_not_called()

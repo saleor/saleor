@@ -1,12 +1,11 @@
 from datetime import date
-from typing import TYPE_CHECKING, Iterable, List, Optional, Type, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Type, Union
 
 import graphene
 from django.core.exceptions import ValidationError
 
 from ..core.exceptions import GiftCardNotApplicable
 from ..core.taxes import TaxError
-from ..discount import DiscountInfo
 from ..giftcard.models import GiftCard
 from ..payment import gateway
 from ..payment import models as payment_models
@@ -86,12 +85,11 @@ def clean_checkout_payment(
     manager: PluginsManager,
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
     error_code: Type[CheckoutErrorCode],
     last_payment: Optional[payment_models.Payment],
 ):
     clean_billing_address(checkout_info, error_code)
-    if not is_fully_paid(manager, checkout_info, lines, discounts):
+    if not is_fully_paid(manager, checkout_info, lines):
         gateway.payment_refund_or_void(
             last_payment, manager, channel_slug=checkout_info.channel.slug
         )
@@ -125,7 +123,6 @@ def validate_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     unavailable_variant_pks: Iterable[int],
-    discounts: List["DiscountInfo"],
     manager: "PluginsManager",
 ):
     """Validate all required data for converting checkout into order."""
@@ -181,7 +178,7 @@ def validate_checkout(
     # call plugin's hooks to validate if we are able to create an order
     # can raise TaxError
     try:
-        manager.preprocess_order_creation(checkout_info, discounts, lines)
+        manager.preprocess_order_creation(checkout_info, lines)
     except TaxError as tax_error:
         raise ValidationError(
             f"Unable to calculate taxes - {str(tax_error)}",

@@ -196,7 +196,9 @@ def check_lines_quantity(
         raise ValidationError({"quantity": errors})
 
 
-def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
+def get_not_available_variants_for_purchase(
+    variants_id: set, channel_id: int
+) -> tuple[set[int], set[str]]:
     today = datetime.datetime.now(pytz.UTC)
     is_available_for_purchase = Q(
         available_for_purchase_at__lte=today,
@@ -207,40 +209,62 @@ def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
         is_available_for_purchase
     ).values_list("product__variants__id", flat=True)
     not_available_variants = variants_id.difference(set(available_variants))
+    not_available_graphql_ids = {
+        graphene.Node.to_global_id("ProductVariant", pk)
+        for pk in not_available_variants
+    }
+    return not_available_variants, not_available_graphql_ids
+
+
+def validate_variants_available_for_purchase(
+    variants_id: set,
+    channel_id: int,
+    error_code: str = CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.value,
+):
+    (
+        not_available_variants,
+        not_available_graphql_ids,
+    ) = get_not_available_variants_for_purchase(variants_id, channel_id)
     if not_available_variants:
-        variant_ids = [
-            graphene.Node.to_global_id("ProductVariant", pk)
-            for pk in not_available_variants
-        ]
-        error_code = CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.value
         raise ValidationError(
             {
                 "lines": ValidationError(
                     "Cannot add lines for unavailable for purchase variants.",
                     code=error_code,
-                    params={"variants": variant_ids},
+                    params={"variants": not_available_graphql_ids},
                 )
             }
         )
 
 
-def validate_variants_are_published(variants_id: set, channel_id: int):
+def get_not_published_variants(
+    variants_id: set, channel_id: int
+) -> tuple[set[int], set[str]]:
     published_variants = product_models.ProductChannelListing.objects.filter(
         channel_id=channel_id, product__variants__id__in=variants_id, is_published=True
     ).values_list("product__variants__id", flat=True)
-    not_published_variants = variants_id.difference(set(published_variants))
-    if not_published_variants:
-        variant_ids = [
-            graphene.Node.to_global_id("ProductVariant", pk)
-            for pk in not_published_variants
-        ]
-        error_code = CheckoutErrorCode.PRODUCT_NOT_PUBLISHED.value
+    not_published_ids = variants_id.difference(set(published_variants))
+    not_published_graphql_ids = {
+        graphene.Node.to_global_id("ProductVariant", pk) for pk in not_published_ids
+    }
+    return not_published_ids, not_published_graphql_ids
+
+
+def validate_variants_are_published(
+    variants_id: set,
+    channel_id: int,
+    error_code: str = CheckoutErrorCode.PRODUCT_NOT_PUBLISHED.value,
+):
+    not_published_ids, not_published_graphql_ids = get_not_published_variants(
+        variants_id, channel_id
+    )
+    if not_published_ids:
         raise ValidationError(
             {
                 "lines": ValidationError(
                     "Cannot add lines for unpublished variants.",
                     code=error_code,
-                    params={"variants": variant_ids},
+                    params={"variants": not_published_graphql_ids},
                 )
             }
         )

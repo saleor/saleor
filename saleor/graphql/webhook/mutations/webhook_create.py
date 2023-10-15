@@ -26,6 +26,7 @@ from ...core.mutations import ModelMutation
 from ...core.types import BaseInputObjectType, NonNullList, WebhookError
 from ...core.utils import raise_validation_error
 from .. import enums
+from ..mixins import NotifyUserEventValidationMixin
 from ..subscription_query import SubscriptionQuery
 from ..types import Webhook
 
@@ -63,7 +64,7 @@ class WebhookCreateInput(BaseInputObjectType):
     )
     query = graphene.String(
         description="Subscription query used to define a webhook payload."
-        f"{ADDED_IN_32}{PREVIEW_FEATURE}",
+        + ADDED_IN_32,
         required=False,
     )
     custom_headers = JSONString(
@@ -71,7 +72,8 @@ class WebhookCreateInput(BaseInputObjectType):
         f"There is a limitation of {HEADERS_NUMBER_LIMIT} headers per webhook "
         f"and {HEADERS_LENGTH_LIMIT} characters per header."
         f'Only "X-*" and "Authorization*" keys are allowed.'
-        f"{ADDED_IN_312}{PREVIEW_FEATURE}",
+        + ADDED_IN_312
+        + PREVIEW_FEATURE,
         required=False,
     )
 
@@ -79,7 +81,7 @@ class WebhookCreateInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_WEBHOOKS
 
 
-class WebhookCreate(ModelMutation):
+class WebhookCreate(ModelMutation, NotifyUserEventValidationMixin):
     class Arguments:
         input = WebhookCreateInput(
             description="Fields required to create a webhook.", required=True
@@ -146,8 +148,10 @@ class WebhookCreate(ModelMutation):
 
         return cleaned_data
 
-    @staticmethod
-    def _clean_webhook_events(data, subscription_query: Optional[SubscriptionQuery]):
+    @classmethod
+    def _clean_webhook_events(
+        cls, data, subscription_query: Optional[SubscriptionQuery]
+    ):
         # if `events` field is not empty, use this field. Otherwise get event types
         # from `async_events` and `sync_events`. If the fields are also empty,
         # parse events from `query`.
@@ -158,6 +162,7 @@ class WebhookCreate(ModelMutation):
 
         if not events and subscription_query:
             events = subscription_query.events
+        cls.validate_events(events)
 
         data["events"] = events
         return data

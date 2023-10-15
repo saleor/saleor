@@ -13,3 +13,5 @@ class OpenIDConnectConfig:
     user_info_url: str
     audience: str
     use_scope_permissions: bool
+    staff_user_domains: str
+    default_group_name: str

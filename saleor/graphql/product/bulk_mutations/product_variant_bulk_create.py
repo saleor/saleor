@@ -13,7 +13,7 @@ from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductVariantBulkErrorCode
 from ....product.search import update_product_search_vector
-from ....product.tasks import update_product_discounted_price_task
+from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....warehouse import models as warehouse_models
 from ...attribute.types import (
     AttributeValueDescriptions,
@@ -24,6 +24,7 @@ from ...channel import ChannelContext
 from ...core.descriptions import (
     ADDED_IN_311,
     ADDED_IN_312,
+    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -46,12 +47,10 @@ from ...core.types import (
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...shop.utils import get_track_inventory_by_default
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.product.product_create import StockInput
-from ..mutations.product_variant.product_variant_create import (
-    ProductVariantCreate,
-    ProductVariantInput,
-)
+from ..mutations.product_variant.product_variant_create import ProductVariantInput
 from ..types import ProductVariant
 from ..utils import clean_variant_sku, get_used_variants_attribute_values
 
@@ -64,8 +63,10 @@ def clean_price(
     currency,
     channel_id,
     variant_index,
+    listing_index,
     errors,
     index_error_map,
+    path_prefix,
 ):
     try:
         validate_price_precision(price, currency, CURRENCY_FRACTIONS)
@@ -73,6 +74,7 @@ def clean_price(
         index_error_map[variant_index].append(
             ProductVariantBulkError(
                 field=to_camel_case(field_name),
+                path=f"{path_prefix}.{listing_index}.{to_camel_case(field_name)}",
                 message=error.message,
                 code=ProductVariantBulkErrorCode.INVALID_PRICE.value,
                 channels=[channel_id],
@@ -121,7 +123,10 @@ class ProductVariantBulkResult(BaseObjectType):
 
 
 class BulkAttributeValueInput(BaseInputObjectType):
-    id = graphene.ID(description="ID of the selected attribute.")
+    id = graphene.ID(description="ID of the selected attribute.", required=False)
+    external_reference = graphene.String(
+        description="External ID of this attribute." + ADDED_IN_314, required=False
+    )
     values = NonNullList(
         graphene.String,
         required=False,
@@ -247,7 +252,6 @@ class ProductVariantBulkCreate(BaseMutation):
         )
         error_policy = ErrorPolicyEnum(
             required=False,
-            default_value=ErrorPolicyEnum.REJECT_EVERYTHING.value,
             description=(
                 "Policies of error handling. DEFAULT: "
                 + ErrorPolicyEnum.REJECT_EVERYTHING.name
@@ -272,6 +276,7 @@ class ProductVariantBulkCreate(BaseMutation):
         product_type,
         variant_attributes,
         variant_attributes_ids,
+        variant_attributes_external_refs,
         used_attribute_values,
         errors,
         variant_index,
@@ -279,14 +284,24 @@ class ProductVariantBulkCreate(BaseMutation):
     ):
         attributes_errors_count = 0
         if attributes_input := cleaned_input.get("attributes"):
-            attributes_ids = {attr["id"] for attr in attributes_input or []}
+            attributes_ids = {
+                attr["id"] for attr in attributes_input if attr.get("id") or []
+            }
+            attrs_external_refs = {
+                attr["external_reference"]
+                for attr in attributes_input
+                if attr.get("external_reference") or []
+            }
             invalid_attributes = attributes_ids - variant_attributes_ids
+            invalid_attributes |= attrs_external_refs - variant_attributes_external_refs
+
             if len(invalid_attributes) > 0:
                 message = "Given attributes are not a variant attributes."
                 code = ProductVariantBulkErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value
                 index_error_map[variant_index].append(
                     ProductVariantBulkError(
                         field="attributes",
+                        path="attributes",
                         message=message,
                         code=code,
                         attributes=invalid_attributes,
@@ -310,9 +325,6 @@ class ProductVariantBulkCreate(BaseMutation):
                     cleaned_attributes = AttributeAssignmentMixin.clean_input(
                         attributes_input, variant_attributes
                     )
-                    ProductVariantCreate.validate_duplicated_attribute_values(
-                        cleaned_attributes, used_attribute_values, None
-                    )
                     cleaned_input["attributes"] = cleaned_attributes
                 except ValidationError as exc:
                     for error in exc.error_list:
@@ -322,6 +334,7 @@ class ProductVariantBulkCreate(BaseMutation):
                         index_error_map[variant_index].append(
                             ProductVariantBulkError(
                                 field="attributes",
+                                path="attributes",
                                 message=error.message,
                                 code=error.code,
                                 attributes=attributes,
@@ -336,6 +349,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 index_error_map[variant_index].append(
                     ProductVariantBulkError(
                         field="attributes",
+                        path="attributes",
                         message=message,
                         code=ProductVariantBulkErrorCode.INVALID.value,
                         attributes=invalid_attributes,
@@ -363,8 +377,10 @@ class ProductVariantBulkCreate(BaseMutation):
         currency_code,
         channel_id,
         variant_index,
+        listing_index,
         errors,
         index_error_map,
+        path_prefix,
     ):
         clean_price(
             price,
@@ -372,8 +388,10 @@ class ProductVariantBulkCreate(BaseMutation):
             currency_code,
             channel_id,
             variant_index,
+            listing_index,
             errors,
             index_error_map,
+            path_prefix,
         )
         clean_price(
             cost_price,
@@ -381,8 +399,10 @@ class ProductVariantBulkCreate(BaseMutation):
             currency_code,
             channel_id,
             variant_index,
+            listing_index,
             errors,
             index_error_map,
+            path_prefix,
         )
 
     @classmethod
@@ -393,6 +413,7 @@ class ProductVariantBulkCreate(BaseMutation):
         errors,
         variant_index,
         index_error_map,
+        path_prefix="channelListings",
     ):
         channel_ids = [
             channel_listing["channel_id"] for channel_listing in channel_listings
@@ -401,18 +422,9 @@ class ProductVariantBulkCreate(BaseMutation):
 
         duplicates = get_duplicated_values(channel_ids)
         if duplicates:
-            message = "Duplicated channel ID."
-            index_error_map[variant_index].append(
-                ProductVariantBulkError(
-                    field="channelListings",
-                    message=message,
-                    code=ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.value,
-                    channels=duplicates,
-                )
-            )
             if errors is not None:
                 errors["channel_listings"] = ValidationError(
-                    message=message,
+                    message="Duplicated channel ID.",
                     code=ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.value,
                     params={"channels": duplicates, "index": variant_index},
                 )
@@ -424,20 +436,11 @@ class ProductVariantBulkCreate(BaseMutation):
         ]
 
         if channels_not_assigned_to_product:
-            message = "Product not available in channels."
             code = ProductVariantBulkErrorCode.PRODUCT_NOT_ASSIGNED_TO_CHANNEL.value
-            index_error_map[variant_index].append(
-                ProductVariantBulkError(
-                    field="channelId",
-                    message=message,
-                    code=code,
-                    channels=channels_not_assigned_to_product,
-                )
-            )
             if errors is not None:
                 errors["channel_id"].append(
                     ValidationError(
-                        message=message,
+                        message="Product not available in channels.",
                         code=code,
                         params={
                             "index": variant_index,
@@ -446,13 +449,33 @@ class ProductVariantBulkCreate(BaseMutation):
                     )
                 )
 
-        for channel_listing in channel_listings:
+        for listing_index, channel_listing in enumerate(channel_listings):
             channel_id = channel_listing["channel_id"]
+            errors_count_before_prices = len(index_error_map[variant_index])
 
-            if (
-                channel_id in channels_not_assigned_to_product
-                or channel_id in duplicates
-            ):
+            if channel_id in channels_not_assigned_to_product:
+                code = ProductVariantBulkErrorCode.PRODUCT_NOT_ASSIGNED_TO_CHANNEL.value
+                index_error_map[variant_index].append(
+                    ProductVariantBulkError(
+                        field="channelId",
+                        path=f"{path_prefix}.{listing_index}.channelId",
+                        message="Product not available in channels.",
+                        code=code,
+                        channels=[channel_id],
+                    )
+                )
+                continue
+
+            if channel_id in duplicates:
+                index_error_map[variant_index].append(
+                    ProductVariantBulkError(
+                        field="channelId",
+                        path=f"{path_prefix}.{listing_index}.channelId",
+                        message="Duplicated channel ID.",
+                        code=ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.value,
+                        channels=[channel_id],
+                    )
+                )
                 continue
 
             channel_listing["channel"] = product_channel_global_id_to_instance_map[
@@ -462,16 +485,16 @@ class ProductVariantBulkCreate(BaseMutation):
             cost_price = channel_listing.get("cost_price")
             currency_code = channel_listing["channel"].currency_code
 
-            errors_count_before_prices = len(index_error_map[variant_index])
-
             cls.clean_prices(
                 price,
                 cost_price,
                 currency_code,
                 channel_id,
                 variant_index,
+                listing_index,
                 errors,
                 index_error_map,
+                path_prefix,
             )
 
             if len(index_error_map[variant_index]) > errors_count_before_prices:
@@ -489,6 +512,7 @@ class ProductVariantBulkCreate(BaseMutation):
         errors,
         variant_index,
         index_error_map,
+        path_prefix="stocks",
     ):
         stocks_to_create = []
         warehouse_ids = [stock["warehouse"] for stock in stocks_data]
@@ -500,51 +524,51 @@ class ProductVariantBulkCreate(BaseMutation):
         }
 
         if wrong_warehouse_ids:
-            message = "Not existing warehouse ID."
-            index_error_map[variant_index].append(
-                ProductVariantBulkError(
-                    field="warehouses",
-                    message=message,
-                    code=ProductVariantBulkErrorCode.NOT_FOUND.value,
-                    warehouses=wrong_warehouse_ids,
-                )
-            )
             if errors is not None:
                 errors["warehouses"] = ValidationError(
-                    message,
+                    "Not existing warehouse ID.",
                     code=ProductVariantBulkErrorCode.NOT_FOUND.value,
                     params={"warehouses": wrong_warehouse_ids, "index": variant_index},
                 )
 
         duplicates = get_duplicated_values(warehouse_ids)
         if duplicates:
-            message = "Duplicated warehouse ID."
-            index_error_map[variant_index].append(
-                ProductVariantBulkError(
-                    field="stocks",
-                    message=message,
-                    code=ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.value,
-                    warehouses=duplicates,
-                )
-            )
             if errors is not None:
                 errors["stocks"] = ValidationError(
-                    message,
+                    "Duplicated warehouse ID.",
                     code=ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.value,
                     params={"warehouses": duplicates, "index": variant_index},
                 )
 
-        for stock_data in stocks_data:
-            if (
-                stock_data["warehouse"] in duplicates
-                or stock_data["warehouse"] in wrong_warehouse_ids
-            ):
+        for stock_index, stock_data in enumerate(stocks_data):
+            if stock_data["warehouse"] in wrong_warehouse_ids:
+                index_error_map[variant_index].append(
+                    ProductVariantBulkError(
+                        field="warehouses",
+                        path=f"{path_prefix}.{stock_index}.warehouse",
+                        message="Not existing warehouse ID.",
+                        code=ProductVariantBulkErrorCode.NOT_FOUND.value,
+                        warehouses=[stock_data["warehouse"]],
+                    )
+                )
                 continue
-            else:
-                stock_data["warehouse"] = warehouse_global_id_to_instance_map[
-                    stock_data["warehouse"]
-                ]
-                stocks_to_create.append(stock_data)
+
+            if stock_data["warehouse"] in duplicates:
+                index_error_map[variant_index].append(
+                    ProductVariantBulkError(
+                        field="warehouse",
+                        path=f"{path_prefix}.{stock_index}.warehouse",
+                        message="Duplicated warehouse ID.",
+                        code=ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.value,
+                        warehouses=[stock_data["warehouse"]],
+                    )
+                )
+                continue
+
+            stock_data["warehouse"] = warehouse_global_id_to_instance_map[
+                stock_data["warehouse"]
+            ]
+            stocks_to_create.append(stock_data)
 
         return stocks_to_create
 
@@ -560,6 +584,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 index_error_map[index].append(
                     ProductVariantBulkError(
                         field=to_camel_case(key),
+                        path=to_camel_case(key),
                         message=e.messages[0],
                         code=e.code,
                     )
@@ -614,6 +639,7 @@ class ProductVariantBulkCreate(BaseMutation):
             index_error_map[index].append(
                 ProductVariantBulkError(
                     field="weight",
+                    path="weight",
                     message=message,
                     code=code,
                 )
@@ -634,6 +660,7 @@ class ProductVariantBulkCreate(BaseMutation):
             index_error_map[index].append(
                 ProductVariantBulkError(
                     field="quantity_limit_per_customer",
+                    path="quantity_limit_per_customer",
                     message=message,
                     code=code,
                 )
@@ -649,7 +676,9 @@ class ProductVariantBulkCreate(BaseMutation):
             message = "Duplicated SKU."
             code = ProductVariantBulkErrorCode.UNIQUE.value
             index_error_map[index].append(
-                ProductVariantBulkError(field="sku", message=message, code=code)
+                ProductVariantBulkError(
+                    field="sku", path="sku", message=message, code=code
+                )
             )
             if errors is not None:
                 errors["sku"].append(
@@ -669,6 +698,7 @@ class ProductVariantBulkCreate(BaseMutation):
         variant_attributes,
         used_attribute_values,
         variant_attributes_ids,
+        variant_attributes_external_refs,
         duplicated_sku,
         index_error_map,
         index,
@@ -699,6 +729,7 @@ class ProductVariantBulkCreate(BaseMutation):
             variant_data["product_type"],
             variant_attributes,
             variant_attributes_ids,
+            variant_attributes_external_refs,
             used_attribute_values,
             errors,
             index,
@@ -751,6 +782,10 @@ class ProductVariantBulkCreate(BaseMutation):
             graphene.Node.to_global_id("Attribute", variant_attribute.id)
             for variant_attribute in variant_attributes
         }
+        variant_attributes_external_refs = {
+            variant_attribute.external_reference
+            for variant_attribute in variant_attributes
+        }
         used_attribute_values = get_used_variants_attribute_values(product)
 
         duplicated_sku = get_duplicated_values(
@@ -769,6 +804,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 variant_attributes,
                 used_attribute_values,
                 variant_attributes_ids,
+                variant_attributes_external_refs,
                 duplicated_sku,
                 index_error_map,
                 index,
@@ -785,6 +821,9 @@ class ProductVariantBulkCreate(BaseMutation):
                 channel=listing_data["channel"],
                 variant=variant,
                 price_amount=listing_data["price"],
+                # set the discounted price the same as price for now, the discounted
+                # value will be calculated asynchronously in the celery task
+                discounted_price_amount=listing_data["price"],
                 cost_price_amount=listing_data.get("cost_price"),
                 currency=listing_data["channel"].currency_code,
                 preorder_quantity_threshold=listing_data.get("preorder_threshold"),
@@ -815,7 +854,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def save_variants(cls, variants_data_with_errors_list, product):
+    def save_variants(cls, info, variants_data_with_errors_list, product):
         variants_to_create: list = []
         stocks_to_create: list = []
         listings_to_create: list = []
@@ -826,7 +865,14 @@ class ProductVariantBulkCreate(BaseMutation):
 
             if not variant:
                 continue
-
+            track_inventory_by_default = get_track_inventory_by_default(info)
+            track_inventory = variant_data["cleaned_input"].get("track_inventory")
+            if track_inventory_by_default is not None:
+                variant.track_inventory = (
+                    track_inventory_by_default
+                    if track_inventory is None
+                    else track_inventory
+                )
             variants_to_create.append(variant)
             cleaned_input = variant_data["cleaned_input"]
 
@@ -843,7 +889,6 @@ class ProductVariantBulkCreate(BaseMutation):
 
             if not variant.name:
                 cls.set_variant_name(variant, cleaned_input)
-
         models.ProductVariant.objects.bulk_create(variants_to_create)
 
         for variant, attributes in attributes_to_save:
@@ -874,7 +919,7 @@ class ProductVariantBulkCreate(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
 
         # Recalculate the "discounted price" for the parent product
-        update_product_discounted_price_task.delay(product.pk)
+        update_products_discounted_prices_for_promotion_task.delay([product.pk])
         update_product_search_vector(product)
 
         for instance in instances:
@@ -887,7 +932,7 @@ class ProductVariantBulkCreate(BaseMutation):
             models.Product,
             cls.get_node_or_error(info, data["product_id"], only_type="Product"),
         )
-        error_policy = data["error_policy"]
+        error_policy = data.get("error_policy", ErrorPolicyEnum.REJECT_EVERYTHING.value)
         errors: dict = defaultdict(list)
         index_error_map: dict = defaultdict(list)
 
@@ -914,7 +959,7 @@ class ProductVariantBulkCreate(BaseMutation):
                     if data["errors"] and data["instance"]:
                         data["instance"] = None
 
-        cls.save_variants(instances_data_with_errors_list, product)
+        cls.save_variants(info, instances_data_with_errors_list, product)
 
         # prepare and return data
         results = get_results(instances_data_with_errors_list)

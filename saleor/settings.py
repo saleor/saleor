@@ -4,7 +4,8 @@ import os
 import os.path
 import warnings
 from datetime import timedelta
-from typing import List
+from typing import List, Optional
+from urllib.parse import urlparse
 
 import dj_database_url
 import dj_email_url
@@ -18,6 +19,7 @@ from celery.schedules import crontab
 from django.conf import global_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
+from django.core.validators import URLValidator
 from graphql.execution import executor
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
@@ -26,7 +28,7 @@ from sentry_sdk.integrations.logging import ignore_logger
 
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
-from .core.schedules import initiated_sale_webhook_schedule
+from .core.schedules import initiated_promotion_webhook_schedule
 
 django_stubs_ext.monkeypatch()
 
@@ -43,6 +45,15 @@ def get_bool_from_env(name, default_value):
         except ValueError as e:
             raise ValueError("{} is an invalid value for {}".format(value, name)) from e
     return default_value
+
+
+def get_url_from_env(name, *, schemes=None) -> Optional[str]:
+    if name in os.environ:
+        value = os.environ[name]
+        message = f"{value} is an invalid value for {name}"
+        URLValidator(schemes=schemes, message=message)(value)
+        return value
+    return None
 
 
 DEBUG = get_bool_from_env("DEBUG", True)
@@ -125,30 +136,33 @@ if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
         f":{SENDGRID_PASSWORD}@smtp.sendgrid.net:587/?tls=True"
     )
 
-email_config = dj_email_url.parse(
-    EMAIL_URL or "console://demo@example.com:console@example/"
-)
+email_config = dj_email_url.parse(EMAIL_URL or "")
 
-EMAIL_FILE_PATH: str = email_config["EMAIL_FILE_PATH"]
-EMAIL_HOST_USER: str = email_config["EMAIL_HOST_USER"]
-EMAIL_HOST_PASSWORD: str = email_config["EMAIL_HOST_PASSWORD"]
-EMAIL_HOST: str = email_config["EMAIL_HOST"]
-EMAIL_PORT: int = email_config["EMAIL_PORT"]
-EMAIL_BACKEND: str = email_config["EMAIL_BACKEND"]
-EMAIL_USE_TLS: bool = email_config["EMAIL_USE_TLS"]
-EMAIL_USE_SSL: bool = email_config["EMAIL_USE_SSL"]
+EMAIL_FILE_PATH: str = email_config.get("EMAIL_FILE_PATH", "")
+EMAIL_HOST_USER: str = email_config.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD: str = email_config.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_HOST: str = email_config.get("EMAIL_HOST", "")
+EMAIL_PORT: str = str(email_config.get("EMAIL_PORT", ""))
+EMAIL_BACKEND: str = email_config.get("EMAIL_BACKEND", "")
+EMAIL_USE_TLS: bool = email_config.get("EMAIL_USE_TLS", False)
+EMAIL_USE_SSL: bool = email_config.get("EMAIL_USE_SSL", False)
 
-# If enabled, make sure you have set proper storefront address in ALLOWED_CLIENT_HOSTS.
-ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = get_bool_from_env(
-    "ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL", True
-)
+ENABLE_SSL: bool = get_bool_from_env("ENABLE_SSL", False)
 
-ENABLE_SSL = get_bool_from_env("ENABLE_SSL", False)
+# URL on which Saleor is hosted (e.g., https://api.example.com/). This has precedence
+# over ENABLE_SSL and Shop.domain when generating URLs pointing to itself.
+PUBLIC_URL: Optional[str] = get_url_from_env("PUBLIC_URL", schemes=["http", "https"])
+if PUBLIC_URL:
+    if os.environ.get("ENABLE_SSL") is not None:
+        warnings.warn("ENABLE_SSL is ignored on URL generation if PUBLIC_URL is set.")
+    ENABLE_SSL = urlparse(PUBLIC_URL).scheme.lower() == "https"
 
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
 
-DEFAULT_FROM_EMAIL: str = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+DEFAULT_FROM_EMAIL: str = os.environ.get(
+    "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "noreply@example.com"
+)
 
 MEDIA_ROOT: str = os.path.join(PROJECT_ROOT, "media")
 MEDIA_URL: str = os.environ.get("MEDIA_URL", "/media/")
@@ -198,6 +212,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 PASSWORD_HASHERS = [
     *global_settings.PASSWORD_HASHERS,
     "django.contrib.auth.hashers.BCryptPasswordHasher",
+    "saleor.core.hashers.SHA512Base64PBKDF2PasswordHasher",
 ]
 
 if not SECRET_KEY and DEBUG:
@@ -213,7 +228,6 @@ JWT_MANAGER_PATH = os.environ.get(
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "saleor.core.middleware.google_analytics",
     "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
 
@@ -257,8 +271,6 @@ INSTALLED_APPS = [
     # External apps
     "django_measurement",
     "django_prices",
-    "django_prices_openexchangerates",
-    "django_prices_vatlayer",
     "mptt",
     "django_countries",
     "django_filters",
@@ -414,21 +426,6 @@ DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 
 COUNTRIES_OVERRIDE = {"EU": "European Union"}
 
-OPENEXCHANGERATES_API_KEY = os.environ.get("OPENEXCHANGERATES_API_KEY")
-
-GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get("GOOGLE_ANALYTICS_TRACKING_ID")
-
-
-def get_host():
-    from django.contrib.sites.models import Site
-
-    return Site.objects.get_current().domain
-
-
-PAYMENT_HOST = get_host
-
-PAYMENT_MODEL = "order.Payment"
-
 MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
 
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
@@ -549,9 +546,17 @@ CELERY_TASK_ROUTES = {
     },
 }
 
+# Expire orders task setting
+BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA", "5 minutes"))
+)
+
 # Defines after how many seconds should the task triggered by the Celery beat
 # entry 'update-products-search-vectors' expire if it wasn't picked up by a worker.
-BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC = 20
+BEAT_UPDATE_SEARCH_SEC = parse(
+    os.environ.get("BEAT_UPDATE_SEARCH_FREQUENCY", "20 seconds")
+)
+BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC = BEAT_UPDATE_SEARCH_SEC
 
 # Defines the Celery beat scheduler entries.
 #
@@ -576,6 +581,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.checkout.tasks.delete_expired_checkouts",
         "schedule": crontab(hour=0, minute=0),
     },
+    "delete_expired_orders": {
+        "task": "saleor.order.tasks.delete_expired_orders_task",
+        "schedule": crontab(hour=2, minute=0),
+    },
     "delete-outdated-event-data": {
         "task": "saleor.core.tasks.delete_event_payloads_task",
         "schedule": timedelta(days=1),
@@ -592,14 +601,23 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.csv.tasks.delete_old_export_files",
         "schedule": crontab(hour=1, minute=0),
     },
-    "send-sale-toggle-notifications": {
-        "task": "saleor.discount.tasks.send_sale_toggle_notifications",
-        "schedule": initiated_sale_webhook_schedule,
+    "handle-promotion-toggle": {
+        "task": "saleor.discount.tasks.handle_promotion_toggle",
+        "schedule": initiated_promotion_webhook_schedule,
     },
     "update-products-search-vectors": {
         "task": "saleor.product.tasks.update_products_search_vector_task",
-        "schedule": timedelta(seconds=20),
+        "schedule": timedelta(seconds=BEAT_UPDATE_SEARCH_SEC),
         "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
+    },
+    "update-gift-cards-search-vectors": {
+        "task": "saleor.giftcard.tasks.update_gift_cards_search_vector_task",
+        "schedule": timedelta(seconds=BEAT_UPDATE_SEARCH_SEC),
+        "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
+    },
+    "expire-orders": {
+        "task": "saleor.order.tasks.expire_orders_task",
+        "schedule": BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA,
     },
 }
 
@@ -662,7 +680,7 @@ POPULATE_DEFAULTS = get_bool_from_env("POPULATE_DEFAULTS", True)
 
 
 #  Sentry
-sentry_sdk.utils.MAX_STRING_LENGTH = 4096
+sentry_sdk.utils.MAX_STRING_LENGTH = 4096  # type: ignore[attr-defined]
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 SENTRY_OPTS = {"integrations": [CeleryIntegration(), DjangoIntegration()]}
 
@@ -724,20 +742,27 @@ for entry_point in installed_plugins:
 
 PLUGINS = BUILTIN_PLUGINS + EXTERNAL_PLUGINS
 
-if (
-    not DEBUG
-    and ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
-    and ALLOWED_CLIENT_HOSTS == get_list(_DEFAULT_CLIENT_HOSTS)
-):
-    raise ImproperlyConfigured(
-        "Make sure you've added storefront address to ALLOWED_CLIENT_HOSTS "
-        "if ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL is enabled."
-    )
+# Default timeout (sec) for establishing a connection when performing external requests.
+REQUESTS_CONN_EST_TIMEOUT = 2
+
+# Default timeout for external requests.
+COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
 
 # Timeouts for webhook requests. Sync webhooks (eg. payment webhook) need more time
 # for getting response from the server.
 WEBHOOK_TIMEOUT = 10
-WEBHOOK_SYNC_TIMEOUT = 20
+WEBHOOK_SYNC_TIMEOUT = COMMON_REQUESTS_TIMEOUT
+
+# When `True`, HTTP requests made from arbitrary URLs will be rejected (e.g., webhooks).
+# if they try to access private IP address ranges, and loopback ranges (unless
+# `HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS=False`).
+HTTP_IP_FILTER_ENABLED: bool = get_bool_from_env("HTTP_IP_FILTER_ENABLED", True)
+
+# When `False` it rejects loopback IPs during external calls.
+# Refer to `HTTP_IP_FILTER_ENABLED` for more details.
+HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS: bool = get_bool_from_env(
+    "HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS", False
+)
 
 # Since we split checkout complete logic into two separate transactions, in order to
 # mimic stock lock, we apply short reservation for the stocks. The value represents
@@ -825,4 +850,14 @@ WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
 # Lock time for request password reset mutation per user (seconds)
 RESET_PASSWORD_LOCK_TIME = parse(
     os.environ.get("RESET_PASSWORD_LOCK_TIME", "15 minutes")
+)
+
+# Lock time for request confirmation email mutation per user
+CONFIRMATION_EMAIL_LOCK_TIME = parse(
+    os.environ.get("CONFIRMATION_EMAIL_LOCK_TIME", "15 minutes")
+)
+
+# Time threshold to update user last_login when performing requests with OAUTH token.
+OAUTH_UPDATE_LAST_LOGIN_THRESHOLD = parse(
+    os.environ.get("OAUTH_UPDATE_LAST_LOGIN_THRESHOLD", "15 minutes")
 )

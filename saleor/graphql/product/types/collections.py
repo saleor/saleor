@@ -6,6 +6,7 @@ from graphene import relay
 
 from ....permission.enums import ProductPermissions
 from ....product import models
+from ....product.search import search_products
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -19,7 +20,13 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ...core.descriptions import (
+    ADDED_IN_314,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+    RICH_CONTENT,
+)
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
 from ...core.types import Image, NonNullList, ThumbnailField
@@ -32,22 +39,23 @@ from ..dataloaders import (
     CollectionChannelListingByCollectionIdLoader,
     ThumbnailByCollectionIdSizeAndFormatLoader,
 )
-from ..filters import ProductFilterInput
+from ..filters import ProductFilterInput, ProductWhereInput
 from ..sorters import ProductOrder
+from ..utils import check_for_sorting_by_rank
 from .channels import CollectionChannelListing
 from .products import ProductCountableConnection
 
 
 @federated_entity("id channel")
 class Collection(ChannelContextTypeWithMetadata[models.Collection]):
-    id = graphene.GlobalID(required=True)
-    seo_title = graphene.String()
-    seo_description = graphene.String()
-    name = graphene.String(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the collection.")
+    seo_title = graphene.String(description="SEO title of the collection.")
+    seo_description = graphene.String(description="SEO description of the collection.")
+    name = graphene.String(required=True, description="Name of the collection.")
     description = JSONString(
         description="Description of the collection." + RICH_CONTENT
     )
-    slug = graphene.String(required=True)
+    slug = graphene.String(required=True, description="Slug of the collection.")
     channel = graphene.String(
         description=(
             "Channel given to retrieve this collection. Also used by federation "
@@ -63,10 +71,15 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
     products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
+        where=ProductWhereInput(
+            description="Filtering options for products."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
+        ),
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
     )
-    background_image = ThumbnailField()
+    background_image = ThumbnailField(description="Background image of the collection.")
     translation = TranslationField(
         CollectionTranslation,
         type_name="collection",
@@ -124,11 +137,20 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
     def resolve_products(
         root: ChannelContext[models.Collection], info: ResolveInfo, **kwargs
     ):
+        check_for_sorting_by_rank(info, kwargs)
+        search = kwargs.get("search")
+
         requestor = get_user_or_app_from_context(info.context)
         qs = root.node.products.visible_to_user(  # type: ignore[attr-defined] # mypy does not properly resolve the related manager # noqa: E501
             requestor, root.channel_slug
         )
-        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+
+        if search:
+            qs = ChannelQsContext(
+                qs=search_products(qs.qs, search), channel_slug=root.channel_slug
+            )
+        else:
+            qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
         kwargs["channel"] = root.channel_slug
         qs = filter_connection_queryset(qs, kwargs)
@@ -170,4 +192,6 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
 
 class CollectionCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = Collection
+        description = "Represents a connection to a list of collections."

@@ -5,6 +5,7 @@ from unittest.mock import ANY, Mock, patch
 import pytest
 import requests
 from graphene import Node
+from requests_hardened import HTTPSession
 
 from .... import PaymentError
 from .. import PaymentStatus, api, const
@@ -19,7 +20,7 @@ from ..errors import (
 from ..plugin import NPAtobaraiGatewayPlugin
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_refund_payment(
     mocked_request, np_atobarai_plugin, np_payment_data, payment_dummy
 ):
@@ -79,7 +80,7 @@ def test_refund_payment_payment_not_created(
     assert not gateway_response.is_success
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_refund_payment_np_errors(
     mocked_request, np_atobarai_plugin, np_payment_data, payment_dummy
 ):
@@ -122,7 +123,7 @@ def test_refund_payment_no_payment(
     assert excinfo.value.message == f"Payment with id {payment_id} does not exist."
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_refund_payment_partial_refund_change_transaction(
     mocked_request, np_atobarai_plugin, np_payment_data, payment_dummy
 ):
@@ -157,7 +158,7 @@ def test_refund_payment_partial_refund_change_transaction(
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.change_transaction")
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_refund_payment_partial_refund_reregister_transaction(
     mocked_request,
     mocked_change_transaction,
@@ -203,7 +204,7 @@ def test_refund_payment_partial_refund_reregister_transaction(
     assert gateway_response.psp_reference == new_psp_reference
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_report_fulfillment(mocked_request, config, fulfillment, payment_dummy):
     # given
     psp_reference = "18121200001"
@@ -288,7 +289,7 @@ def test_report_fulfillment_no_tracking_number(
     assert errors == [f"FR#{NO_TRACKING_NUMBER}"]
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_report_fulfillment_np_errors(
     mocked_request, config, fulfillment, payment_dummy
 ):
@@ -314,7 +315,7 @@ def test_report_fulfillment_np_errors(
     assert errors == [f"FR#{code}" for code in error_codes]
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_report_fulfillment_connection_errors(
     mocked_request, config, fulfillment, payment_dummy, caplog
 ):
@@ -323,6 +324,7 @@ def test_report_fulfillment_connection_errors(
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["psp_reference"])
     response = Mock(
+        request=Mock(),
         spec=requests.Response,
         status_code=404,
     )
@@ -341,7 +343,7 @@ def test_report_fulfillment_connection_errors(
     ]
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_report_fulfillment_already_captured(
     mocked_request, config, fulfillment, payment_dummy
 ):
@@ -490,7 +492,7 @@ def test_tracking_number_updated_no_payments(
     assert caplog.records[0].message == ("No active payments for this order")
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_change_transaction_success(
     mocked_request, config, payment_dummy, np_payment_data
 ):
@@ -521,7 +523,7 @@ def test_change_transaction_success(
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.cancel")
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_change_transaction_pending(
     mocked_request, mocked_cancel, config, payment_dummy, np_payment_data
 ):
@@ -557,7 +559,7 @@ def test_change_transaction_pending(
     assert payment_response.status == PaymentStatus.FAILED
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_change_transaction_post_fulfillment(
     mocked_request, config, payment_dummy, np_payment_data
 ):
@@ -578,7 +580,7 @@ def test_change_transaction_post_fulfillment(
     assert payment_response.status == PaymentStatus.FOR_REREGISTRATION
 
 
-@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+@patch.object(HTTPSession, "request")
 def test_change_transaction_failed(
     mocked_request, config, payment_dummy, np_payment_data
 ):

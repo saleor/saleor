@@ -7,7 +7,7 @@ from django.db import transaction
 from ....account.models import User
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
-from ....order.actions import order_captured, order_confirmed
+from ....order.actions import order_charged, order_confirmed
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....order.utils import update_order_display_gross_prices
@@ -65,6 +65,7 @@ class OrderConfirm(ModelMutation):
         user = info.context.user
         user = cast(User, user)
         order = cls.get_instance(info, **data)
+        cls.check_channel_permissions(info, [order.channel_id])
         order.status = OrderStatus.UNFULFILLED
         update_order_display_gross_prices(order)
         order.save(update_fields=["status", "updated_at", "display_gross_prices"])
@@ -78,7 +79,7 @@ class OrderConfirm(ModelMutation):
                 gateway.capture(payment, manager, channel_slug=order.channel.slug)
                 site = get_site_promise(info.context).get()
                 transaction.on_commit(
-                    lambda: order_captured(
+                    lambda: order_charged(
                         order_info,
                         info.context.user,
                         app,

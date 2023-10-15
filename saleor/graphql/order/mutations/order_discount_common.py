@@ -54,7 +54,7 @@ class OrderDiscountCommon(BaseMutation):
         return ValidationError({"value": ValidationError(error_msg, code=code)})
 
     @classmethod
-    def validate_order_discount_input(cls, _info, max_total: Money, input: dict):
+    def validate_order_discount_input(cls, max_total: Money, input: dict):
         value_type = input["value_type"]
         value = input["value"]
         if value_type == DiscountValueTypeEnum.FIXED:

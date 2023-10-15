@@ -17,7 +17,7 @@ from ....product.models import Product as ProductModel
 from ....product.models import ProductChannelListing
 from ....product.models import ProductVariant as ProductVariantModel
 from ....product.models import ProductVariantChannelListing
-from ....product.tasks import update_product_discounted_price_task
+from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
@@ -27,7 +27,6 @@ from ...core.descriptions import (
     ADDED_IN_33,
     ADDED_IN_38,
     DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
@@ -82,7 +81,11 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
         )
     )
     is_available_for_purchase = graphene.Boolean(
-        description="Determine if product should be available for purchase.",
+        description=(
+            "Determines if product should be available for purchase in this channel. "
+            "This does not guarantee the availability of stock. When set to `False`, "
+            "this product is still visible to customers, but it cannot be purchased."
+        ),
     )
     available_for_purchase_date = Date(
         description=(
@@ -351,6 +354,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             cls.update_channels(product, cleaned_input.get("update_channels", []))
             cls.remove_channels(product, cleaned_input.get("remove_channels", []))
             product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
+            update_products_discounted_prices_for_promotion_task.delay([product.id])
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.product_updated, product)
 
@@ -391,11 +395,7 @@ class ProductVariantChannelListingAddInput(BaseInputObjectType):
     )
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
     preorder_threshold = graphene.Int(
-        description=(
-            "The threshold for preorder variant in channel."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
-        )
+        description=("The threshold for preorder variant in channel." + ADDED_IN_31)
     )
 
     class Meta:
@@ -523,6 +523,9 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                 defaults = {"currency": channel.currency_code}
                 if "price" in channel_listing_data.keys():
                     defaults["price_amount"] = channel_listing_data.get("price", None)
+                    # set the discounted price the same as price for now, the discounted
+                    # value will be calculated asynchronously in the celery task
+                    defaults["discounted_price_amount"] = defaults["price_amount"]
                 if "cost_price" in channel_listing_data.keys():
                     defaults["cost_price_amount"] = channel_listing_data.get(
                         "cost_price", None
@@ -536,7 +539,9 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                     channel=channel,
                     defaults=defaults,
                 )
-            update_product_discounted_price_task.delay(variant.product_id)
+            update_products_discounted_prices_for_promotion_task.delay(
+                [variant.product_id]
+            )
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.product_variant_updated, variant)
 

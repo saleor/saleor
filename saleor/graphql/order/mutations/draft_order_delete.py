@@ -7,13 +7,18 @@ from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
-from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
+from ...core.mutations import (
+    ModelDeleteWithRestrictedChannelAccessMutation,
+    ModelWithExtRefMutation,
+)
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 
 
-class DraftOrderDelete(ModelDeleteMutation, ModelWithExtRefMutation):
+class DraftOrderDelete(
+    ModelDeleteWithRestrictedChannelAccessMutation, ModelWithExtRefMutation
+):
     class Arguments:
         id = graphene.ID(required=False, description="ID of a product to delete.")
         external_reference = graphene.String(
@@ -49,3 +54,7 @@ class DraftOrderDelete(ModelDeleteMutation, ModelWithExtRefMutation):
             response = super().perform_mutation(_root, info, **data)
             cls.call_event(manager.draft_order_deleted, order)
         return response
+
+    @classmethod
+    def get_instance_channel_id(cls, instance):
+        return instance.channel_id

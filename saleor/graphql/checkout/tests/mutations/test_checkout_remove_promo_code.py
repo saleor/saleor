@@ -276,7 +276,7 @@ def test_checkout_remove_voucher_code_invalidates_price(
     checkout_with_item.save(update_fields=["voucher_code", "price_expiration"])
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     subtotal = base_calculations.base_checkout_subtotal(
         lines,
         checkout_info.channel,
@@ -295,3 +295,36 @@ def test_checkout_remove_voucher_code_invalidates_price(
     assert not data["errors"]
     assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == subtotal.amount
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total
+
+
+def test_with_active_problems_flow(
+    api_client,
+    checkout_with_problems,
+    voucher,
+):
+    # given
+    channel = checkout_with_problems.channel
+    channel.use_legacy_error_flow_for_checkout = False
+    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
+
+    checkout_with_problems.voucher_code = voucher.code
+    checkout_with_problems.save(
+        update_fields=[
+            "voucher_code",
+        ]
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_problems),
+        "promoCode": voucher.code,
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_REMOVE_PROMO_CODE,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["checkoutRemovePromoCode"]["errors"]

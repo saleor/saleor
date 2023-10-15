@@ -7,12 +7,18 @@ from graphene import Argument, InputField, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
-from ..descriptions import ADDED_IN_311, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ...core.scalars import Decimal
+from ..descriptions import (
+    ADDED_IN_311,
+    ADDED_IN_314,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ..scalars import Date
 from . import NonNullList
 from .base import BaseInputObjectType
-from .common import DateRangeInput, DateTimeRangeInput, IntRangeInput
+from .common import DateRangeInput, DateTimeRangeInput, DecimalRangeInput, IntRangeInput
 from .converter import convert_form_field
 
 GLOBAL_ID_FILTERS = {
@@ -183,6 +189,21 @@ class IntFilterInput(graphene.InputObjectType):
         )
 
 
+class DecimalFilterInput(graphene.InputObjectType):
+    eq = Decimal(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        Decimal, description=FilterInputDescriptions.ONE_OF, required=False
+    )
+    range = DecimalRangeInput(description=FilterInputDescriptions.RANGE, required=False)
+
+    class Meta:
+        description = (
+            "Define the filtering options for decimal fields."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
+        )
+
+
 class DateFilterInput(graphene.InputObjectType):
     eq = Date(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
@@ -213,5 +234,21 @@ class DateTimeFilterInput(graphene.InputObjectType):
         description = (
             "Define the filtering options for date time fields."
             + ADDED_IN_311
+            + PREVIEW_FEATURE
+        )
+
+
+class GlobalIDFilterInput(graphene.InputObjectType):
+    eq = graphene.ID(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.ID,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+
+    class Meta:
+        description = (
+            "Define the filtering options for foreign key fields."
+            + ADDED_IN_314
             + PREVIEW_FEATURE
         )

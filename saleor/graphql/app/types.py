@@ -1,4 +1,5 @@
-from typing import List, Union
+import base64
+from typing import List, Optional, Type, Union
 
 import graphene
 
@@ -6,9 +7,18 @@ from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
+from ...core.utils import build_absolute_uri
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AppPermission
 from ...permission.utils import message_one_of_permissions_required
+from ...thumbnail import PIL_IDENTIFIER_TO_MIME_TYPE
+from ...thumbnail.utils import (
+    ProcessedIconImage,
+    get_icon_thumbnail_format,
+    get_image_or_proxy_url,
+    get_thumbnail_format,
+    get_thumbnail_size,
+)
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection
@@ -17,24 +27,44 @@ from ..core.descriptions import (
     ADDED_IN_35,
     ADDED_IN_38,
     ADDED_IN_313,
+    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.types import BaseObjectType, Job, ModelObjectType, NonNullList, Permission
+from ..core.types import (
+    BaseObjectType,
+    IconThumbnailField,
+    Job,
+    ModelObjectType,
+    NonNullList,
+    Permission,
+)
 from ..core.utils import from_global_id_or_error
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
+from ..webhook.dataloaders import WebhooksByAppIdLoader
 from ..webhook.enums import WebhookEventTypeAsyncEnum, WebhookEventTypeSyncEnum
 from ..webhook.types import Webhook
-from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader, app_promise_callback
+from .dataloaders import (
+    AppByIdLoader,
+    AppExtensionByAppIdLoader,
+    AppTokensByAppIdLoader,
+    DataLoader,
+    ThumbnailByAppIdSizeAndFormatLoader,
+    ThumbnailByAppInstallationIdSizeAndFormatLoader,
+    app_promise_callback,
+)
 from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 from .resolvers import (
     resolve_access_token_for_app,
     resolve_access_token_for_app_extension,
     resolve_app_extension_url,
 )
+
+# Maximal thumbnail size for manifest preview
+MANIFEST_THUMBNAIL_MAX_SIZE = 512
 
 
 def has_required_permission(app: models.App, context: SaleorContext):
@@ -102,10 +132,14 @@ class AppManifestExtension(BaseObjectType):
 
 
 class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
-    id = graphene.GlobalID(required=True)
-    app = graphene.Field("saleor.graphql.app.types.App", required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the app extension.")
+    app = graphene.Field(
+        "saleor.graphql.app.types.App",
+        required=True,
+        description="The app assigned to app extension.",
+    )
     access_token = graphene.String(
-        description="JWT token used to authenticate by thridparty app extension."
+        description="JWT token used to authenticate by third-party app extension."
     )
 
     class Meta:
@@ -221,36 +255,185 @@ class AppManifestRequiredSaleorVersion(BaseObjectType):
         doc_category = DOC_CATEGORY_APPS
 
 
+class AppManifestBrandLogo(BaseObjectType):
+    default = IconThumbnailField(
+        graphene.String,
+        required=True,
+        description="Data URL with a base64 encoded logo image."
+        + ADDED_IN_314
+        + PREVIEW_FEATURE,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
+        description = (
+            "Represents the app's manifest brand data." + ADDED_IN_314 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_default(
+        root,
+        _info: ResolveInfo,
+        *,
+        size: Optional[int] = None,
+        format: Optional[str] = None,
+    ):
+        format = get_icon_thumbnail_format(format)
+        # limit thumbnail max size as it is transferred
+        # as text and used for preview purposes only
+        if size == 0:
+            size = MANIFEST_THUMBNAIL_MAX_SIZE
+        size = min(get_thumbnail_size(size), MANIFEST_THUMBNAIL_MAX_SIZE)
+
+        logo_img = root["default"]
+        # prepare thumbnail on the fly
+        processed_image = ProcessedIconImage(logo_img, size, format)
+        thumbnail, thumbnail_format = processed_image.create_thumbnail()
+        mimetype = PIL_IDENTIFIER_TO_MIME_TYPE[thumbnail_format]
+
+        thumbnail_str = base64.b64encode(thumbnail.read()).decode()
+        return f"data:{mimetype};base64,{thumbnail_str}"
+
+
+class AppBrandLogo(BaseObjectType):
+    default = IconThumbnailField(
+        graphene.String,
+        required=True,
+        description="URL to the default logo image." + ADDED_IN_314 + PREVIEW_FEATURE,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
+        description = (
+            "Represents the app's brand logo data." + ADDED_IN_314 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_default(
+        root: Union[models.App, models.AppInstallation],
+        info: ResolveInfo,
+        *,
+        size: Optional[int] = None,
+        format: Optional[str] = None,
+    ):
+        if not root.brand_logo_default:
+            return None
+        if size == 0:
+            return build_absolute_uri(root.brand_logo_default.url)
+
+        format = get_thumbnail_format(format)
+        selected_size = get_thumbnail_size(size)
+
+        if isinstance(root, models.App):
+            object_type = "App"
+            dataloader: Type[DataLoader] = ThumbnailByAppIdSizeAndFormatLoader
+        elif isinstance(root, models.AppInstallation):
+            object_type = "AppInstallation"
+            dataloader = ThumbnailByAppInstallationIdSizeAndFormatLoader
+        else:
+            return None
+
+        def _resolve_logo(thumbnail):
+            url = get_image_or_proxy_url(
+                thumbnail, str(root.uuid), object_type, selected_size, format
+            )
+            return build_absolute_uri(url)
+
+        return (
+            dataloader(info.context)
+            .load((root.id, selected_size, format))
+            .then(_resolve_logo)
+        )
+
+
+class AppBrand(BaseObjectType):
+    logo = graphene.Field(
+        AppBrandLogo,
+        required=True,
+        description="App's logos details." + ADDED_IN_314 + PREVIEW_FEATURE,
+    )
+
+    class Meta:
+        description = (
+            "Represents the app's brand data." + ADDED_IN_314 + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_APPS
+
+    @staticmethod
+    def resolve_logo(
+        root: Union[models.App, models.AppInstallation], _info: ResolveInfo
+    ):
+        return root
+
+
+class AppManifestBrand(BaseObjectType):
+    logo = graphene.Field(
+        AppManifestBrandLogo,
+        required=True,
+        description="App's logos details." + ADDED_IN_314 + PREVIEW_FEATURE,
+    )
+
+    class Meta:
+        description = (
+            "Represents the app's manifest brand data." + ADDED_IN_314 + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_APPS
+
+
 class Manifest(BaseObjectType):
-    identifier = graphene.String(required=True)
-    version = graphene.String(required=True)
-    name = graphene.String(required=True)
-    about = graphene.String()
-    permissions = NonNullList(Permission)
-    app_url = graphene.String()
+    identifier = graphene.String(
+        required=True, description="The identifier of the manifest for the app."
+    )
+    version = graphene.String(
+        required=True, description="The version of the manifest for the app."
+    )
+    name = graphene.String(
+        required=True, description="The name of the manifest for the app ."
+    )
+    about = graphene.String(
+        description="Description of the app displayed in the dashboard."
+    )
+    permissions = NonNullList(
+        Permission, description="The array permissions required for the app."
+    )
+    app_url = graphene.String(description="App website rendered in the dashboard.")
     configuration_url = graphene.String(
         description="URL to iframe with the configuration for the app.",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `appUrl` instead.",
     )
-    token_target_url = graphene.String()
+    token_target_url = graphene.String(
+        description=(
+            "Endpoint used during process of app installation, [see installing an app.]"
+            "(https://docs.saleor.io/docs/3.x/developer/extending/apps/installing-apps#installing-an-app)"
+        )
+    )
     data_privacy = graphene.String(
         description="Description of the data privacy defined for this app.",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `dataPrivacyUrl` instead.",
     )
-    data_privacy_url = graphene.String()
-    homepage_url = graphene.String()
-    support_url = graphene.String()
-    extensions = NonNullList(AppManifestExtension, required=True)
+    data_privacy_url = graphene.String(description="URL to the full privacy policy.")
+    homepage_url = graphene.String(description="External URL to the app homepage.")
+    support_url = graphene.String(
+        description="External URL to the page where app users can find support."
+    )
+    extensions = NonNullList(
+        AppManifestExtension,
+        required=True,
+        description=(
+            "List of extensions that will be mounted in Saleor's dashboard. "
+            "For details, please [see the extension section.]"
+            "(https://docs.saleor.io/docs/3.x/developer/extending/apps/extending-dashboard-with-apps#key-concepts)"
+        ),
+    )
     webhooks = NonNullList(
         AppManifestWebhook,
-        description="List of the app's webhooks." + ADDED_IN_35 + PREVIEW_FEATURE,
+        description="List of the app's webhooks." + ADDED_IN_35,
         required=True,
     )
     audience = graphene.String(
         description=(
             "The audience that will be included in all JWT tokens for the app."
             + ADDED_IN_38
-            + PREVIEW_FEATURE
         )
     )
     required_saleor_version = graphene.Field(
@@ -263,6 +446,10 @@ class Manifest(BaseObjectType):
     )
     author = graphene.String(
         description=("The App's author name." + ADDED_IN_313 + PREVIEW_FEATURE)
+    )
+    brand = graphene.Field(
+        AppManifestBrand,
+        description="App's brand data." + ADDED_IN_314 + PREVIEW_FEATURE,
     )
 
     class Meta:
@@ -277,7 +464,7 @@ class Manifest(BaseObjectType):
 
 
 class AppToken(BaseObjectType):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the app token.")
     name = graphene.String(description="Name of the authenticated token.")
     auth_token = graphene.String(description="Last 4 characters of the token.")
 
@@ -301,7 +488,7 @@ class AppToken(BaseObjectType):
 
 @federated_entity("id")
 class App(ModelObjectType[models.App]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the app.")
     permissions = NonNullList(Permission, description="List of the app's permissions.")
     created = graphene.DateTime(
         description="The date and time when the app was created."
@@ -358,8 +545,11 @@ class App(ModelObjectType[models.App]):
     )
     extensions = NonNullList(
         AppExtension,
-        description="App's dashboard extensions." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="App's dashboard extensions." + ADDED_IN_31,
         required=True,
+    )
+    brand = graphene.Field(
+        AppBrand, description="App's brand data." + ADDED_IN_314 + PREVIEW_FEATURE
     )
 
     class Meta:
@@ -381,12 +571,12 @@ class App(ModelObjectType[models.App]):
     @staticmethod
     def resolve_tokens(root: models.App, info: ResolveInfo):
         has_required_permission(root, info.context)
-        return root.tokens.all()
+        return AppTokensByAppIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_webhooks(root: models.App, info: ResolveInfo):
         has_required_permission(root, info.context)
-        return root.webhooks.all()
+        return WebhooksByAppIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_access_token(root: models.App, info: ResolveInfo):
@@ -426,6 +616,11 @@ class App(ModelObjectType[models.App]):
         check_permission_for_access_to_meta(root, info, app)
         return ObjectWithMetadata.resolve_metafields(root, info, keys=keys)
 
+    @staticmethod
+    def resolve_brand(root: models.App, _info: ResolveInfo):
+        if root.brand_logo_default:
+            return root
+
 
 class AppCountableConnection(CountableConnection):
     class Meta:
@@ -434,11 +629,24 @@ class AppCountableConnection(CountableConnection):
 
 
 class AppInstallation(ModelObjectType[models.AppInstallation]):
-    id = graphene.GlobalID(required=True)
-    app_name = graphene.String(required=True)
-    manifest_url = graphene.String(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the app installation.")
+    app_name = graphene.String(
+        required=True, description="The name of the app installation."
+    )
+    manifest_url = graphene.String(
+        required=True,
+        description="The URL address of manifest for the app installation.",
+    )
+    brand = graphene.Field(
+        AppBrand, description="App's brand data." + ADDED_IN_314 + PREVIEW_FEATURE
+    )
 
     class Meta:
         model = models.AppInstallation
         description = "Represents ongoing installation of app."
         interfaces = [graphene.relay.Node, Job]
+
+    @staticmethod
+    def resolve_brand(root: models.AppInstallation, _info: ResolveInfo):
+        if root.brand_logo_default:
+            return root

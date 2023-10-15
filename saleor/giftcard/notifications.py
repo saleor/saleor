@@ -36,6 +36,7 @@ def send_gift_card_notification(
     manager.notify(
         NotifyEventType.SEND_GIFT_CARD, payload=payload, channel_slug=channel_slug
     )
+    manager.gift_card_sent(gift_card, channel_slug, email)
 
 
 def get_default_gift_card_payload(gift_card: "GiftCard"):

@@ -36,6 +36,7 @@ def _remove_anonymized_order_data(order_data: dict) -> dict:
         (WebhookEventAsyncType.ORDER_CREATED, OrderStatus.UNFULFILLED),
         (WebhookEventAsyncType.ORDER_UPDATED, OrderStatus.CANCELED),
         (WebhookEventAsyncType.ORDER_CANCELLED, OrderStatus.CANCELED),
+        (WebhookEventAsyncType.ORDER_EXPIRED, OrderStatus.CANCELED),
         (WebhookEventAsyncType.ORDER_FULFILLED, OrderStatus.FULFILLED),
         (WebhookEventAsyncType.ORDER_FULLY_PAID, OrderStatus.FULFILLED),
     ],

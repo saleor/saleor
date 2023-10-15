@@ -69,6 +69,7 @@ def test_app_create_mutation(
     assert list(app.permissions.all()) == [permission_manage_products]
     assert default_token
     assert default_token[-4:] == app.tokens.get().token_last_4
+    assert app.uuid is not None
 
 
 @freeze_time("2022-05-12 12:00:00")

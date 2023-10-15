@@ -8,9 +8,11 @@ from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.utils import generate_unique_slug
 from ....permission.enums import ProductPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import AttributeError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 from .attribute_create import AttributeValueCreateInput
@@ -40,6 +42,16 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED,
+                description="An attribute value was created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+                description="An attribute was updated.",
+            ),
+        ]
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

@@ -597,7 +597,9 @@ def test_with_only_refund_success_event(
 
     # then
     transaction.refresh_from_db()
-    _assert_amounts(transaction, refunded_value=refunded_value)
+    _assert_amounts(
+        transaction, refunded_value=refunded_value, charged_value=-refunded_value
+    )
 
 
 def test_with_only_refund_request_event(
@@ -624,7 +626,11 @@ def test_with_only_refund_request_event(
 
     # then
     transaction.refresh_from_db()
-    _assert_amounts(transaction, refund_pending_value=refund_pending_value)
+    _assert_amounts(
+        transaction,
+        refund_pending_value=refund_pending_value,
+        charged_value=-refund_pending_value,
+    )
 
 
 def test_with_only_refund_failure_event(
@@ -681,6 +687,7 @@ def test_with_refund_request_and_success_events(
         transaction,
         refund_pending_value=Decimal("0"),
         refunded_value=refund_value,
+        charged_value=-refund_value,
     )
 
 
@@ -765,6 +772,7 @@ def test_with_refund_success_and_older_failure_events(
         transaction,
         refund_pending_value=Decimal("0"),
         refunded_value=refund_value,
+        charged_value=-refund_value,
     )
 
 
@@ -795,6 +803,7 @@ def test_with_refund_request_and_success_events_different_psp_references(
         transaction,
         refund_pending_value=first_refund_value,
         refunded_value=second_refund_value,
+        charged_value=-(first_refund_value + second_refund_value),
     )
 
 

@@ -29,9 +29,19 @@ from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
     InitializedPaymentResponse,
+    ListStoredPaymentMethodsRequestData,
     PaymentData,
     PaymentGateway,
+    PaymentGatewayInitializeTokenizationRequestData,
+    PaymentGatewayInitializeTokenizationResponseData,
+    PaymentMethodData,
+    PaymentMethodInitializeTokenizationRequestData,
+    PaymentMethodProcessTokenizationRequestData,
+    PaymentMethodTokenizationResponseData,
+    StoredPaymentMethodRequestDeleteData,
+    StoredPaymentMethodRequestDeleteResponseData,
     TransactionActionData,
+    TransactionSessionResult,
 )
 from ..thumbnail.models import Thumbnail
 from .models import PluginConfiguration
@@ -46,8 +56,8 @@ if TYPE_CHECKING:
     from ..core.middleware import Requestor
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxData, TaxType
-    from ..discount import DiscountInfo
-    from ..discount.models import Sale, Voucher
+    from ..csv.models import ExportFile
+    from ..discount.models import Promotion, PromotionRule, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
@@ -65,6 +75,7 @@ if TYPE_CHECKING:
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
+    from ..site.models import SiteSettings
     from ..tax.models import TaxClass
     from ..warehouse.models import Warehouse
 
@@ -149,6 +160,50 @@ class BasePlugin:
 
     def __str__(self):
         return self.PLUGIN_NAME
+
+    # Trigger when account is confirmed by user.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # is confirmed.
+    account_confirmed: Callable[["User", None], None]
+
+    # Trigger when account confirmation is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # confirmation is requested.
+    account_confirmation_requested: Callable[
+        ["User", str, str, Optional[str], None], None
+    ]
+
+    # Trigger when account change email is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # change email is requested.
+    account_change_email_requested: Callable[["User", str, str, str, str, None], None]
+
+    # Trigger when account set password is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # set password is requested.
+    account_set_password_requested: Callable[["User", str, str, str, None], None]
+
+    # Trigger when account delete is confirmed.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # delete is confirmed.
+    account_deleted: Callable[["User", None], None]
+
+    # Trigger when account email is changed.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # email is changed.
+    account_email_changed: Callable[["User", None], None]
+
+    # Trigger when account delete is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # delete is requested.
+    account_delete_requested: Callable[["User", str, str, str, None], None]
 
     # Trigger when address is created.
     #
@@ -248,7 +303,6 @@ class BasePlugin:
             List["CheckoutLineInfo"],
             "CheckoutLineInfo",
             Union["Address", None],
-            Iterable["DiscountInfo"],
             TaxedMoney,
         ],
         TaxedMoney,
@@ -261,7 +315,6 @@ class BasePlugin:
             List["CheckoutLineInfo"],
             "CheckoutLineInfo",
             Union["Address", None],
-            Iterable["DiscountInfo"],
             Any,
         ],
         TaxedMoney,
@@ -276,7 +329,6 @@ class BasePlugin:
             "CheckoutInfo",
             List["CheckoutLineInfo"],
             Union["Address", None],
-            List["DiscountInfo"],
             TaxedMoney,
         ],
         TaxedMoney,
@@ -291,7 +343,20 @@ class BasePlugin:
             "CheckoutInfo",
             List["CheckoutLineInfo"],
             Union["Address", None],
-            List["DiscountInfo"],
+            TaxedMoney,
+        ],
+        TaxedMoney,
+    ]
+
+    # Calculate the subtotal for checkout.
+    #
+    # Overwrite this method if you need to apply specific logic for the calculation
+    # of a checkout subtotal. Return TaxedMoney.
+    calculate_checkout_subtotal: Callable[
+        [
+            "CheckoutInfo",
+            List["CheckoutLineInfo"],
+            Union["Address", None],
             TaxedMoney,
         ],
         TaxedMoney,
@@ -373,8 +438,14 @@ class BasePlugin:
     # status is changed.
     channel_status_changed: Callable[["Channel", None], None]
 
+    # Trigger when channel metadata is changed.
+    #
+    # Overwrite this method if you need to trigger specific logic after a channel
+    # metadata is changed.
+    channel_metadata_updated: Callable[["Channel", None], None]
+
     change_user_address: Callable[
-        ["Address", Union[str, None], Union["User", None], "Address", bool], "Address"
+        ["Address", Union[str, None], Union["User", None], bool, "Address"], "Address"
     ]
 
     # Retrieves the balance remaining on a shopper's gift card
@@ -491,7 +562,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic when a fulfillment is
     # created.
-    fulfillment_created: Callable[["Fulfillment", Any], Any]
+    fulfillment_created: Callable[["Fulfillment", bool, Any], Any]
 
     # Trigger when fulfillment is cancelled.
     #
@@ -517,7 +588,6 @@ class BasePlugin:
             List["CheckoutLineInfo"],
             "CheckoutLineInfo",
             Union["Address", None],
-            Iterable["DiscountInfo"],
             Decimal,
         ],
         Decimal,
@@ -528,7 +598,6 @@ class BasePlugin:
             "CheckoutInfo",
             Iterable["CheckoutLineInfo"],
             Union["Address", None],
-            Iterable["DiscountInfo"],
             Any,
         ],
         Any,
@@ -600,6 +669,12 @@ class BasePlugin:
     # status is changed.
     gift_card_status_changed: Callable[["GiftCard", None], None]
 
+    # Trigger when gift cards export is completed.
+    #
+    # Overwrite this method if you need to trigger specific logic after a gift cards
+    # export is completed.
+    gift_card_export_completed: Callable[["ExportFile", None], None]
+
     initialize_payment: Callable[
         [dict, Optional[InitializedPaymentResponse]], InitializedPaymentResponse
     ]
@@ -621,6 +696,43 @@ class BasePlugin:
     invoice_sent: Callable[["Invoice", str, Any], Any]
 
     list_payment_sources: Callable[[str, Any], List["CustomerSource"]]
+
+    list_stored_payment_methods: Callable[
+        ["ListStoredPaymentMethodsRequestData", list["PaymentMethodData"]],
+        list["PaymentMethodData"],
+    ]
+
+    stored_payment_method_request_delete: Callable[
+        [
+            "StoredPaymentMethodRequestDeleteData",
+            "StoredPaymentMethodRequestDeleteResponseData",
+        ],
+        "StoredPaymentMethodRequestDeleteResponseData",
+    ]
+
+    payment_gateway_initialize_tokenization: Callable[
+        [
+            "PaymentGatewayInitializeTokenizationRequestData",
+            "PaymentGatewayInitializeTokenizationResponseData",
+        ],
+        "PaymentGatewayInitializeTokenizationResponseData",
+    ]
+
+    payment_method_initialize_tokenization: Callable[
+        [
+            "PaymentMethodInitializeTokenizationRequestData",
+            "PaymentMethodTokenizationResponseData",
+        ],
+        "PaymentMethodTokenizationResponseData",
+    ]
+
+    payment_method_process_tokenization: Callable[
+        [
+            "PaymentMethodProcessTokenizationRequestData",
+            "PaymentMethodTokenizationResponseData",
+        ],
+        "PaymentMethodTokenizationResponseData",
+    ]
 
     # Trigger when menu is created.
     #
@@ -669,6 +781,12 @@ class BasePlugin:
     # canceled.
     order_cancelled: Callable[["Order", Any], Any]
 
+    # Trigger when order is expired.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # expired.
+    order_expired: Callable[["Order", Any], Any]
+
     # Trigger when order is confirmed by staff.
     #
     # Overwrite this method if you need to trigger specific logic after an order is
@@ -693,6 +811,24 @@ class BasePlugin:
     # fully paid.
     order_fully_paid: Callable[["Order", Any], Any]
 
+    # Trigger when order is paid.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # received the payment.
+    order_paid: Callable[["Order", Any], Any]
+
+    # Trigger when order is refunded.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # refunded.
+    order_refunded: Callable[["Order", Any], Any]
+
+    # Trigger when order is fully refunded.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # fully refunded.
+    order_fully_refunded: Callable[["Order", Any], Any]
+
     # Trigger when order is updated.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
@@ -704,6 +840,12 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic when an order
     # metadata is changed.
     order_metadata_updated: Callable[["Order", Any], Any]
+
+    # Trigger when orders are imported.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order
+    # is imported.
+    order_bulk_created: Callable[[List["Order"], Any], Any]
 
     # Trigger when page is created.
     #
@@ -766,7 +908,6 @@ class BasePlugin:
     preprocess_order_creation: Callable[
         [
             "CheckoutInfo",
-            List["DiscountInfo"],
             Union[Iterable["CheckoutLineInfo"], None],
             Any,
         ],
@@ -774,8 +915,6 @@ class BasePlugin:
     ]
 
     process_payment: Callable[["PaymentData", Any], Any]
-
-    transaction_action_request: Callable[["TransactionActionData", None], None]
 
     transaction_charge_requested: Callable[["TransactionActionData", None], None]
 
@@ -794,11 +933,11 @@ class BasePlugin:
     ]
 
     transaction_initialize_session: Callable[
-        ["TransactionSessionData", None], "PaymentGatewayData"
+        ["TransactionSessionData", None], "TransactionSessionResult"
     ]
 
     transaction_process_session: Callable[
-        ["TransactionSessionData", None], "PaymentGatewayData"
+        ["TransactionSessionData", None], "TransactionSessionResult"
     ]
 
     # Trigger when transaction item metadata is updated.
@@ -873,26 +1012,80 @@ class BasePlugin:
     # variant metadata is updated.
     product_variant_metadata_updated: Callable[["ProductVariant", Any], Any]
 
+    # Trigger when a product export is completed.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product
+    # export is completed.
+    product_export_completed: Callable[["ExportFile", None], None]
+
     refund_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     # Trigger when sale is created.
     #
     # Overwrite this method if you need to trigger specific logic after sale is created.
-    sale_created: Callable[["Sale", DefaultDict[str, Set[str]], Any], Any]
+    sale_created: Callable[["Promotion", DefaultDict[str, Set[str]], Any], Any]
 
     # Trigger when sale is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a sale is deleted.
-    sale_deleted: Callable[["Sale", DefaultDict[str, Set[str]], Any], Any]
+    sale_deleted: Callable[["Promotion", DefaultDict[str, Set[str]], Any], Any]
 
     # Trigger when sale is updated.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a sale is updated.
     sale_updated: Callable[
-        ["Sale", DefaultDict[str, Set[str]], DefaultDict[str, Set[str]], Any], Any
+        ["Promotion", DefaultDict[str, Set[str]], DefaultDict[str, Set[str]], Any], Any
     ]
+
+    # Trigger when promotion is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after promotion
+    # is created.
+    promotion_created: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion is deleted.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion is deleted.
+    promotion_deleted: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion is updated.
+    promotion_updated: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion is started.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion is started.
+    promotion_started: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion is ended.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion is ended.
+    promotion_ended: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion rule is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion rule is created.
+    promotion_rule_created: Callable[["PromotionRule", Any], Any]
+
+    # Trigger when promotion rule is deleted.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion rule is deleted.
+    promotion_rule_deleted: Callable[["PromotionRule", Any], Any]
+
+    # Trigger when promotion rule is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion rule is updated.
+    promotion_rule_updated: Callable[["PromotionRule", Any], Any]
 
     # Trigger when shipping price is created.
     #
@@ -960,6 +1153,12 @@ class BasePlugin:
     # deleted.
     staff_deleted: Callable[["User", Any], Any]
 
+    # Trigger when setting a password for staff is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after set
+    # password for staff is requested.
+    staff_set_password_requested: Callable[["User", str, str, str, None], None]
+
     # Trigger when thumbnail is updated.
     thumbnail_created: Callable[["Thumbnail", Any], Any]
 
@@ -1016,6 +1215,12 @@ class BasePlugin:
     # metadata is updated.
     voucher_metadata_updated: Callable[["Voucher", None], None]
 
+    # Trigger when shop metadata is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a shop
+    # metadata is updated.
+    shop_metadata_updated: Callable[["SiteSettings", None], None]
+
     # Handle received http request.
     #
     # Overwrite this method if the plugin expects the incoming requests.
@@ -1048,7 +1253,11 @@ class BasePlugin:
         return previous_value
 
     def get_payment_gateways(
-        self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
+        self,
+        currency: Optional[str],
+        checkout_info: Optional["CheckoutInfo"],
+        checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
+        previous_value,
     ) -> List["PaymentGateway"]:
         payment_config = (
             self.get_payment_config(previous_value)

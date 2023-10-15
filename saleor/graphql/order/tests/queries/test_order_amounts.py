@@ -62,19 +62,12 @@ query OrdersQuery {
                     amount
                 }
                 transactions{
-                    reference
                     pspReference
-                    type
-                    status
                     modifiedAt
                     createdAt
                     authorizedAmount{
                         amount
                         currency
-                    }
-                    voidedAmount{
-                        currency
-                        amount
                     }
                     chargedAmount{
                         currency
@@ -84,12 +77,14 @@ query OrdersQuery {
                         currency
                         amount
                     }
+                    canceledAmount{
+                        currency
+                        amount
+                    }
                     events{
-                    status
-                    pspReference
-                    reference
-                    name
-                    createdAt
+                        pspReference
+                        message
+                        createdAt
                     }
                 }
                 subtotal {
@@ -111,7 +106,7 @@ query OrdersQuery {
 
 def test_order_total_refunded_query_with_transactions_by_staff_user(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
 ):
     # given
@@ -127,7 +122,7 @@ def test_order_total_refunded_query_with_transactions_by_staff_user(
         currency=order.currency,
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
@@ -209,7 +204,10 @@ def test_order_total_refunded_query_with_transactions_by_app(
 
 
 def test_order_total_refunded_query_with_payment_by_staff_user(
-    staff_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    payment_txn_refunded,
 ):
     # given
     payment = payment_txn_refunded
@@ -224,7 +222,7 @@ def test_order_total_refunded_query_with_payment_by_staff_user(
     refund_transaction.amount = second_refund_amount
     refund_transaction.save()
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
@@ -266,7 +264,7 @@ def test_order_total_refunded_query_with_payment_by_app(
 
 def test_order_total_refund_pending_query_with_transactions_by_staff_user(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
 ):
     # given
@@ -281,7 +279,7 @@ def test_order_total_refund_pending_query_with_transactions_by_staff_user(
         refund_pending_value=second_pending_refund_amount, currency="USD"
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
@@ -353,14 +351,17 @@ def test_order_total_refund_pending_query_with_transactions_by_app(
 
 
 def test_order_total_refund_pending_query_with_payment_by_staff_user(
-    staff_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    payment_txn_refunded,
 ):
     # given
     payment = payment_txn_refunded
     payment.is_active = True
     payment.save()
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
@@ -394,7 +395,7 @@ def test_order_total_refund_pending_query_with_payment_by_app(
 
 def test_order_total_authorize_pending_query_with_transactions_by_staff_user(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
 ):
     # given
@@ -409,7 +410,7 @@ def test_order_total_authorize_pending_query_with_transactions_by_staff_user(
         authorize_pending_value=second_pending_authorize_amount, currency="USD"
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
@@ -481,14 +482,17 @@ def test_order_total_authorize_pending_query_with_transactions_by_app(
 
 
 def test_order_total_authorize_pending_query_with_payment_by_staff_user(
-    staff_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    payment_txn_refunded,
 ):
     # given
     payment = payment_txn_refunded
     payment.is_active = True
     payment.save()
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
@@ -522,7 +526,7 @@ def test_order_total_authorize_pending_query_with_payment_by_app(
 
 def test_order_total_charge_pending_query_with_transactions_by_staff_user(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
 ):
     # given
@@ -537,7 +541,7 @@ def test_order_total_charge_pending_query_with_transactions_by_staff_user(
         charge_pending_value=second_pending_charge_amount, currency="USD"
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
@@ -609,14 +613,17 @@ def test_order_total_charge_pending_query_with_transactions_by_app(
 
 
 def test_order_total_charge_pending_query_with_payment_by_staff_user(
-    staff_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    payment_txn_refunded,
 ):
     # given
     payment = payment_txn_refunded
     payment.is_active = True
     payment.save()
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
@@ -650,7 +657,7 @@ def test_order_total_charge_pending_query_with_payment_by_app(
 
 def test_order_total_cancel_pending_query_with_transactions_by_staff_user(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
 ):
     # given
@@ -665,7 +672,7 @@ def test_order_total_cancel_pending_query_with_transactions_by_staff_user(
         cancel_pending_value=second_pending_cancel_amount, currency="USD"
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
@@ -737,14 +744,17 @@ def test_order_total_cancel_pending_query_with_transactions_by_app(
 
 
 def test_order_total_cancel_pending_query_with_payment_by_staff_user(
-    staff_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    payment_txn_refunded,
 ):
     # given
     payment = payment_txn_refunded
     payment.is_active = True
     payment.save()
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
@@ -777,7 +787,7 @@ def test_order_total_cancel_pending_query_with_payment_by_app(
 
 
 def test_order_total_remaining_grant_query_with_transactions_by_staff_user(
-    staff_api_client, permission_manage_orders, fulfilled_order, staff_user
+    staff_api_client, permission_group_manage_orders, fulfilled_order, staff_user
 ):
     # given
     order = fulfilled_order
@@ -796,7 +806,7 @@ def test_order_total_remaining_grant_query_with_transactions_by_staff_user(
     )
     order.payment_transactions.create(refunded_value=refund_amount, currency="USD")
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
@@ -870,7 +880,7 @@ def test_order_total_remaining_grant_query_with_transactions_by_app(
 
 def test_order_total_remaining_grant_query_with_payment_by_staff_user(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     payment_txn_refunded,
     staff_user,
@@ -895,7 +905,7 @@ def test_order_total_remaining_grant_query_with_payment_by_staff_user(
     refund_transaction.amount = second_refund_amount
     refund_transaction.save()
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)

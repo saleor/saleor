@@ -61,7 +61,7 @@ def test_checkout_shipping_method_update_by_id(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_info.delivery_method_info = get_delivery_method_info(
         convert_to_shipping_method_data(
             old_shipping_method, old_shipping_method.channel_listings.first()
@@ -109,7 +109,7 @@ def test_checkout_shipping_method_update_by_token(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_info.delivery_method_info = get_delivery_method_info(
         convert_to_shipping_method_data(
             old_shipping_method, old_shipping_method.channel_listings.first()
@@ -175,3 +175,57 @@ def test_checkout_shipping_method_update_both_token_and_id_given(
     assert len(data["errors"]) == 1
     assert not data["checkout"]
     assert data["errors"][0]["code"] == CheckoutErrorCode.GRAPHQL_ERROR.name
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
+    "clean_delivery_method"
+)
+def test_checkout_shipping_method_update_by_id_no_checkout_metadata(
+    mock_clean_shipping,
+    staff_api_client,
+    shipping_method,
+    checkout_with_item_and_shipping_method,
+):
+    # given
+    checkout = checkout_with_item_and_shipping_method
+    old_shipping_method = checkout.shipping_method
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+    mock_clean_shipping.return_value = True
+
+    checkout.metadata_storage.delete()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, {"checkoutId": checkout_id, "shippingMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_info.delivery_method_info = get_delivery_method_info(
+        convert_to_shipping_method_data(
+            old_shipping_method, old_shipping_method.channel_listings.first()
+        ),
+        None,
+    )
+
+    mock_clean_shipping.assert_called_once_with(
+        checkout_info=checkout_info,
+        lines=lines,
+        method=convert_to_shipping_method_data(
+            shipping_method, shipping_method.channel_listings.first()
+        ),
+    )
+    errors = data["errors"]
+    assert not errors
+    assert data["checkout"]["id"] == checkout_id
+    assert checkout.shipping_method == shipping_method

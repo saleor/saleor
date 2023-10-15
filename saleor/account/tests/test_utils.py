@@ -8,6 +8,7 @@ from ...checkout import AddressType
 from ...plugins.manager import get_plugins_manager
 from ..models import Address, User
 from ..utils import (
+    get_user_groups_permissions,
     is_user_address_limit_reached,
     remove_staff_member,
     remove_the_oldest_user_address,
@@ -231,3 +232,26 @@ def test_email_case_sensitivity(email, expected_user, users_with_similar_emails)
     user = retrieve_user_by_email(email=email)
     # then
     assert user == users[expected_user] if expected_user is not None else user is None
+
+
+def get_user_groups_permissions_user_without_any_group(staff_user):
+    # when
+    permissions = get_user_groups_permissions(staff_user)
+
+    # then
+    assert not permissions
+
+
+def get_user_groups_permissions_user(
+    staff_user, permission_group_manage_orders, permission_group_manage_shipping
+):
+    # given
+    staff_user.groups.add(
+        permission_group_manage_orders, permission_group_manage_shipping
+    )
+
+    # when
+    permissions = get_user_groups_permissions(staff_user)
+
+    # then
+    assert permissions.count() == 2

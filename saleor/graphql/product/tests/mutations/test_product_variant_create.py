@@ -76,11 +76,15 @@ CREATE_VARIANT_MUTATION = """
 """
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_create_variant_with_name(
     updated_webhook_mock,
     created_webhook_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     product_type,
@@ -149,6 +153,9 @@ def test_create_variant_with_name(
 
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
@@ -1772,6 +1779,7 @@ VARIANT_CREATE_MUTATION = """
         {
             productVariant {
                 id
+                trackInventory
             }
             errors {
                 field,
@@ -1883,4 +1891,27 @@ def test_create_product_variant_with_non_unique_external_reference(
     assert (
         error["message"]
         == "Product variant with this External reference already exists."
+    )
+
+
+def test_variant_create_product_with_default_track_inventory(
+    product_with_product_attributes,
+    staff_api_client,
+    permission_manage_products,
+    site_settings,
+):
+    product = product_with_product_attributes
+
+    prod_id = graphene.Node.to_global_id("Product", product.pk)
+    input = {"sku": "my-sku", "product": prod_id, "attributes": []}
+    response = staff_api_client.post_graphql(
+        VARIANT_CREATE_MUTATION,
+        variables={"input": input},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantCreate"]
+    assert (
+        data["productVariant"]["trackInventory"]
+        == site_settings.track_inventory_by_default
     )

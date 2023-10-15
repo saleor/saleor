@@ -1,3 +1,6 @@
+from typing import Iterable, Union
+from uuid import UUID
+
 import graphene
 
 from ....order import models
@@ -5,14 +8,14 @@ from ....order.actions import cancel_order
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.mutations import BaseBulkMutation
+from ...core.mutations import BaseBulkWithRestrictedChannelAccessMutation
 from ...core.types import NonNullList, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.order_cancel import clean_order_cancel
 from ..types import Order
 
 
-class OrderBulkCancel(BaseBulkMutation):
+class OrderBulkCancel(BaseBulkWithRestrictedChannelAccessMutation):
     class Arguments:
         ids = NonNullList(
             graphene.ID, required=True, description="List of orders IDs to cancel."
@@ -40,3 +43,8 @@ class OrderBulkCancel(BaseBulkMutation):
                 app=get_app_promise(info.context).get(),
                 manager=manager,
             )
+
+    @classmethod
+    def get_channel_ids(cls, instances) -> Iterable[Union[UUID, int]]:
+        """Get the instances channel ids for channel permission accessible check."""
+        return [order.channel_id for order in instances]

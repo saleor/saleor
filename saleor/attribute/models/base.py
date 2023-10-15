@@ -8,7 +8,7 @@ from ...core.db.fields import SanitizedJSONField
 from ...core.models import ModelWithExternalReference, ModelWithMetadata, SortableModel
 from ...core.units import MeasurementUnits
 from ...core.utils.editorjs import clean_editor_js
-from ...core.utils.translations import Translation, TranslationProxy
+from ...core.utils.translations import Translation
 from ...page.models import Page, PageType
 from ...permission.enums import PageTypePermissions, ProductTypePermissions
 from ...permission.utils import has_one_of_permissions
@@ -165,7 +165,6 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
     available_in_grid = models.BooleanField(default=False, blank=True)
 
     objects = AttributeManager()
-    translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("storefront_search_position", "slug")
@@ -190,7 +189,7 @@ class AttributeTranslation(Translation):
     attribute = models.ForeignKey(
         Attribute, related_name="translations", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
 
     class Meta:
         unique_together = (("language_code", "attribute"),)
@@ -217,7 +216,7 @@ class AttributeTranslation(Translation):
 class AttributeValue(SortableModel, ModelWithExternalReference):
     name = models.CharField(max_length=250)
     # keeps hex code color value in #RRGGBBAA format
-    value = models.CharField(max_length=100, blank=True, default="")
+    value = models.CharField(max_length=255, blank=True, default="")
     slug = models.SlugField(max_length=255, allow_unicode=True)
     file_url = models.URLField(null=True, blank=True)
     content_type = models.CharField(max_length=50, null=True, blank=True)
@@ -252,8 +251,6 @@ class AttributeValue(SortableModel, ModelWithExternalReference):
         Page, related_name="references", on_delete=models.CASCADE, null=True, blank=True
     )
 
-    translated = TranslationProxy()
-
     class Meta:
         ordering = ("sort_order", "pk")
         unique_together = ("slug", "attribute")
@@ -281,7 +278,7 @@ class AttributeValueTranslation(Translation):
     attribute_value = models.ForeignKey(
         AttributeValue, related_name="translations", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=250)
     rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     plain_text = models.TextField(
         blank=True,

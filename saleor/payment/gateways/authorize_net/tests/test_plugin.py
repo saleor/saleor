@@ -8,12 +8,19 @@ from ..plugin import AuthorizeNetGatewayPlugin
 
 
 def test_get_payment_gateway_for_checkout(
-    authorize_net_plugin, checkout_with_single_item, address
+    authorize_net_plugin,
+    checkout_with_single_item,
+    address,
+    checkout_info,
+    checkout_lines_info,
 ):
     checkout_with_single_item.billing_address = address
     checkout_with_single_item.save()
     response = authorize_net_plugin.get_payment_gateways(
-        currency=None, checkout=checkout_with_single_item, previous_value=None
+        currency=None,
+        checkout_info=checkout_info,
+        checkout_lines=checkout_lines_info,
+        previous_value=None,
     )[0]
     assert response.id == authorize_net_plugin.PLUGIN_ID
     assert response.name == authorize_net_plugin.PLUGIN_NAME
@@ -38,12 +45,15 @@ def test_get_payment_gateway_for_checkout(
 
 
 def test_get_payment_gateway_for_checkout_inactive(
-    authorize_net_plugin, checkout_with_single_item
+    authorize_net_plugin, checkout_with_single_item, checkout_info, checkout_lines_info
 ):
     authorize_net_plugin.active = False
     currency = checkout_with_single_item.currency
     response = authorize_net_plugin.get_payment_gateways(
-        currency=currency, checkout=checkout_with_single_item, previous_value=None
+        currency=currency,
+        checkout_info=checkout_info,
+        checkout_lines=checkout_lines_info,
+        previous_value=None,
     )
     assert not response
 

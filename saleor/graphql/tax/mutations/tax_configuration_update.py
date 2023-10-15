@@ -5,7 +5,7 @@ from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_39
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelMutation
 from ...core.types import BaseInputObjectType, Error, NonNullList
@@ -107,9 +107,7 @@ class TaxConfigurationUpdate(ModelMutation):
         )
 
     class Meta:
-        description = (
-            "Update tax configuration for a channel." + ADDED_IN_39 + PREVIEW_FEATURE
-        )
+        description = "Update tax configuration for a channel." + ADDED_IN_39
         error_type_class = TaxConfigurationUpdateError
         model = models.TaxConfiguration
         object_type = TaxConfiguration

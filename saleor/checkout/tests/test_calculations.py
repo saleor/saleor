@@ -87,16 +87,14 @@ def test_apply_tax_data(checkout_with_items, checkout_lines, tax_data):
 @pytest.fixture
 def fetch_kwargs(checkout_with_items, plugins_manager):
     lines, _ = fetch_checkout_lines(checkout_with_items)
-    discounts = []
     return {
         "checkout_info": fetch_checkout_info(
-            checkout_with_items, lines, discounts, plugins_manager
+            checkout_with_items, lines, plugins_manager
         ),
         "manager": plugins_manager,
         "lines": lines,
         "address": checkout_with_items.shipping_address
         or checkout_with_items.billing_address,
-        "discounts": discounts,
     }
 
 
@@ -277,6 +275,7 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     variant = line.variant
     channel_listing = variant.channel_listings.get(channel=channel.pk)
     channel_listing.price_amount = Decimal("9.60")
+    channel_listing.discounted_price_amount = Decimal("9.60")
     channel_listing.save()
 
     line.quantity = 7
@@ -292,26 +291,23 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     lines, _ = fetch_checkout_lines(checkout)
     line_info = list(lines)[0]
     variant = line_info.variant
-    product_price = variant.get_price(
-        line_info.product, [], channel, line_info.channel_listing, []
-    )
+    product_price = variant.get_price(line_info.channel_listing)
 
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     add_promo_code_to_checkout(
         manager,
         checkout_info,
         lines,
         voucher_percentage.code,
-        [],
     )
 
     checkout.refresh_from_db()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
-    _get_checkout_base_prices(checkout, checkout_info, lines, [])
+    _get_checkout_base_prices(checkout, checkout_info, lines)
     checkout.save()
     checkout.lines.bulk_update(
         [line_info.line for line_info in lines],
@@ -395,15 +391,13 @@ def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
 
     currency = checkout.currency
 
-    discounts = []
     lines_info, _ = fetch_checkout_lines(checkout)
 
     fetch_kwargs = {
-        "checkout_info": fetch_checkout_info(checkout, lines_info, discounts, manager),
+        "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
         "address": checkout.shipping_address or checkout.billing_address,
-        "discounts": discounts,
     }
 
     # when
@@ -455,15 +449,13 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
 
     currency = checkout.currency
 
-    discounts = []
     lines_info, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines_info, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines_info, manager)
     fetch_kwargs = {
         "checkout_info": checkout_info,
         "manager": manager,
         "lines": lines_info,
         "address": checkout.shipping_address or checkout.billing_address,
-        "discounts": discounts,
     }
 
     # when
@@ -472,7 +464,7 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
 
     # then
     one_line_total_prices = [
-        calculate_base_line_total_price(line_info, checkout_info.channel, discounts)
+        calculate_base_line_total_price(line_info, checkout_info.channel)
         for line_info in lines_info
     ]
     all_lines_total_price = sum(one_line_total_prices, zero_taxed_money(currency))

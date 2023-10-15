@@ -9,29 +9,38 @@ from ...account.enums import AddressTypeEnum
 from ...core.doc_category import (
     DOC_CATEGORY_APPS,
     DOC_CATEGORY_ATTRIBUTES,
+    DOC_CATEGORY_AUTH,
     DOC_CATEGORY_CHANNELS,
     DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_DISCOUNTS,
     DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_MENU,
     DOC_CATEGORY_ORDERS,
     DOC_CATEGORY_PAGES,
     DOC_CATEGORY_PAYMENTS,
     DOC_CATEGORY_PRODUCTS,
     DOC_CATEGORY_SHIPPING,
+    DOC_CATEGORY_SHOP,
     DOC_CATEGORY_TAXES,
     DOC_CATEGORY_USERS,
     DOC_CATEGORY_WEBHOOKS,
 )
+from ...core.scalars import Decimal
 from ..descriptions import (
     ADDED_IN_36,
     ADDED_IN_312,
+    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
+    AttributeBulkCreateErrorCode,
+    AttributeBulkUpdateErrorCode,
     AttributeErrorCode,
+    AttributeTranslateErrorCode,
+    AttributeValueTranslateErrorCode,
     ChannelErrorCode,
     CheckoutErrorCode,
     CollectionErrorCode,
@@ -41,27 +50,36 @@ from ..enums import (
     ExternalNotificationTriggerErrorCode,
     GiftCardErrorCode,
     GiftCardSettingsErrorCode,
+    IconThumbnailFormatEnum,
     InvoiceErrorCode,
     JobStatusEnum,
     LanguageCodeEnum,
     MenuErrorCode,
     MetadataErrorCode,
+    OrderBulkCreateErrorCode,
     OrderErrorCode,
     OrderSettingsErrorCode,
     PageErrorCode,
     PaymentErrorCode,
     PaymentGatewayConfigErrorCode,
     PaymentGatewayInitializeErrorCode,
+    PaymentGatewayInitializeTokenizationErrorCode,
+    PaymentMethodInitializeTokenizationErrorCode,
+    PaymentMethodProcessTokenizationErrorCode,
     PermissionEnum,
     PermissionGroupErrorCode,
     PluginErrorCode,
     ProductBulkCreateErrorCode,
     ProductErrorCode,
+    ProductTranslateErrorCode,
     ProductVariantBulkErrorCode,
+    ProductVariantTranslateErrorCode,
+    SendConfirmationEmailErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
     StockBulkUpdateErrorCode,
     StockErrorCode,
+    StoredPaymentMethodRequestDeleteErrorCode,
     ThumbnailFormatEnum,
     TimePeriodTypeEnum,
     TransactionCreateErrorCode,
@@ -69,6 +87,7 @@ from ..enums import (
     TransactionInitializeErrorCode,
     TransactionProcessErrorCode,
     TransactionRequestActionErrorCode,
+    TransactionRequestRefundForGrantedRefundErrorCode,
     TransactionUpdateErrorCode,
     TranslationErrorCode,
     UploadErrorCode,
@@ -107,8 +126,8 @@ class CountryDisplay(graphene.ObjectType):
         VAT,
         description="Country tax.",
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use `TaxClassCountryRate` type to manage tax "
-            "rates per country."
+            f"{DEPRECATED_IN_3X_FIELD} Always returns `null`. Use `TaxClassCountryRate`"
+            " type to manage tax rates per country."
         ),
     )
 
@@ -127,6 +146,7 @@ class Permission(BaseObjectType):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_AUTH
         description = "Represents a permission object in a friendly form."
 
 
@@ -144,7 +164,7 @@ class Error(BaseObjectType):
         description = "Represents an error in the input of a mutation."
 
 
-class BulkError(graphene.ObjectType):
+class BulkError(BaseObjectType):
     path = graphene.String(
         description=(
             "Path to field that caused the error. A value of `null` indicates that "
@@ -166,6 +186,13 @@ class AccountError(Error):
 
     class Meta:
         description = "Represents errors in account mutations."
+        doc_category = DOC_CATEGORY_USERS
+
+
+class SendConfirmationEmailError(Error):
+    code = SendConfirmationEmailErrorCode(description="The error code.", required=True)
+
+    class Meta:
         doc_category = DOC_CATEGORY_USERS
 
 
@@ -249,6 +276,9 @@ class CheckoutError(Error):
 class CustomerBulkUpdateError(BulkError):
     code = CustomerBulkUpdateErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+
 
 class ProductWithoutVariantError(Error):
     products = NonNullList(
@@ -284,6 +314,9 @@ class ExternalNotificationError(Error):
 
 class MenuError(Error):
     code = MenuErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_MENU
 
 
 class OrderSettingsError(Error):
@@ -328,8 +361,18 @@ class OrderError(Error):
         doc_category = DOC_CATEGORY_ORDERS
 
 
+class OrderBulkCreateError(BulkError):
+    code = OrderBulkCreateErrorCode(description="The error code.", required=False)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+
+
 class InvoiceError(Error):
     code = InvoiceErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class PermissionGroupError(Error):
@@ -342,6 +385,11 @@ class PermissionGroupError(Error):
     users = NonNullList(
         graphene.ID,
         description="List of user IDs which causes the error.",
+        required=False,
+    )
+    channels = NonNullList(
+        graphene.ID,
+        description="List of chnnels IDs which causes the error.",
         required=False,
     )
 
@@ -400,6 +448,20 @@ class CollectionChannelListingError(ProductError):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
+class AttributeBulkCreateError(BulkError):
+    code = AttributeBulkCreateErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+
+class AttributeBulkUpdateError(BulkError):
+    code = AttributeBulkUpdateErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+
 class BulkProductError(ProductError):
     index = graphene.Int(
         description="Index of an input list item that caused the error."
@@ -442,9 +504,19 @@ class ProductBulkCreateError(BulkError):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
 
 class ProductVariantBulkError(Error):
     code = ProductVariantBulkErrorCode(description="The error code.", required=True)
+    path = graphene.String(
+        description=(
+            "Path to field that caused the error. A value of `null` indicates that "
+            "the error isn't associated with a particular field." + ADDED_IN_314
+        ),
+        required=False,
+    )
     attributes = NonNullList(
         graphene.ID,
         description="List of attributes IDs which causes the error.",
@@ -482,6 +554,9 @@ class ProductVariantBulkError(Error):
 
 class ShopError(Error):
     code = ShopErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHOP
 
 
 class ShippingError(Error):
@@ -530,6 +605,16 @@ class PaymentError(Error):
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
+class ProductBulkTranslateError(BulkError):
+    code = ProductTranslateErrorCode(description="The error code.", required=True)
+
+
+class ProductVariantBulkTranslateError(BulkError):
+    code = ProductVariantTranslateErrorCode(
+        description="The error code.", required=True
+    )
+
+
 class TransactionCreateError(Error):
     code = TransactionCreateErrorCode(description="The error code.", required=True)
 
@@ -553,26 +638,86 @@ class TransactionRequestActionError(Error):
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
+class TransactionRequestRefundForGrantedRefundError(Error):
+    code = TransactionRequestRefundForGrantedRefundErrorCode(
+        description="The error code.", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
 class TransactionEventReportError(Error):
     code = TransactionEventReportErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionInitializeError(Error):
     code = TransactionInitializeErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
 
 class TransactionProcessError(Error):
     code = TransactionProcessErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
 
 class PaymentGatewayConfigError(Error):
     code = PaymentGatewayConfigErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentGatewayInitializeError(Error):
     code = PaymentGatewayInitializeErrorCode(
         description="The error code.", required=True
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class PaymentMethodRequestDeleteError(Error):
+    code = StoredPaymentMethodRequestDeleteErrorCode(
+        description="The error code.", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class PaymentGatewayInitializeTokenizationError(Error):
+    code = PaymentGatewayInitializeTokenizationErrorCode(
+        description="The error code.", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class PaymentMethodInitializeTokenizationError(Error):
+    code = PaymentMethodInitializeTokenizationErrorCode(
+        description="The error code.", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class PaymentMethodProcessTokenizationError(Error):
+    code = PaymentMethodProcessTokenizationErrorCode(
+        description="The error code.", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class GiftCardError(Error):
@@ -655,9 +800,23 @@ class TranslationError(Error):
     code = TranslationErrorCode(description="The error code.", required=True)
 
 
+class TranslationBulkError(BulkError):
+    code = TranslationErrorCode(description="The error code.", required=True)
+
+
 class SeoInput(graphene.InputObjectType):
     title = graphene.String(description="SEO title.")
     description = graphene.String(description="SEO description.")
+
+
+class AttributeBulkTranslateError(BulkError):
+    code = AttributeTranslateErrorCode(description="The error code.", required=True)
+
+
+class AttributeValueBulkTranslateError(BulkError):
+    code = AttributeValueTranslateErrorCode(
+        description="The error code.", required=True
+    )
 
 
 class Weight(graphene.ObjectType):
@@ -704,6 +863,11 @@ class PriceInput(graphene.InputObjectType):
 class PriceRangeInput(graphene.InputObjectType):
     gte = graphene.Float(description="Price greater than or equal to.", required=False)
     lte = graphene.Float(description="Price less than or equal to.", required=False)
+
+
+class DecimalRangeInput(graphene.InputObjectType):
+    gte = Decimal(description="Decimal value greater than or equal to.", required=False)
+    lte = Decimal(description="Decimal value less than or equal to.", required=False)
 
 
 class DateRangeInput(graphene.InputObjectType):
@@ -772,7 +936,7 @@ class ThumbnailField(graphene.Field):
         default_value="ORIGINAL",
         description=(
             "The format of the image. When not provided, format of the original "
-            "image will be used." + ADDED_IN_36 + PREVIEW_FEATURE
+            "image will be used." + ADDED_IN_36
         ),
     )
 
@@ -780,6 +944,16 @@ class ThumbnailField(graphene.Field):
         kwargs["size"] = self.size
         kwargs["format"] = self.format
         super().__init__(of_type, *args, **kwargs)
+
+
+class IconThumbnailField(ThumbnailField):
+    format = IconThumbnailFormatEnum(
+        default_value="ORIGINAL",
+        description=(
+            "The format of the image. When not provided, format of the original "
+            "image will be used." + ADDED_IN_314 + PREVIEW_FEATURE
+        ),
+    )
 
 
 class MediaInput(graphene.InputObjectType):

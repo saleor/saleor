@@ -5,7 +5,8 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from .....discount import DiscountValueType
-from .....discount.models import Sale, SaleChannelListing
+from .....discount.models import Promotion, Sale, SaleChannelListing
+from .....discount.tests.sale_converter import convert_sales_to_promotions
 from ....tests.utils import get_graphql_content
 
 
@@ -53,7 +54,9 @@ def sales_for_pagination(channel_USD):
             for i, sale in enumerate(sales)
         ]
     )
-    return sales
+    convert_sales_to_promotions()
+    promotions = Promotion.objects.order_by("created_at").all()
+    return promotions
 
 
 QUERY_SALES_PAGINATION = """

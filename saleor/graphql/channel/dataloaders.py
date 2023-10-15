@@ -2,7 +2,6 @@ from django.db.models import Exists, OuterRef
 
 from ...channel.models import Channel
 from ...order.models import Order
-from ..checkout.dataloaders import CheckoutByTokenLoader, CheckoutLineByIdLoader
 from ..core.dataloaders import DataLoader
 from ..order.dataloaders import OrderByIdLoader, OrderLineByIdLoader
 
@@ -23,29 +22,6 @@ class ChannelBySlugLoader(DataLoader):
             keys, field_name="slug"
         )
         return [channels.get(slug) for slug in keys]
-
-
-class ChannelByCheckoutLineIDLoader(DataLoader):
-    context_key = "channel_by_checkout_line"
-
-    def batch_load(self, keys):
-        def channel_by_lines(checkout_lines):
-            checkout_ids = [line.checkout_id for line in checkout_lines]
-
-            def channels_by_checkout(checkouts):
-                channel_ids = [checkout.channel_id for checkout in checkouts]
-
-                return ChannelByIdLoader(self.context).load_many(channel_ids)
-
-            return (
-                CheckoutByTokenLoader(self.context)
-                .load_many(checkout_ids)
-                .then(channels_by_checkout)
-            )
-
-        return (
-            CheckoutLineByIdLoader(self.context).load_many(keys).then(channel_by_lines)
-        )
 
 
 class ChannelByOrderLineIdLoader(DataLoader):

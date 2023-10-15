@@ -2,6 +2,7 @@ import graphene
 
 from .....permission.enums import ProductPermissions
 from .....product import models
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.mutations import ModelDeleteMutation
@@ -38,6 +39,10 @@ class CollectionDelete(ModelDeleteMutation):
         cls.call_event(manager.collection_deleted, instance)
         for product in products:
             cls.call_event(manager.product_updated, product)
+
+        update_products_discounted_prices_for_promotion_task.delay(
+            [product.id for product in products]
+        )
 
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)

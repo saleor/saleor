@@ -15,7 +15,7 @@ from ...checkout.utils import get_external_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
-from ...discount import OrderDiscountType
+from ...discount import DiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.core.federation.entities import federated_entity
 from ...graphql.core.federation.resolvers import resolve_federation_references
@@ -41,8 +41,7 @@ from ...permission.enums import (
     ProductPermissions,
 )
 from ...permission.utils import has_one_of_permissions
-from ...product import ProductMediaTypes
-from ...product.models import ALL_PRODUCTS_PERMISSIONS
+from ...product.models import ALL_PRODUCTS_PERMISSIONS, ProductMediaTypes
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
@@ -74,9 +73,9 @@ from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_311,
     ADDED_IN_313,
+    ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
-    PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import LanguageCodeEnum
@@ -107,17 +106,17 @@ from ..invoice.types import Invoice
 from ..meta.resolvers import check_private_metadata_privilege, resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..payment.dataloaders import TransactionByPaymentIdLoader
-from ..payment.enums import OrderAction, TransactionEventStatusEnum
+from ..payment.enums import OrderAction
 from ..payment.types import Payment, PaymentChargeStatusEnum, TransactionItem
 from ..plugins.dataloaders import (
     get_plugin_manager_promise,
     plugin_manager_promise_callback,
 )
 from ..product.dataloaders import (
+    ImagesByProductIdLoader,
     MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
     ProductChannelListingByProductIdAndChannelSlugLoader,
-    ProductImageByProductIdLoader,
     ProductVariantByIdLoader,
     ThumbnailByProductMediaIdSizeAndFormatLoader,
 )
@@ -142,7 +141,9 @@ from .dataloaders import (
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
     OrderByNumberLoader,
+    OrderEventsByIdLoader,
     OrderEventsByOrderIdLoader,
+    OrderGrantedRefundLinesByOrderGrantedRefundIdLoader,
     OrderGrantedRefundsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
@@ -194,7 +195,26 @@ def get_payment_status_for_order(order):
     return status
 
 
-class OrderGrantedRefund(ModelObjectType):
+class OrderGrantedRefundLine(ModelObjectType[models.OrderGrantedRefundLine]):
+    id = graphene.GlobalID(required=True)
+    quantity = graphene.Int(description="Number of items to refund.", required=True)
+    order_line = graphene.Field(
+        "saleor.graphql.order.types.OrderLine",
+        description="Line of the order associated with this granted refund.",
+        required=True,
+    )
+    reason = graphene.String(description="Reason for refunding the line.")
+
+    class Meta:
+        description = "Represents granted refund line." + ADDED_IN_315 + PREVIEW_FEATURE
+        model = models.OrderGrantedRefundLine
+
+    @staticmethod
+    def resolve_order_line(root: models.OrderGrantedRefundLine, info):
+        return OrderLineByIdLoader(info.context).load(root.order_line_id)
+
+
+class OrderGrantedRefund(ModelObjectType[models.OrderGrantedRefund]):
     id = graphene.GlobalID(required=True)
     created_at = graphene.DateTime(required=True, description="Time of creation.")
     updated_at = graphene.DateTime(required=True, description="Time of last update.")
@@ -210,6 +230,21 @@ class OrderGrantedRefund(ModelObjectType):
         ),
     )
     app = graphene.Field(App, description=("App that performed the action."))
+    shipping_costs_included = graphene.Boolean(
+        required=True,
+        description=(
+            "If true, the refunded amount includes the shipping price."
+            "If false, the refunded amount does not include the shipping price."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        ),
+    )
+    lines = NonNullList(
+        OrderGrantedRefundLine,
+        description="Lines assigned to the granted refund."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
+    )
 
     class Meta:
         description = "The details of granted refund." + ADDED_IN_313 + PREVIEW_FEATURE
@@ -239,6 +274,12 @@ class OrderGrantedRefund(ModelObjectType):
         if root.app_id:
             return AppByIdLoader(info.context).load(root.app_id)
         return None
+
+    @staticmethod
+    def resolve_lines(root: models.OrderGrantedRefund, info):
+        return OrderGrantedRefundLinesByOrderGrantedRefundIdLoader(info.context).load(
+            root.id
+        )
 
 
 class OrderDiscount(BaseObjectType):
@@ -273,6 +314,9 @@ class OrderEventDiscountObject(OrderDiscount):
     old_amount = graphene.Field(
         Money, required=False, description="Returns amount of discount."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderEventOrderLineObject(BaseObjectType):
@@ -337,16 +381,14 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
     related_order = graphene.Field(
         lambda: Order, description="The order which is related to this order."
     )
+    related = graphene.Field(
+        lambda: OrderEvent,
+        description="The order event which is related to this event."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
+    )
     discount = graphene.Field(
         OrderEventDiscountObject, description="The discount applied to the order."
-    )
-    status = graphene.Field(
-        TransactionEventStatusEnum,
-        description="The status of payment's transaction.",
-        deprecation_reason=(
-            PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD
-            + "Use `TransactionEvent` to track the status of `TransactionItem`."
-        ),
     )
     reference = graphene.String(description="The reference of payment's transaction.")
 
@@ -518,6 +560,12 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
         return OrderByIdLoader(info.context).load(order_pk)
 
     @staticmethod
+    def resolve_related(root: models.OrderEvent, info):
+        if not root.related_id:
+            return None
+        return OrderEventsByIdLoader(info.context).load(root.related_id)
+
+    @staticmethod
     def resolve_discount(root: models.OrderEvent, info):
         discount_obj = root.parameters.get("discount")
         if not discount_obj:
@@ -535,6 +583,7 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
 
 class OrderEventCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         node = OrderEvent
 
 
@@ -650,6 +699,11 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     total_price = graphene.Field(
         TaxedMoney, description="Price of the order line.", required=True
     )
+    undiscounted_total_price = graphene.Field(
+        TaxedMoney,
+        description="Price of the order line without discounts.",
+        required=True,
+    )
     variant = graphene.Field(
         ProductVariant,
         required=False,
@@ -684,9 +738,9 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     )
     tax_class = PermissionsField(
         TaxClass,
-        description="Denormalized tax class of the product in this order line."
-        + ADDED_IN_39
-        + PREVIEW_FEATURE,
+        description=(
+            "Denormalized tax class of the product in this order line." + ADDED_IN_39
+        ),
         required=False,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
@@ -695,24 +749,20 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     )
     tax_class_name = graphene.Field(
         graphene.String,
-        description="Denormalized name of the tax class."
-        + ADDED_IN_39
-        + PREVIEW_FEATURE,
+        description="Denormalized name of the tax class." + ADDED_IN_39,
         required=False,
     )
     tax_class_metadata = NonNullList(
         MetadataItem,
         required=True,
-        description="Denormalized public metadata of the tax class."
-        + ADDED_IN_39
-        + PREVIEW_FEATURE,
+        description="Denormalized public metadata of the tax class." + ADDED_IN_39,
     )
     tax_class_private_metadata = NonNullList(
         MetadataItem,
         required=True,
         description=(
             "Denormalized private metadata of the tax class. Requires staff "
-            "permissions to access." + ADDED_IN_39 + PREVIEW_FEATURE
+            "permissions to access." + ADDED_IN_39
         ),
     )
 
@@ -768,7 +818,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
 
             # we failed to get image from variant, lets use first from product
             return (
-                ProductImageByProductIdLoader(info.context)
+                ImagesByProductIdLoader(info.context)
                 .load(product.id)
                 .then(_get_first_product_image)
             )
@@ -950,10 +1000,14 @@ class Order(ModelObjectType[models.Order]):
             "and later, for other orders requires one of the following permissions: "
             f"{AccountPermissions.MANAGE_USERS.name}, "
             f"{OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{PaymentPermissions.HANDLE_PAYMENTS.name}, "
             f"{AuthorizationFilters.OWNER.name}."
         ),
     )
-    tracking_client_id = graphene.String(required=True)
+    tracking_client_id = graphene.String(
+        required=True,
+        description="Google Analytics tracking client ID. " + DEPRECATED_IN_3X_FIELD,
+    )
     billing_address = graphene.Field(
         "saleor.graphql.account.types.Address",
         description=(
@@ -1002,9 +1056,7 @@ class Order(ModelObjectType[models.Order]):
     available_collection_points = NonNullList(
         Warehouse,
         description=(
-            "Collection points that can be used for this order."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            "Collection points that can be used for this order." + ADDED_IN_31
         ),
         required=True,
     )
@@ -1034,20 +1086,16 @@ class Order(ModelObjectType[models.Order]):
         description="User-friendly payment status.", required=True
     )
     authorize_status = OrderAuthorizeStatusEnum(
-        description=(
-            "The authorize status of the order." + ADDED_IN_34 + PREVIEW_FEATURE
-        ),
+        description=("The authorize status of the order." + ADDED_IN_34),
         required=True,
     )
     charge_status = OrderChargeStatusEnum(
-        description=("The charge status of the order." + ADDED_IN_34 + PREVIEW_FEATURE),
+        description=("The charge status of the order." + ADDED_IN_34),
         required=True,
     )
     tax_exemption = graphene.Boolean(
         description=(
-            "Returns True if order has to be exempt from taxes."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
+            "Returns True if order has to be exempt from taxes." + ADDED_IN_38
         ),
         required=True,
     )
@@ -1055,9 +1103,7 @@ class Order(ModelObjectType[models.Order]):
         TransactionItem,
         description=(
             "List of transactions for the order. Requires one of the "
-            "following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS."
-            + ADDED_IN_34
-            + PREVIEW_FEATURE
+            "following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS." + ADDED_IN_34
         ),
         required=True,
     )
@@ -1084,8 +1130,7 @@ class Order(ModelObjectType[models.Order]):
     shipping_tax_class = PermissionsField(
         TaxClass,
         description="Denormalized tax class assigned to the shipping method."
-        + ADDED_IN_39
-        + PREVIEW_FEATURE,
+        + ADDED_IN_39,
         required=False,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
@@ -1097,7 +1142,6 @@ class Order(ModelObjectType[models.Order]):
         description=(
             "Denormalized name of the tax class assigned to the shipping method."
             + ADDED_IN_39
-            + PREVIEW_FEATURE
         ),
         required=False,
     )
@@ -1107,7 +1151,6 @@ class Order(ModelObjectType[models.Order]):
         description=(
             "Denormalized public metadata of the shipping method's tax class."
             + ADDED_IN_39
-            + PREVIEW_FEATURE
         ),
     )
     shipping_tax_class_private_metadata = NonNullList(
@@ -1115,7 +1158,7 @@ class Order(ModelObjectType[models.Order]):
         required=True,
         description=(
             "Denormalized private metadata of the shipping method's tax class. "
-            "Requires staff permissions to access." + ADDED_IN_39 + PREVIEW_FEATURE
+            "Requires staff permissions to access." + ADDED_IN_39
         ),
     )
     token = graphene.String(
@@ -1189,11 +1232,7 @@ class Order(ModelObjectType[models.Order]):
     )
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description=(
-            "The delivery method selected for this order."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
-        ),
+        description=("The delivery method selected for this order." + ADDED_IN_31),
     )
     language_code = graphene.String(
         deprecation_reason=(
@@ -1238,7 +1277,7 @@ class Order(ModelObjectType[models.Order]):
     display_gross_prices = graphene.Boolean(
         description=(
             "Determines whether checkout prices should include taxes when displayed "
-            "in a storefront." + ADDED_IN_39 + PREVIEW_FEATURE
+            "in a storefront." + ADDED_IN_39
         ),
         required=True,
     )
@@ -1332,6 +1371,10 @@ class Order(ModelObjectType[models.Order]):
         return root.created_at
 
     @staticmethod
+    def resolve_channel(root: models.Order, info):
+        return ChannelByIdLoader(info.context).load(root.channel_id)
+
+    @staticmethod
     def resolve_token(root: models.Order, info):
         return root.id
 
@@ -1346,7 +1389,7 @@ class Order(ModelObjectType[models.Order]):
             if not discounts:
                 return None
             for discount in discounts:
-                if discount.type == OrderDiscountType.VOUCHER:
+                if discount.type == DiscountType.VOUCHER:
                     return Money(amount=discount.value, currency=discount.currency)
             return None
 
@@ -1363,7 +1406,7 @@ class Order(ModelObjectType[models.Order]):
             if not discounts:
                 return None
             for discount in discounts:
-                if discount.type == OrderDiscountType.VOUCHER:
+                if discount.type == DiscountType.VOUCHER:
                     return discount.name
             return None
 
@@ -1380,7 +1423,7 @@ class Order(ModelObjectType[models.Order]):
             if not discounts:
                 return None
             for discount in discounts:
-                if discount.type == OrderDiscountType.VOUCHER:
+                if discount.type == DiscountType.VOUCHER:
                     return discount.translated_name
             return None
 
@@ -1471,7 +1514,7 @@ class Order(ModelObjectType[models.Order]):
                 root, manager, lines
             ) or Decimal(0)
 
-        lines = OrderLinesByOrderIdLoader(info.context)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
         manager = get_plugin_manager_promise(info.context)
         return Promise.all([lines, manager]).then(_resolve_shipping_tax_rate)
 
@@ -1755,6 +1798,7 @@ class Order(ModelObjectType[models.Order]):
                 user,
                 AccountPermissions.MANAGE_USERS,
                 OrderPermissions.MANAGE_ORDERS,
+                PaymentPermissions.HANDLE_PAYMENTS,
             )
             return user
 
@@ -1876,8 +1920,12 @@ class Order(ModelObjectType[models.Order]):
         return InvoicesByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_is_shipping_required(root: models.Order, _info):
-        return root.is_shipping_required()
+    def resolve_is_shipping_required(root: models.Order, info):
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(lambda lines: any(line.is_shipping_required for line in lines))
+        )
 
     @staticmethod
     def resolve_gift_cards(root: models.Order, info):
@@ -1955,7 +2003,10 @@ class Order(ModelObjectType[models.Order]):
             # over payment's transactions
             total_refund_amount = Decimal(0)
             for transaction in transactions:
-                if transaction.kind == TransactionKind.REFUND:
+                if (
+                    transaction.kind == TransactionKind.REFUND
+                    and transaction.is_success
+                ):
                     total_refund_amount += transaction.amount
             return prices.Money(total_refund_amount, root.currency)
 
@@ -2151,4 +2202,5 @@ class Order(ModelObjectType[models.Order]):
 
 class OrderCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         node = Order
