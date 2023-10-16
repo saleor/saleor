@@ -435,6 +435,16 @@ class ActiveDummyPaymentGateway(BasePlugin):
         return {"test_response": "success"}
 
 
+class SampleAuthorizationPlugin(BasePlugin):
+    PLUGIN_ID = "saleor.sample.authorization"
+    PLUGIN_NAME = "SampleAuthorization"
+    DEFAULT_ACTIVE = True
+
+    def authenticate_user(self, request, previous_value) -> Optional[User]:
+        # This function will be mocked in test
+        raise NotImplementedError()
+
+
 class InactivePaymentGateway(BasePlugin):
     PLUGIN_ID = "gateway.inactive"
     PLUGIN_NAME = "stripe"
