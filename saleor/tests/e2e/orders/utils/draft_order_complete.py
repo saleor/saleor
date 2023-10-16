@@ -22,6 +22,12 @@ mutation DraftOrderComplete($id: ID!) {
         gross {
           amount
         }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
       }
       subtotal {
         gross {
@@ -32,16 +38,22 @@ mutation DraftOrderComplete($id: ID!) {
         gross {
           amount
         }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
       }
       displayGrossPrices
       status
       paymentStatus
       isPaid
       channel {
-        orderSettings{
-            markAsPaidStrategy
+        orderSettings {
+          markAsPaidStrategy
         }
-     }
+      }
       lines {
         productVariantId
         quantity

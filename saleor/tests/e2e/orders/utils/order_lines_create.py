@@ -5,7 +5,20 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
   orderLinesCreate(id: $id, input: $input) {
     order {
       id
-      shippingMethods { id }
+      shippingMethods {
+        id
+      }
+      total {
+        gross {
+          amount
+        }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
+      }
       lines {
         id
         quantity
