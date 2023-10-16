@@ -15,6 +15,7 @@ from ...channel.models import Channel
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.models import Order
+from ...payment.models import TransactionItem
 from ...product import ProductTypeKind
 from ...product.models import ProductType
 from ...shipping.models import ShippingZone
@@ -365,6 +366,17 @@ def test_cleardb_preserves_data(admin_user, app, site_settings, staff_user):
     app.refresh_from_db()
     site_settings.refresh_from_db()
     staff_user.refresh_from_db()
+
+
+@override_settings(DEBUG=True)
+def test_cleardb_remove_orders_and_transactions(transaction_item):
+    transaction_item.refresh_from_db()
+
+    call_command("cleardb")
+    with pytest.raises(TransactionItem.DoesNotExist):
+        transaction_item.refresh_from_db()
+    with pytest.raises(Order.DoesNotExist):
+        transaction_item.order.refresh_from_db()
 
 
 def test_prepare_unique_attribute_value_slug(color_attribute):
