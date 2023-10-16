@@ -136,6 +136,7 @@ def get_voucher_code_instance(
     voucher_code: str,
     channel_slug: str,
 ):
+    """Return a voucher code instance if it's valid or raise an error."""
     if (
         Voucher.objects.active_in_channel(
             date=timezone.now(), channel_slug=channel_slug
