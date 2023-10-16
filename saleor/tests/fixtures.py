@@ -17,7 +17,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db import connection, transaction
+from django.db import connection
 from django.forms import ModelForm
 from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
@@ -7190,23 +7190,22 @@ def lots_of_products_with_variants(product_type):
     products_count = 10000
     slug_generator = (f"test-slug-{i}" for i in range(products_count))
 
-    with transaction.atomic():
-        for batch in chunks(range(products_count), 500):
-            batch_len = len(batch)
-            variants = []
-            for product in Product.objects.bulk_create(
-                [
-                    Product(
-                        name=i,
-                        slug=next(slug_generator),
-                        product_type_id=product_type.pk,
-                    )
-                    for i in range(batch_len)
-                ]
-            ):
-                for x in range(variants_per_product):
-                    variant = ProductVariant(name=x, product_id=product.id)
-                    variants.append(variant)
-            ProductVariant.objects.bulk_create(variants)
+    for batch in chunks(range(products_count), 500):
+        batch_len = len(batch)
+        variants = []
+        for product in Product.objects.bulk_create(
+            [
+                Product(
+                    name=i,
+                    slug=next(slug_generator),
+                    product_type_id=product_type.pk,
+                )
+                for i in range(batch_len)
+            ]
+        ):
+            for x in range(variants_per_product):
+                variant = ProductVariant(name=x, product_id=product.id)
+                variants.append(variant)
+        ProductVariant.objects.bulk_create(variants)
 
     return Product.objects.all()

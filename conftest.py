@@ -30,7 +30,7 @@ def pytest_addoption(parser):
         "--run-slow",
         action="store_true",
         default=False,
-        help="run tests marked as slow",
+        help="Run tests marked as slow.",
     )
 
 
