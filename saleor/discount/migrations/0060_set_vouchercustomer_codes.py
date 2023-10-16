@@ -7,21 +7,29 @@ from django.db.models import Exists, OuterRef
 BATCH_SIZE = 1000
 
 
+def queryset_in_batches(queryset):
+    start_pk = 0
+
+    while True:
+        qs = queryset.order_by("pk").filter(pk__gt=start_pk)[:BATCH_SIZE]
+        pks = list(qs.values_list("pk", flat=True))
+
+        if not pks:
+            break
+
+        yield pks
+
+        start_pk = pks[-1]
+
+
 def set_voucher_code_to_voucher_customer(apps, schema_editor):
     VoucherCustomer = apps.get_model("discount", "VoucherCustomer")
     Voucher = apps.get_model("discount", "Voucher")
     VoucherCode = apps.get_model("discount", "VoucherCode")
-    set_voucher_customer_codes(VoucherCustomer, Voucher, VoucherCode)
-
-
-def set_voucher_customer_codes(VoucherCustomer, Voucher, VoucherCode):
-    voucher_customers = VoucherCustomer.objects.filter(
-        voucher_code__isnull=True
-    ).order_by("pk")[:BATCH_SIZE]
-    if ids := list(voucher_customers.values_list("pk", flat=True)):
+    queryset = VoucherCustomer.objects.filter(voucher_code__isnull=True).order_by("pk")
+    for ids in queryset_in_batches(queryset):
         qs = VoucherCustomer.objects.filter(pk__in=ids)
         set_voucher_code(VoucherCustomer, Voucher, VoucherCode, qs)
-        set_voucher_customer_codes(VoucherCustomer, Voucher, VoucherCode)
 
 
 def set_voucher_code(VoucherCustomer, Voucher, VoucherCode, voucher_customers):
