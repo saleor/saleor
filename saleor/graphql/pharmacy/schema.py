@@ -1,5 +1,4 @@
 import graphene
-from django.db.models import QuerySet
 
 from ..core import ResolveInfo
 from .types import SiteSettingsType, SiteSettingsList
@@ -8,8 +7,6 @@ from .resolvers import (
     resolve_site_settings_by_slug,
     resolve_all_site_settings
 )
-from ...core.utils import build_absolute_uri
-from ...pharmacy_settings import MEDIA_URL
 from ...permission.enums import SitePermissions
 from ..core.fields import PermissionsField
 

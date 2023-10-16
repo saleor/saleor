@@ -2,11 +2,8 @@ import graphene
 
 from .types import SiteSettingsType
 from .utils import build_file_uri
-from ...core.utils import build_absolute_uri
-from ...permission.enums import OrderPermissions
+from ...permission.enums import SitePermissions
 from ...pharmacy import models
-
-from ...pharmacy_settings import MEDIA_URL
 
 
 class SiteSettingsInput(graphene.InputObjectType):
@@ -26,7 +23,7 @@ class SiteSettingsInput(graphene.InputObjectType):
 class SiteSettingsCreate(graphene.Mutation):
     class Meta:
         description = "Creates a new Site Settings."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        permissions = (SitePermissions.MANAGE_SETTINGS,)
 
     class Arguments:
         input = SiteSettingsInput(
@@ -78,7 +75,7 @@ class SiteSettingsCreate(graphene.Mutation):
 class SiteSettingsUpdate(graphene.Mutation):
     class Meta:
         description = "Update Site Settings by id."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        permissions = (SitePermissions.MANAGE_SETTINGS,)
 
     class Arguments:
         id = graphene.ID(description="ID of Site Settings",
@@ -135,7 +132,7 @@ class SiteSettingsUpdate(graphene.Mutation):
 class SiteSettingsDelete(graphene.Mutation):
     class Meta:
         description = "Delete Site Settings by slug."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        permissions = (SitePermissions.MANAGE_SETTINGS,)
 
     class Arguments:
         slug = graphene.String(description="Site Settings Slug")
