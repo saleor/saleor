@@ -13,6 +13,7 @@ from .product_channel_listing import (
 )
 from .product_query import get_product
 from .product_type import create_product_type
+from .product_type_update import update_product_type
 from .product_variant import create_product_variant, raw_create_product_variant
 from .product_variant_bulk_create import create_variants_in_bulk
 from .product_variant_channel_listing import (
@@ -38,4 +39,5 @@ __all__ = [
     "get_product",
     "add_product_to_collection",
     "raw_create_product_variant_channel_listing",
+    "update_product_type",
 ]
