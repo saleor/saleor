@@ -237,7 +237,7 @@ def test_checkout_calculate_simple_tax_based_on_shipping_country_CORE_2001(
     )
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
     calculated_total = float(variant_price) + float(shipping_price)
-    total_gross_amount = calculated_total
+    assert total_gross_amount == calculated_total
     total_tax = calculated_tax + shipping_tax
     assert checkout_data["totalPrice"]["tax"]["amount"] == total_tax
 
