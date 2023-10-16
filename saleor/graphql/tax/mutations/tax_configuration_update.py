@@ -38,8 +38,7 @@ class TaxConfigurationPerCountryInput(BaseInputObjectType):
     )
     display_gross_prices = graphene.Boolean(
         description=(
-            "Determines whether prices displayed in a storefront should include taxes "
-            "for this country."
+            "Determines whether displayed prices should include taxes for this country."
         ),
         required=True,
     )
@@ -63,9 +62,7 @@ class TaxConfigurationUpdateInput(BaseInputObjectType):
         ),
     )
     display_gross_prices = graphene.Boolean(
-        description=(
-            "Determines whether prices displayed in a storefront should include taxes."
-        )
+        description="Determines whether displayed prices should include taxes."
     )
     prices_entered_with_tax = graphene.Boolean(
         description="Determines whether prices are entered with the tax included."

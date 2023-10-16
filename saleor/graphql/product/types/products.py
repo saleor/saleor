@@ -204,8 +204,7 @@ class VariantPricingInfo(BasePricingInfo):
 class ProductPricingInfo(BasePricingInfo):
     display_gross_prices = graphene.Boolean(
         description=(
-            "Determines whether this product's price displayed in a storefront "
-            "should include taxes." + ADDED_IN_39
+            "Determines whether displayed prices should include taxes." + ADDED_IN_39
         ),
         required=True,
     )

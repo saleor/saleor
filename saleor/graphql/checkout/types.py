@@ -724,8 +724,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     )
     display_gross_prices = graphene.Boolean(
         description=(
-            "Determines whether checkout prices should include taxes when displayed "
-            "in a storefront." + ADDED_IN_39
+            "Determines whether displayed prices should include taxes." + ADDED_IN_39
         ),
         required=True,
     )
