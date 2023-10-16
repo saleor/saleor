@@ -31,6 +31,7 @@ def move_codes_to_new_model(apps, schema_editor):
         voucher_codes = []
         vouchers = Voucher.objects.filter(pk__in=batch_pks)
 
+        vouchers_to_update = []
         for voucher in vouchers.values("id", "code", "used"):
             voucher_codes.append(
                 VoucherCode(
@@ -39,7 +40,12 @@ def move_codes_to_new_model(apps, schema_editor):
                     used=voucher["used"],
                 )
             )
+            if not voucher.name:
+                voucher.name = voucher["code"]
+                vouchers_to_update.append(voucher)
+
         VoucherCode.objects.bulk_create(voucher_codes)
+        Voucher.objects.bulk_update(vouchers, ["name"])
 
 
 class Migration(migrations.Migration):
