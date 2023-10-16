@@ -44,15 +44,17 @@ def test_delete_menus(staff_api_client, menu_list, permission_manage_menus):
     assert not Menu.objects.filter(id__in=[menu.id for menu in menu_list]).exists()
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch(
+    "saleor.graphql.menu.bulk_mutations.menu_bulk_delete.get_webhooks_for_event"
+)
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_menus_trigger_webhook(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
-    any_webhook,
     staff_api_client,
     menu_list,
     permission_manage_menus,
+    any_webhook,
     settings,
 ):
     # given

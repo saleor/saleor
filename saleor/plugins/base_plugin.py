@@ -77,7 +77,7 @@ if TYPE_CHECKING:
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..site.models import SiteSettings
     from ..tax.models import TaxClass
-    from ..warehouse.models import Warehouse
+    from ..warehouse.models import Stock, Warehouse
 
 PluginConfigurationType = List[dict]
 RequestorOrLazyObject = Union[SimpleLazyObject, "Requestor"]
@@ -406,7 +406,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a category is
     # deleted.
-    category_deleted: Callable[["Category", None], None]
+    category_deleted: Callable[["Category", None, None], None]
 
     # Trigger when category is updated.
     #
@@ -430,7 +430,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a channel is
     # updated.
-    channel_updated: Callable[["Channel", None], None]
+    channel_updated: Callable[["Channel", None, None], None]
 
     # Trigger when channel status is changed.
     #
@@ -485,7 +485,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a collection is
     # deleted.
-    collection_deleted: Callable[["Collection", Any], Any]
+    collection_deleted: Callable[["Collection", Any, None], Any]
 
     # Trigger when collection is updated.
     #
@@ -511,19 +511,19 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a user is
     # deleted.
-    customer_deleted: Callable[["User", Any], Any]
+    customer_deleted: Callable[["User", Any, None], Any]
 
     # Trigger when user is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a user is
     # updated.
-    customer_updated: Callable[["User", Any], Any]
+    customer_updated: Callable[["User", Any, None], Any]
 
     # Trigger when user metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a user
     # metadata is updated.
-    customer_metadata_updated: Callable[["User", Any], Any]
+    customer_metadata_updated: Callable[["User", Any, None], Any]
 
     # Handle authentication request.
     #
@@ -643,13 +643,13 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a gift card is
     # created.
-    gift_card_created: Callable[["GiftCard", None], None]
+    gift_card_created: Callable[["GiftCard", None, None], None]
 
     # Trigger when gift card is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a gift card is
     # deleted.
-    gift_card_deleted: Callable[["GiftCard", None], None]
+    gift_card_deleted: Callable[["GiftCard", None, None], None]
 
     # Trigger when gift card is updated.
     #
@@ -667,7 +667,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a gift card
     # status is changed.
-    gift_card_status_changed: Callable[["GiftCard", None], None]
+    gift_card_status_changed: Callable[["GiftCard", None, None], None]
 
     # Trigger when gift cards export is completed.
     #
@@ -744,7 +744,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a menu is
     # deleted.
-    menu_deleted: Callable[["Menu", None], None]
+    menu_deleted: Callable[["Menu", None, None], None]
 
     # Trigger when menu is updated.
     #
@@ -762,7 +762,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a menu item is
     # deleted.
-    menu_item_deleted: Callable[["MenuItem", None], None]
+    menu_item_deleted: Callable[["MenuItem", None, None], None]
 
     # Trigger when menu item is updated.
     #
@@ -779,7 +779,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # canceled.
-    order_cancelled: Callable[["Order", Any], Any]
+    order_cancelled: Callable[["Order", Any, None], Any]
 
     # Trigger when order is expired.
     #
@@ -833,7 +833,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # changed.
-    order_updated: Callable[["Order", Any], Any]
+    order_updated: Callable[["Order", Any, None], Any]
 
     # Trigger when order metadata is updated.
     #
@@ -950,19 +950,19 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a product is
     # created.
-    product_created: Callable[["Product", Any], Any]
+    product_created: Callable[["Product", Any, None], Any]
 
     # Trigger when product is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a product is
     # deleted.
-    product_deleted: Callable[["Product", List[int], Any], Any]
+    product_deleted: Callable[["Product", List[int], Any, None], Any]
 
     # Trigger when product is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a product is
     # updated.
-    product_updated: Callable[["Product", Any], Any]
+    product_updated: Callable[["Product", Any, None], Any]
 
     # Trigger when product media is created.
     #
@@ -992,25 +992,43 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # variant is created.
-    product_variant_created: Callable[["ProductVariant", Any], Any]
+    product_variant_created: Callable[["ProductVariant", Any, None], Any]
 
     # Trigger when product variant is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # variant is deleted.
-    product_variant_deleted: Callable[["ProductVariant", Any], Any]
+    product_variant_deleted: Callable[["ProductVariant", Any, None], Any]
 
     # Trigger when product variant is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # variant is updated.
-    product_variant_updated: Callable[["ProductVariant", Any], Any]
+    product_variant_updated: Callable[["ProductVariant", Any, None], Any]
 
     # Trigger when product variant metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # variant metadata is updated.
     product_variant_metadata_updated: Callable[["ProductVariant", Any], Any]
+
+    # Trigger when product variant is out of stock.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product
+    # variant is out of stock.
+    product_variant_out_of_stock: Callable[["Stock", None, None], Any]
+
+    # Trigger when product variant is back in stock.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product
+    # variant is back in stock.
+    product_variant_back_in_stock: Callable[["Stock", None, None], Any]
+
+    # Trigger when product variant stock is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product
+    # variant stock is updated.
+    product_variant_stock_updated: Callable[["Stock", None, None], Any]
 
     # Trigger when a product export is completed.
     #
@@ -1097,7 +1115,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a shipping
     # price is deleted.
-    shipping_price_deleted: Callable[["ShippingMethod", None], None]
+    shipping_price_deleted: Callable[["ShippingMethod", None, None], None]
 
     # Trigger when shipping price is updated.
     #
@@ -1115,7 +1133,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a shipping zone
     # is deleted.
-    shipping_zone_deleted: Callable[["ShippingZone", None], None]
+    shipping_zone_deleted: Callable[["ShippingZone", None, None], None]
 
     # Trigger when shipping zone is updated.
     #
@@ -1201,7 +1219,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a voucher is
     # deleted.
-    voucher_deleted: Callable[["Voucher", None], None]
+    voucher_deleted: Callable[["Voucher", None, None], None]
 
     # Trigger when voucher is updated.
     #

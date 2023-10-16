@@ -15087,6 +15087,9 @@ type Mutation {
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - PRODUCT_VARIANT_STOCK_UPDATED (async): A product variant stock details were updated.
   """
   stockBulkUpdate(
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
@@ -15094,7 +15097,7 @@ type Mutation {
 
     """Input list of stocks to update."""
     stocks: [StockBulkUpdateInput!]!
-  ): StockBulkUpdate @doc(category: "Products")
+  ): StockBulkUpdate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_STOCK_UPDATED], syncEvents: [])
 
   """
   Creates a new staff notification recipient. 
@@ -20577,8 +20580,11 @@ Added in Saleor 3.13.
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- PRODUCT_VARIANT_STOCK_UPDATED (async): A product variant stock details were updated.
 """
-type StockBulkUpdate @doc(category: "Products") {
+type StockBulkUpdate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_STOCK_UPDATED], syncEvents: []) {
   """Returns how many objects were updated."""
   count: Int!
 

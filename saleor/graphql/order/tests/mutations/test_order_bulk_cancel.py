@@ -19,15 +19,23 @@ mutation CancelManyOrders($ids: [ID!]!) {
 """
 
 
-@patch("saleor.graphql.order.bulk_mutations.orders.cancel_order")
+@patch("saleor.graphql.order.bulk_mutations.order_bulk_cancel.get_webhooks_for_event")
+@patch("saleor.graphql.order.bulk_mutations.order_bulk_cancel.cancel_order")
 def test_order_bulk_cancel(
     mock_cancel_order,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     order_list,
     fulfilled_order_with_all_cancelled_fulfillments,
     permission_group_manage_orders,
     address,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     orders = order_list
     orders.append(fulfilled_order_with_all_cancelled_fulfillments)
@@ -42,7 +50,14 @@ def test_order_bulk_cancel(
     assert not data["errors"]
 
     calls = [
-        call(order=order, user=staff_api_client.user, app=None, manager=ANY)
+        call(
+            order=order,
+            user=staff_api_client.user,
+            app=None,
+            manager=ANY,
+            webhooks_cancelled=[any_webhook],
+            webhooks_updated=[any_webhook],
+        )
         for order in orders
     ]
 
@@ -96,15 +111,23 @@ def test_order_bulk_cancel_with_back_in_stock_webhook(
     product_variant_back_in_stock_webhook_mock.assert_called_once()
 
 
-@patch("saleor.graphql.order.bulk_mutations.orders.cancel_order")
+@patch("saleor.graphql.order.bulk_mutations.order_bulk_cancel.get_webhooks_for_event")
+@patch("saleor.graphql.order.bulk_mutations.order_bulk_cancel.cancel_order")
 def test_order_bulk_cancel_as_app(
     mock_cancel_order,
+    mocked_get_webhooks_for_event,
     app_api_client,
     order_list,
     fulfilled_order_with_all_cancelled_fulfillments,
     permission_manage_orders,
     address,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
     orders = order_list
     orders.append(fulfilled_order_with_all_cancelled_fulfillments)
     expected_count = sum(order.can_cancel() for order in orders)
@@ -120,7 +143,14 @@ def test_order_bulk_cancel_as_app(
     assert not data["errors"]
 
     calls = [
-        call(order=order, user=None, app=app_api_client.app, manager=ANY)
+        call(
+            order=order,
+            user=None,
+            app=app_api_client.app,
+            manager=ANY,
+            webhooks_cancelled=[any_webhook],
+            webhooks_updated=[any_webhook],
+        )
         for order in orders
     ]
 
@@ -128,15 +158,23 @@ def test_order_bulk_cancel_as_app(
     assert mock_cancel_order.call_count == expected_count
 
 
-@patch("saleor.graphql.order.bulk_mutations.orders.cancel_order")
+@patch("saleor.graphql.order.bulk_mutations.order_bulk_cancel.get_webhooks_for_event")
+@patch("saleor.graphql.order.bulk_mutations.order_bulk_cancel.cancel_order")
 def test_order_bulk_cancel_without_sku(
     mock_cancel_order,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     order_list,
     fulfilled_order_with_all_cancelled_fulfillments,
     permission_group_manage_orders,
     address,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     ProductVariant.objects.update(sku=None)
     OrderLine.objects.update(product_sku=None)
@@ -154,9 +192,16 @@ def test_order_bulk_cancel_without_sku(
     assert not data["errors"]
 
     calls = [
-        call(order=order, user=staff_api_client.user, app=None, manager=ANY)
+        call(
+            order=order,
+            user=staff_api_client.user,
+            app=None,
+            manager=ANY,
+            webhooks_cancelled=[any_webhook],
+            webhooks_updated=[any_webhook],
+        )
         for order in orders
     ]
 
     mock_cancel_order.assert_has_calls(calls, any_order=True)
-    mock_cancel_order.call_count == expected_count
+    assert mock_cancel_order.call_count == expected_count

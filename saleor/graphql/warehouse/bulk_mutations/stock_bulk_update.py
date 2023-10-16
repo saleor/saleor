@@ -8,6 +8,8 @@ from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
 from ....warehouse import models
 from ....warehouse.error_codes import StockBulkUpdateErrorCode
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
@@ -18,6 +20,7 @@ from ...core.types import (
     NonNullList,
     StockBulkUpdateError,
 )
+from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Stock
@@ -88,6 +91,12 @@ class StockBulkUpdate(BaseMutation):
         doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = StockBulkUpdateError
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED,
+                description="A product variant stock details were updated.",
+            )
+        ]
 
     @classmethod
     def validate_variant(
@@ -354,8 +363,13 @@ class StockBulkUpdate(BaseMutation):
     @classmethod
     def post_save_actions(cls, info, instances):
         manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(
+            WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
+        )
         for instance in instances:
-            cls.call_event(manager.product_variant_stock_updated, instance)
+            cls.call_event(
+                manager.product_variant_stock_updated, instance, webhooks=webhooks
+            )
 
     @classmethod
     def get_results(cls, instances_data_with_errors_list, reject_everything=False):

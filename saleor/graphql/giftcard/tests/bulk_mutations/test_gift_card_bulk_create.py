@@ -162,7 +162,10 @@ def test_create_never_expiry_gift_cards(
         assert not card_data["events"][0]["balance"]["oldCurrentBalance"]
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch(
+    "saleor.graphql.giftcard.bulk_mutations."
+    "gift_card_bulk_create.get_webhooks_for_event"
+)
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_create_gift_cards_trigger_webhooks(
     mocked_webhook_trigger,
