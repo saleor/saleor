@@ -1,18 +1,16 @@
 import logging
-from typing import Iterable, List, Optional
+from typing import Iterable, List
 from uuid import UUID
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
 from ..discount.models import Promotion
-from ..product.models import Category, CollectionProduct
 from ..warehouse.management import deactivate_preorder_for_variant
 from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
@@ -74,61 +72,6 @@ def update_variants_names(product_type_pk: int, saved_attributes_ids: List[int])
         return
     saved_attributes = Attribute.objects.filter(pk__in=saved_attributes_ids)
     _update_variants_names(instance, saved_attributes)
-
-
-# DEPRECATED: To remove in 3.18
-@app.task
-def update_product_discounted_price_task(product_pk: int):
-    products = Product.objects.filter(pk=product_pk)
-    if not products:
-        logging.warning(f"Cannot find product with id: {product_pk}.")
-        return
-    update_discounted_prices_for_promotion(products)
-
-
-# DEPRECATED: To remove in 3.18
-@app.task
-def update_products_discounted_prices_of_catalogues_task(
-    product_ids: Optional[List[int]] = None,
-    category_ids: Optional[List[int]] = None,
-    collection_ids: Optional[List[int]] = None,
-    variant_ids: Optional[List[int]] = None,
-):
-    lookup = Q()
-    if product_ids:
-        lookup |= Q(pk__in=product_ids)
-    if category_ids:
-        categories = Category.objects.filter(id__in=category_ids)
-        lookup |= Q(Exists(categories.filter(id=OuterRef("category_id"))))
-    if collection_ids:
-        collection_products = CollectionProduct.objects.filter(
-            collection_id__in=collection_ids
-        )
-        lookup |= Q(Exists(collection_products.filter(product_id=OuterRef("id"))))
-    if variant_ids:
-        lookup |= Q(Exists(ProductVariant.objects.filter(product_id=OuterRef("id"))))
-
-    if lookup:
-        products = Product.objects.filter(lookup)
-    update_discounted_prices_for_promotion(products)
-
-
-# DEPRECATED: To remove in 3.18
-@app.task
-def update_products_discounted_prices_of_sale_task(discount_pk: int):
-    try:
-        promotion = Promotion.objects.get(old_sale_id=discount_pk)
-    except ObjectDoesNotExist:
-        logging.warning(f"Cannot find discount with id: {discount_pk}.")
-        return
-    update_products_discounted_prices_of_promotion_task(promotion.id)
-
-
-# DEPRECATED: To remove in 3.18
-@app.task
-def update_products_discounted_prices_task(product_ids: List[int]):
-    products = Product.objects.filter(pk__in=product_ids)
-    update_discounted_prices_for_promotion(products)
 
 
 @app.task
