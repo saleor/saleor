@@ -922,14 +922,12 @@ class ProductVariantBulkCreate(BaseMutation):
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
 
-        if webhooks := get_webhooks_for_event(
-            WebhookEventAsyncType.PRODUCT_VARIANT_CREATED
-        ):
-            manager = get_plugin_manager_promise(info.context).get()
-            for instance in instances:
-                cls.call_event(
-                    manager.product_variant_created, instance.node, webhooks=webhooks
-                )
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_CREATED)
+        manager = get_plugin_manager_promise(info.context).get()
+        for instance in instances:
+            cls.call_event(
+                manager.product_variant_created, instance.node, webhooks=webhooks
+            )
 
     @classmethod
     @traced_atomic_transaction()

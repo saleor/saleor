@@ -94,10 +94,10 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
 
         queryset.delete()
 
-        if webhooks := get_webhooks_for_event(WebhookEventAsyncType.SALE_DELETED):
-            manager = get_plugin_manager_promise(info.context).get()
-            for sale, catalogue_info in sales_and_catalogue_infos:
-                manager.sale_deleted(sale, catalogue_info, webhooks=webhooks)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.SALE_DELETED)
+        manager = get_plugin_manager_promise(info.context).get()
+        for sale, catalogue_info in sales_and_catalogue_infos:
+            manager.sale_deleted(sale, catalogue_info, webhooks=webhooks)
 
         update_products_discounted_prices_for_promotion_task.delay(list(product_ids))
 
@@ -151,7 +151,7 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         vouchers = list(queryset)
         queryset.delete()
-        if webhooks := get_webhooks_for_event(WebhookEventAsyncType.VOUCHER_DELETED):
-            manager = get_plugin_manager_promise(info.context).get()
-            for voucher in vouchers:
-                manager.voucher_deleted(voucher, webhooks=webhooks)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.VOUCHER_DELETED)
+        manager = get_plugin_manager_promise(info.context).get()
+        for voucher in vouchers:
+            manager.voucher_deleted(voucher, webhooks=webhooks)

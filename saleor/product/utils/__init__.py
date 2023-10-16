@@ -56,12 +56,12 @@ def delete_categories(categories_ids: List[Union[str, int]], manager):
 
     category_instances = [cat for cat in categories]
     categories.delete()
-    if webhooks := get_webhooks_for_event(WebhookEventAsyncType.CATEGORY_DELETED):
-        for category in category_instances:
-            manager.category_deleted(category, webhooks=webhooks)
-    if webhooks := get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED):
-        for product in products:
-            manager.product_updated(product, webhooks=webhooks)
+    webhooks = get_webhooks_for_event(WebhookEventAsyncType.CATEGORY_DELETED)
+    for category in category_instances:
+        manager.category_deleted(category, webhooks=webhooks)
+    webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED)
+    for product in products:
+        manager.product_updated(product, webhooks=webhooks)
 
     update_products_discounted_prices_for_promotion_task.delay(
         product_ids=[product.id for product in products]

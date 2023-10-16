@@ -63,15 +63,15 @@ class ProductVariantStocksCreate(BaseMutation):
                 raise ValidationError(errors)
             new_stocks = create_stocks(variant, stocks, warehouses)
 
-            if webhooks := get_webhooks_for_event(
+            webhooks = get_webhooks_for_event(
                 WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
-            ):
-                for stock in new_stocks:
-                    transaction.on_commit(
-                        lambda: manager.product_variant_back_in_stock(
-                            stock, webhooks=webhooks
-                        )
+            )
+            for stock in new_stocks:
+                transaction.on_commit(
+                    lambda: manager.product_variant_back_in_stock(
+                        stock, webhooks=webhooks
                     )
+                )
 
         StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
             info.context

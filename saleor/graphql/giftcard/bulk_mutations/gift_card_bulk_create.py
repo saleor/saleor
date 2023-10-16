@@ -174,7 +174,7 @@ class GiftCardBulkCreate(BaseMutation):
 
     @staticmethod
     def call_gift_card_created_on_plugins(instances, context):
-        if webhooks := get_webhooks_for_event(WebhookEventAsyncType.GIFT_CARD_CREATED):
-            manager = get_plugin_manager_promise(context).get()
-            for instance in instances:
-                manager.gift_card_created(instance, webhooks=webhooks)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.GIFT_CARD_CREATED)
+        manager = get_plugin_manager_promise(context).get()
+        for instance in instances:
+            manager.gift_card_created(instance, webhooks=webhooks)

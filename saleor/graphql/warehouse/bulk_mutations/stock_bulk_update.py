@@ -363,13 +363,13 @@ class StockBulkUpdate(BaseMutation):
     @classmethod
     def post_save_actions(cls, info, instances):
         manager = get_plugin_manager_promise(info.context).get()
-        if webhooks := get_webhooks_for_event(
+        webhooks = get_webhooks_for_event(
             WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
-        ):
-            for instance in instances:
-                cls.call_event(
-                    manager.product_variant_stock_updated, instance, webhooks=webhooks
-                )
+        )
+        for instance in instances:
+            cls.call_event(
+                manager.product_variant_stock_updated, instance, webhooks=webhooks
+            )
 
     @classmethod
     def get_results(cls, instances_data_with_errors_list, reject_everything=False):

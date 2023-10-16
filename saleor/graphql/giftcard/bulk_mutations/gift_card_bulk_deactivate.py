@@ -46,9 +46,9 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
         events.gift_cards_deactivated_event(
             gift_card_ids, user=info.context.user, app=app
         )
-        if webhooks := get_webhooks_for_event(
+        webhooks = get_webhooks_for_event(
             WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED
-        ):
-            manager = get_plugin_manager_promise(info.context).get()
-            for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
-                manager.gift_card_status_changed(card, webhooks=webhooks)
+        )
+        manager = get_plugin_manager_promise(info.context).get()
+        for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
+            manager.gift_card_status_changed(card, webhooks=webhooks)

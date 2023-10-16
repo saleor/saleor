@@ -89,15 +89,13 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         cls.delete_product_channel_listings_without_available_variants(product_pks, pks)
         response = super().perform_mutation(_root, info, ids=ids, **data)
         manager = get_plugin_manager_promise(info.context).get()
-        if webhooks := get_webhooks_for_event(
-            WebhookEventAsyncType.PRODUCT_VARIANT_DELETED
-        ):
-            transaction.on_commit(
-                lambda: [
-                    manager.product_variant_deleted(variant, webhooks=webhooks)
-                    for variant in variants
-                ]
-            )
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_DELETED)
+        transaction.on_commit(
+            lambda: [
+                manager.product_variant_deleted(variant, webhooks=webhooks)
+                for variant in variants
+            ]
+        )
 
         # delete order lines for deleted variants
         order_models.OrderLine.objects.filter(

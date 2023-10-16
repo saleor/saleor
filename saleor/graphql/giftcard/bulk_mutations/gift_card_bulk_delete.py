@@ -36,7 +36,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         instances = [card for card in queryset]
         queryset.delete()
-        if webhooks := get_webhooks_for_event(WebhookEventAsyncType.GIFT_CARD_DELETED):
-            manager = get_plugin_manager_promise(info.context).get()
-            for instance in instances:
-                manager.gift_card_deleted(instance, webhooks=webhooks)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.GIFT_CARD_DELETED)
+        manager = get_plugin_manager_promise(info.context).get()
+        for instance in instances:
+            manager.gift_card_deleted(instance, webhooks=webhooks)

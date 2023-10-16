@@ -31,9 +31,7 @@ class ShippingZoneBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         zones = [zone for zone in queryset]
         queryset.delete()
-        if webhooks := get_webhooks_for_event(
-            WebhookEventAsyncType.SHIPPING_ZONE_DELETED
-        ):
-            manager = get_plugin_manager_promise(info.context).get()
-            for zone in zones:
-                manager.shipping_zone_deleted(zone, webhooks=webhooks)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.SHIPPING_ZONE_DELETED)
+        manager = get_plugin_manager_promise(info.context).get()
+        for zone in zones:
+            manager.shipping_zone_deleted(zone, webhooks=webhooks)

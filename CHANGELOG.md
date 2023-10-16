@@ -90,8 +90,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 - Deprecate `external_url` on `Invoice` GraphQL type in favour of `url`. No matter if the invoice is stored on Saleor or is a link to an external invoice it will get returned in the `url` field.
-- Extend methods of `BasePlugin` to accept optional `webhooks` parameter to reduce number of queries executed in bulk mutations.
-Affected methods:
+- This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
   - `channel_updated`
   - `category_deleted`
   - `gift_card_created`

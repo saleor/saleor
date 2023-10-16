@@ -50,7 +50,7 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         instances = list(queryset)
         queryset.delete()
-        if webhooks := get_webhooks_for_event(WebhookEventAsyncType.CUSTOMER_DELETED):
-            manager = get_plugin_manager_promise(info.context).get()
-            for instance in instances:
-                manager.customer_deleted(instance, webhooks=webhooks)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.CUSTOMER_DELETED)
+        manager = get_plugin_manager_promise(info.context).get()
+        for instance in instances:
+            manager.customer_deleted(instance, webhooks=webhooks)

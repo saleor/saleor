@@ -837,17 +837,13 @@ class ProductBulkCreate(BaseMutation):
             cls.call_event(manager.product_created, product.node, webhooks=webhooks)
             product_ids.append(product.node.id)
 
-        if webhooks := get_webhooks_for_event(
-            WebhookEventAsyncType.PRODUCT_VARIANT_CREATED
-        ):
-            for variant in variants:
-                cls.call_event(
-                    manager.product_variant_created, variant, webhooks=webhooks
-                )
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_CREATED)
+        for variant in variants:
+            cls.call_event(manager.product_variant_created, variant, webhooks=webhooks)
 
-        if webhooks := get_webhooks_for_event(WebhookEventAsyncType.CHANNEL_UPDATED):
-            for channel in channels:
-                cls.call_event(manager.channel_updated, channel, webhooks=webhooks)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.CHANNEL_UPDATED)
+        for channel in channels:
+            cls.call_event(manager.channel_updated, channel, webhooks=webhooks)
 
         update_products_discounted_prices_for_promotion_task.delay(product_ids)
 

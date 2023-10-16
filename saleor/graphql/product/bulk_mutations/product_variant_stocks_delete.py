@@ -76,15 +76,13 @@ class ProductVariantStocksDelete(BaseMutation):
             product_variant=variant, warehouse__pk__in=warehouses_pks
         )
 
-        if webhooks := get_webhooks_for_event(
+        webhooks = get_webhooks_for_event(
             WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
-        ):
-            for stock in stocks_to_delete:
-                transaction.on_commit(
-                    lambda: manager.product_variant_out_of_stock(
-                        stock, webhooks=webhooks
-                    )
-                )
+        )
+        for stock in stocks_to_delete:
+            transaction.on_commit(
+                lambda: manager.product_variant_out_of_stock(stock, webhooks=webhooks)
+            )
 
         stocks_to_delete.delete()
 

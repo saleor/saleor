@@ -36,7 +36,7 @@ class MenuBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         menus = list(queryset)
         queryset.delete()
-        if webhooks := get_webhooks_for_event(WebhookEventAsyncType.MENU_DELETED):
-            manager = get_plugin_manager_promise(info.context).get()
-            for menu in menus:
-                manager.menu_deleted(menu, webhooks=webhooks)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.MENU_DELETED)
+        manager = get_plugin_manager_promise(info.context).get()
+        for menu in menus:
+            manager.menu_deleted(menu, webhooks=webhooks)
