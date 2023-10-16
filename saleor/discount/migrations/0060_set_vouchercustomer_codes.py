@@ -52,7 +52,7 @@ def get_voucher_id_to_code_map(Voucher, VoucherCode, voucher_customers):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0061_vouchercustomer_voucher_code_index"),
+        ("discount", "0059_vouchercustomer_voucher_code_index"),
     ]
 
     operations = [

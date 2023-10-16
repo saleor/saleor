@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
-        ("discount", "0060_vouchercustomer_vouchercode"),
+        ("discount", "0058_vouchercustomer_vouchercode"),
     ]
 
     operations = [

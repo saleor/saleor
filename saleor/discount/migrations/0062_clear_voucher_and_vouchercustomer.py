@@ -6,10 +6,16 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0062_set_vouchercustomer_codes"),
+        ("discount", "0061_remove_voucher_code_index"),
     ]
 
     operations = [
+        # Voucher
+        migrations.AlterModelOptions(
+            name="voucher",
+            options={"ordering": ("name", "pk")},
+        ),
+        # VoucherCustomer
         migrations.AlterField(
             model_name="vouchercustomer",
             name="voucher_code",
@@ -40,11 +46,29 @@ class Migration(migrations.Migration):
                         to="discount.voucher",
                     ),
                 ),
+                migrations.AlterField(
+                    model_name="voucher",
+                    name="code",
+                    field=models.CharField(null=True, blank=True, max_length=255),
+                ),
+                migrations.AlterField(
+                    model_name="voucher",
+                    name="used",
+                    field=models.PositiveIntegerField(default=0, null=True, blank=True),
+                ),
             ],
             state_operations=[
                 migrations.RemoveField(
                     model_name="vouchercustomer",
                     name="voucher",
+                ),
+                migrations.RemoveField(
+                    model_name="voucher",
+                    name="code",
+                ),
+                migrations.RemoveField(
+                    model_name="voucher",
+                    name="used",
                 ),
             ],
         ),
