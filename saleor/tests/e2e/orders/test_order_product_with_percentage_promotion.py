@@ -100,10 +100,7 @@ def test_order_products_on_percentage_promotion_CORE_2103(
         order_lines["order"]["lines"][0]["unitPrice"]["gross"]["amount"] == unit_price
     )
     promotion_reason = order_lines["order"]["lines"][0]["unitDiscountReason"]
-    assert (
-        promotion_reason
-        == f"Promotion rules discounts: {promotion_name}: {promotion_rule_name}"
-    )
+    assert promotion_reason == f"Promotion: {promotion_id}"
 
     # Step 3 - Add a shipping method to the order
     input = {"shippingMethod": result_shipping_method_id}

@@ -2,7 +2,6 @@ from decimal import Decimal
 from functools import wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
 
-import graphene
 from django.db.models import QuerySet, Sum
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -27,6 +26,8 @@ from ..discount.utils import (
     get_discount_name,
     get_discount_translated_name,
     get_products_voucher_discount,
+    get_sale_id,
+    prepare_promotion_discount_reason,
     validate_voucher_in_order,
 )
 from ..giftcard import events as gift_card_events
@@ -282,13 +283,12 @@ def create_order_line(
     if unit_discount.gross:
         if rules_info:
             line_discounts = create_order_line_discounts(line, rules_info)
+            promotion = rules_info[0].promotion
+            line.sale_id = get_sale_id(promotion)
             line.unit_discount_reason = (
-                prepare_promotion_discount_reason(line_discounts)
+                prepare_promotion_discount_reason(promotion, line.sale_id)
                 if line_discounts
                 else None
-            )
-            line.sale_id = graphene.Node.to_global_id(
-                "Promotion", rules_info[0].promotion.pk
             )
 
         tax_configuration = channel.tax_configuration
@@ -350,18 +350,6 @@ def create_order_line_discounts(
         )
 
     return OrderLineDiscount.objects.bulk_create(line_discounts_to_create)
-
-
-def prepare_promotion_discount_reason(line_discounts: Iterable["OrderLineDiscount"]):
-    # TODO: for old sales it should be in format: "Sale: global_id"
-    unit_discount_reason = "Promotion rules discounts: " + ", ".join(
-        [
-            discount.name
-            or graphene.Node.to_global_id("PromotionRule", discount.promotion_rule_id)
-            for discount in line_discounts
-        ]
-    )
-    return unit_discount_reason
 
 
 @traced_atomic_transaction()
