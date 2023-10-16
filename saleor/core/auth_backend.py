@@ -7,6 +7,7 @@ from ..permission.enums import (
     get_permissions_from_codenames,
     get_permissions_from_names,
 )
+from ..plugins.manager import get_plugins_manager
 from .auth import get_token_from_request
 from .jwt import (
     JWT_ACCESS_TYPE,
@@ -108,7 +109,17 @@ class PluginBackend(JSONWebTokenBackend):
     def authenticate(self, request=None, **kwargs):
         if request is None:
             return None
-        manager = AnonymousPluginManagerLoader(request).load("Anonymous").get()
+        # We can't use `AnonymousPluginManagerLoader(request).load("Anonymous").get()`
+        # here because `get()` cause that many Promise are waiting in middle of caching
+        # authenticated user. Which cause as many authentication plugin calls
+        # as many Promise are waiting.
+
+        allow_replica = getattr(request, "allow_replica", True)
+        manager = get_plugins_manager(None, allow_replica)
+
+        # Store created manager in request to be used in other Dataloader.
+        plugin_loader = AnonymousPluginManagerLoader(request)
+        plugin_loader.prime("Anonymous", manager)
         return manager.authenticate_user(request)
 
 
