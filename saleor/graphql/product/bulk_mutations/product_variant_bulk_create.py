@@ -12,7 +12,6 @@ from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductVariantBulkErrorCode
-from ....product.search import update_product_search_vector
 from ....product.tasks import update_product_discounted_price_task
 from ....warehouse import models as warehouse_models
 from ...attribute.types import (
@@ -913,7 +912,8 @@ class ProductVariantBulkCreate(BaseMutation):
 
         # Recalculate the "discounted price" for the parent product
         update_product_discounted_price_task.delay(product.pk)
-        update_product_search_vector(product)
+        product.search_index_dirty = True
+        product.save(update_fields=["search_index_dirty"])
 
         for instance in instances:
             cls.call_event(manager.product_variant_created, instance.node)

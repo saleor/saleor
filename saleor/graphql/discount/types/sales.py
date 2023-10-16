@@ -108,8 +108,8 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Sale]):
         model = models.Sale
 
     @staticmethod
-    def resolve_created(root: models.Sale, _info: ResolveInfo):
-        return root.created_at
+    def resolve_created(root: ChannelContext[models.Sale], _info: ResolveInfo):
+        return root.node.created_at
 
     @staticmethod
     def resolve_categories(

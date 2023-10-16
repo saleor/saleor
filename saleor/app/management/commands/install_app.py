@@ -2,6 +2,7 @@ import json
 from typing import Any, Optional
 
 import requests
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
@@ -33,7 +34,11 @@ class Command(BaseCommand):
             raise CommandError(f"Incorrect format of manifest-url: {manifest_url}")
 
     def fetch_manifest_data(self, manifest_url: str) -> dict:
-        response = requests.get(manifest_url, timeout=30, allow_redirects=False)
+        response = requests.get(
+            manifest_url,
+            timeout=settings.COMMON_REQUESTS_TIMEOUT,
+            allow_redirects=False,
+        )
         response.raise_for_status()
         return response.json()
 

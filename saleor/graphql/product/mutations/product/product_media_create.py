@@ -1,5 +1,6 @@
 import graphene
 import requests
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files import File
 
@@ -111,7 +112,10 @@ class ProductMediaCreate(BaseMutation):
                 )
                 filename = get_filename_from_url(media_url)
                 image_data = requests.get(
-                    media_url, stream=True, timeout=30, allow_redirects=False
+                    media_url,
+                    stream=True,
+                    timeout=settings.COMMON_REQUESTS_TIMEOUT,
+                    allow_redirects=False,
                 )
                 image_file = File(image_data.raw, filename)
                 media = product.media.create(

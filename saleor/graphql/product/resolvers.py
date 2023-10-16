@@ -15,14 +15,6 @@ from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
 
 
-def resolve_category_by_id(id):
-    return models.Category.objects.filter(pk=id).first()
-
-
-def resolve_category_by_slug(slug):
-    return models.Category.objects.filter(slug=slug).first()
-
-
 def resolve_categories(_info: ResolveInfo, level=None):
     qs = models.Category.objects.prefetch_related("children")
     if level is not None:

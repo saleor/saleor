@@ -707,13 +707,19 @@ def test_to_adyen_price(value, currency, expected_result):
     assert result == expected_result
 
 
-def test_request_data_for_gateway_config(checkout_with_item, address):
+def test_request_data_for_gateway_config(
+    checkout_with_item, address, address_other_country
+):
     # given
-    checkout_with_item.billing_address = address
+    checkout_with_item.shipping_address = address
+    checkout_with_item.billing_address = address_other_country
+    assert address.country.code != address_other_country.country.code
+
     merchant_account = "test_account"
     manager = get_plugins_manager()
     lines_info, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines_info, manager)
+
     # when
     response_config = request_data_for_gateway_config(
         checkout_info, lines_info, merchant_account
@@ -722,7 +728,7 @@ def test_request_data_for_gateway_config(checkout_with_item, address):
     # then
     assert response_config == {
         "merchantAccount": merchant_account,
-        "countryCode": checkout_with_item.billing_address.country,
+        "countryCode": checkout_with_item.shipping_address.country,
         "channel": "web",
         "amount": {"currency": "USD", "value": "3000"},
     }

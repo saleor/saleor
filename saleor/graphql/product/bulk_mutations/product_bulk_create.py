@@ -4,6 +4,7 @@ from datetime import datetime
 import graphene
 import pytz
 import requests
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db.models import F
@@ -799,7 +800,10 @@ class ProductBulkCreate(BaseMutation):
                     )
                     filename = get_filename_from_url(media_url)
                     image_data = requests.get(
-                        media_url, stream=True, timeout=30, allow_redirects=False
+                        media_url,
+                        stream=True,
+                        timeout=settings.COMMON_REQUESTS_TIMEOUT,
+                        allow_redirects=False,
                     )
                     image_data = File(image_data.raw, filename)
                     media_to_create.append(

@@ -44,6 +44,7 @@ ORDER_LINES_CREATE_MUTATION = """
                 quantity
                 productSku
                 productVariantId
+                saleId
                 unitPrice {
                     gross {
                         amount
@@ -583,6 +584,7 @@ def test_order_lines_create_variant_on_sale(
         line_data["unitPrice"]["net"]["amount"]
         == variant_channel_listing.price_amount - sale_channel_listing.discount_value
     )
+    assert line_data["saleId"] == graphene.Node.to_global_id("Sale", sale.id)
 
     line = order.lines.get(product_sku=variant.sku)
     assert line.sale_id == graphene.Node.to_global_id("Sale", sale.id)

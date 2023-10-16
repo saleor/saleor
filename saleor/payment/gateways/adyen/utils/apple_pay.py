@@ -4,6 +4,7 @@ from typing import Optional
 from urllib.parse import urlsplit
 
 import requests
+from django.conf import settings
 
 from .... import PaymentError
 
@@ -105,7 +106,7 @@ def make_request_to_initialize_apple_pay(
             validation_url,
             json=request_data,
             cert=f.name,
-            timeout=30,
+            timeout=settings.COMMON_REQUESTS_TIMEOUT,
             allow_redirects=False,
         )
 

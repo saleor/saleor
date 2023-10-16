@@ -2,6 +2,7 @@ import json
 from typing import Any, Dict, Optional
 
 import requests
+from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
@@ -54,7 +55,7 @@ class Command(BaseCommand):
                 target_url,
                 json=data,
                 headers=headers,
-                timeout=15,
+                timeout=settings.COMMON_REQUESTS_TIMEOUT,
                 allow_redirects=False,
             )
         except RequestException as e:

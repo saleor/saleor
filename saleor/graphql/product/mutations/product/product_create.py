@@ -9,7 +9,6 @@ from .....core.utils.editorjs import clean_editor_js
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
-from .....product.search import update_product_search_vector
 from .....product.tasks import update_product_discounted_price_task
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
@@ -206,6 +205,7 @@ class ProductCreate(ModelMutation):
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
         with traced_atomic_transaction():
+            instance.search_index_dirty = True
             instance.save()
             attributes = cleaned_input.get("attributes")
             if attributes:
@@ -220,7 +220,6 @@ class ProductCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
-        update_product_search_vector(instance)
         update_product_discounted_price_task.delay(instance.id)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_created, product)
