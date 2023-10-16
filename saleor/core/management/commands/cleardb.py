@@ -16,7 +16,7 @@ from ....discount.models import Sale, Voucher
 from ....giftcard.models import GiftCard
 from ....order.models import Order
 from ....page.models import Page, PageType
-from ....payment.models import Payment, Transaction
+from ....payment.models import Payment, Transaction, TransactionItem
 from ....product.models import Category, Collection, Product, ProductType
 from ....shipping.models import ShippingMethod, ShippingZone
 from ....warehouse.models import Warehouse
@@ -45,6 +45,9 @@ class Command(BaseCommand):
 
         Checkout.objects.all().delete()
         self.stdout.write("Removed checkouts")
+
+        TransactionItem.objects.all().delete()
+        self.stdout.write("Removed transaction items")
 
         Transaction.objects.all().delete()
         self.stdout.write("Removed transactions")
