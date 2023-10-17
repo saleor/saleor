@@ -28,6 +28,16 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                     channel {
                         id
                     }
+                    total {
+                        net {
+                            amount
+                        }
+                    }
+                    undiscountedTotal {
+                        net {
+                            amount
+                        }
+                    }
                     billingAddress{
                         city
                         streetAddress1
@@ -111,6 +121,7 @@ def test_draft_order_update(
     voucher,
     graphql_address_data,
 ):
+    # given
     order = draft_order
     assert not order.voucher
     assert not order.customer_note
@@ -120,6 +131,8 @@ def test_draft_order_update(
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     customer_note = "Test customer note"
     external_reference = "test-ext-ref"
+    order_total = order.total_net_amount
+
     variables = {
         "id": order_id,
         "input": {
@@ -131,7 +144,10 @@ def test_draft_order_update(
         },
     }
 
+    # when
     response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
     stored_metadata = {"public": "public_value"}
@@ -142,6 +158,10 @@ def test_draft_order_update(
     assert (
         data["order"]["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
     )
+    import ipdb
+
+    ipdb.set_trace()
+    assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
 
     assert not data["errors"]
     order.refresh_from_db()

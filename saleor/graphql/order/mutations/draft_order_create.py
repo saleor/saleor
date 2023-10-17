@@ -435,6 +435,7 @@ class DraftOrderCreate(
                         shipping_channel_listing,
                     )
                     cls.update_shipping_method(instance, method, shipping_method_data)
+                    cls._update_shipping_price(instance, shipping_channel_listing)
                 updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 
             # Save any changes create/update the draft
@@ -470,10 +471,7 @@ class DraftOrderCreate(
             )
             if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
                 invalidate_order_prices(instance)
-                cls._update_shipping_price(instance, shipping_channel_listing)
-                updated_fields.extend(
-                    ["should_refresh_prices", "base_shipping_price_amount"]
-                )
+                updated_fields.extend(["should_refresh_prices"])
             recalculate_order_weight(instance)
             update_order_search_vector(instance, save=False)
 
