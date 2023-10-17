@@ -116,14 +116,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
     """
 
 
-@pytest.mark.parametrize(
-    "query_str, voucher_type",
-    (
-        (DRAFT_ORDER_CREATE_MUTATION, "voucher"),
-        (DRAFT_ORDER_CREATE_MUTATION, "voucherCode"),
-    ),
-)
-def test_draft_order_create(
+def test_draft_order_create_with_voucher(
     staff_api_client,
     permission_group_manage_orders,
     staff_user,
@@ -134,12 +127,9 @@ def test_draft_order_create(
     voucher,
     channel_USD,
     graphql_address_data,
-    query_str,
-    voucher_type,
 ):
     variant_0 = variant
-    query = query_str
-    voucher = voucher if voucher_type == "voucher" else voucher.codes.first()
+    query = DRAFT_ORDER_CREATE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
@@ -159,10 +149,7 @@ def test_draft_order_create(
     ]
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
-    if voucher_type == "voucher":
-        voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
-    else:
-        voucher_id = voucher.code
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     redirect_url = "https://www.example.com"
     external_reference = "test-ext-ref"
@@ -175,7 +162,7 @@ def test_draft_order_create(
             "billingAddress": shipping_address,
             "shippingAddress": shipping_address,
             "shippingMethod": shipping_id,
-            voucher_type: voucher_id,
+            "voucher": voucher_id,
             "customerNote": customer_note,
             "channelId": channel_id,
             "redirectUrl": redirect_url,
@@ -189,8 +176,188 @@ def test_draft_order_create(
     stored_metadata = {"public": "public_value"}
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
-    if voucher_type == "voucher":
-        assert data["voucher"]["code"] == voucher.code
+    assert data["voucher"]["code"] == voucher.code
+    assert data["voucherCode"] == voucher.code
+    assert data["customerNote"] == customer_note
+    assert data["redirectUrl"] == redirect_url
+    assert data["externalReference"] == external_reference
+    assert (
+        data["billingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+    assert (
+        data["shippingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+    assert data["billingAddress"]["metadata"] == graphql_address_data["metadata"]
+    assert data["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
+
+    order = Order.objects.first()
+    assert order.voucher_code == voucher.code
+    assert order.user == customer_user
+    assert order.shipping_method == shipping_method
+    assert order.shipping_method_name == shipping_method.name
+    assert order.billing_address
+    assert order.shipping_address
+    assert order.billing_address.metadata == stored_metadata
+    assert order.shipping_address.metadata == stored_metadata
+    assert order.search_vector
+    assert order.external_reference == external_reference
+    shipping_total = shipping_method.channel_listings.get(
+        channel_id=order.channel_id
+    ).get_total()
+    assert order.base_shipping_price == shipping_total
+
+    # Ensure the correct event was created
+    created_draft_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.DRAFT_CREATED
+    )
+    assert created_draft_event.user == staff_user
+    assert created_draft_event.parameters == {}
+
+    # Ensure the order_added_products_event was created properly
+    added_products_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.ADDED_PRODUCTS
+    )
+    event_parameters = added_products_event.parameters
+    assert event_parameters
+    assert len(event_parameters["lines"]) == 2
+
+    order_lines = list(order.lines.all())
+    assert event_parameters["lines"][0]["item"] == str(order_lines[0])
+    assert event_parameters["lines"][0]["line_pk"] == str(order_lines[0].pk)
+    assert event_parameters["lines"][0]["quantity"] == 2
+
+    assert event_parameters["lines"][1]["item"] == str(order_lines[1])
+    assert event_parameters["lines"][1]["line_pk"] == str(order_lines[1].pk)
+    assert event_parameters["lines"][1]["quantity"] == 1
+
+
+def test_draft_order_create_with_voucher_and_voucher_code(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant_1.save()
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": 2},
+        {"variantId": variant_1_id, "quantity": 1},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    external_reference = "test-ext-ref"
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "voucherCode": voucher.codes.first().code,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+            "externalReference": external_reference,
+        }
+    }
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["errors"][0]
+    assert error["field"] == "voucher"
+    assert error["code"] == OrderErrorCode.INVALID.name
+    assert (
+        error["message"]
+        == "You cannot use both a voucher and a voucher code for the same order. "
+        "Please choose one."
+    )
+
+
+def test_draft_order_create_with_voucher_code(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+    voucher = voucher.codes.first()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant_1.save()
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": 2},
+        {"variantId": variant_1_id, "quantity": 1},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    external_reference = "test-ext-ref"
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucherCode": voucher.code,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+            "externalReference": external_reference,
+        }
+    }
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    stored_metadata = {"public": "public_value"}
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
     assert data["voucherCode"] == voucher.code
     assert data["customerNote"] == customer_note
     assert data["redirectUrl"] == redirect_url
