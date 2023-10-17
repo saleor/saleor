@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -210,9 +210,9 @@ class DraftOrderCreate(
         voucher = cleaned_input.get("voucher", None)
         voucher_code = cleaned_input.get("voucher_code", None)
         cls.clean_voucher_and_voucher_code(voucher, voucher_code)
-        if voucher:
+        if "voucher" in cleaned_input:
             cls.clean_voucher(voucher, channel, cleaned_input)
-        if voucher_code:
+        elif "voucher_code" in cleaned_input:
             cls.clean_voucher_code(voucher_code, channel, cleaned_input)
 
         if channel:
@@ -268,6 +268,10 @@ class DraftOrderCreate(
 
     @classmethod
     def clean_voucher(cls, voucher, channel, cleaned_input):
+        # We need to clean voucher_code as well
+        if voucher is None:
+            cleaned_input["voucher_code"] = None
+            return
         code_instance = None
         if channel.include_draft_order_in_voucher_usage:
             # Validate voucher when it's included in voucher usage calculation
@@ -291,8 +295,12 @@ class DraftOrderCreate(
 
     @classmethod
     def clean_voucher_code(
-        cls, voucher_code: str, channel: Channel, cleaned_input: dict
+        cls, voucher_code: Optional[str], channel: Channel, cleaned_input: dict
     ):
+        # We need to clean voucher instance as well
+        if voucher_code is None:
+            cleaned_input["voucher"] = None
+            return
         if channel.include_draft_order_in_voucher_usage:
             # Validate voucher when it's included in voucher usage calculation
             try:
