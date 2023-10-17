@@ -9,6 +9,7 @@ from prices import Money
 
 from .....checkout import AddressType
 from .....core.taxes import TaxError, zero_taxed_money
+from .....discount import DiscountType, DiscountValueType
 from .....discount.models import VoucherChannelListing
 from .....order import OrderStatus
 from .....order import events as order_events
@@ -136,20 +137,28 @@ def test_draft_order_create(
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    channel_listing_0 = variant_0.channel_listings.get(channel=channel_USD)
+    variant_0_qty = 2
+
     variant_1 = product_without_shipping.variants.first()
-    variant_1.quantity = 2
-    variant_1.save()
+    variant_1_qty = 1
+    channel_listing_1 = variant_1.channel_listings.get(channel=channel_USD)
+
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
     discount = "10"
     customer_note = "Test note"
     variant_list = [
-        {"variantId": variant_0_id, "quantity": 2},
-        {"variantId": variant_1_id, "quantity": 1},
+        {"variantId": variant_0_id, "quantity": variant_0_qty},
+        {"variantId": variant_1_id, "quantity": variant_1_qty},
     ]
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
+
     redirect_url = "https://www.example.com"
     external_reference = "test-ext-ref"
 
@@ -189,6 +198,18 @@ def test_draft_order_create(
     )
     assert data["billingAddress"]["metadata"] == graphql_address_data["metadata"]
     assert data["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
+    shipping_total = shipping_method.channel_listings.get(
+        channel=channel_USD
+    ).get_total()
+    order_total = (
+        channel_listing_0.discounted_price_amount * variant_0_qty
+        + channel_listing_1.discounted_price_amount * variant_1_qty
+        + shipping_total.amount
+    )
+    assert data["undiscountedTotal"]["gross"]["amount"] == order_total
+    assert (
+        data["total"]["gross"]["amount"] == order_total - voucher_listing.discount_value
+    )
 
     order = Order.objects.first()
     assert order.user == customer_user
@@ -228,6 +249,15 @@ def test_draft_order_create(
     assert event_parameters["lines"][1]["item"] == str(order_lines[1])
     assert event_parameters["lines"][1]["line_pk"] == str(order_lines[1].pk)
     assert event_parameters["lines"][1]["quantity"] == 1
+
+    # Ensure order discount object was properly created
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
+    assert order_discount.voucher == voucher
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.value_type == DiscountValueType.FIXED
+    assert order_discount.value == voucher_listing.discount_value
+    assert order_discount.amount_value == voucher_listing.discount_value
 
 
 def test_draft_order_create_by_user_no_channel_access(
@@ -453,7 +483,9 @@ def test_draft_order_create_with_inactive_channel(
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     channel_USD.is_active = False
     channel_USD.save()
+
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+
     variant_1 = product_without_shipping.variants.first()
     variant_1.quantity = 2
     variant_1.save()

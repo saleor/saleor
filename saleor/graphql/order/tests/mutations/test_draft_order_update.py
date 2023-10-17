@@ -3,6 +3,7 @@ from prices import TaxedMoney
 
 from .....core.prices import quantize_price
 from .....core.taxes import zero_money
+from .....discount import DiscountType, DiscountValueType
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
@@ -129,6 +130,7 @@ def test_draft_order_update(
     query = DRAFT_ORDER_UPDATE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
     customer_note = "Test customer note"
     external_reference = "test-ext-ref"
     order_total = order.total_net_amount
@@ -158,10 +160,11 @@ def test_draft_order_update(
     assert (
         data["order"]["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
     )
-    import ipdb
-
-    ipdb.set_trace()
     assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
+    assert (
+        data["order"]["total"]["net"]["amount"]
+        == order_total - voucher_listing.discount_value
+    )
 
     assert not data["errors"]
     order.refresh_from_db()
@@ -175,6 +178,69 @@ def test_draft_order_update(
         == external_reference
         == order.external_reference
     )
+
+    # Ensure order discount object was properly created
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
+    assert order_discount.voucher == voucher
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.value_type == DiscountValueType.FIXED
+    assert order_discount.value == voucher_listing.discount_value
+    assert order_discount.amount_value == voucher_listing.discount_value
+
+
+def test_draft_order_update_clear_voucher(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+    graphql_address_data,
+):
+    # given
+    order = draft_order
+    order.voucher = voucher
+    order.save(update_fields=["voucher"])
+
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    discount_amount = voucher_listing.discount_value
+    order.discounts.create(
+        voucher=voucher,
+        value=discount_amount,
+        type=DiscountType.VOUCHER,
+    )
+
+    order.total_gross_amount -= discount_amount
+    order.total_net_amount -= discount_amount
+    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_total = order.undiscounted_total_net_amount
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucher": None,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+
+    assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
+    assert data["order"]["total"]["net"]["amount"] == order_total
+
+    assert not data["errors"]
+    order.refresh_from_db()
+    assert not order.voucher
+    assert order.search_vector
+
+    assert not order.discounts.count()
 
 
 def test_draft_order_update_with_non_draft_order(

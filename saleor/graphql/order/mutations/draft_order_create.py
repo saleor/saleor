@@ -422,6 +422,17 @@ class DraftOrderCreate(
             # Process addresses
             cls._save_addresses(instance, cleaned_input)
 
+            try:
+                # Process any lines to add
+                cls._save_lines(
+                    info, instance, cleaned_input.get("lines_data"), app, manager
+                )
+            except TaxError as tax_error:
+                raise ValidationError(
+                    f"Unable to calculate taxes - {str(tax_error)}",
+                    code=OrderErrorCode.TAX_ERROR.value,
+                )
+
             if "shipping_method" in cleaned_input:
                 method = cleaned_input["shipping_method"]
                 if method is None:
@@ -440,17 +451,6 @@ class DraftOrderCreate(
 
             # Save any changes create/update the draft
             cls._commit_changes(info, instance, cleaned_input, is_new_instance, app)
-
-            try:
-                # Process any lines to add
-                cls._save_lines(
-                    info, instance, cleaned_input.get("lines_data"), app, manager
-                )
-            except TaxError as tax_error:
-                raise ValidationError(
-                    f"Unable to calculate taxes - {str(tax_error)}",
-                    code=OrderErrorCode.TAX_ERROR.value,
-                )
 
             update_order_display_gross_prices(instance)
 
