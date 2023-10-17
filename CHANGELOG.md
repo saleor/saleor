@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
+- Fix draft order voucher assignment - #14336 by @IKarbowiak
 
 ### Saleor Apps
 
