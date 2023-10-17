@@ -17,6 +17,7 @@ from ...core.descriptions import (
     ADDED_IN_314,
     ADDED_IN_315,
     ADDED_IN_316,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_INPUT,
     DEPRECATED_PREVIEW_IN_316_INPUT,
     PREVIEW_FEATURE,
@@ -137,6 +138,13 @@ class OrderSettingsInput(BaseInputObjectType):
         description=(
             "Determine if it is possible to place unpaid order by calling "
             "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
+        ),
+    )
+    include_draft_order_in_voucher_usage = graphene.Boolean(
+        required=False,
+        description=(
+            "Specify whether a coupon applied to draft orders will count toward "
+            "voucher usage." + ADDED_IN_318 + PREVIEW_FEATURE
         ),
     )
 

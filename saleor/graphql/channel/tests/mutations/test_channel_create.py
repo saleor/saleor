@@ -47,6 +47,7 @@ CHANNEL_CREATE_MUTATION = """
                     defaultTransactionFlowStrategy
                     deleteExpiredOrdersAfter
                     allowUnpaidOrders
+                    includeDraftOrderInVoucherUsage
                 }
                 checkoutSettings {
                     useLegacyErrorFlow
@@ -86,6 +87,7 @@ def test_channel_create_mutation_as_staff_user(
                 "automaticallyConfirmAllNewOrders": False,
                 "automaticallyFulfillNonShippableGiftCard": False,
                 "expireOrdersAfter": 10,
+                "includeDraftOrderInVoucherUsage": True,
             },
             "checkoutSettings": {"useLegacyErrorFlow": False},
         }
@@ -119,6 +121,7 @@ def test_channel_create_mutation_as_staff_user(
         is False
     )
     assert channel_data["orderSettings"]["expireOrdersAfter"] == 10
+    assert channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"] is True
     assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
 
 
@@ -172,6 +175,7 @@ def test_channel_create_mutation_as_app(
         is True
     )
     assert channel_data["orderSettings"]["expireOrdersAfter"] is None
+    assert channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"] is False
     assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
 
 
