@@ -42,18 +42,25 @@ SALE_BULK_DELETE_MUTATION = """
     """
 
 
+@mock.patch("saleor.graphql.discount.mutations.bulk_mutations.get_webhooks_for_event")
+@mock.patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 @mock.patch(
     "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
 )
 def test_delete_sales(
     update_products_discounted_prices_of_catalogues_task_mock,
+    deleted_webhook_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     sale_list,
     permission_manage_discounts,
     product_list,
+    any_webhook,
+    settings,
 ):
     # given
-
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variables = {
         "ids": [graphene.Node.to_global_id("Sale", sale.id) for sale in sale_list]
     }
@@ -138,7 +145,7 @@ def test_delete_sales_deletes_promotions(
     assert not Promotion.objects.filter(id__in=ids).exists()
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.graphql.discount.mutations.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_sales_triggers_webhook(
     mocked_webhook_trigger,
@@ -163,7 +170,7 @@ def test_delete_sales_triggers_webhook(
     assert mocked_webhook_trigger.call_count == 3
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.graphql.discount.mutations.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_sales_with_variants_triggers_webhook(
     mocked_webhook_trigger,
