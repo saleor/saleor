@@ -1,7 +1,7 @@
 import pytest
 
 from ..channel.utils import create_channel
-from ..product.utils.preparing_product import prepare_digital_product
+from ..product.utils import prepare_digital_product
 from ..shipping_zone.utils import (
     create_shipping_method,
     create_shipping_method_channel_listing,
@@ -165,7 +165,7 @@ def test_digital_order_calculate_simple_tax_based_on_billing_country_CORE_2008(
     assert data["order"]["billingAddress"] is not None
     assert data["order"]["isShippingRequired"] is False
 
-    # Step 2 - Add product on sale to draft order and check prices
+    # Step 2 - Add product to draft order and check prices
     lines = [{"variantId": product_variant_id, "quantity": 1}]
     order_data = order_lines_create(
         e2e_staff_api_client,
