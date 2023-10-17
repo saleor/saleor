@@ -31,6 +31,7 @@ def prepare_tax_configuration(
     country_code,
     country_tax_rate,
     product_type_tax_rate,
+    prices_entered_with_tax,
 ):
     tax_config_data = get_tax_configurations(e2e_staff_api_client)
     channel_tax_config = tax_config_data[0]["node"]
@@ -43,7 +44,7 @@ def prepare_tax_configuration(
         charge_taxes=True,
         tax_calculation_strategy="FLAT_RATES",
         display_gross_prices=True,
-        prices_entered_with_tax=False,
+        prices_entered_with_tax=prices_entered_with_tax,
     )
     update_country_tax_rates(
         e2e_staff_api_client,
@@ -148,6 +149,7 @@ def test_checkout_calculate_simple_tax_based_on_product_type_tax_class_CORE_2003
         country_code="US",
         country_tax_rate=10,
         product_type_tax_rate=8,
+        prices_entered_with_tax=False,
     )
 
     variant_price = "155.88"
