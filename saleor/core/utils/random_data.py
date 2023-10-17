@@ -48,7 +48,6 @@ from ...checkout.models import Checkout
 from ...checkout.utils import add_variant_to_checkout
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, RewardValueType, VoucherType
-from ...discount import DiscountValueType, VoucherType
 from ...discount.models import (
     Promotion,
     PromotionRule,

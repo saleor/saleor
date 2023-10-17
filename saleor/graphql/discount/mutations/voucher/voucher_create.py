@@ -28,14 +28,6 @@ from ...enums import DiscountValueTypeEnum, VoucherTypeEnum
 from ...types import Voucher
 
 
-class VoucherCodeInput(BaseInputObjectType):
-    code = graphene.String(description="Code to use the voucher.", required=False)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        description = "Represents voucher code data." + ADDED_IN_318
-
-
 class VoucherInput(BaseInputObjectType):
     type = VoucherTypeEnum(
         description="Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER."
