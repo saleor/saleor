@@ -105,10 +105,7 @@ def test_order_promotion_still_applied_to_the_order_when_promotion_is_removed_CO
         order_lines["order"]["lines"][0]["unitPrice"]["gross"]["amount"] == unit_price
     )
     promotion_reason = order_lines["order"]["lines"][0]["unitDiscountReason"]
-    assert (
-        promotion_reason
-        == f"Promotion rules discounts: {promotion_name}: {promotion_rule_name}"
-    )
+    assert promotion_reason == f"Promotion: {promotion_id}"
 
     # Step 3 - Add a shipping method to the order
     input = {"shippingMethod": shipping_method_id}

@@ -56,8 +56,7 @@ def prepare_promotion(
     assert product_predicate[0] == product_id
 
     return (
-        promotion_name,
-        promotion_rule_name,
+        promotion_id,
         promotion_value,
     )
 
@@ -156,7 +155,7 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
         variant_price,
     )
 
-    promotion_name, promotion_rule_name, promotion_value = prepare_promotion(
+    promotion_id, promotion_value = prepare_promotion(
         e2e_staff_api_client,
         product_id,
         channel_id,
@@ -252,7 +251,4 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
     assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == float(
         product_variant_price
     )
-    assert (
-        order_line["unitDiscountReason"]
-        == f"Promotion rules discounts: {promotion_name}: {promotion_rule_name}"
-    )
+    assert order_line["unitDiscountReason"] == f"Promotion: {promotion_id}"

@@ -34,6 +34,7 @@ def prepare_promotion_with_rules(
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
     assert promotion_rule["channels"][0]["id"] == channel_id
     assert product_predicate[0] == product_id
+    return promotion_id
 
 
 @pytest.mark.e2e
@@ -103,7 +104,7 @@ def test_apply_best_promotion_to_product_core_2105(
     second_promotion_name = "Promotion 2"
     second_rule_name = "rule for product"
 
-    prepare_promotion_with_rules(
+    second_promotion_id = prepare_promotion_with_rules(
         e2e_staff_api_client,
         second_promotion_name,
         second_discount_type,
@@ -151,7 +152,4 @@ def test_apply_best_promotion_to_product_core_2105(
     assert undiscounted_price == float(product_variant_price)
     assert order_line["unitPrice"]["gross"]["amount"] == unit_price
     promotion_reason = order_line["unitDiscountReason"]
-    assert (
-        promotion_reason
-        == f"Promotion rules discounts: {second_promotion_name}: {second_rule_name}"
-    )
+    assert promotion_reason == f"Promotion: {second_promotion_id}"
