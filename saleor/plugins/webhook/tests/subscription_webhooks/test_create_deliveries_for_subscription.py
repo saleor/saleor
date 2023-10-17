@@ -781,7 +781,7 @@ def test_gift_card_metadata_updated(
 
 
 def test_gift_card_export_completed(
-    user_export_file, tmpdir, subscription_gift_card_export_completed_webhook
+    user_export_file, subscription_gift_card_export_completed_webhook, media_root
 ):
     # given
     file_mock = MagicMock(spec=File)
@@ -1236,7 +1236,7 @@ def test_product_metadata_updated(
 
 
 def test_product_export_completed(
-    user_export_file, tmpdir, subscription_product_export_completed_webhook
+    user_export_file, subscription_product_export_completed_webhook, media_root
 ):
     # given
     file_mock = MagicMock(spec=File)
