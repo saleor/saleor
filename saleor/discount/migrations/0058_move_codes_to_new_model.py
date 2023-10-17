@@ -29,22 +29,33 @@ def move_codes_to_new_model(apps, schema_editor):
 
     for batch_pks in queryset_in_batches(queryset):
         voucher_codes = []
-        vouchers = Voucher.objects.filter(pk__in=batch_pks)
+        vouchers_to_update = []
 
-        for voucher in vouchers.values("id", "code", "used"):
+        vouchers = Voucher.objects.filter(pk__in=batch_pks).only(
+            "id", "name", "code", "used"
+        )
+
+        for voucher in vouchers:
             voucher_codes.append(
                 VoucherCode(
-                    voucher_id=voucher["id"],
-                    code=voucher["code"],
-                    used=voucher["used"],
+                    voucher_id=voucher.id,
+                    code=voucher.code,
+                    used=voucher.used,
                 )
             )
+
+            if not voucher.name:
+                voucher.name = voucher.code
+                vouchers_to_update.append(voucher)
+
         VoucherCode.objects.bulk_create(voucher_codes)
+        if vouchers_to_update:
+            Voucher.objects.bulk_update(vouchers_to_update, ["name"])
 
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0056_voucher_code_indexes"),
+        ("discount", "0057_voucher_code_indexes"),
     ]
 
     operations = [

@@ -37,8 +37,8 @@ from ..discount import DiscountType, DiscountValueType
 from ..discount.models import NotApplicable, OrderLineDiscount
 from ..discount.utils import (
     add_voucher_usage_by_customer,
-    get_sale_id,
     deactivate_voucher_code,
+    get_sale_id,
     increase_voucher_code_usage,
     prepare_promotion_discount_reason,
     release_voucher_code_usage,
