@@ -63,7 +63,7 @@ T = TypeVar("T", bound=Model)
 
 
 class ChannelContextTypeForObjectType(ModelObjectType[T]):
-    """A Graphene `type `that supports resolvers' root as ChannelContext objects."""
+    """A Graphene type that supports resolvers' root as ChannelContext objects."""
 
     class Meta:
         abstract = True
