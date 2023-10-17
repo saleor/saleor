@@ -29,6 +29,12 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
           gross {
             amount
           }
+          net {
+            amount
+          }
+          tax {
+            amount
+          }
         }
         unitPrice {
           gross {
