@@ -30,6 +30,7 @@ from ..core.descriptions import (
     ADDED_IN_314,
     ADDED_IN_315,
     ADDED_IN_316,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_PREVIEW_IN_316_FIELD,
     PREVIEW_FEATURE,
@@ -270,6 +271,13 @@ class OrderSettings(ObjectType):
         description=(
             "Determine if it is possible to place unpdaid order by calling "
             "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
+        ),
+    )
+    include_draft_order_in_voucher_usage = graphene.Boolean(
+        required=True,
+        description=(
+            "Determine if voucher applied on draft order should be count toward "
+            "voucher usage." + ADDED_IN_318 + PREVIEW_FEATURE
         ),
     )
 
@@ -557,6 +565,9 @@ class Channel(ModelObjectType):
             mark_as_paid_strategy=root.order_mark_as_paid_strategy,
             default_transaction_flow_strategy=root.default_transaction_flow_strategy,
             delete_expired_orders_after=root.delete_expired_orders_after.days,
+            include_draft_order_in_voucher_usage=(
+                root.include_draft_order_in_voucher_usage
+            ),
             allow_unpaid_orders=(root.allow_unpaid_orders),
         )
 

@@ -294,6 +294,7 @@ QUERY_CHANNEL_ORDER_SETTINGS = """
                 defaultTransactionFlowStrategy
                 deleteExpiredOrdersAfter
                 allowUnpaidOrders
+                includeDraftOrderInVoucherUsage
             }
         }
     }
@@ -350,6 +351,10 @@ def test_query_channel_order_settings_as_staff_user(
         channel_data["orderSettings"]["allowUnpaidOrders"]
         == channel_USD.allow_unpaid_orders
     )
+    assert (
+        channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"]
+        == channel_USD.include_draft_order_in_voucher_usage
+    )
 
 
 def test_query_channel_order_settings_as_app(
@@ -395,6 +400,10 @@ def test_query_channel_order_settings_as_app(
     assert (
         channel_data["orderSettings"]["defaultTransactionFlowStrategy"]
         == channel_USD.default_transaction_flow_strategy.upper()
+    )
+    assert (
+        channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"]
+        == channel_USD.include_draft_order_in_voucher_usage
     )
 
 
