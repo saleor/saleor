@@ -11,6 +11,8 @@ from ...giftcard import events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import is_gift_card_expired
 from ...permission.enums import GiftcardPermissions
+from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.utils import get_webhooks_for_event
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_31
@@ -80,9 +82,8 @@ class GiftCardBulkCreate(BaseMutation):
         instances = cls.create_instances(input, info)
         if tags:
             cls.assign_gift_card_tags(instances, tags)
-        manager = get_plugin_manager_promise(info.context).get()
         transaction.on_commit(
-            lambda: cls.call_gift_card_created_on_plugins(instances, manager)
+            lambda: cls.call_gift_card_created_on_plugins(instances, info.context)
         )
         return cls(count=len(instances), gift_cards=instances)
 
@@ -162,9 +163,11 @@ class GiftCardBulkCreate(BaseMutation):
             tag_instance.gift_cards.set(instances)
 
     @staticmethod
-    def call_gift_card_created_on_plugins(instances, manager):
+    def call_gift_card_created_on_plugins(instances, context):
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.GIFT_CARD_CREATED)
+        manager = get_plugin_manager_promise(context).get()
         for instance in instances:
-            manager.gift_card_created(instance)
+            manager.gift_card_created(instance, webhooks=webhooks)
 
 
 class GiftCardBulkDelete(ModelBulkDeleteMutation):
@@ -184,9 +187,10 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         instances = [card for card in queryset]
         queryset.delete()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.GIFT_CARD_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
         for instance in instances:
-            manager.gift_card_deleted(instance)
+            manager.gift_card_deleted(instance, webhooks=webhooks)
 
 
 class GiftCardBulkActivate(BaseBulkMutation):
@@ -220,9 +224,12 @@ class GiftCardBulkActivate(BaseBulkMutation):
         events.gift_cards_activated_event(
             gift_card_ids, user=info.context.user, app=app
         )
+        webhooks = get_webhooks_for_event(
+            WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED
+        )
         manager = get_plugin_manager_promise(info.context).get()
         for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
-            manager.gift_card_status_changed(card)
+            manager.gift_card_status_changed(card, webhooks=webhooks)
 
 
 class GiftCardBulkDeactivate(BaseBulkMutation):
@@ -251,5 +258,8 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
             gift_card_ids, user=info.context.user, app=app
         )
         manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(
+            WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED
+        )
         for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
-            manager.gift_card_status_changed(card)
+            manager.gift_card_status_changed(card, webhooks=webhooks)

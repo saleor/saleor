@@ -15,6 +15,8 @@ from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
 from ....permission.enums import AccountPermissions
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import CustomerBulkUpdateErrorCode, ErrorPolicyEnum
@@ -537,9 +539,17 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         customer_events = []
         app = get_app_promise(info.context).get()
         staff_user = info.context.user
+        webhooks_meta = get_webhooks_for_event(
+            WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED
+        )
+        webhooks_updated = get_webhooks_for_event(
+            WebhookEventAsyncType.CUSTOMER_UPDATED
+        )
 
         for updated_instance, old_instance in zip(instances, old_instances):
-            cls.call_event(manager.customer_updated, updated_instance)
+            cls.call_event(
+                manager.customer_updated, updated_instance, webhooks=webhooks_updated
+            )
             new_email = updated_instance.email
             new_fullname = updated_instance.get_full_name()
 
@@ -594,7 +604,11 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 )
 
             if metadata_update:
-                cls.call_event(manager.customer_metadata_updated, updated_instance)
+                cls.call_event(
+                    manager.customer_metadata_updated,
+                    updated_instance,
+                    webhooks=webhooks_meta,
+                )
 
         models.CustomerEvent.objects.bulk_create(customer_events)
 

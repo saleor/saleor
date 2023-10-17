@@ -548,8 +548,8 @@ class BaseMutation(graphene.Mutation):
         return cls(errors=errors, **extra)
 
     @staticmethod
-    def call_event(func_obj, *func_args):
-        return call_event(func_obj, *func_args)
+    def call_event(func_obj, *func_args, **kwargs):
+        return call_event(func_obj, *func_args, **kwargs)
 
     @classmethod
     def update_metadata(cls, instance, meta_data_list: List, is_private: bool = False):

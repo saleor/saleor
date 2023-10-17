@@ -2,6 +2,8 @@ import graphene
 
 from ...permission.enums import ShippingPermissions
 from ...shipping import models
+from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.utils import get_webhooks_for_event
 from ..core import ResolveInfo
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types import NonNullList, ShippingError
@@ -30,8 +32,10 @@ class ShippingZoneBulkDelete(ModelBulkDeleteMutation):
         zones = [zone for zone in queryset]
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.SHIPPING_ZONE_DELETED)
+
         for zone in zones:
-            manager.shipping_zone_deleted(zone)
+            manager.shipping_zone_deleted(zone, webhooks=webhooks)
 
 
 class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
@@ -72,5 +76,6 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
         shipping_methods = [sm for sm in queryset]
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.SHIPPING_PRICE_DELETED)
         for method in shipping_methods:
-            manager.shipping_price_deleted(method)
+            manager.shipping_price_deleted(method, webhooks=webhooks)

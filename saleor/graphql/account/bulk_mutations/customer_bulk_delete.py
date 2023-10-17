@@ -2,6 +2,8 @@ import graphene
 
 from ....account import models
 from ....permission.enums import AccountPermissions
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.mutations import ModelBulkDeleteMutation
@@ -41,6 +43,7 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         instances = list(queryset)
         queryset.delete()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.CUSTOMER_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
         for instance in instances:
-            manager.customer_deleted(instance)
+            manager.customer_deleted(instance, webhooks=webhooks)

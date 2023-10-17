@@ -11,6 +11,8 @@ from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....permission.enums import ProductPermissions
 from ....product import models
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import ModelBulkDeleteMutation
@@ -93,7 +95,8 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
 
         products = [product for product in queryset]
         queryset.delete()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
         for product in products:
             variants = product_variant_map.get(product.id, [])
-            manager.product_deleted(product, variants)
+            manager.product_deleted(product, variants, webhooks=webhooks)
