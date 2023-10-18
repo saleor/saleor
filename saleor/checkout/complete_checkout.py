@@ -130,6 +130,7 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
         deactivate_voucher_code(code)
     return {
         "voucher": voucher,
+        "voucher_code": code.code,
     }
 
 
