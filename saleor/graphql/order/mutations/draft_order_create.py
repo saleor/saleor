@@ -422,6 +422,17 @@ class DraftOrderCreate(
             # Process addresses
             cls._save_addresses(instance, cleaned_input)
 
+            try:
+                # Process any lines to add
+                cls._save_lines(
+                    info, instance, cleaned_input.get("lines_data"), app, manager
+                )
+            except TaxError as tax_error:
+                raise ValidationError(
+                    f"Unable to calculate taxes - {str(tax_error)}",
+                    code=OrderErrorCode.TAX_ERROR.value,
+                )
+
             if "shipping_method" in cleaned_input:
                 method = cleaned_input["shipping_method"]
                 if method is None:
@@ -435,21 +446,11 @@ class DraftOrderCreate(
                         shipping_channel_listing,
                     )
                     cls.update_shipping_method(instance, method, shipping_method_data)
+                    cls._update_shipping_price(instance, shipping_channel_listing)
                 updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 
             # Save any changes create/update the draft
             cls._commit_changes(info, instance, cleaned_input, is_new_instance, app)
-
-            try:
-                # Process any lines to add
-                cls._save_lines(
-                    info, instance, cleaned_input.get("lines_data"), app, manager
-                )
-            except TaxError as tax_error:
-                raise ValidationError(
-                    f"Unable to calculate taxes - {str(tax_error)}",
-                    code=OrderErrorCode.TAX_ERROR.value,
-                )
 
             update_order_display_gross_prices(instance)
 
@@ -470,10 +471,7 @@ class DraftOrderCreate(
             )
             if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
                 invalidate_order_prices(instance)
-                cls._update_shipping_price(instance, shipping_channel_listing)
-                updated_fields.extend(
-                    ["should_refresh_prices", "base_shipping_price_amount"]
-                )
+                updated_fields.extend(["should_refresh_prices"])
             recalculate_order_weight(instance)
             update_order_search_vector(instance, save=False)
 
