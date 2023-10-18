@@ -8,6 +8,8 @@ from django.db import transaction
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
 from ....warehouse.error_codes import StockErrorCode
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -61,9 +63,14 @@ class ProductVariantStocksCreate(BaseMutation):
                 raise ValidationError(errors)
             new_stocks = create_stocks(variant, stocks, warehouses)
 
+            webhooks = get_webhooks_for_event(
+                WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
+            )
             for stock in new_stocks:
                 transaction.on_commit(
-                    lambda: manager.product_variant_back_in_stock(stock)
+                    lambda: manager.product_variant_back_in_stock(
+                        stock, webhooks=webhooks
+                    )
                 )
 
         StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(

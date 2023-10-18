@@ -6,6 +6,8 @@ from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....warehouse import models as warehouse_models
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -74,8 +76,13 @@ class ProductVariantStocksDelete(BaseMutation):
             product_variant=variant, warehouse__pk__in=warehouses_pks
         )
 
+        webhooks = get_webhooks_for_event(
+            WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
+        )
         for stock in stocks_to_delete:
-            transaction.on_commit(lambda: manager.product_variant_out_of_stock(stock))
+            transaction.on_commit(
+                lambda: manager.product_variant_out_of_stock(stock, webhooks=webhooks)
+            )
 
         stocks_to_delete.delete()
 

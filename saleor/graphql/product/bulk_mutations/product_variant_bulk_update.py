@@ -12,6 +12,8 @@ from ....product import models
 from ....product.error_codes import ProductErrorCode, ProductVariantBulkErrorCode
 from ....product.tasks import update_product_discounted_price_task
 from ....warehouse import models as warehouse_models
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...attribute.utils import AttributeAssignmentMixin
 from ...core.descriptions import ADDED_IN_311, ADDED_IN_312, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -663,8 +665,11 @@ class ProductVariantBulkUpdate(BaseMutation):
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
 
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED)
         for instance in instances:
-            cls.call_event(manager.product_variant_updated, instance.node)
+            cls.call_event(
+                manager.product_variant_updated, instance.node, webhooks=webhooks
+            )
 
     @classmethod
     @traced_atomic_transaction()
