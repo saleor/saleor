@@ -1610,6 +1610,8 @@ def test_checkout_with_voucher_complete(
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order.voucher == voucher_percentage
+    assert order.voucher.code == code.code
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -1688,6 +1690,8 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
     assert voucher_percentage.used == voucher_used_count + 1
     code = voucher_percentage.codes.first()
     assert code.used == voucher_used_count + 1
+    assert order.voucher == voucher_percentage
+    assert order.voucher.code == code.code
 
     order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
     assert order_discount
@@ -1819,6 +1823,8 @@ def test_checkout_with_voucher_complete_product_on_sale(
     assert voucher_percentage.used == voucher_used_count + 1
     code = voucher_percentage.codes.first()
     assert code.used == voucher_used_count + 1
+    assert order.voucher == voucher_percentage
+    assert order.voucher.code == code.code
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -1894,6 +1900,8 @@ def test_checkout_with_voucher_on_specific_product_complete(
     assert voucher_specific_product_type.used == voucher_used_count + 1
     code = voucher_specific_product_type.codes.first()
     assert code.used == voucher_used_count + 1
+    assert order.voucher == voucher_specific_product_type
+    assert order.voucher.code == code.code
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
