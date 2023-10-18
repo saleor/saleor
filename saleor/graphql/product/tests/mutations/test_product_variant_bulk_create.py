@@ -98,17 +98,26 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
 """
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_variant_bulk_create.get_webhooks_for_event"
+)
 @patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_product_variant_bulk_create_by_name(
     product_variant_created_webhook_mock,
     update_product_discounted_price_task_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product,
     size_attribute,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
     # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
     product_variant_count = ProductVariant.objects.count()
     attribute_value_count = size_attribute.values.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -165,16 +174,28 @@ def test_product_variant_bulk_create_by_name(
     update_product_discounted_price_task_mock.call_count == data["count"]
 
 
+@patch(
+    (
+        "saleor.graphql.product.bulk_mutations."
+        "product_variant_bulk_create.get_webhooks_for_event"
+    )
+)
 @patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_product_variant_bulk_create_by_attribute_id(
     product_variant_created_webhook_mock,
     update_product_discounted_price_task_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product,
     size_attribute,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     # given
     product_variant_count = ProductVariant.objects.count()
     attribute_value_count = size_attribute.values.count()

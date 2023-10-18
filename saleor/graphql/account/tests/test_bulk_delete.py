@@ -57,7 +57,9 @@ def test_delete_customers(
     )
 
 
-@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch(
+    "saleor.graphql.account.bulk_mutations.customer_bulk_delete.get_webhooks_for_event"
+)
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_customers_trigger_webhooks(
     mocked_webhook_trigger,

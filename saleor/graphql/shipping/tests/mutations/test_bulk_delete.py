@@ -60,7 +60,7 @@ def test_delete_shipping_methods(
     ).exists()
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.graphql.shipping.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_shipping_methods_trigger_multiple_webhook_events(
     mocked_webhook_trigger,
@@ -127,7 +127,7 @@ def test_delete_shipping_zones(
     ).exists()
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.graphql.shipping.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_shipping_zones_trigger_multiple_webhook_events(
     mocked_webhook_trigger,

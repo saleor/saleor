@@ -146,7 +146,7 @@ def test_gift_card_bulk_deactivate_by_customer(
     assert_no_permission(response)
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.graphql.giftcard.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_gift_card_bulk_deactivate_trigger_webhook(
     mocked_webhook_trigger,

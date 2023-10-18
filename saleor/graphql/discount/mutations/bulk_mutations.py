@@ -6,6 +6,8 @@ from ....discount import models
 from ....discount.utils import CATALOGUE_FIELDS, fetch_catalogue_info
 from ....permission.enums import DiscountPermissions
 from ....product.tasks import update_products_discounted_prices_of_catalogues_task
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import DiscountError, NonNullList
@@ -38,9 +40,12 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
 
         catalogues_to_recalculate = defaultdict(set)
         manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.SALE_DELETED)
         for sale, catalogue_info in sales_and_catalogue_infos:
             manager.sale_deleted(
-                sale, convert_catalogue_info_to_global_ids(catalogue_info)
+                sale,
+                convert_catalogue_info_to_global_ids(catalogue_info),
+                webhooks=webhooks,
             )
             for field in CATALOGUE_FIELDS:
                 catalogues_to_recalculate[field].update(catalogue_info[field])
@@ -71,6 +76,7 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         vouchers = list(queryset)
         queryset.delete()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.VOUCHER_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
         for voucher in vouchers:
-            manager.voucher_deleted(voucher)
+            manager.voucher_deleted(voucher, webhooks=webhooks)

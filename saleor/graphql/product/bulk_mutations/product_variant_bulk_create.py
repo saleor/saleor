@@ -14,6 +14,8 @@ from ....product import models
 from ....product.error_codes import ProductVariantBulkErrorCode
 from ....product.tasks import update_product_discounted_price_task
 from ....warehouse import models as warehouse_models
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...attribute.types import (
     AttributeValueDescriptions,
     AttributeValueSelectableTypeInput,
@@ -908,15 +910,17 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     def post_save_actions(cls, info, instances, product):
-        manager = get_plugin_manager_promise(info.context).get()
-
         # Recalculate the "discounted price" for the parent product
         update_product_discounted_price_task.delay(product.pk)
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
 
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_CREATED)
+        manager = get_plugin_manager_promise(info.context).get()
         for instance in instances:
-            cls.call_event(manager.product_variant_created, instance.node)
+            cls.call_event(
+                manager.product_variant_created, instance.node, webhooks=webhooks
+            )
 
     @classmethod
     @traced_atomic_transaction()

@@ -22,6 +22,8 @@ from ....product.error_codes import ProductBulkCreateErrorCode
 from ....product.tasks import update_products_discounted_prices_task
 from ....thumbnail.utils import get_filename_from_url
 from ....warehouse.models import Warehouse
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
 from ...channel import ChannelContext
@@ -830,15 +832,18 @@ class ProductBulkCreate(BaseMutation):
     def post_save_actions(cls, info, products, variants, channels):
         manager = get_plugin_manager_promise(info.context).get()
         product_ids = []
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_CREATED)
         for product in products:
-            cls.call_event(manager.product_created, product.node)
+            cls.call_event(manager.product_created, product.node, webhooks=webhooks)
             product_ids.append(product.node.id)
 
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_CREATED)
         for variant in variants:
-            cls.call_event(manager.product_variant_created, variant)
+            cls.call_event(manager.product_variant_created, variant, webhooks=webhooks)
 
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.CHANNEL_UPDATED)
         for channel in channels:
-            cls.call_event(manager.channel_updated, channel)
+            cls.call_event(manager.channel_updated, channel, webhooks=webhooks)
 
         update_products_discounted_prices_task.delay(product_ids)
 
