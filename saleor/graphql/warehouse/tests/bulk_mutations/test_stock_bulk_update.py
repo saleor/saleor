@@ -76,14 +76,25 @@ def test_stocks_bulk_update_using_ids(
     assert stock_2.quantity == new_quantity_2
 
 
+@patch(
+    (
+        "saleor.graphql.warehouse.bulk_mutations."
+        "stock_bulk_update.get_webhooks_for_event"
+    )
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
 def test_stocks_bulk_update_send_stock_updated_event(
     product_variant_stock_update_webhook,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     variant_with_many_stocks,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
     # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variant = variant_with_many_stocks
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     stocks = variant.stocks.all()

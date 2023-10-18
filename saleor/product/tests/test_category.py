@@ -46,11 +46,18 @@ def test_delete_categories(
             assert not product_channel_listing.published_at
 
 
+@patch("saleor.product.utils.get_webhooks_for_event")
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_delete_categories_trigger_product_updated_webhook(
     product_updated_mock,
+    mocked_get_webhooks_for_event,
     categories_tree_with_published_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     parent = categories_tree_with_published_products
     child = parent.children.first()
     product_list = [child.products.first(), parent.products.first()]
