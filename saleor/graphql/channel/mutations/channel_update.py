@@ -5,6 +5,10 @@ from django.utils.text import slugify
 from ....channel import models
 from ....channel.error_codes import ChannelErrorCode
 from ....core.tracing import traced_atomic_transaction
+from ....discount.tasks import (
+    decrease_voucher_code_usage_of_draft_orders,
+    disconnect_voucher_codes_from_draft_orders,
+)
 from ....permission.enums import (
     ChannelPermissions,
     CheckoutPermissions,
@@ -125,7 +129,7 @@ class ChannelUpdate(ModelMutation):
         if stock_settings := cleaned_input.get("stock_settings"):
             cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
         if order_settings := cleaned_input.get("order_settings"):
-            clean_input_order_settings(order_settings, cleaned_input)
+            clean_input_order_settings(order_settings, cleaned_input, instance)
 
         if checkout_settings := cleaned_input.get("checkout_settings"):
             clean_input_checkout_settings(checkout_settings, cleaned_input)
@@ -219,8 +223,25 @@ class ChannelUpdate(ModelMutation):
             instance.warehouses.remove(*remove_warehouses)
 
     @classmethod
+    def _update_voucher_usage(cls, cleaned_input, instance):
+        """Update voucher code usage.
+
+        When the 'include_draft_order_in_voucher_usage' flag is changed:
+        - True -> False: decrease voucher usage of all vouchers associated with
+        draft orders.
+        - False -> True: disconnect vouchers from all draft orders.
+        """
+        current_flag = cleaned_input.get("include_draft_order_in_voucher_usage")
+        previous_flag = cleaned_input.get("prev_include_draft_order_in_voucher_usage")
+        if current_flag is False and previous_flag is True:
+            decrease_voucher_code_usage_of_draft_orders(instance.id)
+        elif current_flag is True and previous_flag is False:
+            disconnect_voucher_codes_from_draft_orders(instance.id)
+
+    @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.channel_updated, instance)
         if cleaned_input.get("metadata"):
             cls.call_event(manager.channel_metadata_updated, instance)
+        cls._update_voucher_usage(cleaned_input, instance)
