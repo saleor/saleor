@@ -394,7 +394,8 @@ def test_draft_order_create_with_voucher_code(
     stored_metadata = {"public": "public_value"}
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
-    assert data["voucherCode"] == voucher_code.code
+    assert data["voucher"]["code"] == voucher.code
+    assert data["voucherCode"] == voucher.code
     assert data["customerNote"] == customer_note
     assert data["redirectUrl"] == redirect_url
     assert data["externalReference"] == external_reference
