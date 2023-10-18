@@ -2,6 +2,7 @@ from ....celeryconf import app
 from ...models import Order
 from ....discount.models import Voucher
 from django.db.models import Exists, OuterRef
+from django.db import transaction
 
 
 # For batch size 1000 with 2000 per model Order/Voucher/VoucherCode objects
@@ -28,7 +29,9 @@ def set_order_voucher_code_task():
     ).order_by("pk")[:BATCH_SIZE]
     if ids := list(orders.values_list("pk", flat=True)):
         qs = Order.objects.filter(pk__in=ids)
-        set_voucher_code(qs)
+        with transaction.atomic():
+            _orders = list(qs.select_for_update(of=(["self"])))
+            set_voucher_code(qs)
         set_order_voucher_code_task.delay()
 
 

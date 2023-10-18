@@ -1,4 +1,5 @@
 from django.db.models import Exists, F, OuterRef
+from django.db import transaction
 
 from ....celeryconf import app
 from ....discount.models import Voucher, VoucherCode, VoucherCustomer
@@ -54,8 +55,9 @@ def move_codes_to_voucher_code_task():
     )
     if ids := vouchers.values_list("id", flat=True)[:VOUCHER_BATCH_SIZE]:
         qs = Voucher.objects.filter(id__in=ids)
-        move_codes_to_voucher_code(qs)
-        # TODO: add select for update
+        with transaction.atomic():
+            _vouchers = list(qs.select_for_update(of=(["self"])))
+            move_codes_to_voucher_code(qs)
         move_codes_to_voucher_code_task.delay()
 
 
@@ -80,7 +82,9 @@ def set_voucher_customer_codes_task():
     ).order_by("pk")[:VOUCHER_CUSTOMER_BATCH_SIZE]
     if ids := list(voucher_customers.values_list("pk", flat=True)):
         qs = VoucherCustomer.objects.filter(pk__in=ids)
-        set_voucher_code(qs)
+        with transaction.atomic():
+            _voucher_cusoemrs = list(qs.select_for_update(of=(["self"])))
+            set_voucher_code(qs)
         set_voucher_customer_codes_task.delay()
 
 
