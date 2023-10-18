@@ -527,17 +527,27 @@ def test_get_or_create_user_from_payload_update_last_login(
     assert last_login == "2019-03-18 12:00:00"
 
 
-def test_get_or_create_user_from_payload_last_login_stays_same(customer_user):
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_last_login_stays_same(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
+    # given
     last_login = timezone.now() - timedelta(minutes=14)
     customer_user.last_login = last_login
     customer_user.save()
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
     get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
     )
 
+    # then
     customer_user.refresh_from_db()
     assert customer_user.last_login == last_login
 
