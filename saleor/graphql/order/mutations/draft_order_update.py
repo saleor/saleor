@@ -53,12 +53,13 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
     @classmethod
     def should_invalidate_prices(cls, instance, cleaned_input, is_new_instance) -> bool:
         return any(
-            cleaned_input.get(field) is not None
+            field in cleaned_input
             for field in [
                 "shipping_address",
                 "billing_address",
                 "shipping_method",
                 "lines",
+                "voucher",
             ]
         )
 

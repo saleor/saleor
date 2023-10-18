@@ -12569,6 +12569,7 @@ enum OrderErrorCode @doc(category: "Orders") {
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
   CHANNEL_INACTIVE
+  INVALID_VOUCHER
 }
 
 """An enumeration."""
