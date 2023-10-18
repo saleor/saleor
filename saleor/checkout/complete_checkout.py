@@ -131,7 +131,7 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
         )
     return {
         "voucher": voucher,
-        "voucher_code": code,
+        "voucher_code": voucher.code,
     }
 
 

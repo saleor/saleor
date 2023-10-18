@@ -2,7 +2,7 @@
 
 from django.db import migrations
 from django.contrib.postgres.operations import AddIndexConcurrently
-from django.contrib.postgres.indexes import BTreeIndex
+from django.contrib.postgres.indexes import GinIndex
 
 
 class Migration(migrations.Migration):
@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
     operations = [
         AddIndexConcurrently(
             model_name="order",
-            index=BTreeIndex(fields=["voucher_code"], name="order_voucher_code_idx"),
+            index=GinIndex(fields=["voucher_code"], name="order_voucher_code_idx"),
         ),
     ]
