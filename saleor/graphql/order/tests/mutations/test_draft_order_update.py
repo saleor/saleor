@@ -48,6 +48,10 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                             value
                         }
                     }
+                    voucher {
+                        code
+                    }
+                    voucherCode
                     shippingAddress{
                         city
                         streetAddress1
@@ -115,7 +119,7 @@ def test_draft_order_update_voucher_not_available(
     assert error["field"] == "voucher"
 
 
-def test_draft_order_update(
+def test_draft_order_update_with_voucher_code(
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
@@ -125,6 +129,62 @@ def test_draft_order_update(
     # given
     order = draft_order
     assert not order.voucher
+    assert not order.voucher_code
+    assert not order.customer_note
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    voucher = voucher.codes.first()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    customer_note = "Test customer note"
+    external_reference = "test-ext-ref"
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucherCode": voucher.code,
+            "customerNote": customer_note,
+            "externalReference": external_reference,
+            "shippingAddress": graphql_address_data,
+            "billingAddress": graphql_address_data,
+        },
+    }
+
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert data["order"]["voucherCode"] == voucher.code
+    stored_metadata = {"public": "public_value"}
+
+    assert (
+        data["order"]["billingAddress"]["metadata"] == graphql_address_data["metadata"]
+    )
+    assert (
+        data["order"]["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
+    )
+
+    assert not data["errors"]
+    order.refresh_from_db()
+    assert order.billing_address.metadata == stored_metadata
+    assert order.shipping_address.metadata == stored_metadata
+    assert order.voucher_code == voucher.code
+    assert order.customer_note == customer_note
+    assert order.search_vector
+    assert (
+        data["order"]["externalReference"]
+        == external_reference
+        == order.external_reference
+    )
+
+
+def test_draft_order_update_with_voucher(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+    graphql_address_data,
+):
+    order = draft_order
+    assert not order.voucher
+    assert not order.voucher_code
     assert not order.customer_note
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     query = DRAFT_ORDER_UPDATE_MUTATION
@@ -152,6 +212,8 @@ def test_draft_order_update(
     # then
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
+    assert data["order"]["voucher"]["code"] == voucher.code
+    assert data["order"]["voucherCode"] == voucher.code
     stored_metadata = {"public": "public_value"}
 
     assert (
@@ -170,7 +232,7 @@ def test_draft_order_update(
     order.refresh_from_db()
     assert order.billing_address.metadata == stored_metadata
     assert order.shipping_address.metadata == stored_metadata
-    assert order.voucher
+    assert order.voucher_code == voucher.code
     assert order.customer_note == customer_note
     assert order.search_vector
     assert (
@@ -241,6 +303,47 @@ def test_draft_order_update_clear_voucher(
     assert order.search_vector
 
     assert not order.discounts.count()
+
+
+def test_draft_order_update_with_voucher_and_voucher_code(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+    graphql_address_data,
+):
+    order = draft_order
+    assert not order.voucher
+    assert not order.voucher_code
+    assert not order.customer_note
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    customer_note = "Test customer note"
+    external_reference = "test-ext-ref"
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucher": voucher_id,
+            "voucherCode": voucher.codes.first().code,
+            "customerNote": customer_note,
+            "externalReference": external_reference,
+            "shippingAddress": graphql_address_data,
+            "billingAddress": graphql_address_data,
+        },
+    }
+
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderUpdate"]["errors"][0]
+    assert error["field"] == "voucher"
+    assert error["code"] == OrderErrorCode.INVALID.name
+    assert (
+        error["message"]
+        == "You cannot use both a voucher and a voucher code for the same order. "
+        "Please choose one."
+    )
 
 
 def test_draft_order_update_with_non_draft_order(

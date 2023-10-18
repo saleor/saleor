@@ -11512,6 +11512,13 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
   voucher: Voucher
 
+  """
+  Voucher code that was used for Order.
+  
+  Added in Saleor 3.18.
+  """
+  voucherCode: String
+
   """List of user gift cards."""
   giftCards: [GiftCard!]!
   customerNote: String!
@@ -24957,6 +24964,13 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   """ID of the voucher associated with the order."""
   voucher: ID
 
+  """
+  A code of the voucher associated with the order.
+  
+  Added in Saleor 3.18.
+  """
+  voucherCode: String
+
   """A note from a customer. Visible by customers in the order summary."""
   customerNote: String
 
@@ -25070,6 +25084,13 @@ input DraftOrderInput @doc(category: "Orders") {
 
   """ID of the voucher associated with the order."""
   voucher: ID
+
+  """
+  A code of the voucher associated with the order.
+  
+  Added in Saleor 3.18.
+  """
+  voucherCode: String
 
   """A note from a customer. Visible by customers in the order summary."""
   customerNote: String
