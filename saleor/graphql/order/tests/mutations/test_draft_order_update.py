@@ -151,6 +151,7 @@ def test_draft_order_update_with_voucher_code(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
+    assert data["order"]["voucher"]["code"] == voucher.code
     assert data["order"]["voucherCode"] == voucher.code
     stored_metadata = {"public": "public_value"}
 
