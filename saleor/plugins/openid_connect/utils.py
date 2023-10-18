@@ -400,22 +400,22 @@ def get_or_create_user_from_payload(
         "password": make_password(None),
     }
     cache_key = oidc_metadata_key + "-" + str(sub)
-    try:
-        user = cache.get(cache_key)
-        if not user:
+    user = cache.get(cache_key)
+    if not user:
+        try:
             user = User.objects.get(**get_kwargs)
-    except User.DoesNotExist:
-        user, _ = User.objects.get_or_create(
-            email=user_email,
-            defaults=defaults_create,
-        )
-        match_orders_with_new_user(user)
-    except User.MultipleObjectsReturned:
-        logger.warning("Multiple users returned for single OIDC sub ID")
-        user, _ = User.objects.get_or_create(
-            email=user_email,
-            defaults=defaults_create,
-        )
+        except User.DoesNotExist:
+            user, _ = User.objects.get_or_create(
+                email=user_email,
+                defaults=defaults_create,
+            )
+            match_orders_with_new_user(user)
+        except User.MultipleObjectsReturned:
+            logger.warning("Multiple users returned for single OIDC sub ID")
+            user, _ = User.objects.get_or_create(
+                email=user_email,
+                defaults=defaults_create,
+            )
 
     site_settings = Site.objects.get_current().settings
     if not user.can_login(site_settings):  # it is true only if we fetch disabled user.
