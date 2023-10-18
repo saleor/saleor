@@ -1,7 +1,7 @@
 import pytest
 
 from ..channel.utils import create_channel
-from ..product.utils import prepare_digital_product
+from ..product.utils.preparing_product import prepare_digital_product
 from ..shipping_zone.utils import (
     create_shipping_method,
     create_shipping_method_channel_listing,
