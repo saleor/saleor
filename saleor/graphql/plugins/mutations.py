@@ -103,5 +103,5 @@ class PluginUpdate(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
         manager.save_plugin_configuration(plugin_id, channel_slug, input_data)
 
-        manager = get_plugins_manager(allow_replica=info.context.allow_replica)
+        manager = get_plugins_manager(allow_replica=False)
         return PluginUpdate(plugin=resolve_plugin(plugin_id, manager))
