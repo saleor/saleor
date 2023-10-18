@@ -17,8 +17,6 @@ from django.db import transaction
 # For batch size 1000 with 100_000 per model Order/Voucher/VoucherCode objects
 # Migration took 46.44 seconds.
 # Memory usage increased by 294.54 MiB.
-
-
 BATCH_SIZE = 1000
 
 
@@ -46,9 +44,8 @@ def set_voucher_code(orders):
 
 
 def get_voucher_id_to_code_map(orders):
-    voucher_id_to_code_map = {}
     vouchers = Voucher.objects.filter(Exists(orders.filter(voucher_id=OuterRef("pk"))))
     voucher_id_to_code_map = {
-        voucher_id: code for voucher_id, code in vouchers.values("id", "code")
+        voucher_id: code for voucher_id, code in vouchers.values_list("id", "code")
     }
     return voucher_id_to_code_map
