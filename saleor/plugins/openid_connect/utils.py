@@ -48,6 +48,8 @@ JWKS_KEY = "oauth_jwks"
 JWKS_CACHE_TIME = 60 * 60  # 1 hour
 USER_INFO_DEFAULT_CACHE_TIME = 60 * 60  # 1 hour
 
+OIDC_DEFAULT_CACHE_TIME = 60 * 60  # 1 hour
+
 
 OAUTH_TOKEN_REFRESH_FIELD = "oauth_refresh_token"
 CSRF_FIELD = "csrf_token"
@@ -397,20 +399,23 @@ def get_or_create_user_from_payload(
         "private_metadata": {oidc_metadata_key: sub},
         "password": make_password(None),
     }
-    try:
-        user = User.objects.get(**get_kwargs)
-    except User.DoesNotExist:
-        user, _ = User.objects.get_or_create(
-            email=user_email,
-            defaults=defaults_create,
-        )
-        match_orders_with_new_user(user)
-    except User.MultipleObjectsReturned:
-        logger.warning("Multiple users returned for single OIDC sub ID")
-        user, _ = User.objects.get_or_create(
-            email=user_email,
-            defaults=defaults_create,
-        )
+    cache_key = oidc_metadata_key + "-" + str(sub)
+    user = cache.get(cache_key)
+    if not user:
+        try:
+            user = User.objects.get(**get_kwargs)
+        except User.DoesNotExist:
+            user, _ = User.objects.get_or_create(
+                email=user_email,
+                defaults=defaults_create,
+            )
+            match_orders_with_new_user(user)
+        except User.MultipleObjectsReturned:
+            logger.warning("Multiple users returned for single OIDC sub ID")
+            user, _ = User.objects.get_or_create(
+                email=user_email,
+                defaults=defaults_create,
+            )
 
     if not user.is_active:  # it is true only if we fetch disabled user.
         raise AuthenticationError("Unable to log in.")
@@ -425,6 +430,7 @@ def get_or_create_user_from_payload(
         last_login=last_login,
     )
 
+    cache.set(cache_key, user, min(JWKS_CACHE_TIME, OIDC_DEFAULT_CACHE_TIME))
     return user
 
 

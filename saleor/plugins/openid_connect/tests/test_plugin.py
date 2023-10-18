@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -363,12 +363,22 @@ def test_external_refresh_incorrect_csrf(
 
 
 @freeze_time("2019-03-18 12:00:00")
+@patch("saleor.plugins.openid_connect.utils.cache.set")
+@patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_external_obtain_access_tokens(
-    openid_plugin, monkeypatch, rf, id_token, id_payload
+    mocked_cache_get,
+    mocked_cache_set,
+    openid_plugin,
+    monkeypatch,
+    rf,
+    id_token,
+    id_payload,
 ):
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
     mocked_jwt_validator.get.side_effect = id_payload.get
+
+    mocked_cache_get.side_effect = lambda cache_key: None
 
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.utils.get_decoded_token",
@@ -424,12 +434,22 @@ def test_external_obtain_access_tokens(
 
 
 @freeze_time("2019-03-18 12:00:00")
+@patch("saleor.plugins.openid_connect.utils.cache.set")
+@patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_external_obtain_access_tokens_with_permissions(
-    openid_plugin, monkeypatch, rf, id_token, id_payload
+    mocked_cache_get,
+    mocked_cache_set,
+    openid_plugin,
+    monkeypatch,
+    rf,
+    id_token,
+    id_payload,
 ):
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
     mocked_jwt_validator.get.side_effect = id_payload.get
+
+    mocked_cache_get.side_effect = lambda cache_key: None
 
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.utils.get_decoded_token",
@@ -492,13 +512,23 @@ def test_external_obtain_access_tokens_with_permissions(
 
 
 @freeze_time("2019-03-18 12:00:00")
+@patch("saleor.plugins.openid_connect.utils.cache.set")
+@patch("saleor.plugins.openid_connect.utils.cache.get")
 @pytest.mark.vcr
 def test_external_obtain_access_tokens_with_saleor_staff(
-    openid_plugin, monkeypatch, rf, id_token, id_payload
+    mocked_cache_get,
+    mocked_cache_set,
+    openid_plugin,
+    monkeypatch,
+    rf,
+    id_token,
+    id_payload,
 ):
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
     mocked_jwt_validator.get.side_effect = id_payload.get
+
+    mocked_cache_get.side_effect = lambda cache_key: None
 
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.utils.get_decoded_token",
@@ -559,9 +589,18 @@ def test_external_obtain_access_tokens_with_saleor_staff(
 
 
 @freeze_time("2019-03-18 12:00:00")
+@patch("saleor.plugins.openid_connect.utils.cache.set")
+@patch("saleor.plugins.openid_connect.utils.cache.get")
 @pytest.mark.vcr
 def test_external_obtain_access_tokens_user_which_is_no_more_staff(
-    openid_plugin, monkeypatch, rf, id_token, id_payload, staff_user
+    mocked_cache_get,
+    mocked_cache_set,
+    openid_plugin,
+    monkeypatch,
+    rf,
+    id_token,
+    id_payload,
+    staff_user,
 ):
     staff_user.is_staff = False
     staff_user.email = "admin@example.com"
@@ -570,6 +609,8 @@ def test_external_obtain_access_tokens_user_which_is_no_more_staff(
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
     mocked_jwt_validator.get.side_effect = id_payload.get
+
+    mocked_cache_get.side_effect = lambda cache_key: None
 
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.utils.get_decoded_token",
