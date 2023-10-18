@@ -154,7 +154,6 @@ def test_draft_order_create_with_voucher(
     ]
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
-    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
 
@@ -253,6 +252,15 @@ def test_draft_order_create_with_voucher(
     assert event_parameters["lines"][1]["line_pk"] == str(order_lines[1].pk)
     assert event_parameters["lines"][1]["quantity"] == 1
 
+    # Ensure order discount object was properly created
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
+    assert order_discount.voucher == voucher
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.value_type == DiscountValueType.FIXED
+    assert order_discount.value == voucher_listing.discount_value
+    assert order_discount.amount_value == voucher_listing.discount_value
+
 
 def test_draft_order_create_with_voucher_and_voucher_code(
     staff_api_client,
@@ -333,7 +341,7 @@ def test_draft_order_create_with_voucher_code(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
-    voucher = voucher.codes.first()
+    voucher_code = voucher.codes.first()
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
@@ -341,19 +349,26 @@ def test_draft_order_create_with_voucher_code(
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    channel_listing_0 = variant_0.channel_listings.get(channel=channel_USD)
+    variant_0_qty = 2
+
     variant_1 = product_without_shipping.variants.first()
-    variant_1.quantity = 2
-    variant_1.save()
+    variant_1_qty = 1
+    channel_listing_1 = variant_1.channel_listings.get(channel=channel_USD)
+
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
     discount = "10"
     customer_note = "Test note"
     variant_list = [
-        {"variantId": variant_0_id, "quantity": 2},
-        {"variantId": variant_1_id, "quantity": 1},
+        {"variantId": variant_0_id, "quantity": variant_0_qty},
+        {"variantId": variant_1_id, "quantity": variant_1_qty},
     ]
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
+
     redirect_url = "https://www.example.com"
     external_reference = "test-ext-ref"
 
@@ -365,7 +380,7 @@ def test_draft_order_create_with_voucher_code(
             "billingAddress": shipping_address,
             "shippingAddress": shipping_address,
             "shippingMethod": shipping_id,
-            "voucherCode": voucher.code,
+            "voucherCode": voucher_code.code,
             "customerNote": customer_note,
             "channelId": channel_id,
             "redirectUrl": redirect_url,
@@ -379,7 +394,7 @@ def test_draft_order_create_with_voucher_code(
     stored_metadata = {"public": "public_value"}
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
-    assert data["voucherCode"] == voucher.code
+    assert data["voucherCode"] == voucher_code.code
     assert data["customerNote"] == customer_note
     assert data["redirectUrl"] == redirect_url
     assert data["externalReference"] == external_reference
@@ -393,6 +408,19 @@ def test_draft_order_create_with_voucher_code(
     )
     assert data["billingAddress"]["metadata"] == graphql_address_data["metadata"]
     assert data["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
+    shipping_total = shipping_method.channel_listings.get(
+        channel=channel_USD
+    ).get_total()
+    order_total = (
+        channel_listing_0.discounted_price_amount * variant_0_qty
+        + channel_listing_1.discounted_price_amount * variant_1_qty
+        + shipping_total.amount
+    )
+
+    assert data["undiscountedTotal"]["gross"]["amount"] == order_total
+    assert (
+        data["total"]["gross"]["amount"] == order_total - voucher_listing.discount_value
+    )
 
     order = Order.objects.first()
     assert order.voucher_code == voucher.code
