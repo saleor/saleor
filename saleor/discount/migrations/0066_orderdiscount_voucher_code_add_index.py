@@ -19,4 +19,16 @@ class Migration(migrations.Migration):
                 fields=["voucher_code"], name="orderdiscount_voucher_code_idx"
             ),
         ),
+        AddIndexConcurrently(
+            model_name="checkoutlinediscount",
+            index=GinIndex(
+                fields=["voucher_code"], name="checklinedisc_voucher_code_idx"
+            ),
+        ),
+        AddIndexConcurrently(
+            model_name="orderlinediscount",
+            index=GinIndex(
+                fields=["voucher_code"], name="orderlinedisc_voucher_code_idx"
+            ),
+        ),
     ]

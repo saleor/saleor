@@ -14,4 +14,14 @@ class Migration(migrations.Migration):
             name="voucher_code",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
+        migrations.AddField(
+            model_name="checkoutlinediscount",
+            name="voucher_code",
+            field=models.CharField(blank=True, max_length=255, null=True),
+        ),
+        migrations.AddField(
+            model_name="orderlinediscount",
+            name="voucher_code",
+            field=models.CharField(blank=True, max_length=255, null=True),
+        ),
     ]
