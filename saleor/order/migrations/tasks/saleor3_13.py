@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django.db import transaction
 from django.db.models import DecimalField, QuerySet, Sum
-from django.db.models.expressions import F
+from django.db.models.expressions import Exists, F, OuterRef
 from django.db.models.functions import Coalesce
 
 from ....celeryconf import app
@@ -55,8 +55,9 @@ def order_events_rename_transaction_capture_events_task():
 
 @app.task
 def update_orders_charge_statuses_task():
-    order_ids = OrderGrantedRefund.objects.all().values_list("order_id", flat=True)
-    orders = Order.objects.filter(id__in=order_ids)
+    orders = Order.objects.filter(
+        Exists(OrderGrantedRefund.objects.filter(order_id=OuterRef("pk")))
+    )
     orders = orders.annotate(
         refunded_amount=Coalesce(
             Sum("granted_refunds__amount_value"),
