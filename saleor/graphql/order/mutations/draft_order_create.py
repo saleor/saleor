@@ -309,7 +309,7 @@ class DraftOrderCreate(
             except ValidationError:
                 raise ValidationError(
                     {
-                        "voucher": ValidationError(
+                        "voucher_code": ValidationError(
                             "Voucher code is invalid.",
                             code=OrderErrorCode.INVALID_VOUCHER_CODE.value,
                         )

@@ -990,6 +990,68 @@ def test_draft_order_create_voucher_code_including_drafts_in_voucher_usage_inval
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
+    assert error["field"] == "voucherCode"
+
+
+def test_draft_order_create_voucher_including_drafts_in_voucher_usage_invalid_code(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = True
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher.single_use = True
+    voucher.save(update_fields=["single_use"])
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+
+    code = voucher.codes.first()
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["errors"][0]
+    assert error["code"] == OrderErrorCode.INVALID_VOUCHER.name
     assert error["field"] == "voucher"
 
 
