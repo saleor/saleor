@@ -2,7 +2,9 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....order import models
+from ....order.utils import update_order_charge_data
 from ....permission.enums import OrderPermissions
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelMutation
@@ -77,3 +79,7 @@ class OrderGrantRefundUpdate(ModelMutation):
         if amount is not None:
             cleaned_input["amount_value"] = amount
         return cleaned_input
+
+    @classmethod
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        update_order_charge_data(instance.order)
