@@ -1,5 +1,6 @@
 import graphene
 
+from ....order.utils import update_order_charge_data
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
@@ -64,4 +65,5 @@ class OrderGrantRefundCreate(BaseMutation):
             user=info.context.user,
             app=info.context.app,
         )
+        update_order_charge_data(order)
         return cls(order=order, granted_refund=granted_refund)
