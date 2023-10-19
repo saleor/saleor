@@ -6,6 +6,7 @@ from django.db import transaction
 from graphql import GraphQLError
 
 from ....order import models
+from ....order.utils import update_order_charge_data
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_313, ADDED_IN_315, PREVIEW_FEATURE
@@ -333,4 +334,5 @@ class OrderGrantRefundUpdate(BaseMutation):
 
         cleaned_input = cls.clean_input(granted_refund, input)
         cls.process_update_for_granted_refund(order, granted_refund, cleaned_input)
+        update_order_charge_data(order)
         return cls(order=order, granted_refund=granted_refund)
