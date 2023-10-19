@@ -286,7 +286,8 @@ class DraftOrderCreate(
                         )
                     }
                 )
-        cls.clean_voucher_listing(voucher, channel, "voucher")
+        else:
+            cls.clean_voucher_listing(voucher, channel, "voucher")
         if not code_instance:
             code_instance = voucher.codes.first()
         if code_instance:
@@ -327,7 +328,7 @@ class DraftOrderCreate(
                     }
                 )
             voucher = code_instance.voucher
-        cls.clean_voucher_listing(voucher, channel, "voucher_code")
+            cls.clean_voucher_listing(voucher, channel, "voucher_code")
         cleaned_input["voucher"] = voucher
         cleaned_input["voucher_code_instance"] = code_instance
 
