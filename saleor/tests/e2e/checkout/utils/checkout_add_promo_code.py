@@ -15,6 +15,7 @@ mutation AddCheckoutPromoCode($checkoutId: ID!, $promoCode: String!) {
           amount
         }
       }
+      voucherCode
       discount {
         amount
       }
