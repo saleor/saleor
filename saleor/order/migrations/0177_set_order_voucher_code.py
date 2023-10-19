@@ -34,13 +34,12 @@ def queryset_in_batches(queryset):
 def set_order_voucher_code(apps, schema_editor):
     Order = apps.get_model("order", "Order")
     Voucher = apps.get_model("discount", "Voucher")
-    VoucherCode = apps.get_model("discount", "VoucherCode")
     orders = Order.objects.filter(
         voucher__isnull=False, voucher_code__isnull=True
     ).order_by("pk")
     for ids in queryset_in_batches(orders):
         qs = Order.objects.filter(pk__in=ids)
-        set_voucher_code(Order, Voucher, VoucherCode, qs)
+        set_voucher_code(Order, Voucher, qs)
 
 
 def set_voucher_code(Order, Voucher, orders):
@@ -63,7 +62,7 @@ def get_voucher_id_to_code_map(Voucher, orders):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0058_move_codes_to_new_model"),
+        ("discount", "0056_voucher_code_indexes"),
         ("order", "0176_order_voucher_code_add_index"),
     ]
 
