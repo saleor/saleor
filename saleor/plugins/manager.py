@@ -87,6 +87,14 @@ class PluginsManager(PaymentInterface):
     global_plugins: List["BasePlugin"] = []
     all_plugins: List["BasePlugin"] = []
 
+    @property
+    def database(self):
+        return (
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+            if self._allow_replica
+            else settings.DATABASE_CONNECTION_DEFAULT_NAME
+        )
+
     def _load_plugin(
         self,
         PluginClass: Type["BasePlugin"],
@@ -116,12 +124,15 @@ class PluginsManager(PaymentInterface):
 
     def __init__(self, plugins: List[str], requestor_getter=None, allow_replica=True):
         with opentracing.global_tracer().start_active_span("PluginsManager.__init__"):
+            self._allow_replica = allow_replica
             self.all_plugins = []
             self.global_plugins = []
             self.plugins_per_channel = defaultdict(list)
 
-            global_db_configs, channel_db_configs = self._get_db_plugin_configs()
-            channels = Channel.objects.all()
+            channel_map = self._get_channel_map()
+            global_db_configs, channel_db_configs = self._get_db_plugin_configs(
+                channel_map
+            )
 
             for plugin_path in plugins:
                 with opentracing.global_tracer().start_active_span(f"{plugin_path}"):
@@ -136,7 +147,7 @@ class PluginsManager(PaymentInterface):
                         self.global_plugins.append(plugin)
                         self.all_plugins.append(plugin)
                     else:
-                        for channel in channels:
+                        for channel in channel_map.values():
                             channel_configs = channel_db_configs.get(channel, {})
                             plugin = self._load_plugin(
                                 PluginClass,
@@ -148,26 +159,26 @@ class PluginsManager(PaymentInterface):
                             self.plugins_per_channel[channel.slug].append(plugin)
                             self.all_plugins.append(plugin)
 
-            for channel in channels:
+            for channel in channel_map.values():
                 self.plugins_per_channel[channel.slug].extend(self.global_plugins)
 
-    def _get_db_plugin_configs(self):
+    def _get_db_plugin_configs(self, channel_map):
         with opentracing.global_tracer().start_active_span("_get_db_plugin_configs"):
-            qs = (
-                PluginConfiguration.objects.all()
-                .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-                .prefetch_related("channel")
-            )
+            plugin_manager_configs = PluginConfiguration.objects.using(
+                self.database
+            ).all()
             channel_configs: DefaultDict[Channel, Dict] = defaultdict(dict)
             global_configs = {}
-            for db_plugin_config in qs:
-                channel = db_plugin_config.channel
+            for db_plugin_config in plugin_manager_configs.iterator():
+                channel = channel_map.get(db_plugin_config.channel_id)
                 if channel is None:
                     global_configs[db_plugin_config.identifier] = db_plugin_config
                 else:
+                    db_plugin_config.channel = channel
                     channel_configs[channel][
                         db_plugin_config.identifier
                     ] = db_plugin_config
+
             return global_configs, channel_configs
 
     def __run_method_on_plugins(
@@ -1630,7 +1641,9 @@ class PluginsManager(PaymentInterface):
     ):
         if channel_slug:
             plugins = self.get_plugins(channel_slug=channel_slug)
-            channel = Channel.objects.filter(slug=channel_slug).first()
+            channel = (
+                Channel.objects.using(self.database).filter(slug=channel_slug).first()
+            )
             if not channel:
                 return None
         else:
@@ -1639,7 +1652,9 @@ class PluginsManager(PaymentInterface):
 
         for plugin in plugins:
             if plugin.PLUGIN_ID == plugin_id:
-                plugin_configuration, _ = PluginConfiguration.objects.get_or_create(
+                plugin_configuration, _ = PluginConfiguration.objects.using(
+                    self.database
+                ).get_or_create(
                     identifier=plugin_id,
                     channel=channel,
                     defaults={"configuration": plugin.configuration},
@@ -1841,6 +1856,12 @@ class PluginsManager(PaymentInterface):
         )
         only_active_plugins = [plugin for plugin in plugins if plugin.active]
         return any([plugin.is_event_active(event) for plugin in only_active_plugins])
+
+    def _get_channel_map(self):
+        return {
+            channel.pk: channel
+            for channel in Channel.objects.using(self.database).all().iterator()
+        }
 
 
 def get_plugins_manager(

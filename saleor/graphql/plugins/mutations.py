@@ -99,7 +99,9 @@ class PluginUpdate(BaseMutation):
         plugin_id = cleaned_data["plugin"].PLUGIN_ID
         channel_slug = cleaned_data["channel_slug"]
         input_data = cleaned_data["data"]
+
         manager = get_plugin_manager_promise(info.context).get()
         manager.save_plugin_configuration(plugin_id, channel_slug, input_data)
-        manager = get_plugins_manager()
+
+        manager = get_plugins_manager(allow_replica=False)
         return PluginUpdate(plugin=resolve_plugin(plugin_id, manager))
