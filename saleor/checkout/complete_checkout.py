@@ -112,25 +112,25 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     :raises NotApplicable: When the voucher is not applicable in the current checkout.
     """
     checkout = checkout_info.checkout
-    voucher, code = get_voucher_for_checkout_info(checkout_info, with_lock=True)
+    voucher, voucher_code = get_voucher_for_checkout_info(checkout_info, with_lock=True)
 
-    if checkout.voucher_code and not code:
+    if checkout.voucher_code and not voucher_code:
         msg = "Voucher expired in meantime. Order placement aborted."
         raise NotApplicable(msg)
 
-    if not code or not voucher:
+    if not voucher_code or not voucher:
         return {}
 
     if voucher.usage_limit:
-        increase_voucher_code_usage(code)
+        increase_voucher_code_usage(voucher_code)
     if voucher.apply_once_per_customer:
         customer_email = cast(str, checkout_info.get_customer_email())
-        add_voucher_usage_by_customer(code, customer_email)
+        add_voucher_usage_by_customer(voucher_code, customer_email)
     if voucher.single_use:
-        deactivate_voucher_code(code)
+        deactivate_voucher_code(voucher_code)
     return {
         "voucher": voucher,
-        "voucher_code": code.code,
+        "voucher_code": voucher_code.code,
     }
 
 
