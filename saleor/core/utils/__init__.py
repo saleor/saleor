@@ -150,7 +150,11 @@ def prepare_unique_slug(slug: str, slug_values: Iterable):
 
     while unique_slug in slug_values:
         extension += 1
-        unique_slug = f"{slug}-{extension}"
+
+        if slug == "-":
+            unique_slug = f"{slug}{extension}"
+        else:
+            unique_slug = f"{slug}-{extension}"
 
     return unique_slug
 
