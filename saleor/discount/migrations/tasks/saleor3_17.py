@@ -2,7 +2,14 @@ from django.db.models import Exists, F, OuterRef
 from django.db import transaction
 
 from ....celeryconf import app
-from ....discount.models import Voucher, VoucherCode, VoucherCustomer
+from ....discount.models import (
+    Voucher,
+    VoucherCode,
+    VoucherCustomer,
+    CheckoutLineDiscount,
+    OrderDiscount,
+    OrderLineDiscount,
+)
 from ....product.models import (
     Product,
     ProductVariant,
@@ -19,6 +26,24 @@ VOUCHER_BATCH_SIZE = 5000
 
 # The batch of size 1000 took about 0.2s
 VOUCHER_CUSTOMER_BATCH_SIZE = 1000
+
+
+# For batch size 1000 with 10_000 per model OrderDiscount/Voucher/VoucherCode objects
+# OrderDiscount Migration took 2.39 seconds.
+# OrderDiscount Memory usage increased by 15.65 MiB.
+# OrderLineDiscount Migration took 2.48 seconds.
+# OrderLineDiscount Memory usage increased by 4.61 MiB.
+# CheckoutLineDiscount Migration took 2.26 seconds.
+# CheckoutLineDiscount Memory usage increased by 3.23 MiB.
+
+# For batch size 1000 with 100_000 per model OrderDiscount/Voucher/VoucherCode objects
+# OrderDiscount Migration took 28.68 seconds.
+# OrderDiscount Memory usage increased by 163.00 MiB.
+# OrderLineDiscount Migration took 27.98 seconds.
+# OrderLineDiscount Memory usage increased by 47.99 MiB.
+# CheckoutLineDiscount Migration took 28.12 seconds.
+# CheckoutLineDiscount Memory usage increased by 35.52 MiB.
+BASE_DISCOUNT_BATCH_SIZE = 1000
 
 
 @app.task
@@ -83,7 +108,7 @@ def set_voucher_customer_codes_task():
     if ids := list(voucher_customers.values_list("pk", flat=True)):
         qs = VoucherCustomer.objects.filter(pk__in=ids)
         with transaction.atomic():
-            _voucher_cusoemrs = list(qs.select_for_update(of=(["self"])))
+            _voucher_customers = list(qs.select_for_update(of=(["self"])))
             set_voucher_code(qs)
         set_voucher_customer_codes_task.delay()
 
@@ -109,4 +134,44 @@ def get_voucher_id_to_code_map(voucher_customers):
     for code in codes:
         voucher_id_to_code_map[code.voucher_id] = code
 
+    return voucher_id_to_code_map
+
+
+@app.task
+def set_discounts_voucher_code_task():
+    set_discount_voucher_code_task.delay(OrderDiscount)
+    set_discount_voucher_code_task.delay(OrderLineDiscount)
+    set_discount_voucher_code_task.delay(CheckoutLineDiscount)
+
+
+@app.task
+def set_discount_voucher_code_task(ModelDiscount) -> None:
+    model_discounts = ModelDiscount.objects.filter(
+        voucher__isnull=False, voucher_code__isnull=True
+    ).order_by("pk")[:BASE_DISCOUNT_BATCH_SIZE]
+    if ids := list(model_discounts.values_list("pk", flat=True)):
+        qs = ModelDiscount.objects.filter(pk__in=ids)
+        with transaction.atomic():
+            _discounts = list(qs.select_for_update(of=(["self"])))
+            set_discount_voucher_code(ModelDiscount, qs)
+        set_discount_voucher_code_task.delay(ModelDiscount)
+
+
+def set_discount_voucher_code(ModelDiscount, model_discounts) -> None:
+    voucher_id_to_code_map = get_discount_voucher_id_to_code_map(model_discounts)
+    model_discounts_list = []
+    for model_discount in model_discounts:
+        code = voucher_id_to_code_map[model_discount.voucher_id]
+        model_discount.voucher_code = code
+        model_discounts_list.append(model_discount)
+    ModelDiscount.objects.bulk_update(model_discounts_list, ["voucher_code"])
+
+
+def get_discount_voucher_id_to_code_map(model_discounts):
+    vouchers = Voucher.objects.filter(
+        Exists(model_discounts.filter(voucher_id=OuterRef("pk")))
+    )
+    voucher_id_to_code_map = {
+        voucher_id: code for voucher_id, code in vouchers.values_list("id", "code")
+    }
     return voucher_id_to_code_map

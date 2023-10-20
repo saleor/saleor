@@ -435,6 +435,9 @@ class BaseDiscount(models.Model):
     voucher = models.ForeignKey(
         Voucher, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
     )
+    voucher_code = models.CharField(
+        max_length=255, null=True, blank=True, db_index=False
+    )
 
     class Meta:
         abstract = True
@@ -457,6 +460,7 @@ class OrderDiscount(BaseDiscount):
             ),
             # Orders searching index
             GinIndex(fields=["name", "translated_name"]),
+            GinIndex(fields=["voucher_code"], name="orderdiscount_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
 
@@ -474,7 +478,8 @@ class OrderLineDiscount(BaseDiscount):
         indexes = [
             BTreeIndex(
                 fields=["promotion_rule"], name="orderlinedisc_promotion_rule_idx"
-            )
+            ),
+            GinIndex(fields=["voucher_code"], name="orderlinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
 
@@ -492,7 +497,8 @@ class CheckoutLineDiscount(BaseDiscount):
         indexes = [
             BTreeIndex(
                 fields=["promotion_rule"], name="checklinedisc_promotion_rule_idx"
-            )
+            ),
+            GinIndex(fields=["voucher_code"], name="checklinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
 
