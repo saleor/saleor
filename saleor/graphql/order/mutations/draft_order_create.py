@@ -1,8 +1,8 @@
 from collections import defaultdict
+from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Exists, OuterRef
 
 from ....account.models import User
 from ....checkout import AddressType
@@ -10,6 +10,7 @@ from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....discount.models import Voucher, VoucherCode
+from ....discount.utils import get_voucher_code_instance, increase_voucher_usage
 from ....order import OrderOrigin, OrderStatus, events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
@@ -209,9 +210,9 @@ class DraftOrderCreate(
         voucher = cleaned_input.get("voucher", None)
         voucher_code = cleaned_input.get("voucher_code", None)
         cls.clean_voucher_and_voucher_code(voucher, voucher_code)
-        if voucher:
+        if "voucher" in cleaned_input:
             cls.clean_voucher(voucher, channel, cleaned_input)
-        if voucher_code:
+        elif "voucher_code" in cleaned_input:
             cls.clean_voucher_code(voucher_code, channel, cleaned_input)
 
         if channel:
@@ -253,53 +254,6 @@ class DraftOrderCreate(
             return instance.channel if hasattr(instance, "channel") else None
 
     @classmethod
-    def clean_voucher(cls, voucher, channel, cleaned_input):
-        if not voucher.channel_listings.filter(channel=channel).exists():
-            raise ValidationError(
-                {
-                    "voucher": ValidationError(
-                        "Voucher not available for this order.",
-                        code=OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
-                    )
-                }
-            )
-        first_code = voucher.codes.first()
-        if first_code:
-            cleaned_input["voucher_code"] = first_code.code
-
-    @classmethod
-    def clean_voucher_code(
-        cls, voucher_code: str, channel: Channel, cleaned_input: dict
-    ):
-        voucher = Voucher.objects.filter(
-            Exists(
-                VoucherCode.objects.filter(code=voucher_code, voucher_id=OuterRef("pk"))
-            )
-        ).first()
-
-        if not voucher:
-            raise ValidationError(
-                {
-                    "voucher": ValidationError(
-                        "Invalid voucher code.",
-                        code=OrderErrorCode.INVALID_VOUCHER_CODE.value,
-                    )
-                }
-            )
-        else:
-            if not voucher.channel_listings.filter(channel=channel).exists():
-                raise ValidationError(
-                    {
-                        "voucher": ValidationError(
-                            "Voucher not available for this order.",
-                            code=OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
-                        )
-                    }
-                )
-            cleaned_input["voucher"] = voucher
-            cleaned_input["voucher_code"] = voucher_code
-
-    @classmethod
     def clean_voucher_and_voucher_code(cls, voucher, voucher_code):
         if voucher and voucher_code:
             raise ValidationError(
@@ -308,6 +262,84 @@ class DraftOrderCreate(
                         "You cannot use both a voucher and a voucher code for the same "
                         "order. Please choose one.",
                         code=OrderErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def clean_voucher(cls, voucher, channel, cleaned_input):
+        # We need to clean voucher_code as well
+        if voucher is None:
+            cleaned_input["voucher_code"] = None
+            return
+        code_instance = None
+        if channel.include_draft_order_in_voucher_usage:
+            # Validate voucher when it's included in voucher usage calculation
+            try:
+                code_instance = get_voucher_code_instance(voucher.code, channel.slug)
+            except ValidationError:
+                raise ValidationError(
+                    {
+                        "voucher": ValidationError(
+                            "Voucher is invalid.",
+                            code=OrderErrorCode.INVALID_VOUCHER.value,
+                        )
+                    }
+                )
+        else:
+            cls.clean_voucher_listing(voucher, channel, "voucher")
+        if not code_instance:
+            code_instance = voucher.codes.first()
+        if code_instance:
+            cleaned_input["voucher_code"] = code_instance.code
+            cleaned_input["voucher_code_instance"] = code_instance
+
+    @classmethod
+    def clean_voucher_code(
+        cls, voucher_code: Optional[str], channel: Channel, cleaned_input: dict
+    ):
+        # We need to clean voucher instance as well
+        if voucher_code is None:
+            cleaned_input["voucher"] = None
+            return
+        if channel.include_draft_order_in_voucher_usage:
+            # Validate voucher when it's included in voucher usage calculation
+            try:
+                code_instance = get_voucher_code_instance(voucher_code, channel.slug)
+            except ValidationError:
+                raise ValidationError(
+                    {
+                        "voucher_code": ValidationError(
+                            "Voucher code is invalid.",
+                            code=OrderErrorCode.INVALID_VOUCHER_CODE.value,
+                        )
+                    }
+                )
+            voucher = code_instance.voucher
+        else:
+            code_instance = VoucherCode.objects.filter(code=voucher_code).first()
+            if not code_instance:
+                raise ValidationError(
+                    {
+                        "voucher": ValidationError(
+                            "Invalid voucher code.",
+                            code=OrderErrorCode.INVALID_VOUCHER_CODE.value,
+                        )
+                    }
+                )
+            voucher = code_instance.voucher
+            cls.clean_voucher_listing(voucher, channel, "voucher_code")
+        cleaned_input["voucher"] = voucher
+        cleaned_input["voucher_code_instance"] = code_instance
+
+    @classmethod
+    def clean_voucher_listing(cls, voucher: "Voucher", channel: "Channel", field: str):
+        if not voucher.channel_listings.filter(channel=channel).exists():
+            raise ValidationError(
+                {
+                    field: ValidationError(
+                        "Voucher not available for this order.",
+                        code=OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
                     )
                 }
             )
@@ -513,6 +545,9 @@ class DraftOrderCreate(
             # Save any changes create/update the draft
             cls._commit_changes(info, instance, cleaned_input, is_new_instance, app)
 
+            if voucher := cleaned_input.get("voucher"):
+                cls.handle_order_voucher(cleaned_input, instance, voucher)
+
             update_order_display_gross_prices(instance)
 
             if is_new_instance:
@@ -537,3 +572,12 @@ class DraftOrderCreate(
             update_order_search_vector(instance, save=False)
 
             instance.save(update_fields=updated_fields)
+
+    @classmethod
+    def handle_order_voucher(cls, cleaned_input, instance, voucher):
+        code_instance = cleaned_input.pop("voucher_code_instance", None)
+        channel = instance.channel
+        if channel.include_draft_order_in_voucher_usage:
+            increase_voucher_usage(
+                voucher, code_instance, instance.user_email or instance.user.email
+            )

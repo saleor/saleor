@@ -774,7 +774,11 @@ def get_order_discounts(order: Order) -> list[OrderDiscount]:
 
 
 def create_order_discount_for_order(
-    order: Order, reason: str, value_type: str, value: Decimal
+    order: Order,
+    reason: str,
+    value_type: str,
+    value: Decimal,
+    type: Optional[str] = None,
 ):
     """Add new order discount and update the prices."""
 
@@ -786,12 +790,14 @@ def create_order_discount_for_order(
     )
 
     new_amount = quantize_price((current_total - gross_total).gross, currency)
+    kwargs = {} if not type else {"type": type}
 
     order_discount = order.discounts.create(
         value_type=value_type,
         value=value,
         reason=reason,
         amount=new_amount,  # type: ignore
+        **kwargs,
     )
     return order_discount
 

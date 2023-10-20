@@ -33,10 +33,8 @@ from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountType, DiscountValueType
 from ..discount.models import NotApplicable, OrderLineDiscount
 from ..discount.utils import (
-    add_voucher_usage_by_customer,
-    deactivate_voucher_code,
     get_sale_id,
-    increase_voucher_code_usage,
+    increase_voucher_usage,
     prepare_promotion_discount_reason,
     release_voucher_code_usage,
 )
@@ -118,13 +116,9 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     if not voucher_code or not voucher:
         return {}
 
-    if voucher.usage_limit:
-        increase_voucher_code_usage(voucher_code)
-    if voucher.apply_once_per_customer:
-        customer_email = cast(str, checkout_info.get_customer_email())
-        add_voucher_usage_by_customer(voucher_code, customer_email)
-    if voucher.single_use:
-        deactivate_voucher_code(voucher_code)
+    customer_email = cast(str, checkout_info.get_customer_email())
+    increase_voucher_usage(voucher, voucher_code, customer_email)
+
     return {
         "voucher": voucher,
         "voucher_code": voucher_code.code,
@@ -977,21 +971,14 @@ def _is_refund_ongoing(payment):
     )
 
 
-def _increase_voucher_code_usage(checkout_info: "CheckoutInfo"):
+def _increase_voucher_code_usage_value(checkout_info: "CheckoutInfo"):
     """Increase a voucher usage applied to the checkout."""
     voucher, code = get_voucher_for_checkout_info(checkout_info, with_lock=True)
     if not voucher or not code:
         return None
 
-    if voucher.apply_once_per_customer:
-        customer_email = cast(str, checkout_info.get_customer_email())
-        add_voucher_usage_by_customer(code, customer_email)
-
-    if voucher.usage_limit:
-        increase_voucher_code_usage(code)
-
-    if voucher.single_use:
-        deactivate_voucher_code(code)
+    customer_email = cast(str, checkout_info.get_customer_email())
+    increase_voucher_usage(voucher, code, customer_email)
 
     return code
 
@@ -1303,7 +1290,7 @@ def create_order_from_checkout(
 
     if voucher := checkout_info.voucher:
         with transaction.atomic():
-            code = _increase_voucher_code_usage(checkout_info=checkout_info)
+            code = _increase_voucher_code_usage_value(checkout_info=checkout_info)
 
     with transaction.atomic():
         checkout_pk = checkout_info.checkout.pk

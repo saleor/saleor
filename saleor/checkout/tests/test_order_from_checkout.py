@@ -744,7 +744,7 @@ def test_note_in_created_order_checkout_line_deleted_in_the_meantime(
 
     # when
     with before_after.after(
-        "saleor.checkout.complete_checkout._increase_voucher_code_usage",
+        "saleor.checkout.complete_checkout._increase_voucher_code_usage_value",
         delete_checkout_line,
     ):
         order = create_order_from_checkout(
@@ -779,7 +779,7 @@ def test_note_in_created_order_checkout_deleted_in_the_meantime(
 
     # when
     with before_after.after(
-        "saleor.checkout.complete_checkout._increase_voucher_code_usage",
+        "saleor.checkout.complete_checkout._increase_voucher_code_usage_value",
         delete_checkout,
     ):
         order = create_order_from_checkout(

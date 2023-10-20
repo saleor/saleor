@@ -4673,8 +4673,6 @@ def order_with_lines(
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
     order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
-    order.total += order.shipping_price
-    order.undiscounted_total += order.shipping_price
     order.save()
 
     recalculate_order(order)
