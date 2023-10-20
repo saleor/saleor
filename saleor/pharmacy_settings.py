@@ -549,7 +549,10 @@ CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
+
+# DB_URL set above
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", db_url)
+
 CELERY_TASK_ROUTES = {
     "saleor.plugins.webhook.tasks.observability_reporter_task": {
         "queue": "observability"
