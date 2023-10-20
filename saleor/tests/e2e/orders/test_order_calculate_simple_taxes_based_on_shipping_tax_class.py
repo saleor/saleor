@@ -58,7 +58,7 @@ def prepare_tax_configuration(
 
 
 @pytest.mark.e2e
-def test_order_calculate_simple_tax_based_on_shipping_tax_class_CORE_2009(
+def test_order_calculate_simple_tax_based_on_shipping_tax_class_CORE_2010(
     e2e_staff_api_client,
     permission_manage_products,
     permission_manage_channels,
