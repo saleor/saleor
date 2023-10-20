@@ -31,6 +31,7 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
           amount
         }
       }
+      created
       isShippingRequired
       shippingMethods {
         id
