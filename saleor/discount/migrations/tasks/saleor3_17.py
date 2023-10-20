@@ -139,22 +139,48 @@ def get_voucher_id_to_code_map(voucher_customers):
 
 @app.task
 def set_discounts_voucher_code_task():
-    set_discount_voucher_code_task.delay(OrderDiscount)
-    set_discount_voucher_code_task.delay(OrderLineDiscount)
-    set_discount_voucher_code_task.delay(CheckoutLineDiscount)
+    set_order_discount_voucher_code_task.delay()
+    set_order_line_discount_voucher_code_task.delay()
+    set_checkout_line_discount_voucher_code_task.delay()
 
 
 @app.task
-def set_discount_voucher_code_task(ModelDiscount) -> None:
-    model_discounts = ModelDiscount.objects.filter(
+def set_order_discount_voucher_code_task() -> None:
+    model_discounts = OrderDiscount.objects.filter(
         voucher__isnull=False, voucher_code__isnull=True
     ).order_by("pk")[:BASE_DISCOUNT_BATCH_SIZE]
     if ids := list(model_discounts.values_list("pk", flat=True)):
-        qs = ModelDiscount.objects.filter(pk__in=ids)
+        qs = OrderDiscount.objects.filter(pk__in=ids)
         with transaction.atomic():
             _discounts = list(qs.select_for_update(of=(["self"])))
-            set_discount_voucher_code(ModelDiscount, qs)
-        set_discount_voucher_code_task.delay(ModelDiscount)
+            set_discount_voucher_code(OrderDiscount, qs)
+        set_order_discount_voucher_code_task.delay()
+
+
+@app.task
+def set_order_line_discount_voucher_code_task() -> None:
+    model_discounts = OrderLineDiscount.objects.filter(
+        voucher__isnull=False, voucher_code__isnull=True
+    ).order_by("pk")[:BASE_DISCOUNT_BATCH_SIZE]
+    if ids := list(model_discounts.values_list("pk", flat=True)):
+        qs = OrderLineDiscount.objects.filter(pk__in=ids)
+        with transaction.atomic():
+            _discounts = list(qs.select_for_update(of=(["self"])))
+            set_discount_voucher_code(OrderLineDiscount, qs)
+        set_order_line_discount_voucher_code_task.delay()
+
+
+@app.task
+def set_checkout_line_discount_voucher_code_task() -> None:
+    model_discounts = CheckoutLineDiscount.objects.filter(
+        voucher__isnull=False, voucher_code__isnull=True
+    ).order_by("pk")[:BASE_DISCOUNT_BATCH_SIZE]
+    if ids := list(model_discounts.values_list("pk", flat=True)):
+        qs = CheckoutLineDiscount.objects.filter(pk__in=ids)
+        with transaction.atomic():
+            _discounts = list(qs.select_for_update(of=(["self"])))
+            set_discount_voucher_code(CheckoutLineDiscount, qs)
+        set_checkout_line_discount_voucher_code_task.delay()
 
 
 def set_discount_voucher_code(ModelDiscount, model_discounts) -> None:
