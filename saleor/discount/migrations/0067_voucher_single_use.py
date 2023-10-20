@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0065_clear_voucher_and_vouchercustomer"),
+        ("discount", "0066_clear_voucher_and_vouchercustomer"),
     ]
 
     operations = [
