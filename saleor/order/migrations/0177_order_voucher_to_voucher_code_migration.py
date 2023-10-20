@@ -59,7 +59,7 @@ def get_voucher_id_to_code_map(Voucher, VoucherCode, orders) -> None:
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0066_orderdiscount_voucher_code_add_index"),
+        ("discount", "0066_basediscount_voucher_code_add_index"),
         ("order", "0176_order_voucher_code_add_index"),
     ]
 

@@ -22,7 +22,7 @@ from django.db.models import Exists, OuterRef
 BATCH_SIZE = 1000
 
 
-def set_voucher_to_voucher_code_in_model(ModelName, apps, schema_editor):
+def set_voucher_code_in_model(ModelName, apps, schema_editor):
     ModelDiscount = apps.get_model("discount", ModelName)
     Voucher = apps.get_model("discount", "Voucher")
     VoucherCode = apps.get_model("discount", "VoucherCode")
@@ -67,24 +67,24 @@ def get_voucher_id_to_code_map(Voucher, VoucherCode, model_discounts) -> None:
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0066_orderdiscount_voucher_code_add_index"),
+        ("discount", "0066_basediscount_voucher_code_add_index"),
     ]
 
     operations = [
         migrations.RunPython(
-            lambda apps, schema_editor: set_voucher_to_voucher_code_in_model(
+            lambda apps, schema_editor: set_voucher_code_in_model(
                 "OrderDiscount", apps, schema_editor
             ),
             migrations.RunPython.noop,
         ),
         migrations.RunPython(
-            lambda apps, schema_editor: set_voucher_to_voucher_code_in_model(
+            lambda apps, schema_editor: set_voucher_code_in_model(
                 "OrderLineDiscount", apps, schema_editor
             ),
             migrations.RunPython.noop,
         ),
         migrations.RunPython(
-            lambda apps, schema_editor: set_voucher_to_voucher_code_in_model(
+            lambda apps, schema_editor: set_voucher_code_in_model(
                 "CheckoutLineDiscount", apps, schema_editor
             ),
             migrations.RunPython.noop,
