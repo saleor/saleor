@@ -26068,7 +26068,7 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   giftCards: [String!]
 
   """Code of a voucher associated with the order."""
-  voucher: String
+  voucherCode: String
 
   """List of discounts."""
   discounts: [OrderDiscountCommonInput!]

@@ -5,6 +5,8 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.18.0 [Unreleased]
 
 ### Breaking changes
+- Allow add multiple codes per voucher - #14123 by @SzymJ, @IKarbowiak, @michal-macioszczyk
+  - Rename `OrderBulkCreateInput.voucher` to `OrderBulkCreateInput.voucher_code`
 
 ### GraphQL API
 - Fix draft order voucher assignment - #14336 by @IKarbowiak
