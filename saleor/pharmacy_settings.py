@@ -93,7 +93,7 @@ DATABASE_CONNECTION_REPLICA_NAME = "replica"
 google_secret_manager = GoogleSecretManager()
 db_config = google_secret_manager.get_secret("saleor_pg")
 
-db_url = "postgres://{username}:{password}@{host}:{port}/{database}".format(
+db_url = "postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}".format(
     username=db_config["username"],
     password=db_config["password"],
     host=db_config["host"],
