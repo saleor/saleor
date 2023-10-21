@@ -12,6 +12,7 @@ COPY google-build-key.json /app/google-build-key.json
 
 # Install Python dependencies
 COPY pyproject.toml /app/
+COPY poetry-docker.toml /app/poetry.toml
 COPY poetry.lock /app/
 
 RUN pip install "poetry>=1.3.0,<1.4.0"
@@ -24,9 +25,6 @@ WORKDIR /app
 ENV GOOGLE_APPLICATION_CREDENTIALS=/app/google-build-key.json
 ENV ENVIRONMENT_NAME=gcp-qa
 ENV GOOGLE_PROJECT_NAME=non-production-381217
-
-# tell poetry to not create a venv
-RUN poetry config virtualenvs.create false
 
 # install dependencies
 RUN poetry install --only main --no-interaction --no-ansi --no-root
@@ -65,7 +63,9 @@ RUN mkdir -p /app/media /app/static \
 
 COPY --from=build-python /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
 COPY --from=build-python /usr/local/bin/ /usr/local/bin/
-COPY . /app
+COPY saleor /app/saleor
+COPY templates /app/templates
+COPY manage.py /app/manage.py
 WORKDIR /app
 
 ARG STATIC_URL
