@@ -93,7 +93,7 @@ DATABASE_CONNECTION_REPLICA_NAME = "replica"
 google_secret_manager = GoogleSecretManager()
 db_config = google_secret_manager.get_secret("saleor_pg")
 
-db_url = "postgresql://{username}:{password}@{host}:{port}/{database}".format(
+db_url = "postgres://{username}:{password}@{host}:{port}/{database}".format(
     username=db_config["username"],
     password=db_config["password"],
     host=db_config["host"],
@@ -551,7 +551,7 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 
 # DB_URL set above
-CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", db_url)
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
 
 CELERY_TASK_ROUTES = {
     "saleor.plugins.webhook.tasks.observability_reporter_task": {
