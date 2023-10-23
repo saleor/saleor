@@ -43,7 +43,7 @@ def test_expire_orders_task_check_voucher(
     order_3 = order_list[2]
     order_3.created_at = now - timezone.timedelta(minutes=10)
     order_3.status = OrderStatus.UNFULFILLED
-    order_3.voucher = voucher
+    order_3.voucher_code = code.code
     order_3.save()
 
     # when
