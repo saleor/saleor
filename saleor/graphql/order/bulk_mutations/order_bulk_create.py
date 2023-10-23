@@ -48,7 +48,7 @@ from ....warehouse.models import Stock, Warehouse
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_314, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_314, ADDED_IN_318, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
@@ -296,6 +296,7 @@ class ModelIdentifiers:
     user_emails: ModelIdentifier = ModelIdentifier(model="User")
     user_external_references: ModelIdentifier = ModelIdentifier(model="User")
     channel_slugs: ModelIdentifier = ModelIdentifier(model="Channel")
+    vouchers: ModelIdentifier = ModelIdentifier(model="Voucher")
     voucher_codes: ModelIdentifier = ModelIdentifier(model="Voucher")
     warehouse_ids: ModelIdentifier = ModelIdentifier(model="Warehouse")
     shipping_method_ids: ModelIdentifier = ModelIdentifier(model="ShippingMethod")
@@ -528,8 +529,15 @@ class OrderBulkCreateInput(BaseInputObjectType):
         graphene.String,
         description="List of gift card codes associated with the order.",
     )
+    voucher = graphene.String(
+        description=(
+            "Code of a voucher associated with the order."
+            "\n\nDEPRECATED: this field will be removed in Saleor 3.19."
+            " Use `voucherCode` instead."
+        )
+    )
     voucher_code = graphene.String(
-        description="Code of a voucher associated with the order."
+        description="Code of a voucher associated with the order." + ADDED_IN_318
     )
     discounts = NonNullList(OrderDiscountCommonInput, description="List of discounts.")
     fulfillments = NonNullList(
@@ -617,6 +625,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 order["user"].get("external_reference")
             )
             identifiers.channel_slugs.keys.append(order.get("channel"))
+            identifiers.vouchers.keys.append(order.get("voucher"))
             identifiers.voucher_codes.keys.append(order.get("voucher_code"))
             identifiers.order_external_references.keys.append(
                 order.get("external_reference")
@@ -695,7 +704,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         vouchers = Voucher.objects.filter(
             Exists(
                 VoucherCode.objects.filter(
-                    code__in=identifiers.voucher_codes.keys, voucher_id=OuterRef("id")
+                    (
+                        Q(code__in=identifiers.voucher_codes.keys)
+                        | Q(code__in=identifiers.vouchers.keys)
+                    )
+                    & Q(voucher_id=OuterRef("id"))
                 )
             )
         )
@@ -827,6 +840,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                 )
                 order_data.is_critical_error = True
+
+        if order_input.get("voucher") and order_input.get("voucher_code"):
+            order_data.errors.append(
+                OrderBulkError(
+                    message="Cannot use both voucher and voucher_code.",
+                    path="voucher_code",
+                    code=OrderBulkCreateErrorCode.INVALID,
+                )
+            )
+            order_data.is_critical_error = True
 
     @classmethod
     def validate_order_status(cls, status: str, order_data: OrderBulkCreateData):
@@ -1003,6 +1026,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors=order_data.errors,
                 model=Voucher,
                 key_map={"voucher_code": "code"},
+                object_storage=object_storage,
+            )
+        elif order_input.get("voucher"):
+            voucher = cls.get_instance_with_errors(
+                input=order_input,
+                errors=order_data.errors,
+                model=Voucher,
+                key_map={"voucher": "code"},
                 object_storage=object_storage,
             )
 
@@ -1954,7 +1985,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.order.should_refresh_prices = False
         order_data.order.voucher = order_data.voucher
         if order_data.voucher:
-            order_data.order.voucher_code = order_input["voucher_code"]
+            order_data.order.voucher_code = order_input.get(
+                "voucher_code"
+            ) or order_input.get("voucher")
         update_order_display_gross_prices(order_data.order)
 
         if metadata := order_input.get("metadata"):

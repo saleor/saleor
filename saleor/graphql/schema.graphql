@@ -26067,7 +26067,18 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   """List of gift card codes associated with the order."""
   giftCards: [String!]
 
-  """Code of a voucher associated with the order."""
+  """
+  Code of a voucher associated with the order.
+  
+  DEPRECATED: this field will be removed in Saleor 3.19. Use `voucherCode` instead.
+  """
+  voucher: String
+
+  """
+  Code of a voucher associated with the order.
+  
+  Added in Saleor 3.18.
+  """
   voucherCode: String
 
   """List of discounts."""
