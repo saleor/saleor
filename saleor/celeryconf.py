@@ -32,6 +32,7 @@ app.autodiscover_tasks(
         "saleor.account.migrations.tasks",
         "saleor.app.migrations.tasks",
         "saleor.order.migrations.tasks",
+        "saleor.checkout.migrations.tasks",
         "saleor.product.migrations.tasks",
     ],
     related_name="saleor3_13",

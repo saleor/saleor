@@ -893,6 +893,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 address=address,
                 discounts=discounts,
                 checkout_transactions=transactions,
+                force_status_update=True,
             )
             return checkout_info.checkout.authorize_status
 
@@ -913,6 +914,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 address=address,
                 discounts=discounts,
                 checkout_transactions=transactions,
+                force_status_update=True,
             )
             return checkout_info.checkout.charge_status
 
