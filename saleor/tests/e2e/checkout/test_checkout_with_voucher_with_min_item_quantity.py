@@ -197,6 +197,6 @@ def test_checkout_with_voucher_with_min_item_quantity_core_0908(
     )
     assert order_line["unitPrice"]["gross"]["amount"] == discounted_unit_price
     voucher_data = get_voucher(e2e_staff_api_client, voucher_id)
-    assert voucher_data["id"] == voucher_id
-    assert voucher_data["codes"]["edges"][0]["node"]["isActive"] is False
-    assert voucher_data["codes"]["edges"][0]["node"]["used"] == 1
+    assert voucher_data["voucher"]["id"] == voucher_id
+    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["isActive"] is False
+    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["used"] == 1

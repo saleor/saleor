@@ -138,9 +138,9 @@ def test_checkout_with_voucher_limit_per_customer_CORE_0910(
     assert discounted_total_gross == round((total_gross_amount - discount_value), 2)
 
     voucher_data = get_voucher(e2e_staff_api_client, voucher_id)
-    assert voucher_data["id"] == voucher_id
-    assert voucher_data["codes"]["edges"][0]["node"]["isActive"] is True
-    assert voucher_data["codes"]["edges"][0]["node"]["used"] == 0
+    assert voucher_data["voucher"]["id"] == voucher_id
+    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["isActive"] is True
+    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["used"] == 0
 
     # Step 3 - Set DeliveryMethod for checkout.
     checkout_data = checkout_delivery_method_update(
@@ -201,6 +201,6 @@ def test_checkout_with_voucher_limit_per_customer_CORE_0910(
     assert error["message"] == "Promo code is invalid"
 
     voucher_data = get_voucher(e2e_staff_api_client, voucher_id)
-    assert voucher_data["id"] == voucher_id
-    assert voucher_data["codes"]["edges"][0]["node"]["isActive"] is True
-    assert voucher_data["codes"]["edges"][0]["node"]["used"] == 1
+    assert voucher_data["voucher"]["id"] == voucher_id
+    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["isActive"] is True
+    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["used"] == 1
