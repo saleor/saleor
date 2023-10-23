@@ -11,7 +11,7 @@ from uuid import UUID
 import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Q
 from django.utils import timezone
 from graphql import GraphQLError
 from prices import Money
@@ -24,7 +24,7 @@ from ....core.prices import quantize_price
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
-from ....discount.models import OrderDiscount, Voucher, VoucherCode
+from ....discount.models import OrderDiscount, VoucherCode
 from ....giftcard.models import GiftCard
 from ....invoice.models import Invoice
 from ....order import (
@@ -122,8 +122,7 @@ class OrderBulkCreateData:
     billing_address: Optional[Address] = None
     channel: Optional[Channel] = None
     shipping_address: Optional[Address] = None
-    voucher: Optional[Voucher] = None
-    voucher_code: Optional[str] = None
+    voucher_code: Optional[VoucherCode] = None
     # error which ignores error policy and disqualify order
     is_critical_error: bool = False
 
@@ -296,8 +295,7 @@ class ModelIdentifiers:
     user_emails: ModelIdentifier = ModelIdentifier(model="User")
     user_external_references: ModelIdentifier = ModelIdentifier(model="User")
     channel_slugs: ModelIdentifier = ModelIdentifier(model="Channel")
-    vouchers: ModelIdentifier = ModelIdentifier(model="Voucher")
-    voucher_codes: ModelIdentifier = ModelIdentifier(model="Voucher")
+    voucher_codes: ModelIdentifier = ModelIdentifier(model="VoucherCode")
     warehouse_ids: ModelIdentifier = ModelIdentifier(model="Warehouse")
     shipping_method_ids: ModelIdentifier = ModelIdentifier(model="ShippingMethod")
     tax_class_ids: ModelIdentifier = ModelIdentifier(model="TaxClass")
@@ -625,7 +623,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 order["user"].get("external_reference")
             )
             identifiers.channel_slugs.keys.append(order.get("channel"))
-            identifiers.vouchers.keys.append(order.get("voucher"))
             identifiers.voucher_codes.keys.append(order.get("voucher_code"))
             identifiers.order_external_references.keys.append(
                 order.get("external_reference")
@@ -700,18 +697,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             | Q(external_reference__in=identifiers.variant_external_references.keys)
         )
         channels = Channel.objects.filter(slug__in=identifiers.channel_slugs.keys)
-
-        vouchers = Voucher.objects.filter(
-            Exists(
-                VoucherCode.objects.filter(
-                    (
-                        Q(code__in=identifiers.voucher_codes.keys)
-                        | Q(code__in=identifiers.vouchers.keys)
-                    )
-                    & Q(voucher_id=OuterRef("id"))
-                )
-            )
-        )
+        voucher_codes = VoucherCode.objects.filter(
+            code__in=identifiers.voucher_codes.keys
+        ).select_related("voucher")
         warehouses = Warehouse.objects.filter(pk__in=identifiers.warehouse_ids.keys)
         shipping_methods = ShippingMethod.objects.filter(
             pk__in=identifiers.shipping_method_ids.keys
@@ -745,8 +733,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         for channel in channels:
             object_storage[f"Channel.slug.{channel.slug}"] = channel
 
-        for voucher in vouchers:
-            object_storage[f"Voucher.code.{voucher.code}"] = voucher
+        for voucher_code in voucher_codes:
+            object_storage[f"VoucherCode.code.{voucher_code.code}"] = voucher_code
 
         for gift_card in gift_cards:
             object_storage[f"GiftCard.code.{gift_card.code}"] = gift_card
@@ -850,6 +838,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
             order_data.is_critical_error = True
+
+        if order_input.get("voucher") is not None:
+            order_input["voucher_code"] = order_input.get("voucher")
 
     @classmethod
     def validate_order_status(cls, status: str, order_data: OrderBulkCreateData):
@@ -1019,21 +1010,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                 )
 
-        voucher = None
+        voucher_code = None
         if order_input.get("voucher_code"):
-            voucher = cls.get_instance_with_errors(
+            voucher_code = cls.get_instance_with_errors(
                 input=order_input,
                 errors=order_data.errors,
-                model=Voucher,
+                model=VoucherCode,
                 key_map={"voucher_code": "code"},
-                object_storage=object_storage,
-            )
-        elif order_input.get("voucher"):
-            voucher = cls.get_instance_with_errors(
-                input=order_input,
-                errors=order_data.errors,
-                model=Voucher,
-                key_map={"voucher": "code"},
                 object_storage=object_storage,
             )
 
@@ -1057,7 +1040,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.channel = channel
         order_data.billing_address = billing_address
         order_data.shipping_address = shipping_address
-        order_data.voucher = voucher
+        order_data.voucher_code = voucher_code
 
         if not channel or not billing_address:
             order_data.is_critical_error = True
@@ -1983,11 +1966,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.order.weight = order_input.get("weight") or zero_weight()
         order_data.order.currency = order_input["currency"]
         order_data.order.should_refresh_prices = False
-        order_data.order.voucher = order_data.voucher
-        if order_data.voucher:
-            order_data.order.voucher_code = order_input.get(
-                "voucher_code"
-            ) or order_input.get("voucher")
+        if order_data.voucher_code:
+            order_data.order.voucher_code = order_data.voucher_code.code
+            order_data.order.voucher = order_data.voucher_code.voucher
         update_order_display_gross_prices(order_data.order)
 
         if metadata := order_input.get("metadata"):
