@@ -256,28 +256,3 @@ def test_draft_order_delete_release_voucher_codes_single_use(
     # then
     voucher_code.refresh_from_db()
     assert voucher_code.is_active is True
-
-
-def test_draft_order_delete_release_voucher_code_customer(
-    staff_api_client,
-    permission_group_manage_orders,
-    draft_order,
-    voucher_customer,
-):
-    # given
-    query = DRAFT_ORDER_DELETE_MUTATION
-    permission_group_manage_orders.user_set.add(staff_api_client.user)
-    voucher_code = voucher_customer.voucher_code
-    draft_order.voucher_code = voucher_code.code
-    draft_order.save(update_fields=["voucher_code"])
-    assert voucher_customer.customer_email == draft_order.user_email
-
-    order_id = graphene.Node.to_global_id("Order", draft_order.id)
-    variables = {"id": order_id}
-
-    # when
-    staff_api_client.post_graphql(query, variables)
-
-    # then
-    with pytest.raises(voucher_customer._meta.model.DoesNotExist):
-        voucher_customer.refresh_from_db()

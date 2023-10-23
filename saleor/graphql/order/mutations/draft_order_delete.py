@@ -66,7 +66,4 @@ class DraftOrderDelete(
         if code := instance.voucher_code:
             if voucher_code := VoucherCode.objects.filter(code=code).first():
                 voucher = voucher_code.voucher
-                user_email = (
-                    instance.user.email if instance.user else instance.user_email
-                )
-                release_voucher_code_usage(voucher_code, voucher, user_email)
+                release_voucher_code_usage(voucher_code, voucher, None)
