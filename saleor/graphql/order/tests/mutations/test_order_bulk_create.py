@@ -575,6 +575,7 @@ def test_order_bulk_create(
     assert db_order.currency == "PLN"
     assert db_order.gift_cards.first().code == "never_expiry"
     assert db_order.voucher.code == voucher_without_channel.code
+    assert db_order.voucher_code == voucher_without_channel.code
     assert db_order.metadata["md key"] == "md value"
     assert db_order.private_metadata["pmd key"] == "pmd value"
     assert db_order.total_authorized_amount == Decimal("10")
