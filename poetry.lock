@@ -2345,7 +2345,7 @@ testing = ["flake8 (<5)", "flufl.flake8", "importlib-resources (>=1.3)", "packag
 name = "iniconfig"
 version = "2.0.0"
 description = "brain-dead simple config-ini parsing"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2410,7 +2410,7 @@ tests = ["codecov", "coverage", "flake8", "flake8-quotes", "flake8-typing-import
 name = "jinja2"
 version = "3.1.2"
 description = "A very fast and expressive template engine."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2643,10 +2643,35 @@ importlib-metadata = {version = ">=4.4", markers = "python_version < \"3.10\""}
 testing = ["coverage", "pyyaml"]
 
 [[package]]
+name = "markdown-it-py"
+version = "3.0.0"
+description = "Python port of markdown-it. Markdown parsing, done right!"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "markdown-it-py-3.0.0.tar.gz", hash = "sha256:e3f60a94fa066dc52ec76661e37c851cb232d92f9886b15cb560aaada2df8feb"},
+    {file = "markdown_it_py-3.0.0-py3-none-any.whl", hash = "sha256:355216845c60bd96232cd8d8c40e8f9765cc86f46880e43a8fd22dc1a1a8cab1"},
+]
+
+[package.dependencies]
+mdurl = ">=0.1,<1.0"
+
+[package.extras]
+benchmarking = ["psutil", "pytest", "pytest-benchmark"]
+code-style = ["pre-commit (>=3.0,<4.0)"]
+compare = ["commonmark (>=0.9,<1.0)", "markdown (>=3.4,<4.0)", "mistletoe (>=1.0,<2.0)", "mistune (>=2.0,<3.0)", "panflute (>=2.3,<3.0)"]
+linkify = ["linkify-it-py (>=1,<3)"]
+plugins = ["mdit-py-plugins"]
+profiling = ["gprof2dot"]
+rtd = ["jupyter_sphinx", "mdit-py-plugins", "myst-parser", "pyyaml", "sphinx", "sphinx-copybutton", "sphinx-design", "sphinx_book_theme"]
+testing = ["coverage", "pytest", "pytest-cov", "pytest-regressions"]
+
+[[package]]
 name = "markupsafe"
 version = "2.1.3"
 description = "Safely add untrusted strings to HTML/XML markup."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2715,6 +2740,18 @@ files = [
 ]
 
 [[package]]
+name = "mdurl"
+version = "0.1.2"
+description = "Markdown URL utilities"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
+    {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
+]
+
+[[package]]
 name = "measurement"
 version = "3.2.2"
 description = "Easily use and manipulate unit-aware measurements in Python."
@@ -2732,6 +2769,62 @@ sympy = "*"
 [package.extras]
 docs = ["python-docs-theme", "sphinx"]
 test = ["pytest", "pytest-cov"]
+
+[[package]]
+name = "memray"
+version = "1.10.0"
+description = "A memory profiler for Python applications"
+category = "main"
+optional = false
+python-versions = ">=3.7.0"
+files = [
+    {file = "memray-1.10.0-cp310-cp310-macosx_10_14_x86_64.whl", hash = "sha256:843a688877691746f9d1835cfa8a65139948471bdd78720435808d20bc30a1cc"},
+    {file = "memray-1.10.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:6937d7ef67d18ccc01c3250cdf3b4ef1445b859ee8756f09e3d11bd3ff0c7d67"},
+    {file = "memray-1.10.0-cp310-cp310-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:23e8c402625cfb32d0e9edb5ec0945f3e5e54bc6b0c5699f6284302082b80bd4"},
+    {file = "memray-1.10.0-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:f16c5c8730b616613dc8bafe32649ca6bd7252606251eb00148582011758d0b5"},
+    {file = "memray-1.10.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c7aeb47174c42e99740a8e2b3b6fe0932c95d987258d48a746974ead19176c26"},
+    {file = "memray-1.10.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:2ce59ef485db3634de98b3a026d2450fc0a875e3a58a9ea85f7a89098841defe"},
+    {file = "memray-1.10.0-cp311-cp311-macosx_10_14_x86_64.whl", hash = "sha256:53a8f66af18b1f3bcf5c9f3c95ae4134dd675903a38f9d0e6341b7bca01b63d0"},
+    {file = "memray-1.10.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:9627184c926252c8f719c301f1fefe970f0d033c643a6448b93fed2889d1ea94"},
+    {file = "memray-1.10.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c3a14960838d89a91747885897d34134afb65883cc3b0ed7ff30fe1af00f9fe6"},
+    {file = "memray-1.10.0-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:22f2a47871c172a0539bd72737bb6b294fc10c510464066b825d90fcd3bb4916"},
+    {file = "memray-1.10.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3c401c57f49c4c5f1fecaee1e746f537cdc6680da05fb963dc143bd08ee109bf"},
+    {file = "memray-1.10.0-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:ce22a887a585ef5020896de89ffc793e531b65ccc81fbafcc7886010c2c562b3"},
+    {file = "memray-1.10.0-cp312-cp312-macosx_10_14_x86_64.whl", hash = "sha256:b75040f28e8678d0e9c4907d55c95cf26db8ef5adc9941a228f1b280a9efd9c0"},
+    {file = "memray-1.10.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:95e563d9c976e429ad597ad2720d95cebbe8bac891a3082465439143e2740772"},
+    {file = "memray-1.10.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:663d463e89a64bae4a6b2f8c837d11a3d094834442d536a4165e1d31899a3500"},
+    {file = "memray-1.10.0-cp312-cp312-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:0a21745fb516b7a6efcd40aa7487c59e9313fcfc782d0193fcfcf00b48426874"},
+    {file = "memray-1.10.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cf6d683c4f8d25c6ad06ae18715f218983c5eb86803953615e902d632fdf6ec1"},
+    {file = "memray-1.10.0-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:6b311e91203be71e1a0ce5e4f978137765bcb1045f3bf5646129c83c5b96ab3c"},
+    {file = "memray-1.10.0-cp37-cp37m-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:68bd8df023c8a32f44c11d997e5c536837e27c0955daf557d3a377edd55a1dd3"},
+    {file = "memray-1.10.0-cp37-cp37m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:322ed0b69014a0969b777768d461a785203f81f9864386b666b5b26645d9c294"},
+    {file = "memray-1.10.0-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a9e985fb7646b0475c303919d19211d2aa54e5a9e2cd2a102472299be5dbebd3"},
+    {file = "memray-1.10.0-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:4eba29179772b4a2e440a065b320b03bc2e73fe2648bdf7936aa3b9a086fab4a"},
+    {file = "memray-1.10.0-cp38-cp38-macosx_10_14_x86_64.whl", hash = "sha256:b681519357d94f5f0857fbc6029e7c44d3f41436109e955a14fd312d8317bc35"},
+    {file = "memray-1.10.0-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:8196c684f1be8fe423e5cdd2356d4255a2cb482a1f3e89612b70d2a2862cf5bb"},
+    {file = "memray-1.10.0-cp38-cp38-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:898acd60f57a10dc5aaf1fd64aa2f821f0420114f3f60c3058083788603f173a"},
+    {file = "memray-1.10.0-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:6fd13ef666c7fced9768d1cfabf71dc6dfa6724935a8dff463495ac2dc5e13a4"},
+    {file = "memray-1.10.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e356af93e3b031c83957e9ac1a653f5aaba5df1e357dd17142f5ed19bb3dc660"},
+    {file = "memray-1.10.0-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:92c372cb262eddd23049f945ca9527f0e4cc7c40a070aade1802d066f680885b"},
+    {file = "memray-1.10.0-cp39-cp39-macosx_10_14_x86_64.whl", hash = "sha256:38393c86ce6d0a08e6ec0eb1401d49803b7c0c950c2565386751cdc81568cba8"},
+    {file = "memray-1.10.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:3a8bb7fbd8303c4f0017ba7faef6b88f904cda2931ed667cbf3b98f024b3bc44"},
+    {file = "memray-1.10.0-cp39-cp39-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:8d56f37a34125684746c13d24bd7a3fb17549b0bb355eb50969eb11e05e3ba62"},
+    {file = "memray-1.10.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:85c32d6613d81b075f740e398c4d653e0803cd48e82c33dcd584c109d6782666"},
+    {file = "memray-1.10.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:566602b2143e06b3d592901d98c52ce4599e71aa2555146eeb5cec03506f9498"},
+    {file = "memray-1.10.0-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:391aac6c9f744528d3186bc82d708a1acc83525778f804045d7c96f860f8ec98"},
+    {file = "memray-1.10.0.tar.gz", hash = "sha256:38322e052b882790993412f1840517a51818aa55c47037f69915b2007f2c4cee"},
+]
+
+[package.dependencies]
+jinja2 = ">=2.9"
+rich = ">=11.2.0"
+
+[package.extras]
+benchmark = ["asv"]
+dev = ["Cython", "IPython", "asv", "black", "bump2version", "check-manifest", "flake8", "furo", "greenlet", "ipython", "isort", "mypy", "pytest", "pytest-cov", "setuptools", "sphinx", "sphinx-argparse", "towncrier"]
+docs = ["IPython", "bump2version", "furo", "sphinx", "sphinx-argparse", "towncrier"]
+lint = ["black", "check-manifest", "flake8", "isort", "mypy"]
+test = ["Cython", "greenlet", "ipython", "pytest", "pytest-cov", "setuptools"]
 
 [[package]]
 name = "micawber"
@@ -2982,7 +3075,7 @@ tests = ["Sphinx", "doubles", "flake8", "flake8-quotes", "gevent", "mock", "pyte
 name = "packaging"
 version = "23.1"
 description = "Core utilities for Python packages"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -3186,7 +3279,7 @@ test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=7.3.1)", "pytest-
 name = "pluggy"
 version = "1.0.0"
 description = "plugin and hook calling mechanisms for python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -3451,6 +3544,21 @@ files = [
 ]
 
 [[package]]
+name = "pygments"
+version = "2.16.1"
+description = "Pygments is a syntax highlighting package written in Python."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "Pygments-2.16.1-py3-none-any.whl", hash = "sha256:13fc09fa63bc8d8671a6d247e1eb303c4b343eaee81d861f3404db2935653692"},
+    {file = "Pygments-2.16.1.tar.gz", hash = "sha256:1daff0494820c69bc8941e407aa20f577374ee88364ee10a98fdbe0aece96e29"},
+]
+
+[package.extras]
+plugins = ["importlib-metadata"]
+
+[[package]]
 name = "pyjwt"
 version = "2.5.0"
 description = "JSON Web Token implementation in Python"
@@ -3577,7 +3685,7 @@ test = ["flake8", "isort", "pytest"]
 name = "pytest"
 version = "7.3.1"
 description = "pytest: simple powerful testing with Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -3690,6 +3798,27 @@ pytest = ">=4.4.0"
 [package.extras]
 dev = ["beautifulsoup4", "lxml", "mock", "pre-commit", "sphinx", "sphinx_rtd_theme"]
 test = ["beautifulsoup4", "codecov", "coverage", "lxml", "mock", "pre-commit", "pytest-xdist", "sphinx", "sphinx_rtd_theme", "tox-travis"]
+
+[[package]]
+name = "pytest-memray"
+version = "1.5.0"
+description = "A simple plugin to use with pytest"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "pytest_memray-1.5.0-py3-none-any.whl", hash = "sha256:120afb6d9f11e2d2fbc6989d750e97e8a127c5d0269a158d99372ee3e164ff5c"},
+    {file = "pytest_memray-1.5.0.tar.gz", hash = "sha256:05ec37e23c14967e02994df116bfcca26ce64a017274080c4c4e8f29818bc78a"},
+]
+
+[package.dependencies]
+memray = ">=1.5"
+pytest = ">=7.2"
+
+[package.extras]
+docs = ["furo (>=2022.12.7)", "sphinx (>=6.1.3)", "sphinx-argparse (>=0.4)", "sphinx-inline-tabs (>=2022.1.2b11)", "sphinxcontrib-programoutput (>=0.17)", "towncrier (>=22.12)"]
+lint = ["black (==22.12)", "isort (==5.11.4)", "mypy (==0.991)", "ruff (==0.0.272)"]
+test = ["covdefaults (>=2.2.2)", "coverage (>=7.0.5)", "flaky (>=3.7)", "pytest (>=7.2)", "pytest-xdist (>=3.1)"]
 
 [[package]]
 name = "pytest-mock"
@@ -4010,6 +4139,25 @@ urllib3 = ">=1.21.1,<3"
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
+
+[[package]]
+name = "rich"
+version = "13.6.0"
+description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
+category = "main"
+optional = false
+python-versions = ">=3.7.0"
+files = [
+    {file = "rich-13.6.0-py3-none-any.whl", hash = "sha256:2b38e2fe9ca72c9a00170a1a2d20c63c790d0e10ef1fe35eba76e1e7b1d7d245"},
+    {file = "rich-13.6.0.tar.gz", hash = "sha256:5c14d22737e6d5084ef4771b62d5d4363165b403455a30a1c8ca39dc7b644bef"},
+]
+
+[package.dependencies]
+markdown-it-py = ">=2.2.0"
+pygments = ">=2.13.0,<3.0.0"
+
+[package.extras]
+jupyter = ["ipywidgets (>=7.5.1,<9)"]
 
 [[package]]
 name = "rsa"
@@ -4350,7 +4498,7 @@ test = ["flake8", "isort", "pytest"]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -5141,4 +5289,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
   python-versions = "~3.9"
-content-hash = "d1551b4186a71f7df9a92cafaff6ec121a8c0988a6ce657a3dd3ad4616dd82ae"
+content-hash = "e2b30680ed84364784b2128c503ea7100b396c3654047e8cfc365cb210d7602f"

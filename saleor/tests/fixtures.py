@@ -1,4 +1,5 @@
 import datetime
+import itertools
 import uuid
 from collections import namedtuple
 from contextlib import contextmanager
@@ -7174,3 +7175,37 @@ def transaction_session_response():
         "externalUrl": "http://127.0.0.1:9090/external-reference",
         "message": "Message related to the payment",
     }
+
+
+@pytest.fixture
+def lots_of_products_with_variants(product_type):
+    def chunks(iterable, size):
+        it = iter(iterable)
+        chunk = tuple(itertools.islice(it, size))
+        while chunk:
+            yield chunk
+            chunk = tuple(itertools.islice(it, size))
+
+    variants_per_product = 4
+    products_count = 10000
+    slug_generator = (f"test-slug-{i}" for i in range(products_count))
+
+    for batch in chunks(range(products_count), 500):
+        batch_len = len(batch)
+        variants = []
+        for product in Product.objects.bulk_create(
+            [
+                Product(
+                    name=i,
+                    slug=next(slug_generator),
+                    product_type_id=product_type.pk,
+                )
+                for i in range(batch_len)
+            ]
+        ):
+            for x in range(variants_per_product):
+                variant = ProductVariant(name=x, product_id=product.id)
+                variants.append(variant)
+        ProductVariant.objects.bulk_create(variants)
+
+    return Product.objects.all()

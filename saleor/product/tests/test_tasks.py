@@ -2,6 +2,7 @@ import logging
 from datetime import timedelta
 from unittest.mock import patch
 
+import pytest
 from django.utils import timezone
 
 from ..tasks import (
@@ -11,6 +12,7 @@ from ..tasks import (
     update_products_search_vector_task,
     update_variants_names,
 )
+from ..utils.variant_prices import update_products_discounted_prices
 
 
 @patch("saleor.product.utils.variant_prices." "update_products_discounted_prices")
@@ -147,3 +149,9 @@ def test_update_products_search_vector_task(product):
 
     # then
     assert product.search_index_dirty is False
+
+
+@pytest.mark.slow
+@pytest.mark.limit_memory("50 MB")
+def test_mem_usage_update_products_discounted_prices(lots_of_products_with_variants):
+    update_products_discounted_prices(lots_of_products_with_variants)
