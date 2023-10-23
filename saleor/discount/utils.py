@@ -59,8 +59,6 @@ def increase_voucher_usage(
 ) -> None:
     if voucher.usage_limit:
         increase_voucher_code_usage_value(code)
-    if voucher.apply_once_per_customer:
-        add_voucher_usage_by_customer(code, customer_email)
     if voucher.single_use:
         deactivate_voucher_code(code)
 
