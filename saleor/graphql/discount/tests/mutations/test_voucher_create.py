@@ -57,7 +57,14 @@ mutation voucherCreate($input: VoucherInput!) {
 """
 
 
-def test_create_voucher(staff_api_client, permission_manage_discounts):
+def test_create_voucher(
+    staff_api_client,
+    permission_manage_discounts,
+    product,
+    variant,
+    collection,
+    category,
+):
     # given
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
@@ -76,6 +83,10 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
             "applyOncePerCustomer": True,
             "singleUse": True,
             "usageLimit": 3,
+            "products": [graphene.Node.to_global_id("Product", product.pk)],
+            "variants": [graphene.Node.to_global_id("ProductVariant", variant.pk)],
+            "collections": [graphene.Node.to_global_id("Collection", collection.pk)],
+            "categories": [graphene.Node.to_global_id("Category", category.pk)],
         }
     }
 
@@ -99,6 +110,10 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     assert voucher.apply_once_per_customer
     assert voucher.single_use
     assert voucher.usage_limit == 3
+    assert len(voucher.products.all()) == 1
+    assert len(voucher.variants.all()) == 1
+    assert len(voucher.collections.all()) == 1
+    assert len(voucher.categories.all()) == 1
     assert data["voucher"]["usageLimit"] == 3
     assert len(codes) == 2
 
