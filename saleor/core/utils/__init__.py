@@ -119,6 +119,11 @@ def generate_unique_slug(
     """
     slug = slugify(unidecode(slugable_value))
 
+    # in case when slugable_value contains only not allowed in slug characters, slugify
+    # function will return empty string, so we need to provide some default value
+    if slug == "":
+        slug = "-"
+
     ModelClass = instance.__class__
 
     search_field = f"{slug_field_name}__iregex"
