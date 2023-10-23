@@ -13,6 +13,7 @@ from ....attribute import models
 from ....attribute.error_codes import AttributeBulkUpdateErrorCode
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import PageTypePermissions, ProductTypePermissions
+from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
@@ -590,13 +591,15 @@ class AttributeBulkUpdate(BaseMutation):
         values_to_create: list[models.AttributeValue],
     ):
         manager = get_plugin_manager_promise(info.context).get()
-
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.ATTRIBUTE_UPDATED)
         for attribute in attributes:
-            cls.call_event(manager.attribute_updated, attribute)
+            cls.call_event(manager.attribute_updated, attribute, webhooks=webhooks)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED)
         for value in values_to_create:
-            cls.call_event(manager.attribute_value_created, value)
+            cls.call_event(manager.attribute_value_created, value, webhooks=webhooks)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED)
         for value in values_to_remove:
-            cls.call_event(manager.attribute_value_deleted, value)
+            cls.call_event(manager.attribute_value_deleted, value, webhooks=webhooks)
 
     @classmethod
     @traced_atomic_transaction()
