@@ -1,6 +1,7 @@
 import graphene
 import pytest
 
+from .....discount.models import VoucherCode
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -209,3 +210,49 @@ def test_draft_order_delete_by_external_reference_not_existing(
     # then
     errors = content["data"]["draftOrderDelete"]["errors"]
     assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+
+
+def test_draft_order_delete_release_voucher_codes_multiple_use(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order_list_with_multiple_use_voucher,
+):
+    # given
+    query = DRAFT_ORDER_DELETE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order_list_with_multiple_use_voucher[0]
+    voucher_code = VoucherCode.objects.get(code=order.voucher_code)
+    assert voucher_code.used == 1
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    voucher_code.refresh_from_db()
+    assert voucher_code.used == 0
+
+
+def test_draft_order_delete_release_voucher_codes_single_use(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order_list_with_single_use_voucher,
+):
+    # given
+    query = DRAFT_ORDER_DELETE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order_list_with_single_use_voucher[0]
+    voucher_code = VoucherCode.objects.get(code=order.voucher_code)
+    assert voucher_code.is_active is False
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    voucher_code.refresh_from_db()
+    assert voucher_code.is_active is True
