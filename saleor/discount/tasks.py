@@ -10,11 +10,17 @@ from django.db.models import Exists, F, OuterRef, Q, QuerySet
 from ..celeryconf import app
 from ..graphql.discount.utils import get_variants_for_predicate
 from ..order import OrderStatus
-from ..order.models import Order
+from ..order.models import Order, OrderLine
 from ..plugins.manager import get_plugins_manager
 from ..product.models import Product, ProductVariant
 from ..product.tasks import update_products_discounted_prices_for_promotion_task
-from .models import Promotion, PromotionRule, VoucherCode, VoucherCustomer
+from .models import (
+    OrderDiscount,
+    OrderLineDiscount,
+    Promotion,
+    PromotionRule,
+    VoucherCode,
+)
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -180,9 +186,6 @@ def decrease_voucher_codes_usage_task(voucher_code_ids):
             if voucher_code.voucher.single_use:
                 voucher_code.is_active = True
         VoucherCode.objects.bulk_update(voucher_codes, ["used", "is_active"])
-        VoucherCustomer.objects.filter(
-            Exists(VoucherCode.objects.filter(pk=OuterRef("voucher_code_id")))
-        ).delete()
         if remaining_ids := list(set(voucher_code_ids) - set(ids)):
             decrease_voucher_codes_usage_task.delay(remaining_ids)
 
@@ -206,5 +209,9 @@ def disconnect_voucher_codes_from_draft_orders_task(order_ids):
             order.voucher_code = None
             order.should_refresh_prices = True
         Order.objects.bulk_update(orders, ["voucher_code", "should_refresh_prices"])
+        OrderDiscount.objects.filter(order_id__in=ids).delete()
+        OrderLineDiscount.objects.filter(
+            Exists(OrderLine.objects.filter(order_id__in=order_ids))
+        ).delete()
         if remaining_ids := list(set(order_ids) - set(ids)):
             disconnect_voucher_codes_from_draft_orders_task.delay(remaining_ids)
