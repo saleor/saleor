@@ -1987,7 +1987,7 @@ def test_order_bulk_create_both_voucher_and_voucher_code_given(
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Cannot use both voucher and voucher_code."
-    assert error["path"] == "voucher_code.0"
+    assert error["path"] == "voucher_code"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Order.objects.count() == orders_count
