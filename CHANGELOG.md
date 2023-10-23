@@ -8,6 +8,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 - Fix draft order voucher assignment - #14336 by @IKarbowiak
+- Allow add multiple codes per voucher - #14123 by @SzymJ, @IKarbowiak, @michal-macioszczyk
+  - Deprecate `OrderBulkCreateInput.voucher`
 
 ### Saleor Apps
 

@@ -31,7 +31,7 @@ from .....payment import TransactionEventType
 from .....payment.models import TransactionEvent, TransactionItem
 from .....warehouse.models import Stock
 from ....core.enums import ErrorPolicyEnum
-from ....discount.enums import DiscountValueTypeEnum
+from ....discount.enums import DiscountValueTypeEnum, OrderDiscountTypeEnum
 from ....payment.enums import TransactionActionEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...bulk_mutations.order_bulk_create import MAX_NOTE_LENGTH, MINUTES_DIFF
@@ -246,10 +246,16 @@ ORDER_BULK_CREATE = """
                         url
                     }
                     discounts {
+                        type
                         valueType
                         value
                         reason
                     }
+                    voucher {
+                        id
+                        code
+                    }
+                    voucherCode
                 }
                 errors {
                     path
@@ -396,7 +402,7 @@ def order_bulk_input(
         "invoices": [invoice],
         "discounts": [discount],
         "giftCards": ["never_expiry"],
-        "voucher": "mirumee",
+        "voucherCode": "mirumee",
         "metadata": [{"key": "md key", "value": "md value"}],
         "privateMetadata": [{"key": "pmd key", "value": "pmd value"}],
     }
@@ -484,6 +490,7 @@ def test_order_bulk_create(
     graphql_address_data,
     shipping_method_channel_PLN,
     variant,
+    voucher,
 ):
     # given
     orders_count = Order.objects.count()
@@ -496,6 +503,7 @@ def test_order_bulk_create(
     transaction_events_count = TransactionEvent.objects.count()
     invoice_count = Invoice.objects.count()
     discount_count = OrderDiscount.objects.count()
+    voucher_code = "mirumee"
 
     order = order_bulk_input
     order["externalReference"] = "ext-ref-1"
@@ -544,6 +552,9 @@ def test_order_bulk_create(
     assert order["metadata"][0]["value"] == "md value"
     assert order["privateMetadata"][0]["key"] == "pmd key"
     assert order["privateMetadata"][0]["value"] == "pmd value"
+    assert order["voucher"]["id"] == graphene.Node.to_global_id("Voucher", voucher.id)
+    assert order["voucher"]["code"] == voucher_code
+    assert order["voucherCode"] == voucher_code
     db_order = Order.objects.get()
     assert db_order.external_reference == "ext-ref-1"
     assert db_order.channel.slug == channel_PLN.slug
@@ -573,7 +584,8 @@ def test_order_bulk_create(
     assert db_order.display_gross_prices
     assert db_order.currency == "PLN"
     assert db_order.gift_cards.first().code == "never_expiry"
-    assert db_order.voucher.code == "mirumee"
+    assert db_order.voucher.code == voucher_code
+    assert db_order.voucher_code == voucher_code
     assert db_order.metadata["md key"] == "md value"
     assert db_order.private_metadata["pmd key"] == "pmd value"
     assert db_order.total_authorized_amount == Decimal("10")
@@ -722,11 +734,14 @@ def test_order_bulk_create(
     assert db_invoice.order_id == db_order.id
     assert db_invoice.status == JobStatus.SUCCESS
 
+    assert len(order["discounts"]) == 1
     discount = order["discounts"][0]
+    assert discount["type"] == OrderDiscountTypeEnum.MANUAL.name
     assert discount["valueType"] == DiscountValueTypeEnum.FIXED.name
     assert discount["value"] == 10
     assert discount["reason"] == "birthday"
     db_discount = OrderDiscount.objects.get()
+    assert db_discount.type == OrderDiscountTypeEnum.MANUAL.value
     assert db_discount.value_type == DiscountValueTypeEnum.FIXED.value
     assert db_discount.value == 10
     assert db_discount.reason == "birthday"
@@ -742,6 +757,45 @@ def test_order_bulk_create(
     assert TransactionEvent.objects.count() == transaction_events_count + 1
     assert Invoice.objects.count() == invoice_count + 1
     assert OrderDiscount.objects.count() == discount_count + 1
+
+
+def test_order_bulk_create_with_voucher(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+    order_lines_count = OrderLine.objects.count()
+
+    code = order_bulk_input.pop("voucherCode")
+    order_bulk_input["voucher"] = code
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order_bulk_input],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["errors"]
+    order = data[0]["order"]
+
+    assert order["lines"]
+    assert order["voucher"]["code"] == code
+    assert order["voucherCode"] == code
+    assert Order.objects.count() == orders_count + 1
+    assert OrderLine.objects.count() == order_lines_count + 1
 
 
 def test_order_bulk_create_multiple_orders(
@@ -1900,6 +1954,44 @@ def test_order_bulk_create_update_stocks_missing_stocks(
     )
     assert error["path"] == "lines.0"
     assert error["code"] == OrderBulkCreateErrorCode.NON_EXISTING_STOCK.name
+
+
+def test_order_bulk_create_both_voucher_and_voucher_code_given(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+    order_lines_count = OrderLine.objects.count()
+
+    code = order_bulk_input.get("voucherCode")
+    order_bulk_input["voucher"] = code
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order_bulk_input],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Cannot use both voucher and voucher_code."
+    assert error["path"] == "voucher_code"
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+    assert Order.objects.count() == orders_count
+    assert OrderLine.objects.count() == order_lines_count
 
 
 @pytest.mark.parametrize(
