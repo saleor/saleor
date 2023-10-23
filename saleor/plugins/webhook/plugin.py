@@ -2298,6 +2298,16 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.VOUCHER_METADATA_UPDATED, voucher
         )
 
+    def voucher_code_export_completed(
+        self, export: "ExportFile", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_export_event(
+            WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED,
+            export,
+        )
+
     def shop_metadata_updated(self, shop: "SiteSettings", previous_value: None) -> None:
         if not self.active:
             return previous_value
