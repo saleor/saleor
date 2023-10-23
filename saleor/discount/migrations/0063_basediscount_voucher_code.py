@@ -17,9 +17,22 @@ from django.db.models import Exists, OuterRef
 # OrderLineDiscount Memory usage increased by 47.99 MiB.
 # CheckoutLineDiscount Migration took 28.12 seconds.
 # CheckoutLineDiscount Memory usage increased by 35.52 MiB.
-
-
 BATCH_SIZE = 1000
+
+
+def queryset_in_batches(queryset):
+    start_pk = 0
+
+    while True:
+        qs = queryset.order_by("pk").filter(pk__gt=start_pk)[:BATCH_SIZE]
+        pks = list(qs.values_list("pk", flat=True))
+
+        if not pks:
+            break
+
+        yield pks
+
+        start_pk = pks[-1]
 
 
 def set_voucher_code_in_model(ModelName, apps, schema_editor):
@@ -32,16 +45,15 @@ def set_voucher_code_in_model(ModelName, apps, schema_editor):
 def set_voucher_to_voucher_code(ModelDiscount, Voucher, VoucherCode) -> None:
     model_discounts = ModelDiscount.objects.filter(
         voucher__isnull=False, voucher_code__isnull=True
-    ).order_by("pk")[:BATCH_SIZE]
-    if ids := list(model_discounts.values_list("pk", flat=True)):
+    ).order_by("pk")
+    for ids in queryset_in_batches(model_discounts):
         qs = ModelDiscount.objects.filter(pk__in=ids)
         set_voucher_code(ModelDiscount, Voucher, VoucherCode, qs)
-        set_voucher_to_voucher_code(ModelDiscount, Voucher, VoucherCode)
 
 
 def set_voucher_code(ModelDiscount, Voucher, VoucherCode, model_discounts) -> None:
-    voucher_id_to_code_map = get_voucher_id_to_code_map(
-        Voucher, VoucherCode, model_discounts
+    voucher_id_to_code_map = get_discount_voucher_id_to_code_map(
+        Voucher, model_discounts
     )
     model_discounts_list = []
     for model_discount in model_discounts:
@@ -51,23 +63,19 @@ def set_voucher_code(ModelDiscount, Voucher, VoucherCode, model_discounts) -> No
     ModelDiscount.objects.bulk_update(model_discounts_list, ["voucher_code"])
 
 
-def get_voucher_id_to_code_map(Voucher, VoucherCode, model_discounts) -> None:
-    voucher_id_to_code_map = {}
+def get_discount_voucher_id_to_code_map(Voucher, model_discounts):
     vouchers = Voucher.objects.filter(
         Exists(model_discounts.filter(voucher_id=OuterRef("pk")))
     )
-    codes = VoucherCode.objects.filter(
-        Exists(vouchers.filter(id=OuterRef("voucher_id")))
-    )
-    for code in codes:
-        voucher_id_to_code_map[code.voucher_id] = code.code
-
+    voucher_id_to_code_map = {
+        voucher_id: code for voucher_id, code in vouchers.values_list("id", "code")
+    }
     return voucher_id_to_code_map
 
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0066_basediscount_voucher_code_add_index"),
+        ("discount", "0062_basediscount_voucher_code_add_index"),
     ]
 
     operations = [
