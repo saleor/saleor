@@ -240,7 +240,7 @@ def test_create_second_product_without_slug_and_not_allowed_characters_for_slug_
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
     assert data["errors"] == []
-    assert data["product"]["slug"] == "-2"
+    assert data["product"]["slug"] == "--2"
 
 
 def test_create_product_use_tax_class_from_product_type(
