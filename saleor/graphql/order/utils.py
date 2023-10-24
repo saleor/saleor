@@ -277,7 +277,7 @@ def _validate_voucher(order: "Order", errors: T_ERRORS):
         except NotApplicable as e:
             errors["voucher"].append(
                 ValidationError(
-                    message=e.messages[0],
+                    message=e.args[0],
                     code=OrderErrorCode.INVALID_VOUCHER.value,
                 )
             )
