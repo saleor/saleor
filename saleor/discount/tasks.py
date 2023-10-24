@@ -14,6 +14,7 @@ from ..order.models import Order, OrderLine
 from ..plugins.manager import get_plugins_manager
 from ..product.models import Product, ProductVariant
 from ..product.tasks import update_products_discounted_prices_for_promotion_task
+from . import DiscountType
 from .models import (
     OrderDiscount,
     OrderLineDiscount,
@@ -209,9 +210,11 @@ def disconnect_voucher_codes_from_draft_orders_task(order_ids):
             order.voucher_code = None
             order.should_refresh_prices = True
         Order.objects.bulk_update(orders, ["voucher_code", "should_refresh_prices"])
-        OrderDiscount.objects.filter(order_id__in=ids).delete()
+        OrderDiscount.objects.filter(order_id__in=ids).filter(
+            type=DiscountType.VOUCHER
+        ).delete()
         OrderLineDiscount.objects.filter(
             Exists(OrderLine.objects.filter(order_id__in=order_ids))
-        ).delete()
+        ).filter(type=DiscountType.VOUCHER).delete()
         if remaining_ids := list(set(order_ids) - set(ids)):
             disconnect_voucher_codes_from_draft_orders_task.delay(remaining_ids)

@@ -8,7 +8,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ...order.models import Order
-from .. import RewardValueType
+from .. import DiscountType, RewardValueType
 from ..models import OrderDiscount, OrderLineDiscount, Promotion, PromotionRule
 from ..tasks import (
     decrease_voucher_codes_usage_task,
@@ -239,9 +239,11 @@ def test_disconnect_voucher_codes_from_draft_orders(
 
     voucher_code = order.voucher_code
     order_discount = OrderDiscount.objects.create(
-        order=order, voucher_code=voucher_code
+        order=order, voucher_code=voucher_code, type=DiscountType.VOUCHER
     )
-    line_discount = OrderLineDiscount.objects.create(line=order_line)
+    line_discount = OrderLineDiscount.objects.create(
+        line=order_line, type=DiscountType.VOUCHER
+    )
 
     # when
     disconnect_voucher_codes_from_draft_orders_task(order_list_ids)
