@@ -86,7 +86,10 @@ def test_category_query_invalid_id(user_api_client, product, channel_USD):
     response = user_api_client.post_graphql(QUERY_CATEGORY, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {category_id}."
+    assert (
+        content["errors"][0]["message"]
+        == f"Invalid ID: {category_id}. Expected: Category."
+    )
     assert content["data"]["category"] is None
 
 

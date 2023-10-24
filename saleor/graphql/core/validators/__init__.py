@@ -198,12 +198,10 @@ def validate_required_string_field(cleaned_input, field_name: str):
 
 
 def validate_if_int_or_uuid(id):
-    result = True
     try:
         int(id)
     except ValueError:
         try:
             UUID(id)
         except (AttributeError, ValueError):
-            result = False
-    return result
+            raise ValidationError("Must receive an int or UUID.")

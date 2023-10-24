@@ -3268,7 +3268,7 @@ def test_order_bulk_create_error_path_fulfillments(
     # then
     assert content["data"]["orderBulkCreate"]["count"] == 0
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
-    assert error["message"] == "Couldn't resolve id: dummy."
+    assert error["message"] == "Invalid ID: dummy. Expected: Warehouse."
     assert error["path"] == "fulfillments.1.lines.2.warehouse"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 

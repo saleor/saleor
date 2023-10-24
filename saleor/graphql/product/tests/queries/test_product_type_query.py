@@ -98,7 +98,10 @@ def test_product_type_query_invalid_id(
     response = staff_api_client.post_graphql(PRODUCT_TYPE_QUERY, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {product_type_id}."
+    assert (
+        content["errors"][0]["message"]
+        == f"Invalid ID: {product_type_id}. Expected: ProductType."
+    )
     assert content["data"]["productType"] is None
 
 

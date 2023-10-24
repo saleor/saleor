@@ -81,7 +81,7 @@ def test_staff_query_menu_item_by_invalid_id(staff_api_client, menu_item):
     response = staff_api_client.post_graphql(QUERY_MENU_ITEM_BY_ID, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: MenuItem."
     assert content["data"]["menuItem"] is None
 
 

@@ -14,6 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 - Fix draft order voucher assignment - #14336 by @IKarbowiak
+- Improved GraphQL ID validation messages - #14447 by @patrys
 
 ### Saleor Apps
 

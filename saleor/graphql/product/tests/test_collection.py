@@ -1623,7 +1623,10 @@ def test_collection_query_invalid_id(
     response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {collection_id}."
+    assert (
+        content["errors"][0]["message"]
+        == f"Invalid ID: {collection_id}. Expected: Collection."
+    )
     assert content["data"]["collection"] is None
 
 

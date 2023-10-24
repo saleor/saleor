@@ -1079,7 +1079,7 @@ def test_staff_query_order_by_invalid_id(staff_api_client, order):
 
     # then
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: Order."
     assert content["data"]["order"] is None
 
 
