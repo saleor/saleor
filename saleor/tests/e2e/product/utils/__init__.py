@@ -21,6 +21,7 @@ from .product_variant_channel_listing import (
     create_product_variant_channel_listing,
     raw_create_product_variant_channel_listing,
 )
+from .product_variant_stock_update import product_variant_stock_update
 
 __all__ = [
     "create_category",
@@ -42,4 +43,5 @@ __all__ = [
     "raw_create_product_variant_channel_listing",
     "update_product_type",
     "update_product",
+    "product_variant_stock_update",
 ]

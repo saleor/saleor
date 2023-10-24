@@ -150,8 +150,8 @@ def test_checkout_unable_to_use_expired_voucher_CORE_0921(
     assert errors["message"] == "Promo code is invalid"
 
     voucher_data = get_voucher(e2e_staff_api_client, voucher_id)
-    assert voucher_data["id"] == voucher_id
-    assert voucher_data["codes"]["edges"][0]["node"]["used"] == 0
+    assert voucher_data["voucher"]["id"] == voucher_id
+    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["used"] == 0
 
     # Step 4 - Create payment for checkout.
     checkout_dummy_payment_create(

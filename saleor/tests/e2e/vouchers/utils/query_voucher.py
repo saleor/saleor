@@ -50,4 +50,4 @@ def get_voucher(
     response = api_client.post_graphql(VOUCHER_QUERY, variables)
     content = get_graphql_content(response)
 
-    return content["data"]["voucher"]
+    return content["data"]
