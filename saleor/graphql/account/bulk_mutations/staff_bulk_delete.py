@@ -67,6 +67,6 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         instances = list(queryset)
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
-        webhooks = get_webhooks_for_event(WebhookEventAsyncType.ATTRIBUTE_DELETED)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.STAFF_DELETED)
         for instance in instances:
             cls.call_event(manager.staff_deleted, instance, webhooks=webhooks)
