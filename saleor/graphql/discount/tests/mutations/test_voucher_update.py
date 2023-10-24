@@ -45,13 +45,49 @@ mutation voucherUpdate($id: ID!, $input: VoucherInput!) {
                 applyOncePerOrder
                 applyOncePerCustomer
                 singleUse
+                products(first: 10) {
+                    edges {
+                        node {
+                            id
+                        }
+                    }
+                }
+                variants(first: 10) {
+                    edges {
+                        node {
+                            id
+                        }
+                    }
+                }
+                categories(first: 10) {
+                    edges {
+                        node {
+                            id
+                        }
+                    }
+                }
+                collections(first: 10) {
+                    edges {
+                        node {
+                            id
+                        }
+                    }
+                }
             }
         }
     }
 """
 
 
-def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
+def test_update_voucher(
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    product,
+    variant,
+    collection,
+    category,
+):
     # given
     apply_once_per_order = not voucher.apply_once_per_order
     single_use = not voucher.single_use
@@ -71,6 +107,10 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
             "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
             "applyOncePerOrder": apply_once_per_order,
             "minCheckoutItemsQuantity": 10,
+            "products": [graphene.Node.to_global_id("Product", product.pk)],
+            "variants": [graphene.Node.to_global_id("ProductVariant", variant.pk)],
+            "collections": [graphene.Node.to_global_id("Collection", collection.pk)],
+            "categories": [graphene.Node.to_global_id("Category", category.pk)],
         },
     }
 
@@ -91,6 +131,10 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert data["minCheckoutItemsQuantity"] == 10
     assert data["usageLimit"] == 10
     assert data["codes"]["edges"][0]["node"]["code"] == new_code
+    assert len(data["products"]) == 1
+    assert len(data["variants"]) == 1
+    assert len(data["collections"]) == 1
+    assert len(data["categories"]) == 1
 
 
 def test_update_voucher_without_codes(
