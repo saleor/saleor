@@ -912,8 +912,8 @@ def _update_order_total_charged(
     order_transactions: Iterable["TransactionItem"],
 ):
     order.total_charged_amount = sum(
-        order_payments.values_list("captured_amount", flat=True)
-    ) or Decimal(0)
+        [p.captured_amount for p in order_payments], Decimal(0)
+    )
     order.total_charged_amount += sum([tr.charged_value for tr in order_transactions])
 
 
