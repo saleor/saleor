@@ -3,7 +3,8 @@ from typing import Optional
 
 from django.core.exceptions import ValidationError
 
-from saleor.graphql.core.enums import ChannelErrorCode
+from ....channel.models import Channel
+from ...core.enums import ChannelErrorCode
 
 DELETE_EXPIRED_ORDERS_MAX_DAYS = 120
 
@@ -40,7 +41,9 @@ def clean_delete_expired_orders_after(delete_expired_orders_after: int) -> timed
     return timedelta(days=delete_expired_orders_after)
 
 
-def clean_input_order_settings(order_settings: dict, cleaned_input: dict):
+def clean_input_order_settings(
+    order_settings: dict, cleaned_input: dict, instance: Channel
+):
     channel_settings = [
         "automatically_confirm_all_new_orders",
         "automatically_fulfill_non_shippable_gift_card",
@@ -70,6 +73,10 @@ def clean_input_order_settings(order_settings: dict, cleaned_input: dict):
         cleaned_input[
             "delete_expired_orders_after"
         ] = clean_delete_expired_orders_after(delete_expired_orders_after)
+
+    cleaned_input[
+        "prev_include_draft_order_in_voucher_usage"
+    ] = instance.include_draft_order_in_voucher_usage
 
 
 def clean_input_checkout_settings(checkout_settings: dict, cleaned_input: dict):
