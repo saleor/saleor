@@ -9,6 +9,8 @@ from ....core.exceptions import InsufficientStock
 from ....core.postgres import FlatConcatSearchVector
 from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
+from ....discount.models import VoucherCode
+from ....discount.utils import add_voucher_usage_by_customer
 from ....order import OrderStatus, models
 from ....order.actions import order_created
 from ....order.calculations import fetch_order_prices_if_expired
@@ -71,6 +73,17 @@ class DraftOrderComplete(BaseMutation):
         return order
 
     @classmethod
+    def setup_voucher_customer(cls, order):
+        if (
+            order.voucher
+            and order.voucher_code
+            and order.voucher.apply_once_per_customer
+        ):
+            code = VoucherCode.objects.filter(code=order.voucher_code).first()
+            if code:
+                add_voucher_usage_by_customer(code, order.get_customer_email())
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id: str
     ):
@@ -90,6 +103,7 @@ class DraftOrderComplete(BaseMutation):
 
         country = get_order_country(order)
         validate_draft_order(order, country, manager)
+        cls.setup_voucher_customer(order)
         with traced_atomic_transaction():
             cls.update_user_fields(order)
             order.status = OrderStatus.UNFULFILLED
