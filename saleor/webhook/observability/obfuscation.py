@@ -71,9 +71,7 @@ class SensitiveFieldError(GraphQLError):
 
 
 class ContainSensitiveField(ValidationRule):
-    def __init__(
-        self, sensitive_fields: SensitiveFieldsMap
-    ):  # pylint: disable=super-init-not-called
+    def __init__(self, sensitive_fields: SensitiveFieldsMap):  # pylint: disable=super-init-not-called
         self.sensitive_fields = sensitive_fields
 
     def __call__(self, context: ValidationContext):
@@ -120,9 +118,7 @@ class ContainSensitiveField(ValidationRule):
                 self.contain_sensitive_field(child_node, inline_fragment_type)
         return False
 
-    def enter_operation_definition(
-        self, node, key, parent, path, ancestors
-    ):  # pylint: disable=unused-argument
+    def enter_operation_definition(self, node, key, parent, path, ancestors):  # pylint: disable=unused-argument
         validate_sensitive_fields_map(self.sensitive_fields, self.context.get_schema())
         if node.operation == "query":
             self.contain_sensitive_field(

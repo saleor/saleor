@@ -202,12 +202,13 @@ class WhereFilterSet(django_filters.FilterSet):
             if name not in self.form.data:
                 continue
             queryset = self.filters[name].filter(queryset, value)
-            assert isinstance(
-                queryset, models.QuerySet
-            ), "Expected '%s.%s' to return a QuerySet, but got a %s instead." % (
-                type(self).__name__,
-                name,
-                type(queryset).__name__,
+            assert isinstance(queryset, models.QuerySet), (
+                "Expected '%s.%s' to return a QuerySet, but got a %s instead."
+                % (
+                    type(self).__name__,
+                    name,
+                    type(queryset).__name__,
+                )
             )
         return queryset
 

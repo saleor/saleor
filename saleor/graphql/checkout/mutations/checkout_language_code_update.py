@@ -59,7 +59,7 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
         checkout_id=None,
         id=None,
         language_code,
-        token=None
+        token=None,
     ):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 

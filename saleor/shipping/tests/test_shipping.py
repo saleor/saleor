@@ -242,11 +242,13 @@ def test_applicable_shipping_methods_not_in_channel(shipping_zone, channel_USD):
         maximum_order_weight=Weight(kg=10),
         type=ShippingMethodType.WEIGHT_BASED,
     )
-    ShippingMethodChannelListing.objects.create(
-        shipping_method=weight_method,
-        channel=channel_USD,
-        currency=channel_USD.currency_code,
-    ),
+    (
+        ShippingMethodChannelListing.objects.create(
+            shipping_method=weight_method,
+            channel=channel_USD,
+            currency=channel_USD.currency_code,
+        ),
+    )
     result = ShippingMethod.objects.applicable_shipping_methods(
         price=Money("5.0", "USD"),
         weight=Weight(kg=5),

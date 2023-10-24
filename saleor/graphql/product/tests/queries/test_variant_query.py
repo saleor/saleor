@@ -635,9 +635,7 @@ def test_variant_restricted_fields_permissions(
             %(field)s
         }
     }
-    """ % {
-        "field": field if not is_nested else "%s { __typename }" % field
-    }
+    """ % {"field": field if not is_nested else "%s { __typename }" % field}
     variant = product.variants.first()
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),

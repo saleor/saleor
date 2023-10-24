@@ -2729,7 +2729,7 @@ class WebhookPlugin(BasePlugin):
         checkout_info: Optional["CheckoutInfo"],
         checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
         previous_value,
-        **kwargs
+        **kwargs,
     ) -> List["PaymentGateway"]:
         gateways = []
         checkout = None

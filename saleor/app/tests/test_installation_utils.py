@@ -546,9 +546,7 @@ def test_install_app_webhook_incorrect_query(
     app_manifest, app_manifest_webhook, app_installation, monkeypatch
 ):
     # given
-    app_manifest_webhook[
-        "query"
-    ] = """
+    app_manifest_webhook["query"] = """
         no {
             that's {
                 not {
