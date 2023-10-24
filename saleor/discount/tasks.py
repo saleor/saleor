@@ -9,10 +9,19 @@ from django.db.models import Exists, F, OuterRef, Q, QuerySet
 
 from ..celeryconf import app
 from ..graphql.discount.utils import get_variants_for_predicate
+from ..order import OrderStatus
+from ..order.models import Order, OrderLine
 from ..plugins.manager import get_plugins_manager
 from ..product.models import Product, ProductVariant
 from ..product.tasks import update_products_discounted_prices_for_promotion_task
-from .models import Promotion, PromotionRule
+from . import DiscountType
+from .models import (
+    OrderDiscount,
+    OrderLineDiscount,
+    Promotion,
+    PromotionRule,
+    VoucherCode,
+)
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -146,3 +155,62 @@ def fetch_promotion_variants_and_product_ids(promotions: "QuerySet[Promotion]"):
         Exists(variants.filter(product_id=OuterRef("id")))
     )
     return promotion_id_to_variants, list(products.values_list("id", flat=True))
+
+
+def decrease_voucher_code_usage_of_draft_orders(channel_id: int):
+    codes = Order.objects.filter(
+        channel_id=channel_id, status=OrderStatus.DRAFT, voucher_code__isnull=False
+    ).values_list("voucher_code", flat=True)
+    voucher_code_ids = VoucherCode.objects.filter(code__in=codes).values_list(
+        "pk", flat=True
+    )
+    decrease_voucher_codes_usage_task.delay(list(voucher_code_ids))
+
+
+@app.task
+def decrease_voucher_codes_usage_task(voucher_code_ids):
+    # Batch of size 1000 takes ~1sec and consumes ~20mb at peak
+    BATCH_SIZE = 1000
+    ids = sorted(voucher_code_ids)[:BATCH_SIZE]
+    if (
+        voucher_codes := VoucherCode.objects.filter(pk__in=ids)
+        .select_related("voucher")
+        .only("voucher", "used", "is_active")
+    ):
+        for voucher_code in voucher_codes:
+            if voucher_code.voucher.usage_limit and voucher_code.used > 0:
+                voucher_code.used -= 1
+            if voucher_code.voucher.single_use:
+                voucher_code.is_active = True
+        VoucherCode.objects.bulk_update(voucher_codes, ["used", "is_active"])
+        if remaining_ids := list(set(voucher_code_ids) - set(ids)):
+            decrease_voucher_codes_usage_task.delay(remaining_ids)
+
+
+def disconnect_voucher_codes_from_draft_orders(channel_id: int):
+    order_ids = Order.objects.filter(
+        channel_id=channel_id, status=OrderStatus.DRAFT, voucher_code__isnull=False
+    ).values_list("pk", flat=True)
+    disconnect_voucher_codes_from_draft_orders_task.delay(list(order_ids))
+
+
+@app.task
+def disconnect_voucher_codes_from_draft_orders_task(order_ids):
+    # Batch of size 1000 takes ~1sec and consumes ~20mb at peak
+    BATCH_SIZE = 1000
+    ids = sorted(order_ids)[:BATCH_SIZE]
+    if orders := Order.objects.filter(pk__in=ids).only(
+        "voucher_code", "should_refresh_prices"
+    ):
+        for order in orders:
+            order.voucher_code = None
+            order.should_refresh_prices = True
+        Order.objects.bulk_update(orders, ["voucher_code", "should_refresh_prices"])
+        OrderDiscount.objects.filter(order_id__in=ids).filter(
+            type=DiscountType.VOUCHER
+        ).delete()
+        OrderLineDiscount.objects.filter(
+            Exists(OrderLine.objects.filter(order_id__in=order_ids))
+        ).filter(type=DiscountType.VOUCHER).delete()
+        if remaining_ids := list(set(order_ids) - set(ids)):
+            disconnect_voucher_codes_from_draft_orders_task.delay(remaining_ids)
