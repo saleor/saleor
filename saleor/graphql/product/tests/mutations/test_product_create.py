@@ -194,6 +194,59 @@ def test_create_product(
     )
 
 
+def test_create_product_without_slug_and_not_allowed_characters_for_slug_in_name(
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": "->>",
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["slug"] == "-"
+
+
+def test_create_second_product_without_slug_and_not_allowed_characters_for_slug_in_name(
+    staff_api_client, product_type, permission_manage_products, product
+):
+    # given
+    product.slug = "-"
+    product.save(update_fields=["slug"])
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": "->>",
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["slug"] == "--2"
+
+
 def test_create_product_use_tax_class_from_product_type(
     staff_api_client,
     product_type,
