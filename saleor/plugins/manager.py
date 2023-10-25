@@ -1194,22 +1194,22 @@ class PluginsManager(PaymentInterface):
             "attribute_created", default_value, attribute
         )
 
-    def attribute_updated(self, attribute: "Attribute"):
+    def attribute_updated(self, attribute: "Attribute", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "attribute_updated", default_value, attribute
+            "attribute_updated", default_value, attribute, webhooks=webhooks
         )
 
-    def attribute_deleted(self, attribute: "Attribute"):
+    def attribute_deleted(self, attribute: "Attribute", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "attribute_deleted", default_value, attribute
+            "attribute_deleted", default_value, attribute, webhooks=webhooks
         )
 
-    def attribute_value_created(self, attribute_value: "AttributeValue"):
+    def attribute_value_created(self, attribute_value: "AttributeValue", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "attribute_value_created", default_value, attribute_value
+            "attribute_value_created", default_value, attribute_value, webhooks=webhooks
         )
 
     def attribute_value_updated(self, attribute_value: "AttributeValue"):
@@ -1218,10 +1218,10 @@ class PluginsManager(PaymentInterface):
             "attribute_value_updated", default_value, attribute_value
         )
 
-    def attribute_value_deleted(self, attribute_value: "AttributeValue"):
+    def attribute_value_deleted(self, attribute_value: "AttributeValue", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "attribute_value_deleted", default_value, attribute_value
+            "attribute_value_deleted", default_value, attribute_value, webhooks=webhooks
         )
 
     def category_created(self, category: "Category"):
@@ -1388,7 +1388,9 @@ class PluginsManager(PaymentInterface):
 
     def staff_deleted(self, staff_user: "User", webhooks=None):
         default_value = None
-        return self.__run_method_on_plugins("staff_deleted", default_value, staff_user)
+        return self.__run_method_on_plugins(
+            "staff_deleted", default_value, staff_user, webhooks=webhooks
+        )
 
     def staff_set_password_requested(
         self, user: "User", channel_slug: str, token: str, redirect_url: str

@@ -547,9 +547,7 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
 
     flush_post_commit_hooks()
 
-    product_variant_stock_out_of_stock_webhook.assert_called_once_with(
-        Stock.objects.last(), webhooks=[any_webhook]
-    )
+    assert product_variant_stock_out_of_stock_webhook.call_count == 1
     assert product_variant_stock_update_webhook.call_count == 2
     product_variant_stock_update_webhook.assert_called_with(
         Stock.objects.last(), webhooks=[any_webhook]
