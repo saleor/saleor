@@ -88,33 +88,35 @@ def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
 
 
 @app.task
-def update_orders_charge_statuses_task(stop_granted_refund_pk=-1):
+def update_orders_charge_statuses_task(number=0):
     """Update the charge status for orders with granted refunds.
 
     Task takes around 0.3 seconds for 1000 orders and around 5 MB of memory.
     """
-    if stop_granted_refund_pk == -1:
-        stop_granted_refund_pk = OrderGrantedRefund.objects.count()
-    order_charge_status_batch_size = 1000
-    start_pk = stop_granted_refund_pk - order_charge_status_batch_size
-    stop_pk = stop_granted_refund_pk
-    orders = Order.objects.filter(
-        Exists(
-            OrderGrantedRefund.objects.filter(
-                order_id=OuterRef("pk"),
-                pk__gte=start_pk,
-                pk__lt=stop_pk,
-            )
+    batch_size = 1000
+    orders = (
+        Order.objects.order_by("number")
+        .filter(
+            Exists(
+                OrderGrantedRefund.objects.filter(
+                    order_id=OuterRef("pk"),
+                )
+            ),
+            number__gt=number,
         )
-    ).prefetch_related("granted_refunds")
+        .prefetch_related("granted_refunds")[:batch_size]
+    )
+
     orders_to_update = []
+    last_number = number
     for o in orders:
         granted_refund_amount = sum(
             [refund.amount.amount for refund in o.granted_refunds.all()], Decimal(0)
         )
         update_order_charge_status(o, granted_refund_amount)
         orders_to_update.append(o)
+        last_number = o.number
 
     if orders_to_update:
         Order.objects.bulk_update(orders_to_update, ["charge_status"])
-        update_orders_charge_statuses_task.delay(start_pk)
+        update_orders_charge_statuses_task.delay(last_number)
