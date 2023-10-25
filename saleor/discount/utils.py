@@ -276,16 +276,16 @@ def validate_voucher_for_checkout(
 
 
 def validate_voucher_in_order(order: "Order"):
-    subtotal = order.get_subtotal()
-    quantity = order.get_total_quantity()
-    customer_email = order.get_customer_email()
     if not order.voucher:
         return
 
+    subtotal = order.get_subtotal()
+    quantity = order.get_total_quantity()
+    customer_email = order.get_customer_email()
     tax_configuration = order.channel.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
-
     value = subtotal.gross if prices_entered_with_tax else subtotal.net
+
     validate_voucher(
         order.voucher, value, quantity, customer_email, order.channel, order.user
     )
