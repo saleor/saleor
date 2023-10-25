@@ -644,9 +644,7 @@ def update_delivery_method_lists_for_checkout_info(
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods
 
-    checkout_info.all_shipping_methods = lazy_no_retry(
-        _resolve_all_shipping_methods
-    )  # type: ignore[assignment] # using lazy object breaks protocol
+    checkout_info.all_shipping_methods = lazy_no_retry(_resolve_all_shipping_methods)  # type: ignore[assignment] # using lazy object breaks protocol
     checkout_info.valid_pick_up_points = lazy_no_retry(
         lambda: (get_valid_collection_points_for_checkout_info(lines, checkout_info))
     )  # type: ignore[assignment] # using lazy object breaks protocol

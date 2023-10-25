@@ -73,7 +73,7 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         *,
         external_reference: Optional[str] = None,
         id: Optional[str] = None,
-        sku: Optional[str] = None
+        sku: Optional[str] = None,
     ):
         validate_one_of_args_is_in_mutation(
             "sku",

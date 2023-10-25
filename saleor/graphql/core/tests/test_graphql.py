@@ -336,7 +336,7 @@ def test_get_nodes_for_order_with_uuid_and_int_id(order_list):
 
 def test_from_global_id_or_error(product):
     invalid_id = "invalid"
-    message = f"Couldn't resolve id: {invalid_id}."
+    message = f"Invalid ID: {invalid_id}."
 
     with pytest.raises(GraphQLError) as error:
         from_global_id_or_error(invalid_id)
@@ -346,7 +346,7 @@ def test_from_global_id_or_error(product):
 
 def test_from_global_id_or_error_wth_invalid_type(product):
     product_id = graphene.Node.to_global_id("Product", product.id)
-    message = "Must receive a ProductVariant id."
+    message = f"Invalid ID: {product_id}. Expected: ProductVariant, received: Product."
 
     with pytest.raises(GraphQLError) as error:
         from_global_id_or_error(product_id, "ProductVariant", raise_error=True)

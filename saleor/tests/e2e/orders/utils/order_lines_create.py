@@ -7,6 +7,9 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
       id
       shippingMethods {
         id
+        price {
+          amount
+        }
       }
       total {
         gross {
@@ -19,6 +22,7 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
           amount
         }
       }
+      isShippingRequired
       lines {
         id
         quantity
@@ -50,6 +54,7 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
       }
     }
     errors {
+      code
       field
       message
     }

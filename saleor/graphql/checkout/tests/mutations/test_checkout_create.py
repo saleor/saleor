@@ -2123,9 +2123,6 @@ def test_checkout_create_with_skip_value_check_saves_address(
     assert getattr(created_checkout, address_db_field_name).country.code == country_code
 
 
-[("shippingAddress", "shipping_address"), ("billingAddress", "billing_address")],
-
-
 @pytest.mark.parametrize(
     "address_data, address_input_name, address_db_field_name",
     [

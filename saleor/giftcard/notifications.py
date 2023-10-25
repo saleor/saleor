@@ -19,7 +19,7 @@ def send_gift_card_notification(
     manager,
     channel_slug,
     *,
-    resending
+    resending,
 ):
     """Trigger sending a gift card notification for the given recipient."""
     payload = {

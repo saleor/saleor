@@ -108,7 +108,7 @@ def resolve_variant(
     *,
     channel_slug,
     requestor,
-    requestor_has_access_to_all
+    requestor_has_access_to_all,
 ):
     visible_products = models.Product.objects.visible_to_user(
         requestor, channel_slug

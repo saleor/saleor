@@ -238,7 +238,7 @@ def test_product_query_by_invalid_id(
     )
     content = get_graphql_content_from_response(response)
     assert "errors" in content
-    assert content["errors"][0]["message"] == (f"Couldn't resolve id: {id}.")
+    assert content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: Product."
 
 
 QUERY_PRODUCT_BY_ID = """
@@ -290,7 +290,10 @@ def test_product_query_invalid_id(user_api_client, product, channel_USD):
     response = user_api_client.post_graphql(QUERY_PRODUCT_BY_ID, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {product_id}."
+    assert (
+        content["errors"][0]["message"]
+        == f"Invalid ID: {product_id}. Expected: Product."
+    )
     assert content["data"]["product"] is None
 
 
@@ -1660,7 +1663,9 @@ def test_query_product_image_by_invalid_id(
 
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert (
+        content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: ProductImage."
+    )
     assert content["data"]["product"]["imageById"] is None
 
 
@@ -1767,7 +1772,9 @@ def test_query_product_media_by_invalid_id(
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert (
+        content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: ProductMedia."
+    )
     assert content["data"]["product"]["mediaById"] is None
 
 

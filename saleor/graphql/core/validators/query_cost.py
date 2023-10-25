@@ -127,9 +127,7 @@ class CostValidator(ValidationRule):
             total += node_cost
         return total
 
-    def enter_operation_definition(
-        self, node, key, parent, path, ancestors
-    ):  # pylint: disable=unused-argument
+    def enter_operation_definition(self, node, key, parent, path, ancestors):  # pylint: disable=unused-argument
         if self.cost_map:
             try:
                 validate_cost_map(self.cost_map, self.context.get_schema())
@@ -150,9 +148,7 @@ class CostValidator(ValidationRule):
                 node, self.context.get_schema().get_subscription_type()
             )
 
-    def leave_operation_definition(
-        self, node, key, parent, path, ancestors
-    ):  # pylint: disable=unused-argument
+    def leave_operation_definition(self, node, key, parent, path, ancestors):  # pylint: disable=unused-argument
         if self.cost > self.maximum_cost:
             self.context.report_error(self.get_cost_exceeded_error())
 

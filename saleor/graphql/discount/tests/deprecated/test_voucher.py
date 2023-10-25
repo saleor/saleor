@@ -47,23 +47,33 @@ def test_query_voucher_by_customer(api_client, voucher, permission_manage_discou
 def test_staff_query_voucher_by_invalid_id(
     staff_api_client, voucher, permission_manage_discounts
 ):
+    # given
     id = "bh/"
     variables = {"id": id}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_VOUCHER_BY_ID, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: Voucher."
     assert content["data"]["voucher"] is None
 
 
 def test_staff_query_voucher_with_invalid_object_type(
     staff_api_client, voucher, permission_manage_discounts
 ):
+    # given
     variables = {"id": graphene.Node.to_global_id("Order", voucher.pk)}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_VOUCHER_BY_ID, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["voucher"] is None

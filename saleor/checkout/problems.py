@@ -183,7 +183,7 @@ def get_checkout_lines_problems(
 def get_checkout_problems(
     checkout_lines_problem: dict[
         CHECKOUT_LINE_PK_TYPE, list[CHECKOUT_LINE_PROBLEM_TYPE]
-    ]
+    ],
 ):
     """Return a list of all problems with the checkout.
 

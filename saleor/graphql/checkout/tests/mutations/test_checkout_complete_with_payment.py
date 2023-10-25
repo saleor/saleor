@@ -2310,7 +2310,7 @@ def test_checkout_complete_invalid_id(user_api_client):
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert data["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert data["errors"][0]["message"] == f"Invalid ID: {id}. Expected: Checkout."
     assert data["errors"][0]["field"] == "id"
     assert orders_count == Order.objects.count()
 

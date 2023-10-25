@@ -33,7 +33,7 @@ def create_permissions(
     interactive=True,
     using=DEFAULT_DB_ALIAS,
     apps=global_apps,
-    **kwargs
+    **kwargs,
 ):
     if not app_config.models_module:
         return

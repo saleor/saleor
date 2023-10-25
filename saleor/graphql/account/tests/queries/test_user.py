@@ -727,7 +727,7 @@ def test_user_query_invalid_id(
 
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: User."
     assert content["data"]["user"] is None
 
 

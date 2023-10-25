@@ -355,7 +355,7 @@ class AttributeAssignmentMixin:
         attribute_qs: "QuerySet",
         *,
         creation: bool,
-        is_page_attributes: bool
+        is_page_attributes: bool,
     ):
         """Check the cleaned attribute input.
 

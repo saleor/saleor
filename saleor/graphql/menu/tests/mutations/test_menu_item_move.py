@@ -630,9 +630,15 @@ def test_menu_cannot_pass_an_invalid_menu_item_node_type(
     )
 
     # then
+    message = f"Invalid ID: {node_id}. Expected: MenuItem, received: User."
     assert json.loads(response.content)["data"] == {
         "menuItemMove": {
-            "errors": [{"field": "item", "message": "Must receive a MenuItem id."}],
+            "errors": [
+                {
+                    "field": "item",
+                    "message": message,
+                }
+            ],
             "menu": None,
         }
     }

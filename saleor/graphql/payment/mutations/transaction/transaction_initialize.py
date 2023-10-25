@@ -115,7 +115,7 @@ class TransactionInitialize(TransactionSessionBase):
         payment_gateway,
         amount=None,
         action=None,
-        customer_ip_address=None
+        customer_ip_address=None,
     ):
         manager = get_plugin_manager_promise(info.context).get()
         payment_gateway_data = PaymentGatewayData(

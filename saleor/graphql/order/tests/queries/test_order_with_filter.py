@@ -739,13 +739,15 @@ def test_orders_query_with_filter_search_by_global_payment_id(
             ),
         ]
     )
-    OrderDiscount.objects.create(
-        order=orders[0],
-        name="test_discount1",
-        value=Decimal("1"),
-        amount_value=Decimal("1"),
-        translated_name="translated_discount1_name",
-    ),
+    (
+        OrderDiscount.objects.create(
+            order=orders[0],
+            name="test_discount1",
+            value=Decimal("1"),
+            amount_value=Decimal("1"),
+            translated_name="translated_discount1_name",
+        ),
+    )
 
     order_with_payment = orders[0]
     payment = Payment.objects.create(order=order_with_payment)

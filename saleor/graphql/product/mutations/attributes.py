@@ -473,7 +473,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
     @classmethod
     def clean_operations(cls, product_type, variant_attrs_data):
         errors: DefaultDict[str, List[ValidationError]] = defaultdict(list)
-        variant_attrs_pks = [pk for pk, _, in variant_attrs_data]
+        variant_attrs_pks = [pk for pk, _ in variant_attrs_data]
 
         cls.check_for_duplicates(errors, variant_attrs_pks)
         if errors:
