@@ -226,6 +226,30 @@ def test_draft_order_complete_with_voucher(
     )
 
 
+def test_draft_order_complete_with_invalid_voucher(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    draft_order_with_voucher,
+):
+    # given
+    order = draft_order_with_voucher
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order.voucher.channel_listings.all().delete()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert not data["order"]
+    assert data["errors"][0]["code"] == OrderErrorCode.INVALID_VOUCHER.name
+    assert data["errors"][0]["field"] == "voucher"
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_draft_order_complete_0_total(
     product_variant_out_of_stock_webhook_mock,

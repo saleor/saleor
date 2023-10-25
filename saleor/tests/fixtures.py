@@ -5264,6 +5264,29 @@ def draft_order_with_fixed_discount_order(draft_order):
 
 
 @pytest.fixture
+def draft_order_with_voucher(
+    draft_order_with_fixed_discount_order, voucher_multiple_use
+):
+    order = draft_order_with_fixed_discount_order
+    voucher_code = voucher_multiple_use.codes.first()
+    discount = order.discounts.first()
+    discount.type = DiscountType.VOUCHER
+    discount.voucher = voucher_multiple_use
+    discount.voucher_code = voucher_code.code
+    discount.save(update_fields=["type", "voucher", "voucher_code"])
+
+    order.voucher = voucher_multiple_use
+    order.voucher_code = voucher_code.code
+    order.save(update_fields=["voucher", "voucher_code"])
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    return order
+
+
+@pytest.fixture
 def draft_order_without_inventory_tracking(order_with_line_without_inventory_tracking):
     order_with_line_without_inventory_tracking.status = OrderStatus.DRAFT
     order_with_line_without_inventory_tracking.origin = OrderStatus.DRAFT
