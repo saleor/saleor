@@ -174,7 +174,7 @@ def test_delete_staff_members(
     assert User.objects.filter(id__in=[user.id for user in users]).count() == len(users)
 
 
-@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.graphql.account.bulk_mutations.staff_bulk_delete.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_staff_members_trigger_webhook(
     mocked_webhook_trigger,
