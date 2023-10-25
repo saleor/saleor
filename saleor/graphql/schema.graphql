@@ -27706,6 +27706,7 @@ enum DiscountErrorCode @doc(category: "Discounts") {
   UNIQUE
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
   DUPLICATED_INPUT_ITEM
+  VOUCHER_ALREADY_USED
 }
 
 """
@@ -27969,6 +27970,8 @@ input VoucherInput @doc(category: "Discounts") {
 
   """
   When set to 'True', each voucher is limited to a single use; otherwise, usage remains unrestricted.
+  
+  The option can only be changed if none of the voucher codes have been used.
   
   Added in Saleor 3.18.
   """

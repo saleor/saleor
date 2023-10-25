@@ -7,6 +7,7 @@ from freezegun import freeze_time
 
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....discount import DiscountValueType
+from .....discount.error_codes import DiscountErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
@@ -225,3 +226,42 @@ def test_update_voucher_trigger_webhook(
         voucher,
         SimpleLazyObject(lambda: staff_api_client.user),
     )
+
+
+def test_update_voucher_single_use_voucher_already_used(
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    order,
+):
+    # given
+    single_use = not voucher.single_use
+
+    code_instance = voucher.codes.first()
+    order.voucher_code = code_instance.code
+    order.voucher = voucher
+    order.save(update_fields=["voucher_code", "voucher"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {
+            "singleUse": single_use,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["voucherUpdate"]
+    errors = data["errors"]
+
+    assert errors
+    assert not data["voucher"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "singleUse"
+    assert errors[0]["code"] == DiscountErrorCode.VOUCHER_ALREADY_USED.name
+    assert not errors[0]["voucherCodes"]

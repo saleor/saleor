@@ -87,7 +87,9 @@ class VoucherInput(BaseInputObjectType):
     single_use = graphene.Boolean(
         description=(
             "When set to 'True', each voucher is limited to a single use; "
-            "otherwise, usage remains unrestricted." + ADDED_IN_318
+            "otherwise, usage remains unrestricted."
+            "\n\nThe option can only be changed if none of the voucher codes "
+            "have been used." + ADDED_IN_318
         )
     )
     usage_limit = graphene.Int(
