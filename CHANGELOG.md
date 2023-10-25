@@ -3,13 +3,18 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
 # 3.18.0 [Unreleased]
-
 ### Breaking changes
 
 ### GraphQL API
 - Fix draft order voucher assignment - #14336 by @IKarbowiak
-- Allow add multiple codes per voucher - #14123 by @SzymJ, @IKarbowiak, @michal-macioszczyk
-  - Deprecate `OrderBulkCreateInput.voucher`
+- Allow add multiple codes per voucher - #14123 by @SzymJ, @IKarbowiak, @michal-macioszczyk, @zedzior
+  - Add `VoucherInput.addCodes` to `voucherCreate` and `voucherUpdate` mutations.
+  - Add `Voucher.singleUse` flag.
+  - Deprecate `OrderBulkCreateInput.voucher`.
+  - Deprecate `VoucherInput.code` in `voucherCreate` and `voucherUpdate` mutations.
+  - Add `exportVoucherCodes` mutation.
+  - Add `voucherCodeBulkDelete` mutation.
+  - Adjust voucher usage calculations.
 
 ### Saleor Apps
 
