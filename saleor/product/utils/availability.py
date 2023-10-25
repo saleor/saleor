@@ -93,7 +93,7 @@ def get_product_availability(
     variants_channel_listing: List[ProductVariantChannelListing],
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
-    tax_rate: Decimal
+    tax_rate: Decimal,
 ) -> ProductAvailability:
     discounted: Optional[TaxedMoneyRange] = None
     discounted_net_range = get_product_price_range(
@@ -159,7 +159,7 @@ def get_variant_availability(
     product_channel_listing: Optional[ProductChannelListing],
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
-    tax_rate: Decimal
+    tax_rate: Decimal,
 ) -> Optional[VariantAvailability]:
     if variant_channel_listing.price is None:
         return None

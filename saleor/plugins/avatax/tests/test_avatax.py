@@ -3898,9 +3898,7 @@ def test_get_order_shipping_tax_rate_shipping_with_tax_class(
     order.shipping_tax_class = method.tax_class
     order.shipping_tax_class_name = method.tax_class.name
     order.shipping_tax_class_metadata = method.tax_class.metadata
-    order.shipping_tax_class_private_metadata = (
-        method.tax_class.private_metadata
-    )  # noqa: E501
+    order.shipping_tax_class_private_metadata = method.tax_class.private_metadata  # noqa: E501
     order.save()
 
     # when

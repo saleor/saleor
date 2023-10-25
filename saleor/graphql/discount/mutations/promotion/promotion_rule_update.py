@@ -156,9 +156,7 @@ class PromotionRuleUpdate(ModelMutation):
                         if "reward_value_type" in cleaned_input
                         else "add_channels"
                     )
-                    error_code = (
-                        PromotionRuleUpdateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.value
-                    )
+                    error_code = PromotionRuleUpdateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.value
                     raise ValidationError(
                         {
                             field: ValidationError(

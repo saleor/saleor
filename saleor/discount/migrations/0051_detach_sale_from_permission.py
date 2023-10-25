@@ -17,7 +17,7 @@ def create_permissions(
     interactive=True,
     using=DEFAULT_DB_ALIAS,
     apps=global_apps,
-    **kwargs
+    **kwargs,
 ):
     create_contenttypes(
         app_config,

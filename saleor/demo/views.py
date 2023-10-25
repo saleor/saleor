@@ -22,9 +22,7 @@ EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
     }
   }
 }
-""" % {
-    "channel_slug": settings.DEFAULT_CHANNEL_SLUG
-}
+""" % {"channel_slug": settings.DEFAULT_CHANNEL_SLUG}
 
 
 class DemoGraphQLView(GraphQLView):

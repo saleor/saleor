@@ -177,7 +177,7 @@ class BaseBulkTranslateMutation(BaseMutation):
         base_model_relation_field=None,
         result_type=None,
         _meta=None,
-        **kwargs
+        **kwargs,
     ):
         if not base_model:
             raise ImproperlyConfigured(

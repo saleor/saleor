@@ -506,7 +506,8 @@ def _fetch_gateway_response(fn, *args, **kwargs):
 
 
 def _get_past_transaction_token(
-    payment: Payment, kind: str  # for kind use "TransactionKind"
+    payment: Payment,
+    kind: str,  # for kind use "TransactionKind"
 ) -> str:
     txn = payment.transactions.filter(kind=kind, is_success=True).last()
     if txn is None:

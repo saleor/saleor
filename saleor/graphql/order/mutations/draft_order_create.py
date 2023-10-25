@@ -414,7 +414,7 @@ class DraftOrderCreate(
         *,
         is_new_instance,
         app,
-        manager
+        manager,
     ):
         updated_fields = []
         with traced_atomic_transaction():

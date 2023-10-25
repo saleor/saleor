@@ -366,8 +366,9 @@ def test_order_query(
     )
 
     assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
-    assert float(expected_shipping_price.minimum_order_price.amount) == (
-        method["minimumOrderPrice"]["amount"]
+    assert (
+        float(expected_shipping_price.minimum_order_price.amount)
+        == (method["minimumOrderPrice"]["amount"])
     )
     assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
     assert order_data["checkoutId"] == (
@@ -994,8 +995,9 @@ def test_order_query_in_pln_channel(
         channel_id=order.channel_id
     )
     assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
-    assert float(expected_shipping_price.minimum_order_price.amount) == (
-        method["minimumOrderPrice"]["amount"]
+    assert (
+        float(expected_shipping_price.minimum_order_price.amount)
+        == (method["minimumOrderPrice"]["amount"])
     )
 
 
