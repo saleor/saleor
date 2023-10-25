@@ -45,7 +45,7 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
         queryset.delete()
 
         manager = get_plugin_manager_promise(info.context).get()
-        webhooks = get_webhooks_for_event(WebhookEventAsyncType.ATTRIBUTE_DELETED)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PROMOTION_DELETED)
         for promotion in promotions:
             cls.call_event(manager.promotion_deleted, promotion, webhooks=webhooks)
 
