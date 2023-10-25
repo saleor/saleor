@@ -65,7 +65,10 @@ def test_webhook_delivery_retry_wrong_type(
         "EventDeliveryAttempt", event_attempt.id
     )
     variables = {"id": delivery_wrong_id}
-    expected_message = "Must receive a EventDelivery id."
+    expected_message = (
+        f"Invalid ID: {delivery_wrong_id}. Expected: EventDelivery,"
+        + " received: EventDeliveryAttempt."
+    )
     response = staff_api_client.post_graphql(
         query,
         variables=variables,
@@ -85,7 +88,7 @@ def test_delivery_retry_mutation_wrong_id(
     # given
     query = WEBHOOK_DELIVERY_RETRY_MUTATION
     variables = {"id": "/w"}
-    expected_message = "Couldn't resolve id: /w."
+    expected_message = "Invalid ID: /w. Expected: EventDelivery."
     # when
     response = app_api_client.post_graphql(
         query,

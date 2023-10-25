@@ -56,7 +56,7 @@ def test_get_instance_fail_invalid_global_id_syntax(customer_user):
     with pytest.raises(ValidationError) as error:
         get_instance(input, User, USER_KEY_MAP, {}, OrderBulkCreateErrorCode)
 
-    assert error.value.message == "Couldn't resolve id: wrong_global_ID."
+    assert error.value.message == "Invalid ID: wrong_global_ID. Expected: User."
 
 
 def test_get_instance_fail_invalid_global_id_model(customer_user, app):
@@ -65,7 +65,10 @@ def test_get_instance_fail_invalid_global_id_model(customer_user, app):
     with pytest.raises(ValidationError) as error:
         get_instance(input, User, USER_KEY_MAP, {}, OrderBulkCreateErrorCode)
 
-    assert error.value.message == "Must receive a User id."
+    assert (
+        error.value.message
+        == f"Invalid ID: {app_global_id}. Expected: User, received: App."
+    )
 
 
 def test_get_instance_fail_non_existing_global_id(customer_user):

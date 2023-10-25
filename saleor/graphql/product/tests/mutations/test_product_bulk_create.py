@@ -322,7 +322,7 @@ def test_product_bulk_create_with_invalid_attributes(
     assert data["results"][0]["errors"]
     error = data["results"][0]["errors"][0]
     assert error["path"] == "attributes"
-    assert error["message"] == "Couldn't resolve id: invalidID."
+    assert error["message"] == "Invalid ID: invalidID. Expected: Attribute."
 
 
 def test_product_bulk_create_with_media(

@@ -294,7 +294,7 @@ def test_staff_query_payment_by_invalid_id(
     # then
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: Payment."
     assert content["data"]["payment"] is None
 
 

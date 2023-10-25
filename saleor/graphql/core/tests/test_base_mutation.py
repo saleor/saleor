@@ -148,7 +148,7 @@ def test_user_error_nonexistent_id(schema_context, channel_USD):
     user_errors = result.data["test"]["errors"]
     assert user_errors
     assert user_errors[0]["field"] == "productId"
-    assert user_errors[0]["message"] == "Couldn't resolve id: not-really."
+    assert user_errors[0]["message"] == "Invalid ID: not-really. Expected: Product."
 
 
 TEST_ORDER_MUTATION = """
@@ -229,7 +229,10 @@ def test_user_error_id_of_different_type(product, schema_context, channel_USD):
     user_errors = result.data["test"]["errors"]
     assert user_errors
     assert user_errors[0]["field"] == "productId"
-    assert user_errors[0]["message"] == "Must receive a Product id."
+    assert (
+        user_errors[0]["message"]
+        == f"Invalid ID: {variant_id}. Expected: Product, received: ProductVariant."
+    )
 
 
 def test_get_node_or_error_returns_null_for_empty_id():
