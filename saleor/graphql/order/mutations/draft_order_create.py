@@ -579,5 +579,8 @@ class DraftOrderCreate(
         channel = instance.channel
         if channel.include_draft_order_in_voucher_usage:
             increase_voucher_usage(
-                voucher, code_instance, instance.user_email or instance.user.email
+                voucher,
+                code_instance,
+                instance.user_email or instance.user.email,
+                increase_voucher_customer_usage=False,
             )

@@ -49,11 +49,14 @@ CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
 def increase_voucher_usage(
-    voucher: "Voucher", code: "VoucherCode", customer_email: str
+    voucher: "Voucher",
+    code: "VoucherCode",
+    customer_email: str,
+    increase_voucher_customer_usage: bool = True,
 ) -> None:
     if voucher.usage_limit:
         increase_voucher_code_usage_value(code)
-    if voucher.apply_once_per_customer:
+    if voucher.apply_once_per_customer and increase_voucher_customer_usage:
         add_voucher_usage_by_customer(code, customer_email)
     if voucher.single_use:
         deactivate_voucher_code(code)
