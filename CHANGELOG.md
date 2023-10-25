@@ -21,7 +21,6 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Other changes
 
 - Add transaction items deletion to cleardb command. - #14198 by @jakubkuc
-- Adjust `BaseDiscount`, `Order`, `Voucher`, `VoucherCustomer` models to handle `VoucherCode` instances. - #14123 by @SzymJ, @IKarbowiak, @michal-macioszczyk, @zedzior
 
 # 3.17.0
 
