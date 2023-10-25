@@ -260,13 +260,13 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after an attribute is
     # deleted.
-    attribute_deleted: Callable[["Attribute", None], None]
+    attribute_deleted: Callable[["Attribute", None, None], None]
 
     # Trigger when attribute is updated.
     #
     # Overwrite this method if you need to trigger specific logic after an attribute is
     # updated.
-    attribute_updated: Callable[["Attribute", None], None]
+    attribute_updated: Callable[["Attribute", None, None], None]
 
     # Trigger when attribute value is created.
     #
@@ -278,7 +278,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after an attribute
     # value is deleted.
-    attribute_value_deleted: Callable[["AttributeValue", None], None]
+    attribute_value_deleted: Callable[["AttributeValue", None, None], None]
 
     # Trigger when attribute value is updated.
     #
@@ -1067,7 +1067,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after
     # a promotion is deleted.
-    promotion_deleted: Callable[["Promotion", Any], Any]
+    promotion_deleted: Callable[["Promotion", Any, None], Any]
 
     # Trigger when promotion is updated.
     #
@@ -1169,7 +1169,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a staff user is
     # deleted.
-    staff_deleted: Callable[["User", Any], Any]
+    staff_deleted: Callable[["User", Any, None], Any]
 
     # Trigger when setting a password for staff is requested.
     #
