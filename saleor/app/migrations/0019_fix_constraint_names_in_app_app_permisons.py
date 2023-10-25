@@ -2,7 +2,6 @@
 
 from django.db import migrations
 
-
 FIX_CONSTRAINTS = """
 ALTER TABLE app_app_permissions
     DROP CONSTRAINT IF EXISTS account_app_permissions_app_id_a360b5e0_fk_account_app_id;

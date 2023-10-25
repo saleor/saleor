@@ -164,9 +164,6 @@ def test_delete_staff_members_superuser_can_delete_when_delete_left_notmanageabl
     permission_manage_users,
     permission_manage_orders,
 ):
-    """Ensure that superuser can delete users even when not all permissions which be
-    manageable by other users.
-    """
     query = STAFF_BULK_DELETE_MUTATION
 
     groups = Group.objects.bulk_create(
@@ -320,8 +317,6 @@ def test_delete_staff_members_superuser_can_delete__out_of_scope_users(
     permission_manage_users,
     permission_manage_orders,
 ):
-    """Ensure superuser can delete users when
-    some users has wider scope of permissions."""
     query = STAFF_BULK_DELETE_MUTATION
 
     groups = Group.objects.bulk_create(

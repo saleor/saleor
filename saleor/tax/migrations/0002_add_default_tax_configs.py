@@ -4,7 +4,6 @@ from django.db import migrations
 
 from .. import TaxCalculationStrategy
 
-
 AVATAX_PLUGIN_ID = "mirumee.taxes.avalara"
 VATLAYER_ID = "mirumee.taxes.vatlayer"
 

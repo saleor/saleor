@@ -181,9 +181,6 @@ def test_group_delete_mutation_out_of_scope_permission(
     staff_api_client,
     superuser_api_client,
 ):
-    """Ensure staff user can't delete group which is out of user's permission scope.
-    Ensure superuser pass restrictions.
-    """
     group = permission_group_manage_users
     query = PERMISSION_GROUP_DELETE_MUTATION
 
@@ -221,10 +218,6 @@ def test_group_delete_mutation_left_not_manageable_permission(
     staff_api_client,
     superuser_api_client,
 ):
-    """Ensure staff user can't delete group when some permissions will be not
-    manageable.
-    Ensure superuser pass restrictions.
-    """
     staff_user, staff_user1, staff_user2 = staff_users
     staff_user.user_permissions.add(
         permission_manage_orders, permission_manage_products

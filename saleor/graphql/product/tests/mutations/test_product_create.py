@@ -584,8 +584,6 @@ def test_create_product_no_value_for_rich_text_attribute(
     rich_text_attribute,
     permission_manage_products,
 ):
-    """Ensure mutation not fail when as attributes input only rich text attribute id
-    is provided."""
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -710,8 +708,6 @@ def test_create_product_no_value_for_plain_text_attribute(
     permission_manage_products,
 ):
     # given
-    """Ensure mutation not fail when as attributes input only plain text attribute id
-    is provided."""
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -886,8 +882,6 @@ def test_create_product_no_value_for_date_attribute(
     date_attribute,
     permission_manage_products,
 ):
-    """Ensure mutation not fail when as attributes input only date attribute id
-    is provided."""
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -991,8 +985,6 @@ def test_create_product_no_value_for_boolean_attribute(
     boolean_attribute,
     permission_manage_products,
 ):
-    """Ensure mutation not fail when as attributes input only boolean attribute id
-    is provided."""
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)

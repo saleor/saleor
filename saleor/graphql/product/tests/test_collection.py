@@ -1991,8 +1991,6 @@ QUERY_PAGINATED_SORTED_COLLECTIONS = """
 def test_pagination_for_sorting_collections_by_published_at_date(
     api_client, channel_USD
 ):
-    """Ensure that using the cursor in sorting collections by published at date works
-    properly."""
     # given
     collections = Collection.objects.bulk_create(
         [

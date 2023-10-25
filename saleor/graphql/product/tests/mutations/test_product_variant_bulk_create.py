@@ -861,10 +861,7 @@ def test_product_variant_bulk_create_with_multiselect_attribute(
 def test_product_variant_bulk_create_only_not_variant_selection_attributes(
     staff_api_client, product, size_attribute, permission_manage_products
 ):
-    """Ensure that sku is set as variant name when only variant selection attributes
-    are assigned.
-    """
-
+    """Test that variant name defaults to SKU if no selection attributes exist."""
     # given
     product_variant_count = ProductVariant.objects.count()
     attribute_value_count = size_attribute.values.count()

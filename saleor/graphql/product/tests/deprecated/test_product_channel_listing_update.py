@@ -288,8 +288,7 @@ def test_product_channel_listing_update_update_publication_data(
 def test_product_channel_listing_update_update_publication_date_and_published_at(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
-    """Ensure an error is raised when both publicationDate and publishedAt date
-    is given."""
+    """Test that filtering by publication time and date are mutually exclusive."""
     # given
     publication_date = datetime.date.today()
     published_at = datetime.datetime.now(pytz.utc)
@@ -454,8 +453,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_false_a
 def test_product_channel_listing_update_available_for_purchase_both_date_value_given(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
-    """Ensure an error is raised when both availableForPurchaseDate and
-    availableForPurchaseAt date is given."""
+    """Test that filtering by availability time and date are mutually exclusive."""
     # given
     available_for_purchase_date = datetime.date.today()
     available_for_purchase_at = datetime.datetime.now(pytz.utc)

@@ -423,8 +423,6 @@ def test_order_query_total_price_is_0(
     fulfilled_order,
     shipping_zone,
 ):
-    """Ensure the payment status is FULLY_CHARGED when the order total is 0
-    and there is no payment."""
     # given
     order = fulfilled_order
     price = zero_taxed_money(order.currency)
@@ -1198,8 +1196,6 @@ QUERY_ORDER_FIELDS_BY_ID = """
 
 
 def test_query_order_fields_order_with_new_id_by_staff_no_perm(order, staff_api_client):
-    """Ensure that all fields that are available for order owner can be fetched with
-    use of new id by staff user without permissions."""
     # given
     variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
 
@@ -1221,8 +1217,6 @@ def test_query_order_fields_order_with_new_id_by_staff_no_perm(order, staff_api_
 
 
 def test_query_order_fields_order_with_new_id_by_anonymous_user(order, api_client):
-    """Ensure that all fields that are available for order owner can be fetched with
-    use of new id by the customer user."""
     # given
     variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
 
@@ -1244,8 +1238,7 @@ def test_query_order_fields_order_with_new_id_by_anonymous_user(order, api_clien
 
 
 def test_query_order_fields_by_old_id_staff_no_perms(order, staff_api_client):
-    """Ensure that all fields that are available for order owner cannot be fetched with
-    use of old id by staff user without permissions."""
+    """Test that old order IDs require proper user permissions to access sensitive fields."""
     # given
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
@@ -1260,8 +1253,6 @@ def test_query_order_fields_by_old_id_staff_no_perms(order, staff_api_client):
 
 
 def test_query_order_fields_by_old_id_by_order_owner(order, user_api_client):
-    """Ensure that all fields that are available for order owner can be fetched with
-    use of old id by order owner."""
     # given
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
@@ -1288,8 +1279,6 @@ def test_query_order_fields_by_old_id_by_order_owner(order, user_api_client):
 def test_query_order_fields_by_old_id_staff_with_perm(
     order, staff_api_client, permission_manage_orders
 ):
-    """Ensure that all fields that are available for order owner can be fetched with
-    use of old id by staff user with manage orders permission."""
     # given
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
@@ -1318,8 +1307,6 @@ def test_query_order_fields_by_old_id_staff_with_perm(
 def test_query_order_fields_by_old_id_app_with_perm(
     order, app_api_client, permission_manage_orders
 ):
-    """Ensure that all fields that are available for order owner can be fetched with
-    use of old id by app with manage orders permission."""
     # given
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
@@ -1348,8 +1335,6 @@ def test_query_order_fields_by_old_id_app_with_perm(
 def test_query_order_fields_order_with_old_id_staff_with_perm(
     order, app_api_client, permission_manage_orders
 ):
-    """Ensure that all fields that are available for order owner can be fetched with
-    use of old id by app with manage orders permission."""
     # given
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
@@ -1376,8 +1361,7 @@ def test_query_order_fields_order_with_old_id_staff_with_perm(
 
 
 def test_query_order_fields_by_old_id_app_no_perm(order, app_api_client):
-    """Ensure that all fields that are available for order owner cannot be fetched with
-    use of old id by app without permissions."""
+    """Test that old order IDs require proper app permissions to access sensitive fields."""
     # given
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])

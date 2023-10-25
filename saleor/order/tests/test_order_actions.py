@@ -160,8 +160,7 @@ def test_handle_fully_paid_order_gift_cards_created(
     non_shippable_gift_card_product,
     shippable_gift_card_product,
 ):
-    """Ensure the non shippable gift card are fulfilled when the flag for automatic
-    fulfillment non shippable gift card is set."""
+    """Test that digital gift cards are issued when automatic fulfillment is enabled."""
     # given
     channel = order_with_lines.channel
     channel.automatically_fulfill_non_shippable_gift_card = True
@@ -232,8 +231,7 @@ def test_handle_fully_paid_order_gift_cards_not_created(
     non_shippable_gift_card_product,
     shippable_gift_card_product,
 ):
-    """Ensure the non shippable gift card are not fulfilled when the flag for
-    automatic fulfillment non shippable gift card is not set."""
+    """Ensure digital gift cards are not issued when automatic fulfillment is disabled."""
     # given
     channel = order_with_lines.channel
     channel.automatically_fulfill_non_shippable_gift_card = False

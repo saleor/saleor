@@ -1366,9 +1366,6 @@ def test_product_restricted_fields_permissions(
     product,
     channel_USD,
 ):
-    """Ensure non-public (restricted) fields are correctly requiring
-    the 'manage_products' permission.
-    """
     query = """
     query Product($id: ID!, $channel: String) {
         product(id: $id, channel: $channel) {

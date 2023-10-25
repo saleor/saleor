@@ -227,9 +227,7 @@ def products_structures(category, channel_USD):
 def test_sort_products_cannot_sort_both_by_field_and_by_attribute(
     api_client, channel_USD
 ):
-    """Ensure one cannot both sort by a supplied field and sort by a given attribute ID
-    at the same time.
-    """
+    """Test that sorting by field and by attribute are mutually exclusive."""
     query = QUERY_SORT_PRODUCTS_BY_ATTRIBUTE
     variables = {
         "field": "NAME",
@@ -549,9 +547,10 @@ def test_sort_product_by_attribute_multiple_values(
 
 
 def test_sort_product_not_having_attribute_data(api_client, category, count_queries):
-    """Test the case where a product has a given attribute assigned to their
-    product type but no attribute data assigned, i.e. the product's PT was changed
-    after the product creation.
+    """Test sorting when an attribute exists but does not have a value.
+
+    For example, when the product's product type was updated after the product
+    was created.
     """
     expected_results = ["Z", "Y", "A"]
     product_create_kwargs = {"category": category}

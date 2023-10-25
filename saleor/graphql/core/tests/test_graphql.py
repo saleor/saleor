@@ -17,8 +17,7 @@ from ...utils import get_nodes
 
 
 def test_middleware_dont_generate_sql_requests(client, settings, assert_num_queries):
-    """When requesting on the GraphQL API endpoint, no SQL request should happen
-    indirectly. This test ensures that."""
+    """Test that a GET request results in no database queries."""
 
     # Enables the Graphql playground
     settings.DEBUG = True
@@ -272,8 +271,6 @@ def test_get_nodes(product_list):
 
 
 def test_get_nodes_for_order_with_int_id(order_list):
-    """Ensure that `get_nodes` returns correct nodes, when old id is used
-    for orders with the `use_old_id` flag set to True."""
     order_models.Order.objects.update(use_old_id=True)
 
     # given
@@ -290,8 +287,6 @@ def test_get_nodes_for_order_with_int_id(order_list):
 
 
 def test_get_nodes_for_order_with_uuid_id(order_list):
-    """Ensure that `get_nodes` returns correct nodes, when the new uuid order id
-    is used."""
     # given
     global_ids = [to_global_id("Order", order.pk) for order in order_list]
 
@@ -306,8 +301,7 @@ def test_get_nodes_for_order_with_uuid_id(order_list):
 
 
 def test_get_nodes_for_order_with_int_id_and_use_old_id_set_to_false(order_list):
-    """Ensure that `get_nodes` does not return nodes, when old id is used
-    for orders with `use_old_id` flag set to False."""
+    """Test that `get_node` respects `use_old_id`."""
     # given
     global_ids = [to_global_id("Order", order.number) for order in order_list]
 
@@ -320,8 +314,7 @@ def test_get_nodes_for_order_with_int_id_and_use_old_id_set_to_false(order_list)
 
 
 def test_get_nodes_for_order_with_uuid_and_int_id(order_list):
-    """Ensure that `get_nodes` returns correct nodes,
-    when old and new order id is provided."""
+    """Test that `get_nodes` works for both old and new order IDs."""
     # given
     order_models.Order.objects.update(use_old_id=True)
     global_ids = [to_global_id("Order", order.pk) for order in order_list[:-1]]

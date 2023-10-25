@@ -57,8 +57,6 @@ def test_is_user_address_limit_reached_true(customer_user, address):
 
 @override_settings(MAX_USER_ADDRESSES=2)
 def test_is_user_address_limit_reached_false(customer_user, address):
-    """Ensure that false is returned when a user has less max amount
-    of addresses assigned."""
     # given
     customer_user.addresses.set([address])
 
@@ -70,9 +68,6 @@ def test_is_user_address_limit_reached_false(customer_user, address):
 
 
 def test_store_user_address_uses_existing_one(address):
-    """Ensure storing an address that is already associated to the given user doesn't
-    create a new address, but uses the existing one instead.
-    """
     user = User.objects.create_user("test@example.com", "password")
     user.addresses.add(address)
 
@@ -86,11 +81,6 @@ def test_store_user_address_uses_existing_one(address):
 
 
 def test_store_user_address_uses_existing_one_despite_duplicated(address):
-    """Ensure storing an address handles the possibility of an user
-    having the same address associated to them multiple time is handled properly.
-
-    It should use the first identical address associated to the user.
-    """
     same_address = Address.objects.create(**address.as_data())
     user = User.objects.create_user("test@example.com", "password")
     user.addresses.set([address, same_address])
@@ -105,9 +95,6 @@ def test_store_user_address_uses_existing_one_despite_duplicated(address):
 
 
 def test_store_user_address_create_new_address_if_not_associated(address):
-    """Ensure storing an address that is not associated to the given user
-    triggers the creation of a new address, but uses the existing one instead.
-    """
     user = User.objects.create_user("test@example.com", "password")
     expected_user_addresses_count = 1
 
@@ -120,9 +107,7 @@ def test_store_user_address_create_new_address_if_not_associated(address):
 
 @override_settings(MAX_USER_ADDRESSES=2)
 def test_store_user_address_address_not_saved(address):
-    """Ensure that new address is not saved when user has already
-    more than 100 addressess.
-    """
+    """Test that the address count does never exceeds the limit."""
     same_address = Address.objects.create(**address.as_data())
     user = User.objects.create_user("test@example.com", "password")
     user.addresses.set([address, same_address])
@@ -136,8 +121,6 @@ def test_store_user_address_address_not_saved(address):
 
 
 def test_remove_the_oldest_user_address(customer_user, address):
-    """Ensure that oldest address that is not billing or shipping
-    default address is removed."""
     # given
     addresses = Address.objects.bulk_create(
         [Address(**address.as_data()) for i in range(5)]

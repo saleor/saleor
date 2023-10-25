@@ -413,8 +413,6 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
     address,
     shipping_method,
 ):
-    """Ensure that checkout is properly completed with provided metadata when the
-    checkout object hasn't assigned any metadata."""
     # given
     assert not gift_card.last_used_on
 
@@ -3000,8 +2998,7 @@ def test_complete_checkout_for_global_click_and_collect(
     warehouse_for_cc,
     warehouse,
 ):
-    """Ensure that the allocation is made for collection point warehouse even if another
-    warehouse with bigger quantity available exist."""
+    """Test that click-and-collect prefers the local stock even if other warehouses hold more stock."""
     # given
     order_count = Order.objects.count()
     checkout = checkout_with_item_for_cc
