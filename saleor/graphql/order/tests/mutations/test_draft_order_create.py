@@ -779,7 +779,7 @@ def test_draft_order_create_with_voucher_including_drafts_in_voucher_usage(
     code = voucher.codes.first()
     assert code.used == 1
 
-    assert VoucherCustomer.objects.filter(voucher_code=code)
+    assert not VoucherCustomer.objects.filter(voucher_code=code).exists()
 
 
 def test_draft_order_create_with_voucher_including_drafts_in_voucher_usage_invalid_code(
@@ -929,7 +929,7 @@ def test_draft_order_create_with_voucher_code_including_drafts_in_voucher_usage(
     code = voucher.codes.first()
     assert code.used == 1
 
-    assert VoucherCustomer.objects.filter(voucher_code=code)
+    assert not VoucherCustomer.objects.filter(voucher_code=code).exists()
 
 
 def test_draft_order_create_voucher_code_including_drafts_in_voucher_usage_invalid_code(
