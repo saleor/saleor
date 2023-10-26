@@ -1,7 +1,6 @@
 from django.db import migrations
 from django.db.models import Exists, OuterRef
 
-
 # For batch size 1000 with 10_000 per model OrderDiscount/Voucher/VoucherCode objects
 # OrderDiscount Migration took 2.39 seconds.
 # OrderDiscount Memory usage increased by 15.65 MiB.

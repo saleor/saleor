@@ -2,7 +2,6 @@
 
 from django.db import migrations
 
-
 BATCH_SIZE = 5000
 
 
