@@ -120,15 +120,12 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     if not voucher:
         return {}
 
+    code = cast(VoucherCode, code)
     if voucher.usage_limit:
-        # type-ignore added as we ensure that voucher code instance is created
-        increase_voucher_usage(voucher, code)  # type: ignore[arg-type]
+        increase_voucher_usage(voucher, code)
     if voucher.apply_once_per_customer:
         customer_email = cast(str, checkout_info.get_customer_email())
-        # type-ignore added as we ensure that voucher code instance is created
-        add_voucher_usage_by_customer(
-            voucher, code, customer_email  # type: ignore[arg-type]
-        )
+        add_voucher_usage_by_customer(voucher, code, customer_email)
     return {
         "voucher": voucher,
         "voucher_code": voucher.code,
