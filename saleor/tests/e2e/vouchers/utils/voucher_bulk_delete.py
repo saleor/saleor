@@ -15,9 +15,9 @@ mutation VoucherBulkDelete ($ids: [ID!]!) {
 """
 
 
-def voucher_bulk_delete(staff_api_client, voucher_id):
+def voucher_bulk_delete(staff_api_client, voucher_ids):
     variables = {
-        "ids": [voucher_id],
+        "ids": voucher_ids,
     }
 
     response = staff_api_client.post_graphql(
