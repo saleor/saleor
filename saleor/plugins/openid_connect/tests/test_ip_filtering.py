@@ -6,9 +6,7 @@ from ....core.http_client import HTTPClient
 
 
 def test_rejects_private_ips(openid_plugin, id_token, rf, monkeypatch):
-    """
-    Ensure non-public IP addresses are rejected in HTTP calls in the OAuth plugin.
-    """
+    """Ensure private IP addresses are rejected by OIDC."""
     monkeypatch.setattr(HTTPClient.config, "ip_filter_enable", True)
 
     plugin = openid_plugin(oauth_token_url="https://0.0.0.0")

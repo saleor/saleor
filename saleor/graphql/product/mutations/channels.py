@@ -12,11 +12,13 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.date_time import convert_to_utc_date_time
 from ....permission.enums import ProductPermissions
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
-from ....product.models import CollectionChannelListing
+from ....product.models import (
+    CollectionChannelListing,
+    ProductChannelListing,
+    ProductVariantChannelListing,
+)
 from ....product.models import Product as ProductModel
-from ....product.models import ProductChannelListing
 from ....product.models import ProductVariant as ProductVariantModel
-from ....product.models import ProductVariantChannelListing
 from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation

@@ -2761,9 +2761,7 @@ def test_complete_checkout_for_global_click_and_collect(
     transaction_events_generator,
     transaction_item_generator,
 ):
-    """Ensure that the allocation is made for collection point warehouse even if another
-    warehouse with bigger quantity available exist."""
-
+    """Test that click-and-collect prefers the local stock even if other warehouses hold more stock."""
     # given
     checkout = prepare_checkout_for_test(
         checkout_with_item_for_cc,

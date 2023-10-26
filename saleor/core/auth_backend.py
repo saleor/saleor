@@ -78,18 +78,12 @@ class JSONWebTokenBackend(BaseBackend):
 
     # Moved from `django.contrib.auth.backends.ModelBackend`
     def get_user_permissions(self, user_obj, obj=None):  # noqa: D205, D212, D400, D415
-        """
-        Return a set of permission strings the user `user_obj` has from their
-        `user_permissions`.
-        """
+        """Return a set of permissions the user `user_obj` holds directly."""
         return self._get_permissions(user_obj, obj, "user")
 
     # Moved from `django.contrib.auth.backends.ModelBackend`
     def get_group_permissions(self, user_obj, obj=None):  # noqa: D205, D212, D400, D415
-        """
-        Return a set of permission strings the user `user_obj` has from the
-        groups they belong.
-        """
+        """Return a set of permissions the user `user_obj` gets from their groups."""
         return self._get_permissions(user_obj, obj, "group")
 
     # Moved from `django.contrib.auth.backends.ModelBackend`

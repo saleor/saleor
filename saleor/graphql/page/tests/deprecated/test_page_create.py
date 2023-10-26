@@ -111,8 +111,7 @@ def test_page_create_mutation_with_publication_date(
 def test_page_create_mutation_publication_date_and_published_at_provided(
     staff_api_client, permission_manage_pages, page_type
 ):
-    """Ensure an error is raised when publishedAt and publicationDate are both
-    provided."""
+    """Test that setting publication date and time are mutually exclusive."""
     page_slug = "test-slug"
     page_content = dummy_editorjs("test content", True)
     page_title = "test title"

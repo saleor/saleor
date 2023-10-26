@@ -15,10 +15,7 @@ WARNING = """
 
 
 def update_proxy_model_permissions(apps, schema_editor, reverse=False):  # noqa: D205, D212, D400, D415
-    """
-    Update the content_type of proxy model permissions to use the ContentType
-    of the proxy model.
-    """
+    """Update the content_type of proxy model permissions to use the ContentType of the proxy model."""
     style = color_style()
     Permission = apps.get_model("auth", "Permission")
     ContentType = apps.get_model("contenttypes", "ContentType")
@@ -57,10 +54,7 @@ def update_proxy_model_permissions(apps, schema_editor, reverse=False):  # noqa:
 
 
 def revert_proxy_model_permissions(apps, schema_editor):  # noqa: D205, D212, D400, D415
-    """
-    Update the content_type of proxy model permissions to use the ContentType
-    of the concrete model.
-    """
+    """Update the content_type of proxy model permissions to use the ContentType of the concrete model."""
     update_proxy_model_permissions(apps, schema_editor, reverse=True)
 
 

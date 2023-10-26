@@ -582,8 +582,6 @@ def test_checkout_shipping_methods_with_price_based_shipping_method_and_discount
     address,
     shipping_method,
 ):
-    """Ensure that price based shipping method is not returned when
-    checkout with discounts subtotal is lower than minimal order price."""
     checkout_with_item.shipping_address = address
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
@@ -625,8 +623,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discou
     shipping_method,
     voucher_shipping_type,
 ):
-    """Ensure that price based shipping method is returned when checkout
-    has discount on shipping."""
+    """Test that shipping discounts properly qualify checkout for price-based shipping."""
     checkout_with_item.shipping_address = address
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
@@ -667,10 +664,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discou
 def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
     api_client, checkout_with_item, address, shipping_method, voucher, channel_USD
 ):
-    """Ensure that price based shipping method is returned when
-    checkout with discounts subtotal is lower than maximal order price with
-    specific product discount."""
-
+    """Test that product discounts properly qualify checkout for price-based shipping."""
     # given
     checkout_with_item.shipping_address = address
     manager = get_plugins_manager()

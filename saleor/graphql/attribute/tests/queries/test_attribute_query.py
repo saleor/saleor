@@ -565,9 +565,6 @@ def test_retrieving_the_restricted_attributes_restricted(
     attribute,
     expected_value,
 ):
-    """Checks if the attributes are restricted and if their default value
-    is the expected one."""
-
     attribute = to_camel_case(attribute)
     query = (
         """

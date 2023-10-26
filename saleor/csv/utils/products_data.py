@@ -5,9 +5,8 @@ from urllib.parse import urljoin
 
 import graphene
 from django.conf import settings
-from django.db.models import Case, CharField
+from django.db.models import Case, CharField, When
 from django.db.models import Value as V
-from django.db.models import When
 from django.db.models.functions import Cast, Concat
 
 from ...attribute import AttributeInputType

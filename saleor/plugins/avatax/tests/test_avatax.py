@@ -1578,8 +1578,7 @@ def test_calculate_checkout_total_voucher_on_entire_order(
     address,
     plugin_configuration,
 ):
-    """Ensure that the voucher is applied to entire order the total
-    is equal to the shipping price."""
+    """Check that the totals are correct when the checkout is 100% off."""
     # given
     plugin_configuration()
     variant = stock.product_variant
@@ -1630,8 +1629,10 @@ def test_calculate_checkout_total_voucher_on_entire_order_applied_once_per_order
     address,
     plugin_configuration,
 ):
-    """Ensure that the voucher is applied to entire order the total
-    is equal to the shipping price."""
+    """Test that the totals are correct when the checkout is 100% off.
+
+    In this case, the voucher is applied once per order.
+    """
     # given
     plugin_configuration()
     variant = stock.product_variant
@@ -1698,8 +1699,7 @@ def test_calculate_checkout_total_voucher_on_entire_order_product_without_taxes(
     address,
     plugin_configuration,
 ):
-    """Ensure that the voucher is applied to entire order the total
-    is equal to the shipping price."""
+    """Test that the totals are correct when the product is 100% off."""
     # given
     plugin_configuration()
     variant = stock.product_variant
@@ -1768,8 +1768,7 @@ def test_calculate_checkout_total_voucher_on_shipping(
     shipping_zone,
     plugin_configuration,
 ):
-    """Ensure that when the free shipping voucher is applied the total price
-    is equal to subtotal price."""
+    """Test that free shipping results in correct checkout totals."""
     # given
     plugin_configuration()
     monkeypatch.setattr(
@@ -2085,8 +2084,7 @@ def test_calculate_checkout_subtotal_voucher_on_entire_order(
     address,
     plugin_configuration,
 ):
-    """Ensure that the voucher is applied to entire order the subtotal price
-    is equal to zero."""
+    """Test that a voucher covering the total properly discounts the subtotal price to zero."""
     # given
     plugin_configuration()
     variant = stock.product_variant
@@ -2144,8 +2142,7 @@ def test_calculate_checkout_subtotal_voucher_on_shipping(
     address,
     plugin_configuration,
 ):
-    """Ensure that when the free shipping voucher is applied the subtotal price
-    not changed."""
+    """That that free shipping does not affect the subtotal price."""
     # given
     plugin_configuration()
     monkeypatch.setattr(
@@ -4420,8 +4417,7 @@ def test_get_order_request_data_uses_correct_address_for_cc_with_single_location
 def test_get_order_request_data_for_line_with_already_included_taxes_in_price(
     order_with_lines, shipping_zone, avatax_config
 ):
-    """Ensure that when line already has calculated taxes, the `taxIncluded` flag
-    is set based on site settings, and we are sending the base price of line."""
+    """Test that net price is used when appropriate even if taxes are already known."""
     # given
     prices_entered_with_tax = False
     tax_configuration = order_with_lines.channel.tax_configuration
@@ -4666,8 +4662,7 @@ def test_get_order_request_data_draft_order_with_shipping_voucher(
 def test_get_order_request_data_draft_order_shipping_voucher_amount_too_high(
     order_with_lines, shipping_zone, voucher_free_shipping, avatax_config
 ):
-    """Ensure that when order has shipping voucher with price bigger than shipping
-    price, the shipping price will not be negative."""
+    """Test discount behavior when the voucher amount is higher than the order total."""
     # given
     tax_configuration = order_with_lines.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = True

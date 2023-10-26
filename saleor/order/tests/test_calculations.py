@@ -357,9 +357,7 @@ def test_recalculate_order_prices_order_discounts_and_total_undiscounted_price_c
 def test_update_order_discounts_and_base_undiscounted_total_shipping_price_changed(
     draft_order, order_lines, shipping_method_weight_based
 ):
-    """Ensure that the order discounts and order base undiscounted price is properly
-    updated after changing the shipping price.
-    """
+    """Test that discounts are properly updated when shipping price changes."""
     # given
     order = draft_order
     currency = order.currency
@@ -408,9 +406,7 @@ def test_update_order_discounts_and_base_undiscounted_total_shipping_price_chang
 def test_update_order_discounts_and_base_undiscounted_total_line_quantity_changed(
     draft_order, order_lines, shipping_method_weight_based
 ):
-    """Ensure that the order discounts and order base undiscounted price is properly
-    updated after changing the line quantity
-    """
+    """Test that discounts are properly updated when line quantities change."""
     # given
     order = draft_order
 

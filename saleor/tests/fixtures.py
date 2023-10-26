@@ -179,9 +179,7 @@ class CaptureQueriesContext(BaseCaptureQueriesContext):
 
 
 def _assert_num_queries(context, *, config, num, exact=True, info=None):
-    """
-    Extracted from pytest_django.fixtures._assert_num_queries
-    """
+    # Extracted from pytest_django.fixtures._assert_num_queries
     yield context
 
     verbose = config.getoption("verbose") > 0
@@ -3791,12 +3789,13 @@ def product_with_image_list(product, image_list, media_root):
 
 @pytest.fixture
 def product_with_image_list_and_one_null_sort_order(product_with_image_list):
-    """
+    """Return a product with mixed sorting order.
+
     As we allow to have `null` in `sort_order` in database, but our logic
     covers changing any new `null` values to proper `int` need to execute
-    raw SQL query on database to test behaviour of `null` `sort_order`.
+    raw SQL query on database to test behavior of `null` `sort_order`.
 
-    SQL query behaviour:
+    SQL query behavior:
     Updates one of the product media `sort_order` to `null`.
     """
     with connection.cursor() as cursor:
@@ -7773,7 +7772,7 @@ def event_payload():
 
 @pytest.fixture
 def event_delivery(event_payload, webhook, app):
-    """Return event delivery object"""
+    """Return an event delivery object."""
     return EventDelivery.objects.create(
         event_type=WebhookEventAsyncType.ANY,
         payload=event_payload,
@@ -7783,7 +7782,7 @@ def event_delivery(event_payload, webhook, app):
 
 @pytest.fixture
 def event_attempt(event_delivery):
-    """Return event delivery attempt object"""
+    """Return an event delivery attempt object."""
     return EventDeliveryAttempt.objects.create(
         delivery=event_delivery,
         task_id="example_task_id",
@@ -7856,7 +7855,7 @@ def check_payment_balance_input():
 
 @pytest.fixture
 def delivery_attempts(event_delivery):
-    """Return consecutive deliveries attempts ids"""
+    """Return consecutive delivery attempt IDs."""
     with freeze_time("2020-03-18 12:00:00"):
         attempt_1 = EventDeliveryAttempt.objects.create(
             delivery=event_delivery,
@@ -7902,7 +7901,7 @@ def delivery_attempts(event_delivery):
 
 @pytest.fixture
 def event_deliveries(event_payload, webhook, app):
-    """Return consecutive event deliveries ids"""
+    """Return consecutive event delivery IDs."""
     delivery_1 = EventDelivery.objects.create(
         event_type=WebhookEventAsyncType.ANY,
         payload=event_payload,

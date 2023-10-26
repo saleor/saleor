@@ -1,11 +1,13 @@
-from django.db import migrations, models
+import uuid
+from decimal import Decimal
+
 import django.db.models.deletion
 import django.utils.timezone
+from django.db import migrations, models
+
 import saleor.core.db.fields
 import saleor.core.utils.editorjs
 import saleor.core.utils.json_serializer
-import uuid
-from decimal import Decimal
 
 
 class Migration(migrations.Migration):

@@ -18,9 +18,6 @@ def test_associate_attribute_to_non_product_instance(color_attribute):
 def test_associate_attribute_to_product_instance_from_different_attribute(
     product, color_attribute, size_attribute
 ):
-    """Ensure an assertion error is raised when one tries to associate attribute values
-    to an object that don't belong to the supplied attribute.
-    """
     instance = product
     attribute = color_attribute
     value = size_attribute.values.first()

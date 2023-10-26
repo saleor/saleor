@@ -61,9 +61,6 @@ type_schema = {
     ],
 )
 def test_get_client_ip(ip_address, expected_ip):
-    """Test providing a valid IP in X-Forwarded-For returns the valid IP.
-    Otherwise, if no valid IP were found, returns the requester's IP.
-    """
     expected_ip = expected_ip
     headers = {"HTTP_X_FORWARDED_FOR": ip_address} if ip_address else {}
     request = RequestFactory(**headers).get("/")
@@ -298,9 +295,6 @@ def test_get_domain_with_public_url(site_settings, settings):
 
 
 def test_delete_sort_order_with_null_value(menu_item):
-    """Ensures there is no error when trying to delete a sortable item,
-    which triggers a shifting of the sort orders--which can be null."""
-
     menu_item.sort_order = None
     menu_item.save(update_fields=["sort_order"])
     menu_item.delete()

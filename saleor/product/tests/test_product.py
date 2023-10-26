@@ -363,9 +363,7 @@ def test_get_price_overridden_price_with_discount(
 
 
 def test_digital_product_view(client, digital_content_url):
-    """Ensure a user (anonymous or not) can download a non-expired digital good
-    using its associated token and that all associated events
-    are correctly generated."""
+    """Ensure a non-expired digital good can be downloaded and results in an event."""
 
     url = digital_content_url.get_absolute_url()
     response = client.get(url)
@@ -390,8 +388,7 @@ def test_digital_product_increment_download(
     is_user_null,
     is_line_null,
 ):
-    """Ensure downloading a digital good is possible without it
-    being associated to an order line/user."""
+    """Ensure a digital good can be downloaded without it belonging to an order or user."""
 
     expected_user = customer_user
 

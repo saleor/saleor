@@ -806,8 +806,6 @@ def test_create_order_gift_card_bought(
     is_anonymous_user,
     non_shippable_gift_card_product,
 ):
-    """Ensure that the gift cards will be fulfilled, when newly created order
-    is captured."""
     # given
     checkout_user = None if is_anonymous_user else customer_user
     checkout = checkout_with_gift_card_items
@@ -902,8 +900,7 @@ def test_create_order_gift_card_bought_order_not_captured_gift_cards_not_sent(
     shipping_method,
     is_anonymous_user,
 ):
-    """Ensure that the gift cards will be not fulfilled, when newly created order
-    is not captured."""
+    """Check that digital gift cards are not issued if the payment is not captured."""
     # given
     checkout_user = None if is_anonymous_user else customer_user
     checkout = checkout_with_gift_card_items
@@ -1831,8 +1828,7 @@ def test_complete_checkout_invalid_shipping_method(
     app,
     payment_txn_to_confirm,
 ):
-    """Ensure that when an error in _prepare_checkout_with_payment method is raised
-    the method for refund or void is called."""
+    """Check that if _prepare_checkout_with_payment fails, the payment is refunded."""
     # given
     checkout = checkout_ready_to_complete
 

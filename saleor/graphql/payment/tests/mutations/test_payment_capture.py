@@ -125,12 +125,9 @@ def test_payment_capture_with_invalid_argument(
     assert data["errors"][0]["message"] == "Amount should be a positive number."
 
 
-def test_payment_capture_with_payment_non_authorized_yet(
+def test_payment_capture_with_unauthorized_payment(
     staff_api_client, permission_group_manage_orders, payment_dummy
 ):
-    """Ensure capture a payment that is set as authorized is failing with
-    the proper error message.
-    """
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     payment = payment_dummy
