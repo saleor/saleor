@@ -1,7 +1,6 @@
 from decimal import Decimal
 
-from saleor.order.utils import update_order_charge_data
-
+from .....order.utils import update_order_charge_data
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import OrderChargeStatusEnum, OrderGrantRefundCreateErrorCode
