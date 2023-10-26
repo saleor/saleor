@@ -1,5 +1,4 @@
 from collections import ChainMap
-from typing import Dict, List, Tuple
 
 from django.db.models import Value as V
 from django.db.models.functions import Concat
@@ -11,8 +10,8 @@ from . import ProductExportFields
 
 
 def get_product_export_fields_and_headers_info(
-    export_info: Dict[str, list]
-) -> Tuple[List[str], List[str], List[str]]:
+    export_info: dict[str, list]
+) -> tuple[list[str], list[str], list[str]]:
     """Get export fields, all headers and headers mapping.
 
     Based on export_info returns exported fields, fields to headers mapping and
@@ -32,8 +31,8 @@ def get_product_export_fields_and_headers_info(
 
 
 def get_product_export_fields_and_headers(
-    export_info: Dict[str, list]
-) -> Tuple[List[str], List[str]]:
+    export_info: dict[str, list]
+) -> tuple[list[str], list[str]]:
     """Get export fields from export info and prepare headers mapping.
 
     Based on given fields headers from export info, export fields set and
@@ -59,7 +58,7 @@ def get_product_export_fields_and_headers(
     return export_fields, file_headers
 
 
-def get_attributes_headers(export_info: Dict[str, list]) -> List[str]:
+def get_attributes_headers(export_info: dict[str, list]) -> list[str]:
     """Get headers for exported attributes.
 
     Headers are build from slug and contains information if it's a product or variant
@@ -90,7 +89,7 @@ def get_attributes_headers(export_info: Dict[str, list]) -> List[str]:
     return list(products_headers) + list(variant_headers)
 
 
-def get_warehouses_headers(export_info: Dict[str, list]) -> List[str]:
+def get_warehouses_headers(export_info: dict[str, list]) -> list[str]:
     """Get headers for exported warehouses.
 
     Headers are build from slug. Example: "slug-value (warehouse quantity)"
@@ -109,7 +108,7 @@ def get_warehouses_headers(export_info: Dict[str, list]) -> List[str]:
     return list(warehouses_headers)
 
 
-def get_channels_headers(export_info: Dict[str, list]) -> List[str]:
+def get_channels_headers(export_info: dict[str, list]) -> list[str]:
     """Get headers for exported channels.
 
     Headers are build from slug and exported field.

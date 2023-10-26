@@ -1,8 +1,8 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import graphene
 import pytest
-from mock import patch
 
 from .....app.models import App
 from .....order import OrderEvents

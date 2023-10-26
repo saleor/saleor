@@ -1,11 +1,10 @@
 from functools import partial
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
-from mock import ANY
 from prices import Money, TaxedMoney
 
 from .....attribute.models import AttributeValue

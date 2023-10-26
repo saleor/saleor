@@ -1,6 +1,5 @@
 from collections import defaultdict
 from copy import deepcopy
-from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -203,7 +202,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
     def clean_metadata(
         cls,
         field_name: str,
-        metadata_list: List[dict],
+        metadata_list: list[dict],
         errors_count: int,
         index: int,
         index_error_map: dict,

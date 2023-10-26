@@ -1,16 +1,14 @@
 import json
 import logging
+from collections import defaultdict
+from collections.abc import Iterable
 from decimal import Decimal
 from functools import partial
 from typing import (
     TYPE_CHECKING,
     Any,
-    DefaultDict,
     Final,
-    Iterable,
-    List,
     Optional,
-    Set,
     Union,
 )
 
@@ -902,7 +900,7 @@ class WebhookPlugin(BasePlugin):
     def sale_created(
         self,
         sale: "Promotion",
-        current_catalogue: DefaultDict[str, Set[str]],
+        current_catalogue: defaultdict[str, set[str]],
         previous_value: Any,
     ) -> Any:
         if not self.active:
@@ -928,8 +926,8 @@ class WebhookPlugin(BasePlugin):
     def sale_updated(
         self,
         sale: "Promotion",
-        previous_catalogue: DefaultDict[str, Set[str]],
-        current_catalogue: DefaultDict[str, Set[str]],
+        previous_catalogue: defaultdict[str, set[str]],
+        current_catalogue: defaultdict[str, set[str]],
         previous_value: Any,
     ) -> Any:
         if not self.active:
@@ -955,7 +953,7 @@ class WebhookPlugin(BasePlugin):
     def sale_deleted(
         self,
         sale: "Promotion",
-        previous_catalogue: DefaultDict[str, Set[str]],
+        previous_catalogue: defaultdict[str, set[str]],
         previous_value: Any,
         webhooks=None,
     ) -> Any:
@@ -981,7 +979,7 @@ class WebhookPlugin(BasePlugin):
     def sale_toggle(
         self,
         sale: "Promotion",
-        catalogue: DefaultDict[str, Set[str]],
+        catalogue: defaultdict[str, set[str]],
         previous_value: Any,
     ):
         if not self.active:
@@ -1215,7 +1213,7 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.ORDER_METADATA_UPDATED, order
         )
 
-    def order_bulk_created(self, orders: List["Order"], previous_value: Any) -> Any:
+    def order_bulk_created(self, orders: list["Order"], previous_value: Any) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_BULK_CREATED
@@ -1555,7 +1553,7 @@ class WebhookPlugin(BasePlugin):
     def product_deleted(
         self,
         product: "Product",
-        variants: List[int],
+        variants: list[int],
         previous_value: Any,
         webhooks=None,
     ) -> Any:
@@ -2730,7 +2728,7 @@ class WebhookPlugin(BasePlugin):
         checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
         previous_value,
         **kwargs,
-    ) -> List["PaymentGateway"]:
+    ) -> list["PaymentGateway"]:
         gateways = []
         checkout = None
         if checkout_info:
@@ -2882,7 +2880,7 @@ class WebhookPlugin(BasePlugin):
 
     def get_shipping_methods_for_checkout(
         self, checkout: "Checkout", previous_value: Any
-    ) -> List["ShippingMethodData"]:
+    ) -> list["ShippingMethodData"]:
         methods = []
         event_type = WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
         webhooks = get_webhooks_for_event(event_type)
@@ -2938,9 +2936,9 @@ class WebhookPlugin(BasePlugin):
     def excluded_shipping_methods_for_order(
         self,
         order: "Order",
-        available_shipping_methods: List["ShippingMethodData"],
-        previous_value: List[ExcludedShippingMethod],
-    ) -> List[ExcludedShippingMethod]:
+        available_shipping_methods: list["ShippingMethodData"],
+        previous_value: list[ExcludedShippingMethod],
+    ) -> list[ExcludedShippingMethod]:
         generate_function = generate_excluded_shipping_methods_for_order_payload
         payload_fun = lambda: generate_function(  # noqa: E731
             order,
@@ -2958,9 +2956,9 @@ class WebhookPlugin(BasePlugin):
     def excluded_shipping_methods_for_checkout(
         self,
         checkout: "Checkout",
-        available_shipping_methods: List["ShippingMethodData"],
-        previous_value: List[ExcludedShippingMethod],
-    ) -> List[ExcludedShippingMethod]:
+        available_shipping_methods: list["ShippingMethodData"],
+        previous_value: list[ExcludedShippingMethod],
+    ) -> list[ExcludedShippingMethod]:
         generate_function = generate_excluded_shipping_methods_for_checkout_payload
         payload_function = lambda: generate_function(  # noqa: E731
             checkout,

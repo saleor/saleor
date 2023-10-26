@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import List
 
 from django.core.exceptions import ValidationError
 
@@ -52,7 +51,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
 
     @classmethod
     def clean_instances(cls, info: ResolveInfo, users):
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
         requestor = info.context.user
         cls.check_if_users_can_be_deleted(info, users, "ids", errors)

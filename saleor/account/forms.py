@@ -13,7 +13,7 @@ def get_address_form(
     if initial is None and country_code:
         initial = {}
     if country_code:
-        initial["phone"] = "+{}".format(country_code_for_region(country_code))
+        initial["phone"] = f"+{country_code_for_region(country_code)}"
     address_form_class = get_address_form_class(country_code)
 
     if instance is not None:

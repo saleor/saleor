@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from django.apps import AppConfig
 from django.conf import settings
@@ -27,7 +27,7 @@ class PluginConfig(AppConfig):
 
         self.check_plugin_fields(["PLUGIN_ID"], plugin)
 
-    def check_plugin_fields(self, fields: List[str], plugin_class: "BasePlugin"):
+    def check_plugin_fields(self, fields: list[str], plugin_class: "BasePlugin"):
         name = plugin_class.__name__  # type: ignore
 
         for field in fields:

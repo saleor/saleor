@@ -161,7 +161,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
 
         return (
             PredicateByPromotionIdLoader(info.context)
-            .load((root.node.id))
+            .load(root.node.id)
             .then(_get_categories)
         )
 

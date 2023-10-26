@@ -140,7 +140,7 @@ def test_query_is_dict(client):
 
 def test_graphql_execution_exception(monkeypatch, api_client):
     def mocked_execute(*args, **kwargs):
-        raise IOError("Spanish inquisition")
+        raise OSError("Spanish inquisition")
 
     monkeypatch.setattr("graphql.backend.core.execute_and_validate", mocked_execute)
     response = api_client.post_graphql("{ shop { name }}")

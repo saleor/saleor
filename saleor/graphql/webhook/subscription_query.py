@@ -1,5 +1,5 @@
 from enum import Flag
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 from django.core.exceptions import ValidationError
 from graphene.utils.str_converters import to_snake_case
@@ -27,12 +27,12 @@ class SubscriptionQuery:
         self.query: str = query
         self.is_valid: bool = False
         self.ast: Document = Document("")
-        self.events: List[str] = []
+        self.events: list[str] = []
         self.error_code: Optional[str] = None
         self.errors = self.validate_query()
         self.error_msg: str = ";".join(set([str(err.message) for err in self.errors]))
 
-    def validate_query(self) -> List[Union[GraphQLSyntaxError, ValidationError]]:
+    def validate_query(self) -> list[Union[GraphQLSyntaxError, ValidationError]]:
         from ..api import schema
 
         graphql_backend = get_default_backend()
@@ -57,7 +57,7 @@ class SubscriptionQuery:
         self.is_valid = True
         return []
 
-    def get_events_from_subscription(self) -> List[str]:
+    def get_events_from_subscription(self) -> list[str]:
         subscription = self._get_subscription(self.ast)
         if not subscription:
             raise ValidationError(
@@ -72,12 +72,12 @@ class SubscriptionQuery:
                 code=WebhookErrorCode.UNABLE_TO_PARSE.value,
             )
 
-        events_and_fragments: Dict[str, IsFragment] = {}
+        events_and_fragments: dict[str, IsFragment] = {}
         for event_type in event_types:
             self._get_events_from_field(event_type, events_and_fragments)
 
         fragment_definitions = self._get_fragment_definitions(self.ast)
-        unpacked_events: Dict[str, IsFragment] = {}
+        unpacked_events: dict[str, IsFragment] = {}
         for event_name, is_fragment in events_and_fragments.items():
             if not is_fragment:
                 continue
@@ -107,7 +107,7 @@ class SubscriptionQuery:
     @staticmethod
     def _get_event_types_from_subscription(
         subscription: OperationDefinition,
-    ) -> List[Field]:
+    ) -> list[Field]:
         return [
             field
             for field in subscription.selection_set.selections
@@ -117,8 +117,8 @@ class SubscriptionQuery:
     @staticmethod
     def _get_events_from_field(
         field: Union[Field, FragmentDefinition],
-        events: Dict[str, IsFragment],
-    ) -> Dict[str, IsFragment]:
+        events: dict[str, IsFragment],
+    ) -> dict[str, IsFragment]:
         if (
             isinstance(field, FragmentDefinition)
             and field.type_condition
@@ -138,8 +138,8 @@ class SubscriptionQuery:
         return events
 
     @staticmethod
-    def _get_fragment_definitions(ast: Document) -> Dict[str, FragmentDefinition]:
-        fragments: Dict[str, FragmentDefinition] = {}
+    def _get_fragment_definitions(ast: Document) -> dict[str, FragmentDefinition]:
+        fragments: dict[str, FragmentDefinition] = {}
         for definition in ast.definitions:
             if isinstance(definition, FragmentDefinition):
                 fragments[definition.name.value] = definition

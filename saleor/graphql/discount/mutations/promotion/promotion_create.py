@@ -1,6 +1,5 @@
 from collections import defaultdict
 from datetime import datetime
-from typing import DefaultDict, List, Tuple
 
 import graphene
 import pytz
@@ -97,7 +96,7 @@ class PromotionCreate(ModelMutation):
     ):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
-        errors: DefaultDict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         start_date = cleaned_input.get("start_date") or instance.start_date
         end_date = cleaned_input.get("end_date")
         try:
@@ -120,8 +119,8 @@ class PromotionCreate(ModelMutation):
         cls,
         info: ResolveInfo,
         rules_data: dict,
-        errors: DefaultDict[str, List[ValidationError]],
-    ) -> Tuple[list, DefaultDict[str, List[ValidationError]]]:
+        errors: defaultdict[str, list[ValidationError]],
+    ) -> tuple[list, defaultdict[str, list[ValidationError]]]:
         cleaned_rules = []
         for index, rule_data in enumerate(rules_data):
             if channel_ids := rule_data.get("channels"):
@@ -136,10 +135,10 @@ class PromotionCreate(ModelMutation):
     def clean_channels(
         cls,
         info: ResolveInfo,
-        channel_ids: List[str],
+        channel_ids: list[str],
         index: int,
-        errors: DefaultDict[str, List[ValidationError]],
-    ) -> List[channel_models.Channel]:
+        errors: defaultdict[str, list[ValidationError]],
+    ) -> list[channel_models.Channel]:
         try:
             channels = get_nodes(channel_ids, Channel, schema=info.schema)
         except GraphQLError as e:
@@ -192,7 +191,7 @@ class PromotionCreate(ModelMutation):
         cls,
         info,
         instance: models.Promotion,
-        rules: List[models.PromotionRule],
+        rules: list[models.PromotionRule],
     ):
         manager = get_plugin_manager_promise(info.context).get()
         has_started = cls.has_started(instance)
@@ -222,7 +221,7 @@ class PromotionCreate(ModelMutation):
         cls,
         info: ResolveInfo,
         instance: models.Promotion,
-        rules: List[models.PromotionRule],
+        rules: list[models.PromotionRule],
         has_started: bool,
     ):
         app = get_app_promise(info.context).get()

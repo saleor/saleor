@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Optional
+from typing import Optional
 
 from django.db.models import Exists, F, OuterRef
 from promise import Promise
@@ -129,7 +129,7 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
             category_pks_map[voucher_id].append(category_id)
         for voucher_id, collection_id in voucher_collections:
             collection_pks_map[voucher_id].append(collection_id)
-        voucher_infos: List[Optional[VoucherInfo]] = []
+        voucher_infos: list[Optional[VoucherInfo]] = []
         for code in keys:
             voucher = vouchers_map.get(code)
             if not voucher:

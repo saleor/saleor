@@ -1,5 +1,6 @@
 import json
-from typing import Iterable, List, Optional
+from collections.abc import Iterable
+from typing import Optional
 from urllib.parse import urlencode, urljoin
 
 import opentracing
@@ -304,7 +305,7 @@ class AdyenGatewayPlugin(BasePlugin):
         checkout_info: Optional["CheckoutInfo"],
         checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
         previous_value,
-    ) -> List["PaymentGateway"]:
+    ) -> list["PaymentGateway"]:
         """Fetch current configuration for given checkout.
 
         It calls an Adyen API to fetch all available payment methods for given checkout.
@@ -485,7 +486,7 @@ class AdyenGatewayPlugin(BasePlugin):
 
     @classmethod
     def _update_config_items(
-        cls, configuration_to_update: List[dict], current_config: List[dict]
+        cls, configuration_to_update: list[dict], current_config: list[dict]
     ):
         for item in configuration_to_update:
             if item.get("name") == "notification-password" and item["value"]:

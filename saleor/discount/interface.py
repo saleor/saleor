@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, NamedTuple, Optional
+from typing import TYPE_CHECKING, NamedTuple, Optional
 
 from .models import Voucher
 
@@ -21,10 +21,10 @@ class VoucherInfo:
     """It contains the voucher's details and PKs of all applicable objects."""
 
     voucher: Voucher
-    product_pks: List[int]
-    variant_pks: List[int]
-    collection_pks: List[int]
-    category_pks: List[int]
+    product_pks: list[int]
+    variant_pks: list[int]
+    collection_pks: list[int]
+    category_pks: list[int]
 
 
 def fetch_voucher_info(voucher: Voucher) -> VoucherInfo:

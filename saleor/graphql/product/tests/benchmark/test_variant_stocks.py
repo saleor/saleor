@@ -10,10 +10,8 @@ from ....tests.utils import get_graphql_content
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_stocks_create.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_create.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 def test_product_variants_stocks_create(
@@ -93,10 +91,8 @@ def test_product_variants_stocks_create(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_stocks_create.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_create.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 def test_product_variants_stocks_create_with_single_webhook_called(
@@ -298,10 +294,8 @@ PRODUCT_VARIANT_STOCKS_DELETE_MUTATION = """
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_stocks_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_delete.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_product_variants_stocks_delete_by_id(
@@ -359,10 +353,8 @@ def test_product_variants_stocks_delete_by_id(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_stocks_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_delete.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_product_variants_stocks_delete_by_sku(
@@ -419,10 +411,8 @@ def test_product_variants_stocks_delete_by_sku(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_stocks_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_delete.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_product_variants_stocks_delete_with_out_of_stock_webhook_many_calls(

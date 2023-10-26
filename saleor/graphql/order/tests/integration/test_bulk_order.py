@@ -268,7 +268,7 @@ def test_filter_imported_orders(
     response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
     content = get_graphql_content(response)
     results = content["data"]["orderBulkCreate"]["results"]
-    order_1_id, order_2_id, order_3_id = [result["order"]["id"] for result in results]
+    order_1_id, order_2_id, order_3_id = (result["order"]["id"] for result in results)
 
     # filter created orders by partially fulfilled status
     query = """

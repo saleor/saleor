@@ -1,5 +1,3 @@
-from typing import Dict
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -60,7 +58,7 @@ class InvoiceUpdate(ModelMutation):
         number = instance.number or data.get("number")
         url = instance.external_url or data.get("url")
 
-        validation_errors: Dict[str, ValidationError] = {}
+        validation_errors: dict[str, ValidationError] = {}
         if not number:
             validation_errors["number"] = ValidationError(
                 "Number need to be set after update operation.",

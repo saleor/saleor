@@ -1,10 +1,9 @@
 import importlib
-from typing import List
 
 default_app_config = "saleor.plugins.apps.PluginConfig"
 
 
-def discover_plugins_modules(plugins: List[str]):
+def discover_plugins_modules(plugins: list[str]):
     plugins_modules = []
     for dotted_path in plugins:
         try:

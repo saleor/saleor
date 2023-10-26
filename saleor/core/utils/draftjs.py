@@ -1,7 +1,4 @@
-from typing import Dict
-
-
-def json_content_to_raw_text(content: Dict[str, dict], sep: str = "\n") -> str:
+def json_content_to_raw_text(content: dict[str, dict], sep: str = "\n") -> str:
     """Convert DraftJS JSON content to plain text."""
 
     if not isinstance(content, dict) or "blocks" not in content:

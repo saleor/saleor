@@ -1,6 +1,6 @@
 import uuid
 from functools import partial
-from typing import List, Optional, cast
+from typing import Optional, cast
 
 import graphene
 from django.contrib.auth import get_user_model
@@ -185,7 +185,7 @@ class Address(ModelObjectType[models.Address]):
         return False
 
     @staticmethod
-    def __resolve_references(roots: List["Address"], info: ResolveInfo):
+    def __resolve_references(roots: list["Address"], info: ResolveInfo):
         from .resolvers import resolve_addresses
 
         app = get_app_promise(info.context).get()
@@ -661,7 +661,7 @@ class User(ModelObjectType[models.User]):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
 
     @staticmethod
-    def __resolve_references(roots: List["User"], info: ResolveInfo):
+    def __resolve_references(roots: list["User"], info: ResolveInfo):
         from .resolvers import resolve_users
 
         ids = set()
@@ -945,7 +945,7 @@ class Group(ModelObjectType[models.Group]):
         return AccessibleChannelsByGroupIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def __resolve_references(roots: List["Group"], info: ResolveInfo):
+    def __resolve_references(roots: list["Group"], info: ResolveInfo):
         from .resolvers import resolve_permission_groups
 
         requestor = get_user_or_app_from_context(info.context)

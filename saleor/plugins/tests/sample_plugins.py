@@ -1,12 +1,10 @@
+from collections import defaultdict
+from collections.abc import Iterable
 from decimal import Decimal
 from typing import (
     TYPE_CHECKING,
     Any,
-    DefaultDict,
-    Iterable,
     Optional,
-    Set,
-    Tuple,
     Union,
 )
 
@@ -204,7 +202,7 @@ class PluginSample(BasePlugin):
 
     def external_verify(
         self, data: dict, request: WSGIRequest, previous_value
-    ) -> Tuple[Optional[User], dict]:
+    ) -> tuple[Optional[User], dict]:
         user = User.objects.get()
         return user, {"some_data": "data"}
 
@@ -219,7 +217,7 @@ class PluginSample(BasePlugin):
     def sale_created(
         self,
         sale: "Promotion",
-        current_catalogue: DefaultDict[str, Set[str]],
+        current_catalogue: defaultdict[str, set[str]],
         previous_value: Any,
     ):
         return sale, current_catalogue
@@ -227,8 +225,8 @@ class PluginSample(BasePlugin):
     def sale_updated(
         self,
         sale: "Promotion",
-        previous_catalogue: DefaultDict[str, Set[str]],
-        current_catalogue: DefaultDict[str, Set[str]],
+        previous_catalogue: defaultdict[str, set[str]],
+        current_catalogue: defaultdict[str, set[str]],
         previous_value: Any,
     ):
         return sale, previous_catalogue, current_catalogue
@@ -236,7 +234,7 @@ class PluginSample(BasePlugin):
     def sale_deleted(
         self,
         sale: "Promotion",
-        previous_catalogue: DefaultDict[str, Set[str]],
+        previous_catalogue: defaultdict[str, set[str]],
         previous_value: Any,
     ):
         return sale, previous_catalogue
@@ -244,7 +242,7 @@ class PluginSample(BasePlugin):
     def sale_toggle(
         self,
         sale: "Promotion",
-        catalogue: DefaultDict[str, Set[str]],
+        catalogue: defaultdict[str, set[str]],
         previous_value: Any,
     ):
         return sale, catalogue

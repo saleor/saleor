@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -51,7 +50,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         stocks = data["stocks"]
         sku = data.get("sku")
         variant_id = data.get("variant_id")

@@ -1,5 +1,4 @@
 import decimal
-from typing import List
 
 import django_filters
 from django.db.models import Exists, OuterRef, Q
@@ -37,7 +36,7 @@ from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountTyp
 
 
 def filter_status(
-    qs: VoucherQueryset, _, value: List[DiscountStatusEnum]
+    qs: VoucherQueryset, _, value: list[DiscountStatusEnum]
 ) -> VoucherQueryset:
     if not value:
         return qs
@@ -57,7 +56,7 @@ def filter_times_used(qs, _, value):
 
 
 def filter_discount_type(
-    qs: VoucherQueryset, _, values: List[VoucherDiscountType]
+    qs: VoucherQueryset, _, values: list[VoucherDiscountType]
 ) -> VoucherQueryset:
     if values:
         query = Q()

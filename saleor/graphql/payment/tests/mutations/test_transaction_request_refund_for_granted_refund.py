@@ -1,7 +1,7 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import graphene
-from mock import patch
 
 from .....payment import TransactionAction, TransactionEventType
 from .....payment.interface import TransactionActionData

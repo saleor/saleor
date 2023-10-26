@@ -1,6 +1,5 @@
 import uuid
 from decimal import Decimal
-from typing import List
 
 import pytest
 from measurement.measures import Weight
@@ -26,7 +25,7 @@ def webhook_plugin(settings):
 
 @pytest.fixture()
 def available_shipping_methods_factory():
-    def factory(num_methods=1) -> List[ShippingMethodData]:
+    def factory(num_methods=1) -> list[ShippingMethodData]:
         methods = []
         for i in range(num_methods):
             methods.append(

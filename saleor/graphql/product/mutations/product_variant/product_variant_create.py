@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import List, Tuple
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -35,7 +34,7 @@ from ...utils import (
 )
 from ..product.product_create import StockInput
 
-T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
+T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
 class PreorderSettingsInput(BaseInputObjectType):

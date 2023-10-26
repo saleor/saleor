@@ -1,5 +1,5 @@
 import copy
-from typing import Generic, Optional, Type, TypeVar
+from typing import Generic, Optional, TypeVar
 from uuid import UUID
 
 from django.db.models import Model, Q
@@ -55,7 +55,7 @@ class ModelObjectType(Generic[MT], BaseObjectType):
             if not options["doc_category"] and doc_category_key in DOC_CATEGORY_MAP:
                 options["doc_category"] = DOC_CATEGORY_MAP[doc_category_key]
 
-        super(ModelObjectType, cls).__init_subclass_with_meta__(
+        super().__init_subclass_with_meta__(
             interfaces=interfaces,
             possible_types=possible_types,
             default_resolver=default_resolver,
@@ -113,5 +113,5 @@ class ModelObjectType(Generic[MT], BaseObjectType):
             return None
 
     @classmethod
-    def get_model(cls) -> Type[MT]:
+    def get_model(cls) -> type[MT]:
         return cls._meta.model

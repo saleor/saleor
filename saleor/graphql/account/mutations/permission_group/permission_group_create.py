@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, cast
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -112,7 +112,7 @@ class PermissionGroupCreate(ModelMutation):
 
         user = info.context.user
         user = cast(User, user)
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         user_accessible_channels = get_user_accessible_channels(info, info.context.user)
         cls.clean_channels(
             info, instance, user_accessible_channels, errors, cleaned_input
@@ -130,7 +130,7 @@ class PermissionGroupCreate(ModelMutation):
         cls,
         requestor: "User",
         group: models.Group,
-        errors: Dict[str, List[ValidationError]],
+        errors: dict[str, list[ValidationError]],
         cleaned_input: dict,
     ):
         field = "add_permissions"
@@ -155,9 +155,9 @@ class PermissionGroupCreate(ModelMutation):
     def ensure_can_manage_permissions(
         cls,
         requestor: "User",
-        errors: Dict[str, List[ValidationError]],
+        errors: dict[str, list[ValidationError]],
         field: str,
-        permission_items: List[str],
+        permission_items: list[str],
     ):
         """Check if requestor can manage permissions from input.
 
@@ -186,7 +186,7 @@ class PermissionGroupCreate(ModelMutation):
     @classmethod
     def ensure_users_are_staff(
         cls,
-        errors: Dict[str, List[ValidationError]],
+        errors: dict[str, list[ValidationError]],
         field: str,
         cleaned_input: dict,
     ):
@@ -206,7 +206,7 @@ class PermissionGroupCreate(ModelMutation):
         cls,
         info: ResolveInfo,
         group: models.Group,
-        user_accessible_channels: List["Channel"],
+        user_accessible_channels: list["Channel"],
         errors: dict,
         cleaned_input: dict,
     ):
@@ -241,9 +241,9 @@ class PermissionGroupCreate(ModelMutation):
     def ensure_can_manage_channels(
         cls,
         user: "User",
-        user_accessible_channels: List["Channel"],
+        user_accessible_channels: list["Channel"],
         errors: dict,
-        channels: List["Channel"],
+        channels: list["Channel"],
     ):
         # user must have access to all channels from `add_channels` list
         if user.is_superuser:
@@ -265,7 +265,7 @@ class PermissionGroupCreate(ModelMutation):
     @classmethod
     def update_errors(
         cls,
-        errors: Dict[str, List[ValidationError]],
+        errors: dict[str, list[ValidationError]],
         msg: str,
         field: str,
         code: str,

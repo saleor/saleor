@@ -61,10 +61,8 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations.product_variant_bulk_create."
-        "get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations.product_variant_bulk_create."
+    "get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_product_variant_bulk_create_by_name(
@@ -122,10 +120,8 @@ def test_product_variant_bulk_create_by_name(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_bulk_create.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_create.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_product_variant_bulk_create_by_attribute_id(

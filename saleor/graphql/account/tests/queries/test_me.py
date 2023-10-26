@@ -1,5 +1,6 @@
+from unittest import mock
+
 import graphene
-import mock
 
 from .....order.models import FulfillmentStatus
 from .....payment.interface import (

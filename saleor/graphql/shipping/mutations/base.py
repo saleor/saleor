@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -27,7 +26,7 @@ from ..types import ShippingMethodPostalCodeRule, ShippingMethodType
 class ShippingZoneMixin:
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         cls.check_duplicates(
             errors, data, "add_warehouses", "remove_warehouses", "warehouses"
         )
@@ -286,7 +285,7 @@ class ShippingPriceMixin:
         cleaned_input = super().clean_input(  # type: ignore[misc] # mixin
             info, instance, data, **kwargs
         )
-        errors: Dict[str, ValidationError] = {}
+        errors: dict[str, ValidationError] = {}
         cls.clean_weight(cleaned_input, errors)
         if (
             "minimum_delivery_days" in cleaned_input

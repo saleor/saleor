@@ -1,5 +1,6 @@
 import re
-from typing import List, Pattern, Union
+from re import Pattern
+from typing import Union
 
 from django.utils.functional import SimpleLazyObject
 
@@ -46,7 +47,7 @@ PASSWORD_HASHERS = ["saleor.tests.dummy_password_hasher.DummyHasher"]
 
 PLUGINS = []
 
-PATTERNS_IGNORED_IN_QUERY_CAPTURES: List[Union[Pattern, SimpleLazyObject]] = [
+PATTERNS_IGNORED_IN_QUERY_CAPTURES: list[Union[Pattern, SimpleLazyObject]] = [
     lazy_re_compile(r"^SET\s+")
 ]
 

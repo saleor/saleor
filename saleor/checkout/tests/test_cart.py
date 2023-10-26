@@ -247,9 +247,8 @@ def test_get_prices_of_discounted_specific_product_all_products(
 def test_checkout_line_repr(product, checkout_with_single_item):
     variant = product.variants.get()
     line = checkout_with_single_item.lines.first()
-    assert repr(line) == "CheckoutLine(variant=%r, quantity=%r)" % (
-        variant,
-        line.quantity,
+    assert (
+        repr(line) == f"CheckoutLine(variant={variant!r}, quantity={line.quantity!r})"
     )
 
 

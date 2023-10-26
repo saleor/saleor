@@ -1,8 +1,9 @@
 import datetime
 import re
 from collections import defaultdict, namedtuple
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -49,12 +50,12 @@ class AttrValuesForSelectableFieldInput:
 class AttrValuesInput:
     global_id: Optional[str] = None
     external_reference: Optional[str] = None
-    values: Optional[List[str]] = None
+    values: Optional[list[str]] = None
     dropdown: Optional[AttrValuesForSelectableFieldInput] = None
     swatch: Optional[AttrValuesForSelectableFieldInput] = None
-    multiselect: Optional[List[AttrValuesForSelectableFieldInput]] = None
+    multiselect: Optional[list[AttrValuesForSelectableFieldInput]] = None
     numeric: Optional[str] = None
-    references: Union[List[str], List[page_models.Page], None] = None
+    references: Union[list[str], list[page_models.Page], None] = None
     file_url: Optional[str] = None
     content_type: Optional[str] = None
     rich_text: Optional[dict] = None
@@ -67,8 +68,8 @@ class AttrValuesInput:
 T_INSTANCE = Union[
     product_models.Product, product_models.ProductVariant, page_models.Page
 ]
-T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
-T_ERROR_DICT = Dict[Tuple[str, str], List]
+T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
+T_ERROR_DICT = dict[tuple[str, str], list]
 
 EntityTypeData = namedtuple("EntityTypeData", ["model", "name_field", "value_field"])
 
@@ -110,14 +111,14 @@ class AttributeAssignmentMixin:
         qs: "QuerySet",
         error_class,
         *,
-        global_ids: List[str],
+        global_ids: list[str],
         external_references: Iterable[str],
         pks: Iterable[int],
     ):
         """Retrieve attributes nodes from given global IDs or external reference."""
 
         qs = qs.filter(Q(pk__in=pks) | Q(external_reference__in=external_references))
-        nodes: List[attribute_models.Attribute] = list(qs)
+        nodes: list[attribute_models.Attribute] = list(qs)
 
         if not nodes:
             raise ValidationError(
@@ -223,7 +224,7 @@ class AttributeAssignmentMixin:
         :raises ValidationError: contain the message.
         :return: The resolved data
         """
-        error_class: Union[Type[PageErrorCode], Type[ProductErrorCode]] = (
+        error_class: Union[type[PageErrorCode], type[ProductErrorCode]] = (
             PageErrorCode if is_page_attributes else ProductErrorCode
         )
 
@@ -515,7 +516,7 @@ class AttributeAssignmentMixin:
         if not attr_values_input.multiselect:
             return tuple()
 
-        attribute_values: List[attribute_models.AttributeValue] = []
+        attribute_values: list[attribute_models.AttributeValue] = []
         for attr_value in attr_values_input.multiselect:
             external_ref = attr_value.external_reference
 
@@ -761,7 +762,7 @@ def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
     )
 
 
-def prepare_attribute_values(attribute: attribute_models.Attribute, values: List[str]):
+def prepare_attribute_values(attribute: attribute_models.Attribute, values: list[str]):
     slug_to_value_map = {}
     name_to_value_map = {}
     for val in attribute.values.filter(Q(name__in=values) | Q(slug__in=values)):
@@ -797,7 +798,7 @@ def prepare_attribute_values(attribute: attribute_models.Attribute, values: List
     return result
 
 
-def get_existing_slugs(attribute: attribute_models.Attribute, values: List[str]):
+def get_existing_slugs(attribute: attribute_models.Attribute, values: list[str]):
     lookup = Q()
     for value in values:
         lookup |= Q(slug__startswith=slugify(unidecode(value)))
@@ -870,7 +871,7 @@ class AttributeInputErrors:
 
 
 def validate_attributes_input(
-    input_data: List[Tuple["Attribute", "AttrValuesInput"]],
+    input_data: list[tuple["Attribute", "AttrValuesInput"]],
     attribute_qs: "QuerySet",
     *,
     is_page_attributes: bool,
@@ -1302,9 +1303,9 @@ def validate_values(
 
 
 def validate_required_attributes(
-    input_data: List[Tuple["Attribute", "AttrValuesInput"]],
+    input_data: list[tuple["Attribute", "AttrValuesInput"]],
     attribute_qs: "QuerySet",
-    errors: List[ValidationError],
+    errors: list[ValidationError],
     error_code_enum,
 ):
     """Ensure all required attributes are supplied."""

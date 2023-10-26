@@ -1,10 +1,10 @@
 from datetime import timedelta
+from unittest import mock
+from unittest.mock import patch
 
-import mock
 import pytest
 from django.utils import timezone
 from freezegun import freeze_time
-from mock import patch
 
 from ...discount.models import VoucherCustomer
 from ...warehouse.models import Allocation

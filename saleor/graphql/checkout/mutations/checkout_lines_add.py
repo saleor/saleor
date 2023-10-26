@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 import graphene
 
 from ....checkout.error_codes import CheckoutErrorCode
@@ -222,7 +220,7 @@ class CheckoutLinesAdd(BaseMutation):
         return CheckoutLinesAdd(checkout=checkout)
 
     @classmethod
-    def _get_variants_from_lines_input(cls, lines: List[Dict]) -> List[ProductVariant]:
+    def _get_variants_from_lines_input(cls, lines: list[dict]) -> list[ProductVariant]:
         """Return list of ProductVariant objects.
 
         Uses variants ids provided in CheckoutLineInput to fetch ProductVariant objects.

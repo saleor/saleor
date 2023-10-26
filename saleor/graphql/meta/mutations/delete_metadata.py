@@ -1,4 +1,4 @@
-from typing import List, cast
+from typing import cast
 
 import graphene
 
@@ -33,7 +33,7 @@ class DeleteMetadata(BaseMetadataMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id: str, keys: List[str]
+        cls, _root, info: ResolveInfo, /, *, id: str, keys: list[str]
     ):
         instance = cast(models.ModelWithMetadata, cls.get_instance(info, id=id))
         if instance:
