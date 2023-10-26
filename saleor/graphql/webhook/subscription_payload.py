@@ -20,7 +20,7 @@ logger = get_task_logger(__name__)
 def initialize_request(
     requestor=None,
     sync_event=False,
-    allow_replica=True,
+    allow_replica=False,
     event_type: Optional[str] = None,
 ) -> SaleorContext:
     """Prepare a request object for webhook subscription.
