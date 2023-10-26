@@ -73,12 +73,12 @@ class DraftOrderComplete(BaseMutation):
         return order
 
     @classmethod
-    def setup_voucher_customer(cls, order):
+    def setup_voucher_customer(cls, order, channel):
         if (
             order.voucher
             and order.voucher_code
             and order.voucher.apply_once_per_customer
-            and order.channel.include_draft_order_in_voucher_usage
+            and channel.include_draft_order_in_voucher_usage
         ):
             code = VoucherCode.objects.filter(code=order.voucher_code).first()
             if code:
@@ -104,7 +104,6 @@ class DraftOrderComplete(BaseMutation):
 
         country = get_order_country(order)
         validate_draft_order(order, country, manager)
-        cls.setup_voucher_customer(order)
         with traced_atomic_transaction():
             cls.update_user_fields(order)
             order.status = OrderStatus.UNFULFILLED
@@ -123,6 +122,7 @@ class DraftOrderComplete(BaseMutation):
             order.save()
 
             channel = order.channel
+            cls.setup_voucher_customer(order, channel)
             order_lines_info = []
             for line in order.lines.all():
                 if not line.variant:
