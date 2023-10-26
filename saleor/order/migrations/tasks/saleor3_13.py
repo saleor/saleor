@@ -4,7 +4,6 @@ from babel.numbers import get_currency_precision
 from django.db.models.expressions import Exists, OuterRef
 
 from ....celeryconf import app
-from ... import OrderChargeStatus
 from ...models import Order, OrderGrantedRefund
 
 
@@ -33,13 +32,13 @@ def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
     current_total_gross = quantize_price(current_total_gross, order.currency)
 
     if total_charged == current_total_gross:
-        order.charge_status = OrderChargeStatus.FULL
+        order.charge_status = "full"
     elif total_charged <= Decimal(0):
-        order.charge_status = OrderChargeStatus.NONE
+        order.charge_status = "none"
     elif total_charged < current_total_gross:
-        order.charge_status = OrderChargeStatus.PARTIAL
+        order.charge_status = "partial"
     else:
-        order.charge_status = OrderChargeStatus.OVERCHARGED
+        order.charge_status = "overcharged"
 
 
 @app.task
@@ -63,15 +62,15 @@ def update_orders_charge_statuses_task(number=0):
     )
 
     orders_to_update = []
-    last_number = number
+
     for o in orders:
         granted_refund_amount = sum(
             [refund.amount.amount for refund in o.granted_refunds.all()], Decimal(0)
         )
         update_order_charge_status(o, granted_refund_amount)
         orders_to_update.append(o)
-        last_number = o.number
 
     if orders_to_update:
+        last_number = orders_to_update[-1].number
         Order.objects.bulk_update(orders_to_update, ["charge_status"])
         update_orders_charge_statuses_task.delay(last_number)
