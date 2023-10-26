@@ -78,6 +78,7 @@ class DraftOrderComplete(BaseMutation):
             order.voucher
             and order.voucher_code
             and order.voucher.apply_once_per_customer
+            and order.channel.include_draft_order_in_voucher_usage
         ):
             code = VoucherCode.objects.filter(code=order.voucher_code).first()
             if code:

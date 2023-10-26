@@ -254,7 +254,7 @@ def test_draft_order_complete_with_invalid_voucher(
     assert data["errors"][0]["field"] == "voucher"
 
 
-def test_draft_order_complete_with_voucher_customer(
+def test_draft_order_complete_with_voucher_once_per_customer(
     staff_api_client,
     permission_group_manage_orders,
     staff_user,
