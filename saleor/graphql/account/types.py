@@ -3,6 +3,7 @@ from functools import partial
 from typing import List, Optional, cast
 
 import graphene
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from graphene import relay
 from promise import Promise
@@ -256,9 +257,9 @@ class UserPermission(Permission):
     @traced_resolver
     def resolve_source_permission_groups(root: Permission, _info: ResolveInfo, user_id):
         _type, user_id = from_global_id_or_error(user_id, only_type="User")
-        groups = models.Group.objects.filter(
-            user__pk=user_id, permissions__name=root.name
-        )
+        groups = models.Group.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(user__pk=user_id, permissions__name=root.name)
         return groups
 
 
@@ -676,7 +677,9 @@ class StaffNotificationRecipient(graphene.ObjectType):
     @staticmethod
     def get_node(info: ResolveInfo, id):
         try:
-            return models.StaffNotificationRecipient.objects.get(pk=id)
+            return models.StaffNotificationRecipient.objects.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            ).get(pk=id)
         except models.StaffNotificationRecipient.DoesNotExist:
             return None
 
