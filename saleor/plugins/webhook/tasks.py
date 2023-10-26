@@ -270,7 +270,7 @@ def trigger_all_webhooks_sync(
     parse_response: Callable[[Any], Optional[R]],
     subscribable_object=None,
     requestor=None,
-    allow_replica=True,
+    allow_replica=False,
 ) -> Optional[R]:
     """Send all synchronous webhook request for given event type.
 
