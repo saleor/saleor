@@ -28,21 +28,7 @@ VOUCHER_BATCH_SIZE = 5000
 VOUCHER_CUSTOMER_BATCH_SIZE = 1000
 
 
-# For batch size 1000 with 10_000 per model OrderDiscount/Voucher/VoucherCode objects
-# OrderDiscount Migration took 2.39 seconds.
-# OrderDiscount Memory usage increased by 15.65 MiB.
-# OrderLineDiscount Migration took 2.48 seconds.
-# OrderLineDiscount Memory usage increased by 4.61 MiB.
-# CheckoutLineDiscount Migration took 2.26 seconds.
-# CheckoutLineDiscount Memory usage increased by 3.23 MiB.
-
-# For batch size 1000 with 100_000 per model OrderDiscount/Voucher/VoucherCode objects
-# OrderDiscount Migration took 28.68 seconds.
-# OrderDiscount Memory usage increased by 163.00 MiB.
-# OrderLineDiscount Migration took 27.98 seconds.
-# OrderLineDiscount Memory usage increased by 47.99 MiB.
-# CheckoutLineDiscount Migration took 28.12 seconds.
-# CheckoutLineDiscount Memory usage increased by 35.52 MiB.
+# The batch took about 0.2s and consumes ~20MB memory at peak
 BASE_DISCOUNT_BATCH_SIZE = 1000
 
 
