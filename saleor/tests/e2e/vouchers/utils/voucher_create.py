@@ -13,6 +13,17 @@ mutation VoucherCreate($input: VoucherInput!) {
       startDate
       discountValueType
       type
+      codes(first: 10) {
+        edges {
+          node {
+            id
+            code
+            isActive
+            used
+          }
+        }
+        totalCount
+      }
     }
   }
 }
