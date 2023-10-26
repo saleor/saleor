@@ -5,7 +5,7 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.18.0 [Unreleased]
 
 ### Breaking changes
-- Optimize number of queries in bulk mutations when calling Webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
+- Optimize number of queries in bulk mutations when calling webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
   - `attribute_updated`
   - `attribute_deleted`
   - `attribute_value_deleted`

@@ -3,7 +3,6 @@ from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
@@ -112,27 +111,27 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 <= 0
                 < stock_data["quantity"]
             ):
-                transaction.on_commit(
-                    lambda: manager.product_variant_back_in_stock(
-                        stock, webhooks=webhooks_stock_in
-                    )
+                cls.call_event(
+                    manager.product_variant_back_in_stock,
+                    stock,
+                    webhooks=webhooks_stock_in,
                 )
 
             if stock_data["quantity"] <= 0 or (
                 stock_data["quantity"] - stock.quantity_allocated <= 0
             ):
-                transaction.on_commit(
-                    lambda: manager.product_variant_out_of_stock(
-                        stock, webhooks=webhooks_stock_out
-                    )
+                cls.call_event(
+                    manager.product_variant_out_of_stock,
+                    stock,
+                    webhooks=webhooks_stock_out,
                 )
 
             stock.quantity = stock_data["quantity"]
             stocks.append(stock)
-            transaction.on_commit(
-                lambda: manager.product_variant_stock_updated(
-                    stock, webhooks=webhooks_stock_update
-                )
+            cls.call_event(
+                manager.product_variant_stock_updated,
+                stock,
+                webhooks=webhooks_stock_update,
             )
 
         warehouse_models.Stock.objects.bulk_update(stocks, ["quantity"])
