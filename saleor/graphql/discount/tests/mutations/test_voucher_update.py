@@ -228,7 +228,7 @@ def test_update_voucher_trigger_webhook(
     )
 
 
-def test_update_voucher_single_use_voucher_already_used(
+def test_update_voucher_single_use_voucher_already_used_in_order(
     staff_api_client,
     voucher,
     permission_manage_discounts,
@@ -241,6 +241,82 @@ def test_update_voucher_single_use_voucher_already_used(
     order.voucher_code = code_instance.code
     order.voucher = voucher
     order.save(update_fields=["voucher_code", "voucher"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {
+            "singleUse": single_use,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["voucherUpdate"]
+    errors = data["errors"]
+
+    assert errors
+    assert not data["voucher"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "singleUse"
+    assert errors[0]["code"] == DiscountErrorCode.VOUCHER_ALREADY_USED.name
+    assert not errors[0]["voucherCodes"]
+
+
+def test_update_voucher_single_use_voucher_already_used_in_order_line(
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    order_line,
+):
+    # given
+    single_use = not voucher.single_use
+
+    code_instance = voucher.codes.first()
+    order_line.voucher_code = code_instance.code
+    order_line.save(update_fields=["voucher_code"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {
+            "singleUse": single_use,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["voucherUpdate"]
+    errors = data["errors"]
+
+    assert errors
+    assert not data["voucher"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "singleUse"
+    assert errors[0]["code"] == DiscountErrorCode.VOUCHER_ALREADY_USED.name
+    assert not errors[0]["voucherCodes"]
+
+
+def test_update_voucher_single_use_voucher_already_used_in_checkout(
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    checkout,
+):
+    # given
+    single_use = not voucher.single_use
+
+    code_instance = voucher.codes.first()
+    checkout.voucher_code = code_instance.code
+    checkout.save(update_fields=["voucher_code"])
 
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),

@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Exists, OuterRef
 
+from .....checkout import models as checkout_models
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
 from .....order import models as order_models
@@ -62,6 +63,11 @@ class VoucherUpdate(VoucherCreate):
                 Exists(order_models.Order.objects.filter(voucher_code=OuterRef("code")))
                 | Exists(
                     order_models.OrderLine.objects.filter(voucher_code=OuterRef("code"))
+                )
+                | Exists(
+                    checkout_models.Checkout.objects.filter(
+                        voucher_code=OuterRef("code")
+                    )
                 )
             )
             if used_codes.exists():
