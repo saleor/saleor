@@ -66,9 +66,9 @@ def update_orders_charge_statuses_task(Order, OrderGrantedRefund, number=0):
         )
         update_order_charge_status(o, granted_refund_amount)
         orders_to_update.append(o)
-        last_number = o.number
 
     if orders_to_update:
+        last_number = orders_to_update[-1].number
         Order.objects.bulk_update(orders_to_update, ["charge_status"])
 
     return last_number, orders_to_update
