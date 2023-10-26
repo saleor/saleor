@@ -626,9 +626,6 @@ def test_variant_restricted_fields_permissions(
     is_nested,
     channel_USD,
 ):
-    """Ensure non-public (restricted) fields are correctly requiring
-    the 'manage_products' permission.
-    """
     query = """
     query ProductVariant($id: ID!, $channel: String) {
         productVariant(id: $id, channel: $channel) {

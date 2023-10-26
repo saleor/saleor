@@ -956,9 +956,6 @@ def test_products_filter_by_date_range_date_attributes(
     date_attribute,
     channel_USD,
 ):
-    """Ensure both products will be returned when filtering attributes by date range,
-    products with the same date attribute value."""
-
     # given
     product_type = product_list[0].product_type
     date_value = timezone.now()
@@ -1017,9 +1014,6 @@ def test_products_filter_by_date_range_date_variant_attributes(
     date_attribute,
     channel_USD,
 ):
-    """Ensure both products will be returned when filtering attributes by date range,
-    variants with the same date attribute value."""
-
     # given
     product_type = product_list[0].product_type
     date_value = timezone.now()
@@ -1078,9 +1072,6 @@ def test_products_filter_by_date_range_date_time_attributes(
     date_time_attribute,
     channel_USD,
 ):
-    """Ensure both products will be returned when filtering attributes by date time
-    range, products with the same date time attribute value."""
-
     # given
     product_type = product_list[0].product_type
     date_value = timezone.now()
@@ -1142,9 +1133,6 @@ def test_products_filter_by_date_range_date_time_variant_attributes(
     date_time_attribute,
     channel_USD,
 ):
-    """Ensure both products will be returned when filtering attributes by date time
-    range, variant and product with the same date time attribute value."""
-
     # given
     product_type = product_list[0].product_type
     date_value = timezone.now()
@@ -1206,9 +1194,6 @@ def test_products_filter_by_date_time_range_date_time_attributes(
     date_time_attribute,
     channel_USD,
 ):
-    """Ensure both products will be returned when filtering by attributes by date range
-    variants with the same date attribute value."""
-
     # given
     product_type = product_list[0].product_type
     date_value = timezone.now()

@@ -380,8 +380,11 @@ def test_generate_order_payload_no_user_email_but_user_set(
     fulfilled_order,
     customer_user,
 ):
-    """Ensure that the assigned user's email is returned in `user_email` payload field
-    when the user_email order value is empty."""
+    """Test that user email is always set.
+
+    Ensure that the assigned user's email is returned in `user_email` payload field
+    when the user_email order value is empty.
+    """
     # given
     fulfillment_lines = '"fulfillment_lines"'
     mocked_fulfillment_lines.return_value = fulfillment_lines

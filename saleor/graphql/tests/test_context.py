@@ -23,10 +23,7 @@ query orderById($id: ID!) {
 def test_user_is_cached_on_request(
     mocked_authenticate_user, api_client, order_with_lines, settings, staff_user
 ):
-    """
-    This test case is added to cover edge case when user isn't cached on request
-    due to multiple Promises wait inside PluginBackend.authenticate method.
-    """
+    """Test the edge case when user isn't cached due to multiple Promises waiting."""
     # given
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.SampleAuthorizationPlugin"]
     mocked_authenticate_user.return_value = staff_user

@@ -24,8 +24,6 @@ def test_create_order_by_staff_in_accessible_channel(
     shipping_method,
     graphql_address_data,
 ):
-    """Ensure that staff user is able to create and complete the draft order
-    in the channel he has access to."""
     # given
     permission_group_manage_orders.restricted_access_to_channels = True
     permission_group_manage_orders.save(update_fields=["restricted_access_to_channels"])
@@ -88,7 +86,7 @@ def test_create_order_by_staff_in_accessible_channel(
 
 
 @pytest.mark.integration
-def test_user_cannot_manage_draft_order_after_loosing_the_channel_access(
+def test_user_cannot_manage_draft_order_after_losing_access_to_channel(
     staff_api_client,
     permission_group_manage_orders,
     channel_USD,
@@ -97,8 +95,6 @@ def test_user_cannot_manage_draft_order_after_loosing_the_channel_access(
     shipping_method,
     superuser_api_client,
 ):
-    """Ensure that staff user cannot mark order as paid after loosing the access
-    to order channel."""
     # given
     permission_group_manage_orders.restricted_access_to_channels = True
     permission_group_manage_orders.save(update_fields=["restricted_access_to_channels"])

@@ -1276,9 +1276,6 @@ def test_checkout_add_free_shipping_voucher_do_not_invalidate_shipping_method(
     shipping_method,
     address_usa,
 ):
-    """Ensure that adding free shipping voucher do not invalidate
-    current shipping method.
-    """
     checkout_with_item.shipping_method = shipping_method
     checkout_with_item.shipping_address = address_usa
     checkout_with_item.save(update_fields=["shipping_method", "shipping_address"])

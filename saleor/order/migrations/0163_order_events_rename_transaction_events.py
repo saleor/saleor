@@ -1,7 +1,7 @@
 from django.db import migrations, transaction
 from django.db.models import QuerySet
-from ..models import OrderEvent
 
+from ..models import OrderEvent
 
 BATCH_SIZE = 5000
 

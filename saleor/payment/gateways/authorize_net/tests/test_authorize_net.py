@@ -214,10 +214,7 @@ def test_void(authorize_net_payment, authorize_net_gateway_config):
 @pytest.mark.integration
 @pytest.mark.vcr()
 def test_void_duplicate(authorize_net_payment, authorize_net_gateway_config):
-    """
-    Tests already voided transaction
-    Authorize.net considers this a successful transaction
-    """
+    """Test that duplicate voids are considered successful."""
     payment_data = PaymentData(
         authorize_net_payment.gateway,
         None,
@@ -243,7 +240,7 @@ def test_void_duplicate(authorize_net_payment, authorize_net_gateway_config):
 @pytest.mark.integration
 @pytest.mark.vcr()
 def test_void_failure(authorize_net_payment, authorize_net_gateway_config):
-    """Test with invalid transaction id"""
+    """Test void with invalid transaction ID."""
     payment_data = PaymentData(
         authorize_net_payment.gateway,
         None,

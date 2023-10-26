@@ -289,9 +289,6 @@ def test_staff_update_out_of_scope_user(
     permission_manage_orders,
     media_root,
 ):
-    """Ensure that staff user cannot update user with wider scope of permission.
-    Ensure superuser pass restrictions.
-    """
     query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     staff_user.user_permissions.add(permission_manage_orders)
@@ -327,10 +324,6 @@ def test_staff_update_out_of_scope_groups(
     permission_manage_orders,
     permission_manage_products,
 ):
-    """Ensure that staff user cannot add to groups which permission scope is wider
-    than user's scope.
-    Ensure superuser pass restrictions.
-    """
     query = STAFF_UPDATE_MUTATIONS
 
     groups = Group.objects.bulk_create(
@@ -487,9 +480,6 @@ def test_staff_update_deactivate_with_manage_staff_left_not_manageable_perms(
     permission_manage_orders,
     media_root,
 ):
-    """Ensure that staff user can't and superuser can deactivate user where some
-    permissions will be not manageable.
-    """
     query = STAFF_UPDATE_MUTATIONS
     groups = Group.objects.bulk_create(
         [

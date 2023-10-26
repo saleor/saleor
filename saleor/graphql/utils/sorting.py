@@ -51,17 +51,18 @@ def sort_queryset(
 ) -> QuerySet:
     """Sort queryset according to given parameters.
 
-    rules:
+    Rules:
         - sorting_field and sorting_attribute cannot be together)
         - when sorting_attribute is passed, it is expected that
             queryset will have method to sort by attributes
         - when sorter has custom sorting method it's name must be like
             `prepare_qs_for_sort_{enum_name}` and it must return sorted queryset
 
-    Keyword Arguments:
-        queryset - queryset to be sorted
-        sort_by - dictionary with sorting field and direction
-
+    Arguments:
+        channel_slug: channel to use for channel-specific sorting
+        queryset: queryset to be sorted
+        reversed: if True, sorting direction will be reversed
+        sort_by: dictionary with sorting field and direction
     """
     sorting_direction = sort_by.direction
     if reversed:

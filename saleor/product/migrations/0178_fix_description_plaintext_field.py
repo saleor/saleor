@@ -2,6 +2,7 @@
 
 from django.db import migrations
 from django.db.models import Q
+
 from ...core.utils.editorjs import clean_editor_js
 
 BATCH_SIZE = 2000

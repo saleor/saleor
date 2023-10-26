@@ -277,8 +277,6 @@ QUERY_PAGINATED_SORTED_PRODUCTS = """
 def test_pagination_for_sorting_products_by_published_at_date(
     api_client, channel_USD, product_list
 ):
-    """Ensure that using the cursor in sorting products by published at date works
-    properly."""
     # given
     channel_listings = ProductChannelListing.objects.filter(channel_id=channel_USD.id)
     listings_in_bulk = {listing.product_id: listing for listing in channel_listings}

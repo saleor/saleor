@@ -82,7 +82,6 @@ def gen_address_for_user(first_name, last_name):
 
 
 def test_combined_flat_search_vector():
-    """Ensure two FlatConcat can be combined into one object"""
     flat_vector_1 = FlatConcat(
         SearchVector(Value("value1"), weight="A"),
         SearchVector(Value("value2"), weight="C"),
@@ -102,12 +101,6 @@ def test_combined_flat_search_vector():
 
 
 def test_flat_concat_drop_exceeding_count_no_silently_fail():
-    """
-    Ensure when the maximum allowed value count in FlatConcat is exceeded
-    and it shouldn't fail silently, then an exception is raised once the limit
-    is reached.
-    """
-
     class LimitedFlatConcat(FlatConcat):
         max_expression_count = 2
         silent_drop_expression = False
@@ -123,11 +116,6 @@ def test_flat_concat_drop_exceeding_count_no_silently_fail():
 
 
 def test_flat_concat_drop_exceeding_count_silently_truncate():
-    """
-    Ensure when the maximum allowed value count in FlatConcat is exceeded
-    and is set to truncate silently, the values are truncated as expected.
-    """
-
     class LimitedFlatConcat(FlatConcat):
         max_expression_count = 2
         silent_drop_expression = True
