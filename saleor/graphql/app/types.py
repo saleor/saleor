@@ -2,6 +2,7 @@ import base64
 from typing import List, Optional, Type, Union
 
 import graphene
+from django.conf import settings
 
 from ...app import models
 from ...app.types import AppExtensionTarget
@@ -448,7 +449,9 @@ class AppToken(BaseObjectType):
     @staticmethod
     def get_node(info: ResolveInfo, id):
         try:
-            return models.AppToken.objects.get(pk=id)
+            return models.AppToken.objects.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            ).get(pk=id)
         except models.AppToken.DoesNotExist:
             return None
 
