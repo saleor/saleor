@@ -1,6 +1,7 @@
 from itertools import chain
 from typing import Optional
 
+from django.conf import settings
 from django.db.models import Q
 from i18naddress import get_validation_rules
 
@@ -36,19 +37,25 @@ USER_SEARCH_FIELDS = (
 
 
 def resolve_customers(_info):
-    return models.User.objects.customers()
+    return models.User.objects.customers().using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    )
 
 
 def resolve_permission_group(id):
-    return models.Group.objects.filter(id=id).first()
+    return (
+        models.Group.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(id=id)
+        .first()
+    )
 
 
 def resolve_permission_groups(_info):
-    return models.Group.objects.all()
+    return models.Group.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()
 
 
 def resolve_staff_users(_info):
-    return models.User.objects.staff()
+    return models.User.objects.staff().using(settings.DATABASE_CONNECTION_REPLICA_NAME)
 
 
 @traced_resolver
@@ -90,15 +97,21 @@ def resolve_users(info, ids=None, emails=None):
     if requester.has_perms(
         [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
     ):
-        qs = models.User.objects.all()
+        qs = models.User.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()
     elif requester.has_perm(AccountPermissions.MANAGE_STAFF):
-        qs = models.User.objects.staff()
+        qs = models.User.objects.staff().using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        )
     elif requester.has_perm(AccountPermissions.MANAGE_USERS):
-        qs = models.User.objects.customers()
+        qs = models.User.objects.customers().using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        )
     elif requester.id:
         # If user has no access to all users, we can only return themselves, but
         # only if they are authenticated and one of requested users
-        qs = models.User.objects.filter(id=requester.id)
+        qs = models.User.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(id=requester.id)
     else:
         qs = models.User.objects.none()
 
@@ -200,7 +213,11 @@ def resolve_address(info, id, app):
     user = info.context.user
     _, address_pk = from_global_id_or_error(id, Address)
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
-        return models.Address.objects.filter(pk=address_pk).first()
+        return (
+            models.Address.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(pk=address_pk)
+            .first()
+        )
     if user:
         return user.addresses.filter(id=address_pk).first()
     raise PermissionDenied(
@@ -215,7 +232,9 @@ def resolve_addresses(info, ids, app):
         for address_id in ids
     ]
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
-        return models.Address.objects.filter(id__in=ids)
+        return models.Address.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(id__in=ids)
     if user:
         return user.addresses.filter(id__in=ids)
     return models.Address.objects.none()
