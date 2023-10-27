@@ -8963,9 +8963,11 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   applyOncePerCustomer: Boolean!
 
   """
-  Determine if the voucher is limited to a single use or unlimited use.
+  Determine if the voucher codes can be used once or multiple times.
   
   Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   singleUse: Boolean!
 
@@ -9118,6 +9120,8 @@ type VoucherCodeCountableEdge @doc(category: "Discounts") {
 Represents voucher code.
 
 Added in Saleor 3.18.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type VoucherCode {
   """The ID of the voucher code."""
@@ -18208,7 +18212,7 @@ type Mutation {
   ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: [])
 
   """
-  Export active voucher codes to csv/xlsx file.
+  Export voucher codes to csv/xlsx file.
   
   Added in Saleor 3.18.
   
@@ -27692,7 +27696,11 @@ type DiscountError @doc(category: "Discounts") {
   """List of channels IDs which causes the error."""
   channels: [ID!]
 
-  """List of voucher codes which causes the error."""
+  """
+  List of voucher codes which causes the error.
+  
+  Added in Saleor 3.18.
+  """
   voucherCodes: [String!]
 }
 
@@ -27969,11 +27977,13 @@ input VoucherInput @doc(category: "Discounts") {
   onlyForStaff: Boolean
 
   """
-  When set to 'True', each voucher is limited to a single use; otherwise, usage remains unrestricted.
+  When set to 'True', each voucher code can be used only once; otherwise, codes can be used multiple times depending on `usageLimit`.
   
   The option can only be changed if none of the voucher codes have been used.
   
   Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   singleUse: Boolean
 
@@ -28274,7 +28284,7 @@ input ExportGiftCardsInput @doc(category: "Gift cards") {
 }
 
 """
-Export active voucher codes to csv/xlsx file.
+Export voucher codes to csv/xlsx file.
 
 Added in Saleor 3.18.
 

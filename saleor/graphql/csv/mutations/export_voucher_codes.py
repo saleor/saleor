@@ -45,9 +45,7 @@ class ExportVoucherCodes(BaseExportMutation):
 
     class Meta:
         description = (
-            "Export active voucher codes to csv/xlsx file."
-            + ADDED_IN_318
-            + PREVIEW_FEATURE
+            "Export voucher codes to csv/xlsx file." + ADDED_IN_318 + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
