@@ -118,7 +118,7 @@ def test_trigger_webhook_sync_with_subscription_within_mutation_use_default_db(
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")
 @mock.patch("saleor.plugins.webhook.tasks.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.tasks.generate_payload_from_subscription")
-def test_trigger_webhook_async_with_subscription_use_replica_db(
+def test_trigger_webhook_async_with_subscription_use_main_db(
     mocked_generate_payload,
     mocked_get_webhooks_for_event,
     mocked_request,
@@ -155,4 +155,4 @@ def test_trigger_webhook_async_with_subscription_use_replica_db(
 
     # then
     mocked_generate_payload.assert_called_once()
-    assert mocked_generate_payload.call_args[1]["request"].allow_replica
+    assert not mocked_generate_payload.call_args[1]["request"].allow_replica
