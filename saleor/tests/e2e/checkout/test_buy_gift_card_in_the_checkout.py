@@ -1,5 +1,7 @@
 import pytest
 
+from ..gift_cards.utils import get_gift_cards
+from ..orders.utils import order_fulfill
 from ..product.utils import (
     create_category,
     create_product,
@@ -77,6 +79,8 @@ def test_buy_gift_card_in_the_checkout_CORE_1102(
     permission_manage_channels,
     permission_manage_products,
     permission_manage_shipping,
+    permission_manage_gift_card,
+    permission_manage_orders,
 ):
     # Before
     permissions = [
@@ -84,6 +88,8 @@ def test_buy_gift_card_in_the_checkout_CORE_1102(
         permission_manage_channels,
         permission_manage_products,
         permission_manage_shipping,
+        permission_manage_gift_card,
+        permission_manage_orders,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
     (
@@ -137,3 +143,30 @@ def test_buy_gift_card_in_the_checkout_CORE_1102(
     assert order_data["isShippingRequired"] is False
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
+    order_line = order_data["lines"][0]
+
+    # Step 5 - Fulfill order.
+    input = {
+        "lines": [
+            {
+                "orderLineId": order_line["id"],
+                "stocks": [
+                    {
+                        "quantity": 1,
+                        "warehouse": warehouse_id,
+                    }
+                ],
+            }
+        ],
+        "notifyCustomer": True,
+        "allowStockToBeExceeded": False,
+    }
+    order_data = order_fulfill(e2e_staff_api_client, order_data["id"], input)
+    print(order_data)
+    assert order_data["order"]["status"] == "FULFILLED"
+
+    # Step 6 - Verify created gift card
+    gift_cards_data = get_gift_cards(e2e_staff_api_client, 10)
+
+    print(get_gift_cards)
+    assert len(gift_cards_data) == 1
