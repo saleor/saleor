@@ -129,21 +129,21 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
         ProductType,
         blank=True,
         related_name="product_attributes",
-        through="AttributeProduct",
+        through="attribute.AttributeProduct",
         through_fields=("attribute", "product_type"),
     )
     product_variant_types = models.ManyToManyField(
         ProductType,
         blank=True,
         related_name="variant_attributes",
-        through="AttributeVariant",
+        through="attribute.AttributeVariant",
         through_fields=("attribute", "product_type"),
     )
     page_types = models.ManyToManyField(
         PageType,
         blank=True,
         related_name="page_attributes",
-        through="AttributePage",
+        through="attribute.AttributePage",
         through_fields=("attribute", "page_type"),
     )
 

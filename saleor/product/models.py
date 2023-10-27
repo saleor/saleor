@@ -337,7 +337,9 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
     )
-    media = models.ManyToManyField("ProductMedia", through="VariantMedia")
+    media = models.ManyToManyField(
+        "product.ProductMedia", through="product.VariantMedia"
+    )
     track_inventory = models.BooleanField(default=True)
     is_preorder = models.BooleanField(default=False)
     preorder_end_date = models.DateTimeField(null=True, blank=True)
@@ -499,7 +501,7 @@ class ProductVariantChannelListing(models.Model):
     promotion_rules = models.ManyToManyField(
         PromotionRule,
         help_text=("Promotion rules that were included in the discounted price."),
-        through="VariantChannelListingPromotionRule",
+        through="product.VariantChannelListingPromotionRule",
         blank=True,
     )
 

@@ -162,4 +162,4 @@ class TranslationQueries(graphene.ObjectType):
         }
         if kind == TranslatableKinds.SALE.value:  # type: ignore[attr-defined]
             return Promotion.objects.filter(old_sale_id=kind_id).first()
-        return models[kind].objects.filter(pk=kind_id).first()
+        return models[kind]._default_manager.filter(pk=kind_id).first()

@@ -545,7 +545,7 @@ def create_fake_user(user_password, save=True):
         pass
 
     _, max_user_id = connection.ops.integer_field_range(
-        User.id.field.get_internal_type()  # type: ignore # raw access to field
+        User.id.field.get_internal_type()
     )
     user = User(
         id=fake.random_int(min=1, max=max_user_id),

@@ -239,15 +239,15 @@ class User(
             self._effective_permissions = get_permissions()
             if not self.is_superuser:
                 UserPermission = User.user_permissions.through
-                user_permission_queryset = UserPermission.objects.filter(
+                user_permission_queryset = UserPermission._default_manager.filter(
                     user_id=self.pk
                 ).values("permission_id")
 
                 UserGroup = User.groups.through
                 GroupPermission = Group.permissions.through
-                user_group_queryset = UserGroup.objects.filter(user_id=self.pk).values(
-                    "group_id"
-                )
+                user_group_queryset = UserGroup._default_manager.filter(
+                    user_id=self.pk
+                ).values("group_id")
                 group_permission_queryset = GroupPermission.objects.filter(
                     Exists(user_group_queryset.filter(group_id=OuterRef("group_id")))
                 ).values("permission_id")

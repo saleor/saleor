@@ -139,9 +139,9 @@ class AccessibleChannelsByUserIdLoader(BaseAccessibleChannels):
 
     def batch_load(self, keys):
         UserGroup = User.groups.through
-        user_groups = UserGroup.objects.using(self.database_connection_name).filter(
-            user_id__in=keys
-        )
+        user_groups = UserGroup._default_manager.using(
+            self.database_connection_name
+        ).filter(user_id__in=keys)
         groups = Group.objects.using(self.database_connection_name).filter(
             id__in=user_groups.values("group_id")
         )
@@ -162,9 +162,9 @@ class RestrictedChannelAccessByUserIdLoader(DataLoader):
 
     def batch_load(self, keys):
         UserGroup = User.groups.through
-        user_groups = UserGroup.objects.using(self.database_connection_name).filter(
-            user_id__in=keys
-        )
+        user_groups = UserGroup._default_manager.using(
+            self.database_connection_name
+        ).filter(user_id__in=keys)
         groups = Group.objects.using(self.database_connection_name).filter(
             id__in=user_groups.values("group_id")
         )

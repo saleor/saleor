@@ -1172,6 +1172,8 @@ class FileUpload(BaseMutation):
         cls, _root, info: ResolveInfo, /, file
     ):
         file_data: UploadedFile = cast(UploadedFile, info.context.FILES[file])
+        if not file_data.file:
+            raise ValidationError("Received an empty file.")
 
         # add unique text fragment to the file name to prevent file overriding
         file_name, format = os.path.splitext(file_data.name or "")

@@ -140,7 +140,7 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
         errors["brand"].append(e)
 
     saleor_permissions = get_permissions().annotate(
-        formated_codename=Concat("content_type__app_label", Value("."), "codename")
+        formatted_codename=Concat("content_type__app_label", Value("."), "codename")
     )
     try:
         app_permissions = clean_permissions(
