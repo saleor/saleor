@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import graphene
@@ -1726,6 +1727,42 @@ def test_fulfillment_created(fulfillment, subscription_fulfillment_created_webho
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_fulfillment_with_refund_amounts(
+    fulfillment, subscription_fulfillment_created_webhook
+):
+    # given
+    shipping_refund = Decimal("10")
+    total_refund = Decimal("15")
+    fulfillment.shipping_refund_amount = shipping_refund
+    fulfillment.total_refund_amount = total_refund
+    fulfillment.save()
+
+    webhooks = [subscription_fulfillment_created_webhook]
+    event_type = WebhookEventAsyncType.FULFILLMENT_CREATED
+    expected_payload = generate_fulfillment_payload(
+        fulfillment, add_notify_customer_field=True
+    )
+    expected_payload["fulfillment"]["shippingRefundedAmount"] = {
+        "amount": shipping_refund
+    }
+    expected_payload["fulfillment"]["totalRefundedAmount"] = {"amount": total_refund}
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "fulfillment": fulfillment,
+            "notify_customer": True,
+        },
+        webhooks,
+    )
+
+    # then
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_fulfillment_canceled(fulfillment, subscription_fulfillment_canceled_webhook):
     # given
     webhooks = [subscription_fulfillment_canceled_webhook]
@@ -1736,7 +1773,7 @@ def test_fulfillment_canceled(fulfillment, subscription_fulfillment_canceled_web
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
 
     # then
-    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -1777,7 +1814,7 @@ def test_fulfillment_metadata_updated(
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
 
     # then
-    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -1794,7 +1831,7 @@ def test_fulfillment_tracking_number_updated(
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
 
     # then
-    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
