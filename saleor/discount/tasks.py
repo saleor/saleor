@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 import graphene
 import pytz
@@ -103,12 +103,10 @@ def get_starting_promotions():
     now = datetime.now(pytz.UTC)
     promotions = Promotion.objects.filter(
         (
-            (
-                Q(last_notification_scheduled_at__isnull=True)
-                | Q(last_notification_scheduled_at__lt=F("start_date"))
-            )
-            & Q(start_date__lte=now)
+            Q(last_notification_scheduled_at__isnull=True)
+            | Q(last_notification_scheduled_at__lt=F("start_date"))
         )
+        & Q(start_date__lte=now)
     )
     return promotions
 
@@ -123,19 +121,17 @@ def get_ending_promotions():
     now = datetime.now(pytz.UTC)
     promotions = Promotion.objects.filter(
         (
-            (
-                Q(last_notification_scheduled_at__isnull=True)
-                | Q(last_notification_scheduled_at__lt=F("end_date"))
-            )
-            & Q(end_date__lte=now)
+            Q(last_notification_scheduled_at__isnull=True)
+            | Q(last_notification_scheduled_at__lt=F("end_date"))
         )
+        & Q(end_date__lte=now)
     )
     return promotions
 
 
 def fetch_promotion_variants_and_product_ids(promotions: "QuerySet[Promotion]"):
     """Fetch products that are included in the given promotions."""
-    promotion_id_to_variants: Dict[UUID, "QuerySet"] = defaultdict(
+    promotion_id_to_variants: dict[UUID, "QuerySet"] = defaultdict(
         lambda: ProductVariant.objects.none()
     )
     variants = ProductVariant.objects.none()

@@ -1,5 +1,6 @@
 import socket
-from typing import TYPE_CHECKING, Iterable, Optional, Union
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Optional, Union
 from urllib.parse import urljoin, urlparse
 
 from celery.utils.log import get_task_logger
@@ -74,7 +75,7 @@ def is_valid_ipv4(ip: str) -> bool:
     """Check whether the passed IP is a valid V4 IP address."""
     try:
         socket.inet_pton(socket.AF_INET, ip)
-    except socket.error:
+    except OSError:
         return False
     return True
 
@@ -83,7 +84,7 @@ def is_valid_ipv6(ip: str) -> bool:
     """Check whether the passed IP is a valid V6 IP address."""
     try:
         socket.inet_pton(socket.AF_INET6, ip)
-    except socket.error:
+    except OSError:
         return False
     return True
 

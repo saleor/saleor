@@ -2323,7 +2323,7 @@ class TranslationTypes(Union):
         if instance_type in TRANSLATIONS_TYPES_MAP:
             return TRANSLATIONS_TYPES_MAP[instance_type]
 
-        return super(TranslationTypes, cls).resolve_type(instance, info)
+        return super().resolve_type(instance, info)
 
 
 class TranslationBase(AbstractType):

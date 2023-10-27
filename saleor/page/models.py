@@ -57,12 +57,7 @@ class PageTranslation(SeoModelTranslation):
 
     def __repr__(self):
         class_ = type(self)
-        return "%s(pk=%r, title=%r, page_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.title,
-            self.page_id,
-        )
+        return f"{class_.__name__}(pk={self.pk!r}, title={self.title!r}, page_pk={self.page_id!r})"
 
     def __str__(self):
         return self.title if self.title else str(self.pk)

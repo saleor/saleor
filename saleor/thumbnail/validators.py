@@ -1,4 +1,5 @@
-from typing import Collection, Optional
+from collections.abc import Collection
+from typing import Optional
 
 from django.core.exceptions import ValidationError
 from PIL import Image, UnidentifiedImageError

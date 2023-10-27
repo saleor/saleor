@@ -68,10 +68,8 @@ PRODUCT_VARIANT_BULK_UPDATE_MUTATION = """
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_bulk_update.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_update.get_webhooks_for_event"
 )
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
@@ -137,10 +135,8 @@ def test_product_variant_bulk_update(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_bulk_update.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_update.get_webhooks_for_event"
 )
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"

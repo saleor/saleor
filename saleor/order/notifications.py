@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, Optional
 from urllib.parse import urlencode
 
 from django.forms import model_to_dict
@@ -34,7 +35,7 @@ def get_image_payload(instance: ProductMedia):
     }
 
 
-def get_default_images_payload(images: List[ProductMedia]):
+def get_default_images_payload(images: list[ProductMedia]):
     first_image_payload = None
     first_image = images[0] if images else None
     if first_image:

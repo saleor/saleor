@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import Dict
 
 from django_countries import countries
 
@@ -83,7 +82,7 @@ def get_payment_billing_fullname(payment_information: PaymentData) -> str:
     return f"{payment_billing.last_name} {payment_billing.first_name}"
 
 
-def shipping_to_stripe_dict(shipping: AddressData) -> Dict:
+def shipping_to_stripe_dict(shipping: AddressData) -> dict:
     return {
         "name": shipping.first_name + " " + shipping.last_name,
         "phone": shipping.phone,

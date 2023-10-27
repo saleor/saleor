@@ -8,7 +8,7 @@ import uuid
 from collections import defaultdict
 from decimal import Decimal
 from functools import lru_cache
-from typing import Any, Dict, Type, Union, cast
+from typing import Any, Union, cast
 from unittest.mock import patch
 
 import graphene
@@ -162,7 +162,7 @@ CATEGORY_IMAGES = {
 COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg", 3: "clothing.jpg"}
 
 
-@lru_cache()
+@lru_cache
 def get_sample_data():
     path = os.path.join(
         settings.PROJECT_ROOT, "saleor", "static", "populatedb_data.json"
@@ -338,7 +338,7 @@ def create_product_variant_channel_listings(product_variant_channel_listings_dat
 
 
 def assign_attributes_to_product_types(
-    association_model: Union[Type[AttributeProduct], Type[AttributeVariant]],
+    association_model: Union[type[AttributeProduct], type[AttributeVariant]],
     attributes: list,
 ):
     for value in attributes:
@@ -350,7 +350,7 @@ def assign_attributes_to_product_types(
 
 
 def assign_attributes_to_page_types(
-    association_model: Type[AttributePage],
+    association_model: type[AttributePage],
     attributes: list,
 ):
     for value in attributes:
@@ -793,7 +793,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
         billing_address = customer.default_billing_address
     else:
         billing_address = address
-    order_data: Dict[str, Any] = {
+    order_data: dict[str, Any] = {
         "billing_address": billing_address or address,
         "shipping_address": address,
         "user_email": get_email(address.first_name, address.last_name),

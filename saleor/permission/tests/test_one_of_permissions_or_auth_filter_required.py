@@ -1,5 +1,6 @@
+from unittest.mock import Mock
+
 import pytest
-from mock import Mock
 
 from ..auth_filters import AuthorizationFilters
 from ..enums import CheckoutPermissions, OrderPermissions

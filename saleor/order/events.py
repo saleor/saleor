@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from ..account import events as account_events
 from ..account.models import User
@@ -24,7 +24,7 @@ def _lines_per_quantity_to_line_object_list(order_lines):
     ]
 
 
-def _get_payment_data(amount: Optional[Decimal], payment: Payment) -> Dict:
+def _get_payment_data(amount: Optional[Decimal], payment: Payment) -> dict:
     return {
         "parameters": {
             "amount": amount,
@@ -262,7 +262,7 @@ def order_added_products_event(
     order: Order,
     user: Optional[User],
     app: Optional[App],
-    order_lines: List[OrderLine],
+    order_lines: list[OrderLine],
     quantity_diff: Optional[int] = None,
 ) -> OrderEvent:
     if quantity_diff:
@@ -284,7 +284,7 @@ def order_removed_products_event(
     order: Order,
     user: Optional[User],
     app: Optional[App],
-    order_lines: List[OrderLine],
+    order_lines: list[OrderLine],
     quantity_diff: Optional[int] = None,
 ) -> OrderEvent:
     if quantity_diff:
@@ -307,7 +307,7 @@ def draft_order_created_from_replace_event(
     original_order: Order,
     user: Optional[User],
     app: Optional[App],
-    lines: List[OrderLine],
+    lines: list[OrderLine],
 ):
     parameters = {
         "related_order_pk": original_order.pk,
@@ -576,7 +576,7 @@ def fulfillment_fulfilled_items_event(
     order: Order,
     user: Optional[User],
     app: Optional[App],
-    fulfillment_lines: List[FulfillmentLine],
+    fulfillment_lines: list[FulfillmentLine],
 ) -> OrderEvent:
     return OrderEvent.objects.create(
         order=order,
@@ -592,7 +592,7 @@ def fulfillment_awaits_approval_event(
     order: Order,
     user: Optional[User],
     app: Optional[App],
-    fulfillment_lines: List[FulfillmentLine],
+    fulfillment_lines: list[FulfillmentLine],
 ) -> OrderEvent:
     return OrderEvent.objects.create(
         order=order,
@@ -608,7 +608,7 @@ def order_returned_event(
     order: Order,
     user: Optional[User],
     app: Optional[App],
-    returned_lines: List[Tuple[int, OrderLine]],
+    returned_lines: list[tuple[int, OrderLine]],
 ):
     return OrderEvent.objects.create(
         order=order,
@@ -629,7 +629,7 @@ def fulfillment_replaced_event(
     order: Order,
     user: Optional[User],
     app: Optional[App],
-    replaced_lines: List[OrderLine],
+    replaced_lines: list[OrderLine],
 ):
     return OrderEvent.objects.create(
         order=order,
@@ -645,7 +645,7 @@ def fulfillment_refunded_event(
     order: Order,
     user: Optional[User],
     app: Optional[App],
-    refunded_lines: List[Tuple[int, OrderLine]],
+    refunded_lines: list[tuple[int, OrderLine]],
     amount: Decimal,
     shipping_costs_included: bool,
 ):
@@ -688,7 +688,7 @@ def fulfillment_tracking_updated_event(
 def order_note_added_event(
     *, order: Order, user: Optional[User], app: Optional[App], message: str
 ) -> OrderEvent:
-    kwargs: Dict[str, Union[Optional[App], Optional[User]]] = {"app": app}
+    kwargs: dict[str, Union[Optional[App], Optional[User]]] = {"app": app}
     if user is not None:
         if order.user is not None and order.user.pk == user.pk:
             account_events.customer_added_to_note_order_event(
@@ -761,7 +761,7 @@ def order_discount_event(
 
 
 def order_discounts_automatically_updated_event(
-    order: Order, changed_order_discounts: List[Tuple["OrderDiscount", "OrderDiscount"]]
+    order: Order, changed_order_discounts: list[tuple["OrderDiscount", "OrderDiscount"]]
 ):
     for previous_order_discount, current_order_discount in changed_order_discounts:
         order_discount_automatically_updated_event(
@@ -901,7 +901,7 @@ def order_line_product_removed_event(
     order: Order,
     user: Optional[User],
     app: Optional[App],
-    order_lines: List[Tuple[int, OrderLine]],
+    order_lines: list[tuple[int, OrderLine]],
 ):
     return OrderEvent.objects.create(
         type=OrderEvents.ORDER_LINE_PRODUCT_DELETED,
@@ -916,7 +916,7 @@ def order_line_variant_removed_event(
     order: Order,
     user: Optional[User],
     app: Optional[App],
-    order_lines: List[Tuple[int, OrderLine]],
+    order_lines: list[tuple[int, OrderLine]],
 ):
     return OrderEvent.objects.create(
         type=OrderEvents.ORDER_LINE_VARIANT_DELETED,

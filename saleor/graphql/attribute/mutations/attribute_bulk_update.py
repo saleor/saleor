@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Tuple, Union
+from typing import Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -125,8 +125,8 @@ class AttributeBulkUpdate(BaseMutation):
     def clean_attributes(
         cls,
         info: ResolveInfo,
-        attributes_data: List[AttributeBulkUpdateInput],
-        index_error_map: dict[int, List[AttributeBulkUpdateError]],
+        attributes_data: list[AttributeBulkUpdateInput],
+        index_error_map: dict[int, list[AttributeBulkUpdateError]],
     ):
         cleaned_inputs_map: dict = {}
 
@@ -235,7 +235,7 @@ class AttributeBulkUpdate(BaseMutation):
 
     @classmethod
     def _get_attrs_existing_and_duplicated_external_refs(
-        cls, attributes_data: List[AttributeBulkUpdateInput]
+        cls, attributes_data: list[AttributeBulkUpdateInput]
     ):
         attr_input_external_refs = [
             attribute_data.fields.external_reference
@@ -252,7 +252,7 @@ class AttributeBulkUpdate(BaseMutation):
         return attrs_existing_external_refs, duplicated_external_ref
 
     @classmethod
-    def _get_attrs_existing_slugs(cls, attributes_data: List[AttributeBulkUpdateInput]):
+    def _get_attrs_existing_slugs(cls, attributes_data: list[AttributeBulkUpdateInput]):
         return set(
             models.Attribute.objects.filter(
                 slug__in=[
@@ -265,7 +265,7 @@ class AttributeBulkUpdate(BaseMutation):
 
     @classmethod
     def _get_values_existing_and_duplicated_external_refs(
-        cls, attributes_data: List[AttributeBulkUpdateInput]
+        cls, attributes_data: list[AttributeBulkUpdateInput]
     ):
         values_input_external_refs = [
             value.external_reference
@@ -295,7 +295,7 @@ class AttributeBulkUpdate(BaseMutation):
         values_existing_external_refs,
         duplicated_values_external_ref,
         attributes,
-        index_error_map: dict[int, List[AttributeBulkUpdateError]],
+        index_error_map: dict[int, list[AttributeBulkUpdateError]],
     ):
         remove_values = attribute_data.fields.pop("remove_values", [])
         add_values = attribute_data.fields.pop("add_values", [])
@@ -314,7 +314,7 @@ class AttributeBulkUpdate(BaseMutation):
         attribute_data["instance"] = attr
 
         # check permissions based on attribute type
-        permissions: Union[Tuple[ProductTypePermissions], Tuple[PageTypePermissions]]
+        permissions: Union[tuple[ProductTypePermissions], tuple[PageTypePermissions]]
         if attr.type == AttributeTypeEnum.PRODUCT_TYPE.value:
             permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         else:
@@ -402,9 +402,9 @@ class AttributeBulkUpdate(BaseMutation):
         info: ResolveInfo,
         cleaned_inputs_map: dict[int, dict],
         error_policy: str,
-        index_error_map: dict[int, List[AttributeBulkUpdateError]],
-    ) -> List[dict]:
-        instances_data_and_errors_list: List[dict] = []
+        index_error_map: dict[int, list[AttributeBulkUpdateError]],
+    ) -> list[dict]:
+        instances_data_and_errors_list: list[dict] = []
 
         for index, cleaned_input in cleaned_inputs_map.items():
             if not cleaned_input:
@@ -489,7 +489,7 @@ class AttributeBulkUpdate(BaseMutation):
 
     @classmethod
     def get_attributes(
-        cls, attributes_data: List[AttributeBulkUpdateInput]
+        cls, attributes_data: list[AttributeBulkUpdateInput]
     ) -> list[models.Attribute]:
         lookup = Q()
 

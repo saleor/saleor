@@ -1513,10 +1513,8 @@ def test_product_bulk_create_with_variants_and_invalid_stock(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_bulk_create.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_bulk_create.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_product_bulk_create_with_variants_and_channel_listings(

@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from prices import TaxedMoney
 
@@ -106,7 +107,7 @@ def get_tax_calculation_strategy_for_order(order: "Order"):
 
 def _get_tax_configuration_for_checkout(
     checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
-) -> Tuple["TaxConfiguration", Optional["TaxConfigurationPerCountry"]]:
+) -> tuple["TaxConfiguration", Optional["TaxConfigurationPerCountry"]]:
     tax_configuration = checkout_info.tax_configuration
     country_code = get_active_country(
         checkout_info.channel,

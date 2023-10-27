@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Optional
 
 from ...attribute import AttributeType
 
@@ -33,8 +34,8 @@ def generate_and_set_variant_name(
 
 
 def get_variant_selection_attributes(
-    attributes: Iterable[Tuple["Attribute", bool]]
-) -> List[Tuple["Attribute", bool]]:
+    attributes: Iterable[tuple["Attribute", bool]]
+) -> list[tuple["Attribute", bool]]:
     """Return attributes that can be used in variant selection.
 
     Attribute must be product attribute and attribute input type must be

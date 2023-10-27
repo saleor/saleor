@@ -1,5 +1,3 @@
-from typing import List
-
 import graphene
 
 from ...attribute import models as attribute_models
@@ -92,7 +90,7 @@ class PageType(ModelObjectType[models.PageType]):
         )
 
     @staticmethod
-    def __resolve_references(roots: List["PageType"], _info: ResolveInfo):
+    def __resolve_references(roots: list["PageType"], _info: ResolveInfo):
         return resolve_federation_references(PageType, roots, models.PageType.objects)
 
 

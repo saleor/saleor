@@ -1,8 +1,9 @@
 """Checkout-related ORM models."""
+from collections.abc import Iterable
 from datetime import date
 from decimal import Decimal
 from operator import attrgetter
-from typing import TYPE_CHECKING, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 from uuid import uuid4
 
 from django.conf import settings
@@ -310,7 +311,7 @@ class CheckoutLine(ModelWithMetadata):
         return not self == other  # pragma: no cover
 
     def __repr__(self):
-        return "CheckoutLine(variant=%r, quantity=%r)" % (self.variant, self.quantity)
+        return f"CheckoutLine(variant={self.variant!r}, quantity={self.quantity!r})"
 
     def __getstate__(self):
         return self.variant, self.quantity

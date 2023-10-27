@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 import graphene
 from django.conf import settings
@@ -198,7 +198,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def clean_checkout_lines(
         cls, info: ResolveInfo, lines, country, channel
-    ) -> Tuple[List[product_models.ProductVariant], List["CheckoutLineData"]]:
+    ) -> tuple[list[product_models.ProductVariant], list["CheckoutLineData"]]:
         app = get_app_promise(info.context).get()
         site = get_site_promise(info.context).get()
         check_permissions_for_custom_prices(app, lines)

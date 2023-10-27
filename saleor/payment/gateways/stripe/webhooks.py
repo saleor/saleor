@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import Optional
 
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
@@ -281,7 +281,7 @@ def update_payment_method_details_from_intent(
     payment: Payment, payment_intent: StripeObject
 ):
     if payment_method_info := get_payment_method_details(payment_intent):
-        changed_fields: List[str] = []
+        changed_fields: list[str] = []
         update_payment_method_details(payment, payment_method_info, changed_fields)
         if changed_fields:
             payment.save(update_fields=changed_fields)

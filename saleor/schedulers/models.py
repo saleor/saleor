@@ -1,5 +1,4 @@
 import importlib
-from typing import Dict
 
 from celery.schedules import BaseSchedule
 from django.core.exceptions import SuspiciousOperation, ValidationError
@@ -31,7 +30,7 @@ class CustomSchedule(models.Model):  # type: ignore[django-manager-missing] # pr
 
     no_changes = False
 
-    CACHED_SCHEDULES: Dict[str, BaseSchedule] = {}
+    CACHED_SCHEDULES: dict[str, BaseSchedule] = {}
     schedule_import_path = models.CharField(
         max_length=255,
         help_text="The python import path where the Celery scheduler is defined at",

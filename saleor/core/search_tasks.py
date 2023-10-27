@@ -1,5 +1,3 @@
-from typing import List
-
 from celery.utils.log import get_task_logger
 
 from ..account.models import User
@@ -110,7 +108,7 @@ def set_product_search_document_values(updated_count: int = 0) -> None:
     set_product_search_document_values.delay(updated_count)
 
 
-def set_search_document_values(instances: List, prepare_search_document_func):
+def set_search_document_values(instances: list, prepare_search_document_func):
     if not instances:
         return 0
     Model = instances[0]._meta.model

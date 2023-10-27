@@ -1,4 +1,4 @@
-from typing import Iterable, List
+from collections.abc import Iterable
 
 TRANSACTION_REGISTRATION = "TR"
 TRANSACTION_CANCELLATION = "TC"
@@ -10,7 +10,7 @@ def add_action_to_code(action: str, error_code: str) -> str:
     return f"{action}#{error_code}"
 
 
-def get_error_messages_from_codes(action: str, error_codes: Iterable[str]) -> List[str]:
+def get_error_messages_from_codes(action: str, error_codes: Iterable[str]) -> list[str]:
     return [add_action_to_code(action, code) for code in error_codes]
 
 

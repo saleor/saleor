@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Optional
+from typing import Optional
 
 import graphene
 from django.conf import settings
@@ -169,7 +169,7 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         return description if description is not None else {}
 
     @staticmethod
-    def __resolve_references(roots: List["Collection"], info: ResolveInfo):
+    def __resolve_references(roots: list["Collection"], info: ResolveInfo):
         from ..resolvers import resolve_collections
 
         channels = defaultdict(set)

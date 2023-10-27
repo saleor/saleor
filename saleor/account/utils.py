@@ -96,9 +96,9 @@ def create_superuser(credentials):
     if created:
         user.set_password(credentials["password"])
         user.save()
-        msg = "Superuser - %(email)s/%(password)s" % credentials
+        msg = f"Superuser - {credentials['email']}/{credentials['password']}"
     else:
-        msg = "Superuser already exists - %(email)s" % credentials
+        msg = f"Superuser already exists - {credentials['email']}"
     return msg
 
 

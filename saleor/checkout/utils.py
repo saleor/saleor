@@ -1,6 +1,7 @@
 """Checkout-related utility functions."""
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
+from typing import TYPE_CHECKING, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -60,7 +61,7 @@ def invalidate_checkout_prices(
     *,
     recalculate_discount: bool = True,
     save: bool,
-) -> List[str]:
+) -> list[str]:
     """Mark checkout as ready for prices recalculation."""
     checkout = checkout_info.checkout
 
@@ -90,9 +91,9 @@ def check_variant_in_stock(
     quantity: int = 1,
     replace: bool = False,
     check_quantity: bool = True,
-    checkout_lines: Optional[List["CheckoutLine"]] = None,
+    checkout_lines: Optional[list["CheckoutLine"]] = None,
     check_reservations: bool = False,
-) -> Tuple[int, Optional[CheckoutLine]]:
+) -> tuple[int, Optional[CheckoutLine]]:
     """Check if a given variant is in stock and return the new quantity + line."""
     line = checkout.lines.filter(variant=variant).first()
     line_quantity = 0 if line is None else line.quantity
@@ -101,7 +102,7 @@ def check_variant_in_stock(
 
     if new_quantity < 0:
         raise ValueError(
-            "%r is not a valid quantity (results in %r)" % (quantity, new_quantity)
+            f"{quantity!r} is not a valid quantity (results in {new_quantity!r})"
         )
 
     if new_quantity > 0 and check_quantity:
@@ -207,9 +208,9 @@ def add_variants_to_checkout(
     lines_by_id = {str(line.pk): line for line in checkout_lines}
     variants_map = {str(variant.pk): variant for variant in variants}
 
-    to_create: List[CheckoutLine] = []
-    to_update: List[CheckoutLine] = []
-    to_delete: List[CheckoutLine] = []
+    to_create: list[CheckoutLine] = []
+    to_update: list[CheckoutLine] = []
+    to_delete: list[CheckoutLine] = []
 
     for line_data in checkout_lines_data:
         line = lines_by_id.get(line_data.line_id) if line_data.line_id else None
@@ -326,7 +327,7 @@ def _check_new_checkout_address(checkout, address, address_type):
     return has_address_changed, remove_old_address
 
 
-def change_billing_address_in_checkout(checkout, address) -> List[str]:
+def change_billing_address_in_checkout(checkout, address) -> list[str]:
     """Save billing address in checkout if changed.
 
     Remove previously saved address if not connected to any user.
@@ -436,7 +437,7 @@ def get_discounted_lines(
 def get_prices_of_discounted_specific_product(
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
-) -> List[Money]:
+) -> list[Money]:
     """Get prices of variants belonging to the discounted specific products.
 
     Specific products are products, collections and categories.
@@ -784,7 +785,7 @@ def get_valid_internal_shipping_methods_for_checkout(
     subtotal: "Money",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     country_code: Optional[str] = None,
-) -> List[ShippingMethodData]:
+) -> list[ShippingMethodData]:
     if not is_shipping_required(lines):
         return []
     if not checkout_info.shipping_address:
@@ -802,7 +803,7 @@ def get_valid_internal_shipping_methods_for_checkout(
         listing.shipping_method_id: listing for listing in shipping_channel_listings
     }
 
-    internal_methods: List[ShippingMethodData] = []
+    internal_methods: list[ShippingMethodData] = []
     for method in shipping_methods:
         listing = channel_listings_map.get(method.pk)
         if listing:

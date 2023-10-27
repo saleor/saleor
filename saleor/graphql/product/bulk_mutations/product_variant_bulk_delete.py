@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Iterable
 
 import graphene
 from django.core.exceptions import ValidationError

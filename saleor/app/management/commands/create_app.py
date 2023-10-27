@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
@@ -41,7 +41,7 @@ class Command(BaseCommand):
             "argument is provided.",
         )
 
-    def send_app_data(self, target_url, data: Dict[str, Any]):
+    def send_app_data(self, target_url, data: dict[str, Any]):
         domain = get_domain()
         headers = {
             # X- headers will be deprecated in Saleor 4.0, proper headers are without X-

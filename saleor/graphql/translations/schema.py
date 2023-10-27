@@ -61,7 +61,7 @@ class TranslatableItem(graphene.Union):
         elif instance_type in TYPES_TRANSLATIONS_MAP:
             return TYPES_TRANSLATIONS_MAP[instance_type]
 
-        return super(TranslatableItem, cls).resolve_type(instance, info)
+        return super().resolve_type(instance, info)
 
 
 class TranslatableItemConnection(CountableConnection):

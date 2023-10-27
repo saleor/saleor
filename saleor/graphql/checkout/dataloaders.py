@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Iterable, List, Tuple
+from collections.abc import Iterable
 
 from django.db.models import F
 from promise import Promise
@@ -70,7 +70,7 @@ class CheckoutByTokenLoader(DataLoader[str, Checkout]):
         return [checkouts.get(token) for token in keys]
 
 
-class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineInfo]]):
+class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineInfo]]):
     context_key = "checkoutlinesinfo_by_checkout"
 
     def batch_load(self, keys):
@@ -222,7 +222,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
         return Promise.all([checkouts, checkout_lines]).then(with_checkout_lines)
 
 
-class CheckoutByUserLoader(DataLoader[int, List[Checkout]]):
+class CheckoutByUserLoader(DataLoader[int, list[Checkout]]):
     context_key = "checkout_by_user"
 
     def batch_load(self, keys):
@@ -235,10 +235,10 @@ class CheckoutByUserLoader(DataLoader[int, List[Checkout]]):
         return [checkout_by_user_map[user_id] for user_id in keys]
 
 
-class CheckoutByUserAndChannelLoader(DataLoader[Tuple[int, str], List[Checkout]]):
+class CheckoutByUserAndChannelLoader(DataLoader[tuple[int, str], list[Checkout]]):
     context_key = "checkout_by_user_and_channel"
 
-    def batch_load(self, keys: Iterable[Tuple[int, str]]):
+    def batch_load(self, keys: Iterable[tuple[int, str]]):
         user_ids = [key[0] for key in keys]
         channel_slugs = [key[1] for key in keys]
         checkouts = (
@@ -274,8 +274,8 @@ class VariantPromotionRuleInfoByCheckoutLineIdLoader(DataLoader):
                     def with_channel_listing_promotion_rules(
                         variant_listing_promotion_rules,
                     ):
-                        rule_ids: List[int] = []
-                        rule_ids_language_codes: List[Tuple[int, str]] = []
+                        rule_ids: list[int] = []
+                        rule_ids_language_codes: list[tuple[int, str]] = []
                         for listing_promotion_rules, language_code in zip(
                             variant_listing_promotion_rules, language_codes
                         ):
@@ -589,7 +589,7 @@ class CheckoutLineByIdLoader(DataLoader[str, CheckoutLine]):
         return [checkout_lines.get(line_id) for line_id in keys]
 
 
-class CheckoutLinesByCheckoutTokenLoader(DataLoader[str, List[CheckoutLine]]):
+class CheckoutLinesByCheckoutTokenLoader(DataLoader[str, list[CheckoutLine]]):
     context_key = "checkoutlines_by_checkout"
 
     def batch_load(self, keys):
@@ -602,7 +602,7 @@ class CheckoutLinesByCheckoutTokenLoader(DataLoader[str, List[CheckoutLine]]):
         return [line_map.get(checkout_id, []) for checkout_id in keys]
 
 
-class TransactionItemsByCheckoutIDLoader(DataLoader[str, List[TransactionItem]]):
+class TransactionItemsByCheckoutIDLoader(DataLoader[str, list[TransactionItem]]):
     context_key = "transaction_items_by_checkout_id"
 
     def batch_load(self, keys):

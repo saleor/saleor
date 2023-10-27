@@ -1,8 +1,9 @@
 import logging
 from collections import defaultdict
+from collections.abc import Iterable
 from copy import deepcopy
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, TypedDict
+from typing import TYPE_CHECKING, Optional, TypedDict
 from uuid import UUID
 
 from django.contrib.sites.models import Site
@@ -264,19 +265,19 @@ def order_returned(
     order: "Order",
     user: Optional[User],
     app: Optional["App"],
-    returned_lines: List[Tuple[QuantityType, OrderLine]],
+    returned_lines: list[tuple[QuantityType, OrderLine]],
 ):
     order_returned_event(order=order, user=user, app=app, returned_lines=returned_lines)
     update_order_status(order)
 
 
 def order_fulfilled(
-    fulfillments: List[Fulfillment],
+    fulfillments: list[Fulfillment],
     user: Optional[User],
     app: Optional["App"],
-    fulfillment_lines: List[FulfillmentLine],
+    fulfillment_lines: list[FulfillmentLine],
     manager: "PluginsManager",
-    gift_card_lines_info: List[GiftCardLineData],
+    gift_card_lines_info: list[GiftCardLineData],
     site_settings: "SiteSettings",
     notify_customer=True,
 ):
@@ -315,12 +316,12 @@ def order_fulfilled(
 
 
 def order_awaits_fulfillment_approval(
-    fulfillments: List[Fulfillment],
+    fulfillments: list[Fulfillment],
     user: Optional[User],
     app: Optional["App"],
-    fulfillment_lines: List[FulfillmentLine],
+    fulfillment_lines: list[FulfillmentLine],
     manager: "PluginsManager",
-    _gift_card_lines: List["GiftCardLineData"],
+    _gift_card_lines: list["GiftCardLineData"],
     _site_settings: "SiteSettings",
     _notify_customer=True,
 ):
@@ -776,13 +777,13 @@ def automatically_fulfill_digital_lines(
 def _create_fulfillment_lines(
     fulfillment: Fulfillment,
     warehouse_pk: UUID,
-    lines_data: List[OrderFulfillmentLineInfo],
+    lines_data: list[OrderFulfillmentLineInfo],
     channel_slug: str,
-    gift_card_lines_info: List[GiftCardLineData],
+    gift_card_lines_info: list[GiftCardLineData],
     manager: "PluginsManager",
     decrease_stock: bool = True,
     allow_stock_to_be_exceeded: bool = False,
-) -> List[FulfillmentLine]:
+) -> list[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
 
     Args:
@@ -821,7 +822,7 @@ def _create_fulfillment_lines(
         .select_related("product_variant")
     )
 
-    variant_to_stock: Dict[int, List[Stock]] = defaultdict(list)
+    variant_to_stock: dict[int, list[Stock]] = defaultdict(list)
     for stock in stocks:
         variant_to_stock[stock.product_variant_id].append(stock)
 
@@ -894,14 +895,14 @@ def create_fulfillments(
     user: Optional[User],
     app: Optional["App"],
     order: "Order",
-    fulfillment_lines_for_warehouses: Dict[UUID, List[OrderFulfillmentLineInfo]],
+    fulfillment_lines_for_warehouses: dict[UUID, list[OrderFulfillmentLineInfo]],
     manager: "PluginsManager",
     site_settings: "SiteSettings",
     notify_customer: bool = True,
     approved: bool = True,
     allow_stock_to_be_exceeded: bool = False,
     tracking_number: str = "",
-) -> List[Fulfillment]:
+) -> list[Fulfillment]:
     """Fulfill order.
 
     Function create fulfillments with lines.
@@ -941,9 +942,9 @@ def create_fulfillments(
         InsufficientStock: If system hasn't containt enough item in stock for any line.
 
     """
-    fulfillments: List[Fulfillment] = []
-    fulfillment_lines: List[FulfillmentLine] = []
-    gift_card_lines_info: List[GiftCardLineData] = []
+    fulfillments: list[Fulfillment] = []
+    fulfillment_lines: list[FulfillmentLine] = []
+    gift_card_lines_info: list[GiftCardLineData] = []
     status = (
         FulfillmentStatus.FULFILLED
         if approved
@@ -992,7 +993,7 @@ def create_fulfillments(
 
 
 def _get_fulfillment_line_if_exists(
-    fulfillment_lines: List[FulfillmentLine], order_line_id, stock_id=None
+    fulfillment_lines: list[FulfillmentLine], order_line_id, stock_id=None
 ):
     for line in fulfillment_lines:
         if line.order_line_id == order_line_id and line.stock_id == stock_id:
@@ -1002,10 +1003,10 @@ def _get_fulfillment_line_if_exists(
 
 def _get_fulfillment_line(
     target_fulfillment: Fulfillment,
-    lines_in_target_fulfillment: List[FulfillmentLine],
+    lines_in_target_fulfillment: list[FulfillmentLine],
     order_line_id: OrderLineIDType,
     stock_id: Optional[int] = None,
-) -> Tuple[FulfillmentLine, bool]:
+) -> tuple[FulfillmentLine, bool]:
     """Get fulfillment line if extists or create new fulfillment line object."""
     # Check if line for order_line_id and stock_id does not exist in DB.
     moved_line = _get_fulfillment_line_if_exists(
@@ -1028,15 +1029,15 @@ def _get_fulfillment_line(
 
 
 def _move_order_lines_to_target_fulfillment(
-    order_lines_to_move: List[OrderLineInfo],
+    order_lines_to_move: list[OrderLineInfo],
     target_fulfillment: Fulfillment,
     manager: "PluginsManager",
-) -> List[FulfillmentLine]:
+) -> list[FulfillmentLine]:
     """Move order lines with given quantity to the target fulfillment."""
-    fulfillment_lines_to_create: List[FulfillmentLine] = []
-    order_lines_to_update: List[OrderLine] = []
+    fulfillment_lines_to_create: list[FulfillmentLine] = []
+    order_lines_to_update: list[OrderLine] = []
 
-    lines_to_dellocate: List[OrderLineInfo] = []
+    lines_to_dellocate: list[OrderLineInfo] = []
     # transaction ensures consistent data in order lines and fulfillment lines
     with traced_atomic_transaction():
         for line_data in order_lines_to_move:
@@ -1084,14 +1085,14 @@ def _move_order_lines_to_target_fulfillment(
 
 
 def _move_fulfillment_lines_to_target_fulfillment(
-    fulfillment_lines_to_move: List[FulfillmentLineData],
-    lines_in_target_fulfillment: List[FulfillmentLine],
+    fulfillment_lines_to_move: list[FulfillmentLineData],
+    lines_in_target_fulfillment: list[FulfillmentLine],
     target_fulfillment: Fulfillment,
 ):
     """Move fulfillment lines with given quantity to the target fulfillment."""
-    fulfillment_lines_to_create: List[FulfillmentLine] = []
-    fulfillment_lines_to_update: List[FulfillmentLine] = []
-    empty_fulfillment_lines_to_delete: List[FulfillmentLine] = []
+    fulfillment_lines_to_create: list[FulfillmentLine] = []
+    fulfillment_lines_to_update: list[FulfillmentLine] = []
+    empty_fulfillment_lines_to_delete: list[FulfillmentLine] = []
 
     # transaction ensures consistency in fulfillment lines data
     with traced_atomic_transaction():
@@ -1155,8 +1156,8 @@ def create_refund_fulfillment(
     app: Optional["App"],
     order,
     payment,
-    order_lines_to_refund: List[OrderLineInfo],
-    fulfillment_lines_to_refund: List[FulfillmentLineData],
+    order_lines_to_refund: list[OrderLineInfo],
+    fulfillment_lines_to_refund: list[FulfillmentLineData],
     manager: "PluginsManager",
     amount=None,
     refund_shipping_costs=False,
@@ -1249,13 +1250,13 @@ def create_replace_order(
     user: Optional[User],
     app: Optional["App"],
     original_order: "Order",
-    order_lines_to_replace: List[OrderLineInfo],
-    fulfillment_lines_to_replace: List[FulfillmentLineData],
+    order_lines_to_replace: list[OrderLineInfo],
+    fulfillment_lines_to_replace: list[FulfillmentLineData],
 ) -> "Order":
     """Create draft order with lines to replace."""
 
     replace_order = _populate_replace_order_fields(original_order)
-    order_line_to_create: Dict[OrderLineIDType, OrderLine] = dict()
+    order_line_to_create: dict[OrderLineIDType, OrderLine] = dict()
     # transaction is needed to ensure data consistency for order lines
     with traced_atomic_transaction():
         # iterate over lines without fulfillment to get the items for replace.
@@ -1312,8 +1313,8 @@ def create_replace_order(
 
 
 def _move_lines_to_return_fulfillment(
-    order_lines: List[OrderLineInfo],
-    fulfillment_lines: List[FulfillmentLineData],
+    order_lines: list[OrderLineInfo],
+    fulfillment_lines: list[FulfillmentLineData],
     fulfillment_status: str,
     order: "Order",
     total_refund_amount: Optional[Decimal],
@@ -1371,8 +1372,8 @@ def _move_lines_to_return_fulfillment(
 
 
 def _move_lines_to_replace_fulfillment(
-    order_lines_to_replace: List[OrderLineInfo],
-    fulfillment_lines_to_replace: List[FulfillmentLineData],
+    order_lines_to_replace: list[OrderLineInfo],
+    fulfillment_lines_to_replace: list[FulfillmentLineData],
     order: "Order",
     manager: "PluginsManager",
 ) -> Fulfillment:
@@ -1396,8 +1397,8 @@ def create_return_fulfillment(
     user: Optional[User],
     app: Optional["App"],
     order: "Order",
-    order_lines: List[OrderLineInfo],
-    fulfillment_lines: List[FulfillmentLineData],
+    order_lines: list[OrderLineInfo],
+    fulfillment_lines: list[FulfillmentLineData],
     total_refund_amount: Optional[Decimal],
     shipping_refund_amount: Optional[Decimal],
     manager: "PluginsManager",
@@ -1415,7 +1416,7 @@ def create_return_fulfillment(
             shipping_refund_amount=shipping_refund_amount,
             manager=manager,
         )
-        returned_lines: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]] = dict()
+        returned_lines: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = dict()
         order_lines_with_fulfillment = OrderLine.objects.in_bulk(
             [line_data.line.order_line_id for line_data in fulfillment_lines]
         )
@@ -1450,10 +1451,10 @@ def process_replace(
     user: Optional[User],
     app: Optional["App"],
     order: "Order",
-    order_lines: List[OrderLineInfo],
-    fulfillment_lines: List[FulfillmentLineData],
+    order_lines: list[OrderLineInfo],
+    fulfillment_lines: list[FulfillmentLineData],
     manager: "PluginsManager",
-) -> Tuple[Fulfillment, Optional["Order"]]:
+) -> tuple[Fulfillment, Optional["Order"]]:
     """Create replace fulfillment and new draft order.
 
     Move all requested lines to fulfillment with status replaced. Based on original
@@ -1495,13 +1496,13 @@ def create_fulfillments_for_returned_products(
     app: Optional["App"],
     order: "Order",
     payment: Optional[Payment],
-    order_lines: List[OrderLineInfo],
-    fulfillment_lines: List[FulfillmentLineData],
+    order_lines: list[OrderLineInfo],
+    fulfillment_lines: list[FulfillmentLineData],
     manager: "PluginsManager",
     refund: bool = False,
     amount: Optional[Decimal] = None,
     refund_shipping_costs=False,
-) -> Tuple[Fulfillment, Optional[Fulfillment], Optional[Order]]:
+) -> tuple[Fulfillment, Optional[Fulfillment], Optional[Order]]:
     """Process the request for replacing or returning the products.
 
     Process the refund when the refund is set to True. The amount of refund will be
@@ -1581,9 +1582,9 @@ def create_fulfillments_for_returned_products(
 
 
 def _calculate_refund_amount(
-    return_order_lines: List[OrderLineInfo],
-    return_fulfillment_lines: List[FulfillmentLineData],
-    lines_to_refund: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]],
+    return_order_lines: list[OrderLineInfo],
+    return_fulfillment_lines: list[FulfillmentLineData],
+    lines_to_refund: dict[OrderLineIDType, tuple[QuantityType, OrderLine]],
 ) -> Decimal:
     refund_amount = Decimal(0)
     for line_data in return_order_lines:
@@ -1619,13 +1620,13 @@ def _process_refund(
     app: Optional["App"],
     order: "Order",
     payment: Optional[Payment],
-    order_lines_to_refund: List[OrderLineInfo],
-    fulfillment_lines_to_refund: List[FulfillmentLineData],
+    order_lines_to_refund: list[OrderLineInfo],
+    fulfillment_lines_to_refund: list[FulfillmentLineData],
     amount: Optional[Decimal],
     refund_shipping_costs: bool,
     manager: "PluginsManager",
 ):
-    lines_to_refund: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]] = dict()
+    lines_to_refund: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = dict()
     refund_data = RefundData(
         order_lines_to_refund=order_lines_to_refund,
         fulfillment_lines_to_refund=fulfillment_lines_to_refund,

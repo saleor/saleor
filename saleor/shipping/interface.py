@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 import graphene
 import graphql
@@ -28,8 +28,8 @@ class ShippingMethodData:
     maximum_order_weight: Optional[Weight] = None
     maximum_delivery_days: Optional[int] = None
     minimum_delivery_days: Optional[int] = None
-    metadata: Dict[str, str] = field(default_factory=dict)
-    private_metadata: Dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, str] = field(default_factory=dict)
+    private_metadata: dict[str, str] = field(default_factory=dict)
     tax_class: Optional["TaxClass"] = None
     active: bool = True
     message: str = ""

@@ -1,5 +1,6 @@
+from unittest import mock
+
 import graphene
-import mock
 
 from ....core.models import EventDelivery
 from ....payment.interface import ListStoredPaymentMethodsRequestData

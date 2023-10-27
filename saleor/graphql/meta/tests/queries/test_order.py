@@ -1,5 +1,3 @@
-from typing import List
-
 import graphene
 
 from .....order.models import Order
@@ -757,7 +755,7 @@ query transactionItemMeta($id: ID!){
 
 
 def execute_query_public_metadata_for_transaction_item(
-    client: ApiClient, order: Order, permissions: List[Permission] = None
+    client: ApiClient, order: Order, permissions: list[Permission] = None
 ):
     return execute_query(
         QUERY_TRANSACTION_ITEM_PUBLIC_META, client, order, "Order", permissions
@@ -869,7 +867,7 @@ query transactionItemMeta($id: ID!){
 
 
 def execute_query_private_metadata_for_transaction_item(
-    client: ApiClient, order: Order, permissions: List[Permission] = None
+    client: ApiClient, order: Order, permissions: list[Permission] = None
 ):
     return execute_query(
         QUERY_TRANSACTION_ITEM_PRIVATE_META, client, order, "Order", permissions

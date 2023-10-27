@@ -1,5 +1,5 @@
 import datetime
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from django.conf import settings
 from django.http import HttpRequest
@@ -14,9 +14,9 @@ if TYPE_CHECKING:
 
 class SaleorContext(HttpRequest):
     _cached_user: Optional[User]
-    decoded_auth_token: Optional[Dict[str, Any]]
+    decoded_auth_token: Optional[dict[str, Any]]
     allow_replica: bool = True
-    dataloaders: Dict[str, "DataLoader"]
+    dataloaders: dict[str, "DataLoader"]
     app: Optional[App]
     user: Optional[User]  # type: ignore[assignment]
     requestor: Union[App, User, None]

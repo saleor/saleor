@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, Optional, Union, cast, overload
+from typing import Any, Optional, Union, cast, overload
 
 import graphene
 from aniso8601 import parse_datetime
@@ -260,13 +260,13 @@ def create_payment(
     email: str,
     customer_ip_address: Optional[str] = None,
     payment_token: Optional[str] = None,
-    extra_data: Optional[Dict] = None,
+    extra_data: Optional[dict] = None,
     checkout: Optional[Checkout] = None,
     order: Optional[Order] = None,
     return_url: Optional[str] = None,
     external_reference: Optional[str] = None,
     store_payment_method: str = StorePaymentMethod.NONE,
-    metadata: Optional[Dict[str, str]] = None,
+    metadata: Optional[dict[str, str]] = None,
 ) -> Payment:
     """Create a payment instance.
 
@@ -454,9 +454,7 @@ def validate_gateway_response(response: GatewayResponse):
 
     if response.kind not in ALLOWED_GATEWAY_KINDS:
         raise GatewayError(
-            "Gateway response kind must be one of {}".format(
-                sorted(ALLOWED_GATEWAY_KINDS)
-            )
+            f"Gateway response kind must be one of {sorted(ALLOWED_GATEWAY_KINDS)}"
         )
 
     try:
@@ -1039,7 +1037,7 @@ def _create_event_from_response(
 
 
 def _get_parsed_transaction_action_data(
-    transaction_webhook_response: Optional[Dict[str, Any]],
+    transaction_webhook_response: Optional[dict[str, Any]],
     event_type: str,
     event_is_optional: bool = True,
     psp_reference_is_optional: bool = False,
@@ -1079,7 +1077,7 @@ def create_transaction_event_for_transaction_session(
     request_event: TransactionEvent,
     app: App,
     manager: "PluginsManager",
-    transaction_webhook_response: Optional[Dict[str, Any]] = None,
+    transaction_webhook_response: Optional[dict[str, Any]] = None,
 ):
     request_event_type = "session-request"
 
@@ -1197,7 +1195,7 @@ def create_transaction_event_for_transaction_session(
 def create_transaction_event_from_request_and_webhook_response(
     request_event: TransactionEvent,
     app: App,
-    transaction_webhook_response: Optional[Dict[str, Any]] = None,
+    transaction_webhook_response: Optional[dict[str, Any]] = None,
 ):
     transaction_request_response, error_msg = _get_parsed_transaction_action_data(
         transaction_webhook_response=transaction_webhook_response,
@@ -1293,7 +1291,7 @@ def _prepare_manual_event(
 def prepare_manual_event(
     events_to_create: list[TransactionEvent],
     amount_field: str,
-    money_data: Dict[str, Decimal],
+    money_data: dict[str, Decimal],
     event_type: str,
     transaction: TransactionItem,
     user: Optional["User"],
@@ -1318,7 +1316,7 @@ def prepare_manual_event(
 
 def create_manual_adjustment_events(
     transaction: TransactionItem,
-    money_data: Dict[str, Decimal],
+    money_data: dict[str, Decimal],
     user: Optional["User"],
     app: Optional["App"],
 ) -> list[TransactionEvent]:

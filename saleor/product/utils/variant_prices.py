@@ -1,6 +1,6 @@
 from collections import defaultdict
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 from uuid import UUID
 
 from django.db.models import Exists, OuterRef
@@ -23,7 +23,7 @@ from ..models import (
 
 
 def update_discounted_prices_for_promotion(
-    products: ProductsQueryset, rules_info: Optional[List[PromotionRuleInfo]] = None
+    products: ProductsQueryset, rules_info: Optional[list[PromotionRuleInfo]] = None
 ):
     """Update Products and ProductVariants discounted prices.
 
@@ -99,12 +99,12 @@ def update_discounted_prices_for_promotion(
 
 
 def _update_or_create_listings(
-    changed_products_listings_to_update: List[ProductChannelListing],
-    changed_variants_listings_to_update: List[ProductVariantChannelListing],
-    changed_variant_listing_promotion_rule_to_create: List[
+    changed_products_listings_to_update: list[ProductChannelListing],
+    changed_variants_listings_to_update: list[ProductVariantChannelListing],
+    changed_variant_listing_promotion_rule_to_create: list[
         VariantChannelListingPromotionRule
     ],
-    changed_variant_listing_promotion_rule_to_update: List[
+    changed_variant_listing_promotion_rule_to_update: list[
         VariantChannelListingPromotionRule
     ],
 ):
@@ -142,7 +142,7 @@ def _get_product_to_variant_channel_listings_per_channel_map(
         ).iterator()
     }
 
-    price_data: Dict[int, Dict[int, List[Money]]] = defaultdict(
+    price_data: dict[int, dict[int, list[Money]]] = defaultdict(
         lambda: defaultdict(list)
     )
     for variant_channel_listing in variant_channel_listings.iterator():
@@ -165,8 +165,8 @@ def _get_variant_listings_to_listing_rule_per_rule_id_map(
         }
     }
     """
-    variant_listing_rule_data: Dict[
-        int, Dict[UUID, VariantChannelListingPromotionRule]
+    variant_listing_rule_data: dict[
+        int, dict[UUID, VariantChannelListingPromotionRule]
     ] = defaultdict(dict)
     variant_channel_listings = ProductVariantChannelListing.objects.filter(
         Exists(variants.filter(id=OuterRef("variant_id"))), price_amount__isnull=False
@@ -185,22 +185,22 @@ def _get_variant_listings_to_listing_rule_per_rule_id_map(
 
 
 def _get_discounted_variants_prices_for_promotions(
-    variant_listings: List[ProductVariantChannelListing],
-    rules_info_per_promotion_id: Dict[UUID, List[PromotionRuleInfo]],
+    variant_listings: list[ProductVariantChannelListing],
+    rules_info_per_promotion_id: dict[UUID, list[PromotionRuleInfo]],
     channel: Channel,
     variant_listing_to_listing_rule_per_rule_map: dict,
-) -> Tuple[
+) -> tuple[
     Money,
-    List[ProductVariantChannelListing],
-    List[VariantChannelListingPromotionRule],
-    List[VariantChannelListingPromotionRule],
+    list[ProductVariantChannelListing],
+    list[VariantChannelListingPromotionRule],
+    list[VariantChannelListingPromotionRule],
 ]:
-    variants_listings_to_update: List[ProductVariantChannelListing] = []
-    discounted_variants_price: List[Money] = []
-    variant_listing_promotion_rule_to_create: List[
+    variants_listings_to_update: list[ProductVariantChannelListing] = []
+    discounted_variants_price: list[Money] = []
+    variant_listing_promotion_rule_to_create: list[
         VariantChannelListingPromotionRule
     ] = []
-    variant_listing_promotion_rule_to_update: List[
+    variant_listing_promotion_rule_to_update: list[
         VariantChannelListingPromotionRule
     ] = []
     for variant_listing in variant_listings:
@@ -257,8 +257,8 @@ def _handle_discount_rule_id(
     variant_listing_to_listing_rule_per_rule_map: dict,
     discount_amount: Decimal,
     currency: str,
-    variant_listing_promotion_rule_to_update: List[VariantChannelListingPromotionRule],
-    variant_listing_promotion_rule_to_create: List[VariantChannelListingPromotionRule],
+    variant_listing_promotion_rule_to_update: list[VariantChannelListingPromotionRule],
+    variant_listing_promotion_rule_to_create: list[VariantChannelListingPromotionRule],
 ):
     listing_promotion_rule = variant_listing_to_listing_rule_per_rule_map[
         variant_listing.id

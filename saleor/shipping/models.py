@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from django.conf import settings
 from django.db import models
@@ -70,11 +71,8 @@ def _get_weight_type_display(min_weight, max_weight):
         max_weight = convert_weight(max_weight, default_unit)
 
     if max_weight is None:
-        return ("%(min_weight)s and up" % {"min_weight": min_weight},)
-    return "%(min_weight)s to %(max_weight)s" % {
-        "min_weight": min_weight,
-        "max_weight": max_weight,
-    }
+        return f"{min_weight} and up"
+    return f"{min_weight} to {max_weight}"
 
 
 class ShippingZone(ModelWithMetadata):
@@ -116,7 +114,7 @@ class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):
         )
 
     def exclude_shipping_methods_for_excluded_products(
-        self, qs, product_ids: List[int]
+        self, qs, product_ids: list[int]
     ):
         """Exclude the ShippingMethods which have excluded given products."""
         return qs.exclude(excluded_products__id__in=product_ids)

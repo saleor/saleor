@@ -244,10 +244,8 @@ def test_update_or_create_variant_stocks(variant, warehouses):
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_stocks_update.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_update.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
@@ -304,10 +302,8 @@ def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_stocks_update.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_update.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
@@ -353,10 +349,8 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_stocks_update.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_update.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
@@ -404,10 +398,8 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_stocks_update.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_update.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
@@ -453,10 +445,8 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_with_allocations(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_stocks_update.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_update.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
@@ -502,10 +492,8 @@ def test_update_or_create_variant_with_out_of_stock_webhooks_with_allocations(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_stocks_update.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_update.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")

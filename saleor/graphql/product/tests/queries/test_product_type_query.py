@@ -412,12 +412,10 @@ def test_product_type_get_unassigned_product_type_attributes(
         unassigned_attributes
     ), gql_unassigned_attributes
 
-    received_ids = sorted((attr["node"]["id"] for attr in gql_unassigned_attributes))
+    received_ids = sorted(attr["node"]["id"] for attr in gql_unassigned_attributes)
     expected_ids = sorted(
-        (
-            graphene.Node.to_global_id("Attribute", attr.pk)
-            for attr in unassigned_attributes
-        )
+        graphene.Node.to_global_id("Attribute", attr.pk)
+        for attr in unassigned_attributes
     )
 
     assert received_ids == expected_ids

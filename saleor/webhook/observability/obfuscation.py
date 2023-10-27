@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from urllib.parse import urlparse, urlunparse
 
 from graphql import (
@@ -40,10 +40,10 @@ MASK = "***"
 
 
 def filter_and_hide_headers(
-    headers: Dict[str, str],
+    headers: dict[str, str],
     allowed=ALLOWED_HEADERS,
     sensitive=SENSITIVE_HEADERS,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     filtered_headers = {}
     for key, val in headers.items():
         lowered = key.lower()
@@ -90,7 +90,7 @@ class ContainSensitiveField(ValidationRule):
     def contain_sensitive_field(self, node: GraphQLNode, type_def) -> bool:
         if isinstance(node, FragmentSpread) or not node.selection_set:
             return False
-        fields: Dict[str, GraphQLField] = {}
+        fields: dict[str, GraphQLField] = {}
         if isinstance(type_def, (GraphQLObjectType, GraphQLInterfaceType)):
             fields = type_def.fields
         for child_node in node.selection_set.selections:
@@ -138,8 +138,8 @@ class ContainSensitiveField(ValidationRule):
         node: Any,
         key: Optional[Union[int, str]],
         parent: Any,
-        path: List[Union[int, str]],
-        ancestors: List[Any],
+        path: list[Union[int, str]],
+        ancestors: list[Any],
     ):
         if isinstance(node, OperationDefinition):
             self.enter_operation_definition(node, key, parent, path, ancestors)
@@ -175,7 +175,7 @@ def _contain_sensitive_field(
     document: "GraphQLDocument", sensitive_fields: SensitiveFieldsMap
 ):
     validator = cast(
-        Type[ValidationRule], ContainSensitiveField(sensitive_fields=sensitive_fields)
+        type[ValidationRule], ContainSensitiveField(sensitive_fields=sensitive_fields)
     )
     try:
         validate(document.schema, document.document_ast, [validator])

@@ -7,7 +7,7 @@ from datetime import timedelta
 from decimal import Decimal
 from functools import partial
 from io import BytesIO
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 from unittest.mock import MagicMock, Mock
 
 import graphene
@@ -200,7 +200,7 @@ def _assert_num_queries(context, *, config, num, exact=True, info=None):
         ),
     )
     if info:
-        msg += "\n{}".format(info)
+        msg += f"\n{info}"
     if verbose:
         sqls = (q["sql"] for q in context.captured_queries)
         msg += "\n\nQueries:\n========\n\n%s" % "\n\n".join(sqls)
@@ -2279,7 +2279,7 @@ def page_file_attribute(db):
 
 
 @pytest.fixture
-def product_type_attribute_list() -> List[Attribute]:
+def product_type_attribute_list() -> list[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
@@ -2298,7 +2298,7 @@ def product_type_attribute_list() -> List[Attribute]:
 
 
 @pytest.fixture
-def page_type_attribute_list() -> List[Attribute]:
+def page_type_attribute_list() -> list[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
@@ -6547,13 +6547,13 @@ def transaction_item_generator():
 @pytest.fixture
 def transaction_events_generator() -> (
     Callable[
-        [List[str], List[str], List[Decimal], TransactionItem], List[TransactionEvent]
+        [list[str], list[str], list[Decimal], TransactionItem], list[TransactionEvent]
     ]
 ):
     def factory(
-        psp_references: List[str],
-        types: List[str],
-        amounts: List[Decimal],
+        psp_references: list[str],
+        types: list[str],
+        amounts: list[Decimal],
         transaction: TransactionItem,
     ):
         return TransactionEvent.objects.bulk_create(

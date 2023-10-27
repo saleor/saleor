@@ -1,6 +1,5 @@
 from decimal import Decimal
-
-import mock
+from unittest import mock
 
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines

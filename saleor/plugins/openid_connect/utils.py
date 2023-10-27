@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 import requests
 from authlib.jose import JWTClaims, jwt
@@ -165,7 +165,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
     access_token: str,
     use_scope_permissions: bool,
     audience: str,
-    staff_user_domains: List[str],
+    staff_user_domains: list[str],
     staff_default_group_name: str,
 ):
     try:
@@ -252,7 +252,7 @@ def get_user_from_oauth_access_token(
     user_info_url: str,
     use_scope_permissions: bool,
     audience: str,
-    staff_user_domains: List[str],
+    staff_user_domains: list[str],
     staff_default_group_name: str,
 ):
     # we try to decode token to define if the structure is a jwt format.
@@ -317,7 +317,7 @@ def create_jwt_token(
     id_payload: CodeIDToken,
     user: User,
     access_token: str,
-    permissions: Optional[List[str]],
+    permissions: Optional[list[str]],
     owner: str,
 ) -> str:
     additional_payload = {
@@ -535,7 +535,7 @@ def create_tokens_from_oauth_payload(
     token_data: dict,
     user: User,
     claims: CodeIDToken,
-    permissions: Optional[List[str]],
+    permissions: Optional[list[str]],
     owner: str,
 ):
     refresh_token = token_data.get("refresh_token")
@@ -607,7 +607,7 @@ def validate_refresh_token(refresh_token, data):
             )
 
 
-def get_incorrect_or_missing_urls(urls: dict) -> List[str]:
+def get_incorrect_or_missing_urls(urls: dict) -> list[str]:
     validator = URLValidator()
     incorrect_urls = []
     for field, url in urls.items():
@@ -680,6 +680,6 @@ def get_saleor_permissions_from_list(permissions: list) -> QuerySet[Permission]:
     return permissions
 
 
-def get_saleor_permission_names(permissions: QuerySet) -> List[str]:
+def get_saleor_permission_names(permissions: QuerySet) -> list[str]:
     permission_names = get_permission_names(permissions)
     return list(permission_names)

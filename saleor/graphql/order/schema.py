@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -72,7 +72,7 @@ def search_string_in_kwargs(kwargs: dict) -> bool:
     return bool(filter_search.strip())
 
 
-def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
+def sort_field_from_kwargs(kwargs: dict) -> Optional[list[str]]:
     return kwargs.get("sort_by", {}).get("field") or None
 
 

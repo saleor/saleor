@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 from ..order import FulfillmentLineData
 from ..order.fetch import OrderLineInfo
@@ -16,8 +16,8 @@ if TYPE_CHECKING:
     from ..checkout.models import Checkout
     from ..order.models import Order, OrderGrantedRefund
 
-JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
-JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
+JSONValue = Union[str, int, float, bool, None, dict[str, Any], list[Any]]
+JSONType = Union[dict[str, JSONValue], list[JSONValue]]
 
 
 @dataclass
@@ -59,8 +59,8 @@ class PaymentGateway:
 
     id: str
     name: str
-    currencies: List[str]
-    config: List[Dict[str, Any]]
+    currencies: list[str]
+    config: list[dict[str, Any]]
 
 
 @dataclass
@@ -101,7 +101,7 @@ class PaymentMethodData:
     type: str
     external_id: str
     gateway: PaymentGateway
-    supported_payment_flows: List[str] = field(default_factory=list)
+    supported_payment_flows: list[str] = field(default_factory=list)
     credit_card_info: Optional[PaymentMethodCreditCardInfo] = None
     name: Optional[str] = None
     data: Optional[JSONType] = None
@@ -130,7 +130,7 @@ class TransactionRequestEventResponse:
 @dataclass
 class TransactionRequestResponse:
     psp_reference: Optional[str]
-    available_actions: Optional[List[str]] = None
+    available_actions: Optional[list[str]] = None
     event: Optional["TransactionRequestEventResponse"] = None
 
 
@@ -140,13 +140,13 @@ class TransactionData:
     is_success: bool
     kind: str
     gateway_response: JSONType
-    amount: Dict[str, str]
+    amount: dict[str, str]
 
 
 @dataclass
 class PaymentGatewayData:
     app_identifier: str
-    data: Optional[Dict[Any, Any]] = None
+    data: Optional[dict[Any, Any]] = None
     error: Optional[str] = None
 
 
@@ -169,7 +169,7 @@ class TransactionSessionData:
 @dataclass
 class TransactionSessionResult:
     app_identifier: str
-    response: Optional[Dict[Any, Any]] = None
+    response: Optional[dict[Any, Any]] = None
     error: Optional[str] = None
 
 
@@ -293,7 +293,7 @@ class GatewayResponse:
     error: Optional[str]
     customer_id: Optional[str] = None
     payment_method_info: Optional[PaymentMethodInfo] = None
-    raw_response: Optional[Dict[str, str]] = None
+    raw_response: Optional[dict[str, str]] = None
     action_required_data: Optional[JSONType] = None
     # Some gateway can process transaction asynchronously. This value define if we
     # should create new transaction based on this response
@@ -337,13 +337,13 @@ class PaymentLineData:
 class PaymentLinesData:
     shipping_amount: Decimal
     voucher_amount: Decimal
-    lines: List[PaymentLineData]
+    lines: list[PaymentLineData]
 
 
 @dataclass
 class RefundData:
-    order_lines_to_refund: List[OrderLineInfo] = field(default_factory=list)
-    fulfillment_lines_to_refund: List[FulfillmentLineData] = field(default_factory=list)
+    order_lines_to_refund: list[OrderLineInfo] = field(default_factory=list)
+    fulfillment_lines_to_refund: list[FulfillmentLineData] = field(default_factory=list)
     refund_shipping_costs: bool = False
     refund_amount_is_automatically_calculated: bool = True
 
@@ -373,12 +373,12 @@ class PaymentData:
     data: Optional[dict] = None
     graphql_customer_id: Optional[str] = None
     checkout_token: Optional[str] = None
-    checkout_metadata: Optional[Dict] = None
+    checkout_metadata: Optional[dict] = None
     store_payment_method: StorePaymentMethodEnum = StorePaymentMethodEnum.NONE
-    payment_metadata: Dict[str, str] = field(default_factory=dict)
+    payment_metadata: dict[str, str] = field(default_factory=dict)
     psp_reference: Optional[str] = None
     refund_data: Optional[RefundData] = None
-    transactions: List[TransactionData] = field(default_factory=list)
+    transactions: list[TransactionData] = field(default_factory=list)
     # Optional, lazy-evaluated gateway arguments
     _resolve_lines_data: InitVar[Callable[[], PaymentLinesData]] = None
 
@@ -412,7 +412,7 @@ class GatewayConfig:
     supported_currencies: str
     # Each gateway has different connection data so we are not able to create
     # a unified structure
-    connection_params: Dict[str, Any]
+    connection_params: dict[str, Any]
     store_customer: bool = False
     require_3d_secure: bool = False
 
@@ -424,7 +424,7 @@ class CustomerSource:
     id: str
     gateway: str
     credit_card_info: Optional[PaymentMethodInfo] = None
-    metadata: Optional[Dict[str, str]] = None
+    metadata: Optional[dict[str, str]] = None
 
 
 @dataclass
