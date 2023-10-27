@@ -162,12 +162,12 @@ class GiftCardBulkCreate(BaseMutation):
         for tag_instance in tags_instances.iterator():
             tag_instance.gift_cards.set(instances)
 
-    @staticmethod
-    def call_gift_card_created_on_plugins(instances, context):
+    @classmethod
+    def call_gift_card_created_on_plugins(cls, instances, context):
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.GIFT_CARD_CREATED)
         manager = get_plugin_manager_promise(context).get()
         for instance in instances:
-            manager.gift_card_created(instance, webhooks=webhooks)
+            cls.call_event(manager.gift_card_created, instance, webhooks=webhooks)
 
 
 class GiftCardBulkDelete(ModelBulkDeleteMutation):
@@ -262,4 +262,4 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
             WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED
         )
         for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
-            manager.gift_card_status_changed(card, webhooks=webhooks)
+            cls.call_event(manager.gift_card_status_changed, card, webhooks=webhooks)

@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from ...plugins.manager import get_plugins_manager
+from ...tests.utils import flush_post_commit_hooks
 from ..models import Category
 from ..utils import collect_categories_tree_products, delete_categories
 
@@ -58,12 +59,16 @@ def test_delete_categories_trigger_product_updated_webhook(
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
     parent = categories_tree_with_published_products
     child = parent.children.first()
     product_list = [child.products.first(), parent.products.first()]
 
+    # when
     delete_categories([parent.pk], manager=get_plugins_manager())
+    flush_post_commit_hooks()
 
+    # then
     assert not Category.objects.filter(
         id__in=[category.id for category in [parent, child]]
     ).exists()

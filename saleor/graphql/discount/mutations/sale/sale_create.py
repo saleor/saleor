@@ -107,8 +107,8 @@ class SaleCreate(ModelMutation):
         cls.call_event(manager.sale_created, instance, current_catalogue)
         cls.send_sale_toggle_notification(manager, instance, current_catalogue)
 
-    @staticmethod
-    def send_sale_toggle_notification(manager, instance, catalogue):
+    @classmethod
+    def send_sale_toggle_notification(cls, manager, instance, catalogue):
         """Send a notification about starting or ending sale if it hasn't been sent yet.
 
         Send the notification when the start date is before the current date and the
@@ -120,6 +120,6 @@ class SaleCreate(ModelMutation):
         end_date = instance.end_date
 
         if (start_date and start_date <= now) and (not end_date or not end_date <= now):
-            manager.sale_toggle(instance, catalogue)
             instance.notification_sent_datetime = now
             instance.save(update_fields=["notification_sent_datetime"])
+            cls.call_event(manager.sale_toggle, instance, catalogue)

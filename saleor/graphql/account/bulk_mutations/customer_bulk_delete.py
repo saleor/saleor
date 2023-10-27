@@ -46,4 +46,4 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.CUSTOMER_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
         for instance in instances:
-            manager.customer_deleted(instance, webhooks=webhooks)
+            cls.call_event(manager.customer_deleted, instance, webhooks=webhooks)
