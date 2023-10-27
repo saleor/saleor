@@ -144,9 +144,7 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         requestor = get_user_or_app_from_context(info.context)
         qs = root.node.products.visible_to_user(  # type: ignore[attr-defined] # mypy does not properly resolve the related manager # noqa: E501
             requestor, root.channel_slug
-        ).using(
-            settings.DATABASE_CONNECTION_REPLICA_NAME
-        )
+        ).using(settings.DATABASE_CONNECTION_REPLICA_NAME)
 
         if search:
             qs = ChannelQsContext(
