@@ -72,7 +72,7 @@ def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
 
 
 def initialize_request(
-    requestor=None, sync_event=False, allow_replica=True
+    requestor=None, sync_event=False, allow_replica=False
 ) -> SaleorContext:
     """Prepare a request object for webhook subscription.
 
