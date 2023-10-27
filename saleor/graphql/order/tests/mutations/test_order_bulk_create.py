@@ -1,5 +1,5 @@
 import copy
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -256,6 +256,10 @@ ORDER_BULK_CREATE = """
                     message
                     code
                 }
+            }
+            errors {
+                message
+                code
             }
         }
     }
@@ -1991,6 +1995,43 @@ def test_order_bulk_create_error_order_future_date(
     assert error["message"] == "Order input contains future date."
     assert error["path"] == "created_at"
     assert error["code"] == OrderBulkCreateErrorCode.FUTURE_DATE.name
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_invalid_date_format(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    current_time = datetime.now() + timedelta(minutes=MINUTES_DIFF + 1)
+    order["createdAt"] = current_time.strftime("%Y-%m-%dT%H:%M:%S")
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["orderBulkCreate"]["errors"][0]
+    assert (
+        error["message"] == "Input 'date' must be timezone-aware. "
+        "Expected format: 'YYYY-MM-DD HH:MM:SS TZ'."
+    )
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Order.objects.count() == orders_count
 
