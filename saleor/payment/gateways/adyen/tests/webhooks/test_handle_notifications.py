@@ -748,7 +748,7 @@ def test_handle_authorization_with_adyen_auto_capture_and_payment_charged(
     assert external_events.count() == 1
 
 
-@pytest.mark.parametrize("payment_is_active", (True, False))
+@pytest.mark.parametrize("payment_is_active", [True, False])
 def test_handle_cancel(
     payment_is_active, notification, adyen_plugin, payment_adyen_for_order
 ):

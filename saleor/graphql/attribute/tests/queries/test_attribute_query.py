@@ -548,15 +548,15 @@ def test_attributes_query_ids_not_exists(user_api_client, category):
 
 
 @pytest.mark.parametrize(
-    "attribute, expected_value",
-    (
+    ("attribute", "expected_value"),
+    [
         ("filterable_in_storefront", True),
         ("filterable_in_dashboard", True),
         ("visible_in_storefront", True),
         ("available_in_grid", True),
         ("value_required", False),
         ("storefront_search_position", 0),
-    ),
+    ],
 )
 def test_retrieving_the_restricted_attributes_restricted(
     staff_api_client,
@@ -664,7 +664,7 @@ def test_attributes_in_collection_query(
 
 
 @pytest.mark.parametrize(
-    "input_type, expected_with_choice_return",
+    ("input_type", "expected_with_choice_return"),
     [
         (AttributeInputType.DROPDOWN, True),
         (AttributeInputType.MULTISELECT, True),

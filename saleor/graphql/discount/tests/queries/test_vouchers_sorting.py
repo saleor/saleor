@@ -155,7 +155,7 @@ def test_voucher_with_sorting_and_without_channel(
 
 
 @pytest.mark.parametrize(
-    "sort_by, vouchers_order",
+    ("sort_by", "vouchers_order"),
     [
         (
             {"field": "VALUE", "direction": "ASC"},
@@ -202,7 +202,7 @@ def test_vouchers_with_sorting_and_channel_USD(
 
 
 @pytest.mark.parametrize(
-    "sort_by, vouchers_order",
+    ("sort_by", "vouchers_order"),
     [
         (
             {"field": "VALUE", "direction": "ASC"},
@@ -279,7 +279,7 @@ def test_vouchers_with_sorting_and_not_existing_channel_asc(
 
 
 @pytest.mark.parametrize(
-    "filter_by, vouchers_count",
+    ("filter_by", "vouchers_count"),
     [
         ({"status": "ACTIVE"}, 4),
         ({"status": "SCHEDULED"}, 0),
@@ -361,7 +361,7 @@ QUERY_VOUCHER_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "voucher_sort, result_order",
+    ("voucher_sort", "result_order"),
     [
         (
             {"field": "CODE", "direction": "ASC"},

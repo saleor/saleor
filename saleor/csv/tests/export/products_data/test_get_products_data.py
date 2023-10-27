@@ -382,7 +382,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     variant_variant_ref_value = AttributeValue.objects.create(
         attribute=product_type_variant_reference_attribute,
         reference_variant=variant,
-        slug=(f"{variant_with_many_stocks.pk}" f"_{variant.pk}"),
+        slug=(f"{variant_with_many_stocks.pk}_{variant.pk}"),
         name=variant.name,
     )
     product_variant_ref_value = AttributeValue.objects.create(

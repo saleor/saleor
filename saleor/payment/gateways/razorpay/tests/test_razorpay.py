@@ -38,7 +38,7 @@ def gateway_config():
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def razorpay_success_response():
     return {
         "id": "transaction123",
@@ -47,13 +47,13 @@ def razorpay_success_response():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def razorpay_payment(payment_dummy):
     payment_dummy.currency = "INR"
     return payment_dummy
 
 
-@pytest.fixture()
+@pytest.fixture
 def charged_payment(razorpay_payment):
     razorpay_payment.captured_amount = razorpay_payment.total
     razorpay_payment.charge_status = ChargeStatus.FULLY_CHARGED

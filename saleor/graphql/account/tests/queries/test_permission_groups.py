@@ -43,7 +43,7 @@ QUERY_PERMISSION_GROUPS_PAGINATION = """
 
 
 @pytest.mark.parametrize(
-    "sort_by, permission_groups_order",
+    ("sort_by", "permission_groups_order"),
     [
         (
             {"field": "NAME", "direction": "ASC"},

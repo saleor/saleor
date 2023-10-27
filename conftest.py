@@ -54,7 +54,7 @@ def pytest_collection_modifyitems(config, items):
 if os.environ.get("PYTEST_DB_URL"):
 
     @pytest.fixture(scope="session")
-    def django_db_setup():
+    def django_db_setup():  # noqa: PT004
         settings.DATABASES = {
             settings.DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
                 env="PYTEST_DB_URL", conn_max_age=600

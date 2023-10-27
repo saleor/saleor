@@ -18,14 +18,14 @@ REFUND_TOKEN = "test"
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_authenticate_test():
     success, _ = authenticate_test("test", "test", True)
     assert success
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_authenticate_test_failure():
     success, message = authenticate_test("test", "test", True)
     assert not success
@@ -33,7 +33,7 @@ def test_authenticate_test_failure():
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_process_payment(dummy_payment_data, authorize_net_gateway_config):
     dummy_payment_data.token = INVALID_TOKEN
     response = process_payment(dummy_payment_data, authorize_net_gateway_config)
@@ -47,7 +47,7 @@ def test_process_payment(dummy_payment_data, authorize_net_gateway_config):
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_process_payment_with_user(
     dummy_payment_data, authorize_net_gateway_config, address
 ):
@@ -65,7 +65,7 @@ def test_process_payment_with_user(
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_process_payment_reuse_source(dummy_payment_data, authorize_net_gateway_config):
     dummy_payment_data.token = INVALID_TOKEN
     dummy_payment_data.reuse_source = True
@@ -80,7 +80,7 @@ def test_process_payment_reuse_source(dummy_payment_data, authorize_net_gateway_
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_process_payment_error_response(
     dummy_payment_data, authorize_net_gateway_config
 ):
@@ -99,7 +99,7 @@ def test_process_payment_error_response(
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_process_payment_error_response_null(
     dummy_payment_data, authorize_net_gateway_config
 ):
@@ -110,7 +110,7 @@ def test_process_payment_error_response_null(
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_refund(authorize_net_payment, authorize_net_gateway_config):
     payment_data = PaymentData(
         authorize_net_payment.gateway,
@@ -136,7 +136,7 @@ def test_refund(authorize_net_payment, authorize_net_gateway_config):
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_refund_error(authorize_net_payment, authorize_net_gateway_config):
     payment_data = PaymentData(
         authorize_net_payment.gateway,
@@ -162,7 +162,7 @@ def test_refund_error(authorize_net_payment, authorize_net_gateway_config):
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_authorize_and_capture(dummy_payment_data, authorize_net_gateway_config):
     dummy_payment_data.token = INVALID_TOKEN
     authorize_net_gateway_config.auto_capture = False
@@ -187,7 +187,7 @@ def test_authorize_and_capture(dummy_payment_data, authorize_net_gateway_config)
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_void(authorize_net_payment, authorize_net_gateway_config):
     payment_data = PaymentData(
         authorize_net_payment.gateway,
@@ -212,7 +212,7 @@ def test_void(authorize_net_payment, authorize_net_gateway_config):
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_void_duplicate(authorize_net_payment, authorize_net_gateway_config):
     """Test that duplicate voids are considered successful."""
     payment_data = PaymentData(
@@ -238,7 +238,7 @@ def test_void_duplicate(authorize_net_payment, authorize_net_gateway_config):
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_void_failure(authorize_net_payment, authorize_net_gateway_config):
     """Test void with invalid transaction ID."""
     payment_data = PaymentData(
@@ -264,7 +264,7 @@ def test_void_failure(authorize_net_payment, authorize_net_gateway_config):
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_list_client_sources(authorize_net_gateway_config):
     customer_id = "1929079648"
     response = list_client_sources(authorize_net_gateway_config, customer_id)
@@ -278,7 +278,7 @@ def test_list_client_sources(authorize_net_gateway_config):
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_list_client_sources_other_name(authorize_net_gateway_config):
     customer_id = "1929079648"
     response = list_client_sources(authorize_net_gateway_config, customer_id)

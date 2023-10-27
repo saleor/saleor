@@ -18,7 +18,7 @@ QUERY_SHIPPING_ZONES_WITH_FILTER = """
 
 
 @pytest.mark.parametrize(
-    "lookup, expected_zones",
+    ("lookup", "expected_zones"),
     [
         ("Poland", {"Poland"}),
         ("pol", {"Poland"}),

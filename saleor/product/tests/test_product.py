@@ -218,7 +218,7 @@ def test_clean_product_attributes_boolean_filter_input(boolean_attribute):
 
 
 @pytest.mark.parametrize(
-    "price, discounted_price",
+    ("price", "discounted_price"),
     [
         (Decimal("10.00"), Decimal("8.00")),
         (Decimal("10.00"), None),
@@ -379,7 +379,7 @@ def test_digital_product_view(client, digital_content_url):
 
 
 @pytest.mark.parametrize(
-    "is_user_null, is_line_null", ((False, False), (False, True), (True, True))
+    ("is_user_null", "is_line_null"), [(False, False), (False, True), (True, True)]
 )
 def test_digital_product_increment_download(
     client,
@@ -456,7 +456,8 @@ def test_digital_product_view_url_expired(client, digital_content):
 
 
 @pytest.mark.parametrize(
-    "price, cost", [(Money("0", "USD"), Money("1", "USD")), (Money("2", "USD"), None)]
+    ("price", "cost"),
+    [(Money("0", "USD"), Money("1", "USD")), (Money("2", "USD"), None)],
 )
 def test_costs_get_margin_for_variant_channel_listing(
     variant, price, cost, channel_USD

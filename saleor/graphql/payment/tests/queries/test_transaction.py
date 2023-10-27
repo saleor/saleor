@@ -437,7 +437,7 @@ def test_transaction_create_by_user_query_no_permission(
 
 
 @pytest.mark.parametrize(
-    "db_field, api_field",
+    ("db_field", "api_field"),
     [
         ("authorize_pending_value", "authorizePendingAmount"),
         ("charge_pending_value", "chargePendingAmount"),

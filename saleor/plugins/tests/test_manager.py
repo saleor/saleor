@@ -165,7 +165,7 @@ def test_manager_get_active_plugins_without_channel_slug(
 
 
 @pytest.mark.parametrize(
-    "plugins, total_amount",
+    ("plugins", "total_amount"),
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
 )
 def test_manager_calculates_checkout_total(
@@ -187,7 +187,7 @@ def test_manager_calculates_checkout_total(
 
 
 @pytest.mark.parametrize(
-    "plugins, subtotal_amount",
+    ("plugins", "subtotal_amount"),
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
 )
 def test_manager_calculates_checkout_subtotal(
@@ -211,7 +211,7 @@ def test_manager_calculates_checkout_subtotal(
 
 
 @pytest.mark.parametrize(
-    "plugins, shipping_amount",
+    ("plugins", "shipping_amount"),
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "0.0")],
 )
 def test_manager_calculates_checkout_shipping(
@@ -232,7 +232,7 @@ def test_manager_calculates_checkout_shipping(
 
 
 @pytest.mark.parametrize(
-    "plugins, shipping_amount",
+    ("plugins", "shipping_amount"),
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
 )
 def test_manager_calculates_order_shipping(order_with_lines, plugins, shipping_amount):
@@ -249,7 +249,7 @@ def test_manager_calculates_order_shipping(order_with_lines, plugins, shipping_a
 
 
 @pytest.mark.parametrize(
-    "plugins, amount",
+    ("plugins", "amount"),
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
 )
 def test_manager_calculates_checkout_line_total(
@@ -322,7 +322,7 @@ def test_manager_get_checkout_line_tax_rate_sample_plugin(checkout_with_item):
 
 
 @pytest.mark.parametrize(
-    "unit_price, expected_tax_rate",
+    ("unit_price", "expected_tax_rate"),
     [
         (TaxedMoney(Money(12, "USD"), Money(15, "USD")), Decimal("0.25")),
         (Decimal("0.0"), Decimal("0.0")),
@@ -362,7 +362,7 @@ def test_manager_get_order_line_tax_rate_sample_plugin(order_with_lines):
 
 
 @pytest.mark.parametrize(
-    "unit_price, expected_tax_rate",
+    ("unit_price", "expected_tax_rate"),
     [
         (TaxedMoney(Money(12, "USD"), Money(15, "USD")), Decimal("0.25")),
         (Decimal("0.0"), Decimal("0.0")),
@@ -402,7 +402,7 @@ def test_manager_get_checkout_shipping_tax_rate_sample_plugin(checkout_with_item
 
 
 @pytest.mark.parametrize(
-    "shipping_price, expected_tax_rate",
+    ("shipping_price", "expected_tax_rate"),
     [
         (TaxedMoney(Money(12, "USD"), Money(14, "USD")), Decimal("0.1667")),
         (Decimal("0.0"), Decimal("0.0")),
@@ -436,7 +436,7 @@ def test_manager_get_order_shipping_tax_rate_sample_plugin(order_with_lines):
 
 
 @pytest.mark.parametrize(
-    "shipping_price, expected_tax_rate",
+    ("shipping_price", "expected_tax_rate"),
     [
         (TaxedMoney(Money(12, "USD"), Money(14, "USD")), Decimal("0.1667")),
         (Decimal("0.0"), Decimal("0.0")),
@@ -454,7 +454,7 @@ def test_manager_get_order_shipping_tax_rate_no_plugins(
 
 
 @pytest.mark.parametrize(
-    "plugins, total_line_price, quantity",
+    ("plugins", "total_line_price", "quantity"),
     [
         (
             ["saleor.plugins.tests.sample_plugins.PluginSample"],
@@ -499,7 +499,7 @@ def test_manager_calculates_checkout_line_unit_price(
 
 
 @pytest.mark.parametrize(
-    "plugins, amount",
+    ("plugins", "amount"),
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "12.30")],
 )
 def test_manager_calculates_order_line(order_line, plugins, amount):
@@ -517,7 +517,7 @@ def test_manager_calculates_order_line(order_line, plugins, amount):
 
 
 @pytest.mark.parametrize(
-    "plugins, tax_rate_list",
+    ("plugins", "tax_rate_list"),
     [
         (
             ["saleor.plugins.tests.sample_plugins.PluginSample"],
@@ -535,7 +535,7 @@ def sample_none_data(obj):
 
 
 @pytest.mark.parametrize(
-    "plugins, show_taxes",
+    ("plugins", "show_taxes"),
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], True), ([], False)],
 )
 def test_manager_show_taxes_on_storefront(plugins, show_taxes):
@@ -543,7 +543,7 @@ def test_manager_show_taxes_on_storefront(plugins, show_taxes):
 
 
 @pytest.mark.parametrize(
-    "plugins, expected_tax_data",
+    ("plugins", "expected_tax_data"),
     [
         ([], sample_none_data),
         (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data),
@@ -563,7 +563,7 @@ def test_manager_get_taxes_for_checkout(
 
 
 @pytest.mark.parametrize(
-    "plugins, expected_tax_data",
+    ("plugins", "expected_tax_data"),
     [
         ([], sample_none_data),
         (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data),
@@ -1520,11 +1520,11 @@ def test_payment_method_process_tokenization(
 
 
 @pytest.mark.parametrize(
-    "allow_replica, expected_connection_name",
-    (
+    ("allow_replica", "expected_connection_name"),
+    [
         (True, "test replica"),
         (False, "test default"),
-    ),
+    ],
 )
 def test_plugin_manager_database(allow_replica, expected_connection_name):
     # given

@@ -122,10 +122,10 @@ def test_gift_card_add_note_as_app(
 
 @pytest.mark.parametrize(
     "message",
-    (
+    [
         "",
         "   ",
-    ),
+    ],
 )
 def test_gift_card_add_note_fail_on_empty_message(
     message,

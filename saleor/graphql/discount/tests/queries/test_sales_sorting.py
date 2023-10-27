@@ -114,7 +114,7 @@ def test_sales_with_sorting_and_without_channel(
 
 
 @pytest.mark.parametrize(
-    "sort_by, sales_order",
+    ("sort_by", "sales_order"),
     [
         (
             {"field": "VALUE", "direction": "ASC"},
@@ -169,7 +169,7 @@ def test_sales_with_sorting_and_channel_USD(
 
 
 @pytest.mark.parametrize(
-    "sort_by, sales_order",
+    ("sort_by", "sales_order"),
     [
         (
             {"field": "VALUE", "direction": "ASC"},
@@ -262,7 +262,7 @@ QUERY_SALE_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "sale_sort, result_order",
+    ("sale_sort", "result_order"),
     [
         ({"field": "NAME", "direction": "ASC"}, ["BigSale", "Sale2", "Sale3"]),
         ({"field": "NAME", "direction": "DESC"}, ["Sale3", "Sale2", "BigSale"]),

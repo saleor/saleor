@@ -174,7 +174,7 @@ def test_send_staff_order_confirmation_empty_template(
 
 
 @mock.patch(
-    "saleor.plugins.admin_email.notify_events." "send_export_failed_email_task.delay"
+    "saleor.plugins.admin_email.notify_events.send_export_failed_email_task.delay"
 )
 def test_send_csv_export_failed(mocked_email_task, admin_email_plugin):
     payload = {
@@ -188,7 +188,7 @@ def test_send_csv_export_failed(mocked_email_task, admin_email_plugin):
 
 
 @mock.patch(
-    "saleor.plugins.admin_email.notify_events." "send_export_failed_email_task.delay"
+    "saleor.plugins.admin_email.notify_events.send_export_failed_email_task.delay"
 )
 def test_send_csv_export_failed_empty_template(mocked_email_task, admin_email_plugin):
     payload = {

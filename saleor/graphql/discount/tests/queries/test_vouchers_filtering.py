@@ -23,7 +23,7 @@ QUERY_VOUCHERS_WITH_FILTER = """
 
 
 @pytest.mark.parametrize(
-    "voucher_filter, start_date, end_date, count",
+    ("voucher_filter", "start_date", "end_date", "count"),
     [
         (
             {"status": "ACTIVE"},
@@ -78,7 +78,7 @@ def test_query_vouchers_with_filter_status(
 
 
 @pytest.mark.parametrize(
-    "voucher_filter, count",
+    ("voucher_filter", "count"),
     [
         ({"timesUsed": {"gte": 1, "lte": 5}}, 1),
         ({"timesUsed": {"lte": 3}}, 2),
@@ -107,7 +107,7 @@ def test_query_vouchers_with_filter_times_used(
 
 
 @pytest.mark.parametrize(
-    "voucher_filter, count",
+    ("voucher_filter", "count"),
     [
         ({"started": {"gte": "2019-04-18T00:00:00+00:00"}}, 1),
         ({"started": {"lte": "2012-01-14T00:00:00+00:00"}}, 1),
@@ -149,7 +149,7 @@ def test_query_vouchers_with_filter_started(
 
 
 @pytest.mark.parametrize(
-    "voucher_filter, count, discount_value_type",
+    ("voucher_filter", "count", "discount_value_type"),
     [
         ({"discountType": "PERCENTAGE"}, 1, DiscountValueType.PERCENTAGE),
         ({"discountType": "FIXED"}, 2, DiscountValueType.FIXED),
@@ -186,7 +186,7 @@ def test_query_vouchers_with_filter_discount_type(
 
 
 @pytest.mark.parametrize(
-    "voucher_filter, count", [({"search": "Big"}, 1), ({"search": "GIFT"}, 2)]
+    ("voucher_filter", "count"), [({"search": "Big"}, 1), ({"search": "GIFT"}, 2)]
 )
 def test_query_vouchers_with_filter_search(
     voucher_filter,

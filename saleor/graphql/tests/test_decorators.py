@@ -12,7 +12,12 @@ from ..utils import get_user_or_app_from_context
 
 
 @pytest.mark.parametrize(
-    "permissions_required, effective_permissions, user_permissions, access_granted",
+    (
+        "permissions_required",
+        "effective_permissions",
+        "user_permissions",
+        "access_granted",
+    ),
     [
         ([AppPermission.MANAGE_APPS], ["MANAGE_APPS"], ["manage_apps"], True),
         (
@@ -53,7 +58,7 @@ def test_permission_required_with_limited_permissions(
 
 
 @pytest.mark.parametrize(
-    "permissions_required, user_permissions, access_granted",
+    ("permissions_required", "user_permissions", "access_granted"),
     [
         ([AppPermission.MANAGE_APPS], ["manage_apps"], True),
         (

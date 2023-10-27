@@ -20,7 +20,7 @@ QUERY_PAGE_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "page_sort, result_order",
+    ("page_sort", "result_order"),
     [
         ({"field": "TITLE", "direction": "ASC"}, ["About", "Page1", "Page2"]),
         ({"field": "TITLE", "direction": "DESC"}, ["Page2", "Page1", "About"]),

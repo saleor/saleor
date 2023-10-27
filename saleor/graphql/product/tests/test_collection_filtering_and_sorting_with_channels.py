@@ -72,6 +72,7 @@ def collections_for_sorting_with_channels(channel_USD, channel_PLN):
             ),
         ]
     )
+    return collections
 
 
 QUERY_COLLECTIONS_WITH_SORTING_AND_FILTERING = """
@@ -121,7 +122,7 @@ def test_collections_with_sorting_and_without_channel(
 
 
 @pytest.mark.parametrize(
-    "sort_by, collections_order",
+    ("sort_by", "collections_order"),
     [
         (
             {"field": "AVAILABILITY", "direction": "ASC"},
@@ -168,7 +169,7 @@ def test_collections_with_sorting_and_channel_USD(
 
 
 @pytest.mark.parametrize(
-    "sort_by, collections_order",
+    ("sort_by", "collections_order"),
     [
         (
             {"field": "AVAILABILITY", "direction": "ASC"},
@@ -294,7 +295,7 @@ def test_collections_with_filtering_without_channel(
 
 
 @pytest.mark.parametrize(
-    "filter_by, collections_count",
+    ("filter_by", "collections_count"),
     [
         ({"published": "PUBLISHED"}, 1),
         ({"published": "HIDDEN"}, 3),
@@ -329,7 +330,7 @@ def test_collections_with_filtering_with_channel_USD(
 
 
 @pytest.mark.parametrize(
-    "filter_by, collections_count",
+    ("filter_by", "collections_count"),
     [({"published": "PUBLISHED"}, 1), ({"published": "HIDDEN"}, 3)],
 )
 def test_collections_with_filtering_with_channel_PLN(

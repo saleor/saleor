@@ -87,21 +87,17 @@ documentation = "https://docs.saleor.io/"
     platform = "win32"
 
   [tool.poetry.dev-dependencies]
-  black = "23.9.1"
+  before_after = "^1.0.1"
   coverage = "^7.2"
   django-debug-toolbar = "^4.0"
   django-debug-toolbar-request-history = "^0"
   django-graphiql-debug-toolbar = "^0.2.0"
   django-extensions = "^3.1.2"
-  flake8 = "^4.0.1"
-  isort = "^5.12.0"
+  django-stubs = "1.16.0"
+  fakeredis = "^2.10"
+  mypy = "1.4.1"
+  mypy-extensions = "^1.0.0"
   pre-commit = "^3.4"
-  pycodestyle = "^2.5"
-  pydocstyle = "^6.1"
-  pylint = "^2.8.3"
-  pylint-celery = "^0"
-  pylint-django = "^2.4.4"
-  pylint-plugin-utils = "^0"
   pytest = "^7.0.1"
   pytest-asyncio = "^0.21.0"
   pytest-celery = "^0.0.0"
@@ -112,28 +108,28 @@ documentation = "https://docs.saleor.io/"
   pytest-recording = "^0.13.0"
   pytest-socket = "^0.6.0"
   pytest-xdist = "^3.0.2"
-  mypy = "1.4.1"
-  mypy-extensions = "^1.0.0"
   pywatchman = "^1.4.1"
-  types-mock = "^5.0.0.5"
-  types-redis = "^4.2.6"
-  types-requests = "^2.31.0"
-  types-pytz = "^2023.3.0"
-  types-pkg-resources = "^0.1.3"
-  types-python-dateutil = "^2.8.19"
-  django-stubs = "1.16.0"
-  before_after = "^1.0.1"
+  ruff = "^0.1.3"
+  semgrep = ">=1.34.0"
   types-certifi = "^2021.10.8"
   types-freezegun = "^1.1.7"
+  types-mock = "^5.0.0.5"
+  types-pkg-resources = "^0.1.3"
+  types-python-dateutil = "^2.8.19"
+  types-pytz = "^2023.3.0"
+  types-redis = "^4.2.6"
+  types-requests = "^2.31.0"
   types-six = "^1.16.17"
   vcrpy = ">=4.0,<5.0"
-  fakeredis = "^2.10"
-  semgrep = ">=1.34.0"
 
 [tool.ruff]
-extend-select = ["D", "I", "UP"]
-ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D202", "D203", "D206", "D213", "D407"]
+extend-select = ["D", "I", "ISC001", "ISC002", "PIE", "PT", "T20", "UP"]
+ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D202", "D203", "D206", "D213", "D407", "PT019"]
 target-version = "py39"
+
+  [tool.ruff.flake8-pytest-style]
+  fixture-parentheses = false
+  mark-parentheses = false
 
   [tool.ruff.isort]
   known-first-party = ["saleor"]

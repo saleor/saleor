@@ -47,7 +47,7 @@ PLUGIN_QUERY = """
 
 
 @pytest.mark.parametrize(
-    "password, expected_password, api_key, expected_api_key",
+    ("password", "expected_password", "api_key", "expected_api_key"),
     [
         (None, None, None, None),
         ("ABCDEFGHIJ", "", "123456789", "6789"),
@@ -98,7 +98,7 @@ def test_query_plugin_hides_secret_fields(
 
 
 @pytest.mark.parametrize(
-    "password, expected_password, api_key, expected_api_key",
+    ("password", "expected_password", "api_key", "expected_api_key"),
     [
         (None, None, None, None),
         ("ABCDEFGHIJ", "", "123456789", "6789"),

@@ -9,7 +9,7 @@ from ..validators import (
 
 
 @pytest.mark.parametrize(
-    "headers,err_msg",
+    ("headers", "err_msg"),
     [
         (
             {

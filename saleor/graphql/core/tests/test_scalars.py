@@ -165,7 +165,7 @@ def test_json_scalar_as_correct_variable(
     get_graphql_content(response)
 
 
-@pytest.mark.parametrize("data_value", (True, "string", 1.0, 1))
+@pytest.mark.parametrize("data_value", [True, "string", 1.0, 1])
 @mock.patch("saleor.plugins.manager.PluginsManager.payment_gateway_initialize_session")
 def test_json_scalar_as_incorrect_variable(
     mocked_initialize,
@@ -210,7 +210,7 @@ mutation {
 """
 
 
-@pytest.mark.parametrize("data_value", (True, "string", 1.0, 1))
+@pytest.mark.parametrize("data_value", [True, "string", 1.0, 1])
 @mock.patch("saleor.plugins.manager.PluginsManager.payment_gateway_initialize_session")
 def test_json_scalar_as_incorrect_value(
     mocked_initialize,

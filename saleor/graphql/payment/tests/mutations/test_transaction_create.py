@@ -351,7 +351,7 @@ def test_transaction_create_for_checkout_by_app(
 
 
 @pytest.mark.parametrize(
-    "amount_field_name, amount_db_field",
+    ("amount_field_name", "amount_db_field"),
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
@@ -538,7 +538,7 @@ def test_transaction_create_missing_permission_by_app(order_with_lines, app_api_
 
 
 @pytest.mark.parametrize(
-    "amount_field_name, amount_db_field",
+    ("amount_field_name", "amount_db_field"),
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
@@ -1049,7 +1049,7 @@ def test_transaction_create_for_checkout_fully_paid(
 
 
 @pytest.mark.parametrize(
-    "amount_field_name, amount_db_field",
+    ("amount_field_name", "amount_db_field"),
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
@@ -1237,7 +1237,7 @@ def test_transaction_create_missing_permission_by_staff(
 
 
 @pytest.mark.parametrize(
-    "amount_field_name, amount_db_field",
+    ("amount_field_name", "amount_db_field"),
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),

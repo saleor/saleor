@@ -21,7 +21,7 @@ query filterProductsByMetadata ($filter:ProductFilterInput, $channel: String){
 
 
 @pytest.mark.parametrize(
-    "metadata, total_count",
+    ("metadata", "total_count"),
     [
         (
             [

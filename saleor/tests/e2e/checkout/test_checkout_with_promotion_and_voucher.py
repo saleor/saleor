@@ -100,9 +100,16 @@ def prepare_voucher(
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    "variant_price, promotion_value, promotion_type, expected_promotion_discount, "
-    "voucher_discount_value, voucher_discount_type, expected_voucher_discount, "
-    "expected_unit_price",
+    (
+        "variant_price",
+        "promotion_value",
+        "promotion_type",
+        "expected_promotion_discount",
+        "voucher_discount_value",
+        "voucher_discount_type",
+        "expected_voucher_discount",
+        "expected_unit_price",
+    ),
     [
         ("19.99", 13, "PERCENTAGE", 2.60, 13, "PERCENTAGE", 2.26, 15.13),
         ("30", 10, "FIXED", 10, 5, "FIXED", 5, 17.5),

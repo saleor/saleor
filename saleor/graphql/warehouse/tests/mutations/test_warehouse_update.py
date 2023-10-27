@@ -233,7 +233,7 @@ def test_mutation_update_warehouse_to_country_with_different_validation_rules(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, error_message",
+    ("input_slug", "expected_slug", "error_message"),
     [
         ("test-slug", "test-slug", None),
         ("", "", "Slug value cannot be blank."),
@@ -307,7 +307,14 @@ def test_update_warehouse_slug_exists(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, input_name, expected_name, error_message, error_field",
+    (
+        "input_slug",
+        "expected_slug",
+        "input_name",
+        "expected_name",
+        "error_message",
+        "error_field",
+    ),
     [
         ("test-slug", "test-slug", "New name", "New name", None, None),
         (
@@ -371,7 +378,7 @@ def test_update_warehouse_slug_and_name(
 
 
 @pytest.mark.parametrize(
-    "expected_private, expected_cc_option",
+    ("expected_private", "expected_cc_option"),
     [
         (private, option)
         for private in (True, False)

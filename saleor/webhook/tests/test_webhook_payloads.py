@@ -612,7 +612,7 @@ def test_order_lines_have_all_required_fields(
 
 
 @pytest.mark.parametrize(
-    "charge_taxes, prices_entered_with_tax",
+    ("charge_taxes", "prices_entered_with_tax"),
     [(False, False), (False, True), (True, False), (True, True)],
 )
 def test_order_lines_for_tax_calculation_have_all_required_fields(
@@ -2125,7 +2125,7 @@ GROSS_AMOUNT = sentinel.GROSS_AMOUNT
 
 
 @pytest.mark.parametrize(
-    "action_type, action_value",
+    ("action_type", "action_value"),
     [
         (TransactionAction.CHARGE, Decimal("5.000")),
         (TransactionAction.REFUND, Decimal("9.000")),
@@ -2208,7 +2208,7 @@ def test_generate_transaction_action_request_payload_for_order(
 
 
 @pytest.mark.parametrize(
-    "action_type, request_type, action_value",
+    ("action_type", "request_type", "action_value"),
     [
         (
             TransactionAction.CHARGE,

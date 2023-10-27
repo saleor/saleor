@@ -149,7 +149,7 @@ def transaction_request_webhook(permission_manage_payments):
 
 
 @pytest.mark.parametrize(
-    "charge_amount, expected_called_charge_amount",
+    ("charge_amount", "expected_called_charge_amount"),
     [
         (Decimal("8.00"), Decimal("8.00")),
         (None, Decimal("10.00")),
@@ -232,7 +232,7 @@ def test_transaction_request_charge_for_order(
 
 
 @pytest.mark.parametrize(
-    "refund_amount, expected_called_refund_amount",
+    ("refund_amount", "expected_called_refund_amount"),
     [
         (Decimal("8.00"), Decimal("8.00")),
         (None, Decimal("10.00")),
@@ -449,7 +449,7 @@ def test_transaction_request_cancelation_for_checkout(
 
 
 @pytest.mark.parametrize(
-    "charge_amount, expected_called_charge_amount",
+    ("charge_amount", "expected_called_charge_amount"),
     [
         (Decimal("8.00"), Decimal("8.00")),
         (None, Decimal("10.00")),
@@ -526,7 +526,7 @@ def test_transaction_request_charge_for_checkout(
 
 
 @pytest.mark.parametrize(
-    "refund_amount, expected_called_refund_amount",
+    ("refund_amount", "expected_called_refund_amount"),
     [
         (Decimal("8.00"), Decimal("8.00")),
         (None, Decimal("10.00")),

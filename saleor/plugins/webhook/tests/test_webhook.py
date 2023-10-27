@@ -61,7 +61,7 @@ third_url = "http://www.example.com/third/"
 
 
 @pytest.mark.parametrize(
-    "event_name, total_webhook_calls, expected_target_urls",
+    ("event_name", "total_webhook_calls", "expected_target_urls"),
     [
         (WebhookEventAsyncType.PRODUCT_CREATED, 1, {first_url}),
         (WebhookEventAsyncType.ORDER_FULLY_PAID, 2, {first_url, third_url}),

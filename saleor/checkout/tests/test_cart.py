@@ -13,7 +13,7 @@ from ..models import Checkout
 from ..utils import add_variant_to_checkout, calculate_checkout_quantity
 
 
-@pytest.fixture()
+@pytest.fixture
 def anonymous_checkout(db, channel_USD):
     return Checkout.objects.get_or_create(user=None, channel=channel_USD)[0]
 
@@ -70,7 +70,7 @@ def test_replacing_same_variant(checkout, product):
 def test_adding_invalid_quantity(checkout, product):
     variant = product.variants.get()
     checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="-1 is not a valid quantity"):
         add_variant_to_checkout(checkout_info, variant, -1)
 
 

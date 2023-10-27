@@ -61,7 +61,7 @@ EXPORT_PRODUCTS_BY_APP_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "input, called_data",
+    ("input", "called_data"),
     [
         (
             {
@@ -550,7 +550,7 @@ def test_export_products_mutation_with_channel_ids_invalid_object_type(
 
 
 @pytest.mark.parametrize(
-    "input, error_field",
+    ("input", "error_field"),
     [
         (
             {

@@ -51,7 +51,7 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
 """
 
 
-@pytest.mark.parametrize("is_staff", (False, True))
+@pytest.mark.parametrize("is_staff", [False, True])
 def test_resolve_attributes_with_hidden(
     user_api_client,
     staff_api_client,
@@ -516,13 +516,13 @@ def test_assign_product_attribute_having_variant_selection(
 
 
 @pytest.mark.parametrize(
-    "product_type_attribute_type, gql_attribute_type",
-    (
+    ("product_type_attribute_type", "gql_attribute_type"),
+    [
         (ProductAttributeType.PRODUCT, ProductAttributeType.VARIANT),
         (ProductAttributeType.VARIANT, ProductAttributeType.PRODUCT),
         (ProductAttributeType.PRODUCT, ProductAttributeType.PRODUCT),
         (ProductAttributeType.VARIANT, ProductAttributeType.VARIANT),
-    ),
+    ],
 )
 def test_assign_attribute_to_product_type_having_already_that_attribute(
     staff_api_client,
@@ -1212,11 +1212,11 @@ def test_sort_attributes_within_product_type_invalid_id(
 
 
 @pytest.mark.parametrize(
-    "attribute_type, relation_field, backref_field",
-    (
+    ("attribute_type", "relation_field", "backref_field"),
+    [
         ("VARIANT", "variant_attributes", "attributevariant"),
         ("PRODUCT", "product_attributes", "attributeproduct"),
-    ),
+    ],
 )
 def test_sort_attributes_within_product_type(
     staff_api_client,

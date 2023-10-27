@@ -96,7 +96,7 @@ def test_reordering_non_sequential(sorted_entries_gaps):
 
 
 @pytest.mark.parametrize(
-    "operation, expected_operations",
+    ("operation", "expected_operations"),
     [((0, +5), (+5, -1, -1, -1, -1, -1)), ((5, -5), (+1, +1, +1, +1, +1, -5))],
 )
 def test_inserting_at_the_edges(sorted_entries_seq, operation, expected_operations):

@@ -606,7 +606,7 @@ def test_query_gift_card_bought_event(
 
 
 @pytest.mark.parametrize(
-    "gift_card_type, count",
+    ("gift_card_type", "count"),
     [
         (GiftCardEventsEnum.BOUGHT.name, 1),
         (GiftCardEventsEnum.USED_IN_ORDER.name, 2),

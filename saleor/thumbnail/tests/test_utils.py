@@ -17,7 +17,7 @@ from ..utils import (
 
 
 @pytest.mark.parametrize(
-    "size, expected_value",
+    ("size", "expected_value"),
     [(1, 32), (16, 32), (60, 64), (80, 64), (256, 256), (8000, 4096), (15000, 4096)],
 )
 def test_get_thumbnail_size(size, expected_value):
@@ -29,7 +29,7 @@ def test_get_thumbnail_size(size, expected_value):
 
 
 @pytest.mark.parametrize(
-    "file_name, size, format, expected_name",
+    ("file_name", "size", "format", "expected_name"),
     [
         ("test.txt", 20, None, "test_thumbnail_20.txt"),
         ("test/test.txt", 20, None, "test/test_thumbnail_20.txt"),
@@ -51,7 +51,7 @@ def test_prepare_thumbnail_file_name(file_name, size, format, expected_name):
 
 
 @pytest.mark.parametrize(
-    "size, format", [(100, "WEBP"), (1, None), (200, ""), (64, "AVIF")]
+    ("size", "format"), [(100, "WEBP"), (1, None), (200, ""), (64, "AVIF")]
 )
 def test_prepare_image_proxy_url(size, format, collection):
     # given

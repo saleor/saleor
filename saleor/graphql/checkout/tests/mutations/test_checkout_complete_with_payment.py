@@ -329,7 +329,7 @@ def test_checkout_complete_with_metadata(
 
     assert order.metadata == {
         **checkout.metadata_storage.metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     assert order.private_metadata == checkout.metadata_storage.private_metadata
 
@@ -468,7 +468,7 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
 
     assert order.metadata == {
         **checkout.metadata_storage.metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     assert order.private_metadata == checkout.metadata_storage.private_metadata
 
@@ -2034,7 +2034,7 @@ def test_checkout_complete_checkout_without_lines(
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
+@pytest.mark.parametrize(("token", "error"), list(TOKEN_VALIDATION_MAPPING.items()))
 @patch(
     "saleor.payment.gateways.dummy_credit_card.plugin."
     "DummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
@@ -3927,13 +3927,11 @@ def test_checkout_complete_with_not_normalized_shipping_address(
 
     checkout = checkout_with_gift_card
     shipping_address = Address.objects.create(
-        **{
-            "country": "US",
-            "city": "Washington",
-            "country_area": "District of Columbia",
-            "street_address_1": "1600 Pennsylvania Avenue NW",
-            "postal_code": "20500",
-        }
+        country="US",
+        city="Washington",
+        country_area="District of Columbia",
+        street_address_1="1600 Pennsylvania Avenue NW",
+        postal_code="20500",
     )
     checkout.shipping_address = shipping_address
     checkout.shipping_method = shipping_method
@@ -3992,13 +3990,11 @@ def test_checkout_complete_with_not_normalized_billing_address(
 
     checkout = checkout_with_gift_card
     billing_address = Address.objects.create(
-        **{
-            "country": "US",
-            "city": "Washington",
-            "country_area": "District of Columbia",
-            "street_address_1": "1600 Pennsylvania Avenue NW",
-            "postal_code": "20500",
-        }
+        country="US",
+        city="Washington",
+        country_area="District of Columbia",
+        street_address_1="1600 Pennsylvania Avenue NW",
+        postal_code="20500",
     )
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method

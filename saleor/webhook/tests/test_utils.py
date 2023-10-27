@@ -115,7 +115,7 @@ def test_get_webhook_for_event_not_returning_any_webhook_for_sync_event_types(
 
 
 @pytest.mark.parametrize(
-    "error,event_type",
+    ("error", "event_type"),
     [
         (
             ApiCallTruncationError,
@@ -135,11 +135,9 @@ def test_truncation_error_extra_fields(
     err = error(operation, bytes_limit, payload_size, **kwargs)
     assert str(err)
     assert err.extra == {
-        **{
-            "observability_event_type": event_type,
-            "operation": operation,
-            "bytes_limit": bytes_limit,
-            "payload_size": payload_size,
-        },
+        "observability_event_type": event_type,
+        "operation": operation,
+        "bytes_limit": bytes_limit,
+        "payload_size": payload_size,
         **kwargs,
     }

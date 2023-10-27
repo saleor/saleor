@@ -192,7 +192,7 @@ def users_with_similar_emails():
 
 
 @pytest.mark.parametrize(
-    "email,expected_user",
+    ("email", "expected_user"),
     [
         ("andrew@example.com", 0),
         ("Andrew@example.com", 1),

@@ -8,7 +8,7 @@ from ..utils import one_of_permissions_or_auth_filter_required
 
 
 @pytest.mark.parametrize(
-    "permissions, expected_result",
+    ("permissions", "expected_result"),
     [
         (None, True),
         ([], True),
@@ -76,7 +76,7 @@ def test_permissions_for_app(
 
 
 @pytest.mark.parametrize(
-    "permissions, expected_result",
+    ("permissions", "expected_result"),
     [
         (None, True),
         ([], True),
@@ -144,7 +144,7 @@ def test_permissions_for_staff_user(
 
 
 @pytest.mark.parametrize(
-    "permissions, expected_result",
+    ("permissions", "expected_result"),
     [
         (None, True),
         ([], True),

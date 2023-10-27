@@ -406,7 +406,7 @@ def order_bulk_input(
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def order_bulk_input_with_multiple_order_lines_and_fulfillments(
     order_bulk_input,
     product_variant_list,
@@ -1907,7 +1907,7 @@ def test_order_bulk_create_update_stocks_missing_stocks(
 
 
 @pytest.mark.parametrize(
-    "error_policy,expected_order_count",
+    ("error_policy", "expected_order_count"),
     [
         (ErrorPolicyEnum.REJECT_EVERYTHING.name, 0),
         (ErrorPolicyEnum.REJECT_FAILED_ROWS.name, 1),
@@ -2657,8 +2657,16 @@ def test_order_bulk_create_error_invalid_quantity(
 
 
 @pytest.mark.parametrize(
-    "quantity,total_net,total_gross,undiscounted_net,undiscounted_gross,message,code,"
-    "field",
+    (
+        "quantity",
+        "total_net",
+        "total_gross",
+        "undiscounted_net",
+        "undiscounted_gross",
+        "message",
+        "code",
+        "field",
+    ),
     [
         (
             -5,
@@ -3121,7 +3129,7 @@ def test_order_bulk_create_error_invoice_invalid_url(
 
 
 @pytest.mark.parametrize(
-    "value_type,message",
+    ("value_type", "message"),
     [
         (
             DiscountValueTypeEnum.FIXED.name,
@@ -3207,7 +3215,7 @@ def test_order_bulk_create_user_not_found_but_user_email_provided(
 
 
 @pytest.mark.parametrize(
-    "status,fulfillment_quantity,is_invalid",
+    ("status", "fulfillment_quantity", "is_invalid"),
     [
         (OrderStatusEnum.FULFILLED, 5, False),
         (OrderStatusEnum.UNFULFILLED, 0, False),
@@ -3646,7 +3654,7 @@ def test_order_bulk_create_error_negative_order_line_index(
 
 
 @pytest.mark.parametrize(
-    "status,order_quantity,fulfillment_quantity",
+    ("status", "order_quantity", "fulfillment_quantity"),
     [
         (OrderStatusEnum.PARTIALLY_FULFILLED.name, 5, 0),
         (OrderStatusEnum.PARTIALLY_FULFILLED.name, 5, 5),

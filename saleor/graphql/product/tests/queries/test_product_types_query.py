@@ -35,7 +35,7 @@ def test_product_types(user_api_client, product_type, channel_USD):
 
 
 @pytest.mark.parametrize(
-    "product_type_filter, count",
+    ("product_type_filter", "count"),
     [
         ({"configurable": "CONFIGURABLE"}, 2),  # has_variants
         ({"configurable": "SIMPLE"}, 1),  # !has_variants
@@ -114,7 +114,7 @@ QUERY_PRODUCT_TYPES_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "product_type_sort, result_order",
+    ("product_type_sort", "result_order"),
     [
         ({"field": "NAME", "direction": "ASC"}, ["Digital", "Subscription", "Tools"]),
         ({"field": "NAME", "direction": "DESC"}, ["Tools", "Subscription", "Digital"]),
@@ -217,13 +217,13 @@ QUERY_FILTER_PRODUCT_TYPES = """
 
 
 @pytest.mark.parametrize(
-    "search, expected_names",
-    (
+    ("search", "expected_names"),
+    [
         ("", ["The best juices", "The best beers", "The worst beers"]),
         ("best", ["The best juices", "The best beers"]),
         ("worst", ["The worst beers"]),
         ("average", []),
-    ),
+    ],
 )
 def test_filter_product_types_by_custom_search_value(
     api_client, search, expected_names

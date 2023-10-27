@@ -10,7 +10,7 @@ repos:
         exclude: ^templates/templated_email/compiled/
         exclude_types: [svg]
 
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
+  - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.2
     hooks:
       - id: ruff

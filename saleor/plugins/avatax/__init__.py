@@ -147,7 +147,7 @@ def api_get_request(
         return {}
 
 
-def _validate_adddress_details(
+def _validate_address_details(
     shipping_address: Optional[Address],
     is_shipping_required: bool,
     address: Optional[Address],
@@ -179,7 +179,7 @@ def _validate_order(order: "Order") -> bool:
         delivery_method = order.shipping_method
         shipping_address = order.shipping_address
         address = shipping_address or order.billing_address
-    valid_address_details = _validate_adddress_details(
+    valid_address_details = _validate_address_details(
         shipping_address, shipping_required, address, delivery_method
     )
     if not valid_address_details:
@@ -203,7 +203,7 @@ def _validate_checkout(
     shipping_required = is_shipping_required(lines)
     shipping_address = checkout_info.delivery_method_info.shipping_address
     address = shipping_address or checkout_info.billing_address
-    return _validate_adddress_details(
+    return _validate_address_details(
         shipping_address,
         shipping_required,
         address,

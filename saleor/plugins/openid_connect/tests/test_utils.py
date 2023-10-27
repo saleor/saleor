@@ -850,7 +850,7 @@ def test_jwt_token_without_expiration_claim_empty_default_channel_group(
 
 
 @pytest.mark.parametrize(
-    "email, expected_domain",
+    ("email", "expected_domain"),
     [
         ("test@example.com", "example.com"),
         ("ABCd", None),

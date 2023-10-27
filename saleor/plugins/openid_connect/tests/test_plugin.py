@@ -738,28 +738,27 @@ test_url = "http://saleor.io/"
 
 
 @pytest.mark.parametrize(
-    "c_id,c_secret,authorization_url,token_url,jwks_url,user_info_url",
-    (
-        ["", "ss", f"{test_url}auth", f"{test_url}token", f"{test_url}jwks", ""],
-        ["cc", "", f"{test_url}auth", f"{test_url}token", f"{test_url}jwks", ""],
-        ["cc", "123", "", f"{test_url}token", f"{test_url}jwks", ""],
-        ["cc", "123", f"{test_url}auth", "", f"{test_url}jwks", ""],
-        ["cc", "123", f"{test_url}auth", f"{test_url}token", "", ""],
-        [
+    ("c_id", "c_secret", "authorization_url", "token_url", "jwks_url", "user_info_url"),
+    [
+        ("", "ss", f"{test_url}auth", f"{test_url}token", f"{test_url}jwks", ""),
+        ("cc", "", f"{test_url}auth", f"{test_url}token", f"{test_url}jwks", ""),
+        ("cc", "123", "", f"{test_url}token", f"{test_url}jwks", ""),
+        ("cc", "123", f"{test_url}auth", "", f"{test_url}jwks", ""),
+        ("cc", "123", f"{test_url}auth", f"{test_url}token", "", ""),
+        (
             "cc",
             "123",
             "saleor.io/auth",
             f"{test_url}token",
             f"{test_url}token",
             "",
-        ],
-        ["cc", "123", f"{test_url}auth", "http://", f"{test_url}token", ""],
-        ["cc", "123", f"{test_url}auth", "http://", f"{test_url}token", ""],
-        ["cc", "123", "not_url", f"{test_url}token", f"{test_url}token", ""],
-        ["cc", "123", "", "", "", "not_url"],
-        ["cc", "123", "", "", "", f"{test_url}/userinfo"],
-        ["cc", "123", "", "", "", ""],
-    ),
+        ),
+        ("cc", "123", f"{test_url}auth", "http://", f"{test_url}token", ""),
+        ("cc", "123", "not_url", f"{test_url}token", f"{test_url}token", ""),
+        ("cc", "123", "", "", "", "not_url"),
+        ("cc", "123", "", "", "", f"{test_url}/userinfo"),
+        ("cc", "123", "", "", "", ""),
+    ],
 )
 def test_validate_plugin_configuration_raises_error(
     c_id,

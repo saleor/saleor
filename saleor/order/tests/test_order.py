@@ -704,7 +704,13 @@ def test_validate_voucher_in_order_without_voucher(
 
 
 @pytest.mark.parametrize(
-    "subtotal, discount_value, discount_type, min_spent_amount, expected_value",
+    (
+        "subtotal",
+        "discount_value",
+        "discount_type",
+        "min_spent_amount",
+        "expected_value",
+    ),
     [
         ("100", 10, DiscountValueType.FIXED, None, 10),
         ("100.05", 10, DiscountValueType.PERCENTAGE, 100, Decimal("10.01")),
@@ -744,7 +750,7 @@ def test_value_voucher_order_discount(
 
 
 @pytest.mark.parametrize(
-    "shipping_cost, discount_value, discount_type, expected_value",
+    ("shipping_cost", "discount_value", "discount_type", "expected_value"),
     [(10, 50, DiscountValueType.PERCENTAGE, 5), (10, 20, DiscountValueType.FIXED, 10)],
 )
 def test_shipping_voucher_order_discount(
@@ -783,8 +789,13 @@ def test_shipping_voucher_order_discount(
 
 
 @pytest.mark.parametrize(
-    "total, total_quantity, min_spent_amount, min_checkout_items_quantity,"
-    "voucher_type",
+    (
+        "total",
+        "total_quantity",
+        "min_spent_amount",
+        "min_checkout_items_quantity",
+        "voucher_type",
+    ),
     [
         (99, 10, 100, 10, VoucherType.SHIPPING),
         (100, 9, 100, 10, VoucherType.SHIPPING),
@@ -834,7 +845,7 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
 
 
 @pytest.mark.parametrize(
-    "discount_value, discount_type, apply_once_per_order, discount_amount",
+    ("discount_value", "discount_type", "apply_once_per_order", "discount_amount"),
     [
         (5, DiscountValueType.FIXED, True, "5"),
         (5, DiscountValueType.FIXED, False, "25"),
@@ -966,7 +977,7 @@ def test_change_order_line_quantity_changes_total_prices(
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @pytest.mark.parametrize(
-    "has_standard,has_digital", ((True, True), (True, False), (False, True))
+    ("has_standard", "has_digital"), [(True, True), (True, False), (False, True)]
 )
 def test_send_fulfillment_order_lines_mails_by_user(
     mocked_notify,
@@ -1010,7 +1021,7 @@ def test_send_fulfillment_order_lines_mails_by_user(
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @pytest.mark.parametrize(
-    "has_standard,has_digital", ((True, True), (True, False), (False, True))
+    ("has_standard", "has_digital"), [(True, True), (True, False), (False, True)]
 )
 def test_send_fulfillment_order_lines_mails_by_app(
     mocked_notify,
@@ -1053,7 +1064,7 @@ def test_send_fulfillment_order_lines_mails_by_app(
 
 
 @pytest.mark.parametrize(
-    "event_fun, expected_event_type",
+    ("event_fun", "expected_event_type"),
     [
         (event_order_confirmation_notification, OrderEventsEmails.ORDER_CONFIRMATION),
         (event_payment_confirmed_notification, OrderEventsEmails.PAYMENT),
@@ -1077,7 +1088,7 @@ def test_email_sent_event_with_user(order, event_fun, expected_event_type):
 
 
 @pytest.mark.parametrize(
-    "event_fun, expected_event_type",
+    ("event_fun", "expected_event_type"),
     [
         (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
         (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
@@ -1106,7 +1117,7 @@ def test_email_sent_event_with_user_without_app(order, event_fun, expected_event
 
 
 @pytest.mark.parametrize(
-    "event_fun, expected_event_type",
+    ("event_fun", "expected_event_type"),
     [
         (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
         (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
@@ -1134,7 +1145,7 @@ def test_email_sent_event_with_app(order, app, event_fun, expected_event_type):
 
 
 @pytest.mark.parametrize(
-    "event_fun, expected_event_type",
+    ("event_fun", "expected_event_type"),
     [
         (event_order_confirmation_notification, OrderEventsEmails.ORDER_CONFIRMATION),
         (event_payment_confirmed_notification, OrderEventsEmails.PAYMENT),
@@ -1157,7 +1168,7 @@ def test_email_sent_event_without_user_pk(order, event_fun, expected_event_type)
 
 
 @pytest.mark.parametrize(
-    "event_fun, expected_event_type",
+    ("event_fun", "expected_event_type"),
     [
         (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
         (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),

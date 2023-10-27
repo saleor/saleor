@@ -159,7 +159,7 @@ def test_serialize_checkout_lines_with_promotion(checkout_with_item_on_promotion
 
 
 @pytest.mark.parametrize(
-    "charge_taxes, prices_entered_with_tax",
+    ("charge_taxes", "prices_entered_with_tax"),
     [(False, False), (False, True), (True, False), (True, True)],
 )
 def test_serialize_checkout_lines_for_tax_calculation(

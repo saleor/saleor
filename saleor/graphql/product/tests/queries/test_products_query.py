@@ -1226,7 +1226,7 @@ PRODUCT_SEARCH_QUERY = """
 
 
 @pytest.mark.parametrize(
-    "search, indexes",
+    ("search", "indexes"),
     [
         ("small", [2]),
         ("big", [0, 1]),

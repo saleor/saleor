@@ -39,8 +39,14 @@ def prepare_promotion_with_rules(
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    "variant_price, first_discount_type, first_discount_value, second_discount_type, "
-    "second_discount_value, expected_discount",
+    (
+        "variant_price",
+        "first_discount_type",
+        "first_discount_value",
+        "second_discount_type",
+        "second_discount_value",
+        "expected_discount",
+    ),
     [
         ("30", "FIXED", 5.50, "PERCENTAGE", 20, 6.00),
         ("30", "PERCENTAGE", 11, "PERCENTAGE", 13, 3.90),

@@ -2221,7 +2221,7 @@ def test_create_product_no_values_given(
 
 
 @pytest.mark.parametrize(
-    "value, expected_name, expected_slug",
+    ("value", "expected_name", "expected_slug"),
     [(20.1, "20.1", "20_1"), (20, "20", "20"), ("1", "1", "1")],
 )
 def test_create_product_with_numeric_attribute_new_attribute_value(
@@ -2641,8 +2641,8 @@ mutation createProduct(
 
 
 @pytest.mark.parametrize(
-    "weight, expected_weight_value",
-    (
+    ("weight", "expected_weight_value"),
+    [
         ("0", 0),
         (0, 0),
         (11.11, 11.11),
@@ -2651,7 +2651,7 @@ mutation createProduct(
         ({"value": 11.11, "unit": "kg"}, 11.11),
         ({"value": 11, "unit": "g"}, 0.011),
         ({"value": "1", "unit": "ounce"}, 0.028),
-    ),
+    ],
 )
 def test_create_product_with_weight_variable(
     weight,
@@ -2684,8 +2684,8 @@ def test_create_product_with_weight_variable(
 
 
 @pytest.mark.parametrize(
-    "weight, expected_weight_value",
-    (
+    ("weight", "expected_weight_value"),
+    [
         ("0", 0),
         (0, 0),
         ("11.11", 11.11),
@@ -2694,7 +2694,7 @@ def test_create_product_with_weight_variable(
         ('{value: 11.11, unit: "kg"}', 11.11),
         ('{value: 11, unit: "g"}', 0.011),
         ('{value: "1", unit: "ounce"}', 0.028),
-    ),
+    ],
 )
 def test_create_product_with_weight_input(
     weight,

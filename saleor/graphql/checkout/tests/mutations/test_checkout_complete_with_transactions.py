@@ -1177,7 +1177,7 @@ def test_checkout_complete_with_metadata(
 
     assert order.metadata == {
         **checkout.metadata_storage.metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     assert order.private_metadata == checkout.metadata_storage.private_metadata
 
@@ -1293,7 +1293,7 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
 
     assert order.metadata == {
         **checkout.metadata_storage.metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     assert order.private_metadata == checkout.metadata_storage.private_metadata
 
@@ -3403,13 +3403,11 @@ def test_checkout_complete_with_not_normalized_shipping_address(
     # given
 
     shipping_address = Address.objects.create(
-        **{
-            "country": "US",
-            "city": "Washington",
-            "country_area": "District of Columbia",
-            "street_address_1": "1600 Pennsylvania Avenue NW",
-            "postal_code": "20500",
-        }
+        country="US",
+        city="Washington",
+        country_area="District of Columbia",
+        street_address_1="1600 Pennsylvania Avenue NW",
+        postal_code="20500",
     )
     checkout = prepare_checkout_for_test(
         checkout_with_gift_card,
@@ -3450,13 +3448,11 @@ def test_checkout_complete_with_not_normalized_billing_address(
 ):
     # given
     billing_address = Address.objects.create(
-        **{
-            "country": "US",
-            "city": "Washington",
-            "country_area": "District of Columbia",
-            "street_address_1": "1600 Pennsylvania Avenue NW",
-            "postal_code": "20500",
-        }
+        country="US",
+        city="Washington",
+        country_area="District of Columbia",
+        street_address_1="1600 Pennsylvania Avenue NW",
+        postal_code="20500",
     )
     checkout = prepare_checkout_for_test(
         checkout_with_gift_card,

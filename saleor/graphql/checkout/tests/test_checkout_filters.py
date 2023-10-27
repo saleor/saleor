@@ -130,7 +130,7 @@ def test_checkout_query_with_filter_channels_with_empty_channel(
 
 
 @pytest.mark.parametrize(
-    "checkouts_filter, count",
+    ("checkouts_filter", "count"),
     [
         (
             {
@@ -168,7 +168,7 @@ def test_checkout_query_with_filter_created(
 
 
 @pytest.mark.parametrize(
-    "checkouts_filter, user_field, user_value",
+    ("checkouts_filter", "user_field", "user_value"),
     [
         ({"customer": "admin"}, "email", "admin@example.com"),
         ({"customer": "John"}, "first_name", "johnny"),
@@ -221,7 +221,7 @@ QUERY_CHECKOUT_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "checkout_sort, result_order",
+    ("checkout_sort", "result_order"),
     [
         ({"field": "CREATION_DATE", "direction": "ASC"}, [1, 0, 2]),
         ({"field": "CREATION_DATE", "direction": "DESC"}, [2, 0, 1]),
@@ -291,7 +291,7 @@ def test_query_checkout_with_sort(
 
 
 @pytest.mark.parametrize(
-    "checkouts_filter, count",
+    ("checkouts_filter", "count"),
     [
         ({"search": "user_email"}, 2),
         ({"search": "john@wayne.com"}, 1),
@@ -396,7 +396,7 @@ def test_checkouts_query_with_filter_search_by_token(
 
 
 @pytest.mark.parametrize(
-    "transaction_data, statuses, expected_count",
+    ("transaction_data", "statuses", "expected_count"),
     [
         (
             {"authorized_value": Decimal("10")},
@@ -507,7 +507,7 @@ def test_checkouts_query_with_filter_authorize_status(
 
 
 @pytest.mark.parametrize(
-    "transaction_data, statuses, expected_count",
+    ("transaction_data", "statuses", "expected_count"),
     [
         (
             {"charged_value": Decimal("10")},

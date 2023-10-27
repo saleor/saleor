@@ -389,7 +389,7 @@ def test_order_shipping_methods(
 
 
 @pytest.mark.parametrize(
-    "webhook_response, expected_count",
+    ("webhook_response", "expected_count"),
     [(lambda s: [ExcludedShippingMethod(s.id, "")], 0), (lambda s: [], 1)],
 )
 @mock.patch(

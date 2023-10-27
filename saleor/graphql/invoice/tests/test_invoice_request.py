@@ -172,7 +172,7 @@ def test_invoice_request_by_app(
 
 
 @pytest.mark.parametrize(
-    "status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED, OrderStatus.EXPIRED)
+    "status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED, OrderStatus.EXPIRED]
 )
 def test_invoice_request_invalid_order_status(
     status, staff_api_client, permission_group_manage_orders, order

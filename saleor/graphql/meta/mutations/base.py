@@ -279,4 +279,4 @@ class BaseMetadataMutation(BaseMutation):
         if isinstance(instance, Promotion) and instance.old_sale_id:
             instance = ChannelContext(node=instance, channel_slug=None)
 
-        return cls(**{"item": instance, "errors": []})
+        return cls(item=instance, errors=[])

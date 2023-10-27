@@ -49,7 +49,7 @@ def test_authorize_success(payment_dummy_credit_card):
 
 
 @pytest.mark.parametrize(
-    "is_active, charge_status, error",
+    ("is_active", "charge_status", "error"),
     [
         (False, ChargeStatus.NOT_CHARGED, NO_LONGER_ACTIVE),
         (False, ChargeStatus.PARTIALLY_CHARGED, NO_LONGER_ACTIVE),
@@ -131,7 +131,7 @@ def test_void_success(payment_txn_preauth):
 
 
 @pytest.mark.parametrize(
-    "is_active, charge_status, error",
+    ("is_active", "charge_status", "error"),
     [
         (True, ChargeStatus.PARTIALLY_CHARGED, LACK_OF_SUCCESSFUL_TRANSACTION),
         (True, ChargeStatus.FULLY_CHARGED, LACK_OF_SUCCESSFUL_TRANSACTION),
@@ -187,7 +187,7 @@ def test_void_method_error(dummy_payment_data, dummy_gateway_config, monkeypatch
 
 
 @pytest.mark.parametrize(
-    "amount, charge_status, token",
+    ("amount", "charge_status", "token"),
     [
         ("98.40", ChargeStatus.FULLY_CHARGED, "1111111111111111"),
         (70, ChargeStatus.PARTIALLY_CHARGED, "2222222222222222"),
@@ -216,7 +216,7 @@ def test_capture_success(amount, charge_status, token, payment_txn_preauth):
 
 
 @pytest.mark.parametrize(
-    "amount, captured_amount, charge_status, is_active, error",
+    ("amount", "captured_amount", "charge_status", "is_active", "error"),
     [
         (80, 0, ChargeStatus.NOT_CHARGED, False, NO_LONGER_ACTIVE),
         (120, 0, ChargeStatus.NOT_CHARGED, True, CANNOT_CHARGE_MORE_THAN_UNCAPTURED),
@@ -244,7 +244,7 @@ def test_capture_failed(
     assert e._excinfo[1].message == error
 
 
-@pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
+@pytest.mark.parametrize(("token", "error"), list(TOKEN_VALIDATION_MAPPING.items()))
 def test_capture_error_in_response(token, error, payment_txn_preauth):
     # given
     payment_txn_preauth.gateway = "mirumee.payments.dummy_credit_card"
@@ -265,7 +265,7 @@ def test_capture_error_in_response(token, error, payment_txn_preauth):
     assert e._excinfo[1].message == error
 
 
-@pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
+@pytest.mark.parametrize(("token", "error"), list(TOKEN_VALIDATION_MAPPING.items()))
 def test_capture_method_error(
     token, error, dummy_payment_data, dummy_gateway_config, monkeypatch
 ):
@@ -283,8 +283,11 @@ def test_capture_method_error(
 
 @pytest.mark.parametrize(
     (
-        "initial_captured_amount, refund_amount, final_captured_amount, "
-        "final_charge_status, active_after"
+        "initial_captured_amount",
+        "refund_amount",
+        "final_captured_amount",
+        "final_charge_status",
+        "active_after",
     ),
     [
         (80, 80, 0, ChargeStatus.FULLY_REFUNDED, False),
@@ -321,7 +324,7 @@ def test_refund_success(
 
 
 @pytest.mark.parametrize(
-    "initial_captured_amount, refund_amount, initial_charge_status, error",
+    ("initial_captured_amount", "refund_amount", "initial_charge_status", "error"),
     [
         (0, 10, ChargeStatus.NOT_CHARGED, CANNOT_REFUND_MORE_THAN_CAPTURE),
         (10, 20, ChargeStatus.PARTIALLY_CHARGED, CANNOT_REFUND_MORE_THAN_CAPTURE),
@@ -397,7 +400,7 @@ def test_process_payment_success(token, payment_dummy_credit_card):
     assert payment_dummy_credit_card.is_active
 
 
-@pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
+@pytest.mark.parametrize(("token", "error"), list(TOKEN_VALIDATION_MAPPING.items()))
 def test_process_payment_failed(token, error, payment_dummy_credit_card):
     # when
     with pytest.raises(PaymentError) as e:
@@ -508,7 +511,7 @@ def test_process_payment_pre_authorized_and_capture_error(
     assert e._excinfo[1].message == TOKEN_VALIDATION_MAPPING[token]
 
 
-@pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
+@pytest.mark.parametrize(("token", "error"), list(TOKEN_VALIDATION_MAPPING.items()))
 def test_process_payment_method_error_in_response(
     token, error, dummy_gateway_config, dummy_payment_data
 ):

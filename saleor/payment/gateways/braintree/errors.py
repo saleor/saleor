@@ -23,7 +23,7 @@ from braintree.exceptions.too_many_requests_error import TooManyRequestsError
 from braintree.exceptions.upgrade_required_error import UpgradeRequiredError
 
 DEFAULT_ERROR_MESSAGE = (
-    "Unable to process the transaction. " "Transaction's token is incorrect or expired."
+    "Unable to process the transaction. Transaction's token is incorrect or expired."
 )
 
 
