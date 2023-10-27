@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
@@ -80,8 +79,8 @@ class ProductVariantStocksDelete(BaseMutation):
             WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
         )
         for stock in stocks_to_delete:
-            transaction.on_commit(
-                lambda: manager.product_variant_out_of_stock(stock, webhooks=webhooks)
+            cls.call_event(
+                manager.product_variant_out_of_stock, stock, webhooks=webhooks
             )
 
         stocks_to_delete.delete()

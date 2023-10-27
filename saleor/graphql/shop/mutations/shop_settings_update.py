@@ -213,6 +213,6 @@ class ShopSettingsUpdate(BaseMutation):
             or instance.private_metadata != old_private_metadata
         ):
             manager = get_plugin_manager_promise(info.context).get()
-            manager.shop_metadata_updated(instance)
+            cls.call_event(manager.shop_metadata_updated, instance)
 
         return ShopSettingsUpdate(shop=Shop())

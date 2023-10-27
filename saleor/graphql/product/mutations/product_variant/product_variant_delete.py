@@ -135,7 +135,6 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
             order_pks = draft_order_lines_data.order_pks
             if order_pks:
                 recalculate_orders_task.delay(list(order_pks))
-
             cls.call_event(manager.product_variant_deleted, variant)
 
         return response
