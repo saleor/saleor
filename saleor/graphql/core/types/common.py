@@ -30,6 +30,7 @@ from ..descriptions import (
     ADDED_IN_36,
     ADDED_IN_312,
     ADDED_IN_314,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -300,7 +301,7 @@ class DiscountError(ProductWithoutVariantError):
     )
     voucher_codes = NonNullList(
         graphene.String,
-        description="List of voucher codes which causes the error.",
+        description="List of voucher codes which causes the error." + ADDED_IN_318,
         required=False,
     )
 

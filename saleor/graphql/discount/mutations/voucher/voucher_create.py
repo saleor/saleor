@@ -86,10 +86,10 @@ class VoucherInput(BaseInputObjectType):
     )
     single_use = graphene.Boolean(
         description=(
-            "When set to 'True', each voucher is limited to a single use; "
-            "otherwise, usage remains unrestricted."
+            "When set to 'True', each voucher code can be used only once; "
+            "otherwise, codes can be used multiple times depending on `usageLimit`."
             "\n\nThe option can only be changed if none of the voucher codes "
-            "have been used." + ADDED_IN_318
+            "have been used." + ADDED_IN_318 + PREVIEW_FEATURE
         )
     )
     usage_limit = graphene.Int(
@@ -196,24 +196,16 @@ class VoucherCreate(ModelMutation):
                 use_camel_case=True,
             )
 
-        if "code" in data:
-            cls._clean_old_code(data)
-
         if "add_codes" in data:
             cls._clean_new_codes(data)
+
+        if "code" in data:
+            cls._clean_old_code(data)
 
     @classmethod
     def construct_codes_instances(
         cls, code, codes_data, cleaned_input, voucher_instance
     ):
-        if code:
-            return [
-                models.VoucherCode(
-                    code=code,
-                    voucher=voucher_instance,
-                )
-            ]
-
         if codes_data:
             return [
                 models.VoucherCode(
@@ -221,6 +213,14 @@ class VoucherCreate(ModelMutation):
                     voucher=voucher_instance,
                 )
                 for code in codes_data
+            ]
+
+        if code:
+            return [
+                models.VoucherCode(
+                    code=code,
+                    voucher=voucher_instance,
+                )
             ]
 
         return []

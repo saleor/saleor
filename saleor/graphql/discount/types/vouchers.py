@@ -14,7 +14,12 @@ from ...channel.types import (
 from ...core import ResolveInfo, types
 from ...core.connection import CountableConnection, create_connection_slice
 from ...core.context import get_database_connection_name
-from ...core.descriptions import ADDED_IN_31, ADDED_IN_318, DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_318,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
 from ...core.types import ModelObjectType, Money, NonNullList
@@ -73,7 +78,7 @@ class VoucherCode(ModelObjectType[models.VoucherCode]):
     )
 
     class Meta:
-        description = "Represents voucher code." + ADDED_IN_318
+        description = "Represents voucher code." + ADDED_IN_318 + PREVIEW_FEATURE
         model = models.VoucherCode
 
 
@@ -116,8 +121,9 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     single_use = graphene.Boolean(
         required=True,
         description=(
-            "Determine if the voucher is limited to a single use or unlimited use."
+            "Determine if the voucher codes can be used once or multiple times."
             + ADDED_IN_318
+            + PREVIEW_FEATURE
         ),
     )
     only_for_staff = graphene.Boolean(
