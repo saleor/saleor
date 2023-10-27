@@ -5,8 +5,6 @@ from .tasks.saleor3_17 import move_codes_to_voucher_code_task
 from django.db.models.signals import post_migrate
 from django.apps import apps as registry
 
-BATCH_SIZE = 5000
-
 
 def move_codes_to_new_model(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):

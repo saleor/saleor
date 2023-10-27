@@ -34,7 +34,7 @@ from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountType, DiscountValueType
-from ..discount.models import NotApplicable, OrderLineDiscount
+from ..discount.models import NotApplicable, OrderLineDiscount, VoucherCode
 from ..discount.utils import (
     add_voucher_usage_by_customer,
     get_sale_id,
@@ -97,7 +97,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     from ..app.models import App
-    from ..discount.models import Voucher, VoucherCode
+    from ..discount.models import Voucher
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
 
@@ -1545,12 +1545,12 @@ def complete_checkout_with_payment(
         # We need to refetch the checkout info to ensure that we process checkout
         # for correct data.
         lines, _ = fetch_checkout_lines(checkout, skip_recalculation=True)
-        checkout_info = fetch_checkout_info(checkout, lines, manager)
-
         # reassign voucher data that was used during payment process to allow voucher
         # usage releasing in case of checkout complete failure
-        checkout_info.voucher = voucher
-        checkout_info.voucher_code = voucher_code
+        checkout_info = fetch_checkout_info(
+            checkout, lines, manager, voucher=voucher, voucher_code=voucher_code
+        )
+
         order, action_required, action_data = complete_checkout_post_payment_part(
             manager=manager,
             checkout_info=checkout_info,
