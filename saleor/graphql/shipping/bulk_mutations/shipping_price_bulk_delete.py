@@ -51,4 +51,4 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.SHIPPING_PRICE_DELETED)
         for method in shipping_methods:
-            manager.shipping_price_deleted(method, webhooks=webhooks)
+            cls.call_event(manager.shipping_price_deleted, method, webhooks=webhooks)
