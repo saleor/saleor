@@ -1549,12 +1549,12 @@ def complete_checkout_with_payment(
         # We need to refetch the checkout info to ensure that we process checkout
         # for correct data.
         lines, _ = fetch_checkout_lines(checkout, skip_recalculation=True)
-        checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         # reassign voucher data that was used during payment process to allow voucher
         # usage releasing in case of checkout complete failure
-        checkout_info.voucher = voucher
-        checkout_info.voucher_code = voucher_code
+        checkout_info = fetch_checkout_info(
+            checkout, lines, manager, voucher=voucher, voucher_code=voucher_code
+        )
 
         order, action_required, action_data = complete_checkout_post_payment_part(
             manager=manager,
