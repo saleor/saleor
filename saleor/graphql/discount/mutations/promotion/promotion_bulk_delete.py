@@ -43,7 +43,6 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
         product_ids = cls.get_product_ids(queryset)
         promotions = [promotion for promotion in queryset]
         queryset.delete()
-
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.PROMOTION_DELETED)
         for promotion in promotions:

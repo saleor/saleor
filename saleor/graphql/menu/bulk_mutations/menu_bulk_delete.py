@@ -39,4 +39,4 @@ class MenuBulkDelete(ModelBulkDeleteMutation):
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.MENU_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
         for menu in menus:
-            manager.menu_deleted(menu, webhooks=webhooks)
+            cls.call_event(manager.menu_deleted, menu, webhooks=webhooks)

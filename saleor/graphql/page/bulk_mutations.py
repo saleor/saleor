@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
@@ -106,7 +105,7 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
         for pt in page_types:
-            transaction.on_commit(lambda: manager.page_type_deleted(pt))
+            cls.call_event(manager.page_type_deleted, pt)
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pks):

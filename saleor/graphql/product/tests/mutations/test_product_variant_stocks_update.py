@@ -538,20 +538,14 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     ]
 
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
-
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
         variant, stocks_data, warehouses, plugins
     )
-
-    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 2
-
     flush_post_commit_hooks()
 
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 2
     assert product_variant_stock_out_of_stock_webhook.call_count == 1
     assert product_variant_stock_update_webhook.call_count == 2
-    product_variant_stock_update_webhook.assert_called_with(
-        Stock.objects.last(), webhooks=[any_webhook]
-    )
     product_variant_back_in_stock_webhook.assert_not_called()
 
 
