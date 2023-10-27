@@ -183,6 +183,7 @@ def test_create_product(
     assert color_value_slug in values
 
     product = Product.objects.first()
+    assert product.search_index_dirty is True
     assert product.metadata == {metadata_key: metadata_value}
     assert product.private_metadata == {metadata_key: metadata_value}
 
@@ -191,6 +192,59 @@ def test_create_product(
     update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
         [product.id]
     )
+
+
+def test_create_product_without_slug_and_not_allowed_characters_for_slug_in_name(
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": "->>",
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["slug"] == "-"
+
+
+def test_create_second_product_without_slug_and_not_allowed_characters_for_slug_in_name(
+    staff_api_client, product_type, permission_manage_products, product
+):
+    # given
+    product.slug = "-"
+    product.save(update_fields=["slug"])
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": "->>",
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["slug"] == "--2"
 
 
 def test_create_product_use_tax_class_from_product_type(
@@ -530,8 +584,6 @@ def test_create_product_no_value_for_rich_text_attribute(
     rich_text_attribute,
     permission_manage_products,
 ):
-    """Ensure mutation not fail when as attributes input only rich text attribute id
-    is provided."""
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -656,8 +708,6 @@ def test_create_product_no_value_for_plain_text_attribute(
     permission_manage_products,
 ):
     # given
-    """Ensure mutation not fail when as attributes input only plain text attribute id
-    is provided."""
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -832,8 +882,6 @@ def test_create_product_no_value_for_date_attribute(
     date_attribute,
     permission_manage_products,
 ):
-    """Ensure mutation not fail when as attributes input only date attribute id
-    is provided."""
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -937,8 +985,6 @@ def test_create_product_no_value_for_boolean_attribute(
     boolean_attribute,
     permission_manage_products,
 ):
-    """Ensure mutation not fail when as attributes input only boolean attribute id
-    is provided."""
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)

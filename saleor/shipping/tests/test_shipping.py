@@ -118,12 +118,10 @@ def test_applicable_shipping_methods_country_code_outside_shipping_zone(
     assert method not in result
 
 
-def test_applicable_shipping_methods_inproper_shipping_method_type(
+def test_applicable_shipping_methods_improper_shipping_method_type(
     shipping_zone, channel_USD
 ):
-    """Case when shipping suits the price requirements of the weight type
-    shipping method and the other way around.
-    """
+    """Test price-based and weight-based shipping method qualification."""
     price_method = shipping_zone.shipping_methods.create(
         minimum_order_weight=Weight(kg=100),
         type=ShippingMethodType.WEIGHT_BASED,
@@ -242,11 +240,13 @@ def test_applicable_shipping_methods_not_in_channel(shipping_zone, channel_USD):
         maximum_order_weight=Weight(kg=10),
         type=ShippingMethodType.WEIGHT_BASED,
     )
-    ShippingMethodChannelListing.objects.create(
-        shipping_method=weight_method,
-        channel=channel_USD,
-        currency=channel_USD.currency_code,
-    ),
+    (
+        ShippingMethodChannelListing.objects.create(
+            shipping_method=weight_method,
+            channel=channel_USD,
+            currency=channel_USD.currency_code,
+        ),
+    )
     result = ShippingMethod.objects.applicable_shipping_methods(
         price=Money("5.0", "USD"),
         weight=Weight(kg=5),

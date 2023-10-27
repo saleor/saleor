@@ -32,13 +32,14 @@ class TransactionSessionBase(BaseMutation):
             id, raise_error=False
         )
         if not source_object_type or not source_object_id:
-            raise GraphQLError(f"Couldn't resolve id: {id}.")
+            raise GraphQLError(f"Invalid ID: {id}. Expected one of: Checkout, Order.")
 
         if source_object_type not in ["Checkout", "Order"]:
             raise ValidationError(
                 {
                     "id": ValidationError(
-                        "Must receive a `Checkout` or `Order` id.",
+                        f"Invalid ID: {id}. Expected one of: Checkout, Order,"
+                        + f" received: {source_object_type}.",
                         code=incorrect_type_error_code,
                     )
                 }

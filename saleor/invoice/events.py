@@ -59,7 +59,7 @@ def notification_invoice_sent_event(
     user_id: Optional[int],
     app_id: Optional[int],
     invoice_id: int,
-    customer_email: str
+    customer_email: str,
 ) -> InvoiceEvent:
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.SENT,

@@ -68,17 +68,29 @@ PRODUCT_VARIANT_BULK_UPDATE_MUTATION = """
 
 
 @patch(
+    (
+        "saleor.graphql.product.bulk_mutations."
+        "product_variant_bulk_update.get_webhooks_for_event"
+    )
+)
+@patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_product_variant_bulk_update(
     product_variant_created_webhook_mock,
     update_products_discounted_prices_for_promotion_task_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product_with_single_variant,
     size_attribute,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     # given
     variant = product_with_single_variant.variants.last()
     product_id = graphene.Node.to_global_id("Product", product_with_single_variant.pk)
@@ -106,8 +118,10 @@ def test_product_variant_bulk_update(
     content = get_graphql_content(response)
     flush_post_commit_hooks()
     data = content["data"]["productVariantBulkUpdate"]
+    product_with_single_variant.refresh_from_db(fields=["search_index_dirty"])
 
     # then
+    assert product_with_single_variant.search_index_dirty is True
     assert not data["results"][0]["errors"]
     assert data["count"] == 1
     variant_data = data["results"][0]["productVariant"]
@@ -123,16 +137,28 @@ def test_product_variant_bulk_update(
 
 
 @patch(
+    (
+        "saleor.graphql.product.bulk_mutations."
+        "product_variant_bulk_update.get_webhooks_for_event"
+    )
+)
+@patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
 def test_product_variant_bulk_update_stocks(
     update_products_discounted_prices_for_promotion_task_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     variant_with_many_stocks,
     warehouse,
     size_attribute,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     # given
     variant = variant_with_many_stocks
     product_id = graphene.Node.to_global_id("Product", variant.product_id)

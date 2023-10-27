@@ -626,18 +626,13 @@ def test_variant_restricted_fields_permissions(
     is_nested,
     channel_USD,
 ):
-    """Ensure non-public (restricted) fields are correctly requiring
-    the 'manage_products' permission.
-    """
     query = """
     query ProductVariant($id: ID!, $channel: String) {
         productVariant(id: $id, channel: $channel) {
             %(field)s
         }
     }
-    """ % {
-        "field": field if not is_nested else "%s { __typename }" % field
-    }
+    """ % {"field": field if not is_nested else "%s { __typename }" % field}
     variant = product.variants.first()
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
@@ -898,7 +893,10 @@ def test_variant_query_invalid_id(user_api_client, variant, channel_USD):
     response = user_api_client.post_graphql(QUERY_PRODUCT_VARIANT_BY_ID, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {variant_id}."
+    assert (
+        content["errors"][0]["message"]
+        == f"Invalid ID: {variant_id}. Expected: ProductVariant."
+    )
     assert content["data"]["productVariant"] is None
 
 

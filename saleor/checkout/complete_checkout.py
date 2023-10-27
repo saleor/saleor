@@ -13,7 +13,6 @@ from typing import (
 )
 from uuid import UUID
 
-import graphene
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -38,7 +37,9 @@ from ..discount import DiscountType, DiscountValueType
 from ..discount.models import NotApplicable, OrderLineDiscount
 from ..discount.utils import (
     add_voucher_usage_by_customer,
+    get_sale_id,
     increase_voucher_usage,
+    prepare_promotion_discount_reason,
     release_voucher_usage,
 )
 from ..graphql.checkout.utils import (
@@ -51,7 +52,6 @@ from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
 from ..order.search import prepare_order_search_vector_value
 from ..order.utils import (
-    prepare_promotion_discount_reason,
     update_order_authorize_data,
     update_order_charge_data,
     update_order_display_gross_prices,
@@ -320,11 +320,12 @@ def _create_line_for_order(
         # This is temporary solution until the discount API is implemented.
         # Ultimately, this info should be taken from the orderLineDiscount instances.
 
-        # TODO: this should be old_sale_id for old sales
-        line.sale_id = graphene.Node.to_global_id(
-            "Promotion", checkout_line_info.rules_info[0].promotion.pk
+        promotion = checkout_line_info.rules_info[0].promotion
+        sale_id = get_sale_id(promotion)
+        line.sale_id = sale_id
+        promotion_discount_reason = prepare_promotion_discount_reason(
+            promotion, sale_id
         )
-        promotion_discount_reason = prepare_promotion_discount_reason(line_discounts)
         unit_discount_reason = (
             f"{unit_discount_reason} & {promotion_discount_reason}"
             if unit_discount_reason

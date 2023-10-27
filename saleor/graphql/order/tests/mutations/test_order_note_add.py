@@ -42,8 +42,6 @@ def test_order_note_add_as_staff_user(
     order_with_lines,
     staff_user,
 ):
-    """We are testing that adding a note to an order as a staff user is doing the
-    expected behaviors."""
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines

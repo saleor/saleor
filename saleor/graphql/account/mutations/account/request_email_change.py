@@ -68,7 +68,7 @@ class RequestEmailChange(BaseMutation):
         channel=None,
         new_email,
         password,
-        redirect_url
+        redirect_url,
     ):
         user = info.context.user
         user = cast(models.User, user)

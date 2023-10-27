@@ -70,7 +70,9 @@ def test_delete_vouchers(staff_api_client, voucher_list, permission_manage_disco
     ).exists()
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch(
+    ("saleor.graphql.discount.mutations." "bulk_mutations.get_webhooks_for_event")
+)
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_vouchers_trigger_webhook(
     mocked_webhook_trigger,

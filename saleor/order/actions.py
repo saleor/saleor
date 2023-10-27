@@ -174,6 +174,8 @@ def cancel_order(
     user: Optional[User],
     app: Optional["App"],
     manager: "PluginsManager",
+    webhooks_cancelled=None,
+    webhooks_updated=None,
 ):
     """Cancel order.
 
@@ -186,8 +188,8 @@ def cancel_order(
         order.status = OrderStatus.CANCELED
         order.save(update_fields=["status", "updated_at"])
 
-        call_event(manager.order_cancelled, order)
-        call_event(manager.order_updated, order)
+        call_event(manager.order_cancelled, order, webhooks=webhooks_cancelled)
+        call_event(manager.order_updated, order, webhooks=webhooks_updated)
 
         call_event(send_order_canceled_confirmation, order, user, app, manager)
 

@@ -316,9 +316,6 @@ def test_account_event_customer_deleted_event_resolves_properly(
 def test_account_invalid_or_deleted_order_line_return_null(
     staff_api_client, permission_manage_users, customer_user, order_line
 ):
-    """Ensure getting an order line does return null if it is no longer existing,
-    despite the fact it *shouldn't* happen in production."""
-
     # Prepare test
     staff_api_client.user.user_permissions.add(permission_manage_users)
 

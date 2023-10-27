@@ -428,7 +428,7 @@ class StaffDeleteMixin(UserDeleteMixin):
         context: SaleorContext,
         permissions=None,
         require_all_permissions=False,
-        **data
+        **data,
     ):
         if get_app_promise(context).get():
             raise PermissionDenied(

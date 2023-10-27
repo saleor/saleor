@@ -143,7 +143,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         external_reference=None,
         id=None,
         sku=None,
-        input
+        input,
     ):
         validate_one_of_args_is_in_mutation(
             "sku",

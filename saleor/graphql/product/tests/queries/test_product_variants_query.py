@@ -169,7 +169,10 @@ def test_product_variants_by_invalid_ids(user_api_client, variant, channel_USD):
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {variant_id}."
+    assert (
+        content["errors"][0]["message"]
+        == f"Invalid ID: {variant_id}. Expected: ProductVariant."
+    )
     assert content["data"]["productVariants"] is None
 
 

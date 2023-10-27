@@ -241,13 +241,8 @@ class Command(BaseCommand):
                 "to create one manually."
             )
 
-    def get_input_data(
-        self, field, message, default=None
-    ):  # noqa: D205, D212, D400, D415
-        """
-        Override this method if you want to customize data inputs or
-        validation exceptions.
-        """
+    def get_input_data(self, field, message, default=None):  # noqa: D205, D212, D400, D415
+        """Override this method if you want to customize data inputs or validation exceptions."""
         raw_value = input(message)
         if default and raw_value == "":
             raw_value = default

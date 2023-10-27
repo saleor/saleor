@@ -1718,6 +1718,10 @@ def test_checkout_with_voucher_complete_product_on_sale(
     voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.save(update_fields=["usage_limit"])
 
+    old_sale_id = 1
+    promotion_without_rules.old_sale_id = old_sale_id
+    promotion_without_rules.save(update_fields=["old_sale_id"])
+
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
 
@@ -1801,8 +1805,9 @@ def test_checkout_with_voucher_complete_product_on_sale(
         order_line.undiscounted_total_price - order_line.total_price
     )
     assert order_line.sale_id == graphene.Node.to_global_id(
-        "Promotion", promotion_without_rules.id
+        "Sale", promotion_without_rules.old_sale_id
     )
+    assert order_line.unit_discount_reason == f"Sale: {order_line.sale_id}"
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == voucher_used_count + 1
@@ -2624,9 +2629,7 @@ def test_complete_checkout_for_global_click_and_collect(
     transaction_events_generator,
     transaction_item_generator,
 ):
-    """Ensure that the allocation is made for collection point warehouse even if another
-    warehouse with bigger quantity available exist."""
-
+    """Test that click-and-collect prefers the local stock even if other warehouses hold more stock."""
     # given
     checkout = prepare_checkout_for_test(
         checkout_with_item_for_cc,

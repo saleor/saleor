@@ -4,8 +4,8 @@ from django.db.models import Exists, OuterRef, Q
 from ...attribute import models
 from ...permission.enums import PageTypePermissions
 from ...product import models as product_models
-from ...product.search import update_products_search_vector
 from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.utils import get_webhooks_for_event
 from ..core import ResolveInfo
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types import AttributeError, NonNullList
@@ -44,8 +44,8 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "Attribute")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
         response = super().perform_mutation(root, info, ids=ids)
-        update_products_search_vector(
-            product_models.Product.objects.filter(id__in=product_ids)
+        product_models.Product.objects.filter(id__in=product_ids).update(
+            search_index_dirty=True
         )
         return response
 
@@ -79,8 +79,9 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         attributes = list(queryset)
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.ATTRIBUTE_DELETED)
         for attribute in attributes:
-            manager.attribute_deleted(attribute)
+            cls.call_event(manager.attribute_deleted, attribute, webhooks=webhooks)
 
 
 class AttributeValueBulkDelete(ModelBulkDeleteMutation):
@@ -118,8 +119,8 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "AttributeValue")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
         response = super().perform_mutation(root, info, ids=ids)
-        update_products_search_vector(
-            product_models.Product.objects.filter(id__in=product_ids)
+        product_models.Product.objects.filter(id__in=product_ids).update(
+            search_index_dirty=True
         )
         return response
 
@@ -129,10 +130,12 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         values = list(queryset)
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED)
         for value in values:
-            manager.attribute_value_deleted(value)
+            cls.call_event(manager.attribute_value_deleted, value, webhooks=webhooks)
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.ATTRIBUTE_UPDATED)
         for attribute in attributes:
-            manager.attribute_updated(attribute)
+            cls.call_event(manager.attribute_updated, attribute, webhooks=webhooks)
 
     @classmethod
     def get_product_ids_to_update(cls, value_pks):

@@ -187,7 +187,7 @@ def test_query_attribute_by_invalid_id(
     response = staff_api_client.post_graphql(QUERY_ATTRIBUTE, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: Attribute."
     assert content["data"]["attribute"] is None
 
 
@@ -565,9 +565,6 @@ def test_retrieving_the_restricted_attributes_restricted(
     attribute,
     expected_value,
 ):
-    """Checks if the attributes are restricted and if their default value
-    is the expected one."""
-
     attribute = to_camel_case(attribute)
     query = (
         """

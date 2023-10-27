@@ -223,8 +223,6 @@ PAGES_QUERY = """
 def test_query_pages_by_staff(
     staff_api_client, page_list, page, permission_manage_pages
 ):
-    """Ensure staff user with manage pages permission can query all pages,
-    including unpublished pages."""
     # given
     unpublished_page = page
     unpublished_page.is_published = False
@@ -244,8 +242,6 @@ def test_query_pages_by_staff(
 
 
 def test_query_pages_by_app(app_api_client, page_list, page, permission_manage_pages):
-    """Ensure app with manage pages permission can query all pages,
-    including unpublished pages."""
     # given
     unpublished_page = page
     unpublished_page.is_published = False
@@ -265,9 +261,6 @@ def test_query_pages_by_app(app_api_client, page_list, page, permission_manage_p
 
 
 def test_query_pages_by_staff_no_perm(staff_api_client, page_list, page):
-    """Ensure staff user without manage pages permission can query
-    only published pages."""
-
     # given
     unpublished_page = page
     unpublished_page.is_published = False

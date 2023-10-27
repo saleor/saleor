@@ -176,9 +176,8 @@ def _get_node_for_types_with_double_id(qs, pks, graphene_type):
 def format_permissions_for_display(permissions):
     """Transform permissions queryset into Permission list.
 
-    Keyword Arguments:
-        permissions - queryset with permissions
-
+    Arguments:
+        permissions: queryset with permissions
     """
     permissions_data = permissions.annotate(
         formated_codename=Concat("content_type__app_label", Value("."), "codename")

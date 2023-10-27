@@ -31,5 +31,5 @@ class EventDeliveryRetry(BaseMutation):
             only_type=EventDelivery,
         )
         manager = get_plugin_manager_promise(info.context).get()
-        manager.event_delivery_retry(delivery)
+        cls.call_event(manager.event_delivery_retry, delivery)
         return EventDeliveryRetry(delivery=delivery)

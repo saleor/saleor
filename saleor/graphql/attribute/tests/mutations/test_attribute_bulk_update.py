@@ -276,9 +276,8 @@ def test_attribute_bulk_update_with_invalid_type_id(
     staff_api_client, permission_manage_product_types_and_attributes
 ):
     # given
-    attributes = [
-        {"id": graphene.Node.to_global_id("Page", 1), "fields": {"name": "ExampleName"}}
-    ]
+    invalid_id = graphene.Node.to_global_id("Page", 1)
+    attributes = [{"id": invalid_id, "fields": {"name": "ExampleName"}}]
 
     # when
     staff_api_client.user.user_permissions.add(
@@ -296,7 +295,10 @@ def test_attribute_bulk_update_with_invalid_type_id(
     errors = data["results"][0]["errors"]
     assert errors
     assert errors[0]["code"] == AttributeBulkUpdateErrorCode.INVALID.name
-    assert errors[0]["message"] == "Must receive a Attribute id."
+    assert (
+        errors[0]["message"]
+        == f"Invalid ID: {invalid_id}. Expected: Attribute, received: Page."
+    )
 
 
 def test_attribute_bulk_update_without_id_and_external_ref(

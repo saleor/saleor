@@ -237,9 +237,7 @@ def test_delete_expired_checkouts_no_checkouts_to_delete(checkout):
 
 @mock.patch("saleor.checkout.tasks.delete_expired_checkouts.delay")
 def test_delete_checkouts_until_done(mocked_task: mock.MagicMock, channel_USD):
-    """
-    Ensure the Celery task ``delete_expired_checkouts`` deletes all inactive
-    checkouts from the database until there are none left to delete.
+    """Ensure the task deletes all inactive checkouts from the database.
 
     Given the settings:
     - Max 2 inactive checkouts to delete per single ``DELETE FROM`` SQL statement
@@ -307,9 +305,7 @@ def test_delete_checkouts_until_done(mocked_task: mock.MagicMock, channel_USD):
 def test_aborts_deleting_checkouts_when_invocation_count_exhausted(
     mocked_task: mock.MagicMock, channel_USD
 ):
-    """
-    Ensure the Celery task stops triggering tasks when the invocation limit is reached.
-    """
+    """Ensure the Celery task stops triggering tasks when the invocation limit is reached."""
 
     # Create 3 empty checkouts in DB
     Checkout.objects.bulk_create(

@@ -122,7 +122,4 @@ def test_checkout_products_on_fixed_promotion_core_2102(
     assert order_line["unitDiscountType"] == discount_type
     assert order_line["unitPrice"]["gross"]["amount"] == unit_price
     assert order_line["unitDiscount"]["amount"] == float(discount_value)
-    assert (
-        order_line["unitDiscountReason"]
-        == f"Promotion rules discounts: {promotion_name}: {promotion_rule_name}"
-    )
+    assert order_line["unitDiscountReason"] == f"Promotion: {promotion_id}"

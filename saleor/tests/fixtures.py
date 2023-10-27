@@ -1,4 +1,5 @@
 import datetime
+import itertools
 import uuid
 from collections import namedtuple
 from contextlib import contextmanager
@@ -177,9 +178,7 @@ class CaptureQueriesContext(BaseCaptureQueriesContext):
 
 
 def _assert_num_queries(context, *, config, num, exact=True, info=None):
-    """
-    Extracted from pytest_django.fixtures._assert_num_queries
-    """
+    # Extracted from pytest_django.fixtures._assert_num_queries
     yield context
 
     verbose = config.getoption("verbose") > 0
@@ -2010,9 +2009,7 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def size_attribute(
-    db, attribute_generator, attribute_values_generator
-):  # pylint: disable=W0613
+def size_attribute(db, attribute_generator, attribute_values_generator):  # pylint: disable=W0613
     attribute = attribute_generator(
         external_reference="sizeAttributeExternalReference",
         slug="size",
@@ -3777,12 +3774,13 @@ def product_with_image_list(product, image_list, media_root):
 
 @pytest.fixture
 def product_with_image_list_and_one_null_sort_order(product_with_image_list):
-    """
+    """Return a product with mixed sorting order.
+
     As we allow to have `null` in `sort_order` in database, but our logic
     covers changing any new `null` values to proper `int` need to execute
-    raw SQL query on database to test behaviour of `null` `sort_order`.
+    raw SQL query on database to test behavior of `null` `sort_order`.
 
-    SQL query behaviour:
+    SQL query behavior:
     Updates one of the product media `sort_order` to `null`.
     """
     with connection.cursor() as cursor:
@@ -7743,7 +7741,7 @@ def event_payload():
 
 @pytest.fixture
 def event_delivery(event_payload, webhook, app):
-    """Return event delivery object"""
+    """Return an event delivery object."""
     return EventDelivery.objects.create(
         event_type=WebhookEventAsyncType.ANY,
         payload=event_payload,
@@ -7753,7 +7751,7 @@ def event_delivery(event_payload, webhook, app):
 
 @pytest.fixture
 def event_attempt(event_delivery):
-    """Return event delivery attempt object"""
+    """Return an event delivery attempt object."""
     return EventDeliveryAttempt.objects.create(
         delivery=event_delivery,
         task_id="example_task_id",
@@ -7826,7 +7824,7 @@ def check_payment_balance_input():
 
 @pytest.fixture
 def delivery_attempts(event_delivery):
-    """Return consecutive deliveries attempts ids"""
+    """Return consecutive delivery attempt IDs."""
     with freeze_time("2020-03-18 12:00:00"):
         attempt_1 = EventDeliveryAttempt.objects.create(
             delivery=event_delivery,
@@ -7872,7 +7870,7 @@ def delivery_attempts(event_delivery):
 
 @pytest.fixture
 def event_deliveries(event_payload, webhook, app):
-    """Return consecutive event deliveries ids"""
+    """Return consecutive event delivery IDs."""
     delivery_1 = EventDelivery.objects.create(
         event_type=WebhookEventAsyncType.ANY,
         payload=event_payload,
@@ -8461,3 +8459,37 @@ def async_subscription_webhooks_with_root_objects(
             warehouse,
         ],
     }
+
+
+@pytest.fixture
+def lots_of_products_with_variants(product_type):
+    def chunks(iterable, size):
+        it = iter(iterable)
+        chunk = tuple(itertools.islice(it, size))
+        while chunk:
+            yield chunk
+            chunk = tuple(itertools.islice(it, size))
+
+    variants_per_product = 4
+    products_count = 10000
+    slug_generator = (f"test-slug-{i}" for i in range(products_count))
+
+    for batch in chunks(range(products_count), 500):
+        batch_len = len(batch)
+        variants = []
+        for product in Product.objects.bulk_create(
+            [
+                Product(
+                    name=i,
+                    slug=next(slug_generator),
+                    product_type_id=product_type.pk,
+                )
+                for i in range(batch_len)
+            ]
+        ):
+            for x in range(variants_per_product):
+                variant = ProductVariant(name=x, product_id=product.id)
+                variants.append(variant)
+        ProductVariant.objects.bulk_create(variants)
+
+    return Product.objects.all()

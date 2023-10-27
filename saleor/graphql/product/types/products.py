@@ -204,8 +204,7 @@ class VariantPricingInfo(BasePricingInfo):
 class ProductPricingInfo(BasePricingInfo):
     display_gross_prices = graphene.Boolean(
         description=(
-            "Determines whether this product's price displayed in a storefront "
-            "should include taxes." + ADDED_IN_39
+            "Determines whether displayed prices should include taxes." + ADDED_IN_39
         ),
         required=True,
     )
@@ -1065,7 +1064,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         info,
         *,
         size: int = 256,
-        format: Optional[str] = None
+        format: Optional[str] = None,
     ):
         format = get_thumbnail_format(format)
         size = get_thumbnail_size(size)
@@ -1820,7 +1819,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         info,
         *,
         size: Optional[int] = None,
-        format: Optional[str] = None
+        format: Optional[str] = None,
     ):
         if root.external_url:
             return root.external_url
@@ -1886,7 +1885,7 @@ class ProductImage(BaseObjectType):
         info,
         *,
         size: Optional[int] = None,
-        format: Optional[str] = None
+        format: Optional[str] = None,
     ):
         if not root.image:
             return

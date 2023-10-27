@@ -79,7 +79,7 @@ class FulfillmentApprove(BaseMutation):
         *,
         allow_stock_to_be_exceeded,
         id: str,
-        notify_customer
+        notify_customer,
     ):
         user = info.context.user
         user = cast(User, user)

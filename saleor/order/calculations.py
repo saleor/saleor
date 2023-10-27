@@ -7,6 +7,7 @@ from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
+from ..discount import DiscountType
 from ..order import base_calculations
 from ..payment.model_helpers import get_subtotal
 from ..plugins.manager import PluginsManager
@@ -220,6 +221,8 @@ def fetch_order_prices_if_expired(
     charge_taxes = get_charge_taxes_for_order(order)
     should_charge_tax = charge_taxes and not order.tax_exemption
 
+    _update_order_discount_for_voucher(order)
+
     if lines is None:
         lines = list(order.lines.select_related("variant__product__product_type"))
     else:
@@ -279,6 +282,37 @@ def fetch_order_prices_if_expired(
             ],
         )
         return order, lines
+
+
+def _update_order_discount_for_voucher(order: Order):
+    """Create or delete OrderDiscount instances."""
+    if not order.voucher_id:
+        order.discounts.filter(type=DiscountType.VOUCHER).delete()
+
+    elif (
+        order.voucher_id and not order.discounts.filter(voucher=order.voucher).exists()
+    ):
+        voucher = order.voucher
+        voucher_channel_listing = voucher.channel_listings.filter(  # type: ignore
+            channel=order.channel
+        ).first()
+        if voucher_channel_listing:
+            order.discounts.create(
+                value_type=voucher.discount_value_type,  # type: ignore
+                value=voucher_channel_listing.discount_value,
+                reason=f"Voucher: {voucher.name}",  # type: ignore
+                voucher=voucher,
+                type=DiscountType.VOUCHER,
+            )
+
+    # Prefetch has to be cleared and refreshed to avoid returning cached discounts
+    if (
+        hasattr(order, "_prefetched_objects_cache")
+        and "discounts" in order._prefetched_objects_cache
+    ):
+        del order._prefetched_objects_cache["discounts"]
+
+    prefetch_related_objects([order], "discounts")
 
 
 def _calculate_and_add_tax(

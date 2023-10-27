@@ -301,9 +301,6 @@ def test_staff_create_out_of_scope_group(
     channel_PLN,
     site_settings,
 ):
-    """Ensure user can't create staff with groups which are out of user scope.
-    Ensure superuser pass restrictions.
-    """
     group = permission_group_manage_users
     group2 = Group.objects.create(name="second group")
     group2.permissions.add(permission_manage_staff)

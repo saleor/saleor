@@ -156,9 +156,6 @@ def test_update_sale_start_date_after_current_date_notification_not_sent(
     catalogue_predicate,
     permission_manage_discounts,
 ):
-    """Ensure the notification is not sent when the start date is set after the current
-    date.
-    """
     # given
     query = SALE_UPDATE_MUTATION
 
@@ -214,9 +211,6 @@ def test_update_sale_start_date_before_current_date_notification_already_sent(
     catalogue_predicate,
     permission_manage_discounts,
 ):
-    """Ensure the notification is not sent when the start date is set before
-    current date and notification was already sent.
-    """
     # given
     query = SALE_UPDATE_MUTATION
 
@@ -276,10 +270,6 @@ def test_update_sale_start_date_before_current_date_notification_sent(
     catalogue_predicate,
     permission_manage_discounts,
 ):
-    """Ensure the sale_toggle notification is sent and the notification date is set
-    when the start date is set before current date and the notification hasn't been sent
-    before.
-    """
     # given
     query = SALE_UPDATE_MUTATION
 
@@ -336,9 +326,6 @@ def test_update_sale_end_date_after_current_date_notification_not_sent(
     catalogue_predicate,
     permission_manage_discounts,
 ):
-    """Ensure the notification is not sent when the end date is set after
-    the current date.
-    """
     # given
     query = SALE_UPDATE_MUTATION
 
@@ -395,10 +382,6 @@ def test_update_sale_end_date_before_current_date_notification_already_sent(
     catalogue_predicate,
     permission_manage_discounts,
 ):
-    """Ensure the notification is sent when the end date is set before
-    current date, the notification was already sent but the end date was not set before.
-    It means we need to notify about ending the sale.
-    """
     # given
     query = SALE_UPDATE_MUTATION
     now = timezone.now()
@@ -457,10 +440,6 @@ def test_update_sale_end_date_before_current_date_notification_sent(
     catalogue_predicate,
     permission_manage_discounts,
 ):
-    """Ensure the sale_toggle notification is sent and the notification date is set
-    when the end date is set before current date and the notification hasn't been sent
-    before.
-    """
     # given
     query = SALE_UPDATE_MUTATION
 

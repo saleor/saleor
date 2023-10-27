@@ -217,8 +217,6 @@ def test_update_attribute_value_the_same_name_as_different_attribute_value(
     color_attribute,
     permission_manage_product_types_and_attributes,
 ):
-    """Ensure the attribute value with the same slug as value of different attribute
-    can be set."""
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
 

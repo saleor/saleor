@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-Notifies about deployment status to a given slack channel.
+"""Notifies about deployment status to a given slack channel.
 
 Dependencies (already shipped by ubuntu-20.04):
 - Python 3.6+
@@ -60,12 +59,12 @@ class JobNotifier:
 
     @property
     def run_permalink(self) -> str:
-        """Permalink to the current run logs"""
+        """Permalink to the current run logs."""
         return f"https://github.com/{self.repository}/actions/runs/{self.run_id}"
 
     @property
     def job_status_color(self) -> str:
-        """Color from Saleor Cloud palette for job status"""
+        """Color from Saleor Cloud palette for job status."""
         return self.JOB_STATUS_COLOR_MAP[self.job_status]
 
     def make_slack_message(self) -> dict:

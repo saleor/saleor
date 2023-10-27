@@ -18,8 +18,10 @@ from ....tests.utils import get_graphql_content
 from ...enums import StockUpdatePolicyEnum
 from ..mutations.test_draft_order_complete import DRAFT_ORDER_COMPLETE_MUTATION
 from ..mutations.test_fulfillment_return_products import ORDER_FULFILL_RETURN_MUTATION
-from ..mutations.test_order_bulk_create import order_bulk_input  # noqa F401
-from ..mutations.test_order_bulk_create import ORDER_BULK_CREATE
+from ..mutations.test_order_bulk_create import (
+    ORDER_BULK_CREATE,
+    order_bulk_input,  # noqa F401
+)
 from ..mutations.test_order_fulfill import ORDER_FULFILL_MUTATION
 
 

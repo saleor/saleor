@@ -528,7 +528,8 @@ class StripeGatewayPlugin(BasePlugin):
         webhook = None
         if not webhook_id and not webhook_secret_data.get("value"):
             webhook = subscribe_webhook(
-                api_key, plugin_configuration.channel.slug  # type: ignore
+                api_key,
+                plugin_configuration.channel.slug,  # type: ignore
             )
 
         if not webhook:

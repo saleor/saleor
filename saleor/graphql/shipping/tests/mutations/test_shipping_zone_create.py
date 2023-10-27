@@ -317,8 +317,7 @@ def test_create_shipping_zone_invalid_warehouses_no_channels_assigned(
 def test_create_shipping_zone_invalid_warehouses(
     staff_api_client, warehouses, permission_manage_shipping, channel_PLN, channel_USD
 ):
-    """Ensure an error is raised when warehouses without common channel
-    with the shipping zone are added."""
+    """Test that a warehouses cannot be added to a shipping zone with no shared channels."""
     # given
     warehouse_ids = [
         graphene.Node.to_global_id("Warehouse", warehouse.pk)

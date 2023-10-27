@@ -5,8 +5,16 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.18.0 [Unreleased]
 
 ### Breaking changes
+- Optimize number of queries in bulk mutations when calling webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
+  - `attribute_updated`
+  - `attribute_deleted`
+  - `attribute_value_deleted`
+  - `promotion_deleted`
+  - `staff_deleted`
 
 ### GraphQL API
+- Fix draft order voucher assignment - #14336 by @IKarbowiak
+- Improved GraphQL ID validation messages - #14447 by @patrys
 
 ### Saleor Apps
 
@@ -90,6 +98,32 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 - Deprecate `external_url` on `Invoice` GraphQL type in favour of `url`. No matter if the invoice is stored on Saleor or is a link to an external invoice it will get returned in the `url` field.
+- Optimize number of queries in bulk mutations when calling Webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
+  - `channel_updated`
+  - `category_deleted`
+  - `gift_card_created`
+  - `gift_card_deleted`
+  - `gift_card_status_changed`
+  - `menu_deleted`
+  - `menu_item_deleted`
+  - `order_updated`
+  - `order_cancelled`
+  - `customer_updated`
+  - `customer_deleted`
+  - `customer_metadata_updated`
+  - `collection_deleted`
+  - `product_created`
+  - `product_updated`
+  - `product_deleted`
+  - `product_variant_created`
+  - `product_variant_updated`
+  - `product_variant_deleted`
+  - `product_variant_out_of_stock`
+  - `product_variant_back_in_stock`
+  - `product_variant_stock_updated`
+  - `shipping_price_deleted`
+  - `shipping_zone_deleted`
+  - `voucher_deleted`
 
 ### GraphQL API
 

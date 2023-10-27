@@ -204,8 +204,6 @@ def test_create_sale_start_date_and_end_date_before_current_date(
     permission_manage_discounts,
     product_list,
 ):
-    """Ensure the notification is sent when the sale is created with start
-    and end date that already passed."""
     # given
     query = SALE_CREATE_MUTATION
     start_date = timezone.now() - timedelta(days=20)
@@ -261,8 +259,6 @@ def test_create_sale_start_date_and_end_date_after_current_date(
     permission_manage_discounts,
     product_list,
 ):
-    """Ensure the notification is not sent when the sale is created with start
-    and end date in the feature."""
     # given
     query = SALE_CREATE_MUTATION
     start_date = timezone.now() + timedelta(days=10)

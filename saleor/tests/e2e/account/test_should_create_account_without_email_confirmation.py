@@ -20,7 +20,11 @@ def test_should_create_account_without_email_confirmation_core_1502(
     chanel_data = create_channel(e2e_staff_api_client)
     channel_slug = chanel_data["slug"]
 
-    update_shop_settings(e2e_staff_api_client, enableAccountConfirmationByEmail=False)
+    input = {
+        "enableAccountConfirmationByEmail": False,
+    }
+
+    update_shop_settings(e2e_staff_api_client, input)
 
     test_email = "new-user@saleor.io"
     test_password = "password!"

@@ -7926,7 +7926,7 @@ type ProductPricingInfo @doc(category: "Products") {
   discountLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
 
   """
-  Determines whether this product's price displayed in a storefront should include taxes.
+  Determines whether displayed prices should include taxes.
   
   Added in Saleor 3.9.
   """
@@ -9701,9 +9701,7 @@ type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes
   """
   taxCalculationStrategy: TaxCalculationStrategy
 
-  """
-  Determines whether prices displayed in a storefront should include taxes.
-  """
+  """Determines whether displayed prices should include taxes."""
   displayGrossPrices: Boolean!
 
   """Determines whether prices are entered with the tax included."""
@@ -9736,7 +9734,7 @@ type TaxConfigurationPerCountry @doc(category: "Taxes") {
   taxCalculationStrategy: TaxCalculationStrategy
 
   """
-  Determines whether prices displayed in a storefront should include taxes for this country.
+  Determines whether displayed prices should include taxes for this country.
   """
   displayGrossPrices: Boolean!
 }
@@ -10136,7 +10134,7 @@ input CountryFilterInput {
   attachedToShippingZones: Boolean
 }
 
-"""Represents shop's domain."""
+"""Represents API domain."""
 type Domain {
   """The host name of the domain."""
   host: String!
@@ -10144,7 +10142,7 @@ type Domain {
   """Inform if SSL is enabled."""
   sslEnabled: Boolean!
 
-  """Shop's absolute URL."""
+  """The absolute URL of the API."""
   url: String!
 }
 
@@ -10654,7 +10652,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   transactions: [TransactionItem!]
 
   """
-  Determines whether checkout prices should include taxes when displayed in a storefront.
+  Determines whether displayed prices should include taxes.
   
   Added in Saleor 3.9.
   """
@@ -11527,7 +11525,7 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   errors: [OrderError!]!
 
   """
-  Determines whether checkout prices should include taxes when displayed in a storefront.
+  Determines whether displayed prices should include taxes.
   
   Added in Saleor 3.9.
   """
@@ -12569,6 +12567,7 @@ enum OrderErrorCode @doc(category: "Orders") {
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
   CHANNEL_INACTIVE
+  INVALID_VOUCHER
 }
 
 """An enumeration."""
@@ -15087,6 +15086,9 @@ type Mutation {
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - PRODUCT_VARIANT_STOCK_UPDATED (async): A product variant stock details were updated.
   """
   stockBulkUpdate(
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
@@ -15094,7 +15096,7 @@ type Mutation {
 
     """Input list of stocks to update."""
     stocks: [StockBulkUpdateInput!]!
-  ): StockBulkUpdate @doc(category: "Products")
+  ): StockBulkUpdate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_STOCK_UPDATED], syncEvents: [])
 
   """
   Creates a new staff notification recipient. 
@@ -20420,9 +20422,7 @@ input TaxConfigurationUpdateInput @doc(category: "Taxes") {
   """
   taxCalculationStrategy: TaxCalculationStrategy
 
-  """
-  Determines whether prices displayed in a storefront should include taxes.
-  """
+  """Determines whether displayed prices should include taxes."""
   displayGrossPrices: Boolean
 
   """Determines whether prices are entered with the tax included."""
@@ -20450,7 +20450,7 @@ input TaxConfigurationPerCountryInput @doc(category: "Taxes") {
   taxCalculationStrategy: TaxCalculationStrategy
 
   """
-  Determines whether prices displayed in a storefront should include taxes for this country.
+  Determines whether displayed prices should include taxes for this country.
   """
   displayGrossPrices: Boolean!
 }
@@ -20577,8 +20577,11 @@ Added in Saleor 3.13.
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- PRODUCT_VARIANT_STOCK_UPDATED (async): A product variant stock details were updated.
 """
-type StockBulkUpdate @doc(category: "Products") {
+type StockBulkUpdate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_STOCK_UPDATED], syncEvents: []) {
   """Returns how many objects were updated."""
   count: Int!
 
@@ -25927,9 +25930,7 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   """Order language code."""
   languageCode: LanguageCodeEnum!
 
-  """
-  Determines whether checkout prices should include taxes, when displayed in a storefront.
-  """
+  """Determines whether displayed prices should include taxes."""
   displayGrossPrices: Boolean
 
   """Weight of the order in kg."""

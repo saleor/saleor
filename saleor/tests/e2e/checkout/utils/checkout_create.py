@@ -24,6 +24,12 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
         gross {
           amount
         }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
       }
       isShippingRequired
       shippingMethods {

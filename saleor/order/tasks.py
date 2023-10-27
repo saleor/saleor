@@ -56,9 +56,9 @@ def _bulk_release_voucher_usage(order_ids):
     Voucher.objects.filter(
         Exists(voucher_orders),
         usage_limit__isnull=False,
-    ).annotate(
-        order_count=Subquery(count_orders)
-    ).update(used=F("used") - F("order_count"))
+    ).annotate(order_count=Subquery(count_orders)).update(
+        used=F("used") - F("order_count")
+    )
 
     voucher_customer_orders = Order.objects.filter(
         voucher=OuterRef("voucher__id"),

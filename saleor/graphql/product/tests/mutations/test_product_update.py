@@ -157,6 +157,7 @@ def test_update_product(
     product.refresh_from_db()
 
     # then
+    assert product.search_index_dirty is True
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
@@ -1180,9 +1181,6 @@ def test_update_product_with_page_reference_attribute_value(
 def test_update_product_without_supplying_required_product_attribute(
     staff_api_client, product, permission_manage_products, color_attribute
 ):
-    """Ensure assigning an existing value to a product doesn't create a new
-    attribute value."""
-
     # given
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
@@ -1934,10 +1932,6 @@ SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
 def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
     staff_api_client, product, permission_manage_products, color_attribute
 ):
-    """Ensures you cannot assign multiple values to input types
-    that are not multi-select. This also ensures multi-select types
-    can be assigned multiple values as intended."""
-
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     multi_values_attr = Attribute.objects.create(
@@ -1976,9 +1970,6 @@ def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
 def test_update_product_with_existing_attribute_value(
     staff_api_client, product, permission_manage_products, color_attribute
 ):
-    """Ensure assigning an existing value to a product doesn't create a new
-    attribute value."""
-
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     expected_attribute_values_count = color_attribute.values.count()

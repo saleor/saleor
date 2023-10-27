@@ -109,7 +109,7 @@ class I18nMixin:
         info=None,
         format_check=True,
         required_check=True,
-        enable_normalization=True
+        enable_normalization=True,
     ):
         if address_data.get("country") is None:
             params = {"address_type": address_type} if address_type else {}

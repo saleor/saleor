@@ -1,7 +1,7 @@
-from django.contrib.contenttypes.management import create_contenttypes
-from django.db import DEFAULT_DB_ALIAS, migrations
 from django.apps import apps as global_apps
 from django.contrib.auth import get_permission_codename
+from django.contrib.contenttypes.management import create_contenttypes
+from django.db import DEFAULT_DB_ALIAS, migrations
 
 
 def handle_permissions(apps, _schema_editor):
@@ -17,7 +17,7 @@ def create_permissions(
     interactive=True,
     using=DEFAULT_DB_ALIAS,
     apps=global_apps,
-    **kwargs
+    **kwargs,
 ):
     create_contenttypes(
         app_config,

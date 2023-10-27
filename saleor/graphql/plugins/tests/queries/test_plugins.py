@@ -375,7 +375,6 @@ def test_query_plugins_with_sort(
 def test_cannot_retrieve_hidden_plugins(
     settings, staff_api_client_can_manage_plugins, channel_PLN
 ):
-    """Ensure one cannot see hidden plugins when listing"""
     settings.PLUGINS = [
         "saleor.plugins.tests.sample_plugins.ChannelPluginSample",
         "saleor.plugins.tests.sample_plugins.PluginSample",

@@ -149,5 +149,4 @@ def test_checkout_products_on_fixed_sale_core_1002(
     assert order_line["unitDiscountType"] == "FIXED"
     assert order_line["unitPrice"]["gross"]["amount"] == unit_price
     assert order_line["unitDiscount"]["amount"] == float(sale_discount_value)
-    # TODO: to fix in separate PR
-    # assert order_line["unitDiscountReason"] == f"Sale: {sale_id}"
+    assert order_line["unitDiscountReason"] == f"Sale: {sale_id}"
