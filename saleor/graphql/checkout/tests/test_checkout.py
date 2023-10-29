@@ -2749,3 +2749,40 @@ def test_checkout_with_stored_payment_methods_requested_by_app(
 
     assert not mocked_list_stored_payment_methods.called
     assert content["data"]["checkout"]["storedPaymentMethods"] == []
+
+
+CHECKOUT_WITH_VOUCHER_QUERY = """
+query getCheckout($id: ID) {
+    checkout(id: $id) {
+        voucher {
+            id
+            code
+            name
+        }
+    }
+}
+"""
+
+
+def test_query_checkout_voucher(
+    staff_api_client,
+    checkout_with_voucher_free_shipping,
+    permission_manage_discounts,
+    voucher_free_shipping,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_discounts)
+    query = CHECKOUT_WITH_VOUCHER_QUERY
+    checkout = checkout_with_voucher_free_shipping
+    voucher = voucher_free_shipping
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    voucher_data = content["data"]["checkout"]["voucher"]
+    assert voucher_data["id"] == to_global_id_or_none(voucher)
+    assert voucher_data["code"] == voucher.code
+    assert voucher_data["name"] == voucher.name
