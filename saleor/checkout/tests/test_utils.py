@@ -9,7 +9,7 @@ BASE = Money("35.00", "USD")
 
 
 @pytest.mark.parametrize(
-    "price, tax_rate, prices_entered_with_tax, result",
+    ("price", "tax_rate", "prices_entered_with_tax", "result"),
     [
         # result should not be calculated but taken from price
         (
