@@ -18179,7 +18179,7 @@ type Mutation {
   voucherCodeBulkDelete(
     """List of voucher codes IDs to delete."""
     ids: [ID!]!
-  ): VoucherCodeBulkDelete @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
+  ): VoucherCodeBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
   Export products to csv file. 
@@ -28121,7 +28121,7 @@ Requires one of the following permissions: MANAGE_DISCOUNTS.
 Triggers the following webhook events:
 - VOUCHER_UPDATED (async): A voucher was updated.
 """
-type VoucherCodeBulkDelete @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
+type VoucherCodeBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
   """Returns how many codes were deleted."""
   count: Int!
   errors: [VoucherCodeBulkDeleteError!]!
