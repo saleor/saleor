@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from operator import attrgetter
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
 
 from ..core.taxes import zero_money, zero_taxed_money
 from .models import Payment

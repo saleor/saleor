@@ -1,18 +1,12 @@
 import datetime
 from collections import defaultdict
+from collections.abc import Iterable, Iterator
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
 from typing import (
     TYPE_CHECKING,
     Callable,
-    DefaultDict,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
     Optional,
-    Set,
-    Tuple,
     Union,
     cast,
 )
@@ -47,7 +41,7 @@ if TYPE_CHECKING:
     )
     from .models import Voucher, VoucherCode
 
-CatalogueInfo = DefaultDict[str, Set[Union[int, str]]]
+CatalogueInfo = defaultdict[str, set[Union[int, str]]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
@@ -136,10 +130,10 @@ def calculate_discounted_price_for_rules(
 def calculate_discounted_price_for_promotions(
     *,
     price: Money,
-    rules_info_per_promotion_id: Dict[UUID, List[PromotionRuleInfo]],
+    rules_info_per_promotion_id: dict[UUID, list[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> List[Tuple[UUID, Money]]:
+) -> list[tuple[UUID, Money]]:
     """Return minimum product's price of all prices with promotions applied."""
     applied_discounts = []
     if rules_info_per_promotion_id:
@@ -151,10 +145,10 @@ def calculate_discounted_price_for_promotions(
 
 def get_best_promotion_discount(
     price: Money,
-    rules_info_per_promotion_id: Dict[UUID, List[PromotionRuleInfo]],
+    rules_info_per_promotion_id: dict[UUID, list[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> List[Tuple[UUID, Money]]:
+) -> list[tuple[UUID, Money]]:
     """Return the rules with the discount amounts for the best promotion.
 
     The data for the promotion that gives the best saving are returned in the following
@@ -188,10 +182,10 @@ def get_best_promotion_discount(
 
 def get_product_promotion_discounts(
     *,
-    rules_info: List[PromotionRuleInfo],
+    rules_info: list[PromotionRuleInfo],
     channel: "Channel",
     variant_id: Optional[int],
-) -> Iterator[Tuple[UUID, Callable]]:
+) -> Iterator[tuple[UUID, Callable]]:
     """Return promotion rule id, discount value for all rules applicable on product."""
     for rule_info in rules_info:
         try:
@@ -204,7 +198,7 @@ def get_product_discount_on_promotion(
     rule_info: PromotionRuleInfo,
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> Tuple[UUID, Callable]:
+) -> tuple[UUID, Callable]:
     """Return rule id, discount value if rule applied or raise NotApplicable."""
     if variant_id in rule_info.variant_ids and channel.id in rule_info.channel_ids:
         return rule_info.rule.id, rule_info.rule.get_discount(channel.currency_code)
@@ -307,7 +301,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
     line_discounts_to_create = []
     line_discounts_to_update = []
     line_discount_ids_to_remove = []
-    updated_fields: List[str] = []
+    updated_fields: list[str] = []
 
     for line_info in lines_info:
         line = line_info.line
@@ -399,8 +393,8 @@ def _get_discount_amount(
 
 
 def _get_discounts_that_are_not_valid_anymore(
-    rules_info: List["VariantPromotionRuleInfo"],
-    rule_id_to_discount: Dict[int, "CheckoutLineDiscount"],
+    rules_info: list["VariantPromotionRuleInfo"],
+    rule_id_to_discount: dict[int, "CheckoutLineDiscount"],
     line_info: "CheckoutLineInfo",
 ):
     discount_ids = []
@@ -443,7 +437,7 @@ def _update_line_discount(
     rule_info: "VariantPromotionRuleInfo",
     rule_discount_amount: Decimal,
     discount_to_update: "CheckoutLineDiscount",
-    updated_fields: List[str],
+    updated_fields: list[str],
 ):
     if discount_to_update.value_type != rule.reward_value_type:
         discount_to_update.value_type = (
@@ -469,7 +463,7 @@ def _update_line_discount(
 def fetch_active_promotion_rules(
     variant_qs: "ProductVariantQueryset",
     date: Optional[datetime.date] = None,
-) -> Dict[UUID, List[PromotionRuleInfo]]:
+) -> dict[UUID, list[PromotionRuleInfo]]:
     from ..graphql.discount.utils import get_variants_for_predicate
 
     rules_info_per_promotion_id = defaultdict(list)

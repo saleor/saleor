@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from json.encoder import ESCAPE_ASCII, ESCAPE_DCT
-from typing import List, Optional, Tuple, TypedDict
+from typing import Optional, TypedDict
 
 
 class JsonTruncText:
@@ -65,7 +65,7 @@ class ObservabilityEventTypes(str, Enum):
     EVENT_DELIVERY_ATTEMPT = "event_delivery_attempt"
 
 
-HttpHeaders = List[Tuple[str, str]]
+HttpHeaders = list[tuple[str, str]]
 
 
 class App(TypedDict):
@@ -111,7 +111,7 @@ class ApiCallPayload(ObservabilityEventBase):
     request: ApiCallRequest
     response: ApiCallResponse
     app: Optional[App]
-    gql_operations: List[GraphQLOperation]
+    gql_operations: list[GraphQLOperation]
 
 
 class EventDeliveryPayload(TypedDict):

@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
 
 import graphene
@@ -642,7 +642,7 @@ class Fulfillment(ModelObjectType[models.Fulfillment]):
         def _resolve_stock_warehouse(stock: Stock):
             return WarehouseByIdLoader(info.context).load(stock.warehouse_id)
 
-        def _resolve_stock(fulfillment_lines: List[models.FulfillmentLine]):
+        def _resolve_stock(fulfillment_lines: list[models.FulfillmentLine]):
             try:
                 line = fulfillment_lines[0]
             except IndexError:
@@ -2204,7 +2204,7 @@ class Order(ModelObjectType[models.Order]):
         return None
 
     @staticmethod
-    def __resolve_references(roots: List["Order"], info):
+    def __resolve_references(roots: list["Order"], info):
         requestor = get_user_or_app_from_context(info.context)
         requestor_has_access_to_all = has_one_of_permissions(
             requestor, [OrderPermissions.MANAGE_ORDERS]

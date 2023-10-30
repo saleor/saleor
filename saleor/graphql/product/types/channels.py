@@ -1,6 +1,6 @@
 from dataclasses import asdict
 from decimal import Decimal
-from typing import List, Optional
+from typing import Optional
 
 import graphene
 from promise import Promise
@@ -151,7 +151,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         def calculate_margin_with_variants(variants):
             def calculate_margin_with_channel(channel):
                 def calculate_margin_with_channel_listings(
-                    variant_channel_listings: List[
+                    variant_channel_listings: list[
                         Optional[models.ProductVariantChannelListing]
                     ],
                 ):
@@ -190,7 +190,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         def calculate_margin_with_variants(variants):
             def calculate_margin_with_channel(channel):
                 def calculate_margin_with_channel_listings(
-                    variant_channel_listings: List[
+                    variant_channel_listings: list[
                         Optional[models.ProductVariantChannelListing]
                     ],
                 ):

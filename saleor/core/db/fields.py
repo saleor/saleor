@@ -9,7 +9,7 @@ class SanitizedJSONField(JSONField):
     "before saving into the database."
 
     def __init__(self, *args, sanitizer: Callable[[dict], dict], **kwargs):
-        super(SanitizedJSONField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._sanitizer_method = sanitizer
 
     def deconstruct(self):

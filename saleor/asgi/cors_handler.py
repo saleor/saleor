@@ -1,5 +1,5 @@
 from fnmatch import fnmatchcase
-from typing import Tuple, cast
+from typing import cast
 
 from asgiref.typing import (
     ASGI3Application,
@@ -36,7 +36,7 @@ def cors_handler(application: ASGI3Application) -> ASGI3Application:
                     break
         if scope["method"] == "OPTIONS":
             scope = cast(HTTPScope, scope)
-            response_headers: list[Tuple[bytes, bytes]] = [
+            response_headers: list[tuple[bytes, bytes]] = [
                 (b"access-control-allow-credentials", b"true"),
                 (
                     b"access-control-allow-headers",

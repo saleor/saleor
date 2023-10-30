@@ -3,7 +3,7 @@
 Can be dropped once we upgrade from the legacy version of GraphQL Core.
 """
 
-from typing import Callable, Dict, List, Optional, Union, cast
+from typing import Callable, Optional, Union, cast
 
 from graphene.types.definitions import GrapheneObjectType
 from graphql.language.printer import print_ast
@@ -63,7 +63,7 @@ def print_filtered_schema(
 ) -> str:
     directives = filter(directive_filter, schema.get_directives())
     types = filter(
-        type_filter, cast(List[GraphQLNamedType], schema.get_type_map().values())
+        type_filter, cast(list[GraphQLNamedType], schema.get_type_map().values())
     )
 
     return "\n\n".join(
@@ -296,11 +296,11 @@ def print_fields(
     return print_block(fields)
 
 
-def print_block(items: List[str]) -> str:
+def print_block(items: list[str]) -> str:
     return " {\n" + "\n".join(items) + "\n}" if items else ""
 
 
-def print_args(args: Dict[str, GraphQLArgument], indentation: str = "") -> str:
+def print_args(args: dict[str, GraphQLArgument], indentation: str = "") -> str:
     if not args:
         return ""
 

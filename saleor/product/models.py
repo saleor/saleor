@@ -1,6 +1,7 @@
 import datetime
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import Iterable, Optional
+from typing import Optional
 from uuid import uuid4
 
 import graphene
@@ -102,12 +103,7 @@ class CategoryTranslation(SeoModelTranslation):
 
     def __repr__(self) -> str:
         class_ = type(self)
-        return "%s(pk=%r, name=%r, category_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.name,
-            self.category_id,
-        )
+        return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, category_pk={self.category_id!r})"
 
     def get_translated_object_id(self):
         return "Category", self.category_id
@@ -167,12 +163,7 @@ class ProductType(ModelWithMetadata):
 
     def __repr__(self) -> str:
         class_ = type(self)
-        return "<%s.%s(pk=%r, name=%r)>" % (
-            class_.__module__,
-            class_.__name__,
-            self.pk,
-            self.name,
-        )
+        return f"<{class_.__module__}.{class_.__name__}(pk={self.pk!r}, name={self.name!r})>"
 
 
 class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
@@ -251,12 +242,7 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
 
     def __repr__(self) -> str:
         class_ = type(self)
-        return "<%s.%s(pk=%r, name=%r)>" % (
-            class_.__module__,
-            class_.__name__,
-            self.pk,
-            self.name,
-        )
+        return f"<{class_.__module__}.{class_.__name__}(pk={self.pk!r}, name={self.name!r})>"
 
     def __str__(self) -> str:
         return self.name
@@ -286,12 +272,7 @@ class ProductTranslation(SeoModelTranslation):
 
     def __repr__(self) -> str:
         class_ = type(self)
-        return "%s(pk=%r, name=%r, product_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.name,
-            self.product_id,
-        )
+        return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, product_pk={self.product_id!r})"
 
     def get_translated_object_id(self):
         return "Product", self.product_id
@@ -462,12 +443,7 @@ class ProductVariantTranslation(Translation):
 
     def __repr__(self):
         class_ = type(self)
-        return "%s(pk=%r, name=%r, variant_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.name,
-            self.product_variant_id,
-        )
+        return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, variant_pk={self.product_variant_id!r})"
 
     def __str__(self):
         return self.name or str(self.product_variant)
@@ -735,12 +711,7 @@ class CollectionTranslation(SeoModelTranslation):
 
     def __repr__(self):
         class_ = type(self)
-        return "%s(pk=%r, name=%r, collection_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.name,
-            self.collection_id,
-        )
+        return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, collection_pk={self.collection_id!r})"
 
     def __str__(self) -> str:
         return self.name if self.name else str(self.pk)

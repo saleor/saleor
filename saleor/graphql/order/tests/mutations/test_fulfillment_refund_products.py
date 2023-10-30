@@ -1,8 +1,8 @@
 from decimal import Decimal
+from unittest import mock
 from unittest.mock import ANY, patch
 
 import graphene
-import mock
 from prices import Money, TaxedMoney
 
 from .....core.prices import quantize_price

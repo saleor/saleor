@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import django.db.models.deletion
 from django.db import migrations, models
 

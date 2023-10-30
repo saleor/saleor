@@ -1,15 +1,12 @@
 import itertools
+from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import singledispatch
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
-    Iterable,
-    List,
     Optional,
-    Tuple,
     Union,
 )
 from uuid import UUID
@@ -51,14 +48,14 @@ class CheckoutLineInfo:
     channel_listing: "ProductVariantChannelListing"
     product: "Product"
     product_type: "ProductType"
-    collections: List["Collection"]
-    discounts: List["CheckoutLineDiscount"]
-    rules_info: List["VariantPromotionRuleInfo"]
+    collections: list["Collection"]
+    discounts: list["CheckoutLineDiscount"]
+    rules_info: list["VariantPromotionRuleInfo"]
     channel: "Channel"
     tax_class: Optional["TaxClass"] = None
     voucher: Optional["Voucher"] = None
 
-    def get_promotion_discounts(self) -> List["CheckoutLineDiscount"]:
+    def get_promotion_discounts(self) -> list["CheckoutLineDiscount"]:
         return [
             discount
             for discount in self.discounts
@@ -74,20 +71,20 @@ class CheckoutInfo:
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
     delivery_method_info: "DeliveryMethodBase"
-    all_shipping_methods: List["ShippingMethodData"]
+    all_shipping_methods: list["ShippingMethodData"]
     tax_configuration: "TaxConfiguration"
-    valid_pick_up_points: List["Warehouse"]
+    valid_pick_up_points: list["Warehouse"]
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
 
     @property
-    def valid_shipping_methods(self) -> List["ShippingMethodData"]:
+    def valid_shipping_methods(self) -> list["ShippingMethodData"]:
         return [method for method in self.all_shipping_methods if method.active]
 
     @property
     def valid_delivery_methods(
         self,
-    ) -> List[Union["ShippingMethodData", "Warehouse"]]:
+    ) -> list[Union["ShippingMethodData", "Warehouse"]]:
         return list(
             itertools.chain(
                 self.valid_shipping_methods,
@@ -124,10 +121,10 @@ class DeliveryMethodBase:
         return False
 
     @property
-    def delivery_method_name(self) -> Dict[str, Optional[str]]:
+    def delivery_method_name(self) -> dict[str, Optional[str]]:
         return {"shipping_method_name": None}
 
-    def get_warehouse_filter_lookup(self) -> Dict[str, Any]:
+    def get_warehouse_filter_lookup(self) -> dict[str, Any]:
         return {}
 
     def is_valid_delivery_method(self) -> bool:
@@ -144,7 +141,7 @@ class ShippingMethodInfo(DeliveryMethodBase):
     store_as_customer_address: bool = True
 
     @property
-    def delivery_method_name(self) -> Dict[str, Optional[str]]:
+    def delivery_method_name(self) -> dict[str, Optional[str]]:
         return {"shipping_method_name": str(self.delivery_method.name)}
 
     @property
@@ -184,10 +181,10 @@ class CollectionPointInfo(DeliveryMethodBase):
         )
 
     @property
-    def delivery_method_name(self) -> Dict[str, Optional[str]]:
+    def delivery_method_name(self) -> dict[str, Optional[str]]:
         return {"collection_point_name": str(self.delivery_method)}
 
-    def get_warehouse_filter_lookup(self) -> Dict[str, Any]:
+    def get_warehouse_filter_lookup(self) -> dict[str, Any]:
         return (
             {"warehouse_id": self.delivery_method.pk}
             if self.is_local_collection_point
@@ -230,7 +227,7 @@ def fetch_checkout_lines(
     skip_lines_with_unavailable_variants: bool = True,
     skip_recalculation: bool = False,
     voucher: Optional["Voucher"] = None,
-) -> Tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
+) -> tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
 
@@ -257,7 +254,7 @@ def fetch_checkout_lines(
     )
     lines_info = []
     unavailable_variant_pks = []
-    product_channel_listing_mapping: Dict[int, Optional["ProductChannelListing"]] = {}
+    product_channel_listing_mapping: dict[int, Optional["ProductChannelListing"]] = {}
     channel = checkout.channel
 
     for line in lines:
@@ -382,7 +379,7 @@ def apply_voucher_to_checkout_line(
     from .utils import get_discounted_lines
 
     voucher = voucher_info.voucher
-    discounted_lines_by_voucher: List[CheckoutLineInfo] = []
+    discounted_lines_by_voucher: list[CheckoutLineInfo] = []
     lines_included_in_discount = lines_info
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         discounted_lines_by_voucher.extend(
@@ -539,7 +536,7 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
-) -> List["ShippingMethodData"]:
+) -> list["ShippingMethodData"]:
     from . import base_calculations
     from .utils import get_valid_internal_shipping_methods_for_checkout
 
@@ -582,7 +579,7 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
     manager: "PluginsManager",
-) -> List["ShippingMethodData"]:
+) -> list["ShippingMethodData"]:
     return manager.list_shipping_methods_for_checkout(
         checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
     )

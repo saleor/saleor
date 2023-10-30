@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import Iterable, Optional, Tuple, cast
+from typing import Optional, cast
 
 from django.db import transaction
 from django.db.models import prefetch_related_objects
@@ -182,7 +183,7 @@ def fetch_order_prices_if_expired(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-) -> Tuple[Order, Optional[Iterable[OrderLine]]]:
+) -> tuple[Order, Optional[Iterable[OrderLine]]]:
     """Fetch order prices with taxes.
 
     First calculate and apply all order prices with taxes separately,

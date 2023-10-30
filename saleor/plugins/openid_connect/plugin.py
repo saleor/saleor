@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Tuple
+from typing import Optional
 
 from authlib.common.errors import AuthlibBaseError
 from django.core import signing
@@ -451,7 +451,7 @@ class OpenIDConnectPlugin(BasePlugin):
 
     def external_verify(
         self, data: dict, request: WSGIRequest, previous_value
-    ) -> Tuple[Optional[User], dict]:
+    ) -> tuple[Optional[User], dict]:
         if not self.active:
             return previous_value
 

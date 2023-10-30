@@ -1,6 +1,5 @@
 import logging
 from datetime import timedelta
-from typing import List
 
 from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
 from django.utils import timezone
@@ -28,7 +27,7 @@ DELETE_EXPIRED_ORDER_BATCH_SIZE = 5000
 
 
 @app.task
-def recalculate_orders_task(order_ids: List[int]):
+def recalculate_orders_task(order_ids: list[int]):
     orders = Order.objects.filter(id__in=order_ids)
 
     for order in orders:

@@ -255,19 +255,17 @@ class Command(BaseCommand):
         return val
 
     def _get_input_message(self, field, default=None):
-        return "%s%s%s: " % (
-            capfirst(field.verbose_name),
-            " (leave blank to use '%s')" % default if default else "",
-            " (%s.%s)"
-            % (
-                field.remote_field.model._meta.object_name,
+        message = capfirst(field.verbose_name)
+        if default:
+            message += f" (leave blank to use '{default}')"
+        if field.remote_field:
+            field_name = (
                 field.m2m_target_field_name()
                 if field.many_to_many
-                else field.remote_field.field_name,
+                else field.remote_field.field_name
             )
-            if field.remote_field
-            else "",
-        )
+            message += f" ({field.remote_field.model._meta.object_name}.{field_name})"
+        return message
 
     def _validate_username(self, username, verbose_field_name, database):
         """Validate username. If invalid, return a string error message."""

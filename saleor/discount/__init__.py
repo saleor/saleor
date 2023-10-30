@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from django.db.models import QuerySet
 
@@ -76,6 +76,6 @@ class PromotionEvents:
 @dataclass
 class PromotionRuleInfo:
     rule: "PromotionRule"
-    variant_ids: List[int]
+    variant_ids: list[int]
     variants: QuerySet
-    channel_ids: List[int]
+    channel_ids: list[int]

@@ -118,7 +118,7 @@ class NonNullList(graphene.List):
 
     def __init__(self, of_type, *args, **kwargs):
         of_type = graphene.NonNull(of_type)
-        super(NonNullList, self).__init__(of_type, *args, **kwargs)
+        super().__init__(of_type, *args, **kwargs)
 
 
 class CountryDisplay(graphene.ObjectType):

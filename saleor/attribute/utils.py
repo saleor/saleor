@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Iterable, Set, Union
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Union
 
 from ..page.models import Page
 from ..product.models import Product, ProductVariant
@@ -63,7 +64,7 @@ def associate_attribute_values_to_instance(
     return assignment
 
 
-def validate_attribute_owns_values(attribute: Attribute, value_ids: Set[int]) -> None:
+def validate_attribute_owns_values(attribute: Attribute, value_ids: set[int]) -> None:
     """Check given value IDs are belonging to the given attribute.
 
     :raise: AssertionError

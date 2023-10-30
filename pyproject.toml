@@ -131,8 +131,8 @@ documentation = "https://docs.saleor.io/"
   semgrep = ">=1.34.0"
 
 [tool.ruff]
-extend-select = ["D", "I"]
-ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D202", "D203", "D213", "D407"]
+extend-select = ["D", "I", "UP"]
+ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D202", "D203", "D206", "D213", "D407"]
 target-version = "py39"
 
   [tool.ruff.isort]

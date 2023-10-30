@@ -804,7 +804,7 @@ def test_checkout_add_variant_voucher_code_apply_once_per_order(
 
     lines = checkout.lines.all()
     checkout.lines.last().delete()
-    variant_1, variant_2, variant_3 = [line.variant for line in lines]
+    variant_1, variant_2, variant_3 = (line.variant for line in lines)
     variant_1_listing = variant_1.channel_listings.get(channel=channel)
     variant_2_listing = variant_2.channel_listings.get(channel=channel)
     variant_3_listing = variant_3.channel_listings.get(channel=channel)

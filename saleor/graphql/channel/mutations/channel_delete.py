@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -121,7 +121,7 @@ class ChannelDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, root, info: ResolveInfo, /, *, id: str, input: Optional[Dict] = None
+        cls, root, info: ResolveInfo, /, *, id: str, input: Optional[dict] = None
     ):
         origin_channel = cls.get_node_or_error(info, id, only_type=Channel)
         target_channel_global_id = input.get("channel_id") if input else None

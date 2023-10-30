@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from functools import partial
-from typing import Iterable, Union
+from typing import Union
 from uuid import uuid4
 
 from django.conf import settings

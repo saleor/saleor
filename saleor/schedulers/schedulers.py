@@ -1,7 +1,7 @@
 import copy
 import logging
 import time
-from typing import Any, List, NamedTuple, Optional
+from typing import Any, NamedTuple, Optional
 
 import celery.beat
 import celery.schedules
@@ -92,7 +92,7 @@ class BaseScheduler(celery.beat.Scheduler):
             self.old_schedulers = copy.copy(self.schedule)
             self.populate_heap()
 
-        H: Optional[List[HeapEventType]] = self._heap
+        H: Optional[list[HeapEventType]] = self._heap
         if not H:
             return max_interval
 

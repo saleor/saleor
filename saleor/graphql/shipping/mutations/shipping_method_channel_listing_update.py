@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, DefaultDict, Dict, List
+from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -25,7 +25,7 @@ from ..utils import get_shipping_model_by_object_id
 if TYPE_CHECKING:
     from ....shipping.models import ShippingMethod as ShippingMethodModel
 
-ErrorType = DefaultDict[str, List[ValidationError]]
+ErrorType = defaultdict[str, list[ValidationError]]
 
 
 class ShippingMethodChannelListingAddInput(BaseInputObjectType):
@@ -85,7 +85,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def add_channels(
-        cls, shipping_method: "ShippingMethodModel", add_channels: List[Dict]
+        cls, shipping_method: "ShippingMethodModel", add_channels: list[dict]
     ):
         for add_channel in add_channels:
             channel = add_channel["channel"]
@@ -108,7 +108,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def remove_channels(
-        cls, shipping_method: "ShippingMethodModel", remove_channels: List[int]
+        cls, shipping_method: "ShippingMethodModel", remove_channels: list[int]
     ):
         ShippingMethodChannelListing.objects.filter(
             shipping_method=shipping_method, channel_id__in=remove_channels
@@ -122,7 +122,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
         cls,
         info: ResolveInfo,
         shipping_method: "ShippingMethodModel",
-        cleaned_input: Dict,
+        cleaned_input: dict,
     ):
         # transaction ensures consistent channels data
         with traced_atomic_transaction():
@@ -261,7 +261,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
     ):
         shipping_method = get_shipping_model_by_object_id(id)
 
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         clean_channels = cls.clean_channels(
             info, input, errors, ShippingErrorCode.DUPLICATED_INPUT_ITEM.value
         )

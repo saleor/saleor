@@ -2,11 +2,11 @@ import json
 from decimal import Decimal
 from functools import partial
 from unittest import mock
+from unittest.mock import patch
 
 import pytest
 from django.http import HttpResponseNotFound, JsonResponse
 from django.test import override_settings
-from mock import patch
 from prices import Money, TaxedMoney
 
 from ...channel import TransactionFlowStrategy

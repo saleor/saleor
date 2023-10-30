@@ -4,7 +4,7 @@ import os
 import os.path
 import warnings
 from datetime import timedelta
-from typing import List, Optional
+from typing import Optional
 from urllib.parse import urlparse
 
 import dj_database_url
@@ -43,7 +43,7 @@ def get_bool_from_env(name, default_value):
         try:
             return ast.literal_eval(value)
         except ValueError as e:
-            raise ValueError("{} is an invalid value for {}".format(value, name)) from e
+            raise ValueError(f"{value} is an invalid value for {name}") from e
     return default_value
 
 
@@ -434,7 +434,7 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
 ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
-ALLOWED_GRAPHQL_ORIGINS: List[str] = get_list(
+ALLOWED_GRAPHQL_ORIGINS: list[str] = get_list(
     os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
 )
 
@@ -697,7 +697,7 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
 
 
 GRAPHQL_PAGINATION_LIMIT = 100
-GRAPHQL_MIDDLEWARE: List[str] = []
+GRAPHQL_MIDDLEWARE: list[str] = []
 
 # Set GRAPHQL_QUERY_MAX_COMPLEXITY=0 in env to disable (not recommended)
 GRAPHQL_QUERY_MAX_COMPLEXITY = int(
@@ -733,7 +733,7 @@ BUILTIN_PLUGINS = [
 EXTERNAL_PLUGINS = []
 installed_plugins = pkg_resources.iter_entry_points("saleor.plugins")
 for entry_point in installed_plugins:
-    plugin_path = "{}.{}".format(entry_point.module_name, entry_point.attrs[0])
+    plugin_path = f"{entry_point.module_name}.{entry_point.attrs[0]}"
     if plugin_path not in BUILTIN_PLUGINS and plugin_path not in EXTERNAL_PLUGINS:
         if entry_point.name not in INSTALLED_APPS:
             INSTALLED_APPS.append(entry_point.name)

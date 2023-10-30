@@ -1,5 +1,6 @@
 """Checkout-related utility functions."""
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Optional
 
 from prices import Money
 
@@ -49,7 +50,7 @@ def _update_authorize_status(
 
 def _get_payment_amount_for_checkout(
     checkout_transactions: Iterable["TransactionItem"], currency: str
-) -> Tuple[Money, Money]:
+) -> tuple[Money, Money]:
     total_charged_amount = zero_money(currency)
     total_authorized_amount = zero_money(currency)
     for transaction in checkout_transactions:

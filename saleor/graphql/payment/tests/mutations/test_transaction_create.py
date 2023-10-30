@@ -1,8 +1,8 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import graphene
 import pytest
-from mock import patch
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data

@@ -39,7 +39,7 @@ class GraphQLFilterSetMixin(BaseFilterSet):
 
 def get_filterset_class(filterset_class=None):
     return type(
-        "GraphQL{}".format(filterset_class.__name__),
+        f"GraphQL{filterset_class.__name__}",
         (filterset_class, GraphQLFilterSetMixin),
         {},
     )

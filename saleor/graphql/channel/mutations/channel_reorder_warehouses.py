@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import DefaultDict
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -90,7 +89,7 @@ class ChannelReorderWarehouses(BaseMutation):
             str(warehouse_data["warehouse_id"]): warehouse_data["id"]
             for warehouse_data in warehouses_m2m.values("id", "warehouse_id")
         }
-        operations: DefaultDict[str, int] = defaultdict(int)
+        operations: defaultdict[str, int] = defaultdict(int)
         for warehouse_pk, move in zip(warehouse_pks, moves):
             warehouse_m2m_id = warehouse_id_to_warehouse_m2m_id[warehouse_pk]
             operations[warehouse_m2m_id] += move.sort_order

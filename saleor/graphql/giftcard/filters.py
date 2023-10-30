@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 import django_filters
@@ -134,7 +133,7 @@ class GiftCardFilterInput(FilterInputObjectType):
         filterset_class = GiftCardFilter
 
 
-def filter_events_by_type(events: List[models.GiftCardEvent], type_value: str):
+def filter_events_by_type(events: list[models.GiftCardEvent], type_value: str):
     filtered_events = []
     for event in events:
         if event.type == type_value:
@@ -142,7 +141,7 @@ def filter_events_by_type(events: List[models.GiftCardEvent], type_value: str):
     return filtered_events
 
 
-def filter_events_by_orders(events: List[models.GiftCardEvent], order_ids: List[str]):
+def filter_events_by_orders(events: list[models.GiftCardEvent], order_ids: list[str]):
     order_pks = _get_order_pks(order_ids)
 
     filtered_events = []
@@ -152,7 +151,7 @@ def filter_events_by_orders(events: List[models.GiftCardEvent], order_ids: List[
     return filtered_events
 
 
-def _get_order_pks(order_ids: List[str]):
+def _get_order_pks(order_ids: list[str]):
     _, order_pks = resolve_global_ids_to_primary_keys(order_ids, "Order")
 
     pks = []

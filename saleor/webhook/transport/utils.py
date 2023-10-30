@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from time import time
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
@@ -70,8 +70,8 @@ class PaymentAppData:
 @dataclass
 class WebhookResponse:
     content: str
-    request_headers: Optional[Dict] = None
-    response_headers: Optional[Dict] = None
+    request_headers: Optional[dict] = None
+    response_headers: Optional[dict] = None
     response_status_code: Optional[int] = None
     status: str = EventDeliveryStatus.SUCCESS
     duration: float = 0.0
@@ -101,7 +101,7 @@ def send_webhook_using_http(
     signature,
     event_type,
     timeout=settings.WEBHOOK_TIMEOUT,
-    custom_headers: Optional[Dict[str, str]] = None,
+    custom_headers: Optional[dict[str, str]] = None,
 ) -> WebhookResponse:
     """Send a webhook request using http / https protocol.
 
@@ -265,7 +265,7 @@ def send_webhook_using_scheme_method(
     parts = urlparse(target_url)
     message = data.encode("utf-8")
     signature = signature_for_payload(message, secret)
-    scheme_matrix: Dict[WebhookSchemes, Callable] = {
+    scheme_matrix: dict[WebhookSchemes, Callable] = {
         WebhookSchemes.HTTP: send_webhook_using_http,
         WebhookSchemes.HTTPS: send_webhook_using_http,
         WebhookSchemes.AWS_SQS: send_webhook_using_aws_sqs,
@@ -282,7 +282,7 @@ def send_webhook_using_scheme_method(
             event_type,
             custom_headers=custom_headers,
         )
-    raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
+    raise ValueError(f"Unknown webhook scheme: {parts.scheme!r}")
 
 
 def handle_webhook_retry(
@@ -599,8 +599,8 @@ def to_payment_app_id(app: "App", external_id: str) -> "str":
 
 def parse_list_payment_gateways_response(
     response_data: Any, app: "App"
-) -> List["PaymentGateway"]:
-    gateways: List[PaymentGateway] = []
+) -> list["PaymentGateway"]:
+    gateways: list[PaymentGateway] = []
     if not isinstance(response_data, list):
         return gateways
 

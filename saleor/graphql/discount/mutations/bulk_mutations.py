@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -53,7 +53,7 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, ids, **data
-    ) -> Tuple[int, Optional[ValidationError]]:
+    ) -> tuple[int, Optional[ValidationError]]:
         """Perform a mutation that deletes a list of model instances."""
         try:
             instances = cls.get_promotion_instances(ids)

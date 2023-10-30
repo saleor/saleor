@@ -1,6 +1,7 @@
 from collections import defaultdict
+from collections.abc import Iterable
 from datetime import date
-from typing import TYPE_CHECKING, DefaultDict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
 from dateutil.relativedelta import relativedelta
@@ -115,8 +116,8 @@ def fulfill_gift_card_lines(
     settings: "SiteSettings",
     manager: "PluginsManager",
 ):
-    lines_for_warehouses: DefaultDict[
-        UUID, List[OrderFulfillmentLineInfo]
+    lines_for_warehouses: defaultdict[
+        UUID, list[OrderFulfillmentLineInfo]
     ] = defaultdict(list)
     channel_slug = order.channel.slug
     for line in gift_card_lines.prefetch_related(

@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -317,8 +316,8 @@ class DraftOrderCreate(
     def clean_lines(cls, cleaned_input, lines, channel):
         if not lines:
             return
-        grouped_lines_data: List[OrderLineData] = []
-        lines_data_map: Dict[str, OrderLineData] = defaultdict(OrderLineData)
+        grouped_lines_data: list[OrderLineData] = []
+        lines_data_map: dict[str, OrderLineData] = defaultdict(OrderLineData)
 
         variant_pks = cls.get_global_ids_or_error(
             [line.get("variant_id") for line in lines], ProductVariant, "variant_id"

@@ -1,6 +1,7 @@
 from collections import defaultdict
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
 
 from dataclasses import dataclass
 
-T_ERRORS = Dict[str, List[ValidationError]]
+T_ERRORS = dict[str, list[ValidationError]]
 
 
 @dataclass

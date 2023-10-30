@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 
 import graphene
 import pytz
@@ -129,7 +128,7 @@ class SaleUpdate(ModelMutation):
 
     @classmethod
     def update_fields(
-        cls, promotion: models.Promotion, rules: List[models.PromotionRule], input
+        cls, promotion: models.Promotion, rules: list[models.PromotionRule], input
     ):
         if name := input.get("name"):
             promotion.name = name

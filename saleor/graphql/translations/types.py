@@ -1,4 +1,4 @@
-from typing import List, TypeVar
+from typing import TypeVar
 
 import graphene
 from django.conf import settings
@@ -36,12 +36,12 @@ from ..product.dataloaders import (
 from .fields import TranslationField
 
 
-def get_translatable_attribute_values(attributes: list) -> List[AttributeValue]:
+def get_translatable_attribute_values(attributes: list) -> list[AttributeValue]:
     """Filter the list of passed attributes.
 
     Return those which are translatable attributes.
     """
-    translatable_values: List[AttributeValue] = []
+    translatable_values: list[AttributeValue] = []
     for assignment in attributes:
         attr = assignment["attribute"]
         if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:

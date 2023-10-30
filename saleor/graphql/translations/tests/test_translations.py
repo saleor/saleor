@@ -1,12 +1,11 @@
 import json
 from functools import partial
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
-from mock import ANY
 
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....discount.error_codes import DiscountErrorCode

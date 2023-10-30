@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from django.conf import settings
 from django.contrib.postgres.search import (
@@ -86,7 +86,7 @@ class FlatConcat(Expression):
                 expressions = expressions[: self.max_expression_count]
             else:
                 raise ValueError("Maximum expression count exceeded")
-        self.source_expressions: List[SearchVector] = self._parse_expressions(  # type: ignore[attr-defined] # private method of BaseExpression # noqa: E501
+        self.source_expressions: list[SearchVector] = self._parse_expressions(  # type: ignore[attr-defined] # private method of BaseExpression # noqa: E501
             *expressions
         )
 
@@ -126,8 +126,8 @@ class FlatConcat(Expression):
 
     def as_sql(self, compiler, connection, **_extra_context):
         connection.ops.check_expression_support(self)
-        sql_parts: List[str] = []
-        params: List[Optional[Union[str, int]]] = []
+        sql_parts: list[str] = []
+        params: list[Optional[Union[str, int]]] = []
         for arg in self.source_expressions:
             arg_sql, arg_params = compiler.compile(arg)
             sql_parts.append(arg_sql)

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import DefaultDict, List, Optional
+from typing import Optional
 from uuid import UUID
 
 import graphene
@@ -198,8 +198,8 @@ class OrderFulfill(BaseMutation):
                 )
 
     @classmethod
-    def check_total_quantity_of_items(cls, quantities_for_lines: List[List[int]]):
-        flat_quantities: List[int] = sum(quantities_for_lines, [])
+    def check_total_quantity_of_items(cls, quantities_for_lines: list[list[int]]):
+        flat_quantities: list[int] = sum(quantities_for_lines, [])
         if sum(flat_quantities) <= 0:
             raise ValidationError(
                 {
@@ -232,7 +232,7 @@ class OrderFulfill(BaseMutation):
         ]
         cls.check_warehouses_for_duplicates(warehouse_ids_for_lines)
 
-        quantities_for_lines: List[List[int]] = [
+        quantities_for_lines: list[list[int]] = [
             [stock["quantity"] for stock in line["stocks"]] for line in lines
         ]
 
@@ -249,8 +249,8 @@ class OrderFulfill(BaseMutation):
 
         cls.check_total_quantity_of_items(quantities_for_lines)
 
-        lines_for_warehouses: DefaultDict[
-            UUID, List[OrderFulfillmentLineInfo]
+        lines_for_warehouses: defaultdict[
+            UUID, list[OrderFulfillmentLineInfo]
         ] = defaultdict(list)
         for line, order_line in zip(lines, order_lines):
             for stock in line["stocks"]:

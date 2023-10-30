@@ -1,6 +1,7 @@
+from collections.abc import Iterable
 from decimal import Decimal
 from functools import wraps
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
+from typing import TYPE_CHECKING, Optional, cast
 
 from django.db.models import QuerySet, Sum
 from django.utils import timezone
@@ -330,7 +331,7 @@ def create_order_line(
 def create_order_line_discounts(
     line: "OrderLine", rules_info: Iterable["VariantPromotionRuleInfo"]
 ) -> Iterable["OrderLineDiscount"]:
-    line_discounts_to_create: List[OrderLineDiscount] = []
+    line_discounts_to_create: list[OrderLineDiscount] = []
     for rule_info in rules_info:
         rule = rule_info.rule
         rule_discount_amount = rule_info.variant_listing_promotion_rule.discount_amount
@@ -417,7 +418,7 @@ def add_gift_cards_to_order(
 ):
     order_gift_cards = []
     gift_cards_to_update = []
-    balance_data: List[Tuple[GiftCard, float]] = []
+    balance_data: list[tuple[GiftCard, float]] = []
     used_by_user = checkout_info.user
     used_by_email = cast(str, checkout_info.get_customer_email())
     for gift_card in checkout_info.checkout.gift_cards.select_for_update():
@@ -447,7 +448,7 @@ def add_gift_cards_to_order(
 def update_gift_card_balance(
     gift_card: GiftCard,
     total_price_left: Money,
-    balance_data: List[Tuple[GiftCard, float]],
+    balance_data: list[tuple[GiftCard, float]],
 ) -> Money:
     previous_balance = gift_card.current_balance
     if total_price_left < gift_card.current_balance:
@@ -602,7 +603,7 @@ def sum_order_totals(qs, currency_code):
 def get_all_shipping_methods_for_order(
     order: Order,
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
-) -> List[ShippingMethodData]:
+) -> list[ShippingMethodData]:
     if not order.is_shipping_required():
         return []
 
@@ -634,7 +635,7 @@ def get_valid_shipping_methods_for_order(
     order: Order,
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     manager: "PluginsManager",
-) -> List[ShippingMethodData]:
+) -> list[ShippingMethodData]:
     """Return a list of shipping methods according to Saleor's own business logic."""
     valid_methods = get_all_shipping_methods_for_order(order, shipping_channel_listings)
     if not valid_methods:
@@ -689,7 +690,7 @@ def get_discounted_lines(lines, voucher):
 def get_prices_of_discounted_specific_product(
     lines: Iterable[OrderLine],
     voucher: Voucher,
-) -> List[Money]:
+) -> list[Money]:
     """Get prices of variants belonging to the discounted specific products.
 
     Specific products are products, collections and categories.
@@ -767,7 +768,7 @@ def get_total_order_discount_excluding_shipping(order: Order) -> Money:
     return total_order_discount
 
 
-def get_order_discounts(order: Order) -> List[OrderDiscount]:
+def get_order_discounts(order: Order) -> list[OrderDiscount]:
     """Return all discounts applied to the order by staff user."""
     return list(order.discounts.filter(type=DiscountType.MANUAL))
 
