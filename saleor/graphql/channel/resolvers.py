@@ -1,5 +1,7 @@
 from typing import Optional
 
+from django.conf import settings
+
 from ...channel import models
 from ...permission.auth_filters import is_app, is_staff_user
 from ..core.utils import from_global_id_or_error
@@ -11,9 +13,17 @@ def resolve_channel(info, id: Optional[str], slug: Optional[str]):
     validate_one_of_args_is_in_query("id", id, "slug", slug)
     if id:
         _, db_id = from_global_id_or_error(id, Channel)
-        channel = models.Channel.objects.filter(id=db_id).first()
+        channel = (
+            models.Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(id=db_id)
+            .first()
+        )
     else:
-        channel = models.Channel.objects.filter(slug=slug).first()
+        channel = (
+            models.Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(slug=slug)
+            .first()
+        )
 
     if channel and channel.is_active:
         return channel
@@ -24,4 +34,4 @@ def resolve_channel(info, id: Optional[str], slug: Optional[str]):
 
 
 def resolve_channels():
-    return models.Channel.objects.all()
+    return models.Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()

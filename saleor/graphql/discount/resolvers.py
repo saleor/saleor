@@ -1,15 +1,21 @@
+from django.conf import settings
+
 from ...discount import models
 from ..channel import ChannelContext, ChannelQsContext
 from .filters import filter_sale_search, filter_voucher_search
 
 
 def resolve_voucher(id, channel):
-    sale = models.Voucher.objects.filter(id=id).first()
+    sale = (
+        models.Voucher.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(id=id)
+        .first()
+    )
     return ChannelContext(node=sale, channel_slug=channel) if sale else None
 
 
 def resolve_vouchers(info, channel_slug, **kwargs) -> ChannelQsContext:
-    qs = models.Voucher.objects.all()
+    qs = models.Voucher.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()
     if channel_slug:
         qs = qs.filter(channel_listings__channel__slug=channel_slug)
 
@@ -21,12 +27,16 @@ def resolve_vouchers(info, channel_slug, **kwargs) -> ChannelQsContext:
 
 
 def resolve_sale(id, channel):
-    sale = models.Sale.objects.filter(id=id).first()
+    sale = (
+        models.Sale.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(id=id)
+        .first()
+    )
     return ChannelContext(node=sale, channel_slug=channel) if sale else None
 
 
 def resolve_sales(info, channel_slug, **kwargs) -> ChannelQsContext:
-    qs = models.Sale.objects.all()
+    qs = models.Sale.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()
     if channel_slug:
         qs = qs.filter(channel_listings__channel__slug=channel_slug)
 

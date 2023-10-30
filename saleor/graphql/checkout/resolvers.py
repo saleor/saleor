@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from ...checkout import models
 from ...permission.enums import AccountPermissions, CheckoutPermissions
 from ..core.tracing import traced_resolver
@@ -24,7 +26,11 @@ def resolve_checkout(info, token, id):
 
     if id:
         _, token = from_global_id_or_error(id, only_type="Checkout")
-    checkout = models.Checkout.objects.filter(token=token).first()
+    checkout = (
+        models.Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(token=token)
+        .first()
+    )
 
     if checkout is None:
         return None
