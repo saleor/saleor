@@ -626,13 +626,13 @@ def test_create_collection_without_background_image(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug",
-    (
+    ("input_slug", "expected_slug"),
+    [
         ("test-slug", "test-slug"),
         (None, "test-collection"),
         ("", "test-collection"),
         ("わたし-わ-にっぽん-です", "わたし-わ-にっぽん-です"),
-    ),
+    ],
 )
 def test_create_collection_with_given_slug(
     staff_api_client, permission_manage_products, input_slug, expected_slug, channel_USD
@@ -949,7 +949,7 @@ UPDATE_COLLECTION_SLUG_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, error_message",
+    ("input_slug", "expected_slug", "error_message"),
     [
         ("test-slug", "test-slug", None),
         ("", "", "Slug value cannot be blank."),
@@ -1014,7 +1014,7 @@ def test_update_collection_slug_exists(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, input_name, error_message, error_field",
+    ("input_slug", "expected_slug", "input_name", "error_message", "error_field"),
     [
         ("test-slug", "test-slug", "New name", None, None),
         ("", "", "New name", "Slug value cannot be blank.", "slug"),
@@ -1838,7 +1838,7 @@ def test_query_collection_for_federation(api_client, published_collection, chann
 
 
 @pytest.mark.parametrize(
-    "collection_filter, count",
+    ("collection_filter", "count"),
     [
         ({"published": "PUBLISHED"}, 2),
         ({"published": "HIDDEN"}, 1),
@@ -1923,7 +1923,7 @@ QUERY_COLLECTIONS_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "collection_sort, result_order",
+    ("collection_sort", "result_order"),
     [
         ({"field": "NAME", "direction": "ASC"}, ["Coll1", "Coll2", "Coll3"]),
         ({"field": "NAME", "direction": "DESC"}, ["Coll3", "Coll2", "Coll1"]),

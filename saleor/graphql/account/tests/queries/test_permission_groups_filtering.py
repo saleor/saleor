@@ -27,8 +27,8 @@ query ($filter: PermissionGroupFilterInput ){
 
 
 @pytest.mark.parametrize(
-    "permission_group_filter, count",
-    (({"search": "Manage user groups"}, 1), ({"search": "Manage"}, 2), ({}, 3)),
+    ("permission_group_filter", "count"),
+    [({"search": "Manage user groups"}, 1), ({"search": "Manage"}, 2), ({}, 3)],
 )
 def test_permission_groups_query(
     permission_group_manage_users,

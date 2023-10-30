@@ -15,12 +15,12 @@ from ..error_codes import PluginErrorCode
 
 @pytest.mark.parametrize(
     "email",
-    (
+    [
         "this_is_not_an_email",
         "@",
         ".@.test",
         "almost_correct_email@",
-    ),
+    ],
 )
 def test_validate_default_email_configuration_bad_email(
     email, plugin_configuration, email_configuration

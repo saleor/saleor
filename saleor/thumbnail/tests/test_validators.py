@@ -49,7 +49,7 @@ def test_validate_image_size(image_factory):
 
 
 @pytest.mark.parametrize(
-    "size,min_size,max_size,square_required",
+    ("size", "min_size", "max_size", "square_required"),
     [
         ((1, 1), 10, None, False),
         ((2, 2), None, 1, False),

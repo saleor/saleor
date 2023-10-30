@@ -69,7 +69,7 @@ PLUGIN_UPDATE_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "active, updated_configuration_item",
+    ("active", "updated_configuration_item"),
     [
         (True, {"name": "Username", "value": "user"}),
         (False, {"name": "Username", "value": "admin@example.com"}),

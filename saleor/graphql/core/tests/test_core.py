@@ -163,13 +163,13 @@ class PermissionEnumForTests(enum.Enum):
 
 @patch("graphene.types.mutation.Mutation.__init_subclass_with_meta__")
 @pytest.mark.parametrize(
-    "should_fail,permissions_value",
-    (
+    ("should_fail", "permissions_value"),
+    [
         (False, (PermissionEnumForTests.TEST,)),
         (True, PermissionEnumForTests.TEST),
         (True, 123),
         (True, ("TEST",)),
-    ),
+    ],
 )
 def test_mutation_invalid_permission_in_meta(_mocked, should_fail, permissions_value):
     def _run_test():
@@ -188,7 +188,7 @@ def test_mutation_invalid_permission_in_meta(_mocked, should_fail, permissions_v
 
 
 @pytest.mark.parametrize(
-    "value, count, product_indexes",
+    ("value", "count", "product_indexes"),
     [
         ({"lte": 50, "gte": 25}, 1, [2]),
         ({"lte": 25}, 2, [0, 1]),
@@ -244,7 +244,7 @@ def test_requestor_is_superuser_for_app(app):
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    "url, expected_media_type",
+    ("url", "expected_media_type"),
     [
         (
             "http://www.youtube.com/watch?v=dQw4w9WgXcQ",

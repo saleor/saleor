@@ -614,8 +614,8 @@ def test_get_variant_with_sorted_attribute_values(
 
 
 @pytest.mark.parametrize(
-    "field, is_nested",
-    (("digitalContent", True), ("quantityOrdered", False)),
+    ("field", "is_nested"),
+    [("digitalContent", True), ("quantityOrdered", False)],
 )
 def test_variant_restricted_fields_permissions(
     staff_api_client,

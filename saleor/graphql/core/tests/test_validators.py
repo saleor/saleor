@@ -17,7 +17,7 @@ from ..validators import (
 
 
 @pytest.mark.parametrize(
-    "value, currency",
+    ("value", "currency"),
     [
         (Decimal("1.1200"), "USD"),
         (Decimal("1.12"), "USD"),
@@ -37,7 +37,7 @@ def test_validate_price_precision(value, currency):
 
 
 @pytest.mark.parametrize(
-    "value, currency",
+    ("value", "currency"),
     [
         (Decimal("1.1212"), "USD"),
         (Decimal("1.128"), "USD"),
@@ -61,7 +61,7 @@ def test_validate_end_is_after_start_raise_error():
 
 
 @pytest.mark.parametrize(
-    "start_date, end_date",
+    ("start_date", "end_date"),
     [
         (timezone.now() - timedelta(days=365), timezone.now() + timedelta(days=365)),
         (timezone.now() + timedelta(days=365), None),

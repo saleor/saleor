@@ -17,7 +17,7 @@ def gateway_config():
 
 
 @pytest.mark.parametrize(
-    "supported_currencies, expected_currencies",
+    ("supported_currencies", "expected_currencies"),
     [
         ("PLN, USD, EUR", ["PLN", "USD", "EUR"]),
         ("PLN,EUR", ["PLN", "EUR"]),

@@ -83,7 +83,7 @@ class DiscountQueries(graphene.ObjectType):
         ),
         description="Look up a sale by ID.",
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} " "Use the `promotion` query instead."
+            f"{DEPRECATED_IN_3X_FIELD} Use the `promotion` query instead."
         ),
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
@@ -105,7 +105,7 @@ class DiscountQueries(graphene.ObjectType):
         ),
         description="List of the shop's sales.",
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} " "Use the `promotions` query instead."
+            f"{DEPRECATED_IN_3X_FIELD} Use the `promotions` query instead."
         ),
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,

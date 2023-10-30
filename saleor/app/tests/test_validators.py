@@ -30,7 +30,7 @@ def test_parse_version():
 
 
 @pytest.mark.parametrize(
-    "required_version,version,satisfied",
+    ("required_version", "version", "satisfied"),
     [
         ("*", "3.12.1", True),
         ("3.8 - 3.9 || ~3.10.2 || 3.11.* || 3.12.x", "3.12.1", True),
@@ -64,7 +64,9 @@ def test_clean_required_saleor_version_raise_for_saleor_version():
     assert error.value.code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
 
 
-@pytest.mark.parametrize("author,cleaned", [(None, None), (" Acme Ltd ", "Acme Ltd")])
+@pytest.mark.parametrize(
+    ("author", "cleaned"), [(None, None), (" Acme Ltd ", "Acme Ltd")]
+)
 def test_clean_author(author, cleaned):
     assert clean_author(author) == cleaned
 

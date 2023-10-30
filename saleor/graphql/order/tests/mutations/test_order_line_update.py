@@ -169,7 +169,7 @@ def test_order_line_update_with_back_in_stock_webhook_called_twice_success_scena
     product_variant_back_in_stock_webhook_mock.assert_called_with(Stock.objects.last())
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_line_update(
@@ -300,7 +300,7 @@ def test_order_line_update_by_app(
     assert removed_items_event.user is None
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_order_line_update_without_sku(
     status,
     order_with_lines,

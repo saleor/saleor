@@ -47,9 +47,9 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
 """
 
 
-@pytest.mark.parametrize("is_valid_delivery_method", (True, False))
+@pytest.mark.parametrize("is_valid_delivery_method", [True, False])
 @pytest.mark.parametrize(
-    "delivery_method, node_name, attribute_name",
+    ("delivery_method", "node_name", "attribute_name"),
     [
         ("warehouse", "Warehouse", "collection_point"),
         ("shipping_method", "ShippingMethod", "shipping_method"),
@@ -118,9 +118,9 @@ def test_checkout_delivery_method_update(
         assert checkout.collection_point is None
 
 
-@pytest.mark.parametrize("is_valid_delivery_method", (True, False))
+@pytest.mark.parametrize("is_valid_delivery_method", [True, False])
 @pytest.mark.parametrize(
-    "delivery_method, node_name, attribute_name",
+    ("delivery_method", "node_name", "attribute_name"),
     [
         ("warehouse", "Warehouse", "collection_point"),
         ("shipping_method", "ShippingMethod", "shipping_method"),
@@ -193,7 +193,7 @@ def test_checkout_delivery_method_update_no_checkout_metadata(
         assert checkout.collection_point is None
 
 
-@pytest.mark.parametrize("is_valid_delivery_method", (True, False))
+@pytest.mark.parametrize("is_valid_delivery_method", [True, False])
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
@@ -447,9 +447,9 @@ def test_checkout_delivery_method_update_shipping_zone_with_channel(
     assert checkout.shipping_method == shipping_method
 
 
-@pytest.mark.parametrize("is_valid_delivery_method", (True, False))
+@pytest.mark.parametrize("is_valid_delivery_method", [True, False])
 @pytest.mark.parametrize(
-    "delivery_method, node_name, attribute_name",
+    ("delivery_method", "node_name", "attribute_name"),
     [
         ("warehouse", "Warehouse", "collection_point"),
         ("shipping_method", "ShippingMethod", "shipping_method"),
@@ -516,9 +516,9 @@ def test_checkout_delivery_method_update_with_not_all_required_shipping_address_
         assert checkout.collection_point is None
 
 
-@pytest.mark.parametrize("is_valid_delivery_method", (True, False))
+@pytest.mark.parametrize("is_valid_delivery_method", [True, False])
 @pytest.mark.parametrize(
-    "delivery_method, node_name, attribute_name",
+    ("delivery_method", "node_name", "attribute_name"),
     [
         ("warehouse", "Warehouse", "collection_point"),
         ("shipping_method", "ShippingMethod", "shipping_method"),

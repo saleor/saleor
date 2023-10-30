@@ -361,7 +361,7 @@ def test_transaction_update_available_actions_by_app(
 
 
 @pytest.mark.parametrize(
-    "field_name, response_field, db_field_name, value",
+    ("field_name", "response_field", "db_field_name", "value"),
     [
         ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal("12")),
         ("amountCharged", "chargedAmount", "charged_value", Decimal("13")),
@@ -818,7 +818,7 @@ def test_transaction_update_for_order_missing_permission_by_app(
 
 
 @pytest.mark.parametrize(
-    "amount_field_name, amount_db_field",
+    ("amount_field_name", "amount_db_field"),
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
@@ -1268,7 +1268,7 @@ def test_transaction_update_available_actions_by_staff(
 
 
 @pytest.mark.parametrize(
-    "field_name, response_field, db_field_name, value",
+    ("field_name", "response_field", "db_field_name", "value"),
     [
         ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal("12")),
         ("amountCharged", "chargedAmount", "charged_value", Decimal("13")),
@@ -1681,7 +1681,7 @@ def test_transaction_update_for_order_missing_permission_by_staff(
 
 
 @pytest.mark.parametrize(
-    "amount_field_name, amount_db_field",
+    ("amount_field_name", "amount_db_field"),
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
@@ -2097,8 +2097,16 @@ def test_transaction_update_creates_calculation_event(
 
 
 @pytest.mark.parametrize(
-    "field_name, response_field, db_field_name, value, current_authorized_value, "
-    "current_charged_value, current_canceled_value, current_refunded_value,",
+    (
+        "field_name",
+        "response_field",
+        "db_field_name",
+        "value",
+        "current_authorized_value",
+        "current_charged_value",
+        "current_canceled_value",
+        "current_refunded_value",
+    ),
     [
         (
             "amountAuthorized",
@@ -2245,16 +2253,6 @@ def test_transaction_update_creates_calculation_event(
             "canceledAmount",
             "canceled_value",
             Decimal("0"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
-        ),
-        (
-            "amountCanceled",
-            "canceledAmount",
-            "canceled_value",
-            Decimal("1"),
             Decimal("1"),
             Decimal("2"),
             Decimal("3"),

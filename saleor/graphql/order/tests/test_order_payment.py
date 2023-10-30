@@ -10,8 +10,8 @@ from ..mutations.utils import try_payment_action
 
 
 @pytest.mark.parametrize(
-    "requires_amount, mutation_name",
-    ((True, "orderRefund"), (False, "orderVoid"), (True, "orderCapture")),
+    ("requires_amount", "mutation_name"),
+    [(True, "orderRefund"), (False, "orderVoid"), (True, "orderCapture")],
 )
 def test_clean_payment_without_payment_associated_to_order(
     staff_api_client,

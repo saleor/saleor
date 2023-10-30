@@ -252,7 +252,7 @@ def test_order_from_checkout_with_transaction(
 
 
 @pytest.mark.parametrize(
-    "auto_confirm, order_status",
+    ("auto_confirm", "order_status"),
     [(True, OrderStatus.UNFULFILLED), (False, OrderStatus.UNCONFIRMED)],
 )
 def test_order_from_checkout_auto_confirm_flag(
@@ -361,11 +361,11 @@ def test_order_from_checkout_with_metadata(
     assert order.total.gross == total.gross
     assert order.metadata == {
         **checkout.metadata_storage.metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     assert order.private_metadata == {
         **checkout.metadata_storage.private_metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     order_confirmed_mock.assert_called_once_with(order)
 
@@ -434,11 +434,11 @@ def test_order_from_checkout_with_metadata_checkout_without_metadata(
     assert order.total.gross == total.gross
     assert order.metadata == {
         **checkout.metadata_storage.metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     assert order.private_metadata == {
         **checkout.metadata_storage.private_metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     order_confirmed_mock.assert_called_once_with(order)
 

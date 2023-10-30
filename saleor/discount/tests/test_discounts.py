@@ -299,8 +299,13 @@ def test_remove_voucher_usage_by_customer_not_exists(voucher):
 
 
 @pytest.mark.parametrize(
-    "total, min_spent_amount, total_quantity, min_checkout_items_quantity,"
-    "discount_value_type",
+    (
+        "total",
+        "min_spent_amount",
+        "total_quantity",
+        "min_checkout_items_quantity",
+        "discount_value_type",
+    ),
     [
         (20, 20, 2, 2, DiscountValueType.PERCENTAGE),
         (20, None, 2, None, DiscountValueType.PERCENTAGE),
@@ -393,8 +398,14 @@ def test_validate_staff_voucher_for_staff_customer(channel_USD, staff_user):
 
 
 @pytest.mark.parametrize(
-    "total, min_spent_amount, total_quantity, min_checkout_items_quantity, "
-    "discount_value, discount_value_type",
+    (
+        "total",
+        "min_spent_amount",
+        "total_quantity",
+        "min_checkout_items_quantity",
+        "discount_value",
+        "discount_value_type",
+    ),
     [
         (20, 50, 2, 10, 50, DiscountValueType.PERCENTAGE),
         (20, 50, 2, None, 50, DiscountValueType.PERCENTAGE),

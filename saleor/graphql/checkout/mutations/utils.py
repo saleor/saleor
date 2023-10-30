@@ -476,7 +476,7 @@ def find_line_id_when_variant_parameter_used(
     # if same variant occur in multiple lines `lineId` parameter have to be used
     if len(line_info) > 1:
         message = (
-            "Variant occurs in multiple lines. Use `lineId` instead " "of `variantId`."
+            "Variant occurs in multiple lines. Use `lineId` instead of `variantId`."
         )
         variant_global_id = graphene.Node.to_global_id("ProductVariant", variant_db_id)
 

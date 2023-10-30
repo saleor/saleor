@@ -14,8 +14,8 @@ from ....webhook.transport.asynchronous.transport import trigger_webhooks_async
 
 
 @pytest.mark.parametrize(
-    "queue_name, additional_call_args",
-    (("queue_name", {}), ("queue_name.fifo", {"MessageGroupId": "mirumee.com"})),
+    ("queue_name", "additional_call_args"),
+    [("queue_name", {}), ("queue_name.fifo", {"MessageGroupId": "mirumee.com"})],
 )
 def test_trigger_webhooks_with_aws_sqs(
     queue_name,
@@ -77,7 +77,7 @@ def test_trigger_webhooks_with_aws_sqs(
 
 
 @pytest.mark.parametrize(
-    "secret_key, unquoted_secret",
+    ("secret_key", "unquoted_secret"),
     [
         ("secret_access", "secret_access"),
         ("secret%2B%2Faccess", "secret+/access"),

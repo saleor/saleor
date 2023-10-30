@@ -22,7 +22,7 @@ QUERY_PAGES_WITH_FILTER = """
 
 
 @pytest.mark.parametrize(
-    "page_filter, count",
+    ("page_filter", "count"),
     [
         ({"search": "Page1"}, 2),
         ({"search": "about"}, 1),
@@ -77,7 +77,7 @@ def test_pages_query_with_filter_by_page_type(
 
 
 @pytest.mark.parametrize(
-    "filter_by, pages_count",
+    ("filter_by", "pages_count"),
     [
         ({"slugs": ["test-url-1"]}, 1),
         ({"slugs": ["test-url-1", "test-url-2"]}, 2),
@@ -130,7 +130,7 @@ QUERY_PAGE_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "page_sort, result_order",
+    ("page_sort", "result_order"),
     [
         ({"field": "TITLE", "direction": "ASC"}, ["About", "Page1", "Page2"]),
         ({"field": "TITLE", "direction": "DESC"}, ["Page2", "Page1", "About"]),

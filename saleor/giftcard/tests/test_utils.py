@@ -148,7 +148,8 @@ def test_remove_gift_card_code_from_checkout_no_checkout_gift_cards(
 
 
 @pytest.mark.parametrize(
-    "period_type, period", [("years", 5), ("weeks", 1), ("months", 13), ("days", 100)]
+    ("period_type", "period"),
+    [("years", 5), ("weeks", 1), ("months", 13), ("days", 100)],
 )
 def test_calculate_expiry_settings(period_type, period, site_settings):
     # given

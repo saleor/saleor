@@ -42,7 +42,7 @@ from ..utils import GraphQLOperationResponse
 
 
 @pytest.mark.parametrize(
-    "snake_payload,expected_camel",
+    ("snake_payload", "expected_camel"),
     [
         (
             ApiCallRequest(
@@ -214,7 +214,7 @@ def test_serialize_gql_operation_results_when_too_low_bytes_limit(
 
 
 @pytest.mark.parametrize(
-    "headers,expected",
+    ("headers", "expected"),
     [
         ({}, []),
         (None, []),
@@ -417,7 +417,7 @@ def test_generate_event_delivery_attempt_payload_raises_error_when_no_delivery(
     event_attempt,
 ):
     event_attempt.delivery = None
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Can't generate payload."):
         generate_event_delivery_attempt_payload(event_attempt, None, 1024)
 
 
@@ -425,7 +425,7 @@ def test_generate_event_delivery_attempt_payload_raises_error_when_no_payload(
     event_attempt,
 ):
     event_attempt.delivery.payload = None
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Can't generate payload."):
         generate_event_delivery_attempt_payload(event_attempt, None, 1024)
 
 

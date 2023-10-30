@@ -1409,7 +1409,7 @@ QUERY_GET_PRODUCT_VARIANTS_PRICING = """
 
 
 @pytest.mark.parametrize(
-    "variant_price_amount, api_variant_price",
+    ("variant_price_amount", "api_variant_price"),
     [(200, 200), (0, 0)],
 )
 def test_product_variant_price(
@@ -2047,8 +2047,8 @@ QUERY_PRODUCT_WITH_VARIANT = """
 
 
 @pytest.mark.parametrize(
-    "variant_id, sku, result",
-    ((False, "123", "123"), (True, None, "123")),
+    ("variant_id", "sku", "result"),
+    [(False, "123", "123"), (True, None, "123")],
 )
 def test_product_variant_field_filtering(
     staff_api_client,

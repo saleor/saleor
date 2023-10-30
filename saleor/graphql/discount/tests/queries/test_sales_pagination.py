@@ -88,7 +88,7 @@ QUERY_SALES_PAGINATION = """
 
 
 @pytest.mark.parametrize(
-    "sort_by, sales_order",
+    ("sort_by", "sales_order"),
     [
         ({"field": "NAME", "direction": "ASC"}, ["Sale1", "Sale15", "Sale2"]),
         ({"field": "NAME", "direction": "DESC"}, ["Sale4", "Sale3", "Sale2"]),
@@ -152,7 +152,7 @@ def test_sales_pagination_with_sorting_and_channel(
 
 
 @pytest.mark.parametrize(
-    "filter_by, sales_order",
+    ("filter_by", "sales_order"),
     [
         ({"status": "SCHEDULED"}, ["Sale1", "Sale15"]),
         ({"status": "ACTIVE"}, ["Sale2", "Sale3"]),

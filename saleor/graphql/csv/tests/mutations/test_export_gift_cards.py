@@ -36,7 +36,7 @@ EXPORT_GIFT_CARDS_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "input, called_data",
+    ("input", "called_data"),
     [
         (
             {
@@ -215,7 +215,7 @@ def test_export_gift_cards_mutation_ids_scope_invalid_object_type(
 
 
 @pytest.mark.parametrize(
-    "input, error_field",
+    ("input", "error_field"),
     [
         (
             {

@@ -732,13 +732,13 @@ def test_update_shipping_zone_remove_channels_remove_common_warehouse_channel(
 
 
 @pytest.mark.parametrize(
-    "input, expected_countries",
-    (
+    ("input", "expected_countries"),
+    [
         ({"default": True, "countries": ["PL"]}, [{"code": "PL"}]),
         ({"default": True, "countries": []}, []),
         ({"default": True, "countries": None}, []),
         ({"default": True}, []),
-    ),
+    ],
 )
 def test_shipping_method_update_countries(
     staff_api_client,

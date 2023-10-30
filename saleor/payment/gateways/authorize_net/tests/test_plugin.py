@@ -68,7 +68,7 @@ def test_payment_gateway_validate(mocked_authenticate_test, authorize_net_plugin
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_payment_gateway_validate_production(authorize_net_plugin):
     for config in authorize_net_plugin.configuration:
         if config["name"] == "use_sandbox":
@@ -78,7 +78,7 @@ def test_payment_gateway_validate_production(authorize_net_plugin):
 
 
 @pytest.mark.integration
-@pytest.mark.vcr()
+@pytest.mark.vcr
 def test_payment_gateway_process_payment_production_failure(
     authorize_net_plugin, dummy_payment_data
 ):

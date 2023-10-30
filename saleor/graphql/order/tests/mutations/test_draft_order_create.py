@@ -1717,7 +1717,7 @@ def test_draft_order_create_with_non_unique_external_reference(
     assert error["message"] == "Order with this External reference already exists."
 
 
-@pytest.mark.parametrize("force_new_line", (True, False))
+@pytest.mark.parametrize("force_new_line", [True, False])
 def test_draft_order_create_with_custom_price_in_order_line(
     force_new_line,
     staff_api_client,

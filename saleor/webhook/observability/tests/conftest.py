@@ -40,7 +40,7 @@ def gql_operation_factory():
 
 
 @pytest.fixture
-def clear_cache():
+def _clear_cache():
     yield
     cache.clear()
 

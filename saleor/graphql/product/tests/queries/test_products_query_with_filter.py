@@ -86,7 +86,7 @@ def test_products_query_with_filter_attributes(
 
 
 @pytest.mark.parametrize(
-    "gte, lte, expected_products_index",
+    ("gte", "lte", "expected_products_index"),
     [
         (None, 8, [1, 2]),
         (0, 8, [1, 2]),
@@ -184,7 +184,7 @@ def test_products_query_with_filter_numeric_attributes(
 
 
 @pytest.mark.parametrize(
-    "filter_value, expected_products_index",
+    ("filter_value", "expected_products_index"),
     [
         (False, [0, 1]),
         (True, [0]),
@@ -1634,7 +1634,7 @@ def test_products_query_with_filter_stock_availability_only_stock_in_cc_warehous
 
 
 @pytest.mark.parametrize(
-    "quantity_input, warehouse_indexes, count, indexes_of_products_in_result",
+    ("quantity_input", "warehouse_indexes", "count", "indexes_of_products_in_result"),
     [
         ({"lte": "80", "gte": "20"}, [1, 2], 1, [1]),
         ({"lte": "120", "gte": "40"}, [1, 2], 1, [0]),

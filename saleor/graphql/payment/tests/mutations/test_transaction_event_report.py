@@ -1881,7 +1881,7 @@ def test_transaction_event_report_by_app_assign_app_owner(
 
 
 @pytest.mark.parametrize(
-    "transaction_psp_reference, expected_transaction_psp_reference",
+    ("transaction_psp_reference", "expected_transaction_psp_reference"),
     [
         (None, "psp_reference_from_event"),
         ("", "psp_reference_from_event"),

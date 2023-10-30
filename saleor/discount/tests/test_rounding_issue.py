@@ -37,7 +37,7 @@ def promotion_10_percentage(channel_USD, product_list, product):
 
 
 @pytest.mark.parametrize(
-    "variant_prices, expected_discounts",
+    ("variant_prices", "expected_discounts"),
     [
         (
             [Decimal("1.06"), Decimal("2.06"), Decimal("3.06"), Decimal("4.06")],

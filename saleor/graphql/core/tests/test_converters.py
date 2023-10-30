@@ -60,7 +60,7 @@ def test_get_form_field_description_nonempty_extra_help_text(mockfield):
 
 
 @pytest.mark.parametrize(
-    "infield,outfield_type,expected_description",
+    ("infield", "outfield_type", "expected_description"),
     [
         # given
         (forms.CharField(), graphene.String, None),

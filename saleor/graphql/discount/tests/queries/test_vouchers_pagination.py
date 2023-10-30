@@ -127,7 +127,7 @@ QUERY_VOUCHERS_PAGINATION = """
 
 
 @pytest.mark.parametrize(
-    "sort_by, vouchers_order",
+    ("sort_by", "vouchers_order"),
     [
         ({"field": "CODE", "direction": "ASC"}, ["Voucher1", "Voucher15", "Voucher2"]),
         ({"field": "CODE", "direction": "DESC"}, ["Voucher4", "Voucher3", "Voucher2"]),
@@ -171,7 +171,7 @@ def test_vouchers_pagination_with_sorting(
 
 
 @pytest.mark.parametrize(
-    "sort_by, vouchers_order",
+    ("sort_by", "vouchers_order"),
     [
         ({"field": "VALUE", "direction": "ASC"}, ["Voucher1", "Voucher15", "Voucher3"]),
         (
@@ -211,7 +211,7 @@ def test_vouchers_pagination_with_sorting_and_channel(
 
 
 @pytest.mark.parametrize(
-    "filter_by, vouchers_order",
+    ("filter_by", "vouchers_order"),
     [
         ({"status": "SCHEDULED"}, ["Voucher1", "Voucher15"]),
         ({"status": "ACTIVE"}, ["Voucher2", "Voucher3"]),

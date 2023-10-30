@@ -48,7 +48,7 @@ QUERY_CATEGORIES_WITH_FILTERING = """
 
 
 @pytest.mark.parametrize(
-    "filter_by, categories_count",
+    ("filter_by", "categories_count"),
     [
         ({"slugs": ["category1"]}, 1),
         ({"slugs": ["category2", "category3"]}, 2),
@@ -77,7 +77,7 @@ def test_categories_with_filtering(
 
 
 @pytest.mark.parametrize(
-    "filter_by, categories_count",
+    ("filter_by", "categories_count"),
     [
         ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 3),
         ({"updatedAt": {"lte": "2012-01-14T12:00:05+00:00"}}, 3),
@@ -187,7 +187,7 @@ query ($id: ID!, $channel: String, $filters: ProductFilterInput) {
 
 
 @pytest.mark.parametrize(
-    "channel, filter_channel, count, indexes_of_products_in_result",
+    ("channel", "filter_channel", "count", "indexes_of_products_in_result"),
     [
         ("channel_USD.slug", "channel_USD.slug", 2, [1, 2]),
         ("channel_USD.slug", "channel_PLN.slug", 2, [1, 2]),
@@ -242,7 +242,7 @@ def test_category_filter_products_by_channel(
 
 
 @pytest.mark.parametrize(
-    "is_published, count, indexes_of_products_in_result",
+    ("is_published", "count", "indexes_of_products_in_result"),
     [
         (True, 2, [1, 2]),
         (False, 1, [0]),
@@ -334,7 +334,7 @@ def test_category_filter_products_by_multiple_attributes(
 
 
 @pytest.mark.parametrize(
-    "stock_availability, count, indexes_of_products_in_result",
+    ("stock_availability", "count", "indexes_of_products_in_result"),
     [
         ("OUT_OF_STOCK", 2, [1, 2]),
         ("IN_STOCK", 1, [0]),
@@ -384,7 +384,7 @@ def test_category_filter_products_by_stock_availability(
 
 
 @pytest.mark.parametrize(
-    "quantity_input, warehouse_indexes, count, indexes_of_products_in_result",
+    ("quantity_input", "warehouse_indexes", "count", "indexes_of_products_in_result"),
     [
         ({"lte": "80", "gte": "20"}, [1, 2], 1, [1]),
         ({"lte": "120", "gte": "40"}, [1, 2], 1, [0]),
@@ -484,7 +484,7 @@ def test_category_filter_products_by_stocks(
 
 
 @pytest.mark.parametrize(
-    "is_published, count, indexes_of_products_in_result",
+    ("is_published", "count", "indexes_of_products_in_result"),
     [
         (True, 1, [1]),
         (False, 0, []),

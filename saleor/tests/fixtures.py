@@ -246,7 +246,7 @@ def setup_dummy_gateways(settings):
 
 
 @pytest.fixture
-def sample_gateway(settings):
+def _sample_gateway(settings):
     settings.PLUGINS += [
         "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"
     ]
@@ -644,7 +644,7 @@ def checkout_with_variant_without_inventory_tracking(
     return checkout
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_variants(
     checkout,
     stock,
@@ -669,7 +669,7 @@ def checkout_with_variants(
     return checkout
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_shipping_address(checkout_with_variants, address):
     checkout = checkout_with_variants
 
@@ -708,7 +708,7 @@ def checkout_with_variants_for_cc(
     return checkout
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_shipping_address_for_cc(checkout_with_variants_for_cc, address):
     checkout = checkout_with_variants_for_cc
 
@@ -788,7 +788,7 @@ def checkout_with_gift_card(checkout_with_item, gift_card):
     return checkout_with_item
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_preorders_only(
     checkout,
     stocks_for_cc,
@@ -804,7 +804,7 @@ def checkout_with_preorders_only(
     return checkout
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_preorders_and_regular_variant(
     checkout, stocks_for_cc, preorder_variant_with_end_date, product_variant_list
 ):
@@ -3703,6 +3703,7 @@ def product_list_with_variants_many_channel(
             ),
         ]
     )
+    return products
 
 
 @pytest.fixture
@@ -6689,7 +6690,9 @@ def digital_content_url(digital_content, order_line):
 
 @pytest.fixture
 def media_root(tmpdir, settings):
-    settings.MEDIA_ROOT = str(tmpdir.mkdir("media"))
+    root = str(tmpdir.mkdir("media"))
+    settings.MEDIA_ROOT = root
+    return root
 
 
 @pytest.fixture
@@ -7217,7 +7220,7 @@ def warehouses(address, address_usa, channel_USD):
     return warehouses
 
 
-@pytest.fixture()
+@pytest.fixture
 def warehouses_for_cc(address, shipping_zones, channel_USD):
     warehouses = Warehouse.objects.bulk_create(
         [

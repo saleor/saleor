@@ -568,7 +568,7 @@ def test_order_query_customer(api_client):
 
 
 @pytest.mark.parametrize(
-    "total_authorized, total_charged, expected_status",
+    ("total_authorized", "total_charged", "expected_status"),
     [
         (Decimal("98.40"), Decimal("0"), OrderAuthorizeStatusEnum.FULL.name),
         (Decimal("0"), Decimal("98.40"), OrderAuthorizeStatusEnum.FULL.name),
@@ -608,7 +608,7 @@ def test_order_query_authorize_status(
 
 
 @pytest.mark.parametrize(
-    "total_authorized, total_charged, expected_status",
+    ("total_authorized", "total_charged", "expected_status"),
     [
         (Decimal("10.40"), Decimal("0"), OrderChargeStatusEnum.NONE.name),
         (Decimal("98.40"), Decimal("0"), OrderChargeStatusEnum.NONE.name),

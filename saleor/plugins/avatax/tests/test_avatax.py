@@ -42,7 +42,7 @@ from .. import (
     TAX_CODE_NON_TAXABLE_PRODUCT,
     AvataxConfiguration,
     TransactionType,
-    _validate_adddress_details,
+    _validate_address_details,
     _validate_checkout,
     _validate_order,
     api_get_request,
@@ -72,9 +72,9 @@ def order_set_shipping_method(order, shipping_method):
     )
 
 
-@pytest.mark.vcr()
+@pytest.mark.vcr
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("24.39", "30.00", True),
         ("30.00", "36.90", False),
@@ -126,9 +126,9 @@ def test_calculate_checkout_line_total(
     )
 
 
-@pytest.mark.vcr()
+@pytest.mark.vcr
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("12.20", "15.00", True),
         ("15.00", "18.45", False),
@@ -476,9 +476,9 @@ def test_calculate_checkout_line_total_with_variant_on_promotion_and_voucher_onl
     )
 
 
-@pytest.mark.vcr()
+@pytest.mark.vcr
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("24.39", "30.00", True),
         ("30.00", "36.90", False),
@@ -536,9 +536,9 @@ def test_calculate_checkout_line_without_sku_total(
     )
 
 
-@pytest.mark.vcr()
+@pytest.mark.vcr
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("12.20", "15.00", True),
         ("15.00", "18.45", False),
@@ -601,7 +601,7 @@ def test_calculate_checkout_line_without_sku_total_with_promotion(
     )
 
 
-@pytest.mark.vcr()
+@pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_order_line_total(
     order_line,
@@ -666,7 +666,7 @@ def test_calculate_order_line_total(
     assert total == TaxedMoney(net=Money("24.39", "USD"), gross=Money("30.00", "USD"))
 
 
-@pytest.mark.vcr()
+@pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_order_line_without_sku_total(
     order_line,
@@ -727,7 +727,7 @@ def test_calculate_order_line_without_sku_total(
     assert total == TaxedMoney(net=Money("24.39", "USD"), gross=Money("30.00", "USD"))
 
 
-@pytest.mark.vcr()
+@pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_order_line_total_with_discount(
     order_line,
@@ -798,9 +798,9 @@ def test_calculate_order_line_total_with_discount(
     )
 
 
-@pytest.mark.vcr()
+@pytest.mark.vcr
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("16.26", "20.00", True),
         ("20.00", "24.60", False),
@@ -890,9 +890,9 @@ def test_calculate_order_line_total_entire_order_voucher(
     )
 
 
-@pytest.mark.vcr()
+@pytest.mark.vcr
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("24.39", "30.00", True),
         ("30.00", "36.90", False),
@@ -1083,7 +1083,7 @@ def test_calculate_order_shipping_order_not_valid(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    ("expected_net, expected_gross, voucher_amount, prices_entered_with_tax"),
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("41.99", "51.19", "0.0", False),
         ("32.04", "38.99", "3.0", True),
@@ -1149,7 +1149,7 @@ def test_calculate_checkout_total_uses_default_calculation(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    ("expected_net, expected_gross, voucher_amount, prices_entered_with_tax"),
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("22.32", "26.99", "0.0", True),
         ("21.99", "26.73", "5.0", False),
@@ -1220,7 +1220,7 @@ def test_calculate_checkout_total_uses_default_calculation_with_promotion(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    ("expected_net, expected_gross, voucher_amount, prices_entered_with_tax"),
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("41.99", "51.19", "0.0", False),
         ("32.04", "38.99", "3.0", True),
@@ -1294,7 +1294,7 @@ def test_calculate_checkout_total(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    ("expected_net, expected_gross, voucher_amount, prices_entered_with_tax"),
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("22.32", "26.99", "0.0", True),
         # ("21.99", "26.73", "5.0", False),
@@ -1374,7 +1374,7 @@ def test_calculate_checkout_total_with_promotion(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    ("expected_net, expected_gross, voucher_amount, " "prices_entered_with_tax"),
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("4300", "5289", "0.0", False),
         ("3493", "4297", "3.0", True),
@@ -1447,7 +1447,7 @@ def test_calculate_checkout_total_for_JPY(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    ("expected_net, expected_gross, voucher_amount, prices_entered_with_tax"),
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("3484", "4285", "0.0", True),
         ("4280", "5264", "5.0", False),
@@ -1558,7 +1558,7 @@ def test_calculate_checkout_total_for_JPY_with_promotion(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("8.13", "10.00", True),
         ("10.00", "12.30", False),
@@ -1749,7 +1749,7 @@ def test_calculate_checkout_total_voucher_on_entire_order_product_without_taxes(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("24.39", "30.00", True),
         ("30.00", "36.90", False),
@@ -1901,7 +1901,7 @@ def test_calculate_checkout_shipping(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("40.65", "50.00", True),
         ("50.00", "61.50", False),
@@ -1950,7 +1950,7 @@ def test_calculate_checkout_subtotal(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("25.00", "30.75", False),
         ("20.33", "25.00", True),
@@ -2122,7 +2122,7 @@ def test_calculate_checkout_subtotal_voucher_on_entire_order(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("24.39", "30.00", True),
         ("30.00", "36.90", False),
@@ -4860,8 +4860,13 @@ def test_get_order_tax_data_raised_error(
 
 
 @pytest.mark.parametrize(
-    "shipping_address_none, shipping_method_none, billing_address_none, "
-    "is_shipping_required, expected_is_valid",
+    (
+        "shipping_address_none",
+        "shipping_method_none",
+        "billing_address_none",
+        "is_shipping_required",
+        "expected_is_valid",
+    ),
     [
         (False, False, False, True, True),
         (True, True, False, True, False),
@@ -4870,7 +4875,7 @@ def test_get_order_tax_data_raised_error(
         (True, False, False, True, False),
     ],
 )
-def test_validate_adddress_details(
+def test_validate_address_details(
     shipping_address_none,
     shipping_method_none,
     billing_address_none,
@@ -4885,7 +4890,7 @@ def test_validate_adddress_details(
     address = shipping_address or billing_address
     shipping_method = checkout_ready_to_complete.shipping_method
     shipping_method = None if shipping_method_none else shipping_method
-    is_valid = _validate_adddress_details(
+    is_valid = _validate_address_details(
         shipping_address, is_shipping_required, address, shipping_method
     )
     assert is_valid is expected_is_valid

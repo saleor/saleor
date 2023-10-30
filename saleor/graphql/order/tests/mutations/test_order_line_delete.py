@@ -89,7 +89,7 @@ def test_order_line_remove_with_back_in_stock_webhook(
     back_in_stock_webhook_mock.assert_called_once_with(Stock.objects.first())
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_line_remove(

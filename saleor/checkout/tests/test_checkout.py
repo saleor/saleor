@@ -265,8 +265,15 @@ def test_last_change_update_foreign_key(checkout, shipping_method):
 
 
 @pytest.mark.parametrize(
-    "total, min_spent_amount, min_checkout_items_quantity, once_per_order, "
-    "discount_value, discount_value_type, expected_value",
+    (
+        "total",
+        "min_spent_amount",
+        "min_checkout_items_quantity",
+        "once_per_order",
+        "discount_value",
+        "discount_value_type",
+        "expected_value",
+    ),
     [
         (20, 20, 2, False, 50, DiscountValueType.PERCENTAGE, Decimal("10.00")),
         (20, None, None, False, 50, DiscountValueType.PERCENTAGE, Decimal("10.00")),
@@ -351,8 +358,15 @@ def test_get_discount_for_checkout_value_entire_order_voucher(
 
 
 @pytest.mark.parametrize(
-    "prices, min_spent_amount, min_checkout_items_quantity, once_per_order, "
-    "discount_value, discount_value_type, expected_value",
+    (
+        "prices",
+        "min_spent_amount",
+        "min_checkout_items_quantity",
+        "once_per_order",
+        "discount_value",
+        "discount_value_type",
+        "expected_value",
+    ),
     [
         (
             [Money(10, "USD"), Money(20, "USD")],
@@ -538,8 +552,14 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
 
 
 @pytest.mark.parametrize(
-    "total, total_quantity, discount_value, discount_type, min_spent_amount, "
-    "min_checkout_items_quantity",
+    (
+        "total",
+        "total_quantity",
+        "discount_value",
+        "discount_type",
+        "min_spent_amount",
+        "min_checkout_items_quantity",
+    ),
     [
         ("99", 9, 10, DiscountValueType.FIXED, None, 10),
         ("99", 9, 10, DiscountValueType.FIXED, 100, None),
@@ -593,7 +613,7 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
 
 
 @pytest.mark.parametrize(
-    "discount_value, discount_type, total_discount_amount",
+    ("discount_value", "discount_type", "total_discount_amount"),
     [
         (5, DiscountValueType.FIXED, Decimal("15.00")),
         (10, DiscountValueType.PERCENTAGE, Decimal("6.00")),
@@ -647,7 +667,7 @@ def test_get_discount_for_checkout_specific_products_voucher(
 
 
 @pytest.mark.parametrize(
-    "discount_value, discount_type, total_discount_amount",
+    ("discount_value", "discount_type", "total_discount_amount"),
     [
         (5, DiscountValueType.FIXED, 5),
         (10000, DiscountValueType.FIXED, 10),
@@ -702,8 +722,14 @@ def test_get_discount_for_checkout_specific_products_voucher_apply_only_once(
 
 
 @pytest.mark.parametrize(
-    "total, total_quantity, discount_value, discount_type, min_spent_amount,"
-    "min_checkout_items_quantity",
+    (
+        "total",
+        "total_quantity",
+        "discount_value",
+        "discount_type",
+        "min_spent_amount",
+        "min_checkout_items_quantity",
+    ),
     [
         ("99", 9, 10, DiscountValueType.FIXED, None, 10),
         ("99", 9, 10, DiscountValueType.FIXED, 100, None),
@@ -765,8 +791,14 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
 
 
 @pytest.mark.parametrize(
-    "shipping_cost, shipping_country_code, discount_value, discount_type,"
-    "countries, expected_value",
+    (
+        "shipping_cost",
+        "shipping_country_code",
+        "discount_value",
+        "discount_type",
+        "countries",
+        "expected_value",
+    ),
     [
         (
             Decimal("10.00"),
@@ -791,14 +823,6 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
             DiscountValueType.FIXED,
             [],
             Decimal("10.00"),
-        ),
-        (
-            Decimal("5.00"),
-            "PL",
-            Decimal("5.00"),
-            DiscountValueType.FIXED,
-            ["PL"],
-            Decimal("5.00"),
         ),
         (
             Decimal("5.00"),
@@ -979,9 +1003,18 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
 
 
 @pytest.mark.parametrize(
-    "is_shipping_required, shipping_method_data, discount_value, discount_type,"
-    "countries, min_spent_amount, min_checkout_items_quantity, subtotal,"
-    "total_quantity, error_msg",
+    (
+        "is_shipping_required",
+        "shipping_method_data",
+        "discount_value",
+        "discount_type",
+        "countries",
+        "min_spent_amount",
+        "min_checkout_items_quantity",
+        "subtotal",
+        "total_quantity",
+        "error_msg",
+    ),
     [
         (
             True,

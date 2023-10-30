@@ -104,7 +104,8 @@ def test_list_payment_sources(
     # then
     mock_get_source_list.assert_called_once_with(gateway, dummy_customer_id, ANY, None)
     content = get_graphql_content(response)["data"]["me"]["storedPaymentSources"]
-    assert content is not None and len(content) == 1
+    assert content is not None
+    assert len(content) == 1
     assert content[0] == {
         "gateway": gateway,
         "paymentMethodId": "payment-method-id",

@@ -432,7 +432,7 @@ def test_app_fetch_manifest_extensions_incorrect_enum_values(
 
 
 @pytest.mark.parametrize(
-    "url, target, app_url",
+    ("url", "target", "app_url"),
     [
         ("/app", AppExtensionTargetEnum.APP_PAGE.name, ""),
         ("/app", AppExtensionTargetEnum.APP_PAGE.name, "https://www.example.com/app"),
@@ -482,7 +482,7 @@ def test_app_fetch_manifest_extensions_correct_url(
 
 
 @pytest.mark.parametrize(
-    "url, target",
+    ("url", "target"),
     [
         ("http:/127.0.0.1:8080/app", AppExtensionTargetEnum.POPUP.name),
         ("127.0.0.1:8080/app", AppExtensionTargetEnum.POPUP.name),
@@ -535,7 +535,7 @@ def test_app_fetch_manifest_extensions_incorrect_url(
 
 
 @pytest.mark.parametrize(
-    "app_permissions, extension_permissions",
+    ("app_permissions", "extension_permissions"),
     [
         ([], ["MANAGE_PRODUCTS"]),
         (["MANAGE_PRODUCTS"], ["MANAGE_PRODUCTS", "MANAGE_APPS"]),
@@ -777,7 +777,7 @@ def test_app_fetch_manifest_with_empty_author(
 
 
 @pytest.mark.parametrize(
-    "format,expected_format,size",
+    ("format", "expected_format", "size"),
     [
         (None, "png", None),
         (IconThumbnailFormat.WEBP, "webp", 120),

@@ -13,7 +13,7 @@ from ..tasks import _update_variants_names
 from ..utils.variants import generate_and_set_variant_name
 
 
-@pytest.fixture()
+@pytest.fixture
 def variant_with_no_attributes(category, channel_USD):
     """Create a variant having no attributes, the same for the parent product."""
     product_type = ProductType.objects.create(

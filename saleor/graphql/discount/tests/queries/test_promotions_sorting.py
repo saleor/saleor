@@ -24,7 +24,7 @@ QUERY_PROMOTIONS = """
 """
 
 
-@pytest.mark.parametrize("direction", ("ASC", "DESC"))
+@pytest.mark.parametrize("direction", ["ASC", "DESC"])
 def test_sorting_promotions_by_name(
     direction,
     staff_api_client,
@@ -57,7 +57,7 @@ def test_sorting_promotions_by_name(
     ]
 
 
-@pytest.mark.parametrize("direction", ("ASC", "DESC"))
+@pytest.mark.parametrize("direction", ["ASC", "DESC"])
 def test_sorting_promotions_by_end_date(
     direction,
     staff_api_client,
@@ -90,7 +90,7 @@ def test_sorting_promotions_by_end_date(
     ]
 
 
-@pytest.mark.parametrize("direction", ("ASC", "DESC"))
+@pytest.mark.parametrize("direction", ["ASC", "DESC"])
 def test_sorting_promotions_by_start_date(
     direction,
     staff_api_client,
@@ -125,7 +125,7 @@ def test_sorting_promotions_by_start_date(
     ]
 
 
-@pytest.mark.parametrize("direction", ("ASC", "DESC"))
+@pytest.mark.parametrize("direction", ["ASC", "DESC"])
 def test_sorting_promotions_by_created_at(
     direction,
     staff_api_client,

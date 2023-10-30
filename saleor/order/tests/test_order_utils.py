@@ -29,13 +29,13 @@ from ..utils import (
 
 
 @pytest.mark.parametrize(
-    "status, previous_quantity, new_quantity, added_count, removed_count",
-    (
+    ("status", "previous_quantity", "new_quantity", "added_count", "removed_count"),
+    [
         (OrderStatus.DRAFT, 5, 2, 0, 3),
         (OrderStatus.UNCONFIRMED, 2, 5, 3, 0),
         (OrderStatus.UNCONFIRMED, 2, 0, 0, 2),
         (OrderStatus.DRAFT, 5, 5, 0, 0),
-    ),
+    ],
 )
 def test_change_quantity_generates_proper_event(
     status,

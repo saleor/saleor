@@ -361,7 +361,7 @@ EXPECTED_SORTED_DATA_SINGLE_VALUE_ASC = [
     {
         "node": {
             "attributes": [{"attribute": {"slug": "dummy"}, "values": []}],
-            "name": "Another Dummy but first in ASC and has no attribute " "value",
+            "name": "Another Dummy but first in ASC and has no attribute value",
         }
     },
     {
@@ -480,7 +480,7 @@ EXPECTED_SORTED_DATA_MULTIPLE_VALUES_ASC = [
     {
         "node": {
             "attributes": [{"attribute": {"slug": "dummy"}, "values": []}],
-            "name": "Another Dummy but first in ASC and has no attribute " "value",
+            "name": "Another Dummy but first in ASC and has no attribute value",
         }
     },
     {

@@ -746,7 +746,7 @@ def parse_transaction_event_data(
     ):
         return
     missing_msg = (
-        "Missing value for field: %s in " "response of transaction action webhook."
+        "Missing value for field: %s in response of transaction action webhook."
     )
     invalid_msg = (
         "Incorrect value for field: %s, value: %s in "

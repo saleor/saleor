@@ -193,7 +193,7 @@ def generate_event_delivery_attempt_payload(
 ) -> EventDeliveryAttemptPayload:
     if not attempt.delivery:
         raise ValueError(
-            f"EventDeliveryAttempt {attempt.id} is not assigned to delivery."
+            f"EventDeliveryAttempt {attempt.id} is not assigned to delivery. "
             "Can't generate payload."
         )
     if not attempt.delivery.payload:

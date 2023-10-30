@@ -73,9 +73,7 @@ SALE_BULK_DELETE_MUTATION = """
     """
 
 
-@mock.patch(
-    "saleor.graphql.discount.mutations." "bulk_mutations.get_webhooks_for_event"
-)
+@mock.patch("saleor.graphql.discount.mutations.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 @mock.patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
@@ -117,9 +115,7 @@ def test_delete_sales(
     assert deleted_webhook_mock.call_count == len(promotion_list)
 
 
-@mock.patch(
-    "saleor.graphql.discount.mutations." "bulk_mutations.get_webhooks_for_event"
-)
+@mock.patch("saleor.graphql.discount.mutations.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_sales_triggers_webhook(
     mocked_webhook_trigger,
@@ -154,9 +150,7 @@ def test_delete_sales_triggers_webhook(
     assert mocked_webhook_trigger.call_count == 3
 
 
-@mock.patch(
-    "saleor.graphql.discount.mutations." "bulk_mutations.get_webhooks_for_event"
-)
+@mock.patch("saleor.graphql.discount.mutations.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_sales_with_variants_triggers_webhook(
     mocked_webhook_trigger,
@@ -215,9 +209,7 @@ def test_delete_sales_with_variants_triggers_webhook(
     assert mocked_webhook_trigger.call_count == 3
 
 
-@mock.patch(
-    "saleor.graphql.discount.mutations." "bulk_mutations.get_webhooks_for_event"
-)
+@mock.patch("saleor.graphql.discount.mutations.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 @mock.patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"

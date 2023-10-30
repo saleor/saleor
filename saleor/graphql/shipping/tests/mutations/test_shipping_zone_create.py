@@ -215,7 +215,7 @@ TEST_COUNTRIES_LIST = ["DZ", "AX", "BY"]
 
 
 @mock.patch(
-    "saleor.graphql.shipping.mutations.base." "get_countries_without_shipping_zone",
+    "saleor.graphql.shipping.mutations.base.get_countries_without_shipping_zone",
     return_value=TEST_COUNTRIES_LIST,
 )
 def test_create_default_shipping_zone(
