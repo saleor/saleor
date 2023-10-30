@@ -161,7 +161,7 @@ def test_apps_query_no_permission(
 
 
 def test_apps_query_marked_as_removed(
-    staff_api_client, permission_manage_apps, app, deleted_app
+    staff_api_client, permission_manage_apps, app, removed_app
 ):
     response = staff_api_client.post_graphql(
         QUERY_APPS_WITH_FILTER,

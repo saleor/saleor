@@ -345,10 +345,10 @@ def test_app_query_pending_installation(staff_api_client, app):
 def test_app_query_app_marked_as_removed(
     staff_api_client,
     permission_manage_apps,
-    deleted_app,
+    removed_app,
 ):
     # given
-    app = deleted_app
+    app = removed_app
     id = graphene.Node.to_global_id("App", app.id)
     variables = {"id": id}
 

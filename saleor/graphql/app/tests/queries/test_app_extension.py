@@ -87,11 +87,11 @@ def test_app_extension_by_app(app, app_api_client, permission_manage_products):
 
 
 def test_app_extensions_app_removed_app(
-    staff_api_client, deleted_app, permission_manage_products
+    staff_api_client, removed_app, permission_manage_products
 ):
     # given
     app_extension = AppExtension.objects.create(
-        app=deleted_app,
+        app=removed_app,
         label="Create product with App",
         url="https://www.example.com/app-product",
         mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,

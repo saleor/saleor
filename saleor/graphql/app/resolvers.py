@@ -1,5 +1,7 @@
 from urllib.parse import urljoin, urlparse
 
+from django.db.models import Exists, OuterRef
+
 from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.jwt import (
@@ -49,7 +51,10 @@ def resolve_app(_info, id):
 
 
 def resolve_app_extensions(_info):
-    return models.AppExtension.objects.filter(app__is_active=True, app__to_remove=False)
+    apps = models.App.objects.filter(is_active=True, to_remove=False).values("pk")
+    return models.AppExtension.objects.filter(
+        Exists(apps.filter(id=OuterRef("app_id")))
+    )
 
 
 def resolve_app_extension_url(root):

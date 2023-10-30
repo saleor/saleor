@@ -6147,7 +6147,7 @@ def app_with_token(db):
 
 
 @pytest.fixture
-def deleted_app(db):
+def removed_app(db):
     app = App.objects.create(name="Deleted app ", is_active=True, to_remove=True)
     return app
 
@@ -6313,6 +6313,17 @@ def external_app(db):
 def webhook(app):
     webhook = Webhook.objects.create(
         name="Simple webhook", app=app, target_url="http://www.example.com/test"
+    )
+    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
+    return webhook
+
+
+@pytest.fixture
+def webhook_removed_app(removed_app):
+    webhook = Webhook.objects.create(
+        name="Removed app webhook",
+        app=removed_app,
+        target_url="http://www.example.com/test",
     )
     webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
     return webhook
