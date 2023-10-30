@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import List, Optional
 
 import graphene
+from django.conf import settings
 from graphene import relay
 
 from ....permission.enums import ProductPermissions
@@ -138,6 +139,8 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         requestor = get_user_or_app_from_context(info.context)
         qs = root.node.products.visible_to_user(  # type: ignore[attr-defined] # mypy does not properly resolve the related manager # noqa: E501
             requestor, root.channel_slug
+        ).using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
         )
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
