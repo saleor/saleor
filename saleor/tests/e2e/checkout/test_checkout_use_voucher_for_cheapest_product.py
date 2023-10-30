@@ -48,8 +48,13 @@ def prepare_voucher_for_cheapest_product(
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    "first_variant_price, second_variant_price, voucher_discount_type, "
-    "voucher_discount_value, expected_voucher_discount",
+    (
+        "first_variant_price",
+        "second_variant_price",
+        "voucher_discount_type",
+        "voucher_discount_value",
+        "expected_voucher_discount",
+    ),
     [
         ("19.99", "109.99", "PERCENTAGE", 15, 3),
         ("13.33", "16.66", "FIXED", 4.44, 4.44),

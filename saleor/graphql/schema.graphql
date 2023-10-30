@@ -27924,7 +27924,9 @@ input VoucherInput @doc(category: "Discounts") {
   """Voucher name."""
   name: String
 
-  """Code to use the voucher.This field will be removed in Saleor 4.0."""
+  """
+  Code to use the voucher. This field will be removed in Saleor 4.0. Use `addCodes` instead.
+  """
   code: String
 
   """
