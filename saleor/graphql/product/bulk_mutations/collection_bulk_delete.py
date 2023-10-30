@@ -40,12 +40,12 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.COLLECTION_DELETED)
         for collection in queryset.iterator():
-            manager.collection_deleted(collection, webhooks=webhooks)
+            cls.call_event(manager.collection_deleted, collection, webhooks=webhooks)
         queryset.delete()
 
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED)
         for product in products:
-            manager.product_updated(product, webhooks=webhooks)
+            cls.call_event(manager.product_updated, product, webhooks=webhooks)
 
         update_products_discounted_prices_task.delay(
             [product.id for product in products]

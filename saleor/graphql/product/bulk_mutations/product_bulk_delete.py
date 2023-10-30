@@ -99,4 +99,6 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         manager = get_plugin_manager_promise(info.context).get()
         for product in products:
             variants = product_variant_map.get(product.id, [])
-            manager.product_deleted(product, variants, webhooks=webhooks)
+            cls.call_event(
+                manager.product_deleted, product, variants, webhooks=webhooks
+            )

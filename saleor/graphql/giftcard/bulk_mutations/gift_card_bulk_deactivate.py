@@ -51,4 +51,4 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
         )
         manager = get_plugin_manager_promise(info.context).get()
         for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
-            manager.gift_card_status_changed(card, webhooks=webhooks)
+            cls.call_event(manager.gift_card_status_changed, card, webhooks=webhooks)
