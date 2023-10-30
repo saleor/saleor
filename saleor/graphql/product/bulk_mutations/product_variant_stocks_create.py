@@ -3,7 +3,6 @@ from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
@@ -67,10 +66,8 @@ class ProductVariantStocksCreate(BaseMutation):
                 WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
             )
             for stock in new_stocks:
-                transaction.on_commit(
-                    lambda: manager.product_variant_back_in_stock(
-                        stock, webhooks=webhooks
-                    )
+                cls.call_event(
+                    manager.product_variant_back_in_stock, stock, webhooks=webhooks
                 )
 
         StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(

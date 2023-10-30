@@ -42,7 +42,8 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.SALE_DELETED)
         for sale, catalogue_info in sales_and_catalogue_infos:
-            manager.sale_deleted(
+            cls.call_event(
+                manager.sale_deleted,
                 sale,
                 convert_catalogue_info_to_global_ids(catalogue_info),
                 webhooks=webhooks,
@@ -79,4 +80,4 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.VOUCHER_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
         for voucher in vouchers:
-            manager.voucher_deleted(voucher, webhooks=webhooks)
+            cls.call_event(manager.voucher_deleted, voucher, webhooks=webhooks)
