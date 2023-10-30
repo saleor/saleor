@@ -35,6 +35,7 @@ from ..discount.dataloaders import (
     PromotionByRuleIdLoader,
     PromotionRuleByIdLoader,
     VoucherByCodeLoader,
+    VoucherCodeByCodeLoader,
     VoucherInfoByVoucherCodeLoader,
 )
 from ..plugins.dataloaders import get_plugin_manager_promise
@@ -468,6 +469,9 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     if checkout.voucher_code
                 }
                 vouchers = VoucherByCodeLoader(self.context).load_many(voucher_codes)
+                voucher_codes = VoucherCodeByCodeLoader(self.context).load_many(
+                    voucher_codes
+                )
                 channel_ids = [channel.id for channel in channels]
                 tax_configurations = TaxConfigurationByChannelId(
                     self.context
@@ -481,6 +485,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                         listings_for_channels,
                         collection_points,
                         vouchers,
+                        voucher_codes,
                         tax_configurations,
                     ) = results
                     address_map = {address.id: address for address in addresses}
@@ -494,6 +499,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                         for collection_point in collection_points
                     }
                     voucher_map = {voucher.code: voucher for voucher in vouchers}
+                    voucher_code_map = {code.code: code for code in voucher_codes}
                     tax_configuration_by_channel_map = {
                         tax_configuration.channel_id: tax_configuration
                         for tax_configuration in tax_configurations
@@ -514,6 +520,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             None, shipping_address
                         )
                         voucher = voucher_map.get(checkout.voucher_code)
+                        voucher_code = voucher_code_map.get(checkout.voucher_code)
                         checkout_info = CheckoutInfo(
                             checkout=checkout,
                             user=user_map.get(checkout.user_id),
@@ -531,6 +538,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             valid_pick_up_points=[],
                             all_shipping_methods=[],
                             voucher=voucher,
+                            voucher_code=voucher_code,
                         )
                         shipping_method_listings = [
                             listing
@@ -559,6 +567,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                         shipping_method_channel_listings,
                         collection_points,
                         vouchers,
+                        voucher_codes,
                         tax_configurations,
                     ]
                 ).then(with_checkout_info)

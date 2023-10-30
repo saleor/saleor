@@ -225,6 +225,8 @@ def test_draft_order_create(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.voucher == voucher
+    assert order.voucher_code == voucher.code
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(

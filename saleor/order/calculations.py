@@ -285,6 +285,7 @@ def _update_order_discount_for_voucher(order: Order):
                 reason=f"Voucher: {voucher.name}",  # type: ignore
                 voucher=voucher,
                 type=DiscountType.VOUCHER,
+                voucher_code=voucher.code,  # type: ignore
             )
 
     # Prefetch has to be cleared and refreshed to avoid returning cached discounts

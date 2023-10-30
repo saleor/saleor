@@ -238,6 +238,7 @@ def test_draft_order_update_clear_voucher(
     assert not data["errors"]
     order.refresh_from_db()
     assert not order.voucher
+    assert not order.voucher_code
     assert order.search_vector
 
     assert not order.discounts.count()

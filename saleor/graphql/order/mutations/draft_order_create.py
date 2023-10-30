@@ -197,9 +197,8 @@ class DraftOrderCreate(
         cleaned_input.update(shipping_method_input)
         channel = cls.clean_channel_id(info, instance, cleaned_input, channel_id)
 
-        voucher = cleaned_input.get("voucher", None)
-        if voucher:
-            cls.clean_voucher(voucher, channel)
+        if "voucher" in cleaned_input:
+            cls.clean_voucher(cleaned_input, channel)
 
         if channel:
             cleaned_input["currency"] = channel.currency_code
@@ -240,7 +239,12 @@ class DraftOrderCreate(
             return instance.channel if hasattr(instance, "channel") else None
 
     @classmethod
-    def clean_voucher(cls, voucher, channel):
+    def clean_voucher(cls, cleaned_input, channel):
+        voucher = cleaned_input.get("voucher")
+        if not voucher:
+            # We need to clean voucher_code as well
+            cleaned_input["voucher_code"] = None
+            return
         if not voucher.channel_listings.filter(channel=channel).exists():
             raise ValidationError(
                 {
@@ -250,6 +254,7 @@ class DraftOrderCreate(
                     )
                 }
             )
+        cleaned_input["voucher_code"] = voucher.code
 
     @classmethod
     def clean_lines(cls, cleaned_input, lines, channel):

@@ -1020,7 +1020,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.billing_address = billing_address
         order_data.shipping_address = shipping_address
         order_data.voucher = voucher
-
+        if order_data.voucher:
+            order_data.order.voucher_code = order_input.get("voucher")  # type: ignore
         if not channel or not billing_address:
             order_data.is_critical_error = True
 

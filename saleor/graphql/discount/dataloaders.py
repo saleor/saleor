@@ -14,6 +14,7 @@ from ...discount.models import (
     PromotionRule,
     Voucher,
     VoucherChannelListing,
+    VoucherCode,
 )
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
@@ -37,6 +38,21 @@ class VoucherByCodeLoader(DataLoader):
             .in_bulk(field_name="code")
         )
         return [vouchers.get(code) for code in keys]
+
+
+class VoucherCodeByCodeLoader(DataLoader):
+    context_key = "voucher_code_by_code"
+
+    def batch_load(self, keys):
+        voucher_codes = (
+            VoucherCode.objects.using(self.database_connection_name)
+            .select_related("voucher")
+            .filter(code__in=keys)
+        )
+        voucher_map = {
+            voucher_code.code: voucher_code for voucher_code in voucher_codes
+        }
+        return [voucher_map.get(code) for code in keys]
 
 
 class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):

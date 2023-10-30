@@ -825,6 +825,8 @@ def test_checkout_with_voucher_complete(
     voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.save(update_fields=["usage_limit"])
 
+    code = voucher_percentage.codes.first()
+
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -896,12 +898,16 @@ def test_checkout_with_voucher_complete(
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == voucher_used_count + 1
+    code.refresh_from_db()
+    assert code.used == voucher_used_count + 1
     order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
     assert order_discount
     assert (
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order.voucher == voucher_percentage
+    assert order.voucher.code == code.code
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -922,6 +928,8 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
     voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.apply_once_per_order = True
     voucher_percentage.save(update_fields=["usage_limit", "apply_once_per_order"])
+
+    code = voucher_percentage.codes.first()
 
     checkout = checkout_with_voucher_percentage
 
@@ -1000,12 +1008,16 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == voucher_used_count + 1
+    code.refresh_from_db()
+    assert code.used == voucher_used_count + 1
     order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
     assert order_discount
     assert (
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order.voucher == voucher_percentage
+    assert order.voucher.code == code.code
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -1025,6 +1037,8 @@ def test_checkout_with_voucher_complete_product_on_promotion(
     voucher_used_count = voucher_percentage.used
     voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.save(update_fields=["usage_limit"])
+
+    code = voucher_percentage.codes.first()
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
@@ -1152,6 +1166,10 @@ def test_checkout_with_voucher_complete_product_on_promotion(
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == voucher_used_count + 1
+    code.refresh_from_db()
+    assert code.used == voucher_used_count + 1
+    assert order.voucher == voucher_percentage
+    assert order.voucher.code == code.code
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -1249,6 +1267,10 @@ def test_checkout_with_voucher_on_specific_product_complete(
 
     voucher_specific_product_type.refresh_from_db()
     assert voucher_specific_product_type.used == voucher_used_count + 1
+    code = voucher_specific_product_type.codes.first()
+    assert code.used == voucher_used_count + 1
+    assert order.voucher == voucher_specific_product_type
+    assert order.voucher.code == code.code
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -1856,6 +1878,10 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
 
     voucher_specific_product_type.refresh_from_db()
     assert voucher_specific_product_type.used == voucher_used_count + 1
+    code = voucher_specific_product_type.codes.first()
+    assert code.used == voucher_used_count + 1
+    assert order.voucher == voucher_specific_product_type
+    assert order.voucher.code == code.code
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -1904,6 +1930,8 @@ def test_checkout_with_voucher_not_increase_uses_on_preprocess_order_creation_fa
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == 0
+    code = voucher_percentage.codes.first()
+    assert code.used == 0
 
     assert Checkout.objects.filter(
         pk=checkout.pk
@@ -2135,6 +2163,7 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
 ):
     mocked_process_payment.side_effect = error_side_effect
     expected_voucher_usage_count = voucher.used
+    code = voucher.codes.first()
     checkout = checkout_with_voucher
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -2174,6 +2203,7 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     # ensure the voucher usage count was not incremented
     voucher.refresh_from_db(fields=["used"])
     assert voucher.used == expected_voucher_usage_count
+    assert code.used == expected_voucher_usage_count
 
     assert Checkout.objects.filter(
         pk=checkout.pk

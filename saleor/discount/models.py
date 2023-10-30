@@ -180,6 +180,20 @@ class Voucher(ModelWithMetadata):
             raise NotApplicable(msg)
 
 
+class VoucherCode(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    code = models.CharField(max_length=255, unique=True, db_index=True)
+    used = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    voucher = models.ForeignKey(
+        Voucher, related_name="codes", on_delete=models.CASCADE, db_index=False
+    )
+
+    class Meta:
+        indexes = [BTreeIndex(fields=["voucher"], name="vouchercode_voucher_idx")]
+        ordering = ("code",)
+
+
 class VoucherChannelListing(models.Model):
     voucher = models.ForeignKey(
         Voucher,
@@ -220,9 +234,19 @@ class VoucherCustomer(models.Model):
     voucher = models.ForeignKey(
         Voucher, related_name="customers", on_delete=models.CASCADE
     )
+    voucher_code = models.ForeignKey(
+        VoucherCode,
+        related_name="customers",
+        on_delete=models.CASCADE,
+        db_index=False,
+        null=True,
+    )
     customer_email = models.EmailField()
 
     class Meta:
+        indexes = [
+            BTreeIndex(fields=["voucher_code"], name="vouchercustomer_voucher_code_idx")
+        ]
         ordering = ("voucher", "customer_email", "pk")
         unique_together = (("voucher", "customer_email"),)
 
@@ -411,6 +435,9 @@ class BaseDiscount(models.Model):
     voucher = models.ForeignKey(
         Voucher, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
     )
+    voucher_code = models.CharField(
+        max_length=255, null=True, blank=True, db_index=False
+    )
 
     class Meta:
         abstract = True
@@ -433,6 +460,7 @@ class OrderDiscount(BaseDiscount):
             ),
             # Orders searching index
             GinIndex(fields=["name", "translated_name"]),
+            GinIndex(fields=["voucher_code"], name="orderdiscount_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
 
@@ -450,7 +478,8 @@ class OrderLineDiscount(BaseDiscount):
         indexes = [
             BTreeIndex(
                 fields=["promotion_rule"], name="orderlinedisc_promotion_rule_idx"
-            )
+            ),
+            GinIndex(fields=["voucher_code"], name="orderlinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
 
@@ -468,7 +497,8 @@ class CheckoutLineDiscount(BaseDiscount):
         indexes = [
             BTreeIndex(
                 fields=["promotion_rule"], name="checklinedisc_promotion_rule_idx"
-            )
+            ),
+            GinIndex(fields=["voucher_code"], name="checklinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
 

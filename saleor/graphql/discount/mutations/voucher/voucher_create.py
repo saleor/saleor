@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from .....core.utils.promo_code import generate_promo_code, is_available_promo_code
 from .....discount import models
@@ -97,6 +98,24 @@ class VoucherCreate(ModelMutation):
         ]
 
     @classmethod
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        voucher_instance = cls.get_instance(info, **data)
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, voucher_instance, data)
+        code = cleaned_input.get("code")
+
+        voucher_instance = cls.construct_instance(voucher_instance, cleaned_input)
+        code_instance = cls.create_code_instance(code, voucher_instance)
+
+        cls.clean_instance(info, voucher_instance)
+        cls.clean_code_instance(code_instance)
+
+        cls.save(info, voucher_instance, code_instance)
+
+        cls.post_save_action(info, voucher_instance, cleaned_input)
+        return cls.success_response(voucher_instance)
+
+    @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         code = data.get("code", None)
         if code == "":
@@ -115,9 +134,11 @@ class VoucherCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def success_response(cls, instance):
-        instance = ChannelContext(node=instance, channel_slug=None)
-        return super().success_response(instance)
+    def create_code_instance(cls, code, voucher):
+        return models.VoucherCode(
+            code=code,
+            voucher=voucher,
+        )
 
     @classmethod
     def clean_instance(cls, info: ResolveInfo, instance):
@@ -131,6 +152,26 @@ class VoucherCreate(ModelMutation):
             raise ValidationError({"end_date": error})
 
     @classmethod
+    def clean_code_instance(cls, code_instance):
+        code_instance.full_clean(exclude=["voucher"])
+
+    @classmethod
+    def save(
+        cls,
+        _info: ResolveInfo,
+        voucher_instance,
+        code_instance,
+    ):
+        with transaction.atomic():
+            voucher_instance.save()
+            code_instance.save()
+
+    @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.voucher_created, instance)
+
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)

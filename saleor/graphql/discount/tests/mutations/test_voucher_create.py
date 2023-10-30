@@ -51,12 +51,14 @@ mutation  voucherCreate(
 
 
 def test_create_voucher(staff_api_client, permission_manage_discounts):
+    # given
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
+    code = "testcode123"
     variables = {
         "name": "test voucher",
         "type": VoucherTypeEnum.ENTIRE_ORDER.name,
-        "code": "testcode123",
+        "code": code,
         "discountValueType": DiscountValueTypeEnum.FIXED.name,
         "minCheckoutItemsQuantity": 10,
         "startDate": start_date.isoformat(),
@@ -66,20 +68,25 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
         "usageLimit": 3,
     }
 
+    # when
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     get_graphql_content(response)
     voucher = Voucher.objects.get()
     assert voucher.type == VoucherType.ENTIRE_ORDER
     assert voucher.name == "test voucher"
-    assert voucher.code == "testcode123"
+    assert voucher.code == code
     assert voucher.discount_value_type == DiscountValueType.FIXED
     assert voucher.start_date == start_date
     assert voucher.end_date == end_date
     assert voucher.apply_once_per_order
     assert voucher.apply_once_per_customer
     assert voucher.usage_limit == 3
+    assert voucher.codes.count() == 1
+    assert voucher.codes.first().code == code
 
 
 @freeze_time("2022-05-12 12:00:00")
