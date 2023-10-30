@@ -525,13 +525,6 @@ class OrderBulkCreateInput(BaseInputObjectType):
         graphene.String,
         description="List of gift card codes associated with the order.",
     )
-    voucher = graphene.String(
-        description=(
-            "Code of a voucher associated with the order."
-            "\n\nDEPRECATED: this field will be removed in Saleor 3.19."
-            " Use `voucherCode` instead."
-        )
-    )
     voucher_code = graphene.String(
         description="Code of a voucher associated with the order." + ADDED_IN_318
     )
@@ -836,19 +829,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                 )
                 order_data.is_critical_error = True
-
-        if order_input.get("voucher") and order_input.get("voucher_code"):
-            order_data.errors.append(
-                OrderBulkError(
-                    message="Cannot use both voucher and voucher_code.",
-                    path="voucher_code",
-                    code=OrderBulkCreateErrorCode.INVALID,
-                )
-            )
-            order_data.is_critical_error = True
-
-        if order_input.get("voucher") is not None:
-            order_input["voucher_code"] = order_input.get("voucher")
 
     @classmethod
     def validate_order_status(cls, status: str, order_data: OrderBulkCreateData):
