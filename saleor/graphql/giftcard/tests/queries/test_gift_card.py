@@ -166,6 +166,38 @@ def test_query_gift_card_by_app(
     assert data["app"]["name"] == app.name
 
 
+def test_query_gift_card_by_removed_app(
+    staff_api_client,
+    gift_card,
+    removed_app,
+    permission_manage_gift_card,
+    permission_manage_users,
+    permission_manage_apps,
+):
+    # given
+    gift_card.app = removed_app
+    gift_card.save(update_fields=["app"])
+    query = QUERY_GIFT_CARD_BY_ID
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+    variables = {"id": gift_card_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_gift_card,
+            permission_manage_users,
+            permission_manage_apps,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCard"]
+    assert data["app"] is None
+
+
 def test_query_gift_card_by_app_no_premissions(
     app_api_client, gift_card_created_by_staff
 ):
@@ -484,6 +516,44 @@ def test_query_gift_card_events(
     )
     assert events_data[1]["expiryDate"] == parameters["expiry_date"].isoformat()
     assert events_data[1]["oldExpiryDate"] == parameters["old_expiry_date"].isoformat()
+
+
+def test_query_gift_card_event_with_removed_app(
+    staff_api_client,
+    removed_app,
+    gift_card,
+    permission_manage_gift_card,
+    permission_manage_apps,
+    permission_manage_users,
+):
+    # given
+    staff_api_client.user
+
+    GiftCardEvent.objects.create(
+        app=removed_app,
+        gift_card=gift_card,
+        type=GiftCardEvents.ISSUED,
+        date=timezone.now(),
+    )
+
+    variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_GIFT_CARD_EVENTS,
+        variables,
+        permissions=[
+            permission_manage_gift_card,
+            permission_manage_apps,
+            permission_manage_users,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    events_data = content["data"]["giftCard"]["events"]
+    assert len(events_data) == 1
+    assert events_data[0]["app"] is None
 
 
 def test_query_gift_card_expiry_date_set_event(
