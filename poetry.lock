@@ -313,17 +313,17 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.28.69"
+version = "1.28.73"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.28.69-py3-none-any.whl", hash = "sha256:beefa8e8e1cf5f904dd95736f3516508f6a0cf396ff46aa166a136107cc2ff51"},
-    {file = "boto3-1.28.69.tar.gz", hash = "sha256:2dd93e5c530334fbc74a662f269fa8bfc4c3b7321f9dbe2d53f7c8e57fe5f6dd"},
+    {file = "boto3-1.28.73-py3-none-any.whl", hash = "sha256:bbe377a288b6b12b526fae3b3d743318c6868626cf67e1e97f104345a5194b1e"},
+    {file = "boto3-1.28.73.tar.gz", hash = "sha256:a61cf96f7e196b1450afdf4856b7ea0e58080752e687b0011157be96934489be"},
 ]
 
 [package.dependencies]
-botocore = ">=1.31.69,<1.32.0"
+botocore = ">=1.31.73,<1.32.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.7.0,<0.8.0"
 
@@ -332,13 +332,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.31.69"
+version = "1.31.73"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.31.69-py3-none-any.whl", hash = "sha256:26b1d2f82cc24987d1c7cc783b2fee04908a8f7b293bf1663884eb0768b1eedf"},
-    {file = "botocore-1.31.69.tar.gz", hash = "sha256:412439a199ada10c6284df1f48395928676d81d51339b1a93217cfd4c4f1c9a6"},
+    {file = "botocore-1.31.73-py3-none-any.whl", hash = "sha256:6e9caaa7205e0c0505f4868a4053e96eaf3f4b6bce0368a46970a8efeeacb492"},
+    {file = "botocore-1.31.73.tar.gz", hash = "sha256:5334c22d5a3f4643931896137c57b2496fef005b039d87d8740e7a28eb31519d"},
 ]
 
 [package.dependencies]
@@ -3212,6 +3212,8 @@ files = [
     {file = "psycopg2-2.9.9-cp310-cp310-win_amd64.whl", hash = "sha256:426f9f29bde126913a20a96ff8ce7d73fd8a216cfb323b1f04da402d452853c3"},
     {file = "psycopg2-2.9.9-cp311-cp311-win32.whl", hash = "sha256:ade01303ccf7ae12c356a5e10911c9e1c51136003a9a1d92f7aa9d010fb98372"},
     {file = "psycopg2-2.9.9-cp311-cp311-win_amd64.whl", hash = "sha256:121081ea2e76729acfb0673ff33755e8703d45e926e416cb59bae3a86c6a4981"},
+    {file = "psycopg2-2.9.9-cp312-cp312-win32.whl", hash = "sha256:d735786acc7dd25815e89cc4ad529a43af779db2e25aa7c626de864127e5a024"},
+    {file = "psycopg2-2.9.9-cp312-cp312-win_amd64.whl", hash = "sha256:a7653d00b732afb6fc597e29c50ad28087dcb4fbfb28e86092277a559ae4e693"},
     {file = "psycopg2-2.9.9-cp37-cp37m-win32.whl", hash = "sha256:5e0d98cade4f0e0304d7d6f25bbfbc5bd186e07b38eac65379309c4ca3193efa"},
     {file = "psycopg2-2.9.9-cp37-cp37m-win_amd64.whl", hash = "sha256:7e2dacf8b009a1c1e843b5213a87f7c544b2b042476ed7755be813eaf4e8347a"},
     {file = "psycopg2-2.9.9-cp38-cp38-win32.whl", hash = "sha256:ff432630e510709564c01dafdbe996cb552e0b9f3f065eb89bdce5bd31fabf4c"},
