@@ -149,6 +149,52 @@ def test_product_bulk_create_with_base_data(
     assert args == {product.id for product in products}
 
 
+def test_product_bulk_create_with_no_slug_and_name_with_unslugify_characters(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+):
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name = "-->"
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+        },
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    products = Product.objects.all()
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+    assert data["count"] == 2
+    assert data["results"][0]["product"]["name"] == product_name
+    assert data["results"][0]["product"]["slug"] == "-"
+    assert data["results"][1]["product"]["name"] == product_name
+    assert data["results"][1]["product"]["slug"] == "--2"
+    assert len(products) == 2
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_product_bulk_create_send_product_created_webhook(
     created_webhook_mock,
