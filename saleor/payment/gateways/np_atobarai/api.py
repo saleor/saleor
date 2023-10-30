@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from ....order.models import Fulfillment
 from ...interface import PaymentData
@@ -94,7 +94,7 @@ def change_transaction(
     config: ApiConfig,
     payment: Payment,
     payment_information: PaymentData,
-    goods: List[dict],
+    goods: list[dict],
     billed_amount: Decimal,
 ) -> PaymentResult:
     """Change transaction.
@@ -152,7 +152,7 @@ def reregister_transaction_for_partial_return(
     payment_information: PaymentData,
     shipping_company_code: Optional[str],
     tracking_number: Optional[str],
-    goods: List[dict],
+    goods: list[dict],
     billed_amount: Decimal,
 ) -> PaymentResult:
     """Change transaction.
@@ -209,7 +209,7 @@ def reregister_transaction_for_partial_return(
 
 def report_fulfillment(
     config: ApiConfig, payment: Payment, fulfillment: Fulfillment
-) -> Tuple[List[str], bool]:
+) -> tuple[list[str], bool]:
     """Report fulfillment.
 
     After this action, given payment is captured in NP Atobarai.

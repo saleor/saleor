@@ -1,7 +1,7 @@
 from decimal import Decimal
+from unittest import mock
 
 import graphene
-import mock
 import pytest
 
 from .....channel import TransactionFlowStrategy

@@ -497,7 +497,8 @@ def test_create_swatch_attribute_and_attribute_values_file_and_value_provided(
 
 
 @pytest.mark.parametrize(
-    "field, value", [("fileUrl", "test.jpg"), ("value", "blue"), ("contentType", "jpg")]
+    ("field", "value"),
+    [("fileUrl", "test.jpg"), ("value", "blue"), ("contentType", "jpg")],
 )
 def test_create_not_swatch_attribute_provide_not_valid_data(
     field,
@@ -974,7 +975,7 @@ def test_create_attribute_with_reference_input_type_invalid_settings(
 
 
 @pytest.mark.parametrize(
-    "field, value",
+    ("field", "value"),
     [
         ("filterableInStorefront", True),
         ("filterableInDashboard", True),
@@ -1024,7 +1025,7 @@ def test_create_attribute_with_file_input_type_and_invalid_one_settings_value(
 
 
 @pytest.mark.parametrize(
-    "field, value",
+    ("field", "value"),
     [
         ("filterableInStorefront", True),
         ("filterableInDashboard", True),
@@ -1120,13 +1121,13 @@ def test_create_attribute_with_reference_input_type_values_given(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug",
-    (
+    ("input_slug", "expected_slug"),
+    [
         ("my-slug", "my-slug"),
         (None, "my-name"),
         ("", "my-name"),
         ("わたし-わ-にっぽん-です", "わたし-わ-にっぽん-です"),
-    ),
+    ],
 )
 def test_create_attribute_with_given_slug(
     staff_api_client,
@@ -1206,8 +1207,8 @@ def test_create_attribute_value_name_and_slug_with_unicode(
 
 
 @pytest.mark.parametrize(
-    "name_1, name_2, error_msg, error_code",
-    (
+    ("name_1", "name_2", "error_msg", "error_code"),
+    [
         (
             "Red color",
             "Red color",
@@ -1220,7 +1221,7 @@ def test_create_attribute_value_name_and_slug_with_unicode(
             "Provided values are not unique.",
             AttributeErrorCode.UNIQUE,
         ),
-    ),
+    ],
 )
 def test_create_attribute_and_attribute_values_errors(
     staff_api_client,

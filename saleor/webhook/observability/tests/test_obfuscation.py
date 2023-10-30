@@ -13,7 +13,7 @@ from ..obfuscation import (
 
 
 @pytest.mark.parametrize(
-    "headers,allowed,sensitive,expected",
+    ("headers", "allowed", "sensitive", "expected"),
     [
         ({}, {"header"}, {"header"}, {}),
         ({"Header": "val"}, {}, {}, {}),
@@ -40,7 +40,7 @@ def test_filter_and_hide_headers(headers, allowed, sensitive, expected):
 
 
 @pytest.mark.parametrize(
-    "url,expected",
+    ("url", "expected"),
     [
         ("http://example.com/test", "http://example.com/test"),
         (

@@ -1,11 +1,12 @@
 import uuid
 from datetime import date, datetime
 from tempfile import NamedTemporaryFile
-from typing import IO, TYPE_CHECKING, Any, Dict, List, Set, Union
+from typing import IO, TYPE_CHECKING, Any, Optional, Union
 
 import petl as etl
 from django.utils import timezone
 
+from ...discount.models import VoucherCode
 from ...giftcard.models import GiftCard
 from ...product.models import Product
 from .. import FileTypes
@@ -24,8 +25,8 @@ BATCH_SIZE = 10000
 
 def export_products(
     export_file: "ExportFile",
-    scope: Dict[str, Union[str, dict]],
-    export_info: Dict[str, list],
+    scope: dict[str, Union[str, dict]],
+    export_info: dict[str, list],
     file_type: str,
     delimiter: str = ",",
 ):
@@ -60,7 +61,7 @@ def export_products(
 
 def export_gift_cards(
     export_file: "ExportFile",
-    scope: Dict[str, Union[str, dict]],
+    scope: dict[str, Union[str, dict]],
     file_type: str,
     delimiter: str = ",",
 ):
@@ -89,6 +90,37 @@ def export_gift_cards(
     send_export_download_link_notification(export_file, "gift cards")
 
 
+def export_voucher_codes(
+    export_file: "ExportFile",
+    file_type: str,
+    voucher_id: Optional[int] = None,
+    ids: Optional[list[int]] = None,
+    delimiter: str = ",",
+):
+    file_name = get_filename("voucher_code", file_type)
+
+    qs = VoucherCode.objects.all()
+    if voucher_id:
+        qs = VoucherCode.objects.filter(voucher_id=voucher_id)
+    if ids:
+        qs = VoucherCode.objects.filter(id__in=ids)
+
+    export_fields = ["code"]
+    temporary_file = create_file_with_headers(export_fields, delimiter, file_type)
+
+    export_voucher_codes_in_batches(
+        qs,
+        export_fields,
+        delimiter,
+        temporary_file,
+        file_type,
+    )
+
+    save_csv_file_in_export_file(export_file, temporary_file, file_name)
+    temporary_file.close()
+    send_export_download_link_notification(export_file, "voucher codes")
+
+
 def get_filename(model_name: str, file_type: str) -> str:
     hash = uuid.uuid4()
     return "{}_data_{}_{}.{}".format(
@@ -96,7 +128,7 @@ def get_filename(model_name: str, file_type: str) -> str:
     )
 
 
-def get_queryset(model, filter, scope: Dict[str, Union[str, dict]]) -> "QuerySet":
+def get_queryset(model, filter, scope: dict[str, Union[str, dict]]) -> "QuerySet":
     queryset = model.objects.all()
     if "ids" in scope:
         queryset = model.objects.filter(pk__in=scope["ids"])
@@ -108,7 +140,7 @@ def get_queryset(model, filter, scope: Dict[str, Union[str, dict]]) -> "QuerySet
     return queryset
 
 
-def parse_input(data: Any) -> Dict[str, Union[str, dict]]:
+def parse_input(data: Any) -> dict[str, Union[str, dict]]:
     """Parse input into correct data types.
 
     Scope coming from Celery will be passed as strings.
@@ -137,7 +169,7 @@ def parse_input(data: Any) -> Dict[str, Union[str, dict]]:
     return data
 
 
-def create_file_with_headers(file_headers: List[str], delimiter: str, file_type: str):
+def create_file_with_headers(file_headers: list[str], delimiter: str, file_type: str):
     table = etl.wrap([file_headers])
 
     if file_type == FileTypes.CSV:
@@ -152,9 +184,9 @@ def create_file_with_headers(file_headers: List[str], delimiter: str, file_type:
 
 def export_products_in_batches(
     queryset: "QuerySet",
-    export_info: Dict[str, list],
-    export_fields: Set[str],
-    headers: List[str],
+    export_info: dict[str, list],
+    export_fields: set[str],
+    headers: list[str],
     delimiter: str,
     temporary_file: Any,
     file_type: str,
@@ -182,7 +214,7 @@ def export_products_in_batches(
 
 def export_gift_cards_in_batches(
     queryset: "QuerySet",
-    export_fields: List[str],
+    export_fields: list[str],
     delimiter: str,
     temporary_file: Any,
     file_type: str,
@@ -191,6 +223,21 @@ def export_gift_cards_in_batches(
         gift_card_batch = GiftCard.objects.filter(pk__in=batch_pks)
 
         export_data = list(gift_card_batch.values(*export_fields))
+
+        append_to_file(export_data, export_fields, temporary_file, file_type, delimiter)
+
+
+def export_voucher_codes_in_batches(
+    queryset: "QuerySet",
+    export_fields: list[str],
+    delimiter: str,
+    temporary_file: Any,
+    file_type: str,
+):
+    for batch_pks in queryset_in_batches(queryset):
+        voucher_codes_batch = VoucherCode.objects.filter(pk__in=batch_pks)
+
+        export_data = list(voucher_codes_batch.values(*export_fields))
 
         append_to_file(export_data, export_fields, temporary_file, file_type, delimiter)
 
@@ -215,8 +262,8 @@ def queryset_in_batches(queryset):
 
 
 def append_to_file(
-    export_data: List[Dict[str, Union[str, bool]]],
-    headers: List[str],
+    export_data: list[dict[str, Union[str, bool]]],
+    headers: list[str],
     temporary_file: Any,
     file_type: str,
     delimiter: str,

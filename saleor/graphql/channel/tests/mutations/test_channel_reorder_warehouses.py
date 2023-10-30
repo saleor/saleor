@@ -29,7 +29,7 @@ CHANNEL_REORDER_WAREHOUSES = """
 
 
 @pytest.mark.parametrize(
-    "moves, expected_order",
+    ("moves", "expected_order"),
     [
         ([(0, 1), (2, -1)], [1, 2, 0]),
         ([(2, -2)], [2, 0, 1]),

@@ -1,6 +1,6 @@
 import collections
 import itertools
-from typing import TYPE_CHECKING, Dict, List, Type, TypeVar, Union, cast
+from typing import TYPE_CHECKING, TypeVar, Union, cast
 
 import graphene
 from django.db.models import Model
@@ -104,7 +104,7 @@ class ChannelContextType(ChannelContextTypeForObjectType[T]):
         if cls._meta.model._meta.proxy:
             model = root._meta.model
         else:
-            model = cast(Type[Model], root._meta.model._meta.concrete_model)
+            model = cast(type[Model], root._meta.model._meta.concrete_model)
 
         return model == cls._meta.model
 
@@ -469,7 +469,7 @@ class Channel(ModelObjectType):
         shipping_zones_loader = ShippingZonesByChannelIdLoader(info.context).load(
             root.id
         )
-        shipping_zone_countries: Dict[int, List[Country]] = collections.defaultdict(
+        shipping_zone_countries: dict[int, list[Country]] = collections.defaultdict(
             list
         )
         requested_countries = data.get("countries", [])
@@ -527,7 +527,7 @@ class Channel(ModelObjectType):
                 _group_shipping_methods_by_country
             )
 
-        def get_shipping_methods(shipping_zones: List["ShippingZone"]):
+        def get_shipping_methods(shipping_zones: list["ShippingZone"]):
             shipping_zones_keys = [shipping_zone.id for shipping_zone in shipping_zones]
             for shipping_zone in shipping_zones:
                 shipping_zone_countries[shipping_zone.id] = shipping_zone.countries

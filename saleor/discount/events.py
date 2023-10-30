@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 import graphene
 
@@ -54,7 +54,7 @@ def promotion_ended_event(
 def _rule_base_event(
     user: Optional[User],
     app: Optional[App],
-    rules: List[PromotionRule],
+    rules: list[PromotionRule],
     type: str,
 ):
     events = []
@@ -76,7 +76,7 @@ def _rule_base_event(
 def rule_created_event(
     user: Optional[User],
     app: Optional[App],
-    rules: List[PromotionRule],
+    rules: list[PromotionRule],
 ):
     return _rule_base_event(
         user=user,
@@ -89,7 +89,7 @@ def rule_created_event(
 def rule_updated_event(
     user: Optional[User],
     app: Optional[App],
-    rules: List[PromotionRule],
+    rules: list[PromotionRule],
 ):
     return _rule_base_event(
         user=user,
@@ -102,7 +102,7 @@ def rule_updated_event(
 def rule_deleted_event(
     user: Optional[User],
     app: Optional[App],
-    rules: List[PromotionRule],
+    rules: list[PromotionRule],
 ):
     return _rule_base_event(
         user=user,

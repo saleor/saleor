@@ -213,7 +213,6 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     expected_discount_per_single_item = Decimal(25)
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
-    print(data)
     assert not data["errors"]
     checkout.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout)
@@ -283,7 +282,7 @@ def test_checkout_lines_add_with_existing_variant_and_metadata(
     # then
     assert not data["errors"]
     assert line.quantity == 4
-    assert line.metadata == {**old_meta, **{metadata_key: metadata_value}}
+    assert line.metadata == {**old_meta, metadata_key: metadata_value}
 
 
 def test_checkout_lines_add_with_new_variant_and_metadata(

@@ -1,16 +1,11 @@
 from collections import defaultdict
+from collections.abc import Iterable
 from decimal import Decimal
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    DefaultDict,
-    Dict,
-    Iterable,
-    List,
     Optional,
-    Tuple,
-    Type,
     Union,
 )
 
@@ -97,9 +92,9 @@ NotifyEventTypeChoice = str
 class PluginsManager(PaymentInterface):
     """Base manager for handling plugins logic."""
 
-    plugins_per_channel: Dict[str, List["BasePlugin"]] = {}
-    global_plugins: List["BasePlugin"] = []
-    all_plugins: List["BasePlugin"] = []
+    plugins_per_channel: dict[str, list["BasePlugin"]] = {}
+    global_plugins: list["BasePlugin"] = []
+    all_plugins: list["BasePlugin"] = []
 
     @property
     def database(self):
@@ -111,7 +106,7 @@ class PluginsManager(PaymentInterface):
 
     def _load_plugin(
         self,
-        PluginClass: Type["BasePlugin"],
+        PluginClass: type["BasePlugin"],
         db_configs_map: dict,
         channel: Optional["Channel"] = None,
         requestor_getter=None,
@@ -136,7 +131,7 @@ class PluginsManager(PaymentInterface):
             allow_replica=allow_replica,
         )
 
-    def __init__(self, plugins: List[str], requestor_getter=None, allow_replica=True):
+    def __init__(self, plugins: list[str], requestor_getter=None, allow_replica=True):
         with opentracing.global_tracer().start_active_span("PluginsManager.__init__"):
             self._allow_replica = allow_replica
             self.all_plugins = []
@@ -181,7 +176,7 @@ class PluginsManager(PaymentInterface):
             plugin_manager_configs = PluginConfiguration.objects.using(
                 self.database
             ).all()
-            channel_configs: DefaultDict[Channel, Dict] = defaultdict(dict)
+            channel_configs: defaultdict[Channel, dict] = defaultdict(dict)
             global_configs = {}
             for db_plugin_config in plugin_manager_configs.iterator():
                 channel = channel_map.get(db_plugin_config.channel_id)
@@ -557,7 +552,7 @@ class PluginsManager(PaymentInterface):
             channel_slug=order.channel.slug,
         ).quantize(Decimal(".0001"))
 
-    def get_tax_rate_type_choices(self) -> List[TaxType]:
+    def get_tax_rate_type_choices(self) -> list[TaxType]:
         default_value: list = []
         return self.__run_method_on_plugins("get_tax_rate_type_choices", default_value)
 
@@ -650,7 +645,7 @@ class PluginsManager(PaymentInterface):
             "product_updated", default_value, product, webhooks=webhooks
         )
 
-    def product_deleted(self, product: "Product", variants: List[int], webhooks=None):
+    def product_deleted(self, product: "Product", variants: list[int], webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "product_deleted", default_value, product, variants, webhooks=webhooks
@@ -933,7 +928,7 @@ class PluginsManager(PaymentInterface):
             "order_metadata_updated", default_value, order
         )
 
-    def order_bulk_created(self, orders: List["Order"]):
+    def order_bulk_created(self, orders: list["Order"]):
         default_value = None
         return self.__run_method_on_plugins("order_bulk_created", default_value, orders)
 
@@ -1510,24 +1505,34 @@ class PluginsManager(PaymentInterface):
             "warehouse_metadata_updated", default_value, warehouse
         )
 
-    def voucher_created(self, voucher: "Voucher"):
-        default_value = None
-        return self.__run_method_on_plugins("voucher_created", default_value, voucher)
-
-    def voucher_updated(self, voucher: "Voucher"):
-        default_value = None
-        return self.__run_method_on_plugins("voucher_updated", default_value, voucher)
-
-    def voucher_deleted(self, voucher: "Voucher", webhooks=None):
+    def voucher_created(self, voucher: "Voucher", code: str):
         default_value = None
         return self.__run_method_on_plugins(
-            "voucher_deleted", default_value, voucher, webhooks=webhooks
+            "voucher_created", default_value, voucher, code
+        )
+
+    def voucher_updated(self, voucher: "Voucher", code: str):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "voucher_updated", default_value, voucher, code
+        )
+
+    def voucher_deleted(self, voucher: "Voucher", code: str, webhooks=None):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "voucher_deleted", default_value, voucher, code, webhooks=webhooks
         )
 
     def voucher_metadata_updated(self, voucher: "Voucher"):
         default_value = None
         return self.__run_method_on_plugins(
             "voucher_metadata_updated", default_value, voucher
+        )
+
+    def voucher_code_export_completed(self, export: "ExportFile"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "voucher_code_export_completed", default_value, export
         )
 
     def shop_metadata_updated(self, shop: "SiteSettings"):
@@ -1626,7 +1631,7 @@ class PluginsManager(PaymentInterface):
         gateway: str,
         customer_id: str,
         channel_slug: str,
-    ) -> List["CustomerSource"]:
+    ) -> list["CustomerSource"]:
         default_value: list = []
         gtw = self.get_plugin(gateway, channel_slug=channel_slug)
         if gtw is not None:
@@ -1725,7 +1730,7 @@ class PluginsManager(PaymentInterface):
 
     def get_plugins(
         self, channel_slug: Optional[str] = None, active_only=False
-    ) -> List["BasePlugin"]:
+    ) -> list["BasePlugin"]:
         """Return list of plugins for a given channel."""
         if channel_slug:
             plugins = self.plugins_per_channel[channel_slug]
@@ -1743,7 +1748,7 @@ class PluginsManager(PaymentInterface):
         checkout_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
         channel_slug: Optional[str] = None,
         active_only: bool = True,
-    ) -> List["PaymentGateway"]:
+    ) -> list["PaymentGateway"]:
         channel_slug = checkout_info.channel.slug if checkout_info else channel_slug
         plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
         payment_plugins = [
@@ -1768,7 +1773,7 @@ class PluginsManager(PaymentInterface):
         checkout: "Checkout",
         channel_slug: Optional[str] = None,
         active_only: bool = True,
-    ) -> List["ShippingMethodData"]:
+    ) -> list["ShippingMethodData"]:
         channel_slug = channel_slug if channel_slug else checkout.channel.slug
         plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
         shipping_plugins = [
@@ -1801,7 +1806,7 @@ class PluginsManager(PaymentInterface):
             return methods.get(shipping_method_id)
         return None
 
-    def list_external_authentications(self, active_only: bool = True) -> List[dict]:
+    def list_external_authentications(self, active_only: bool = True) -> list[dict]:
         auth_basic_method = "external_obtain_access_tokens"
         plugins = self.get_plugins(active_only=active_only)
         return [
@@ -1857,8 +1862,8 @@ class PluginsManager(PaymentInterface):
                 plugin_configurations = PluginConfiguration.objects.prefetch_related(
                     "channel"
                 ).all()
-                self._plugin_configs_per_channel: DefaultDict[
-                    Channel, Dict
+                self._plugin_configs_per_channel: defaultdict[
+                    Channel, dict
                 ] = defaultdict(dict)
                 self._global_plugin_configs = {}
                 for pc in plugin_configurations:
@@ -2030,7 +2035,7 @@ class PluginsManager(PaymentInterface):
         self, plugin_id: str, data: dict, request: SaleorContext
     ) -> dict:
         """Logout the user."""
-        default_value: Dict[str, str] = {}
+        default_value: dict[str, str] = {}
         plugin = self.get_plugin(plugin_id)
         return self.__run_method_on_single_plugin(
             plugin, "external_logout", default_value, data, request
@@ -2038,9 +2043,9 @@ class PluginsManager(PaymentInterface):
 
     def external_verify(
         self, plugin_id: str, data: dict, request: SaleorContext
-    ) -> Tuple[Optional["User"], dict]:
+    ) -> tuple[Optional["User"], dict]:
         """Verify the provided authentication data."""
-        default_data: Dict[str, str] = dict()
+        default_data: dict[str, str] = dict()
         default_user: Optional["User"] = None
         default_value = default_user, default_data
         plugin = self.get_plugin(plugin_id)
@@ -2051,8 +2056,8 @@ class PluginsManager(PaymentInterface):
     def excluded_shipping_methods_for_order(
         self,
         order: "Order",
-        available_shipping_methods: List["ShippingMethodData"],
-    ) -> List[ExcludedShippingMethod]:
+        available_shipping_methods: list["ShippingMethodData"],
+    ) -> list[ExcludedShippingMethod]:
         return self.__run_method_on_plugins(
             "excluded_shipping_methods_for_order",
             [],
@@ -2064,8 +2069,8 @@ class PluginsManager(PaymentInterface):
     def excluded_shipping_methods_for_checkout(
         self,
         checkout: "Checkout",
-        available_shipping_methods: List["ShippingMethodData"],
-    ) -> List[ExcludedShippingMethod]:
+        available_shipping_methods: list["ShippingMethodData"],
+    ) -> list[ExcludedShippingMethod]:
         return self.__run_method_on_plugins(
             "excluded_shipping_methods_for_checkout",
             [],

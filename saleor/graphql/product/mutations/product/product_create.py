@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -122,7 +120,7 @@ class ProductCreateInput(ProductInput):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
+T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
 class ProductCreate(ModelMutation):

@@ -6,7 +6,7 @@ __all__ = ["celery_app"]
 __version__ = "3.18.0-a.0"
 
 
-class PatchedSubscriberExecutionContext(object):
+class PatchedSubscriberExecutionContext:
     __slots__ = "exe_context", "errors"
 
     def __init__(self, exe_context):

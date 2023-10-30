@@ -248,26 +248,24 @@ def test_get_nodes(product_list):
     invalid_item = Mock(type="test", pk=-1)
     invalid_item_global_id = to_global_id(invalid_item.type, invalid_item.pk)
     global_ids.append(invalid_item_global_id)
-    with pytest.raises(GraphQLError) as exc:
+    with pytest.raises(GraphQLError, match="Must receive Product id") as exc:
         get_nodes(global_ids, Product)
 
     assert exc.value.args == (f"Must receive Product id: {invalid_item_global_id}.",)
 
     # Raise an error if no nodes were found
     global_ids = []
-    msg = f"Could not resolve to a node with the global id list of '{global_ids}'."
-    with pytest.raises(Exception) as exc:
+    with pytest.raises(
+        GraphQLError, match="Could not resolve to a node with the global id list of"
+    ):
         get_nodes(global_ids, Product)
-
-    assert exc.value.args == (msg,)
 
     # Raise an error if pass wrong ids
     global_ids = ["a", "bb"]
-    msg = f"Could not resolve to a node with the global id list of '{global_ids}'."
-    with pytest.raises(Exception) as exc:
+    with pytest.raises(
+        GraphQLError, match="Could not resolve to a node with the global id list of"
+    ):
         get_nodes(global_ids, Product)
-
-    assert exc.value.args == (msg,)
 
 
 def test_get_nodes_for_order_with_int_id(order_list):

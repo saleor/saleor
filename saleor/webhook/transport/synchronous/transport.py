@@ -1,7 +1,7 @@
 import json
 import logging
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar
 from urllib.parse import urlparse
 
 from celery.utils.log import get_task_logger
@@ -85,7 +85,7 @@ def handle_transaction_request_task(self, delivery_id, request_event_id):
 
 def _send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, attempt=None
-) -> Tuple[WebhookResponse, Optional[Dict[Any, Any]]]:
+) -> tuple[WebhookResponse, Optional[dict[Any, Any]]]:
     event_payload = delivery.payload
     data = event_payload.payload
     webhook = delivery.webhook
@@ -96,7 +96,7 @@ def _send_webhook_request_sync(
 
     if parts.scheme.lower() not in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
         delivery_update(delivery, EventDeliveryStatus.FAILED)
-        raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
+        raise ValueError(f"Unknown webhook scheme: {parts.scheme!r}")
 
     logger.debug(
         "[Webhook] Sending payload to %r for event %r.",
@@ -158,7 +158,7 @@ def _send_webhook_request_sync(
 
 def send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
-) -> Optional[Dict[Any, Any]]:
+) -> Optional[dict[Any, Any]]:
     response, response_data = _send_webhook_request_sync(delivery, timeout)
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
 
@@ -257,7 +257,7 @@ def trigger_webhook_sync(
     subscribable_object=None,
     timeout=None,
     request=None,
-) -> Optional[Dict[Any, Any]]:
+) -> Optional[dict[Any, Any]]:
     """Send a synchronous webhook request."""
     if webhook.subscription_query:
         delivery = create_delivery_for_subscription_sync_event(
@@ -290,7 +290,7 @@ def trigger_all_webhooks_sync(
     parse_response: Callable[[Any], Optional[R]],
     subscribable_object=None,
     requestor=None,
-    allow_replica=True,
+    allow_replica=False,
 ) -> Optional[R]:
     """Send all synchronous webhook request for given event type.
 

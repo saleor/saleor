@@ -411,7 +411,7 @@ def test_update_swatch_attribute_value_clear_file_value(
 
 
 @pytest.mark.parametrize(
-    "field, input_value",
+    ("field", "input_value"),
     [
         ("fileUrl", "http://mirumee.com/test_media/test_file.jpeg"),
         ("contentType", "jpeg"),

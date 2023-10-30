@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 import requests
 from authlib.jose import JWTClaims, jwt
@@ -49,6 +49,8 @@ if TYPE_CHECKING:
 JWKS_KEY = "oauth_jwks"
 JWKS_CACHE_TIME = 60 * 60  # 1 hour
 USER_INFO_DEFAULT_CACHE_TIME = 60 * 60  # 1 hour
+
+OIDC_DEFAULT_CACHE_TIME = 60 * 60  # 1 hour
 
 
 OAUTH_TOKEN_REFRESH_FIELD = "oauth_refresh_token"
@@ -163,7 +165,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
     access_token: str,
     use_scope_permissions: bool,
     audience: str,
-    staff_user_domains: List[str],
+    staff_user_domains: list[str],
     staff_default_group_name: str,
 ):
     try:
@@ -250,7 +252,7 @@ def get_user_from_oauth_access_token(
     user_info_url: str,
     use_scope_permissions: bool,
     audience: str,
-    staff_user_domains: List[str],
+    staff_user_domains: list[str],
     staff_default_group_name: str,
 ):
     # we try to decode token to define if the structure is a jwt format.
@@ -315,7 +317,7 @@ def create_jwt_token(
     id_payload: CodeIDToken,
     user: User,
     access_token: str,
-    permissions: Optional[List[str]],
+    permissions: Optional[list[str]],
     owner: str,
 ) -> str:
     additional_payload = {
@@ -398,20 +400,23 @@ def get_or_create_user_from_payload(
         "private_metadata": {oidc_metadata_key: sub},
         "password": make_password(None),
     }
-    try:
-        user = User.objects.get(**get_kwargs)
-    except User.DoesNotExist:
-        user, _ = User.objects.get_or_create(
-            email=user_email,
-            defaults=defaults_create,
-        )
-        match_orders_with_new_user(user)
-    except User.MultipleObjectsReturned:
-        logger.warning("Multiple users returned for single OIDC sub ID")
-        user, _ = User.objects.get_or_create(
-            email=user_email,
-            defaults=defaults_create,
-        )
+    cache_key = oidc_metadata_key + "-" + str(sub)
+    user = cache.get(cache_key)
+    if not user:
+        try:
+            user = User.objects.get(**get_kwargs)
+        except User.DoesNotExist:
+            user, _ = User.objects.get_or_create(
+                email=user_email,
+                defaults=defaults_create,
+            )
+            match_orders_with_new_user(user)
+        except User.MultipleObjectsReturned:
+            logger.warning("Multiple users returned for single OIDC sub ID")
+            user, _ = User.objects.get_or_create(
+                email=user_email,
+                defaults=defaults_create,
+            )
 
     site_settings = Site.objects.get_current().settings
     if not user.can_login(site_settings):  # it is true only if we fetch disabled user.
@@ -427,6 +432,7 @@ def get_or_create_user_from_payload(
         last_login=last_login,
     )
 
+    cache.set(cache_key, user, min(JWKS_CACHE_TIME, OIDC_DEFAULT_CACHE_TIME))
     return user
 
 
@@ -529,7 +535,7 @@ def create_tokens_from_oauth_payload(
     token_data: dict,
     user: User,
     claims: CodeIDToken,
-    permissions: Optional[List[str]],
+    permissions: Optional[list[str]],
     owner: str,
 ):
     refresh_token = token_data.get("refresh_token")
@@ -601,7 +607,7 @@ def validate_refresh_token(refresh_token, data):
             )
 
 
-def get_incorrect_or_missing_urls(urls: dict) -> List[str]:
+def get_incorrect_or_missing_urls(urls: dict) -> list[str]:
     validator = URLValidator()
     incorrect_urls = []
     for field, url in urls.items():
@@ -674,6 +680,6 @@ def get_saleor_permissions_from_list(permissions: list) -> QuerySet[Permission]:
     return permissions
 
 
-def get_saleor_permission_names(permissions: QuerySet) -> List[str]:
+def get_saleor_permission_names(permissions: QuerySet) -> list[str]:
     permission_names = get_permission_names(permissions)
     return list(permission_names)

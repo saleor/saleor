@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -51,7 +50,7 @@ class ProductVariantStocksCreate(BaseMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         manager = get_plugin_manager_promise(info.context).get()
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         stocks = data["stocks"]
         variant = cls.get_node_or_error(
             info, data["variant_id"], only_type=ProductVariant
@@ -102,7 +101,7 @@ class ProductVariantStocksCreate(BaseMutation):
 
     @classmethod
     def check_for_duplicates(
-        cls, warehouse_ids, errors: defaultdict[str, List[ValidationError]]
+        cls, warehouse_ids, errors: defaultdict[str, list[ValidationError]]
     ):
         duplicates = {id for id in warehouse_ids if warehouse_ids.count(id) > 1}
         error_msg = "Duplicated warehouse ID."
@@ -117,7 +116,7 @@ class ProductVariantStocksCreate(BaseMutation):
 
     @classmethod
     def update_errors(
-        cls, errors: defaultdict[str, List[ValidationError]], msg, field, code, indexes
+        cls, errors: defaultdict[str, list[ValidationError]], msg, field, code, indexes
     ):
         for index in indexes:
             error = ValidationError(msg, code=code, params={"index": index})

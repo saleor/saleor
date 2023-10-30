@@ -233,7 +233,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
     api_client,
     checkout_with_item,
     expected_dummy_gateway,
-    sample_gateway,
+    _sample_gateway,
 ):
     checkout_with_item.currency = "USD"
     checkout_with_item.save(update_fields=["currency"])
@@ -252,7 +252,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
 
 
 def test_checkout_available_payment_gateways_currency_specified_EUR(
-    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway
+    api_client, checkout_with_item, expected_dummy_gateway, _sample_gateway
 ):
     checkout_with_item.currency = "EUR"
     checkout_with_item.save(update_fields=["currency"])
@@ -685,7 +685,9 @@ def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
     checkout_with_item.save(update_fields=["shipping_address"])
 
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
 
     subtotal = calculations.checkout_subtotal(
         manager=manager,

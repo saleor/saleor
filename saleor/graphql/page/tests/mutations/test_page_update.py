@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from functools import partial
 from unittest import mock
+from unittest.mock import ANY
 
 import graphene
 import pytest
@@ -10,7 +11,6 @@ from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
-from mock import ANY
 
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance

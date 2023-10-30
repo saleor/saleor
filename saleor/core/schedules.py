@@ -78,21 +78,17 @@ class promotion_webhook_schedule(CustomSchedule):
 
         upcoming_start_dates = Promotion.objects.filter(
             (
-                (
-                    Q(last_notification_scheduled_at__isnull=True)
-                    | Q(last_notification_scheduled_at__lt=F("start_date"))
-                )
-                & Q(start_date__gt=now)
+                Q(last_notification_scheduled_at__isnull=True)
+                | Q(last_notification_scheduled_at__lt=F("start_date"))
             )
+            & Q(start_date__gt=now)
         ).order_by("start_date")
         upcoming_end_dates = Promotion.objects.filter(
             (
-                (
-                    Q(last_notification_scheduled_at__isnull=True)
-                    | Q(last_notification_scheduled_at__lt=F("end_date"))
-                )
-                & Q(end_date__gt=now)
+                Q(last_notification_scheduled_at__isnull=True)
+                | Q(last_notification_scheduled_at__lt=F("end_date"))
             )
+            & Q(end_date__gt=now)
         ).order_by("end_date")
 
         nearest_start_date = upcoming_start_dates.first()

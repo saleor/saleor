@@ -10,10 +10,17 @@ mutation AddCheckoutPromoCode($checkoutId: ID!, $promoCode: String!) {
           amount
         }
       }
+      subtotalPrice {
+        gross {
+          amount
+        }
+      }
+      voucherCode
       discount {
         amount
       }
       discountName
+      voucherCode
       lines {
         totalPrice {
           gross {

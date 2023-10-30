@@ -2,7 +2,7 @@ import base64
 import json
 import logging
 from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 from django.conf import settings
 from django.core.cache import cache
@@ -54,7 +54,7 @@ def convert_to_app_id_with_identifier(shipping_app_id: str):
 
 def parse_list_shipping_methods_response(
     response_data: Any, app: "App"
-) -> List["ShippingMethodData"]:
+) -> list["ShippingMethodData"]:
     shipping_methods = []
     for shipping_method_data in response_data:
         method_id = shipping_method_data.get("id")
@@ -93,7 +93,7 @@ def get_excluded_shipping_methods_or_fetch(
     payload: str,
     cache_key: str,
     subscribable_object: Optional[Union["Order", "Checkout"]],
-) -> Dict[str, List[ExcludedShippingMethod]]:
+) -> dict[str, list[ExcludedShippingMethod]]:
     """Return data of all excluded shipping methods.
 
     The data will be fetched from the cache. If missing it will fetch it from all
@@ -129,11 +129,11 @@ def get_excluded_shipping_methods_or_fetch(
 
 def get_excluded_shipping_data(
     event_type: str,
-    previous_value: List[ExcludedShippingMethod],
+    previous_value: list[ExcludedShippingMethod],
     payload_fun: Callable[[], str],
     cache_key: str,
     subscribable_object: Optional[Union["Order", "Checkout"]],
-) -> List[ExcludedShippingMethod]:
+) -> list[ExcludedShippingMethod]:
     """Exclude not allowed shipping methods by sync webhook.
 
     Fetch excluded shipping methods from sync webhooks and return them as a list of
@@ -146,7 +146,7 @@ def get_excluded_shipping_data(
     webhook.
     """
 
-    excluded_methods_map: Dict[str, List[ExcludedShippingMethod]] = defaultdict(list)
+    excluded_methods_map: dict[str, list[ExcludedShippingMethod]] = defaultdict(list)
     webhooks = get_webhooks_for_event(event_type)
     if webhooks:
         payload = payload_fun()
@@ -171,7 +171,7 @@ def get_excluded_shipping_data(
 
 def get_excluded_shipping_methods_from_response(
     response_data: dict,
-) -> List[dict]:
+) -> list[dict]:
     excluded_methods = []
     for method_data in response_data.get("excluded_methods", []):
         try:
@@ -192,8 +192,8 @@ def get_excluded_shipping_methods_from_response(
 
 
 def parse_excluded_shipping_methods(
-    excluded_methods: List[dict],
-) -> Dict[str, List[ExcludedShippingMethod]]:
+    excluded_methods: list[dict],
+) -> dict[str, list[ExcludedShippingMethod]]:
     excluded_methods_map = defaultdict(list)
     for excluded_method in excluded_methods:
         method_id = excluded_method["id"]

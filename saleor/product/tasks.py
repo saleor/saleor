@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable, List
+from collections.abc import Iterable
 from uuid import UUID
 
 from celery.utils.log import get_task_logger
@@ -64,7 +64,7 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
 
 
 @app.task
-def update_variants_names(product_type_pk: int, saved_attributes_ids: List[int]):
+def update_variants_names(product_type_pk: int, saved_attributes_ids: list[int]):
     try:
         instance = ProductType.objects.get(pk=product_type_pk)
     except ObjectDoesNotExist:

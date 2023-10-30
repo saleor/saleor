@@ -26,7 +26,7 @@ def _enable_flat_rates(checkout, prices_entered_with_tax):
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("40.00", "49.20", "0.0", False),
         ("30.08", "37.00", "3.0", True),
@@ -73,7 +73,7 @@ def test_calculate_checkout_total(
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("20.33", "25.00", "0.0", True),
         ("20.00", "24.60", "5.0", False),
@@ -190,7 +190,7 @@ def test_calculate_checkout_total_default_tax_rate_for_country(
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("40.00", "49.20", "0.0", False),
         ("30.08", "37.00", "3.0", True),
@@ -239,7 +239,7 @@ def test_calculate_checkout_total_with_shipping_voucher(
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("20.33", "25.00", "0.0", True),
         ("20.00", "24.60", "5.0", False),
@@ -292,7 +292,7 @@ def test_calculate_checkout_total_with_shipping_voucher_and_sale(
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("40.65", "50.00", True),
         ("50.00", "61.50", False),

@@ -23,7 +23,7 @@ QUERY_SALES_WITH_FILTER = """
 
 
 @pytest.mark.parametrize(
-    "sale_filter, start_date, end_date, count",
+    ("sale_filter", "start_date", "end_date", "count"),
     [
         (
             {"status": "ACTIVE"},
@@ -78,7 +78,7 @@ def test_query_sales_with_filter_status(
 
 
 @pytest.mark.parametrize(
-    "sale_filter, count, sale_type",
+    ("sale_filter", "count", "sale_type"),
     [
         ({"saleType": "PERCENTAGE"}, 1, RewardValueType.PERCENTAGE),
         ({"saleType": "FIXED"}, 2, RewardValueType.FIXED),
@@ -125,7 +125,7 @@ def test_query_sales_with_filter_discount_type(
 
 
 @pytest.mark.parametrize(
-    "sale_filter, count",
+    ("sale_filter", "count"),
     [
         ({"started": {"gte": "2019-04-18T00:00:00+00:00"}}, 1),
         ({"started": {"lte": "2012-01-14T00:00:00+00:00"}}, 1),
@@ -175,7 +175,7 @@ def test_query_sales_with_filter_started(
 
 
 @pytest.mark.parametrize(
-    "sale_filter, count",
+    ("sale_filter", "count"),
     [
         ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 2),
         ({"updatedAt": {"lte": "2012-01-14T12:00:05+00:00"}}, 2),
@@ -234,7 +234,7 @@ def test_query_sales_with_filter_updated_at(
 
 
 @pytest.mark.parametrize(
-    "sale_filter, count",
+    ("sale_filter", "count"),
     [({"search": "Big"}, 1), ({"search": "69"}, 1), ({"search": "FIX"}, 2)],
 )
 def test_query_sales_with_filter_search(

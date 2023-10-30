@@ -1785,7 +1785,7 @@ UPDATE_PRODUCT_SLUG_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, error_message",
+    ("input_slug", "expected_slug", "error_message"),
     [
         ("test-slug", "test-slug", None),
         ("", "", "Slug value cannot be blank."),
@@ -1849,7 +1849,7 @@ def test_update_product_slug_exists(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, input_name, error_message, error_field",
+    ("input_slug", "expected_slug", "input_name", "error_message", "error_field"),
     [
         ("test-slug", "test-slug", "New name", None, None),
         ("", "", "New name", "Slug value cannot be blank.", "slug"),
@@ -2695,7 +2695,7 @@ def test_update_product_with_selectable_attribute_by_both_id_and_value(
 
 
 @pytest.mark.parametrize(
-    "value,expected_result",
+    ("value", "expected_result"),
     [
         ("", AttributeInputErrors.ERROR_NO_VALUE_GIVEN),
         ("  ", AttributeInputErrors.ERROR_BLANK_VALUE),

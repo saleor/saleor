@@ -47,7 +47,7 @@ def test_create_order_insufficient_stock(
         )
 
 
-@pytest.mark.parametrize("is_anonymous_user", (True, False))
+@pytest.mark.parametrize("is_anonymous_user", [True, False])
 def test_create_order_with_gift_card(
     checkout_with_gift_card, customer_user, shipping_method, is_anonymous_user, app
 ):
@@ -281,7 +281,7 @@ def test_create_order_with_many_gift_cards(
 
 
 @mock.patch("saleor.giftcard.utils.send_gift_card_notification")
-@pytest.mark.parametrize("is_anonymous_user", (True, False))
+@pytest.mark.parametrize("is_anonymous_user", [True, False])
 def test_create_order_gift_card_bought(
     send_notification_mock,
     checkout_with_gift_card_items,
@@ -361,7 +361,7 @@ def test_create_order_gift_card_bought(
 
 
 @mock.patch("saleor.giftcard.utils.send_gift_card_notification")
-@pytest.mark.parametrize("is_anonymous_user", (True, False))
+@pytest.mark.parametrize("is_anonymous_user", [True, False])
 def test_create_order_gift_card_bought_only_shippable_gift_card(
     send_notification_mock,
     checkout,
@@ -414,7 +414,7 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
     send_notification_mock.assert_not_called()
 
 
-@pytest.mark.parametrize("is_anonymous_user", (True, False))
+@pytest.mark.parametrize("is_anonymous_user", [True, False])
 def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
     site_settings,
     checkout_with_gift_card_items,
@@ -799,7 +799,7 @@ def test_note_in_created_order_checkout_line_deleted_in_the_meantime(
 
     # when
     with before_after.after(
-        "saleor.checkout.complete_checkout._increase_voucher_usage",
+        "saleor.checkout.complete_checkout._increase_voucher_code_usage",
         delete_checkout_line,
     ):
         order = create_order_from_checkout(
@@ -834,7 +834,7 @@ def test_note_in_created_order_checkout_deleted_in_the_meantime(
 
     # when
     with before_after.after(
-        "saleor.checkout.complete_checkout._increase_voucher_usage",
+        "saleor.checkout.complete_checkout._increase_voucher_code_usage",
         delete_checkout,
     ):
         order = create_order_from_checkout(

@@ -314,13 +314,15 @@ def test_mark_as_paid_no_billing_address(admin_user, draft_order):
     draft_order.save()
 
     manager = get_plugins_manager()
-    with pytest.raises(Exception):
+    with pytest.raises(PaymentError, match="Order does not have a billing address."):
         mark_order_as_paid_with_payment(draft_order, admin_user, None, manager)
 
 
 def test_clean_mark_order_as_paid(payment_txn_preauth):
     order = payment_txn_preauth.order
-    with pytest.raises(PaymentError):
+    with pytest.raises(
+        PaymentError, match="Orders with payments can not be manually marked as paid."
+    ):
         clean_mark_order_as_paid(order)
 
 

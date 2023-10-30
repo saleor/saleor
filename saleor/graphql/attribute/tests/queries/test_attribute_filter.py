@@ -74,7 +74,7 @@ def test_search_attributes_value(
 
 
 @pytest.mark.parametrize(
-    "filter_by, attributes_count",
+    ("filter_by", "attributes_count"),
     [({"slugs": ["red", "blue"]}, 2), ({"slugs": ["red"]}, 1), ({"slugs": []}, 2)],
 )
 def test_atribute_values_with_filtering_slugs(

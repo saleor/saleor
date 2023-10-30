@@ -1,7 +1,7 @@
+from unittest import mock
 from unittest.mock import MagicMock
 
 import graphene
-import mock
 import pytest
 from django.core.files import File
 

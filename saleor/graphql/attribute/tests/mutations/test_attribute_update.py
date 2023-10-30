@@ -437,7 +437,7 @@ UPDATE_ATTRIBUTE_SLUG_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, error_message",
+    ("input_slug", "expected_slug", "error_message"),
     [
         ("test-slug", "test-slug", None),
         ("", "", "Slug value cannot be blank."),
@@ -525,7 +525,7 @@ def test_update_attribute_slug_exists(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, input_name, error_message, error_field",
+    ("input_slug", "expected_slug", "input_name", "error_message", "error_field"),
     [
         ("test-slug", "test-slug", "New name", None, None),
         ("", "", "New name", "Slug value cannot be blank.", "slug"),
@@ -596,8 +596,8 @@ def test_update_attribute_slug_and_name(
 
 
 @pytest.mark.parametrize(
-    "name_1, name_2, error_msg, error_code",
-    (
+    ("name_1", "name_2", "error_msg", "error_code"),
+    [
         (
             "Red color",
             "Red color",
@@ -616,7 +616,7 @@ def test_update_attribute_slug_and_name(
             "Provided values are not unique.",
             AttributeErrorCode.UNIQUE,
         ),
-    ),
+    ],
 )
 def test_update_attribute_and_add_attribute_values_errors(
     staff_api_client,

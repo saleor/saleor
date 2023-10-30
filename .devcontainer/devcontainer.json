@@ -26,10 +26,6 @@
         "Cameron.vscode-pytest",
         "charliermarsh.ruff",
         "editorconfig.editorconfig",
-        "ms-python.black-formatter",
-        "ms-python.flake8",
-        "ms-python.isort",
-        "ms-python.pylint",
         "ms-python.python",
         "ms-python.vscode-pylance",
         "streetsidesoftware.code-spell-checker"

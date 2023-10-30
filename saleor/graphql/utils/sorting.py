@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional
 
 from django.db.models import QuerySet
 from graphql.error import GraphQLError
@@ -89,7 +89,6 @@ def sort_queryset(
 
     sorting_field_value = sorting_fields.value
     sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]
-
     return queryset.order_by(*sorting_list)
 
 
@@ -107,7 +106,7 @@ def get_model_default_ordering(model_class):
 
 def sort_queryset_by_default(
     queryset: QuerySet, reversed: bool
-) -> Tuple[QuerySet, dict]:
+) -> tuple[QuerySet, dict]:
     """Sort queryset by it's default ordering."""
     queryset_model = queryset.model
     default_ordering = ["pk"]

@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import micawber
 from django.core.exceptions import ValidationError
@@ -15,7 +15,7 @@ MEDIA_MAX_WIDTH = 1920
 MEDIA_MAX_HEIGHT = 1080
 
 
-def get_oembed_data(url: str, field_name: str) -> Tuple[Dict[str, Any], str]:
+def get_oembed_data(url: str, field_name: str) -> tuple[dict[str, Any], str]:
     """Get the oembed data from URL or raise an ValidationError."""
     providers = micawber.bootstrap_basic()
 

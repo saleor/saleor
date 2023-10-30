@@ -56,7 +56,7 @@ def test_sort_attributes_by_default_sorting(api_client):
     assert attributes[1]["node"]["slug"] == "b"
 
 
-@pytest.mark.parametrize("is_variant", (True, False))
+@pytest.mark.parametrize("is_variant", [True, False])
 def test_attributes_of_products_are_sorted(
     user_api_client, product, color_attribute, is_variant, channel_USD
 ):

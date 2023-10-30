@@ -138,7 +138,14 @@ def test_query_plugin_configurations_for_channel_configurations(
 
 
 @pytest.mark.parametrize(
-    "password, expected_password, api_key, expected_api_key, cert, expected_cert",
+    (
+        "password",
+        "expected_password",
+        "api_key",
+        "expected_api_key",
+        "cert",
+        "expected_cert",
+    ),
     [
         (None, None, None, None, None, None),
         ("ABCDEFGHIJ", "", "123456789", "6789", "long text\n with new\n lines", "ines"),
@@ -194,7 +201,14 @@ def test_query_plugins_hides_secret_fields(
 
 
 @pytest.mark.parametrize(
-    "password, expected_password, api_key, expected_api_key, cert, expected_cert",
+    (
+        "password",
+        "expected_password",
+        "api_key",
+        "expected_api_key",
+        "cert",
+        "expected_cert",
+    ),
     [
         (None, None, None, None, None, None),
         ("ABCDEFGHIJ", "", "123456789", "6789", "long text\n with new\n lines", "ines"),
@@ -264,7 +278,7 @@ def test_query_plugin_configurations_as_customer_user(user_api_client, settings)
 
 
 @pytest.mark.parametrize(
-    "plugin_filter_fields, count",
+    ("plugin_filter_fields", "count"),
     [
         ({"search": "PluginSample"}, 1),
         ({"search": "description"}, 2),
@@ -333,7 +347,7 @@ QUERY_PLUGIN_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "plugin_sort, result_order",
+    ("plugin_sort", "result_order"),
     [
         (
             {"field": "NAME", "direction": "ASC"},

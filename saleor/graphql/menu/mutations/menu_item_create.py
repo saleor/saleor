@@ -1,5 +1,3 @@
-from typing import Type
-
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Model
@@ -102,7 +100,7 @@ class MenuItemCreate(ModelMutation):
 
 
 def _validate_menu_item_instance(
-    cleaned_input: dict, field: str, expected_model: Type[Model]
+    cleaned_input: dict, field: str, expected_model: type[Model]
 ):
     """Check if the value to assign as a menu item matches the expected model."""
     item = cleaned_input.get(field)

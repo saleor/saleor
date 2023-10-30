@@ -1,6 +1,6 @@
 import uuid
 from decimal import Decimal
-from typing import Dict, List, Optional, Union, cast
+from typing import Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -136,7 +136,7 @@ class TransactionCreate(BaseMutation):
 
     @classmethod
     def validate_metadata_keys(  # type: ignore[override]
-        cls, metadata_list: List[dict], field_name, error_code
+        cls, metadata_list: list[dict], field_name, error_code
     ):
         if metadata_contains_empty_key(metadata_list):
             raise ValidationError(
@@ -149,7 +149,7 @@ class TransactionCreate(BaseMutation):
             )
 
     @classmethod
-    def get_money_data_from_input(cls, cleaned_data: dict) -> Dict[str, Decimal]:
+    def get_money_data_from_input(cls, cleaned_data: dict) -> dict[str, Decimal]:
         money_data = {}
         if amount_authorized := cleaned_data.pop("amount_authorized", None):
             money_data["authorized_value"] = amount_authorized["amount"]
@@ -327,7 +327,7 @@ class TransactionCreate(BaseMutation):
         /,
         *,
         id: str,
-        transaction: Dict,
+        transaction: dict,
         transaction_event=None,
     ):
         order_or_checkout_instance = cls.get_node_or_error(info, id)

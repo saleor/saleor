@@ -804,7 +804,7 @@ def test_checkout_add_variant_voucher_code_apply_once_per_order(
 
     lines = checkout.lines.all()
     checkout.lines.last().delete()
-    variant_1, variant_2, variant_3 = [line.variant for line in lines]
+    variant_1, variant_2, variant_3 = (line.variant for line in lines)
     variant_1_listing = variant_1.channel_listings.get(channel=channel)
     variant_2_listing = variant_2.channel_listings.get(channel=channel)
     variant_3_listing = variant_3.channel_listings.get(channel=channel)
@@ -892,6 +892,28 @@ def test_checkout_add_voucher_code_not_assigned_to_channel(
     }
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "promoCode"
+
+
+def test_checkout_add_voucher_code_lack_of_active_codes(
+    api_client, checkout_with_item, voucher_percentage
+):
+    # given
+    voucher_percentage.single_use = True
+    voucher_percentage.save(update_fields=["single_use"])
+
+    voucher_percentage.codes.update(is_active=False)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "promoCode": voucher_percentage.code,
+    }
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
     assert data["errors"]
     assert data["errors"][0]["field"] == "promoCode"
 

@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import Iterable, Optional, Tuple, cast
+from typing import Optional, cast
 
 from django.db import transaction
 from django.db.models import prefetch_related_objects
@@ -200,7 +201,7 @@ def fetch_order_prices_if_expired(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-) -> Tuple[Order, Optional[Iterable[OrderLine]]]:
+) -> tuple[Order, Optional[Iterable[OrderLine]]]:
     """Fetch order prices with taxes.
 
     First calculate and apply all order prices with taxes separately,
@@ -286,11 +287,13 @@ def fetch_order_prices_if_expired(
 
 def _update_order_discount_for_voucher(order: Order):
     """Create or delete OrderDiscount instances."""
+
     if not order.voucher_id:
         order.discounts.filter(type=DiscountType.VOUCHER).delete()
 
     elif (
-        order.voucher_id and not order.discounts.filter(voucher=order.voucher).exists()
+        order.voucher_id
+        and not order.discounts.filter(voucher_code=order.voucher_code).exists()
     ):
         voucher = order.voucher
         voucher_channel_listing = voucher.channel_listings.filter(  # type: ignore
@@ -303,6 +306,7 @@ def _update_order_discount_for_voucher(order: Order):
                 reason=f"Voucher: {voucher.name}",  # type: ignore
                 voucher=voucher,
                 type=DiscountType.VOUCHER,
+                voucher_code=order.voucher_code,
             )
 
     # Prefetch has to be cleared and refreshed to avoid returning cached discounts

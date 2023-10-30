@@ -75,7 +75,7 @@ def test_product_filter_by_ids_empty_list(api_client, product_list, channel_USD)
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"eq": "Test product 1"}, [0]),
         ({"eq": "Non-existing"}, []),
@@ -103,7 +103,7 @@ def test_product_filter_by_name(where, indexes, api_client, product_list, channe
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"eq": "test-product-a"}, [0]),
         ({"eq": "non-existing"}, []),
@@ -357,7 +357,7 @@ def test_product_filter_by_none_as_collection(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"isAvailable": True}, [0, 2]),
         ({"isAvailable": False}, [1]),
@@ -388,7 +388,7 @@ def test_product_filter_by_is_available(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"isPublished": True}, [0, 2]),
         ({"isPublished": False}, []),
@@ -419,7 +419,7 @@ def test_product_filter_by_is_published(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"isVisibleInListing": True}, [0, 2]),
         ({"isVisibleInListing": False}, []),
@@ -450,7 +450,7 @@ def test_product_filter_by_is_visible_in_listing(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"hasCategory": True}, [0, 2]),
         ({"hasCategory": False}, [1]),
@@ -579,7 +579,7 @@ def test_product_filter_by_none_as_available_from(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"price": {"range": {"gte": 0, "lte": 50}}}, [0, 1, 2]),
         ({"price": {"range": {"gte": 10, "lte": 20}}}, [0, 1]),
@@ -613,7 +613,7 @@ def test_product_filter_by_variant_price(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"minimalPrice": {"range": {"gte": 0, "lte": 50}}}, [0, 1, 2]),
         ({"minimalPrice": {"range": {"gte": 10, "lte": 20}}}, [0, 1]),
@@ -730,7 +730,7 @@ def test_products_filter_by_attributes_empty_list(
 
 
 @pytest.mark.parametrize(
-    "values_range, indexes",
+    ("values_range", "indexes"),
     [
         ({"lte": 8}, [1, 2]),
         ({"gte": 0, "lte": 8}, [1, 2]),
@@ -802,7 +802,7 @@ def test_products_filter_by_numeric_attributes(
     assert returned_slugs == {product_list[index].slug for index in indexes}
 
 
-@pytest.mark.parametrize("filter_value, indexes", [(False, [0, 1]), (True, [0])])
+@pytest.mark.parametrize(("filter_value", "indexes"), [(False, [0, 1]), (True, [0])])
 def test_products_filter_by_boolean_attributes(
     filter_value,
     indexes,
@@ -1270,7 +1270,7 @@ def test_products_filter_by_non_existing_attribute(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"stockAvailability": "OUT_OF_STOCK"}, [0, 1, 2]),
         ({"stockAvailability": "IN_STOCK"}, [3]),
@@ -1459,7 +1459,7 @@ def test_products_filter_by_stock_availability_only_stock_in_cc_warehouse(
 
 
 @pytest.mark.parametrize(
-    "quantity_input, warehouse_indexes, count, indexes_of_products_in_result",
+    ("quantity_input", "warehouse_indexes", "count", "indexes_of_products_in_result"),
     [
         ({"lte": "80", "gte": "20"}, [1, 2], 1, [1]),
         ({"lte": "120", "gte": "40"}, [1, 2], 1, [0]),
@@ -1599,7 +1599,7 @@ def test_products_filter_by_empty_warehouse_ids(
     assert len(products_data) == 0
 
 
-@pytest.mark.parametrize("filter,index", [(False, 0), (True, 1)])
+@pytest.mark.parametrize(("filter", "index"), [(False, 0), (True, 1)])
 def test_products_filter_by_gift_card(
     filter,
     index,
@@ -1644,7 +1644,7 @@ def test_products_filter_by_none_as_gift_card(
     assert len(products) == 0
 
 
-@pytest.mark.parametrize("filter,index", [(False, 0), (True, 1)])
+@pytest.mark.parametrize(("filter", "index"), [(False, 0), (True, 1)])
 def test_products_query_with_filter_has_preordered_variants(
     filter,
     index,

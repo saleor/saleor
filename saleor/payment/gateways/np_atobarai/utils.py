@@ -1,8 +1,9 @@
 from collections import defaultdict
+from collections.abc import Iterable
 from contextlib import contextmanager
 from decimal import Decimal
 from itertools import chain
-from typing import Dict, Iterable, Optional
+from typing import Optional
 
 from django.db.models import Q
 
@@ -109,7 +110,7 @@ def _get_refunded_fulfillment_lines_with_automatic_amount(
 def create_refunded_lines(
     order: Order,
     refund_data: RefundData,
-) -> Dict[int, int]:
+) -> dict[int, int]:
     """Return all refunded product variants for specified order.
 
     Takes into account previous refunds and current refund mutation parameters.
@@ -148,7 +149,7 @@ def create_refunded_lines(
         current_order_refund_lines,
         current_fulfillment_refund_lines,
     )
-    summed_refund_lines: Dict[int, int] = defaultdict(int)
+    summed_refund_lines: dict[int, int] = defaultdict(int)
 
     for variant_id, quantity in refund_lines:
         summed_refund_lines[variant_id] += quantity

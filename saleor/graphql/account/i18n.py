@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Optional
 
 from django.core.exceptions import ValidationError
 
@@ -73,7 +73,7 @@ class I18nMixin:
     def attach_params_to_address_form_errors(
         cls,
         address_form,
-        params: Dict[str, str],
+        params: dict[str, str],
         values_check=True,
         required_check=True,
     ):

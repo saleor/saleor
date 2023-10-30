@@ -290,7 +290,7 @@ def test_products_with_sorting_and_without_channel(
 
 
 @pytest.mark.parametrize(
-    "sort_by, products_order",
+    ("sort_by", "products_order"),
     [
         (
             {"field": "PUBLISHED", "direction": "ASC"},
@@ -369,7 +369,7 @@ def test_products_with_sorting_and_channel_USD(
 
 
 @pytest.mark.parametrize(
-    "sort_by, products_order",
+    ("sort_by", "products_order"),
     [
         (
             {"field": "PUBLISHED", "direction": "ASC"},
@@ -532,7 +532,7 @@ def test_products_with_filtering_without_channel(
 
 
 @pytest.mark.parametrize(
-    "filter_by, products_count",
+    ("filter_by", "products_count"),
     [
         ({"isPublished": True}, 3),
         ({"isPublished": False}, 1),
@@ -577,7 +577,7 @@ def test_products_with_filtering_with_channel_USD(
 
 
 @pytest.mark.parametrize(
-    "filter_by, products_count",
+    ("filter_by", "products_count"),
     [
         ({"isPublished": True}, 3),
         ({"isPublished": False}, 1),
@@ -685,7 +685,7 @@ def test_published_products_without_sku_as_staff(
 
 
 @pytest.mark.parametrize(
-    "products_filter, count",
+    ("products_filter", "count"),
     [
         ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 2),
         ({"updatedAt": {"lte": "2012-01-14T12:00:05+00:00"}}, 2),
@@ -754,7 +754,7 @@ query Variants($sortBy: ProductVariantSortingInput, $channel: String) {
 
 
 @pytest.mark.parametrize(
-    "sort_by, variants_order",
+    ("sort_by", "variants_order"),
     [
         (
             {"field": "LAST_MODIFIED_AT", "direction": "ASC"},
@@ -793,7 +793,7 @@ def test_products_variants_with_sorting_and_channel_USD(
 
 
 @pytest.mark.parametrize(
-    "sort_by, variants_order",
+    ("sort_by", "variants_order"),
     [
         (
             {"field": "LAST_MODIFIED_AT", "direction": "ASC"},

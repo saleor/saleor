@@ -1,5 +1,3 @@
-from typing import List
-
 import graphene
 
 from ...core import models as core_models
@@ -208,7 +206,7 @@ class Webhook(ModelObjectType[models.Webhook]):
 
     @staticmethod
     def resolve_async_events(root: models.Webhook, info: ResolveInfo):
-        def _filter_by_async_type(webhook_events: List[WebhookEvent]):
+        def _filter_by_async_type(webhook_events: list[WebhookEvent]):
             return filter(
                 lambda webhook_event: webhook_event.event_type
                 in WebhookEventAsyncType.ALL,
@@ -223,7 +221,7 @@ class Webhook(ModelObjectType[models.Webhook]):
 
     @staticmethod
     def resolve_sync_events(root: models.Webhook, info: ResolveInfo):
-        def _filter_by_sync_type(webhook_events: List[WebhookEvent]):
+        def _filter_by_sync_type(webhook_events: list[WebhookEvent]):
             return filter(
                 lambda webhook_event: webhook_event.event_type
                 in WebhookEventSyncType.ALL,

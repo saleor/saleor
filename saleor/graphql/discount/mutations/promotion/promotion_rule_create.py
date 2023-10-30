@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import DefaultDict, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -59,7 +58,7 @@ class PromotionRuleCreate(ModelMutation):
         cls, info: ResolveInfo, instance: models.PromotionRule, data: dict, **kwargs
     ):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
-        errors: DefaultDict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
         clean_promotion_rule(cleaned_input, errors, PromotionRuleCreateErrorCode)
 

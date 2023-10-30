@@ -14,7 +14,7 @@ class DummyHasher(BasePasswordHasher):
 
     def encode(self, password, *args):
         assert password is not None
-        return "%s$%s" % (self.algorithm, password)
+        return f"{self.algorithm}${password}"
 
     def verify(self, password, encoded):
         algorithm, dummy_password = encoded.split("$")

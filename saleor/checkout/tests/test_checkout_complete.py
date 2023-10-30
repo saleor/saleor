@@ -616,7 +616,7 @@ def test_create_order_doesnt_duplicate_order(
     assert order_1.pk == order_2.pk
 
 
-@pytest.mark.parametrize("is_anonymous_user", (True, False))
+@pytest.mark.parametrize("is_anonymous_user", [True, False])
 def test_create_order_with_gift_card(
     checkout_with_gift_card, customer_user, shipping_method, is_anonymous_user
 ):
@@ -796,7 +796,7 @@ def test_create_order_with_many_gift_cards(
 
 
 @mock.patch("saleor.giftcard.utils.send_gift_card_notification")
-@pytest.mark.parametrize("is_anonymous_user", (True, False))
+@pytest.mark.parametrize("is_anonymous_user", [True, False])
 def test_create_order_gift_card_bought(
     send_notification_mock,
     checkout_with_gift_card_items,
@@ -892,7 +892,7 @@ def test_create_order_gift_card_bought(
 
 
 @mock.patch("saleor.giftcard.utils.send_gift_card_notification")
-@pytest.mark.parametrize("is_anonymous_user", (True, False))
+@pytest.mark.parametrize("is_anonymous_user", [True, False])
 def test_create_order_gift_card_bought_order_not_captured_gift_cards_not_sent(
     send_notification_mock,
     checkout_with_gift_card_items,
@@ -954,7 +954,7 @@ def test_create_order_gift_card_bought_order_not_captured_gift_cards_not_sent(
 
 
 @mock.patch("saleor.giftcard.utils.send_gift_card_notification")
-@pytest.mark.parametrize("is_anonymous_user", (True, False))
+@pytest.mark.parametrize("is_anonymous_user", [True, False])
 def test_create_order_gift_card_bought_only_shippable_gift_card(
     send_notification_mock,
     checkout,
@@ -1013,7 +1013,7 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
     send_notification_mock.assert_not_called()
 
 
-@pytest.mark.parametrize("is_anonymous_user", (True, False))
+@pytest.mark.parametrize("is_anonymous_user", [True, False])
 def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
     site_settings,
     checkout_with_gift_card_items,
@@ -1351,12 +1351,14 @@ def test_complete_checkout_action_required_voucher_once_per_customer(
     payment.to_confirm = True
     payment.save()
 
+    voucher_code = voucher.codes.first()
+
     checkout.user = customer_user
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_billing_address
     checkout.tracking_code = ""
     checkout.redirect_url = "https://www.example.com"
-    checkout.voucher_code = voucher.code
+    checkout.voucher_code = voucher_code.code
     checkout.save()
 
     voucher.apply_once_per_customer = True
@@ -1378,12 +1380,77 @@ def test_complete_checkout_action_required_voucher_once_per_customer(
     )
     # then
     voucher_customer = VoucherCustomer.objects.filter(
-        voucher=voucher, customer_email=customer_user.email
+        voucher_code=voucher_code, customer_email=customer_user.email
+    )
+    assert not order
+
+    assert action_required is True
+    assert not voucher_customer.exists()
+    mocked_create_order.assert_not_called()
+
+
+@mock.patch("saleor.checkout.complete_checkout._create_order")
+@mock.patch("saleor.checkout.complete_checkout._process_payment")
+def test_complete_checkout_action_required_voucher_single_use(
+    mocked_process_payment,
+    mocked_create_order,
+    voucher,
+    customer_user,
+    checkout,
+    app,
+    payment_txn_to_confirm,
+    action_required_gateway_response,
+):
+    # given
+    mocked_process_payment.return_value = action_required_gateway_response
+
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+    )
+    payment.to_confirm = True
+    payment.save()
+
+    code = voucher.codes.first()
+
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+    checkout.voucher_code = code.code
+    checkout.save()
+
+    voucher.single_use = True
+    voucher.save(update_fields=["single_use"])
+
+    assert code.is_active
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    order, action_required, _ = complete_checkout(
+        checkout_info=checkout_info,
+        lines=lines,
+        manager=manager,
+        payment_data={},
+        store_source=False,
+        user=customer_user,
+        app=app,
+    )
+
+    # then
+    voucher_customer = VoucherCustomer.objects.filter(
+        voucher_code=code, customer_email=customer_user.email
     )
     assert not order
     assert action_required is True
     assert not voucher_customer.exists()
     mocked_create_order.assert_not_called()
+
+    code.refresh_from_db()
+    assert code.is_active is True
 
 
 @mock.patch("saleor.checkout.complete_checkout._create_order")
@@ -1791,7 +1858,7 @@ def test_complete_checkout_invalid_shipping_method(
 
     # when
     with pytest.raises(ValidationError):
-        order, action_required, _ = complete_checkout(
+        complete_checkout(
             checkout_info=checkout_info,
             lines=lines,
             manager=manager,
@@ -1801,13 +1868,11 @@ def test_complete_checkout_invalid_shipping_method(
             app=app,
         )
 
-        # then
-        voucher_customer = VoucherCustomer.objects.filter(
-            voucher=voucher, customer_email=customer_user.email
-        )
-        assert not order
-        assert action_required is True
-        assert not voucher_customer.exists()
+    # then
+    voucher_customer = VoucherCustomer.objects.filter(
+        voucher=voucher, customer_email=customer_user.email
+    )
+    assert not voucher_customer.exists()
 
     mocked_payment_refund_or_void.called_once_with(
         payment, manager, channel_slug=checkout.channel.slug

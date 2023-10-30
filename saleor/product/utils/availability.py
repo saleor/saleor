@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import List, Optional
+from typing import Optional
 
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -51,7 +51,7 @@ def _get_total_discount(
 
 def get_product_price_range(
     *,
-    variants_channel_listing: List[ProductVariantChannelListing],
+    variants_channel_listing: list[ProductVariantChannelListing],
     discounted: bool,
 ) -> Optional[MoneyRange]:
     """Return the range of product prices based on product variants prices.
@@ -90,7 +90,7 @@ def _calculate_product_price_with_taxes(
 def get_product_availability(
     *,
     product_channel_listing: Optional[ProductChannelListing],
-    variants_channel_listing: List[ProductVariantChannelListing],
+    variants_channel_listing: list[ProductVariantChannelListing],
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
     tax_rate: Decimal,

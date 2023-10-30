@@ -161,8 +161,8 @@ query Products($sortBy: ProductOrder, $channel: String) {
 
 @freeze_time("2020-03-18 12:00:00")
 @pytest.mark.parametrize(
-    "direction, order_direction",
-    (("ASC", "published_at"), ("DESC", "-published_at")),
+    ("direction", "order_direction"),
+    [("ASC", "published_at"), ("DESC", "-published_at")],
 )
 def test_sort_products_by_published_at(
     direction, order_direction, api_client, product_list, channel_USD
@@ -201,7 +201,7 @@ def test_sort_products_by_published_at(
     ]
 
 
-@pytest.mark.parametrize("direction", ("ASC", "DESC"))
+@pytest.mark.parametrize("direction", ["ASC", "DESC"])
 def test_sort_products_by_created_at(direction, api_client, product_list, channel_USD):
     variables = {
         "sortBy": {
@@ -223,8 +223,8 @@ def test_sort_products_by_created_at(direction, api_client, product_list, channe
 
 
 @pytest.mark.parametrize(
-    "direction, order_direction",
-    (("ASC", "rating"), ("DESC", "-rating")),
+    ("direction", "order_direction"),
+    [("ASC", "rating"), ("DESC", "-rating")],
 )
 def test_sort_products_by_rating(
     direction, order_direction, api_client, product_list, channel_USD

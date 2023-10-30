@@ -614,8 +614,8 @@ def test_get_variant_with_sorted_attribute_values(
 
 
 @pytest.mark.parametrize(
-    "field, is_nested",
-    (("digitalContent", True), ("quantityOrdered", False)),
+    ("field", "is_nested"),
+    [("digitalContent", True), ("quantityOrdered", False)],
 )
 def test_variant_restricted_fields_permissions(
     staff_api_client,
@@ -626,13 +626,13 @@ def test_variant_restricted_fields_permissions(
     is_nested,
     channel_USD,
 ):
-    query = """
-    query ProductVariant($id: ID!, $channel: String) {
-        productVariant(id: $id, channel: $channel) {
-            %(field)s
-        }
-    }
-    """ % {"field": field if not is_nested else "%s { __typename }" % field}
+    query = f"""
+    query ProductVariant($id: ID!, $channel: String) {{
+        productVariant(id: $id, channel: $channel) {{
+            {field if not is_nested else f"{field} {{ __typename }}"}
+        }}
+    }}
+    """
     variant = product.variants.first()
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),

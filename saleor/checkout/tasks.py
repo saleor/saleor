@@ -1,5 +1,4 @@
 import logging
-from typing import Tuple
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -18,7 +17,7 @@ def delete_expired_checkouts(
     batch_count: int = 5,
     invocation_count: int = 1,
     invocation_limit: int = 500,
-) -> Tuple[int, bool]:
+) -> tuple[int, bool]:
     """Delete inactive checkouts from the database.
 
     Inactivity is based on the "Checkout.last_change" datetime column.

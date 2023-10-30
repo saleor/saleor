@@ -1,5 +1,5 @@
 import base64
-from typing import List, Optional, Type, Union
+from typing import Optional, Union
 
 import graphene
 
@@ -326,7 +326,7 @@ class AppBrandLogo(BaseObjectType):
 
         if isinstance(root, models.App):
             object_type = "App"
-            dataloader: Type[DataLoader] = ThumbnailByAppIdSizeAndFormatLoader
+            dataloader: type[DataLoader] = ThumbnailByAppIdSizeAndFormatLoader
         elif isinstance(root, models.AppInstallation):
             object_type = "AppInstallation"
             dataloader = ThumbnailByAppInstallationIdSizeAndFormatLoader
@@ -587,7 +587,7 @@ class App(ModelObjectType[models.App]):
         return AppExtensionByAppIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def __resolve_references(roots: List["App"], info: ResolveInfo):
+    def __resolve_references(roots: list["App"], info: ResolveInfo):
         from .resolvers import resolve_apps
 
         requestor = get_user_or_app_from_context(info.context)

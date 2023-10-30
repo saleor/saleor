@@ -130,7 +130,7 @@ def payment_adyen_for_order(order_with_lines):
     return payment
 
 
-@pytest.fixture()
+@pytest.fixture
 def notification():
     def fun(
         event_code=None,

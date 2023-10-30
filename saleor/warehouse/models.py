@@ -1,10 +1,9 @@
 import itertools
 import uuid
+from collections.abc import Iterable
 from typing import (
     TYPE_CHECKING,
-    Iterable,
     Optional,
-    Set,
     TypedDict,
     TypeVar,
     Union,
@@ -220,7 +219,7 @@ class Warehouse(ModelWithMetadata, ModelWithExternalReference):
         return self.name
 
     @property
-    def countries(self) -> Set[str]:
+    def countries(self) -> set[str]:
         shipping_zones = self.shipping_zones.all()
         return set(itertools.chain(*[zone.countries for zone in shipping_zones]))
 

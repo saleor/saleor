@@ -2453,6 +2453,32 @@ def test_voucher_metadata_updated(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_voucher_code_export_completed(
+    user_export_file, tmpdir, subscription_voucher_code_export_completed_webhook
+):
+    # given
+    file_mock = MagicMock(spec=File)
+    file_mock.name = "temp_file.csv"
+
+    user_export_file.content_file = file_mock
+    user_export_file.save()
+
+    webhooks = [subscription_voucher_code_export_completed_webhook]
+    event_type = WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED
+    export_file_id = graphene.Node.to_global_id("ExportFile", user_export_file.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, user_export_file, webhooks
+    )
+
+    # then
+    expected_payload = generate_export_payload(user_export_file, export_file_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_shop_metadata_updated(subscription_shop_metadata_updated_webhook):
     # given
     webhooks = [subscription_shop_metadata_updated_webhook]

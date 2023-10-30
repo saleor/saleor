@@ -1,14 +1,15 @@
 from collections import defaultdict
-from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import Exists, OuterRef
 
 from ....account.models import User
 from ....checkout import AddressType
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
+from ....discount.models import Voucher, VoucherCode
 from ....order import OrderOrigin, OrderStatus, events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
@@ -30,6 +31,8 @@ from ...core.descriptions import (
     ADDED_IN_36,
     ADDED_IN_310,
     ADDED_IN_314,
+    ADDED_IN_318,
+    DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
@@ -101,7 +104,13 @@ class DraftOrderInput(BaseInputObjectType):
         description="ID of a selected shipping method.", name="shippingMethod"
     )
     voucher = graphene.ID(
-        description="ID of the voucher associated with the order.", name="voucher"
+        description="ID of the voucher associated with the order.",
+        name="voucher",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `voucherCode` instead.",
+    )
+    voucher_code = graphene.String(
+        description="A code of the voucher associated with the order." + ADDED_IN_318,
+        name="voucherCode",
     )
     customer_note = graphene.String(
         description="A note from a customer. Visible by customers in the order summary."
@@ -198,8 +207,12 @@ class DraftOrderCreate(
         channel = cls.clean_channel_id(info, instance, cleaned_input, channel_id)
 
         voucher = cleaned_input.get("voucher", None)
+        voucher_code = cleaned_input.get("voucher_code", None)
+        cls.clean_voucher_and_voucher_code(voucher, voucher_code)
         if voucher:
-            cls.clean_voucher(voucher, channel)
+            cls.clean_voucher(voucher, channel, cleaned_input)
+        if voucher_code:
+            cls.clean_voucher_code(voucher_code, channel, cleaned_input)
 
         if channel:
             cleaned_input["currency"] = channel.currency_code
@@ -240,7 +253,7 @@ class DraftOrderCreate(
             return instance.channel if hasattr(instance, "channel") else None
 
     @classmethod
-    def clean_voucher(cls, voucher, channel):
+    def clean_voucher(cls, voucher, channel, cleaned_input):
         if not voucher.channel_listings.filter(channel=channel).exists():
             raise ValidationError(
                 {
@@ -250,13 +263,61 @@ class DraftOrderCreate(
                     )
                 }
             )
+        first_code = voucher.codes.first()
+        if first_code:
+            cleaned_input["voucher_code"] = first_code.code
+
+    @classmethod
+    def clean_voucher_code(
+        cls, voucher_code: str, channel: Channel, cleaned_input: dict
+    ):
+        voucher = Voucher.objects.filter(
+            Exists(
+                VoucherCode.objects.filter(code=voucher_code, voucher_id=OuterRef("pk"))
+            )
+        ).first()
+
+        if not voucher:
+            raise ValidationError(
+                {
+                    "voucher": ValidationError(
+                        "Invalid voucher code.",
+                        code=OrderErrorCode.INVALID_VOUCHER_CODE.value,
+                    )
+                }
+            )
+        else:
+            if not voucher.channel_listings.filter(channel=channel).exists():
+                raise ValidationError(
+                    {
+                        "voucher": ValidationError(
+                            "Voucher not available for this order.",
+                            code=OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
+                        )
+                    }
+                )
+            cleaned_input["voucher"] = voucher
+            cleaned_input["voucher_code"] = voucher_code
+
+    @classmethod
+    def clean_voucher_and_voucher_code(cls, voucher, voucher_code):
+        if voucher and voucher_code:
+            raise ValidationError(
+                {
+                    "voucher": ValidationError(
+                        "You cannot use both a voucher and a voucher code for the same "
+                        "order. Please choose one.",
+                        code=OrderErrorCode.INVALID.value,
+                    )
+                }
+            )
 
     @classmethod
     def clean_lines(cls, cleaned_input, lines, channel):
         if not lines:
             return
-        grouped_lines_data: List[OrderLineData] = []
-        lines_data_map: Dict[str, OrderLineData] = defaultdict(OrderLineData)
+        grouped_lines_data: list[OrderLineData] = []
+        lines_data_map: dict[str, OrderLineData] = defaultdict(OrderLineData)
 
         variant_pks = cls.get_global_ids_or_error(
             [line.get("variant_id") for line in lines], ProductVariant, "variant_id"

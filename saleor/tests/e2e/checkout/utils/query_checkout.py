@@ -4,6 +4,10 @@ CHECKOUT_QUERY = """
 query Checkout($checkoutId: ID!){
   checkout(id: $checkoutId){
     id
+    voucherCode
+    discount {
+        amount
+      }
     totalPrice{
       gross{
         amount

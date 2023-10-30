@@ -120,7 +120,7 @@ def test_app_extensions_user_not_staff(
 
 
 @pytest.mark.parametrize(
-    "filter, expected_count",
+    ("filter", "expected_count"),
     [
         ({}, 4),
         ({"target": AppExtensionTargetEnum.APP_PAGE.name}, 1),

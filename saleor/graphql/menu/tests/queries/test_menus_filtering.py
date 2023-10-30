@@ -20,7 +20,7 @@ QUERY_MENU_WITH_FILTER = """
 
 
 @pytest.mark.parametrize(
-    "menu_filter, count",
+    ("menu_filter", "count"),
     [
         ({"search": "Menu1"}, 1),
         ({"search": "Menu"}, 2),
@@ -83,7 +83,7 @@ def test_menus_query_with_slug_list_filter(staff_api_client, permission_manage_m
 
 
 @pytest.mark.parametrize(
-    "menu_item_filter, count",
+    ("menu_item_filter", "count"),
     [({"search": "MenuItem1"}, 1), ({"search": "MenuItem"}, 2)],
 )
 def test_menu_items_query_with_filter(

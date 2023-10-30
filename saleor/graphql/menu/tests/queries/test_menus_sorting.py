@@ -17,7 +17,7 @@ QUERY_MENU_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "menu_sort, result_order",
+    ("menu_sort", "result_order"),
     [
         # We have "footer" and "navbar" from default saleor configuration
         ({"field": "NAME", "direction": "ASC"}, ["footer", "menu1", "navbar"]),
@@ -63,7 +63,7 @@ QUERY_MENU_ITEMS_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "menu_item_sort, result_order",
+    ("menu_item_sort", "result_order"),
     [
         ({"field": "NAME", "direction": "ASC"}, ["MenuItem1", "MenuItem2"]),
         ({"field": "NAME", "direction": "DESC"}, ["MenuItem2", "MenuItem1"]),

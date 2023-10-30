@@ -1,4 +1,5 @@
-from typing import Iterable, Union
+from collections.abc import Iterable
+from typing import Union
 
 from django.utils import timezone
 

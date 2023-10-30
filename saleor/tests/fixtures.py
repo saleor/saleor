@@ -7,7 +7,7 @@ from datetime import timedelta
 from decimal import Decimal
 from functools import partial
 from io import BytesIO
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 from unittest.mock import MagicMock, Mock
 
 import graphene
@@ -69,6 +69,7 @@ from ..discount.models import (
     PromotionTranslation,
     Voucher,
     VoucherChannelListing,
+    VoucherCode,
     VoucherCustomer,
     VoucherTranslation,
 )
@@ -200,7 +201,7 @@ def _assert_num_queries(context, *, config, num, exact=True, info=None):
         ),
     )
     if info:
-        msg += "\n{}".format(info)
+        msg += f"\n{info}"
     if verbose:
         sqls = (q["sql"] for q in context.captured_queries)
         msg += "\n\nQueries:\n========\n\n%s" % "\n\n".join(sqls)
@@ -245,7 +246,7 @@ def setup_dummy_gateways(settings):
 
 
 @pytest.fixture
-def sample_gateway(settings):
+def _sample_gateway(settings):
     settings.PLUGINS += [
         "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"
     ]
@@ -438,7 +439,11 @@ def checkout_with_item_and_voucher_specific_products(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     add_voucher_to_checkout(
-        manager, checkout_info, lines, voucher_specific_product_type
+        manager,
+        checkout_info,
+        lines,
+        voucher_specific_product_type,
+        voucher_specific_product_type.codes.first(),
     )
     checkout_with_item.refresh_from_db()
     return checkout_with_item
@@ -451,7 +456,9 @@ def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
     checkout_with_item.refresh_from_db()
     return checkout_with_item
 
@@ -461,7 +468,9 @@ def checkout_with_item_and_voucher(checkout_with_item, voucher):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
     checkout_with_item.refresh_from_db()
     return checkout_with_item
 
@@ -635,7 +644,7 @@ def checkout_with_variant_without_inventory_tracking(
     return checkout
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_variants(
     checkout,
     stock,
@@ -660,7 +669,7 @@ def checkout_with_variants(
     return checkout
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_shipping_address(checkout_with_variants, address):
     checkout = checkout_with_variants
 
@@ -699,7 +708,7 @@ def checkout_with_variants_for_cc(
     return checkout
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_shipping_address_for_cc(checkout_with_variants_for_cc, address):
     checkout = checkout_with_variants_for_cc
 
@@ -762,7 +771,13 @@ def checkout_with_voucher_free_shipping(
     checkout_info = fetch_checkout_info(
         checkout_with_items_and_shipping, lines, manager
     )
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher_free_shipping)
+    add_voucher_to_checkout(
+        manager,
+        checkout_info,
+        lines,
+        voucher_free_shipping,
+        voucher_free_shipping.codes.first(),
+    )
     return checkout_with_items_and_shipping
 
 
@@ -773,7 +788,7 @@ def checkout_with_gift_card(checkout_with_item, gift_card):
     return checkout_with_item
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_preorders_only(
     checkout,
     stocks_for_cc,
@@ -789,7 +804,7 @@ def checkout_with_preorders_only(
     return checkout
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_preorders_and_regular_variant(
     checkout, stocks_for_cc, preorder_variant_with_end_date, product_variant_list
 ):
@@ -2279,7 +2294,7 @@ def page_file_attribute(db):
 
 
 @pytest.fixture
-def product_type_attribute_list() -> List[Attribute]:
+def product_type_attribute_list() -> list[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
@@ -2298,7 +2313,7 @@ def product_type_attribute_list() -> List[Attribute]:
 
 
 @pytest.fixture
-def page_type_attribute_list() -> List[Attribute]:
+def page_type_attribute_list() -> list[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
@@ -3688,6 +3703,7 @@ def product_list_with_variants_many_channel(
             ),
         ]
     )
+    return products
 
 
 @pytest.fixture
@@ -3886,7 +3902,9 @@ def product_with_images(
 
 @pytest.fixture
 def voucher_without_channel(db):
-    return Voucher.objects.create(code="mirumee")
+    voucher = Voucher.objects.create()
+    VoucherCode.objects.create(code="mirumee", voucher=voucher)
+    return voucher
 
 
 @pytest.fixture
@@ -3897,6 +3915,19 @@ def voucher(voucher_without_channel, channel_USD):
         discount=Money(20, channel_USD.currency_code),
     )
     return voucher_without_channel
+
+
+@pytest.fixture
+def voucher_with_many_codes(voucher):
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="Multi1", voucher=voucher),
+            VoucherCode(code="Multi2", voucher=voucher),
+            VoucherCode(code="Multi3", voucher=voucher),
+            VoucherCode(code="Multi4", voucher=voucher),
+        ]
+    )
+    return voucher
 
 
 @pytest.fixture
@@ -3912,9 +3943,9 @@ def voucher_with_many_channels(voucher, channel_PLN):
 @pytest.fixture
 def voucher_percentage(channel_USD):
     voucher = Voucher.objects.create(
-        code="saleor",
         discount_value_type=DiscountValueType.PERCENTAGE,
     )
+    VoucherCode.objects.create(code="saleor", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -3934,7 +3965,8 @@ def voucher_specific_product_type(voucher_percentage, product):
 
 @pytest.fixture
 def voucher_with_high_min_spent_amount(channel_USD):
-    voucher = Voucher.objects.create(code="mirumee")
+    voucher = Voucher.objects.create()
+    VoucherCode.objects.create(code="mirumee", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -3946,9 +3978,8 @@ def voucher_with_high_min_spent_amount(channel_USD):
 
 @pytest.fixture
 def voucher_shipping_type(channel_USD):
-    voucher = Voucher.objects.create(
-        code="mirumee", type=VoucherType.SHIPPING, countries="IS"
-    )
+    voucher = Voucher.objects.create(type=VoucherType.SHIPPING, countries="IS")
+    VoucherCode.objects.create(code="mirumee", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -3971,7 +4002,8 @@ def voucher_free_shipping(voucher_percentage, channel_USD):
 @pytest.fixture
 def voucher_customer(voucher, customer_user):
     email = customer_user.email
-    return VoucherCustomer.objects.create(voucher=voucher, customer_email=email)
+    code = voucher.codes.first()
+    return VoucherCustomer.objects.create(voucher_code=code, customer_email=email)
 
 
 @pytest.fixture
@@ -6547,13 +6579,13 @@ def transaction_item_generator():
 @pytest.fixture
 def transaction_events_generator() -> (
     Callable[
-        [List[str], List[str], List[Decimal], TransactionItem], List[TransactionEvent]
+        [list[str], list[str], list[Decimal], TransactionItem], list[TransactionEvent]
     ]
 ):
     def factory(
-        psp_references: List[str],
-        types: List[str],
-        amounts: List[Decimal],
+        psp_references: list[str],
+        types: list[str],
+        amounts: list[Decimal],
         transaction: TransactionItem,
     ):
         return TransactionEvent.objects.bulk_create(
@@ -6658,7 +6690,9 @@ def digital_content_url(digital_content, order_line):
 
 @pytest.fixture
 def media_root(tmpdir, settings):
-    settings.MEDIA_ROOT = str(tmpdir.mkdir("media"))
+    root = str(tmpdir.mkdir("media"))
+    settings.MEDIA_ROOT = root
+    return root
 
 
 @pytest.fixture
@@ -7186,7 +7220,7 @@ def warehouses(address, address_usa, channel_USD):
     return warehouses
 
 
-@pytest.fixture()
+@pytest.fixture
 def warehouses_for_cc(address, shipping_zones, channel_USD):
     warehouses = Warehouse.objects.bulk_create(
         [
@@ -8123,6 +8157,7 @@ def async_subscription_webhooks_with_root_objects(
     subscription_voucher_deleted_webhook,
     subscription_voucher_webhook_with_meta,
     subscription_voucher_metadata_updated_webhook,
+    subscription_voucher_code_export_completed_webhook,
     address,
     app,
     numeric_attribute,
@@ -8450,6 +8485,10 @@ def async_subscription_webhooks_with_root_objects(
         events.VOUCHER_METADATA_UPDATED: [
             subscription_voucher_metadata_updated_webhook,
             voucher,
+        ],
+        events.VOUCHER_CODE_EXPORT_COMPLETED: [
+            subscription_voucher_code_export_completed_webhook,
+            user_export_file,
         ],
         events.WAREHOUSE_CREATED: [subscription_warehouse_created_webhook, warehouse],
         events.WAREHOUSE_UPDATED: [subscription_warehouse_updated_webhook, warehouse],

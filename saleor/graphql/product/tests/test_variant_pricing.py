@@ -228,7 +228,7 @@ QUERY_GET_PRODUCT_VARIANTS_PRICING = """
 
 
 @pytest.mark.parametrize(
-    "variant_price_amount, api_variant_price",
+    ("variant_price_amount", "api_variant_price"),
     [(200, 200), (0, 0)],
 )
 def test_product_variant_price(
@@ -476,7 +476,7 @@ def _configure_tax_rates(product):
 
 
 @pytest.mark.parametrize(
-    "net_PL, gross_PL, net_DE, gross_DE, prices_entered_with_tax",
+    ("net_PL", "gross_PL", "net_DE", "gross_DE", "prices_entered_with_tax"),
     [
         (40.65, 50.00, 42.02, 50.00, True),
         (50.00, 61.50, 50.00, 59.50, False),

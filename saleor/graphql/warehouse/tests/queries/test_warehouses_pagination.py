@@ -64,7 +64,7 @@ QUERY_WAREHOUSES_PAGINATION = """
 
 
 @pytest.mark.parametrize(
-    "sort_by, warehouses_order",
+    ("sort_by", "warehouses_order"),
     [
         (
             {"field": "NAME", "direction": "ASC"},
@@ -103,7 +103,7 @@ def test_warehouses_pagination_with_sorting(
 
 
 @pytest.mark.parametrize(
-    "filter_by, warehouses_order",
+    ("filter_by", "warehouses_order"),
     [
         (
             {"search": "WarehouseWarehouse"},

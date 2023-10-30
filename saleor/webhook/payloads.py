@@ -1,17 +1,13 @@
 import json
 import uuid
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import asdict
 from decimal import Decimal
 from typing import (
     TYPE_CHECKING,
     Any,
-    DefaultDict,
-    Dict,
-    Iterable,
-    List,
     Optional,
-    Set,
     Union,
 )
 
@@ -128,7 +124,7 @@ def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
     return {"id": requestor.name, "type": "app"}  # type: ignore
 
 
-def generate_meta(*, requestor_data: Dict[str, Any], camel_case=False, **kwargs):
+def generate_meta(*, requestor_data: dict[str, Any], camel_case=False, **kwargs):
     meta_result = {
         "issued_at": timezone.now().isoformat(),
         "version": __version__,
@@ -404,26 +400,26 @@ def _generate_order_payment_payload(payments: Iterable["Payment"]):
 
 
 def _calculate_added(
-    previous_catalogue: DefaultDict[str, Set[str]],
-    current_catalogue: DefaultDict[str, Set[str]],
+    previous_catalogue: defaultdict[str, set[str]],
+    current_catalogue: defaultdict[str, set[str]],
     key: str,
-) -> List[str]:
+) -> list[str]:
     return list(current_catalogue[key] - previous_catalogue[key])
 
 
 def _calculate_removed(
-    previous_catalogue: DefaultDict[str, Set[str]],
-    current_catalogue: DefaultDict[str, Set[str]],
+    previous_catalogue: defaultdict[str, set[str]],
+    current_catalogue: defaultdict[str, set[str]],
     key: str,
-) -> List[str]:
+) -> list[str]:
     return _calculate_added(current_catalogue, previous_catalogue, key)
 
 
 @traced_payload_generator
 def generate_sale_payload(
     promotion: "Promotion",
-    previous_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
-    current_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
+    previous_catalogue: Optional[defaultdict[str, set[str]]] = None,
+    current_catalogue: Optional[defaultdict[str, set[str]]] = None,
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):
     if previous_catalogue is None:
@@ -470,7 +466,7 @@ def generate_sale_payload(
 @traced_payload_generator
 def generate_sale_toggle_payload(
     promotion: "Promotion",
-    catalogue: DefaultDict[str, Set[str]],
+    catalogue: defaultdict[str, set[str]],
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):
     serializer = PayloadSerializer()
@@ -747,7 +743,7 @@ def generate_product_payload(
                 )
             ),
             "variants": lambda x: json.loads(
-                (generate_product_variant_payload(x, with_meta=False))
+                generate_product_variant_payload(x, with_meta=False)
             ),
         },
     )
@@ -1222,7 +1218,7 @@ def _generate_payload_for_shipping_method(method: ShippingMethodData):
 @traced_payload_generator
 def generate_excluded_shipping_methods_for_order_payload(
     order: "Order",
-    available_shipping_methods: List[ShippingMethodData],
+    available_shipping_methods: list[ShippingMethodData],
 ):
     order_data = json.loads(generate_order_payload(order))[0]
     payload = {
@@ -1238,7 +1234,7 @@ def generate_excluded_shipping_methods_for_order_payload(
 @traced_payload_generator
 def generate_excluded_shipping_methods_for_checkout_payload(
     checkout: "Checkout",
-    available_shipping_methods: List[ShippingMethodData],
+    available_shipping_methods: list[ShippingMethodData],
 ):
     checkout_data = json.loads(generate_checkout_payload(checkout))[0]
     payload = {

@@ -13,15 +13,15 @@ from ..utils import default_shipping_zone_exists, get_countries_without_shipping
 
 
 @pytest.mark.parametrize(
-    "price, min_price, max_price, shipping_included",
-    (
+    ("price", "min_price", "max_price", "shipping_included"),
+    [
         (10, 10, 20, True),  # price equal min price
         (10, 1, 10, True),  # price equal max price
         (9, 10, 15, False),  # price just below min price
         (10, 1, 9, False),  # price just above max price
         (10000000, 1, None, True),  # no max price limit
         (10, 5, 15, True),
-    ),
+    ],
 )  # regular case
 def test_applicable_shipping_methods_price(
     shipping_zone,
@@ -62,15 +62,15 @@ def test_applicable_shipping_methods_price(
 
 
 @pytest.mark.parametrize(
-    "weight, min_weight, max_weight, shipping_included",
-    (
+    ("weight", "min_weight", "max_weight", "shipping_included"),
+    [
         (Weight(kg=1), Weight(kg=1), Weight(kg=2), True),  # equal min weight
         (Weight(kg=10), Weight(kg=1), Weight(kg=10), True),  # equal max weight
         (Weight(kg=5), Weight(kg=8), Weight(kg=15), False),  # below min weight
         (Weight(kg=10), Weight(kg=1), Weight(kg=9), False),  # above max weight
         (Weight(kg=10000000), Weight(kg=1), None, True),  # no max weight limit
         (Weight(kg=10), Weight(kg=5), Weight(kg=15), True),
-    ),
+    ],
 )  # regular case
 def test_applicable_shipping_methods_weight(
     weight, min_weight, max_weight, shipping_included, shipping_zone, channel_USD
@@ -240,12 +240,10 @@ def test_applicable_shipping_methods_not_in_channel(shipping_zone, channel_USD):
         maximum_order_weight=Weight(kg=10),
         type=ShippingMethodType.WEIGHT_BASED,
     )
-    (
-        ShippingMethodChannelListing.objects.create(
-            shipping_method=weight_method,
-            channel=channel_USD,
-            currency=channel_USD.currency_code,
-        ),
+    ShippingMethodChannelListing.objects.create(
+        shipping_method=weight_method,
+        channel=channel_USD,
+        currency=channel_USD.currency_code,
     )
     result = ShippingMethod.objects.applicable_shipping_methods(
         price=Money("5.0", "USD"),

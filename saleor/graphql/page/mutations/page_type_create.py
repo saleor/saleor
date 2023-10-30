@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -36,8 +36,8 @@ class PageTypeMixin:
     @classmethod
     def validate_attributes(
         cls,
-        errors: Dict[str, List[ValidationError]],
-        attributes: List["Attribute"],
+        errors: dict[str, list[ValidationError]],
+        attributes: list["Attribute"],
         field: str,
     ):
         """All attributes must be page type attribute.

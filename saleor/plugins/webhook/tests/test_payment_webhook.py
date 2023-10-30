@@ -250,17 +250,17 @@ def test_send_webhook_request_with_proper_timeout(mock_post, event_delivery, app
 
 
 def test_send_webhook_request_sync_invalid_scheme(webhook, app):
-    with pytest.raises(ValueError):
-        target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
-        event_payload = EventPayload.objects.create(payload="fake_content")
-        webhook.target_url = target_url
-        webhook.save()
-        delivery = EventDelivery.objects.create(
-            status="pending",
-            event_type=WebhookEventAsyncType.ANY,
-            payload=event_payload,
-            webhook=webhook,
-        )
+    target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
+    event_payload = EventPayload.objects.create(payload="fake_content")
+    webhook.target_url = target_url
+    webhook.save()
+    delivery = EventDelivery.objects.create(
+        status="pending",
+        event_type=WebhookEventAsyncType.ANY,
+        payload=event_payload,
+        webhook=webhook,
+    )
+    with pytest.raises(ValueError, match="Unknown webhook scheme"):
         send_webhook_request_sync(delivery)
 
 
@@ -447,15 +447,15 @@ def test_get_payment_gateways_for_checkout(
 
 
 @pytest.mark.parametrize(
-    "txn_kind, plugin_func_name",
-    (
+    ("txn_kind", "plugin_func_name"),
+    [
         (TransactionKind.AUTH, "authorize_payment"),
         (TransactionKind.CAPTURE, "capture_payment"),
         (TransactionKind.REFUND, "refund_payment"),
         (TransactionKind.VOID, "void_payment"),
         (TransactionKind.CONFIRM, "confirm_payment"),
         (TransactionKind.CAPTURE, "process_payment"),
-    ),
+    ],
 )
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_run_payment_webhook(

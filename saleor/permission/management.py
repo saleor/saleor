@@ -19,7 +19,7 @@ def _get_builtin_permissions(opts):  # noqa: D205, D212
         perms.append(
             (
                 get_permission_codename(action, opts),
-                "Can %s %s" % (action, opts.verbose_name_raw),
+                f"Can {action} {opts.verbose_name_raw}",
             )
         )
     return perms
@@ -94,4 +94,4 @@ def create_permissions(
     Permission.objects.using(using).bulk_create(perms)
     if verbosity >= 2:
         for perm in perms:
-            print("Adding permission '%s'" % perm)
+            print("Adding permission '%s'" % perm)  # noqa: T201

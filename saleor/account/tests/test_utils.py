@@ -1,4 +1,3 @@
-from typing import List
 from unittest.mock import patch
 
 import pytest
@@ -193,7 +192,7 @@ def users_with_similar_emails():
 
 
 @pytest.mark.parametrize(
-    "email,expected_user",
+    ("email", "expected_user"),
     [
         ("andrew@example.com", 0),
         ("Andrew@example.com", 1),
@@ -210,7 +209,7 @@ def users_with_similar_emails():
 )
 def test_email_case_sensitivity(email, expected_user, users_with_similar_emails):
     # given
-    users: List[User] = users_with_similar_emails
+    users: list[User] = users_with_similar_emails
     # when
     user = retrieve_user_by_email(email=email)
     # then

@@ -1,6 +1,6 @@
 import logging
 from dataclasses import asdict
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, Union
 
 from promise.promise import Promise
 
@@ -362,7 +362,7 @@ class UserEmailPlugin(BasePlugin):
             return self.configuration
 
         def map_templates_to_configuration(
-            email_templates: List["EmailTemplate"],
+            email_templates: list["EmailTemplate"],
         ) -> PluginConfigurationType:
             email_template_by_name = {
                 email_template.name: email_template

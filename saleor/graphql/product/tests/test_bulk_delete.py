@@ -373,10 +373,8 @@ def test_delete_collections_with_images(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "collection_bulk_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "collection_bulk_delete.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.collection_deleted")
 def test_delete_collections_trigger_collection_deleted_webhook(
@@ -412,10 +410,8 @@ def test_delete_collections_trigger_collection_deleted_webhook(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "collection_bulk_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "collection_bulk_delete.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_delete_collections_trigger_product_updated_webhook(
@@ -606,10 +602,8 @@ def test_delete_products_with_images(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_bulk_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_bulk_delete.get_webhooks_for_event"
 )
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -646,10 +640,8 @@ def test_delete_products_trigger_webhook(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_bulk_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_bulk_delete.get_webhooks_for_event"
 )
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_products_without_variants(
@@ -945,9 +937,7 @@ mutation productVariantBulkDelete($skus: [String!]!) {
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations.product_variant_bulk_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations.product_variant_bulk_delete.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -998,10 +988,8 @@ def test_delete_product_variants_by_sku(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_bulk_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_delete.get_webhooks_for_event"
 )
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
@@ -1067,10 +1055,8 @@ mutation productVariantBulkDelete($ids: [ID!]!) {
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_bulk_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_delete.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -1123,10 +1109,8 @@ def test_delete_product_variants(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_bulk_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_delete.get_webhooks_for_event"
 )
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
@@ -1255,10 +1239,8 @@ def test_delete_product_variants_removes_checkout_lines(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_bulk_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_delete.get_webhooks_for_event"
 )
 @patch("saleor.product.signals.delete_from_storage_task")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
@@ -1488,10 +1470,8 @@ def test_product_delete_removes_reference_to_page(
 
 
 @patch(
-    (
-        "saleor.graphql.product.bulk_mutations."
-        "product_variant_bulk_delete.get_webhooks_for_event"
-    )
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_delete.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")

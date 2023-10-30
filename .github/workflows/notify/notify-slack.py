@@ -88,7 +88,7 @@ class JobNotifier:
 
     def send_notification(self) -> None:
         post_data = self.make_slack_message()
-        print(f"Notifying slack with payload: {post_data!r}", file=sys.stderr)
+        print(f"Notifying slack with payload: {post_data!r}", file=sys.stderr)  # noqa: T201
         response = requests.post(  # nosemgrep: no-requests-lib
             self.slack_endpoint, json=post_data
         )

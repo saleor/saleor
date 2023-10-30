@@ -18,7 +18,7 @@ class BaseObjectType(ObjectType):
     ):
         cls.doc_category = doc_category
         cls.webhook_events_info = webhook_events_info
-        super(BaseObjectType, cls).__init_subclass_with_meta__(
+        super().__init_subclass_with_meta__(
             interfaces=interfaces,
             possible_types=possible_types,
             default_resolver=default_resolver,
@@ -33,9 +33,7 @@ class BaseInputObjectType(InputObjectType):
         cls, container=None, _meta=None, doc_category=None, **options
     ):
         cls.doc_category = doc_category
-        super(BaseInputObjectType, cls).__init_subclass_with_meta__(
-            container=container, _meta=_meta, **options
-        )
+        super().__init_subclass_with_meta__(container=container, _meta=_meta, **options)
 
 
 class BaseEnum(Enum):
@@ -44,9 +42,7 @@ class BaseEnum(Enum):
         cls, enum=None, _meta=None, doc_category=None, **options
     ):
         cls.doc_category = doc_category
-        super(BaseEnum, cls).__init_subclass_with_meta__(
-            enum=enum, _meta=_meta, **options
-        )
+        super().__init_subclass_with_meta__(enum=enum, _meta=_meta, **options)
 
 
 class BaseConnection(Connection):
@@ -58,6 +54,4 @@ class BaseConnection(Connection):
         cls, node=None, name=None, doc_category=None, **options
     ):
         cls.doc_category = doc_category
-        super(BaseConnection, cls).__init_subclass_with_meta__(
-            node=node, name=name, **options
-        )
+        super().__init_subclass_with_meta__(node=node, name=name, **options)

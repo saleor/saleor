@@ -49,7 +49,7 @@ def execute_search(phrase):
 
 
 @pytest.mark.parametrize(
-    "phrase,product_num",
+    ("phrase", "product_num"),
     [("Arabica", 0), ("chicken", 2), ("blue", 1), ("roast", 2), ("cool", 1)],
 )
 @pytest.mark.integration
@@ -109,7 +109,7 @@ def test_flat_concat_drop_exceeding_count_no_silently_fail():
     concat = LimitedFlatConcat(Value("1"), Value("2"))
     assert concat.source_expressions == [Value("1"), Value("2")]
 
-    with pytest.raises(ValueError) as error:
+    with pytest.raises(ValueError, match="Maximum expression count exceeded") as error:
         LimitedFlatConcat(Value("1"), Value("2"), Value("3"))
 
     assert error.value.args == ("Maximum expression count exceeded",)

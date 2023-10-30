@@ -1,7 +1,7 @@
 import json
+from unittest import mock
 
 import graphene
-import mock
 import pytest
 
 from ....core.models import EventDelivery

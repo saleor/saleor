@@ -602,7 +602,7 @@ def test_increase_stock_with_new_allocation(order_line, stock):
     assert allocation.quantity_allocated == 50
 
 
-@pytest.mark.parametrize("quantity", (19, 20))
+@pytest.mark.parametrize("quantity", [19, 20])
 def test_increase_allocations(quantity, allocation):
     order_line = allocation.order_line
     order_line_info = OrderLineInfo(
@@ -712,7 +712,7 @@ def test_decrease_stock(allocation):
     assert allocation.quantity_allocated == 30
 
 
-@pytest.mark.parametrize("quantity, expected_allocated", ((50, 30), (200, 0)))
+@pytest.mark.parametrize(("quantity", "expected_allocated"), [(50, 30), (200, 0)])
 def test_decrease_stock_without_stock_update(quantity, expected_allocated, allocation):
     stock = allocation.stock
     stock.quantity = 100

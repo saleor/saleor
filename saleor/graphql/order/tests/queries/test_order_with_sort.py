@@ -20,7 +20,7 @@ QUERY_ORDER_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "order_sort, result_order",
+    ("order_sort", "result_order"),
     [
         ({"field": "NUMBER", "direction": "ASC"}, [0, 1, 2, 3]),
         ({"field": "NUMBER", "direction": "DESC"}, [3, 2, 1, 0]),

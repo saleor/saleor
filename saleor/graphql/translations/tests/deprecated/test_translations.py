@@ -405,7 +405,7 @@ QUERY_TRANSLATION_SALE = """
 
 
 @pytest.mark.parametrize(
-    "perm_codenames, return_sale",
+    ("perm_codenames", "return_sale"),
     [
         (["manage_translations"], False),
         (["manage_translations", "manage_discounts"], True),

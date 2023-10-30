@@ -1,12 +1,11 @@
 import json
 from functools import partial
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
-from mock import ANY
 
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....discount.error_codes import DiscountErrorCode
@@ -3042,7 +3041,7 @@ def test_shop_translation_validates_values_lengths(
 
 
 @pytest.mark.parametrize(
-    "kind, expected_typename",
+    ("kind", "expected_typename"),
     [
         (TranslatableKinds.PRODUCT, "ProductTranslatableContent"),
         (TranslatableKinds.COLLECTION, "CollectionTranslatableContent"),
@@ -3431,7 +3430,7 @@ QUERY_TRANSLATION_PAGE = """
 
 
 @pytest.mark.parametrize(
-    "is_published, perm_codenames",
+    ("is_published", "perm_codenames"),
     [
         (True, ["manage_translations"]),
         (False, ["manage_translations"]),
@@ -3485,7 +3484,7 @@ QUERY_TRANSLATION_SHIPPING_METHOD = """
 
 
 @pytest.mark.parametrize(
-    "perm_codenames, return_shipping_method",
+    ("perm_codenames", "return_shipping_method"),
     [
         (["manage_translations"], False),
         (["manage_translations", "manage_shipping"], True),
@@ -3587,7 +3586,7 @@ QUERY_TRANSLATION_VOUCHER = """
 
 
 @pytest.mark.parametrize(
-    "perm_codenames, return_voucher",
+    ("perm_codenames", "return_voucher"),
     [
         (["manage_translations"], False),
         (["manage_translations", "manage_discounts"], True),

@@ -62,15 +62,7 @@ Module names should make their purpose obvious. Avoid generic file names such as
 
 ### Linters
 
-Use [black](https://github.com/python/black/) to make sure your code is correctly formatted.
-
-Use [isort](https://github.com/timothycrosley/isort) to maintain consistent imports.
-
-Use [pylint](https://www.pylint.org/) with the `pylint-django` plugin to catch errors in your code.
-
-Use [pycodestyle](http://pycodestyle.pycqa.org/en/latest/) to make sure your code adheres to PEP 8.
-
-Use [pydocstyle](http://pydocstyle.pycqa.org/en/latest/) to check that your docstrings are properly formatted.
+Use [ruff](https://github.com/astral-sh/ruff) to check and format your code.
 
 ## EditorConfig
 

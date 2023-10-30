@@ -177,7 +177,7 @@ class CheckoutLineProblem(graphene.Union):
             return CheckoutLineProblemInsufficientStock
         if isinstance(instance, problems.CheckoutLineProblemVariantNotAvailable):
             return CheckoutLineProblemVariantNotAvailable
-        return super(CheckoutLineProblem, cls).resolve_type(instance, info)
+        return super().resolve_type(instance, info)
 
 
 class CheckoutProblem(graphene.Union):
@@ -196,7 +196,7 @@ class CheckoutProblem(graphene.Union):
             return CheckoutLineProblemInsufficientStock
         if isinstance(instance, problems.CheckoutLineProblemVariantNotAvailable):
             return CheckoutLineProblemVariantNotAvailable
-        return super(CheckoutProblem, cls).resolve_type(instance, info)
+        return super().resolve_type(instance, info)
 
 
 class CheckoutLine(ModelObjectType[models.CheckoutLine]):
@@ -460,7 +460,7 @@ class DeliveryMethod(graphene.Union):
         if isinstance(instance, warehouse_models.Warehouse):
             return Warehouse
 
-        return super(DeliveryMethod, cls).resolve_type(instance, info)
+        return super().resolve_type(instance, info)
 
 
 class Checkout(ModelObjectType[models.Checkout]):

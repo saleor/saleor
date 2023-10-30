@@ -11,7 +11,13 @@ from ...account.models import Address, User
 from ...account.utils import create_superuser
 from ...attribute.models import AttributeValue
 from ...channel.models import Channel
-from ...discount.models import Promotion, PromotionRule, Voucher, VoucherChannelListing
+from ...discount.models import (
+    Promotion,
+    PromotionRule,
+    Voucher,
+    VoucherChannelListing,
+    VoucherCode,
+)
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.models import Order
 from ...payment.models import TransactionItem
@@ -44,7 +50,7 @@ type_schema = {
 
 
 @pytest.mark.parametrize(
-    "ip_address, expected_ip",
+    ("ip_address", "expected_ip"),
     [
         ("83.0.0.1", "83.0.0.1"),
         ("::1", "::1"),
@@ -162,6 +168,7 @@ def test_create_vouchers(db):
     for _ in random_data.create_vouchers():
         pass
     assert Voucher.objects.all().count() == voucher_count
+    assert VoucherCode.objects.all().count() == voucher_count
     assert VoucherChannelListing.objects.all().count() == voucher_count * channel_count
 
 
@@ -264,7 +271,7 @@ def test_is_ssl_enabled(enable_ssl, settings):
 
 
 @pytest.mark.parametrize(
-    "public_url, expected",
+    ("public_url", "expected"),
     [("https://api.example.com", True), ("http://api.example.com", False)],
 )
 @pytest.mark.parametrize("enable_ssl", [True, False])
@@ -294,7 +301,7 @@ def test_delete_sort_order_with_null_value(menu_item):
 
 
 @pytest.mark.parametrize(
-    "product_name, slug_result",
+    ("product_name", "slug_result"),
     [
         ("Paint", "paint"),
         ("paint", "paint-3"),
@@ -339,11 +346,6 @@ def test_generate_unique_slug_for_slug_with_max_characters_number(category):
     category.slug = result
     with pytest.raises(DataError):
         category.save()
-
-
-def test_generate_unique_slug_non_slugable_value_and_slugable_field(category):
-    with pytest.raises(Exception):
-        generate_unique_slug(category)
 
 
 def test_generate_unique_slug_with_additional_lookup_slug_not_changed(

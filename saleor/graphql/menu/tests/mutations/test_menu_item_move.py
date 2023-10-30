@@ -540,7 +540,7 @@ def test_menu_reorder_cannot_assign_to_ancestor(
     assert response["errors"] == [
         {
             "field": "parentId",
-            "message": "Cannot assign a node as child of " "one of its descendants.",
+            "message": "Cannot assign a node as child of one of its descendants.",
         }
     ]
 

@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -65,7 +63,7 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         input_type = instance.attribute.input_type
 
         is_swatch_attr = input_type == AttributeInputType.SWATCH
-        errors: Dict[str, List[ValidationError]] = {}
+        errors: dict[str, list[ValidationError]] = {}
         if not is_swatch_attr:
             for field in cls.ONLY_SWATCH_FIELDS:
                 if cleaned_input.get(field):

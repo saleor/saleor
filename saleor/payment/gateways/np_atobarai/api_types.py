@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, NamedTuple, Optional
+from typing import NamedTuple, Optional
 
 from .const import (
     FILL_MISSING_ADDRESS,
@@ -17,7 +17,7 @@ from .const import (
 
 class NPResponse(NamedTuple):
     result: dict
-    error_codes: List[str]
+    error_codes: list[str]
 
 
 def error_np_response(error_message: str) -> NPResponse:
@@ -46,15 +46,15 @@ class PaymentStatus(str, Enum):
 class PaymentResult:
     status: PaymentStatus
     psp_reference: Optional[str] = None
-    raw_response: Dict[str, str] = field(default_factory=dict)
-    errors: List[str] = field(default_factory=list)
+    raw_response: dict[str, str] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
 
 
 def error_payment_result(error_message: str) -> PaymentResult:
     return PaymentResult(status=PaymentStatus.FAILED, errors=[error_message])
 
 
-def errors_payment_result(errors: List[str]) -> PaymentResult:
+def errors_payment_result(errors: list[str]) -> PaymentResult:
     return PaymentResult(status=PaymentStatus.FAILED, errors=errors)
 
 

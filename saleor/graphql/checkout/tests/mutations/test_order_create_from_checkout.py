@@ -252,7 +252,7 @@ def test_order_from_checkout_with_transaction(
 
 
 @pytest.mark.parametrize(
-    "auto_confirm, order_status",
+    ("auto_confirm", "order_status"),
     [(True, OrderStatus.UNFULFILLED), (False, OrderStatus.UNCONFIRMED)],
 )
 def test_order_from_checkout_auto_confirm_flag(
@@ -361,11 +361,11 @@ def test_order_from_checkout_with_metadata(
     assert order.total.gross == total.gross
     assert order.metadata == {
         **checkout.metadata_storage.metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     assert order.private_metadata == {
         **checkout.metadata_storage.private_metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     order_confirmed_mock.assert_called_once_with(order)
 
@@ -434,11 +434,11 @@ def test_order_from_checkout_with_metadata_checkout_without_metadata(
     assert order.total.gross == total.gross
     assert order.metadata == {
         **checkout.metadata_storage.metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     assert order.private_metadata == {
         **checkout.metadata_storage.private_metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     order_confirmed_mock.assert_called_once_with(order)
 
@@ -719,7 +719,8 @@ def test_order_from_checkout_with_voucher(
     address,
     shipping_method,
 ):
-    voucher_used_count = voucher_percentage.used
+    code = voucher_percentage.codes.first()
+    voucher_used_count = code.used
     voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.save(update_fields=["usage_limit"])
 
@@ -770,8 +771,8 @@ def test_order_from_checkout_with_voucher(
         == (order.undiscounted_total - order.total).gross.amount
     )
 
-    voucher_percentage.refresh_from_db()
-    assert voucher_percentage.used == voucher_used_count + 1
+    code.refresh_from_db()
+    assert code.used == voucher_used_count + 1
 
 
 @pytest.mark.integration
@@ -783,10 +784,11 @@ def test_order_from_checkout_with_voucher_apply_once_per_order(
     address,
     shipping_method,
 ):
-    voucher_used_count = voucher_percentage.used
+    code = voucher_percentage.codes.first()
+    voucher_used_count = code.used
     voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.apply_once_per_order = True
-    voucher_percentage.save(update_fields=["usage_limit", "apply_once_per_order"])
+    voucher_percentage.save(update_fields=["apply_once_per_order", "usage_limit"])
 
     checkout = checkout_with_voucher_percentage
 
@@ -846,8 +848,8 @@ def test_order_from_checkout_with_voucher_apply_once_per_order(
         == (order.undiscounted_total - order.total).gross.amount
     )
 
-    voucher_percentage.refresh_from_db()
-    assert voucher_percentage.used == voucher_used_count + 1
+    code.refresh_from_db()
+    assert code.used == voucher_used_count + 1
 
 
 @pytest.mark.integration
@@ -859,7 +861,8 @@ def test_order_from_checkout_with_specific_product_voucher(
     address,
     shipping_method,
 ):
-    voucher_used_count = voucher_specific_product_type.used
+    code = voucher_specific_product_type.codes.first()
+    voucher_used_count = code.used
     voucher_specific_product_type.usage_limit = voucher_used_count + 1
     voucher_specific_product_type.save(update_fields=["usage_limit"])
 
@@ -909,8 +912,8 @@ def test_order_from_checkout_with_specific_product_voucher(
         == (order.undiscounted_total - order.total).gross.amount
     )
 
-    voucher_specific_product_type.refresh_from_db()
-    assert voucher_specific_product_type.used == voucher_used_count + 1
+    code.refresh_from_db()
+    assert code.used == voucher_used_count + 1
 
 
 @patch.object(PluginsManager, "preprocess_order_creation")
@@ -925,9 +928,11 @@ def test_order_from_checkout_voucher_not_increase_uses_on_preprocess_creation_fa
     shipping_method,
 ):
     mocked_preprocess_order_creation.side_effect = TaxError("tax error!")
-    voucher_percentage.used = 0
+    code = voucher_percentage.codes.first()
+    code.used = 0
     voucher_percentage.usage_limit = 1
-    voucher_percentage.save(update_fields=["used", "usage_limit"])
+    voucher_percentage.save(update_fields=["usage_limit"])
+    code.save(update_fields=["used"])
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
@@ -947,8 +952,8 @@ def test_order_from_checkout_voucher_not_increase_uses_on_preprocess_creation_fa
 
     assert data["errors"][0]["code"] == OrderCreateFromCheckoutErrorCode.TAX_ERROR.name
 
-    voucher_percentage.refresh_from_db()
-    assert voucher_percentage.used == 0
+    code.refresh_from_db()
+    assert code.used == 0
 
 
 def test_order_from_checkout_on_promotion(

@@ -350,7 +350,7 @@ def test_order_update_shipping_no_shipping_address(
     data = content["data"]["orderUpdateShipping"]
     assert data["errors"][0]["field"] == "order"
     assert data["errors"][0]["message"] == (
-        "Cannot choose a shipping method for an order without" " the shipping address."
+        "Cannot choose a shipping method for an order without the shipping address."
     )
 
 
@@ -490,7 +490,7 @@ mutation OrderUpdateShipping(
 
 
 @pytest.mark.parametrize(
-    "input, response_msg",
+    ("input", "response_msg"),
     [
         ({"shippingMethod": ""}, "Shipping method cannot be empty."),
         ({}, "Shipping method must be provided to perform mutation."),

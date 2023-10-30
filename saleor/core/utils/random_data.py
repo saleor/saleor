@@ -8,7 +8,7 @@ import uuid
 from collections import defaultdict
 from decimal import Decimal
 from functools import lru_cache
-from typing import Any, Dict, Type, Union, cast
+from typing import Any, Union, cast
 from unittest.mock import patch
 
 import graphene
@@ -48,7 +48,13 @@ from ...checkout.models import Checkout
 from ...checkout.utils import add_variant_to_checkout
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, RewardValueType, VoucherType
-from ...discount.models import Promotion, PromotionRule, Voucher, VoucherChannelListing
+from ...discount.models import (
+    Promotion,
+    PromotionRule,
+    Voucher,
+    VoucherChannelListing,
+    VoucherCode,
+)
 from ...giftcard import events as gift_card_events
 from ...giftcard.models import GiftCard, GiftCardTag
 from ...menu.models import Menu, MenuItem
@@ -162,7 +168,7 @@ CATEGORY_IMAGES = {
 COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg", 3: "clothing.jpg"}
 
 
-@lru_cache()
+@lru_cache
 def get_sample_data():
     path = os.path.join(
         settings.PROJECT_ROOT, "saleor", "static", "populatedb_data.json"
@@ -338,7 +344,7 @@ def create_product_variant_channel_listings(product_variant_channel_listings_dat
 
 
 def assign_attributes_to_product_types(
-    association_model: Union[Type[AttributeProduct], Type[AttributeVariant]],
+    association_model: Union[type[AttributeProduct], type[AttributeVariant]],
     attributes: list,
 ):
     for value in attributes:
@@ -350,7 +356,7 @@ def assign_attributes_to_product_types(
 
 
 def assign_attributes_to_page_types(
-    association_model: Type[AttributePage],
+    association_model: type[AttributePage],
     attributes: list,
 ):
     for value in attributes:
@@ -793,7 +799,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
         billing_address = customer.default_billing_address
     else:
         billing_address = address
-    order_data: Dict[str, Any] = {
+    order_data: dict[str, Any] = {
         "billing_address": billing_address or address,
         "shipping_address": address,
         "user_email": get_email(address.first_name, address.last_name),
@@ -1411,13 +1417,13 @@ def create_warehouses():
 def create_vouchers():
     channels = list(Channel.objects.all())
     voucher, created = Voucher.objects.get_or_create(
-        code="FREESHIPPING",
+        name="Free shipping",
         defaults={
             "type": VoucherType.SHIPPING,
-            "name": "Free shipping",
             "discount_value_type": DiscountValueType.PERCENTAGE,
         },
     )
+    VoucherCode.objects.get_or_create(voucher=voucher, code="FREESHIPPING")
     for channel in channels:
         VoucherChannelListing.objects.get_or_create(
             voucher=voucher,
@@ -1430,13 +1436,14 @@ def create_vouchers():
         yield "Shipping voucher already exists"
 
     voucher, created = Voucher.objects.get_or_create(
-        code="DISCOUNT",
+        name="Big order discount",
         defaults={
             "type": VoucherType.ENTIRE_ORDER,
-            "name": "Big order discount",
             "discount_value_type": DiscountValueType.FIXED,
         },
     )
+    VoucherCode.objects.get_or_create(voucher=voucher, code="DISCOUNT")
+
     for channel in channels:
         discount_value = 25
         min_spent_amount = 200
@@ -1458,12 +1465,14 @@ def create_vouchers():
         yield "Value voucher already exists"
 
     voucher, created = Voucher.objects.get_or_create(
-        code="VCO9KV98LC",
+        name="Percentage order discount",
         defaults={
             "type": VoucherType.ENTIRE_ORDER,
             "discount_value_type": DiscountValueType.PERCENTAGE,
         },
     )
+    VoucherCode.objects.get_or_create(voucher=voucher, code="VCO9KV98LC")
+
     for channel in channels:
         VoucherChannelListing.objects.get_or_create(
             voucher=voucher,

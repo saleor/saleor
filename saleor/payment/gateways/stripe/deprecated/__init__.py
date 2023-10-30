@@ -1,5 +1,3 @@
-from typing import List
-
 import opentracing
 import opentracing.tags
 import stripe
@@ -194,7 +192,7 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
 
 def list_client_sources(
     config: GatewayConfig, customer_id: str
-) -> List[CustomerSource]:
+) -> list[CustomerSource]:
     client = _get_client(**config.connection_params)
     with opentracing.global_tracer().start_active_span(
         "stripe.PaymentMethod.list"

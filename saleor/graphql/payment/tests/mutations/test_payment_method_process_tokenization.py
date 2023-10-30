@@ -30,7 +30,7 @@ $id: String!, $channel: String!, $data: JSON){
 
 
 @pytest.mark.parametrize(
-    "expected_input_data, expected_output_data",
+    ("expected_input_data", "expected_output_data"),
     [
         (None, None),
         (None, {"foo": "bar1"}),

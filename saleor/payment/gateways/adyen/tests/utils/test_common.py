@@ -25,7 +25,8 @@ from ...utils.common import prepare_address_request_data
 
 
 @pytest.mark.parametrize(
-    "country_code, shopper_locale", [("JP", "ja_JP"), ("ZZ", "en_US"), ("US", "en_US")]
+    ("country_code", "shopper_locale"),
+    [("JP", "ja_JP"), ("ZZ", "en_US"), ("US", "en_US")],
 )
 def test_get_shopper_locale_value(country_code, shopper_locale, settings):
     # when
@@ -676,7 +677,7 @@ def test_request_data_for_payment_append_checkout_details(
 
 
 @pytest.mark.parametrize(
-    "value, currency, expected_result",
+    ("value", "currency", "expected_result"),
     [
         (Decimal(1000), "EUR", Decimal(10)),
         (Decimal(1), "PLN", Decimal("0.01")),
@@ -692,7 +693,7 @@ def test_from_adyen_price(value, currency, expected_result):
 
 
 @pytest.mark.parametrize(
-    "value, currency, expected_result",
+    ("value", "currency", "expected_result"),
     [
         (Decimal(10), "EUR", "1000"),
         (Decimal(1), "PLN", "100"),
