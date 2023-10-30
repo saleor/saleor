@@ -49,7 +49,7 @@ def resolve_app(_info, id):
 
 
 def resolve_app_extensions(_info):
-    return models.AppExtension.objects.filter(app__is_active=True)
+    return models.AppExtension.objects.filter(app__is_active=True, app__to_remove=False)
 
 
 def resolve_app_extension_url(root):
