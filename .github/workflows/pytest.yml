@@ -81,6 +81,7 @@ jobs:
           python -m poetry run pytest \
             -m "not e2e" \
             --cov \
+            --cov-report= \
             --junitxml=junit/test-results.xml \
             --django-db-bench=${{ env.BENCH_PATH }}
 
@@ -92,7 +93,7 @@ jobs:
             ${{ runner.os }}-pre-commit-
 
       # Publish coverage and test results
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
 
       - uses: actions/upload-artifact@v3
         with:
