@@ -1,18 +1,7 @@
 from django.db import migrations
 from django.db.models import Exists, OuterRef
 
-# For batch size 1000 with 2000 per model Order/Voucher/VoucherCode objects
-# Migration took 0.65 seconds.
-# Memory usage increased by 10.18 MiB.
-
-# For batch size 1000 with 1000 per model Order/Voucher/VoucherCode objects
-# (in the future one celery task)
-# Migration took 0.39 seconds.
-# Memory usage increased by 3.30 MiB.
-
-# For batch size 1000 with 100_000 per model Order/Voucher/VoucherCode objects
-# Migration took 46.44 seconds.
-# Memory usage increased by 294.54 MiB.
+# The batch took about 0.3s and consumes ~10MB memory at peak
 BATCH_SIZE = 1000
 
 
