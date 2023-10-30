@@ -217,8 +217,9 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
             raise ValidationError(errors)
 
         cls.save(voucher, cleaned_input)
+
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.voucher_updated, voucher)
+        cls.call_event(manager.voucher_updated, voucher, voucher.code)
 
         return VoucherChannelListingUpdate(
             voucher=ChannelContext(node=voucher, channel_slug=None)

@@ -30,6 +30,7 @@ from ..descriptions import (
     ADDED_IN_36,
     ADDED_IN_312,
     ADDED_IN_314,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -91,6 +92,7 @@ from ..enums import (
     TransactionUpdateErrorCode,
     TranslationErrorCode,
     UploadErrorCode,
+    VoucherCodeBulkDeleteErrorCode,
     WarehouseErrorCode,
     WebhookDryRunErrorCode,
     WebhookErrorCode,
@@ -295,6 +297,23 @@ class DiscountError(ProductWithoutVariantError):
     channels = NonNullList(
         graphene.ID,
         description="List of channels IDs which causes the error.",
+        required=False,
+    )
+    voucher_codes = NonNullList(
+        graphene.String,
+        description="List of voucher codes which causes the error." + ADDED_IN_318,
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+
+
+class VoucherCodeBulkDeleteError(BulkError):
+    code = VoucherCodeBulkDeleteErrorCode(description="The error code.", required=True)
+    voucher_codes = NonNullList(
+        graphene.ID,
+        description="List of voucher codes which causes the error.",
         required=False,
     )
 

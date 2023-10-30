@@ -20,13 +20,14 @@ def prepare_voucher_for_staff_only(
     voucher_discount_type,
     voucher_discount_value,
 ):
-    voucher_data = create_voucher(
-        e2e_staff_api_client,
-        voucher_discount_type,
-        voucher_code,
-        "ENTIRE_ORDER",
-        only_for_staff=True,
-    )
+    input = {
+        "code": voucher_code,
+        "discountValueType": voucher_discount_type,
+        "type": "ENTIRE_ORDER",
+        "onlyForStaff": True,
+    }
+    voucher_data = create_voucher(e2e_staff_api_client, input)
+
     voucher_id = voucher_data["id"]
     channel_listing = [
         {

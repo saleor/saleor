@@ -13,7 +13,13 @@ from ...channel.types import (
 )
 from ...core import ResolveInfo, types
 from ...core.connection import CountableConnection, create_connection_slice
-from ...core.descriptions import ADDED_IN_31
+from ...core.context import get_database_connection_name
+from ...core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_318,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
 from ...core.types import ModelObjectType, Money, NonNullList
@@ -27,6 +33,8 @@ from ...product.types import (
 from ...translations.fields import TranslationField
 from ...translations.types import VoucherTranslation
 from ..dataloaders import (
+    CodeByVoucherIDLoader,
+    UsedByVoucherIDLoader,
     VoucherChannelListingByVoucherIdAndChanneSlugLoader,
     VoucherChannelListingByVoucherIdLoader,
 )
@@ -60,12 +68,41 @@ class VoucherChannelListing(ModelObjectType[models.VoucherChannelListing]):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
+class VoucherCode(ModelObjectType[models.VoucherCode]):
+    id = graphene.GlobalID(required=True, description="The ID of the voucher code.")
+    code = graphene.String(description="Code to use the voucher.")
+    used = graphene.Int(description="Number of times a code has been used.")
+    is_active = graphene.Boolean(description="Whether a code is active or not.")
+    created_at = graphene.DateTime(
+        required=True, description="Date time of code creation."
+    )
+
+    class Meta:
+        description = "Represents voucher code." + ADDED_IN_318 + PREVIEW_FEATURE
+        model = models.VoucherCode
+
+
+class VoucherCodeCountableConnection(CountableConnection):
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+        node = VoucherCode
+
+
 class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     id = graphene.GlobalID(required=True, description="The ID of the voucher.")
     name = graphene.String(description="The name of the voucher.")
-    code = graphene.String(required=True, description="The code of the voucher.")
+    codes = ConnectionField(
+        VoucherCodeCountableConnection,
+        description="List of codes available for this voucher." + ADDED_IN_318,
+    )
+    code = graphene.String(
+        description="The code of the voucher." + DEPRECATED_IN_3X_FIELD
+    )
     usage_limit = graphene.Int(description="The number of times a voucher can be used.")
-    used = graphene.Int(required=True, description="Usage count of the voucher.")
+    used = graphene.Int(
+        required=True,
+        description="Usage count of the voucher.",
+    )
     start_date = graphene.DateTime(
         required=True, description="The start date and time of voucher."
     )
@@ -80,6 +117,14 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
         required=True,
         description="Determine if the voucher usage should be limited to one use per "
         "customer.",
+    )
+    single_use = graphene.Boolean(
+        required=True,
+        description=(
+            "Determine if the voucher codes can be used once or multiple times."
+            + ADDED_IN_318
+            + PREVIEW_FEATURE
+        ),
     )
     only_for_staff = graphene.Boolean(
         required=True,
@@ -149,6 +194,26 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
         )
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Voucher
+
+    @staticmethod
+    def resolve_code(root: ChannelContext[models.Voucher], info: ResolveInfo):
+        return CodeByVoucherIDLoader(info.context).load(root.node.id)
+
+    @staticmethod
+    def resolve_used(root: ChannelContext[models.Voucher], info: ResolveInfo):
+        return UsedByVoucherIDLoader(info.context).load(root.node.id)
+
+    @staticmethod
+    def resolve_codes(
+        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
+    ):
+        readonly_qs = root.node.codes.using(
+            get_database_connection_name(info.context)
+        ).all()
+
+        return create_connection_slice(
+            readonly_qs, info, kwargs, VoucherCodeCountableConnection
+        )
 
     @staticmethod
     def resolve_categories(

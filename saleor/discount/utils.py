@@ -39,47 +39,65 @@ if TYPE_CHECKING:
         ProductVariantChannelListing,
         VariantChannelListingPromotionRule,
     )
-    from .models import Voucher
+    from .models import Voucher, VoucherCode
 
 CatalogueInfo = defaultdict[str, set[Union[int, str]]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
-def increase_voucher_usage(voucher: "Voucher") -> None:
-    """Increase voucher uses by 1."""
-    voucher.used = F("used") + 1
-    voucher.save(update_fields=["used"])
+def increase_voucher_code_usage(code: "VoucherCode") -> None:
+    """Increase voucher code uses by 1."""
+    code.used = F("used") + 1
+    code.save(update_fields=["used"])
 
 
-def decrease_voucher_usage(voucher: "Voucher") -> None:
-    """Decrease voucher uses by 1."""
-    voucher.used = F("used") - 1
-    voucher.save(update_fields=["used"])
+def decrease_voucher_code_usage(code: "VoucherCode") -> None:
+    """Decrease voucher code uses by 1."""
+    code.used = F("used") - 1
+    code.save(update_fields=["used"])
 
 
-def add_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
+def deactivate_voucher_code(code: "VoucherCode") -> None:
+    """Mark voucher code as used."""
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+
+def activate_voucher_code(code: "VoucherCode") -> None:
+    """Mark voucher code as unused."""
+    code.is_active = True
+    code.save(update_fields=["is_active"])
+
+
+def add_voucher_usage_by_customer(code: "VoucherCode", customer_email: str) -> None:
     _, created = VoucherCustomer.objects.get_or_create(
-        voucher=voucher, customer_email=customer_email
+        voucher_code=code, customer_email=customer_email
     )
     if not created:
         raise NotApplicable("This offer is only valid once per customer.")
 
 
-def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
+def remove_voucher_usage_by_customer(code: "VoucherCode", customer_email: str) -> None:
     voucher_customer = VoucherCustomer.objects.filter(
-        voucher=voucher, customer_email=customer_email
+        voucher_code=code, customer_email=customer_email
     )
     if voucher_customer:
         voucher_customer.delete()
 
 
-def release_voucher_usage(voucher: Optional["Voucher"], user_email: Optional[str]):
-    if not voucher:
+def release_voucher_code_usage(
+    code: Optional["VoucherCode"],
+    voucher: Optional["Voucher"],
+    user_email: Optional[str],
+):
+    if not code:
         return
-    if voucher.usage_limit:
-        decrease_voucher_usage(voucher)
+    if voucher and voucher.usage_limit:
+        decrease_voucher_code_usage(code)
+    if voucher and voucher.single_use:
+        activate_voucher_code(code)
     if user_email:
-        remove_voucher_usage_by_customer(voucher, user_email)
+        remove_voucher_usage_by_customer(code, user_email)
 
 
 def prepare_promotion_discount_reason(promotion: "Promotion", sale_id: str):

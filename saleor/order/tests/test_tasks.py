@@ -21,27 +21,29 @@ def test_expire_orders_task_check_voucher(
     channel_USD.save()
 
     now = timezone.now()
-    voucher = voucher_customer.voucher
-    voucher.used = 3
-    voucher.usage_limit = 3
-    voucher.save()
+    code = voucher_customer.voucher_code
+    voucher = voucher_customer.voucher_code.voucher
+    code.used = 3
+    code.voucher.usage_limit = 3
+    code.save(update_fields=["used"])
+    voucher.save(update_fields=["usage_limit"])
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
     order_1.created_at = now - timezone.timedelta(minutes=10)
-    order_1.voucher = voucher
+    order_1.voucher_code = code.code
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
     order_2.created_at = now - timezone.timedelta(minutes=10)
-    order_2.voucher = voucher
+    order_2.voucher_code = code.code
     order_2.save()
 
     order_3 = order_list[2]
     order_3.created_at = now - timezone.timedelta(minutes=10)
     order_3.status = OrderStatus.UNFULFILLED
-    order_3.voucher = voucher
+    order_3.voucher_code = code.code
     order_3.save()
 
     # when
@@ -64,8 +66,8 @@ def test_expire_orders_task_check_voucher(
         order_line__order=order_3, quantity_allocated__gt=0
     ).exists()
 
-    voucher.refresh_from_db()
-    assert voucher.used == 1
+    code.refresh_from_db()
+    assert code.used == 1
     assert not VoucherCustomer.objects.filter(pk=voucher_customer.pk).exists()
 
 
@@ -81,29 +83,33 @@ def test_expire_orders_task_check_multiple_vouchers(
     channel_USD.save()
 
     now = timezone.now()
-    voucher.used = 2
+    code = voucher.codes.first()
+    code.used = 2
+    code.save()
     voucher.usage_limit = 2
     voucher.save()
-    voucher_percentage.used = 1
+    code_percentage = voucher_percentage.codes.first()
+    code_percentage.used = 1
+    code_percentage.save()
     voucher_percentage.usage_limit = 1
     voucher_percentage.save()
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
     order_1.created_at = now - timezone.timedelta(minutes=10)
-    order_1.voucher = voucher
+    order_1.voucher_code = code.code
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
     order_2.created_at = now - timezone.timedelta(minutes=10)
-    order_2.voucher = voucher_percentage
+    order_2.voucher_code = code_percentage.code
     order_2.save()
 
     order_3 = order_list[2]
     order_3.created_at = now - timezone.timedelta(minutes=10)
     order_3.status = OrderStatus.UNFULFILLED
-    order_3.voucher = voucher
+    order_3.voucher_code = code.code
     order_3.save()
 
     # when
@@ -126,10 +132,10 @@ def test_expire_orders_task_check_multiple_vouchers(
         order_line__order=order_3, quantity_allocated__gt=0
     ).exists()
 
-    voucher.refresh_from_db()
-    assert voucher.used == 1
-    voucher_percentage.refresh_from_db()
-    assert voucher_percentage.used == 0
+    code.refresh_from_db()
+    assert code.used == 1
+    code_percentage.refresh_from_db()
+    assert code_percentage.used == 0
 
 
 def test_expire_orders_task_creates_order_events(order_list, allocations, channel_USD):

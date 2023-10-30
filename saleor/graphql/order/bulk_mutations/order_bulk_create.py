@@ -24,7 +24,7 @@ from ....core.prices import quantize_price
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
-from ....discount.models import OrderDiscount, Voucher
+from ....discount.models import OrderDiscount, VoucherCode
 from ....giftcard.models import GiftCard
 from ....invoice.models import Invoice
 from ....order import (
@@ -48,7 +48,7 @@ from ....warehouse.models import Stock, Warehouse
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_314, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_314, ADDED_IN_318, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
@@ -122,7 +122,7 @@ class OrderBulkCreateData:
     billing_address: Optional[Address] = None
     channel: Optional[Channel] = None
     shipping_address: Optional[Address] = None
-    voucher: Optional[Voucher] = None
+    voucher_code: Optional[VoucherCode] = None
     # error which ignores error policy and disqualify order
     is_critical_error: bool = False
 
@@ -293,7 +293,7 @@ class ModelIdentifiers:
     user_emails: ModelIdentifier = ModelIdentifier(model="User")
     user_external_references: ModelIdentifier = ModelIdentifier(model="User")
     channel_slugs: ModelIdentifier = ModelIdentifier(model="Channel")
-    voucher_codes: ModelIdentifier = ModelIdentifier(model="Voucher")
+    voucher_codes: ModelIdentifier = ModelIdentifier(model="VoucherCode")
     warehouse_ids: ModelIdentifier = ModelIdentifier(model="Warehouse")
     shipping_method_ids: ModelIdentifier = ModelIdentifier(model="ShippingMethod")
     tax_class_ids: ModelIdentifier = ModelIdentifier(model="TaxClass")
@@ -526,7 +526,14 @@ class OrderBulkCreateInput(BaseInputObjectType):
         description="List of gift card codes associated with the order.",
     )
     voucher = graphene.String(
-        description="Code of a voucher associated with the order."
+        description=(
+            "Code of a voucher associated with the order."
+            "\n\nDEPRECATED: this field will be removed in Saleor 3.19."
+            " Use `voucherCode` instead."
+        )
+    )
+    voucher_code = graphene.String(
+        description="Code of a voucher associated with the order." + ADDED_IN_318
     )
     discounts = NonNullList(OrderDiscountCommonInput, description="List of discounts.")
     fulfillments = NonNullList(
@@ -614,7 +621,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 order["user"].get("external_reference")
             )
             identifiers.channel_slugs.keys.append(order.get("channel"))
-            identifiers.voucher_codes.keys.append(order.get("voucher"))
+            identifiers.voucher_codes.keys.append(order.get("voucher_code"))
             identifiers.order_external_references.keys.append(
                 order.get("external_reference")
             )
@@ -688,7 +695,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             | Q(external_reference__in=identifiers.variant_external_references.keys)
         )
         channels = Channel.objects.filter(slug__in=identifiers.channel_slugs.keys)
-        vouchers = Voucher.objects.filter(code__in=identifiers.voucher_codes.keys)
+        voucher_codes = VoucherCode.objects.filter(
+            code__in=identifiers.voucher_codes.keys
+        ).select_related("voucher")
         warehouses = Warehouse.objects.filter(pk__in=identifiers.warehouse_ids.keys)
         shipping_methods = ShippingMethod.objects.filter(
             pk__in=identifiers.shipping_method_ids.keys
@@ -722,8 +731,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         for channel in channels:
             object_storage[f"Channel.slug.{channel.slug}"] = channel
 
-        for voucher in vouchers:
-            object_storage[f"Voucher.code.{voucher.code}"] = voucher
+        for voucher_code in voucher_codes:
+            object_storage[f"VoucherCode.code.{voucher_code.code}"] = voucher_code
 
         for gift_card in gift_cards:
             object_storage[f"GiftCard.code.{gift_card.code}"] = gift_card
@@ -825,6 +834,19 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                 )
                 order_data.is_critical_error = True
+
+        if order_input.get("voucher") and order_input.get("voucher_code"):
+            order_data.errors.append(
+                OrderBulkError(
+                    message="Cannot use both voucher and voucher_code.",
+                    path="voucher_code",
+                    code=OrderBulkCreateErrorCode.INVALID,
+                )
+            )
+            order_data.is_critical_error = True
+
+        if order_input.get("voucher") is not None:
+            order_input["voucher_code"] = order_input.get("voucher")
 
     @classmethod
     def validate_order_status(cls, status: str, order_data: OrderBulkCreateData):
@@ -994,13 +1016,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                 )
 
-        voucher = None
-        if order_input.get("voucher"):
-            voucher = cls.get_instance_with_errors(
+        voucher_code = None
+        if order_input.get("voucher_code"):
+            voucher_code = cls.get_instance_with_errors(
                 input=order_input,
                 errors=order_data.errors,
-                model=Voucher,
-                key_map={"voucher": "code"},
+                model=VoucherCode,
+                key_map={"voucher_code": "code"},
                 object_storage=object_storage,
             )
 
@@ -1024,7 +1046,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.channel = channel
         order_data.billing_address = billing_address
         order_data.shipping_address = shipping_address
-        order_data.voucher = voucher
+        order_data.voucher_code = voucher_code
 
         if not channel or not billing_address:
             order_data.is_critical_error = True
@@ -1950,7 +1972,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.order.weight = order_input.get("weight") or zero_weight()
         order_data.order.currency = order_input["currency"]
         order_data.order.should_refresh_prices = False
-        order_data.order.voucher = order_data.voucher
+        if order_data.voucher_code:
+            order_data.order.voucher_code = order_data.voucher_code.code
+            order_data.order.voucher = order_data.voucher_code.voucher
         update_order_display_gross_prices(order_data.order)
 
         if metadata := order_input.get("metadata"):

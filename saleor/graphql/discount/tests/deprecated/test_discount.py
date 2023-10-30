@@ -1,7 +1,7 @@
 import warnings
 
 from .....channel.utils import DEPRECATION_WARNING_MESSAGE
-from .....discount.models import Promotion, Voucher
+from .....discount.models import Promotion, Voucher, VoucherCode
 from ....tests.utils import get_graphql_content
 
 QUERY_SALES_WITH_SORTING_AND_FILTERING = """
@@ -123,8 +123,15 @@ def test_filter_sales_by_query(staff_api_client, permission_manage_discounts):
 def test_filter_vouchers_by_query(staff_api_client, permission_manage_discounts):
     vouchers = Voucher.objects.bulk_create(
         [
-            Voucher(code="code1", name="Spanish"),
-            Voucher(code="code2", name="Inquisition"),
+            Voucher(name="Spanish"),
+            Voucher(name="Inquisition"),
+        ]
+    )
+
+    codes = VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="code1", voucher=vouchers[0]),
+            VoucherCode(code="code2", voucher=vouchers[1]),
         ]
     )
     voucher = vouchers[1]
@@ -145,4 +152,4 @@ def test_filter_vouchers_by_query(staff_api_client, permission_manage_discounts)
     staff_api_client.user.user_permissions.add(permission_manage_discounts)
     response = staff_api_client.post_graphql(query, {"query": voucher.name})
     content = get_graphql_content(response)
-    assert content["data"]["vouchers"]["edges"][0]["node"]["code"] == voucher.code
+    assert content["data"]["vouchers"]["edges"][0]["node"]["code"] == codes[1].code

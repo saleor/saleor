@@ -896,6 +896,28 @@ def test_checkout_add_voucher_code_not_assigned_to_channel(
     assert data["errors"][0]["field"] == "promoCode"
 
 
+def test_checkout_add_voucher_code_lack_of_active_codes(
+    api_client, checkout_with_item, voucher_percentage
+):
+    # given
+    voucher_percentage.single_use = True
+    voucher_percentage.save(update_fields=["single_use"])
+
+    voucher_percentage.codes.update(is_active=False)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "promoCode": voucher_percentage.code,
+    }
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "promoCode"
+
+
 def test_checkout_add_gift_card_code(api_client, checkout_with_item, gift_card):
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     variables = {

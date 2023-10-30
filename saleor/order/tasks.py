@@ -8,7 +8,7 @@ from ..celeryconf import app
 from ..channel.models import Channel
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.events import call_event
-from ..discount.models import Voucher, VoucherCustomer
+from ..discount.models import Voucher, VoucherCode, VoucherCustomer
 from ..payment.models import Payment, TransactionItem
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_orders
@@ -45,27 +45,29 @@ def send_order_updated(order_ids):
 
 def _bulk_release_voucher_usage(order_ids):
     voucher_orders = Order.objects.filter(
-        voucher=OuterRef("pk"),
+        voucher_code=OuterRef("code"),
         id__in=order_ids,
     )
     count_orders = voucher_orders.annotate(
         count=Func(F("pk"), function="Count")
     ).values("count")
 
-    Voucher.objects.filter(
+    vouchers = Voucher.objects.filter(usage_limit__isnull=False)
+    VoucherCode.objects.filter(
         Exists(voucher_orders),
-        usage_limit__isnull=False,
+        Exists(vouchers.filter(id=OuterRef("voucher_id"))),
     ).annotate(order_count=Subquery(count_orders)).update(
         used=F("used") - F("order_count")
     )
 
-    voucher_customer_orders = Order.objects.filter(
-        voucher=OuterRef("voucher__id"),
-        user_email=OuterRef("customer_email"),
-        id__in=order_ids,
+    orders = Order.objects.filter(id__in=order_ids)
+    voucher_codes = VoucherCode.objects.filter(
+        Exists(orders.filter(voucher_code=OuterRef("code")))
     )
-
-    VoucherCustomer.objects.filter(Exists(voucher_customer_orders)).delete()
+    VoucherCustomer.objects.filter(
+        Exists(voucher_codes.filter(id=OuterRef("voucher_code_id"))),
+        Exists(orders.filter(user_email=OuterRef("customer_email"))),
+    ).delete()
 
 
 def _call_expired_order_events(order_ids, manager):
@@ -117,7 +119,7 @@ def _expire_orders(manager, now):
         _call_expired_order_events(ids_batch, manager)
 
 
-@app.task()
+@app.task
 def expire_orders_task():
     now = timezone.now()
     manager = get_plugins_manager()

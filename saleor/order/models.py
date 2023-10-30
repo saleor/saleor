@@ -306,6 +306,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
     )
+
+    voucher_code = models.CharField(
+        max_length=255, null=True, blank=True, db_index=False
+    )
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="orders")
     display_gross_prices = models.BooleanField(default=True)
     customer_note = models.TextField(blank=True, default="")
@@ -348,6 +352,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
                 opclasses=["gin_trgm_ops"],
             ),
             models.Index(fields=["created_at"], name="idx_order_created_at"),
+            GinIndex(fields=["voucher_code"], name="order_voucher_code_idx"),
         ]
 
     def is_fully_paid(self):

@@ -1505,24 +1505,34 @@ class PluginsManager(PaymentInterface):
             "warehouse_metadata_updated", default_value, warehouse
         )
 
-    def voucher_created(self, voucher: "Voucher"):
-        default_value = None
-        return self.__run_method_on_plugins("voucher_created", default_value, voucher)
-
-    def voucher_updated(self, voucher: "Voucher"):
-        default_value = None
-        return self.__run_method_on_plugins("voucher_updated", default_value, voucher)
-
-    def voucher_deleted(self, voucher: "Voucher", webhooks=None):
+    def voucher_created(self, voucher: "Voucher", code: str):
         default_value = None
         return self.__run_method_on_plugins(
-            "voucher_deleted", default_value, voucher, webhooks=webhooks
+            "voucher_created", default_value, voucher, code
+        )
+
+    def voucher_updated(self, voucher: "Voucher", code: str):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "voucher_updated", default_value, voucher, code
+        )
+
+    def voucher_deleted(self, voucher: "Voucher", code: str, webhooks=None):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "voucher_deleted", default_value, voucher, code, webhooks=webhooks
         )
 
     def voucher_metadata_updated(self, voucher: "Voucher"):
         default_value = None
         return self.__run_method_on_plugins(
             "voucher_metadata_updated", default_value, voucher
+        )
+
+    def voucher_code_export_completed(self, export: "ExportFile"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "voucher_code_export_completed", default_value, export
         )
 
     def shop_metadata_updated(self, shop: "SiteSettings"):

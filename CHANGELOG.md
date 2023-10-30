@@ -3,7 +3,6 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
 # 3.18.0 [Unreleased]
-
 ### Breaking changes
 - Optimize number of queries in bulk mutations when calling webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
   - `attribute_updated`
@@ -14,6 +13,14 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 - Fix draft order voucher assignment - #14336 by @IKarbowiak
+- Allow add multiple codes per voucher - #14123 by @SzymJ, @IKarbowiak, @michal-macioszczyk, @zedzior
+  - Add `VoucherInput.addCodes` to `voucherCreate` and `voucherUpdate` mutations.
+  - Add `Voucher.singleUse` flag.
+  - Deprecate `OrderBulkCreateInput.voucher`.
+  - Deprecate `VoucherInput.code` in `voucherCreate` and `voucherUpdate` mutations.
+  - Add `exportVoucherCodes` mutation.
+  - Add `voucherCodeBulkDelete` mutation.
+  - Adjust voucher usage calculations.
 - Improved GraphQL ID validation messages - #14447 by @patrys
 
 ### Saleor Apps

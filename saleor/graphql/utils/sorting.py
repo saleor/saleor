@@ -89,7 +89,6 @@ def sort_queryset(
 
     sorting_field_value = sorting_fields.value
     sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]
-
     return queryset.order_by(*sorting_list)
 
 
