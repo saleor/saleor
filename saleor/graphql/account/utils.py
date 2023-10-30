@@ -108,8 +108,8 @@ def can_manage_app(requestor: Union["User", "App", None], app: "App") -> bool:
 def get_group_permission_codes(group: Group) -> "QuerySet":
     """Return group permissions in the format '<app label>.<permission codename>'."""
     return group.permissions.annotate(
-        formated_codename=Concat("content_type__app_label", Value("."), "codename")
-    ).values_list("formated_codename", flat=True)
+        formatted_codename=Concat("content_type__app_label", Value("."), "codename")
+    ).values_list("formatted_codename", flat=True)  # type: ignore[misc]
 
 
 def get_groups_which_user_can_manage(user: "User") -> list[Group]:

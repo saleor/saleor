@@ -134,4 +134,4 @@ def sort_assigned_attribute_values(
     for index, value_assignment in enumerate(values_assignment):
         value_assignment.sort_order = index
 
-    assignment_model.objects.bulk_update(values_assignment, ["sort_order"])
+    assignment_model._default_manager.bulk_update(values_assignment, ["sort_order"])

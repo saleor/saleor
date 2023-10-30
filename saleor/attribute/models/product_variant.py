@@ -2,7 +2,7 @@ from django.db import models
 
 from ...core.models import SortableModel
 from ...product.models import ProductType, ProductVariant
-from .base import AssociatedAttributeManager, BaseAssignedAttribute
+from .base import AssociatedAttributeManager, AttributeValue, BaseAssignedAttribute
 
 
 class AssignedVariantAttributeValue(SortableModel):
@@ -35,7 +35,7 @@ class AssignedVariantAttribute(BaseAssignedAttribute):
         "AttributeVariant", on_delete=models.CASCADE, related_name="variantassignments"
     )
     values = models.ManyToManyField(
-        "AttributeValue",
+        AttributeValue,
         blank=True,
         related_name="variantassignments",
         through=AssignedVariantAttributeValue,

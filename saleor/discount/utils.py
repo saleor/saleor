@@ -493,7 +493,7 @@ def _get_rule_to_channel_ids_map(rules: QuerySet):
         Exists(rules.filter(id=OuterRef("promotionrule_id")))
     )
     for promotion_rule_channel in promotion_rule_channels:
-        rule_id = promotion_rule_channel.promotionrule_id  # type: ignore[attr-defined]
-        channel_id = promotion_rule_channel.channel_id  # type: ignore[attr-defined]
+        rule_id = promotion_rule_channel.promotionrule_id
+        channel_id = promotion_rule_channel.channel_id
         rule_to_channel_ids_map[rule_id].append(channel_id)
     return rule_to_channel_ids_map

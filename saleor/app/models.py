@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import Union
+from typing import Union, cast
 from uuid import uuid4
 
 from django.contrib.auth.hashers import make_password
@@ -180,7 +180,8 @@ class AppInstallation(Job):
 
     def set_message(self, message: str, truncate=True):
         if truncate:
-            max_length = self._meta.get_field("message").max_length
+            message_field = cast(models.Field, self._meta.get_field("message"))
+            max_length = message_field.max_length
             if max_length is None:
                 raise ValueError("Cannot truncate message without max_length")
             message = Truncator(message).chars(max_length)

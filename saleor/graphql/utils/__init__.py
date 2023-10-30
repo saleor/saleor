@@ -181,12 +181,12 @@ def format_permissions_for_display(permissions):
         permissions: queryset with permissions
     """
     permissions_data = permissions.annotate(
-        formated_codename=Concat("content_type__app_label", Value("."), "codename")
-    ).values("name", "formated_codename")
+        formatted_codename=Concat("content_type__app_label", Value("."), "codename")
+    ).values("name", "formatted_codename")
 
     formatted_permissions = [
         Permission(
-            code=PermissionEnum.get(data["formated_codename"]), name=data["name"]
+            code=PermissionEnum.get(data["formatted_codename"]), name=data["name"]
         )
         for data in permissions_data
     ]

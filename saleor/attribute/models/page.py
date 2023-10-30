@@ -3,7 +3,7 @@ from django.db import models
 
 from ...core.models import SortableModel
 from ...page.models import Page, PageType
-from .base import AssociatedAttributeManager, BaseAssignedAttribute
+from .base import AssociatedAttributeManager, AttributeValue, BaseAssignedAttribute
 
 
 class AssignedPageAttributeValue(SortableModel):
@@ -43,7 +43,7 @@ class AssignedPageAttribute(BaseAssignedAttribute):
         "AttributePage", on_delete=models.CASCADE, related_name="pageassignments"
     )
     values = models.ManyToManyField(
-        "AttributeValue",
+        AttributeValue,
         blank=True,
         related_name="pageassignments",
         through=AssignedPageAttributeValue,

@@ -1099,12 +1099,12 @@ def validate_single_selectable_field(
         return
 
     if value:
-        max_length = attribute.values.model.name.field.max_length  # type: ignore
+        max_length = attribute.values.model.name.field.max_length
         if not value.strip():
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
                 attr_identifier
             )
-        elif len(value) > max_length:
+        elif max_length and len(value) > max_length:
             attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(
                 attr_identifier
             )
@@ -1278,7 +1278,7 @@ def validate_values(
     attribute_errors: T_ERROR_DICT,
 ):
     """To be deprecated together with `AttributeValueInput.values` field."""
-    name_field = attribute.values.model.name.field  # type: ignore
+    name_field = attribute.values.model.name.field
     is_numeric = attribute.input_type == AttributeInputType.NUMERIC
     if get_duplicated_values(values):
         attribute_errors[AttributeInputErrors.ERROR_DUPLICATED_VALUES].append(
@@ -1296,7 +1296,7 @@ def validate_values(
                 attribute_errors[
                     AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
                 ].append(attr_identifier)
-        elif len(value) > name_field.max_length:
+        elif name_field.max_length and len(value) > name_field.max_length:
             attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(
                 attr_identifier
             )
