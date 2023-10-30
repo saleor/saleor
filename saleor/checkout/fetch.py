@@ -415,6 +415,7 @@ def fetch_checkout_info(
     ] = None,
     fetch_delivery_methods=True,
     voucher: Optional["Voucher"] = None,
+    voucher_code: Optional["VoucherCode"] = None,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
     from .utils import get_voucher_for_checkout
@@ -425,7 +426,6 @@ def fetch_checkout_info(
     if shipping_channel_listings is None:
         shipping_channel_listings = channel.shipping_method_listings.all()
 
-    voucher_code = None
     if not voucher:
         voucher, voucher_code = get_voucher_for_checkout(
             checkout, channel_slug=channel.slug
