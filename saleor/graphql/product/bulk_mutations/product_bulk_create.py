@@ -207,6 +207,12 @@ class ProductBulkCreate(BaseMutation):
     def generate_unique_slug(cls, slugable_value, new_slugs):
         slug = slugify(unidecode(slugable_value))
 
+        # in case when slugable_value contains only not allowed in slug characters,
+        # slugify function will return empty string, so we need to provide some default
+        # value
+        if slug == "":
+            slug = "-"
+
         search_field = "slug__iregex"
         pattern = rf"{slug}-\d+$|{slug}$"
         lookup = {search_field: pattern}
