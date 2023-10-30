@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from ...attribute import models as attribute_models
 from ...discount import models as discount_models
 from ...menu import models as menu_models
@@ -50,28 +52,42 @@ def resolve_translation(instance, info: ResolveInfo, *, language_code):
 
 
 def resolve_shipping_methods(_info):
-    return shipping_models.ShippingMethod.objects.all()
+    return shipping_models.ShippingMethod.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
 
 
 def resolve_attribute_values(_info):
-    return attribute_models.AttributeValue.objects.all()
+    return attribute_models.AttributeValue.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
 
 
 def resolve_products(_info):
-    return product_models.Product.objects.all()
+    return product_models.Product.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
 
 
 def resolve_product_variants(_info):
-    return product_models.ProductVariant.objects.all()
+    return product_models.ProductVariant.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
 
 
 def resolve_sales(_info):
-    return discount_models.Sale.objects.all()
+    return discount_models.Sale.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
 
 
 def resolve_vouchers(_info):
-    return discount_models.Voucher.objects.all()
+    return discount_models.Voucher.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
 
 
 def resolve_collections(_info):
-    return product_models.Collection.objects.all()
+    return product_models.Collection.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()

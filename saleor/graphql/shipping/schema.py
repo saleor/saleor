@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 
 from ...permission.enums import ShippingPermissions
 from ...shipping import models
@@ -55,7 +56,11 @@ class ShippingQueries(graphene.ObjectType):
     @staticmethod
     def resolve_shipping_zone(_root, _info: ResolveInfo, *, id, channel=None):
         _, id = from_global_id_or_error(id, ShippingZone)
-        instance = models.ShippingZone.objects.filter(id=id).first()
+        instance = (
+            models.ShippingZone.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(id=id)
+            .first()
+        )
         return ChannelContext(node=instance, channel_slug=channel) if instance else None
 
     @staticmethod

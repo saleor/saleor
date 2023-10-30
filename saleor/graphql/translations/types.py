@@ -324,7 +324,13 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
 
     @staticmethod
     def resolve_collection(root: product_models.Collection, info):
-        collection = product_models.Collection.objects.all().filter(pk=root.id).first()
+        collection = (
+            product_models.Collection.objects.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            )
+            .filter(pk=root.id)
+            .first()
+        )
         return (
             ChannelContext(node=collection, channel_slug=None) if collection else None
         )
@@ -451,6 +457,7 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
     def resolve_page(root: page_models.Page, info):
         return (
             page_models.Page.objects.visible_to_user(info.context.user)
+            .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
             .filter(pk=root.id)
             .first()
         )

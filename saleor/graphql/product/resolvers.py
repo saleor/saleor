@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import Exists, OuterRef, Sum
 
 from ...channel.models import Channel
@@ -16,7 +17,9 @@ from ..utils.filters import filter_by_period
 
 
 def resolve_categories(_info: ResolveInfo, level=None):
-    qs = models.Category.objects.prefetch_related("children")
+    qs = models.Category.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).prefetch_related("children")
     if level is not None:
         qs = qs.filter(level=level)
     return qs.distinct()
@@ -25,6 +28,7 @@ def resolve_categories(_info: ResolveInfo, level=None):
 def resolve_collection_by_id(_info: ResolveInfo, id, channel_slug, requestor):
     return (
         models.Collection.objects.visible_to_user(requestor, channel_slug=channel_slug)
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .filter(id=id)
         .first()
     )
@@ -33,6 +37,7 @@ def resolve_collection_by_id(_info: ResolveInfo, id, channel_slug, requestor):
 def resolve_collection_by_slug(_info: ResolveInfo, slug, channel_slug, requestor):
     return (
         models.Collection.objects.visible_to_user(requestor, channel_slug)
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .filter(slug=slug)
         .first()
     )
@@ -40,17 +45,25 @@ def resolve_collection_by_slug(_info: ResolveInfo, slug, channel_slug, requestor
 
 def resolve_collections(info: ResolveInfo, channel_slug):
     requestor = get_user_or_app_from_context(info.context)
-    qs = models.Collection.objects.visible_to_user(requestor, channel_slug)
+    qs = models.Collection.objects.visible_to_user(requestor, channel_slug).using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    )
 
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
 def resolve_digital_content_by_id(id):
-    return models.DigitalContent.objects.filter(pk=id).first()
+    return (
+        models.DigitalContent.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(pk=id)
+        .first()
+    )
 
 
 def resolve_digital_contents(_info: ResolveInfo):
-    return models.DigitalContent.objects.all()
+    return models.DigitalContent.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
 
 
 def resolve_product(
@@ -92,11 +105,17 @@ def resolve_products(
 
 
 def resolve_product_type_by_id(id):
-    return models.ProductType.objects.filter(pk=id).first()
+    return (
+        models.ProductType.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(pk=id)
+        .first()
+    )
 
 
 def resolve_product_types(_info: ResolveInfo):
-    return models.ProductType.objects.all()
+    return models.ProductType.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
 
 
 @traced_resolver
@@ -110,10 +129,14 @@ def resolve_variant(
     requestor,
     requestor_has_access_to_all
 ):
-    visible_products = models.Product.objects.visible_to_user(
-        requestor, channel_slug
-    ).values_list("pk", flat=True)
-    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
+    visible_products = (
+        models.Product.objects.visible_to_user(requestor, channel_slug)
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .values_list("pk", flat=True)
+    )
+    qs = models.ProductVariant.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(product__id__in=visible_products)
     if not requestor_has_access_to_all:
         qs = qs.available_in_channel(channel_slug)
     if id:
@@ -133,14 +156,22 @@ def resolve_product_variants(
     ids=None,
     channel_slug=None,
 ) -> ChannelQsContext:
-    visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
-    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
+    visible_products = models.Product.objects.visible_to_user(
+        requestor, channel_slug
+    ).using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+    qs = models.ProductVariant.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(product__id__in=visible_products)
 
     if not requestor_has_access_to_all:
         visible_products = visible_products.annotate_visible_in_listings(
             channel_slug
         ).exclude(visible_in_listings=False)
-        qs = qs.filter(product__in=visible_products).available_in_channel(channel_slug)
+        qs = (
+            qs.filter(product__in=visible_products)
+            .available_in_channel(channel_slug)
+            .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        )
     if ids:
         db_ids = [
             from_global_id_or_error(node_id, "ProductVariant")[1] for node_id in ids
@@ -150,7 +181,9 @@ def resolve_product_variants(
 
 
 def resolve_report_product_sales(period, channel_slug) -> ChannelQsContext:
-    qs = models.ProductVariant.objects.all()
+    qs = models.ProductVariant.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
 
     # filter by period
     qs = filter_by_period(qs, period, "order_lines__order__created_at")
@@ -159,10 +192,16 @@ def resolve_report_product_sales(period, channel_slug) -> ChannelQsContext:
     qs = qs.annotate(quantity_ordered=Sum("order_lines__quantity"))
 
     # filter by channel and order status
-    channels = Channel.objects.filter(slug=channel_slug).values("pk")
+    channels = (
+        Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(slug=channel_slug)
+        .values("pk")
+    )
     exclude_status = [OrderStatus.DRAFT, OrderStatus.CANCELED, OrderStatus.EXPIRED]
-    orders = Order.objects.exclude(status__in=exclude_status).filter(
-        Exists(channels.filter(pk=OuterRef("channel_id")).values("pk"))
+    orders = (
+        Order.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .exclude(status__in=exclude_status)
+        .filter(Exists(channels.filter(pk=OuterRef("channel_id")).values("pk")))
     )
     qs = qs.filter(
         Exists(orders.filter(pk=OuterRef("order_lines__order_id"))),

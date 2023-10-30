@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from ...checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
@@ -19,7 +21,11 @@ def resolve_webhook(info, id, app):
         return app.webhooks.filter(id=id).first()
     user = info.context.user
     if user.has_perm(AppPermission.MANAGE_APPS):
-        return models.Webhook.objects.filter(pk=id).first()
+        return (
+            models.Webhook.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(pk=id)
+            .first()
+        )
     raise PermissionDenied(permissions=[AppPermission.MANAGE_APPS])
 
 

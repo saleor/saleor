@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 
 from ...attribute.models import Attribute, AttributeValue
 from ...discount.models import Sale, Voucher
@@ -143,4 +144,9 @@ class TranslationQueries(graphene.ObjectType):
             TranslatableKinds.VOUCHER.value: Voucher,  # type: ignore[attr-defined]
             TranslatableKinds.MENU_ITEM.value: MenuItem,  # type: ignore[attr-defined]
         }
-        return models[kind].objects.filter(pk=kind_id).first()
+        return (
+            models[kind]
+            .objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(pk=kind_id)
+            .first()
+        )

@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from graphql.error import GraphQLError
 
 from ...giftcard import models
@@ -104,7 +105,11 @@ class GiftCardQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_gift_card_currencies(_root, _info: ResolveInfo):
-        return set(models.GiftCard.objects.values_list("currency", flat=True))
+        return set(
+            models.GiftCard.objects.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            ).values_list("currency", flat=True)
+        )
 
     @staticmethod
     def resolve_gift_card_tags(_root, info: ResolveInfo, **data):

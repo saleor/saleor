@@ -5,6 +5,7 @@ from decimal import Decimal
 from typing import List, Optional
 
 import graphene
+from django.conf import settings
 from graphene import relay
 from promise import Promise
 
@@ -1710,7 +1711,7 @@ class ProductType(ModelObjectType[models.ProductType]):
     def resolve_available_attributes(root: models.ProductType, info, **kwargs):
         qs = attribute_models.Attribute.objects.get_unassigned_product_type_attributes(
             root.pk
-        )
+        ).using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         qs = resolve_attributes(info, qs=qs)
         qs = filter_connection_queryset(qs, kwargs, info.context)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)

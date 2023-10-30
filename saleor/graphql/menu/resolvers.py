@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from ...menu import models
 from ..channel import ChannelContext, ChannelQsContext
 from ..core.utils import from_global_id_or_error
@@ -10,22 +12,43 @@ def resolve_menu(_info, channel, menu_id=None, name=None, slug=None):
     menu = None
     if menu_id:
         _, id = from_global_id_or_error(menu_id, Menu)
-        menu = models.Menu.objects.filter(id=id).first()
+        menu = (
+            models.Menu.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(id=id)
+            .first()
+        )
     if name:
-        menu = models.Menu.objects.filter(name=name).first()
+        menu = (
+            models.Menu.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(name=name)
+            .first()
+        )
     if slug:
-        menu = models.Menu.objects.filter(slug=slug).first()
+        menu = (
+            models.Menu.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(slug=slug)
+            .first()
+        )
     return ChannelContext(node=menu, channel_slug=channel) if menu else None
 
 
 def resolve_menus(_info, channel):
-    return ChannelQsContext(qs=models.Menu.objects.all(), channel_slug=channel)
+    return ChannelQsContext(
+        qs=models.Menu.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all(),
+        channel_slug=channel,
+    )
 
 
 def resolve_menu_item(id, channel):
-    menu_item = models.MenuItem.objects.filter(pk=id).first()
+    menu_item = (
+        models.MenuItem.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(pk=id)
+        .first()
+    )
     return ChannelContext(node=menu_item, channel_slug=channel) if menu_item else None
 
 
 def resolve_menu_items(_info):
-    return models.MenuItem.objects.all()
+    return models.MenuItem.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()

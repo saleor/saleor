@@ -1,6 +1,7 @@
 from typing import List
 
 import graphene
+from django.conf import settings
 
 from ...core import models as core_models
 from ...webhook import models
@@ -127,7 +128,9 @@ class EventDelivery(ModelObjectType[core_models.EventDelivery]):
 
     @staticmethod
     def resolve_attempts(root: core_models.EventDelivery, info: ResolveInfo, **kwargs):
-        qs = core_models.EventDeliveryAttempt.objects.filter(delivery=root)
+        qs = core_models.EventDeliveryAttempt.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(delivery=root)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(
             qs, info, kwargs, EventDeliveryAttemptCountableConnection
@@ -234,7 +237,9 @@ class Webhook(ModelObjectType[models.Webhook]):
 
     @staticmethod
     def resolve_event_deliveries(root: models.Webhook, info: ResolveInfo, **kwargs):
-        qs = core_models.EventDelivery.objects.filter(webhook_id=root.pk)
+        qs = core_models.EventDelivery.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(webhook_id=root.pk)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(
             qs, info, kwargs, EventDeliveryCountableConnection

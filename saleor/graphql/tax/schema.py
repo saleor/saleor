@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 import graphene
+from django.conf import settings
 from django_countries.fields import Country
 
 from ...permission.auth_filters import AuthorizationFilters
@@ -111,11 +112,19 @@ class TaxQueries(graphene.ObjectType):
     @staticmethod
     def resolve_tax_configuration(_root, _info: ResolveInfo, id):
         _, id = from_global_id_or_error(id, TaxConfiguration)
-        return models.TaxConfiguration.objects.filter(id=id).first()
+        return (
+            models.TaxConfiguration.objects.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            )
+            .filter(id=id)
+            .first()
+        )
 
     @staticmethod
     def resolve_tax_configurations(_root, info: ResolveInfo, **kwargs):
-        qs = models.TaxConfiguration.objects.all()
+        qs = models.TaxConfiguration.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).all()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(
             qs, info, kwargs, TaxConfigurationCountableConnection
@@ -124,17 +133,25 @@ class TaxQueries(graphene.ObjectType):
     @staticmethod
     def resolve_tax_class(_root, _info: ResolveInfo, id):
         _, id = from_global_id_or_error(id, TaxClass)
-        return models.TaxClass.objects.filter(id=id).first()
+        return (
+            models.TaxClass.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(id=id)
+            .first()
+        )
 
     @staticmethod
     def resolve_tax_classes(_root, info: ResolveInfo, **kwargs):
-        qs = models.TaxClass.objects.all()
+        qs = models.TaxClass.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).all()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, TaxClassCountableConnection)
 
     @staticmethod
     def resolve_tax_country_configuration(_root, _info: ResolveInfo, country_code):
-        country_rates = models.TaxClassCountryRate.objects.filter(country=country_code)
+        country_rates = models.TaxClassCountryRate.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(country=country_code)
         return TaxCountryConfiguration(
             country=Country(country_code),
             tax_class_country_rates=country_rates,
@@ -142,7 +159,9 @@ class TaxQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_tax_country_configurations(_root, _info: ResolveInfo, **kwargs):
-        country_rates = models.TaxClassCountryRate.objects.all()
+        country_rates = models.TaxClassCountryRate.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).all()
         rates_per_country = defaultdict(list)
         for country_rate in country_rates:
             rates_per_country[country_rate.country].append(country_rate)

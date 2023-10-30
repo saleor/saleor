@@ -374,7 +374,9 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_channel_currencies(_, _info):
         return set(
-            channel_models.Channel.objects.values_list("currency_code", flat=True)
+            channel_models.Channel.objects.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            ).values_list("currency_code", flat=True)
         )
 
     @staticmethod
@@ -455,7 +457,11 @@ class Shop(graphene.ObjectType):
         default_country_code = settings.DEFAULT_COUNTRY
         default_country_name = countries.countries.get(default_country_code)
         if default_country_name:
-            vat = VAT.objects.filter(country_code=default_country_code).first()
+            vat = (
+                VAT.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+                .filter(country_code=default_country_code)
+                .first()
+            )
             default_country = CountryDisplay(
                 code=default_country_code, country=default_country_name, vat=vat
             )
@@ -520,7 +526,9 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     def resolve_staff_notification_recipients(_, _info):
-        return account_models.StaffNotificationRecipient.objects.all()
+        return account_models.StaffNotificationRecipient.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).all()
 
     @staticmethod
     @load_site_callback

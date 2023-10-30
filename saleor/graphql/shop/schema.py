@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 
 from ...channel import models as channel_models
 from ...permission.enums import GiftcardPermissions, OrderPermissions
@@ -55,7 +56,10 @@ class ShopQueries(graphene.ObjectType):
 
     def resolve_order_settings(self, _info):
         channel = (
-            channel_models.Channel.objects.filter(is_active=True)
+            channel_models.Channel.objects.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            )
+            .filter(is_active=True)
             .order_by("slug")
             .first()
         )

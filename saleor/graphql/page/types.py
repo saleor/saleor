@@ -1,6 +1,7 @@
 from typing import List
 
 import graphene
+from django.conf import settings
 
 from ...attribute import models as attribute_models
 from ...page import models
@@ -79,7 +80,7 @@ class PageType(ModelObjectType[models.PageType]):
     ):
         qs = attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
-        )
+        ).using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         qs = filter_connection_queryset(qs, kwargs, info.context)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
