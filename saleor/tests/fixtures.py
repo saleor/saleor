@@ -6835,6 +6835,12 @@ def app_export_file(app):
 
 
 @pytest.fixture
+def removed_app_export_file(removed_app):
+    job = ExportFile.objects.create(app=removed_app)
+    return job
+
+
+@pytest.fixture
 def export_file_list(staff_user):
     export_file_list = list(
         ExportFile.objects.bulk_create(
@@ -6901,6 +6907,16 @@ def app_export_event(app_export_file):
         type=ExportEvents.EXPORT_FAILED,
         export_file=app_export_file,
         app=app_export_file.app,
+        parameters={"message": "Example error message"},
+    )
+
+
+@pytest.fixture
+def removed_app_export_event(removed_app_export_file):
+    return ExportEvent.objects.create(
+        type=ExportEvents.EXPORT_FAILED,
+        export_file=removed_app_export_file,
+        app=removed_app_export_file.app,
         parameters={"message": "Example error message"},
     )
 
