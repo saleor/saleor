@@ -6148,7 +6148,7 @@ def app_with_token(db):
 
 @pytest.fixture
 def deleted_app(db):
-    app = App.objects.create(name="Deleted app ", is_active=False, to_remove=True)
+    app = App.objects.create(name="Deleted app ", is_active=True, to_remove=True)
     return app
 
 
