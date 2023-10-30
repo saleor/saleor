@@ -96,9 +96,9 @@ class SaleUpdate(ModelMutation):
             manager, instance, cleaned_input, current_catalogue, previous_end_date
         )
 
-    @staticmethod
+    @classmethod
     def send_sale_toggle_notification(
-        manager, instance, clean_input, catalogue, previous_end_date
+        cls, manager, instance, clean_input, catalogue, previous_end_date
     ):
         """Send the notification about starting or ending sale if it wasn't sent yet.
 
@@ -130,9 +130,9 @@ class SaleUpdate(ModelMutation):
             send_notification = True
 
         if send_notification:
-            manager.sale_toggle(instance, catalogue)
             instance.notification_sent_datetime = now
             instance.save(update_fields=["notification_sent_datetime"])
+            cls.call_event(manager.sale_toggle, instance, catalogue)
 
     @staticmethod
     def update_products_discounted_prices(

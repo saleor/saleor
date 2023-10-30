@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Union
 
 from ...core.taxes import TaxedMoney, zero_taxed_money
 from ...core.tracing import traced_atomic_transaction
+from ...core.utils.events import call_event
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.utils import get_webhooks_for_event
 from ..models import Product, ProductChannelListing
@@ -58,10 +59,10 @@ def delete_categories(categories_ids: List[Union[str, int]], manager):
     categories.delete()
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.CATEGORY_DELETED)
     for category in category_instances:
-        manager.category_deleted(category, webhooks=webhooks)
+        call_event(manager.category_deleted, category, webhooks=webhooks)
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED)
     for product in products:
-        manager.product_updated(product, webhooks=webhooks)
+        call_event(manager.product_updated, product, webhooks=webhooks)
 
     update_products_discounted_prices_task.delay(
         product_ids=[product.id for product in products]

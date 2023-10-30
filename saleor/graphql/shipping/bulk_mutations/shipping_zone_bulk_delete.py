@@ -34,4 +34,4 @@ class ShippingZoneBulkDelete(ModelBulkDeleteMutation):
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.SHIPPING_ZONE_DELETED)
         for zone in zones:
-            manager.shipping_zone_deleted(zone, webhooks=webhooks)
+            cls.call_event(manager.shipping_zone_deleted, zone, webhooks=webhooks)
