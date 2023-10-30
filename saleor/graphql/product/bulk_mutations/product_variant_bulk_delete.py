@@ -2,7 +2,6 @@ from typing import Iterable
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import Exists, OuterRef, Subquery
 from django.db.models.fields import IntegerField
 from django.db.models.functions import Coalesce
@@ -90,12 +89,8 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         response = super().perform_mutation(_root, info, ids=ids, **data)
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_DELETED)
-        transaction.on_commit(
-            lambda: [
-                manager.product_variant_deleted(variant, webhooks=webhooks)
-                for variant in variants
-            ]
-        )
+        for variant in variants:
+            cls.call_event(manager.product_variant_deleted, variant, webhooks=webhooks)
 
         # delete order lines for deleted variants
         order_models.OrderLine.objects.filter(
