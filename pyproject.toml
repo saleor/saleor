@@ -65,7 +65,7 @@ documentation = "https://docs.saleor.io/"
   micawber = "^0.5.2"
   django-celery-beat = "^2.2.1"
   posuto = "^2023.2.0"
-  cryptography = "^41.0.4"
+  cryptography = "^41.0.5"
   graphene = "<3.0"
   uvicorn = {extras = ["standard"], version = "^0.23.1"}
   Authlib = "^1.0.0"
