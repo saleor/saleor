@@ -5,6 +5,7 @@ from .....discount import models
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core.descriptions import ADDED_IN_318
+from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.enums import VoucherCodeBulkDeleteErrorCode
 from ....core.mutations import BaseMutation
 from ....core.types import NonNullList, VoucherCodeBulkDeleteError
@@ -37,6 +38,7 @@ class VoucherCodeBulkDelete(BaseMutation):
                 description="A voucher was updated.",
             )
         ]
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
     @classmethod
     def clean_codes(cls, codes, errors_list):
