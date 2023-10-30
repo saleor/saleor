@@ -34,7 +34,10 @@ class VoucherInput(BaseInputObjectType):
     )
     name = graphene.String(description="Voucher name.")
     code = graphene.String(
-        required=False, description="Code to use the voucher." + DEPRECATED_IN_3X_FIELD
+        required=False,
+        description="Code to use the voucher. "
+        + DEPRECATED_IN_3X_FIELD
+        + " Use `addCodes` instead.",
     )
     add_codes = NonNullList(
         graphene.String,
