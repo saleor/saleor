@@ -152,8 +152,8 @@ class AppQueries(graphene.ObjectType):
     @staticmethod
     def resolve_app_extension(_root, info: ResolveInfo, *, id):
         def app_is_active(app_extension):
-            def is_available(app):
-                if app.is_active and not app.to_remove:
+            def is_active(app):
+                if app and app.is_active:
                     return app_extension
                 return None
 
@@ -161,9 +161,7 @@ class AppQueries(graphene.ObjectType):
                 return None
 
             return (
-                AppByIdLoader(info.context)
-                .load(app_extension.app_id)
-                .then(is_available)
+                AppByIdLoader(info.context).load(app_extension.app_id).then(is_active)
             )
 
         _, id = from_global_id_or_error(id, "AppExtension")
