@@ -3,11 +3,7 @@ from django.db import models
 
 from ...core.models import SortableModel
 from ...page.models import Page, PageType
-<<<<<<< HEAD
-from .base import AssociatedAttributeManager, AttributeValue, BaseAssignedAttribute
-=======
 from .base import AssociatedAttributeManager
->>>>>>> daa98bf1f3 (Simplify Page <> Attribute relation)
 
 
 class AssignedPageAttributeValue(SortableModel):
@@ -31,29 +27,7 @@ class AssignedPageAttributeValue(SortableModel):
         indexes = [BTreeIndex(fields=["page"], name="assignedpageattrvalue_page_idx")]
 
     def get_ordering_queryset(self):
-<<<<<<< HEAD
-        return self.assignment.pagevalueassignment.all()
-
-
-class AssignedPageAttribute(BaseAssignedAttribute):
-    """Associate a page type attribute and selected values to a given page."""
-
-    page = models.ForeignKey(Page, related_name="attributes", on_delete=models.CASCADE)
-    assignment = models.ForeignKey(
-        "AttributePage", on_delete=models.CASCADE, related_name="pageassignments"
-    )
-    values = models.ManyToManyField(
-        AttributeValue,
-        blank=True,
-        related_name="pageassignments",
-        through=AssignedPageAttributeValue,
-    )
-
-    class Meta:
-        unique_together = (("page", "assignment"),)
-=======
         return self.page.attributevalues.all()
->>>>>>> daa98bf1f3 (Simplify Page <> Attribute relation)
 
 
 class AttributePage(SortableModel):
