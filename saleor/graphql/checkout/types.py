@@ -45,6 +45,7 @@ from ..core.descriptions import (
     ADDED_IN_39,
     ADDED_IN_313,
     ADDED_IN_315,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -521,7 +522,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     )
     voucher = graphene.Field(
         "saleor.graphql.discount.types.vouchers.Voucher",
-        description="The voucher assigned to the checkout.",
+        description="The voucher assigned to the checkout." + ADDED_IN_318,
     )
     voucher_code = graphene.String(
         description="The code of voucher assigned to the checkout."

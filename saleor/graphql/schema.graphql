@@ -10601,7 +10601,11 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   translatedDiscountName: String
 
-  """The voucher assigned to the checkout."""
+  """
+  The voucher assigned to the checkout.
+  
+  Added in Saleor 3.18.
+  """
   voucher: Voucher
 
   """The code of voucher assigned to the checkout."""
