@@ -1844,7 +1844,8 @@ def test_complete_checkout_invalid_shipping_method(
     checkout.tracking_code = ""
     checkout.redirect_url = "https://www.example.com"
 
-    checkout.voucher_code = voucher.code
+    voucher_code = voucher.codes.first()
+    checkout.voucher_code = voucher_code.code
     checkout.save()
 
     # make the current shipping method invalid
@@ -1870,7 +1871,7 @@ def test_complete_checkout_invalid_shipping_method(
 
     # then
     voucher_customer = VoucherCustomer.objects.filter(
-        voucher=voucher, customer_email=customer_user.email
+        voucher_code=voucher_code, customer_email=customer_user.email
     )
     assert not voucher_customer.exists()
 

@@ -179,7 +179,7 @@ def decrease_voucher_codes_usage_task(voucher_code_ids):
     ):
         for voucher_code in voucher_codes:
             if voucher_code.voucher.usage_limit and voucher_code.used > 0:
-                voucher_code.used -= 1
+                voucher_code.used = F("used") - 1
             if voucher_code.voucher.single_use:
                 voucher_code.is_active = True
         VoucherCode.objects.bulk_update(voucher_codes, ["used", "is_active"])
