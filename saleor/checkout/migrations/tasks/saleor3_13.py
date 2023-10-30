@@ -8,6 +8,8 @@ from ....celeryconf import app
 from ....payment.models import TransactionItem
 from ...models import Checkout, CheckoutLine
 
+# It takes less that a second to process the batch.
+# The memory usage peak on celery worker was around 40MB.
 BATCH_SIZE = 2000
 
 
