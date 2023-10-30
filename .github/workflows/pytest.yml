@@ -20,6 +20,7 @@ on:
       - Dockerfile
       - requirements_dev.txt
       - "saleor/**"
+      - ".github/workflows/pytest.yml"
       - pyproject.toml
       - poetry.lock
 
@@ -65,20 +66,25 @@ jobs:
 
       - name: Install dependencies
         run: |
+          poetry env use python3.9
           python -m poetry install --no-root
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+
+      - name: Add Python Virtual Environment to PATH
+        run: |
+          echo "$(python -m poetry env info -p)"/bin >> $GITHUB_PATH
 
       # Run linters and Django related checks
       # `git config` command is a workaround for https://github.com/actions/runner-images/issues/6775
       - name: Run Linters and Checks
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          python -m poetry run pre-commit run --all
+          pre-commit run --all
         if: ${{ always() }}
 
       - name: Run unit tests
         run: |
-          python -m poetry run pytest \
+          pytest \
             -m "not e2e" \
             --cov \
             --junitxml=junit/test-results.xml \
@@ -118,5 +124,4 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          python -m poetry run pytest \
-            -m "e2e"
+          pytest -m "e2e"
