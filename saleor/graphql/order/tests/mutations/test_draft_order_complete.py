@@ -6,6 +6,7 @@ import pytz
 from django.db.models import Sum
 
 from .....core.taxes import zero_taxed_money
+from .....discount.models import VoucherCustomer
 from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
@@ -224,6 +225,9 @@ def test_draft_order_complete_with_voucher(
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
         Stock.objects.last()
     )
+    assert not VoucherCustomer.objects.filter(
+        voucher_code=code_instance, customer_email=order.get_customer_email()
+    ).exists()
 
 
 def test_draft_order_complete_with_invalid_voucher(
@@ -248,6 +252,38 @@ def test_draft_order_complete_with_invalid_voucher(
     assert not data["order"]
     assert data["errors"][0]["code"] == OrderErrorCode.INVALID_VOUCHER.name
     assert data["errors"][0]["field"] == "voucher"
+
+
+def test_draft_order_complete_with_voucher_once_per_customer(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    draft_order_with_voucher,
+):
+    # given
+    order = draft_order_with_voucher
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order.voucher.apply_once_per_customer = True
+    order.voucher.save(update_fields=["apply_once_per_customer"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    code_instance = order.voucher.codes.first()
+    assert not VoucherCustomer.objects.filter(
+        voucher_code=code_instance, customer_email=order.get_customer_email()
+    ).exists()
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    assert data["voucherCode"] == code_instance.code
+    assert data["voucher"]["code"] == order.voucher.code
+    assert VoucherCustomer.objects.filter(
+        voucher_code=code_instance, customer_email=order.get_customer_email()
+    ).exists()
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
