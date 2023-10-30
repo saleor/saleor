@@ -6147,6 +6147,12 @@ def app_with_token(db):
 
 
 @pytest.fixture
+def deleted_app(db):
+    app = App.objects.create(name="Deleted app ", is_active=False, to_remove=True)
+    return app
+
+
+@pytest.fixture
 def app_with_extensions(app_with_token, permission_manage_products):
     first_app_extension = AppExtension(
         app=app_with_token,

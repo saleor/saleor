@@ -342,6 +342,30 @@ def test_app_query_pending_installation(staff_api_client, app):
     assert content["data"]["app"] is None
 
 
+def test_app_query_app_marked_as_removed(
+    staff_api_client,
+    permission_manage_apps,
+    deleted_app,
+):
+    # given
+    app = deleted_app
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP,
+        variables,
+        permissions=[permission_manage_apps],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["app"]
+    assert not app_data
+
+
 QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS = """
     query ($id: ID, $size: Int, $format: IconThumbnailFormatEnum){
         app(id: $id){

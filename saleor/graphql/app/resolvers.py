@@ -45,7 +45,7 @@ def resolve_app(_info, id):
     if not id:
         return None
     _, id = from_global_id_or_error(id, "App")
-    return models.App.objects.filter(id=id, is_installed=True).first()
+    return models.App.objects.filter(id=id, is_installed=True, to_remove=False).first()
 
 
 def resolve_app_extensions(_info):
