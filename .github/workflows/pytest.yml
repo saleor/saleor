@@ -6,7 +6,6 @@ on:
     paths:
       - "**.py"
       - Dockerfile
-      - requirements_dev.txt
       - "saleor/**"
       - ".github/workflows/pytest.yml"
       - pyproject.toml
@@ -18,7 +17,6 @@ on:
     paths:
       - "**.py"
       - Dockerfile
-      - requirements_dev.txt
       - "saleor/**"
       - ".github/workflows/pytest.yml"
       - pyproject.toml

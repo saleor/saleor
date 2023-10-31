@@ -8,9 +8,11 @@ RUN apt-get -y update \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements_dev.txt /app/
 WORKDIR /app
-RUN pip install -r requirements_dev.txt
+RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install poetry==1.5.0
+RUN poetry config virtualenvs.create false
+COPY poetry.lock pyproject.toml /app/
+RUN --mount=type=cache,mode=0755,target=/root/.cache/pypoetry poetry install --no-root
 
 ### Final image
 FROM python:3.9-slim

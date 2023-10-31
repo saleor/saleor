@@ -291,7 +291,7 @@ if ENABLE_DEBUG_TOOLBAR:
     except ImportError as exc:
         msg = (
             f"{exc} -- Install the missing dependencies by "
-            f"running `pip install -r requirements_dev.txt`"
+            f"running `poetry install --no-root`"
         )
         warnings.warn(msg)
     else:
