@@ -88,7 +88,8 @@ class Migration(migrations.Migration):
             ALTER TABLE attribute_assignedpageattributevalue
             DROP CONSTRAINT IF EXISTS
             attribute_assignedpageat_value_id_assignment_id_f51f07e4_uniq;
-            """
+            """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
         migrations.SeparateDatabaseAndState(state_operations=state_operations),
     ]
