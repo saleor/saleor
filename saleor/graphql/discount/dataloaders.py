@@ -84,19 +84,24 @@ class UsedByVoucherIDLoader(DataLoader):
 class VoucherByCodeLoader(DataLoader):
     context_key = "voucher_by_code"
 
-    def batch_load(self, keys):
+    def batch_load(self, codes):
         def with_voucher_codes(voucher_codes):
             voucher_ids = {code.voucher_id for code in voucher_codes}
             vouchers = (
                 Voucher.objects.using(self.database_connection_name)
                 .filter(id__in=voucher_ids)
-                .all()
+                .in_bulk()
             )
-            return vouchers
+            code_voucher_map = {}
+            for voucher_code in voucher_codes:
+                code_voucher_map[voucher_code.code] = vouchers.get(
+                    voucher_code.voucher_id
+                )
+            return [code_voucher_map.get(code) for code in codes]
 
         return (
             VoucherCodeByCodeLoader(self.context)
-            .load_many(keys)
+            .load_many(codes)
             .then(with_voucher_codes)
         )
 
