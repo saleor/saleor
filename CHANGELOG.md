@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `attribute_value_deleted`
   - `promotion_deleted`
   - `staff_deleted`
+- Saleor will no longer reattempt delivery for webhooks that return non-transient HTTP errors (400, 404 etc.) or redirects - #14566 by @patrys
 
 ### GraphQL API
 - Fix draft order voucher assignment - #14336 by @IKarbowiak
