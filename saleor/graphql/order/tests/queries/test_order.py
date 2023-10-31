@@ -1603,7 +1603,12 @@ QUERY_ORDER_PAYMENT_STATUSES = """
 
 
 @pytest.mark.parametrize(
-    "order_total, granted_refund_amount, total_charged, expected_payment_status",
+    (
+        "order_total",
+        "granted_refund_amount",
+        "total_charged",
+        "expected_payment_status",
+    ),
     [
         (Decimal(100), Decimal(0), Decimal(0), PaymentChargeStatusEnum.NOT_CHARGED),
         (Decimal(100), Decimal(50), Decimal(0), PaymentChargeStatusEnum.NOT_CHARGED),
@@ -1683,7 +1688,7 @@ def test_order_payment_status_with_transaction_and_granted_refunds(
 
 
 @pytest.mark.parametrize(
-    "order_total, total_charged, expected_payment_status",
+    ("order_total", "total_charged", "expected_payment_status"),
     [
         (Decimal(100), Decimal(0), PaymentChargeStatusEnum.NOT_CHARGED),
         # order total is bigger than total charged
