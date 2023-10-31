@@ -822,7 +822,7 @@ def test_handle_transaction_request_task_with_available_actions(
 
 
 @freeze_time("2022-06-11 12:50")
-@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch.object(HTTPSession, "request")
 def test_handle_transaction_request_task_request_event_included_in_calculations(
     mocked_post_request,
     transaction_item_generator,
@@ -884,6 +884,7 @@ def test_handle_transaction_request_task_request_event_included_in_calculations(
 
     assert transaction.amount_refund_pending.amount == action_value
     mocked_post_request.assert_called_once_with(
+        "POST",
         target_url,
         data=payload.encode("utf-8"),
         headers=mock.ANY,
