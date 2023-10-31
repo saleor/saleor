@@ -123,7 +123,7 @@ class AttributeValuesByPageIdLoader(DataLoader):
                         values = [
                             value
                             for value in page_values
-                            if value.attribute_id == attribute.id
+                            if value and value.attribute_id == attribute.id
                         ]
                         assigned_page_map[page.id].append(
                             {
