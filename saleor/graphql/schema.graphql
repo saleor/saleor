@@ -29135,6 +29135,8 @@ input OrderSettingsInput @doc(category: "Orders") {
   """
   Specify whether a coupon applied to draft orders will count toward voucher usage.
   
+  Warning:  when switching this setting from `false` to `true`, the vouchers will be disconnected from all draft orders.
+  
   Added in Saleor 3.18.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
