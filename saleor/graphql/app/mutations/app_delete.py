@@ -26,6 +26,12 @@ class AppDelete(ModelDeleteMutation):
         error_type_field = "app_errors"
 
     @classmethod
+    def get_instance(cls, info: ResolveInfo, **data):
+        data["qs"] = models.App.objects.filter(to_remove=False)
+        instance = super().get_instance(info, **data)
+        return instance
+
+    @classmethod
     def clean_instance(cls, info: ResolveInfo, instance):
         requestor = get_user_or_app_from_context(info.context)
         if not requestor_is_superuser(requestor) and not can_manage_app(

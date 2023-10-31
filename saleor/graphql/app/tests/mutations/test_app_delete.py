@@ -202,3 +202,26 @@ def test_app_delete_for_app_out_of_scope_app(
     error = errors[0]
     assert error["code"] == AppErrorCode.OUT_OF_SCOPE_APP.name
     assert error["field"] == "id"
+
+
+def test_app_delete_with_removed_app(
+    staff_api_client,
+    staff_user,
+    removed_app,
+    permission_manage_orders,
+    permission_manage_apps,
+):
+    query = APP_DELETE_MUTATION
+    staff_user.user_permissions.add(permission_manage_orders)
+    id = graphene.Node.to_global_id("App", removed_app.id)
+
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=(permission_manage_apps,)
+    )
+    content = get_graphql_content(response)
+
+    app_data = content["data"]["appDelete"]
+    assert app_data["app"] is None
+    assert app_data["errors"][0]["code"] == AppErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "id"
