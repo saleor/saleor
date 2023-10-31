@@ -1,7 +1,7 @@
 from ...utils import get_graphql_content
 
 ORDER_FULFILL_MUTATION = """
-mutation orderFulfill($order: ID!, $input: OrderFulfillInput!) {
+mutation orderFulfill ($order: ID!, $input: OrderFulfillInput!) {
   orderFulfill(order: $order, input: $input) {
     order {
       status
@@ -9,13 +9,6 @@ mutation orderFulfill($order: ID!, $input: OrderFulfillInput!) {
         id
         status
         created
-        lines {
-          orderLine {
-            quantityFulfilled
-            quantityToFulfill
-            isShippingRequired
-          }
-        }
       }
       id
     }

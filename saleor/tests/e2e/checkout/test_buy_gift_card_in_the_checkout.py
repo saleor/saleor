@@ -1,7 +1,8 @@
 import pytest
 
+from ..channel.utils.channel_update import update_channel
 from ..gift_cards.utils import get_gift_cards
-from ..orders.utils import order_fulfill
+from ..orders.utils import order_query
 from ..product.utils import (
     create_category,
     create_product,
@@ -9,11 +10,12 @@ from ..product.utils import (
     create_product_type,
     create_product_variant,
     create_product_variant_channel_listing,
+    get_product,
 )
+from ..shop.utils import update_shop_settings
 from ..shop.utils.preparing_shop import prepare_shop
 from ..utils import assign_permissions
 from .utils import (
-    checkout_billing_address_update,
     checkout_complete,
     checkout_create,
     checkout_dummy_payment_create,
@@ -27,6 +29,8 @@ def prepare_product_gift_card(
 ):
     product_type_data = create_product_type(
         e2e_staff_api_client,
+        product_type_name="Gift card product type",
+        slug="gc-type",
         is_shipping_required=False,
         is_digital=True,
         kind="GIFT_CARD",
@@ -68,7 +72,7 @@ def prepare_product_gift_card(
         e2e_staff_api_client, product_variant_id, channel_id, product_variant_price
     )
 
-    return product_variant_id, product_variant_price
+    return product_variant_id, product_variant_price, product_id
 
 
 @pytest.mark.e2e
@@ -81,6 +85,8 @@ def test_buy_gift_card_in_the_checkout_CORE_1102(
     permission_manage_shipping,
     permission_manage_gift_card,
     permission_manage_orders,
+    permission_manage_settings,
+    permission_manage_plugins,
 ):
     # Before
     permissions = [
@@ -90,6 +96,8 @@ def test_buy_gift_card_in_the_checkout_CORE_1102(
         permission_manage_shipping,
         permission_manage_gift_card,
         permission_manage_orders,
+        permission_manage_settings,
+        permission_manage_plugins,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
     (
@@ -99,11 +107,20 @@ def test_buy_gift_card_in_the_checkout_CORE_1102(
         _shipping_method_id,
     ) = prepare_shop(e2e_staff_api_client)
 
-    product_variant_id, product_variant_price = prepare_product_gift_card(
+    product_variant_id, _product_variant_price, product_id = prepare_product_gift_card(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
     )
+    channel_input = {
+        "orderSettings": {"automaticallyFulfillNonShippableGiftCard": True}
+    }
+    update_channel(e2e_staff_api_client, channel_id, channel_input)
+    shop_settings_input = {
+        "fulfillmentAutoApprove": True,
+        "fulfillmentAllowUnpaid": True,
+    }
+    update_shop_settings(e2e_staff_api_client, shop_settings_input)
 
     # Step 1  - Create checkout.
     lines = [
@@ -117,56 +134,34 @@ def test_buy_gift_card_in_the_checkout_CORE_1102(
         lines,
         channel_slug,
         email="testEmail@example.com",
+        set_default_billing_address=True,
     )
     checkout_id = checkout_data["id"]
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
     assert checkout_data["isShippingRequired"] is False
 
-    # Step 2 - Set billing address for checkout.
-    checkout_billing_address_update(
-        e2e_not_logged_api_client,
-        checkout_id,
-    )
-
-    # Step 3  - Create payment for checkout.
+    # Step 2  - Create payment for checkout.
     checkout_dummy_payment_create(
         e2e_not_logged_api_client,
         checkout_id,
         total_gross_amount,
     )
 
-    # Step 4 - Complete checkout.
+    # Step 3 - Complete checkout.
     order_data = checkout_complete(
         e2e_not_logged_api_client,
         checkout_id,
     )
     assert order_data["isShippingRequired"] is False
-    assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
-    order_line = order_data["lines"][0]
 
-    # Step 5 - Fulfill order.
-    input = {
-        "lines": [
-            {
-                "orderLineId": order_line["id"],
-                "stocks": [
-                    {
-                        "quantity": 1,
-                        "warehouse": warehouse_id,
-                    }
-                ],
-            }
-        ],
-        "notifyCustomer": True,
-        "allowStockToBeExceeded": False,
-    }
-    order_data = order_fulfill(e2e_staff_api_client, order_data["id"], input)
-    print(order_data)
-    assert order_data["order"]["status"] == "FULFILLED"
+    # extra query because order need a time to change status
+    get_product(e2e_staff_api_client, product_id, channel_slug)
 
-    # Step 6 - Verify created gift card
+    # 4 Get Order
+    order = order_query(e2e_staff_api_client, order_data["id"])
+    assert order["status"] == "FULFILLED"
+
+    # Step 5 - Verify created gift card
     gift_cards_data = get_gift_cards(e2e_staff_api_client, 10)
-
-    print(get_gift_cards)
     assert len(gift_cards_data) == 1
