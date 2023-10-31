@@ -58,9 +58,22 @@ class AppTokenCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         app = cleaned_input.get("app")
+        cls.app_is_not_removed(app, data.get("app"))
         requestor = get_user_or_app_from_context(info.context)
         if not requestor_is_superuser(requestor) and not can_manage_app(requestor, app):
             msg = "You can't manage this app."
             code = AppErrorCode.OUT_OF_SCOPE_APP.value
             raise ValidationError({"app": ValidationError(msg, code=code)})
         return cleaned_input
+
+    @classmethod
+    def app_is_not_removed(cls, app, app_global_id):
+        if app and app.to_remove is True:
+            code = AppErrorCode.NOT_FOUND.value
+            raise ValidationError(
+                {
+                    "app": ValidationError(
+                        f"Couldn't resolve to a node: {app_global_id}", code=code
+                    )
+                }
+            )
