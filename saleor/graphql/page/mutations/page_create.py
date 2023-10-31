@@ -9,7 +9,7 @@ from ....page import models
 from ....page.error_codes import PageErrorCode
 from ....permission.enums import PagePermissions
 from ...attribute.types import AttributeValueInput
-from ...attribute.utils import AttributeAssignmentMixin
+from ...attribute.utils import PageAttributeAssignmentMixin
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PAGES
@@ -69,11 +69,11 @@ class PageCreate(ModelMutation):
 
     @classmethod
     def clean_attributes(cls, attributes: dict, page_type: models.PageType):
-        attributes_qs = page_type.page_attributes.all()
-        attributes = AttributeAssignmentMixin.clean_input(
+        attributes_qs = page_type.page_attributes.prefetch_related("values")
+        cleaned_attributes = PageAttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, is_page_attributes=True
         )
-        return attributes
+        return cleaned_attributes
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
@@ -129,7 +129,7 @@ class PageCreate(ModelMutation):
 
             attributes = cleaned_data.get("attributes")
             if attributes:
-                AttributeAssignmentMixin.save(instance, attributes)
+                PageAttributeAssignmentMixin.save(instance, attributes)
 
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):

@@ -534,9 +534,9 @@ def test_get_variant_by_id_with_variant_selection_filter(
     )
 
     _associate_attribute_to_instance(
-        variant, file_attribute_with_file_input_type_without_values.pk
+        variant, file_attribute_with_file_input_type_without_values
     )
-    _associate_attribute_to_instance(variant, size_attribute.pk)
+    _associate_attribute_to_instance(variant, size_attribute)
 
     # when
     response = staff_api_client.post_graphql(

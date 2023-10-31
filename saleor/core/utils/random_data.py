@@ -30,7 +30,6 @@ from ...account.search import (
 )
 from ...account.utils import store_user_address
 from ...attribute.models import (
-    AssignedPageAttribute,
     AssignedProductAttribute,
     AssignedProductAttributeValue,
     AssignedVariantAttribute,
@@ -403,20 +402,6 @@ def assign_attribute_values_to_variants(variant_attribute_values):
         AssignedVariantAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
 
 
-def assign_attributes_to_pages(page_attributes):
-    for value in page_attributes:
-        pk = value["pk"]
-        defaults = dict(value["fields"])
-        defaults["page_id"] = defaults.pop("page")
-        defaults["assignment_id"] = defaults.pop("assignment")
-        assigned_values = defaults.pop("values")
-        assoc, created = AssignedPageAttribute.objects.update_or_create(
-            pk=pk, defaults=defaults
-        )
-        if created:
-            assoc.values.set(AttributeValue.objects.filter(pk__in=assigned_values))
-
-
 def set_field_as_money(defaults, field):
     amount_field = f"{field}_amount"
     if amount_field in defaults and defaults[amount_field] is not None:
@@ -470,7 +455,6 @@ def create_products_by_schema(placeholder_dir, create_images):
     assign_attribute_values_to_variants(
         types["attribute.assignedvariantattributevalue"]
     )
-    assign_attributes_to_pages(page_attributes=types["attribute.assignedpageattribute"])
     create_collections(
         data=types["product.collection"], placeholder_dir=placeholder_dir
     )
