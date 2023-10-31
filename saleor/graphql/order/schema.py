@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Optional
 
 import graphene
@@ -74,6 +75,25 @@ def search_string_in_kwargs(kwargs: dict) -> bool:
 
 def sort_field_from_kwargs(kwargs: dict) -> Optional[list[str]]:
     return kwargs.get("sort_by", {}).get("field") or None
+
+
+def resolve_orders_wrapper(info, resolver_func, **kwargs):
+    if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
+        # sort by RANK can be used only with search filter
+        if not search_string_in_kwargs(kwargs):
+            raise GraphQLError(
+                "Sorting by RANK is available only when using a search filter."
+            )
+    if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
+        # default to sorting by RANK if search is used
+        # and no explicit sorting is requested
+        product_type = info.schema.get_type("OrderSortingInput")
+        kwargs["sort_by"] = product_type.create_container(
+            {"direction": "-", "field": ["search_rank", "id"]}
+        )
+    qs = resolver_func(info)
+    qs = filter_connection_queryset(qs, kwargs)
+    return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
 
 class OrderFilterInput(FilterInputObjectType):
@@ -172,41 +192,20 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_orders(_root, info: ResolveInfo, *, channel=None, **kwargs):
-        if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
-            # sort by RANK can be used only with search filter
-            if not search_string_in_kwargs(kwargs):
-                raise GraphQLError(
-                    "Sorting by RANK is available only when using a search filter."
-                )
-        if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
-            # default to sorting by RANK if search is used
-            # and no explicit sorting is requested
-            product_type = info.schema.get_type("OrderSortingInput")
-            kwargs["sort_by"] = product_type.create_container(
-                {"direction": "-", "field": ["search_rank", "id"]}
-            )
-        qs = resolve_orders(info, channel)
-        qs = filter_connection_queryset(qs, kwargs)
-        return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
+        resolve_func = partial(resolve_orders, channel_slug=channel)
+        return resolve_orders_wrapper(
+            info=info,
+            resolver_func=resolve_func,
+            **kwargs,
+        )
 
     @staticmethod
     def resolve_draft_orders(_root, info: ResolveInfo, **kwargs):
-        if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
-            # sort by RANK can be used only with search filter
-            if not search_string_in_kwargs(kwargs):
-                raise GraphQLError(
-                    "Sorting by RANK is available only when using a search filter."
-                )
-        if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
-            # default to sorting by RANK if search is used
-            # and no explicit sorting is requested
-            product_type = info.schema.get_type("OrderSortingInput")
-            kwargs["sort_by"] = product_type.create_container(
-                {"direction": "-", "field": ["search_rank", "id"]}
-            )
-        qs = resolve_draft_orders(info)
-        qs = filter_connection_queryset(qs, kwargs)
-        return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
+        return resolve_orders_wrapper(
+            info=info,
+            resolver_func=resolve_draft_orders,
+            **kwargs,
+        )
 
     @staticmethod
     def resolve_orders_total(_root, info: ResolveInfo, *, period, channel=None):

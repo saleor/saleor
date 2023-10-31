@@ -12,6 +12,7 @@ from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
 from ...graphql.meta.inputs import MetadataInput
 from ...order import OrderStatus
+from ...order import models as order_models
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions, AppPermission, OrderPermissions
@@ -20,7 +21,10 @@ from ...thumbnail.utils import (
     get_thumbnail_format,
     get_thumbnail_size,
 )
-from ..account.utils import check_is_owner_or_has_one_of_perms
+from ..account.utils import (
+    check_is_owner_or_has_one_of_perms,
+    get_user_accessible_channels,
+)
 from ..app.dataloaders import AppByIdLoader, get_app_promise
 from ..app.types import App
 from ..channel.dataloaders import ChannelBySlugLoader
@@ -29,6 +33,7 @@ from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUse
 from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
+from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_310,
@@ -37,16 +42,17 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
-from ..core.doc_category import DOC_CATEGORY_USERS
+from ..core.doc_category import DOC_CATEGORY_ORDERS, DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.fields import ConnectionField, PermissionsField
+from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.tracing import traced_resolver
 from ..core.types import (
     BaseInputObjectType,
     BaseObjectType,
     CountryDisplay,
+    FilterInputObjectType,
     Image,
     ModelObjectType,
     NonNullList,
@@ -57,6 +63,8 @@ from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_n
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
+from ..order.filters import OrderFilter
+from ..order.sorters import OrderSortingInput
 from ..payment.types import StoredPaymentMethod
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
@@ -69,6 +77,12 @@ from .dataloaders import (
 )
 from .enums import CountryCodeEnum, CustomerEventsEnum
 from .utils import can_user_manage_group, get_groups_which_user_can_manage
+
+
+class UserOrderFilterInput(FilterInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+        filterset_class = OrderFilter
 
 
 class AddressInput(BaseInputObjectType):
@@ -358,8 +372,10 @@ class User(ModelObjectType[models.User]):
         description="A note about the customer.",
         permissions=[AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF],
     )
-    orders = ConnectionField(
+    orders = FilterConnectionField(
         "saleor.graphql.order.types.OrderCountableConnection",
+        sort_by=OrderSortingInput(description="Sort orders."),
+        filter=UserOrderFilterInput(description="Filtering options for orders."),
         description=(
             "List of user's orders. Requires one of the following permissions: "
             f"{AccountPermissions.MANAGE_STAFF.name}, "
@@ -607,13 +623,28 @@ class User(ModelObjectType[models.User]):
                 orders, info, kwargs, OrderCountableConnection
             )
 
-        to_fetch = [OrdersByUserLoader(info.context).load(root.id)]
-        if isinstance(requester, models.User):
-            to_fetch.append(
-                AccessibleChannelsByUserIdLoader(info.context).load(requester.id)
-            )
+        if "filter" in kwargs or "sort_by" in kwargs:
+            from ..order.schema import resolve_orders_wrapper
 
-        return Promise.all(to_fetch).then(_resolve_orders)
+            def _resolve_user_orders(info):
+                database_connection_name = get_database_connection_name(info.context)
+                qs = order_models.Order.objects.using(database_connection_name).filter(
+                    user_id=root.id,
+                )
+                if root != requester and isinstance(requester, models.User):
+                    accessible_channels = get_user_accessible_channels(info, requester)
+                    channels_ids = [channel.id for channel in accessible_channels]
+                    qs = qs.filter(channel_id__in=channels_ids)
+
+            return resolve_orders_wrapper(info, _resolve_user_orders, **kwargs)
+        else:
+            to_fetch = [OrdersByUserLoader(info.context).load(root.id)]
+            if isinstance(requester, models.User):
+                to_fetch.append(
+                    AccessibleChannelsByUserIdLoader(info.context).load(requester.id)
+                )
+
+            return Promise.all(to_fetch).then(_resolve_orders)
 
     @staticmethod
     def resolve_avatar(

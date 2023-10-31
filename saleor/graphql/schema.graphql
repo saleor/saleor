@@ -10405,6 +10405,12 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   List of user's orders. Requires one of the following permissions: MANAGE_STAFF, OWNER.
   """
   orders(
+    """Sort orders."""
+    sortBy: OrderSortingInput
+
+    """Filtering options for orders."""
+    filter: UserOrderFilterInput
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
@@ -12993,6 +12999,80 @@ type OrderCountableEdge @doc(category: "Orders") {
   cursor: String!
 }
 
+input OrderSortingInput @doc(category: "Orders") {
+  """Specifies the direction in which to sort orders."""
+  direction: OrderDirection!
+
+  """Sort orders by the selected field."""
+  field: OrderSortField!
+}
+
+enum OrderSortField @doc(category: "Orders") {
+  """Sort orders by number."""
+  NUMBER
+
+  """
+  Sort orders by rank. Note: This option is available only with the `search` filter.
+  """
+  RANK
+
+  """
+  Sort orders by creation date. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
+  CREATION_DATE
+
+  """
+  Sort orders by creation date. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
+  CREATED_AT
+
+  """Sort orders by last modified at."""
+  LAST_MODIFIED_AT
+
+  """Sort orders by customer."""
+  CUSTOMER
+
+  """Sort orders by payment."""
+  PAYMENT
+
+  """Sort orders by fulfillment status."""
+  FULFILLMENT_STATUS
+}
+
+input UserOrderFilterInput @doc(category: "Orders") {
+  paymentStatus: [PaymentChargeStatusEnum!]
+  status: [OrderStatusFilter!]
+  customer: String
+  created: DateRangeInput
+  search: String
+  metadata: [MetadataFilter!]
+  channels: [ID!]
+  authorizeStatus: [OrderAuthorizeStatusEnum!]
+  chargeStatus: [OrderChargeStatusEnum!]
+  updatedAt: DateTimeRangeInput
+  isClickAndCollect: Boolean
+  isPreorder: Boolean
+  ids: [ID!]
+  giftCardUsed: Boolean
+  giftCardBought: Boolean
+  numbers: [String!]
+  checkoutIds: [ID!]
+}
+
+enum OrderStatusFilter @doc(category: "Orders") {
+  READY_TO_FULFILL
+  READY_TO_CAPTURE
+  UNFULFILLED
+  UNCONFIRMED
+  PARTIALLY_FULFILLED
+  FULFILLED
+  CANCELED
+}
+
 """Represents user's permissions."""
 type UserPermission @doc(category: "Users") {
   """Internal code for permission."""
@@ -13553,50 +13633,6 @@ type OrderEventCountableEdge @doc(category: "Orders") {
   cursor: String!
 }
 
-input OrderSortingInput @doc(category: "Orders") {
-  """Specifies the direction in which to sort orders."""
-  direction: OrderDirection!
-
-  """Sort orders by the selected field."""
-  field: OrderSortField!
-}
-
-enum OrderSortField @doc(category: "Orders") {
-  """Sort orders by number."""
-  NUMBER
-
-  """
-  Sort orders by rank. Note: This option is available only with the `search` filter.
-  """
-  RANK
-
-  """
-  Sort orders by creation date. 
-  
-  DEPRECATED: this field will be removed in Saleor 4.0.
-  """
-  CREATION_DATE
-
-  """
-  Sort orders by creation date. 
-  
-  DEPRECATED: this field will be removed in Saleor 4.0.
-  """
-  CREATED_AT
-
-  """Sort orders by last modified at."""
-  LAST_MODIFIED_AT
-
-  """Sort orders by customer."""
-  CUSTOMER
-
-  """Sort orders by payment."""
-  PAYMENT
-
-  """Sort orders by fulfillment status."""
-  FULFILLMENT_STATUS
-}
-
 input OrderFilterInput @doc(category: "Orders") {
   paymentStatus: [PaymentChargeStatusEnum!]
   status: [OrderStatusFilter!]
@@ -13615,16 +13651,6 @@ input OrderFilterInput @doc(category: "Orders") {
   giftCardBought: Boolean
   numbers: [String!]
   checkoutIds: [ID!]
-}
-
-enum OrderStatusFilter @doc(category: "Orders") {
-  READY_TO_FULFILL
-  READY_TO_CAPTURE
-  UNFULFILLED
-  UNCONFIRMED
-  PARTIALLY_FULFILLED
-  FULFILLED
-  CANCELED
 }
 
 input OrderDraftFilterInput @doc(category: "Orders") {
