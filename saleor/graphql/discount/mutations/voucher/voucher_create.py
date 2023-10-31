@@ -108,7 +108,8 @@ class VoucherCreate(ModelMutation):
         code_instance = cls.create_code_instance(code, voucher_instance)
 
         cls.clean_instance(info, voucher_instance)
-        cls.clean_code_instance(code_instance)
+        if code_instance:
+            cls.clean_code_instance(code_instance)
 
         cls.save(info, voucher_instance, code_instance)
 
@@ -164,7 +165,8 @@ class VoucherCreate(ModelMutation):
     ):
         with transaction.atomic():
             voucher_instance.save()
-            code_instance.save()
+            if code_instance:
+                code_instance.save()
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
