@@ -1139,7 +1139,6 @@ def test_update_page_change_attribute_values_ordering(
         for val in [attr_value_2, attr_value_1, attr_value_3]
     ]
 
-    # page.refresh_from_db()
     assert list(
         get_page_attribute_values(page, attribute).values_list("id", flat=True)
     ) == [attr_value_2.pk, attr_value_1.pk, attr_value_3.pk]

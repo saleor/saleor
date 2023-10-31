@@ -761,8 +761,10 @@ class AttributeAssignmentMixin:
 
 
 class PageAttributeAssignmentMixin(AttributeAssignmentMixin):
-    # TODO: merge the code here with the mixin above
-    # when all attribute relations are cleaned up
+    # TODO: Merge the code here with the mixin above
+    # after the refactor of Page <> Attribute and
+    # Product <> Attribute dedicated mixins
+    # should me merged into AttributeAssignmentMixin
 
     @classmethod
     def _get_assigned_attribute_value_if_exists(

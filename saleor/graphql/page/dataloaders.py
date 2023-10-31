@@ -1,11 +1,11 @@
 from collections import defaultdict
 
-from django.db.models import prefetch_related_objects
+from promise import Promise
 
 from ...attribute.models import AssignedPageAttributeValue, AttributePage
 from ...page.models import Page, PageType
 from ...permission.enums import PagePermissions
-from ..attribute.dataloaders import AttributesByAttributeId
+from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ..core.dataloaders import DataLoader
 from ..utils import get_user_or_app_from_context
 
@@ -98,19 +98,21 @@ class AttributeValuesByPageIdLoader(DataLoader):
             .filter(page_id__in=keys)
             .iterator()
         )
-        prefetch_related_objects(attribute_values, "value")
+        value_ids = [a.value_id for a in attribute_values]
 
         def with_pages(pages):
             pages = [page for page in pages if page]
             page_type_ids = [p.page_type_id for p in pages]
 
-            def with_attributes(attribute_pages):
+            def with_attributes_and_values(result):
+                attribute_pages, values = result
                 page_type_attrubutes = dict(zip(page_type_ids, attribute_pages))
+                values_by_id_map = dict(zip(value_ids, values))
                 assigned_page_map = defaultdict(list)
 
                 for page in pages:
                     page_values = [
-                        page_value.value
+                        values_by_id_map.get(page_value.value_id)
                         for page_value in attribute_values
                         if page_value.page_id == page.id
                     ]
@@ -131,11 +133,11 @@ class AttributeValuesByPageIdLoader(DataLoader):
                         )
                 return [assigned_page_map[key] for key in keys]
 
-            return (
-                PageAttributesByPageTypeIdLoader(self.context)
-                .load_many(page_type_ids)
-                .then(with_attributes)
+            attributes = PageAttributesByPageTypeIdLoader(self.context).load_many(
+                page_type_ids
             )
+            values = AttributeValueByIdLoader(self.context).load_many(value_ids)
+            return Promise.all([attributes, values]).then(with_attributes_and_values)
 
         return PageByIdLoader(self.context).load_many(keys).then(with_pages)
 
