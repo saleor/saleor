@@ -2786,3 +2786,20 @@ def test_query_checkout_voucher(
     assert voucher_data["id"] == to_global_id_or_none(voucher)
     assert voucher_data["code"] == voucher.code
     assert voucher_data["name"] == voucher.name
+
+
+def test_query_checkout_voucher_by_customer_no_permission(
+    user_api_client,
+    checkout_with_voucher_free_shipping,
+    voucher_free_shipping,
+):
+    # given
+    query = CHECKOUT_WITH_VOUCHER_QUERY
+    checkout = checkout_with_voucher_free_shipping
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)

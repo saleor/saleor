@@ -18,6 +18,7 @@ from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import (
     AccountPermissions,
     CheckoutPermissions,
+    DiscountPermissions,
     PaymentPermissions,
 )
 from ...shipping.interface import ShippingMethodData
@@ -51,7 +52,7 @@ from ..core.descriptions import (
 )
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.enums import LanguageCodeEnum
-from ..core.fields import BaseField
+from ..core.fields import BaseField, PermissionsField
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
@@ -520,9 +521,10 @@ class Checkout(ModelObjectType[models.Checkout]):
             "Checkout.languageCode is defined; otherwise it's null"
         )
     )
-    voucher = graphene.Field(
+    voucher = PermissionsField(
         "saleor.graphql.discount.types.vouchers.Voucher",
         description="The voucher assigned to the checkout." + ADDED_IN_318,
+        permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
     )
     voucher_code = graphene.String(
         description="The code of voucher assigned to the checkout."
