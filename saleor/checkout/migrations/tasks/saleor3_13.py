@@ -1,14 +1,24 @@
-"""Checkout-related utility functions."""
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple
+from decimal import Decimal
+from typing import Iterable, Tuple
 
+from django.db.models.expressions import Exists, OuterRef
 from prices import Money
 
-from ..core.taxes import zero_money
-from . import CheckoutAuthorizeStatus, CheckoutChargeStatus
-from .models import Checkout
+from ....celeryconf import app
+from ....payment.models import TransactionItem
+from ...models import Checkout, CheckoutLine
 
-if TYPE_CHECKING:
-    from ..payment.models import TransactionItem
+# It takes less that a second to process the batch.
+# The memory usage peak on celery worker was around 40MB.
+BATCH_SIZE = 2000
+
+
+def zero_money(currency: str) -> Money:
+    """Return a money object set to zero.
+
+    This is a function used as a model's default.
+    """
+    return Money(0, currency)
 
 
 def _update_charge_status(
@@ -24,17 +34,17 @@ def _update_charge_status(
     )
 
     if total_charged <= zero_money_amount and checkout_with_only_zero_price_lines:
-        checkout.charge_status = CheckoutChargeStatus.FULL
+        checkout.charge_status = "full"
     elif total_charged <= zero_money_amount:
-        checkout.charge_status = CheckoutChargeStatus.NONE
+        checkout.charge_status = "none"
     elif total_charged < checkout_total_gross:
-        checkout.charge_status = CheckoutChargeStatus.PARTIAL
+        checkout.charge_status = "partial"
     elif total_charged == checkout_total_gross:
-        checkout.charge_status = CheckoutChargeStatus.FULL
+        checkout.charge_status = "full"
     elif total_charged > checkout_total_gross:
-        checkout.charge_status = CheckoutChargeStatus.OVERCHARGED
+        checkout.charge_status = "overcharged"
     else:
-        checkout.charge_status = CheckoutChargeStatus.NONE
+        checkout.charge_status = "none"
 
 
 def _update_authorize_status(
@@ -52,15 +62,15 @@ def _update_authorize_status(
     )
 
     if total_covered <= zero_money_amount and checkout_with_only_zero_price_lines:
-        checkout.authorize_status = CheckoutAuthorizeStatus.FULL
+        checkout.authorize_status = "full"
     elif total_covered == zero_money_amount:
-        checkout.authorize_status = CheckoutAuthorizeStatus.NONE
+        checkout.authorize_status = "none"
     elif total_covered >= checkout_total_gross:
-        checkout.authorize_status = CheckoutAuthorizeStatus.FULL
+        checkout.authorize_status = "full"
     elif total_covered < checkout_total_gross and total_covered > zero_money_amount:
-        checkout.authorize_status = CheckoutAuthorizeStatus.PARTIAL
+        checkout.authorize_status = "partial"
     else:
-        checkout.authorize_status = CheckoutAuthorizeStatus.NONE
+        checkout.authorize_status = "none"
 
 
 def _get_payment_amount_for_checkout(
@@ -81,14 +91,8 @@ def update_checkout_payment_statuses(
     checkout: Checkout,
     checkout_total_gross: Money,
     checkout_has_lines: bool,
-    checkout_transactions: Optional[Iterable["TransactionItem"]] = None,
-    save: bool = True,
+    checkout_transactions: Iterable["TransactionItem"],
 ):
-    current_authorize_status = checkout.authorize_status
-    current_charge_status = checkout.charge_status
-
-    if checkout_transactions is None:
-        checkout_transactions = checkout.payment_transactions.all()
     total_authorized_amount, total_charged_amount = _get_payment_amount_for_checkout(
         checkout_transactions, checkout.currency
     )
@@ -102,12 +106,31 @@ def update_checkout_payment_statuses(
     _update_charge_status(
         checkout, checkout_total_gross, total_charged_amount, checkout_has_lines
     )
-    if save:
-        fields_to_update = []
-        if current_authorize_status != checkout.authorize_status:
-            fields_to_update.append("authorize_status")
-        if current_charge_status != checkout.charge_status:
-            fields_to_update.append("charge_status")
-        if fields_to_update:
-            fields_to_update.append("last_change")
-            checkout.save(update_fields=fields_to_update)
+
+
+@app.task
+def fix_statuses_for_empty_checkouts_task():
+    empty_checkouts_fully_charged_and_authorized_ids = Checkout.objects.filter(
+        ~Exists(CheckoutLine.objects.filter(checkout_id=OuterRef("pk"))),
+        charge_status="full",
+        authorize_status="full",
+        total_gross_amount__lte=Decimal(0),
+    ).values_list("pk", flat=True)[:BATCH_SIZE]
+
+    if empty_checkouts_fully_charged_and_authorized_ids:
+        checkouts = Checkout.objects.filter(
+            pk__in=empty_checkouts_fully_charged_and_authorized_ids
+        ).prefetch_related("payment_transactions")
+        checkouts_to_update = []
+        for checkout in checkouts:
+            update_checkout_payment_statuses(
+                checkout,
+                checkout.total_gross_amount,
+                False,
+                checkout.payment_transactions.all(),
+            )
+            checkouts_to_update.append(checkout)
+        Checkout.objects.bulk_update(
+            checkouts_to_update, ["authorize_status", "charge_status"]
+        )
+        fix_statuses_for_empty_checkouts_task.delay()
