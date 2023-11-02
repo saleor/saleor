@@ -2,11 +2,12 @@ from decimal import Decimal
 
 import graphene
 
-from saleor.core.prices import quantize_price
-
+from .....core.prices import quantize_price
+from .....order.utils import update_order_charge_data
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import (
+    OrderChargeStatusEnum,
     OrderGrantRefundCreateErrorCode,
     OrderGrantRefundCreateLineErrorCode,
 )
@@ -42,6 +43,7 @@ mutation OrderGrantRefundCreate(
     }
     order{
       id
+      chargeStatus
       grantedRefunds{
         id
         amount{
@@ -97,7 +99,6 @@ def test_grant_refund_by_user(staff_api_client, permission_manage_orders, order)
     response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
 
     # then
-
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundCreate"]
     errors = data["errors"]
@@ -684,3 +685,39 @@ def test_grant_refund_with_lines_and_existing_other_grant_and_refund_exceeding_q
         line["code"]
         == OrderGrantRefundCreateLineErrorCode.QUANTITY_GREATER_THAN_AVAILABLE.name
     )
+
+
+def test_grant_refund_updates_order_charge_status(
+    staff_api_client, permission_manage_orders, order_with_lines
+):
+    # given
+    order = order_with_lines
+    order_id = to_global_id_or_none(order)
+    order.payment_transactions.create(
+        charged_value=order.total.gross.amount,
+        authorized_value=Decimal(12),
+        currency=order_with_lines.currency,
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    amount = Decimal("10.00")
+    reason = "Granted refund reason."
+    variables = {
+        "id": order_id,
+        "input": {"amount": amount, "reason": reason},
+    }
+    update_order_charge_data(order)
+    assert order.charge_status == OrderChargeStatusEnum.FULL.value
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert not errors
+
+    assert order_id == data["order"]["id"]
+    assert len(data["order"]["grantedRefunds"]) == 1
+
+    assert data["order"]["chargeStatus"] == OrderChargeStatusEnum.OVERCHARGED.name
