@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import graphene
 
 from .....order import FulfillmentStatus
@@ -13,6 +15,12 @@ QUERY_FULFILLMENT = """
                 trackingNumber
                 warehouse {
                     id
+                }
+                shippingRefundedAmount {
+                    amount
+                }
+                totalRefundedAmount {
+                    amount
                 }
                 lines {
                     orderLine {
@@ -111,3 +119,38 @@ def test_staff_can_query_order_fulfill_data_without_permission(
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(QUERY_ORDER_FULFILL_DATA, variables)
     assert_no_permission(response)
+
+
+def test_fulfillment_with_refund_details(
+    staff_api_client,
+    fulfilled_order,
+    warehouse,
+    permission_manage_orders,
+):
+    # given
+    order = fulfilled_order
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    fulfillment = order.fulfillments.first()
+    shipping_refund_amount = Decimal("10")
+    total_refund_amount = Decimal("15")
+    fulfillment.shipping_refund_amount = shipping_refund_amount
+    fulfillment.total_refund_amount = total_refund_amount
+    fulfillment.save()
+
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_orders)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_FULFILLMENT, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["order"]["fulfillments"]
+    assert len(data) == 1
+    fulfillment_data = data[0]
+
+    assert (
+        fulfillment_data["shippingRefundedAmount"]["amount"] == shipping_refund_amount
+    )
+    assert fulfillment_data["totalRefundedAmount"]["amount"] == total_refund_amount
