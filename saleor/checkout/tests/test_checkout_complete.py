@@ -1195,7 +1195,9 @@ def test_complete_checkout_0_total_with_transaction_for_mark_as_paid(
     checkout.billing_address = customer_user.default_billing_address
     checkout.save()
 
-    update_checkout_payment_statuses(checkout, zero_money(checkout.currency))
+    update_checkout_payment_statuses(
+        checkout, zero_money(checkout.currency), checkout_has_lines=True
+    )
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
@@ -1884,7 +1886,8 @@ def test_checkout_complete_pick_transaction_flow_when_checkout_total_zero(
     checkout.total = zero_taxed_money(checkout.currency)
     update_checkout_payment_statuses(
         checkout=checkout,
-        checkout_total_gross=checkout.total,
+        checkout_total_gross=checkout.total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     mocked_flow.return_value = order, False, {}
