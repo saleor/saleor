@@ -6054,7 +6054,7 @@ def collection_list(db, channel_USD):
 
 
 @pytest.fixture
-def page(db, page_type):
+def page(db, page_type, size_page_attribute):
     data = {
         "slug": "test-url",
         "title": "Test page",
@@ -6065,10 +6065,8 @@ def page(db, page_type):
     page = Page.objects.create(**data)
 
     # associate attribute value
-    page_attr = page_type.page_attributes.first()
-    page_attr_value = page_attr.values.first()
-
-    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+    page_attr_value = size_page_attribute.values.get(slug="10")
+    associate_attribute_values_to_instance(page, size_page_attribute, page_attr_value)
 
     return page
 
