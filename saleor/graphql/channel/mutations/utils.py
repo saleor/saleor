@@ -47,7 +47,6 @@ def clean_input_order_settings(
     channel_settings = [
         "automatically_confirm_all_new_orders",
         "automatically_fulfill_non_shippable_gift_card",
-        "mark_as_paid_strategy",
         "default_transaction_flow_strategy",
         "allow_unpaid_orders",
         "include_draft_order_in_voucher_usage",
@@ -55,12 +54,12 @@ def clean_input_order_settings(
 
     for field in channel_settings:
         if (value := order_settings.get(field)) is not None:
-            model_field = (
-                field
-                if field != "mark_as_paid_strategy"
-                else "order_mark_as_paid_strategy"
-            )
-            cleaned_input[model_field] = value
+            cleaned_input[field] = value
+
+    if (
+        mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy")
+    ) is not None:
+        cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
 
     if "expire_orders_after" in order_settings:
         expire_orders_after = order_settings["expire_orders_after"]

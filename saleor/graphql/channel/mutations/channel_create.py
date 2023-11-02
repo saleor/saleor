@@ -144,7 +144,11 @@ class OrderSettingsInput(BaseInputObjectType):
         required=False,
         description=(
             "Specify whether a coupon applied to draft orders will count toward "
-            "voucher usage." + ADDED_IN_318 + PREVIEW_FEATURE
+            "voucher usage."
+            "\n\nWarning:  when switching this setting from `false` to `true`, "
+            "the vouchers will be disconnected from all draft orders."
+            + ADDED_IN_318
+            + PREVIEW_FEATURE
         ),
     )
 
