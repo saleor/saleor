@@ -12,7 +12,7 @@ from ...core.mutations import ModelDeleteMutation
 from ...core.types import AppError
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from ..types import AppToken
-from .utils import app_is_not_removed
+from ..utils import app_is_not_removed
 
 
 class AppTokenDelete(ModelDeleteMutation):

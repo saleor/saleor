@@ -1,5 +1,8 @@
+from typing import Optional
+
 from django.core.exceptions import ValidationError
 
+from ...app.models import App
 from ..account.utils import get_out_of_scope_permissions
 from ..core.enums import AppErrorCode
 from ..utils import requestor_is_superuser
@@ -20,4 +23,16 @@ def ensure_can_manage_permissions(requestor, permission_items):
         params = {"permissions": missing_permissions}
         raise ValidationError(
             {"permissions": ValidationError(error_msg, code=code, params=params)}
+        )
+
+
+def app_is_not_removed(app: Optional[App], app_global_id: str, field_name: str):
+    if app and app.to_remove is True:
+        code = AppErrorCode.NOT_FOUND.value
+        raise ValidationError(
+            {
+                field_name: ValidationError(
+                    f"Couldn't resolve to a node: {app_global_id}", code=code
+                )
+            }
         )
