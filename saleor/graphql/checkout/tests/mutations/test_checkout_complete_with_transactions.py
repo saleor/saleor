@@ -126,6 +126,7 @@ def prepare_checkout_for_test(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
     return checkout
 
@@ -160,6 +161,7 @@ def test_checkout_without_any_transaction(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     redirect_url = "https://www.example.com"
@@ -208,6 +210,7 @@ def test_checkout_without_any_transaction_allow_to_create_order(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     redirect_url = "https://www.example.com"
@@ -262,6 +265,7 @@ def test_checkout_with_total_0(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     redirect_url = "https://www.example.com"
@@ -327,6 +331,7 @@ def test_checkout_with_authorized(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     redirect_url = "https://www.example.com"
@@ -423,6 +428,7 @@ def test_checkout_with_charged(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     redirect_url = "https://www.example.com"
@@ -512,6 +518,7 @@ def test_checkout_paid_with_multiple_transactions(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     redirect_url = "https://www.example.com"
@@ -570,6 +577,7 @@ def test_checkout_partially_paid(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     redirect_url = "https://www.example.com"
@@ -622,6 +630,7 @@ def test_checkout_partially_paid_allow_unpaid_order(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     redirect_url = "https://www.example.com"
@@ -688,6 +697,7 @@ def test_checkout_with_pending_charged(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     redirect_url = "https://www.example.com"
@@ -764,6 +774,7 @@ def test_checkout_with_pending_authorized(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     redirect_url = "https://www.example.com"
