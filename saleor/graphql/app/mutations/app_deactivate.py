@@ -22,7 +22,12 @@ class AppDeactivate(ModelMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, /, *, id):
-        app = cls.get_instance(info, id=id)
+        qs = models.App.objects.filter(to_remove=False)
+        app = cls.get_instance(
+            info,
+            id=id,
+            qs=qs,
+        )
         app.is_active = False
         cls.save(info, app, None)
         manager = get_plugin_manager_promise(info.context).get()
