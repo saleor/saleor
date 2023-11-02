@@ -148,14 +148,14 @@ def _create_variant_listing_promotion_rule(variant_listing_promotion_rule_to_cre
             variant_listing_promotion_rule_to_create = [
                 listing
                 for listing in variant_listing_promotion_rule_to_create
-                if listing.promotion_rule_id in [rule.id for rule in rules]
+                if listing.promotion_rule_id in {rule.id for rule in rules}
             ]
         if len(variant_listings) < len(listing_ids):
             variant_listing_promotion_rule_to_create = [
                 listing
                 for listing in variant_listing_promotion_rule_to_create
                 if listing.variant_channel_listing_id
-                in [listing.id for listing in variant_listings]
+                in {listing.id for listing in variant_listings}
             ]
         # After migrating to Django 4.0 we should use `update_conflicts` instead
         # of `ignore_conflicts`
