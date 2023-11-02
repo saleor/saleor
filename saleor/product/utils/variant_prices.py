@@ -3,12 +3,14 @@ from decimal import Decimal
 from typing import Optional
 from uuid import UUID
 
+from django.db import transaction
 from django.db.models import Exists, OuterRef
 from prices import Money
 
 from ...channel.models import Channel
 from ...core.taxes import zero_money
 from ...discount import PromotionRuleInfo
+from ...discount.models import PromotionRule
 from ...discount.utils import (
     calculate_discounted_price_for_promotions,
     fetch_active_promotion_rules,
@@ -117,15 +119,49 @@ def _update_or_create_listings(
             changed_variants_listings_to_update, ["discounted_price_amount"]
         )
     if changed_variant_listing_promotion_rule_to_create:
-        # after migrating to Django 4.0 we should use `update_conflicts` instead
-        # of `ignore_conflicts`
-        # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#bulk-create
-        VariantChannelListingPromotionRule.objects.bulk_create(
-            changed_variant_listing_promotion_rule_to_create, ignore_conflicts=True
+        _create_variant_listing_promotion_rule(
+            changed_variant_listing_promotion_rule_to_create
         )
     if changed_variant_listing_promotion_rule_to_update:
         VariantChannelListingPromotionRule.objects.bulk_update(
             changed_variant_listing_promotion_rule_to_update, ["discount_amount"]
+        )
+
+
+def _create_variant_listing_promotion_rule(variant_listing_promotion_rule_to_create):
+    with transaction.atomic():
+        rule_ids = [
+            listing.promotion_rule_id
+            for listing in variant_listing_promotion_rule_to_create
+        ]
+        listing_ids = [
+            listing.variant_channel_listing_id
+            for listing in variant_listing_promotion_rule_to_create
+        ]
+        # Lock PromotionRule and ProductVariantChannelListing before bulk_create
+        rules = PromotionRule.objects.filter(id__in=rule_ids).select_for_update()
+        variant_listings = ProductVariantChannelListing.objects.filter(
+            id__in=listing_ids
+        ).select_for_update()
+        # Do not create VariantChannelListingPromotionRule for rules that were deleted.
+        if len(rules) < len(rule_ids):
+            variant_listing_promotion_rule_to_create = [
+                listing
+                for listing in variant_listing_promotion_rule_to_create
+                if listing.promotion_rule_id in {rule.id for rule in rules}
+            ]
+        if len(variant_listings) < len(listing_ids):
+            variant_listing_promotion_rule_to_create = [
+                listing
+                for listing in variant_listing_promotion_rule_to_create
+                if listing.variant_channel_listing_id
+                in {listing.id for listing in variant_listings}
+            ]
+        # After migrating to Django 4.0 we should use `update_conflicts` instead
+        # of `ignore_conflicts`
+        # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#bulk-create
+        VariantChannelListingPromotionRule.objects.bulk_create(
+            variant_listing_promotion_rule_to_create, ignore_conflicts=True
         )
 
 
