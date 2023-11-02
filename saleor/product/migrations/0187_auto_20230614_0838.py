@@ -8,6 +8,11 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
     dependencies = [
         ("product", "0186_remove_product_charge_taxes"),
+        ("discount", "0045_promotions"),
+    ]
+
+    run_before = [
+        ("discount", "0047_migrate_sales_to_promotions"),
     ]
 
     operations = [
