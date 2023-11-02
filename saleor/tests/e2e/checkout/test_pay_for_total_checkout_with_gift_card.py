@@ -14,7 +14,7 @@ from .utils import (
 
 
 @pytest.mark.e2e
-def test_pay_for_checkout_with_gift_card_core_1101(
+def test_gift_card_total_payment_for_checkout_core_1101(
     e2e_logged_api_client,
     e2e_staff_api_client,
     permission_manage_products,
