@@ -507,6 +507,7 @@ def fetch_checkout_data(
         update_checkout_payment_statuses(
             checkout=checkout_info.checkout,
             checkout_total_gross=current_total_gross,
+            checkout_has_lines=bool(lines),
             checkout_transactions=checkout_transactions,
         )
 

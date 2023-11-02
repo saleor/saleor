@@ -13,12 +13,20 @@ if TYPE_CHECKING:
 
 
 def _update_charge_status(
-    checkout: Checkout, checkout_total_gross: Money, total_charged: Money
+    checkout: Checkout,
+    checkout_total_gross: Money,
+    total_charged: Money,
+    checkout_has_lines: bool,
 ):
     zero_money_amount = zero_money(checkout.currency)
     total_charged = max(zero_money_amount, total_charged)
+    checkout_with_only_zero_price_lines = (
+        checkout_has_lines and checkout_total_gross <= zero_money_amount
+    )
 
-    if total_charged <= zero_money_amount and checkout_total_gross != zero_money_amount:
+    if total_charged <= zero_money_amount and checkout_with_only_zero_price_lines:
+        checkout.charge_status = CheckoutChargeStatus.FULL
+    elif total_charged <= zero_money_amount:
         checkout.charge_status = CheckoutChargeStatus.NONE
     elif total_charged < checkout_total_gross:
         checkout.charge_status = CheckoutChargeStatus.PARTIAL
@@ -35,10 +43,18 @@ def _update_authorize_status(
     checkout_total_gross: Money,
     total_authorized: Money,
     total_charged: Money,
+    checkout_has_lines: bool,
 ):
     total_covered = total_authorized + total_charged
     zero_money_amount = zero_money(checkout.currency)
-    if total_covered == zero_money_amount and checkout_total_gross != zero_money_amount:
+
+    checkout_with_only_zero_price_lines = (
+        checkout_has_lines and checkout_total_gross <= zero_money_amount
+    )
+
+    if total_covered <= zero_money_amount and checkout_with_only_zero_price_lines:
+        checkout.authorize_status = CheckoutAuthorizeStatus.FULL
+    elif total_covered == zero_money_amount:
         checkout.authorize_status = CheckoutAuthorizeStatus.NONE
     elif total_covered >= checkout_total_gross:
         checkout.authorize_status = CheckoutAuthorizeStatus.FULL
@@ -65,19 +81,34 @@ def _get_payment_amount_for_checkout(
 def update_checkout_payment_statuses(
     checkout: Checkout,
     checkout_total_gross: Money,
+    checkout_has_lines: bool,
     checkout_transactions: Optional[Iterable["TransactionItem"]] = None,
     save: bool = True,
 ):
+    current_authorize_status = checkout.authorize_status
+    current_charge_status = checkout.charge_status
+
     if checkout_transactions is None:
         checkout_transactions = checkout.payment_transactions.all()
     total_authorized_amount, total_charged_amount = _get_payment_amount_for_checkout(
         checkout_transactions, checkout.currency
     )
     _update_authorize_status(
-        checkout, checkout_total_gross, total_authorized_amount, total_charged_amount
+        checkout,
+        checkout_total_gross,
+        total_authorized_amount,
+        total_charged_amount,
+        checkout_has_lines,
     )
-    _update_charge_status(checkout, checkout_total_gross, total_charged_amount)
+    _update_charge_status(
+        checkout, checkout_total_gross, total_charged_amount, checkout_has_lines
+    )
     if save:
-        checkout.save(
-            update_fields=["authorize_status", "charge_status", "last_change"]
-        )
+        fields_to_update = []
+        if current_authorize_status != checkout.authorize_status:
+            fields_to_update.append("authorize_status")
+        if current_charge_status != checkout.charge_status:
+            fields_to_update.append("charge_status")
+        if fields_to_update:
+            fields_to_update.append("last_change")
+            checkout.save(update_fields=fields_to_update)
