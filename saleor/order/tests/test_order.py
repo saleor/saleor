@@ -26,7 +26,7 @@ from ...tests.fixtures import recalculate_order
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
-from .. import FulfillmentStatus, OrderEvents, OrderStatus
+from .. import FulfillmentStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from ..calculations import fetch_order_prices_if_expired
 from ..events import (
     OrderEventsEmails,
@@ -1444,3 +1444,56 @@ def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
     assert not line.unit_discount_amount
     assert not line.unit_discount_value
     assert not line.unit_discount_reason
+
+
+@pytest.mark.parametrize(
+    "granted_refund_amount, charged_amount, expected_charge_status",
+    [
+        # granted refund contains part of the order's total, charge amount is 0
+        (Decimal("10.40"), Decimal("0"), OrderChargeStatus.NONE),
+        # granted refund covers the whole order's total, charge amount is 0
+        # status is FULL, as the order total - granted refund amount is 0.
+        # It means that a charge amount equal to 0 fully covers the order total (0)
+        (Decimal("98.40"), Decimal("0"), OrderChargeStatus.FULL),
+        (Decimal("0"), Decimal("0"), OrderChargeStatus.NONE),
+        (Decimal("0"), Decimal("11.00"), OrderChargeStatus.PARTIAL),
+        (Decimal("4"), Decimal("11.00"), OrderChargeStatus.PARTIAL),
+        # granted refund covers 88.40 of total, which is 98.40. Charge amount is 10.
+        # status is FULL, as the order total - granted refund amount is 10.
+        (Decimal("88.40"), Decimal("10.00"), OrderChargeStatus.FULL),
+        (Decimal("0"), Decimal("98.40"), OrderChargeStatus.FULL),
+        # granted refund covers 88.40 of total, which is 98.40. Charge amount is 98.40.
+        # status is OVERCHARGED as the charge amount is greater than the order
+        # total - granted refund amount
+        (Decimal("88.40"), Decimal("98.40"), OrderChargeStatus.OVERCHARGED),
+    ],
+)
+def test_order_update_charge_status_with_transaction_item_and_granted_refund(
+    granted_refund_amount,
+    charged_amount,
+    expected_charge_status,
+    order_with_lines,
+    staff_user,
+):
+    # given
+    assert order_with_lines.total.gross.amount == Decimal("98.40")
+    order_with_lines.payment_transactions.create(
+        charged_value=charged_amount,
+        authorized_value=Decimal(12),
+        currency=order_with_lines.currency,
+    )
+
+    order_with_lines.granted_refunds.create(
+        amount_value=granted_refund_amount,
+        currency="USD",
+        reason="Test reason",
+        user=staff_user,
+    )
+
+    # when
+    update_order_charge_data(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+
+    assert order_with_lines.charge_status == expected_charge_status
