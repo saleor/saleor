@@ -586,6 +586,17 @@ class Fulfillment(ModelObjectType[models.Fulfillment]):
         required=False,
         description="Warehouse from fulfillment was fulfilled.",
     )
+    shipping_refunded_amount = graphene.Field(
+        Money,
+        description="Amount of refunded shipping price." + ADDED_IN_314,
+        required=False,
+    )
+    total_refunded_amount = graphene.Field(
+        Money,
+        description="Total refunded amount assigned to this fulfillment."
+        + ADDED_IN_314,
+        required=False,
+    )
 
     class Meta:
         description = "Represents order fulfillment."
@@ -626,6 +637,34 @@ class Fulfillment(ModelObjectType[models.Fulfillment]):
             FulfillmentLinesByFulfillmentIdLoader(info.context)
             .load(root.id)
             .then(_resolve_stock)
+        )
+
+    @staticmethod
+    def resolve_shipping_refunded_amount(root: models.Fulfillment, info):
+        if root.shipping_refund_amount is None:
+            return None
+
+        def _resolve_shipping_refund(order):
+            return prices.Money(root.shipping_refund_amount, currency=order.currency)
+
+        return (
+            OrderByIdLoader(info.context)
+            .load(root.order_id)
+            .then(_resolve_shipping_refund)
+        )
+
+    @staticmethod
+    def resolve_total_refunded_amount(root: models.Fulfillment, info):
+        if root.total_refund_amount is None:
+            return None
+
+        def _resolve_total_refund_amount(order):
+            return prices.Money(root.total_refund_amount, currency=order.currency)
+
+        return (
+            OrderByIdLoader(info.context)
+            .load(root.order_id)
+            .then(_resolve_total_refund_amount)
         )
 
 

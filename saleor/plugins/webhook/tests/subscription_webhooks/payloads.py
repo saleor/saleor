@@ -86,6 +86,8 @@ def generate_fulfillment_payload(fulfillment):
     return {
         "fulfillment": {
             "id": fulfillment_id,
+            "shippingRefundedAmount": None,
+            "totalRefundedAmount": None,
             "fulfillmentOrder": fulfillment.fulfillment_order,
             "trackingNumber": fulfillment.tracking_number,
             "status": fulfillment.status.upper(),
