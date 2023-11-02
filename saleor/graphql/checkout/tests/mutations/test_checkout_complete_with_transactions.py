@@ -210,6 +210,7 @@ def test_checkout_without_any_transaction_allow_to_create_order(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     redirect_url = "https://www.example.com"
@@ -629,6 +630,7 @@ def test_checkout_partially_paid_allow_unpaid_order(
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
     )
 
     redirect_url = "https://www.example.com"
