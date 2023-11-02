@@ -1044,13 +1044,13 @@ files = [
 
 [[package]]
 name = "django"
-version = "3.2.22"
+version = "3.2.23"
 description = "A high-level Python Web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "Django-3.2.22-py3-none-any.whl", hash = "sha256:c5e7b668025a6e06cad9ba6d4de1fd1a21212acebb51ea34abb400c6e4d33430"},
-    {file = "Django-3.2.22.tar.gz", hash = "sha256:83b6d66b06e484807d778263fdc7f9186d4dc1862fcfa6507830446ac6b060ba"},
+    {file = "Django-3.2.23-py3-none-any.whl", hash = "sha256:d48608d5f62f2c1e260986835db089fa3b79d6f58510881d316b8d88345ae6e1"},
+    {file = "Django-3.2.23.tar.gz", hash = "sha256:82968f3640e29ef4a773af2c28448f5f7a08d001c6ac05b32d02aeee6509508b"},
 ]
 
 [package.dependencies]
@@ -5300,4 +5300,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "f653f81dffe86a4a80bc10620ff077f12f07a511bd4aa5ad5e2428627b857068"
+content-hash = "7e20811cb722ce9e857b057a9fcf1f1ac82d8c26318d090af3813eaf3697f714"
