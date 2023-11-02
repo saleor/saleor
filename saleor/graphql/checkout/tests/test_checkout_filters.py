@@ -486,13 +486,15 @@ def test_checkouts_query_with_filter_authorize_status(
         currency=checkout_with_prices.currency, authorized_value=Decimal("10")
     )
 
-    update_checkout_payment_statuses(first_checkout, first_checkout.total.gross)
+    update_checkout_payment_statuses(
+        first_checkout, first_checkout.total.gross, checkout_has_lines=True
+    )
 
     checkout_with_prices.payment_transactions.create(
         currency=checkout_with_prices.currency, **transaction_data
     )
     update_checkout_payment_statuses(
-        checkout_with_prices, checkout_with_prices.total.gross
+        checkout_with_prices, checkout_with_prices.total.gross, checkout_has_lines=True
     )
 
     variables = {"filter": {"authorizeStatus": statuses}}
@@ -586,13 +588,15 @@ def test_checkouts_query_with_filter_charge_status(
         currency=checkout_with_prices.currency, charged_value=Decimal("10")
     )
 
-    update_checkout_payment_statuses(first_checkout, first_checkout.total.gross)
+    update_checkout_payment_statuses(
+        first_checkout, first_checkout.total.gross, checkout_has_lines=True
+    )
 
     checkout_with_prices.payment_transactions.create(
         currency=checkout_with_prices.currency, **transaction_data
     )
     update_checkout_payment_statuses(
-        checkout_with_prices, checkout_with_prices.total.gross
+        checkout_with_prices, checkout_with_prices.total.gross, checkout_has_lines=True
     )
 
     variables = {"filter": {"chargeStatus": statuses}}
