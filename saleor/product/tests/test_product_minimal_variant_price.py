@@ -1,13 +1,14 @@
 from decimal import ROUND_HALF_UP, Decimal
 from unittest.mock import patch
 
+import before_after
 import graphene
 import pytest
 from django.core.management import call_command
 from prices import Money
 
 from ...discount import RewardValueType
-from ...discount.models import Promotion
+from ...discount.models import Promotion, PromotionRule
 from ...product.models import Product, VariantChannelListingPromotionRule
 from ..utils.variant_prices import update_discounted_prices_for_promotion
 
@@ -485,3 +486,116 @@ def test_management_commmand_update_all_products_discounted_price(
     for (args, kwargs), product in zip(call_args_list, product_list):
         assert len(args[0]) == 1
         assert args[0][0].pk == product.pk
+
+
+def test_update_discounted_price_for_promotion_promotion_rule_deleted_in_meantime(
+    product, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
+    variant_price = Money("9.99", "USD")
+    variant_channel_listing.price = variant_price
+    variant_channel_listing.discounted_price = variant_price
+    variant_channel_listing.save()
+    product_channel_listing.refresh_from_db()
+
+    reward_value = Decimal("2")
+    promotion = Promotion.objects.create(
+        name="Promotion",
+    )
+    rule = promotion.rules.create(
+        name="Percentage promotion rule",
+        promotion=promotion,
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(variant_channel_listing.channel)
+
+    def delete_promotion_rule(*args, **kwargs):
+        PromotionRule.objects.all().delete()
+
+    # when
+    with before_after.before(
+        "saleor.product.utils.variant_prices._get_discounted_variants_prices_for_promotions",
+        delete_promotion_rule,
+    ):
+        update_discounted_prices_for_promotion(
+            Product.objects.filter(id__in=[product.id])
+        )
+
+    # then
+    expected_price_amount = variant_price.amount - reward_value
+    product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
+    assert product_channel_listing.discounted_price_amount == expected_price_amount
+    assert variant_channel_listing.discounted_price_amount == expected_price_amount
+    assert not variant_channel_listing.promotion_rules.all()
+    assert not variant_channel_listing.variantlistingpromotionrule.exists()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_update_discounted_price_rule_deleted_in_meantime_promotion_listing_exist(
+    product, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
+    variant_price = Money("9.99", "USD")
+    variant_channel_listing.price = variant_price
+    variant_channel_listing.discounted_price = variant_price
+    variant_channel_listing.save()
+    product_channel_listing.refresh_from_db()
+
+    reward_value = Decimal("2")
+    promotion = Promotion.objects.create(
+        name="Promotion",
+    )
+    rule = promotion.rules.create(
+        name="Percentage promotion rule",
+        promotion=promotion,
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(variant_channel_listing.channel)
+
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=variant_channel_listing,
+        promotion_rule=rule,
+        discount_amount=Decimal("1"),
+        currency=channel_USD.currency_code,
+    )
+
+    def delete_promotion_rule(*args, **kwargs):
+        rule.delete()
+
+    # when
+    with before_after.before(
+        "saleor.product.utils.variant_prices._update_or_create_listings",
+        delete_promotion_rule,
+    ):
+        update_discounted_prices_for_promotion(
+            Product.objects.filter(id__in=[product.id])
+        )
+
+    # then
+    expected_price_amount = variant_price.amount - reward_value
+    product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
+    assert product_channel_listing.discounted_price_amount == expected_price_amount
+    assert variant_channel_listing.discounted_price_amount == expected_price_amount
+    with pytest.raises(VariantChannelListingPromotionRule.DoesNotExist):
+        listing_promotion_rule.refresh_from_db()
+    assert not variant_channel_listing.variantlistingpromotionrule.exists()
