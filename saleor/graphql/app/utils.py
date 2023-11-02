@@ -26,9 +26,13 @@ def ensure_can_manage_permissions(requestor, permission_items):
         )
 
 
-def app_is_not_removed(app: Optional[App], app_global_id: str, field_name: str):
+def app_is_not_removed(
+    app: Optional[App],
+    app_global_id: str,
+    field_name: str,
+    code: str = AppErrorCode.NOT_FOUND.value,
+):
     if app and app.to_remove is True:
-        code = AppErrorCode.NOT_FOUND.value
         raise ValidationError(
             {
                 field_name: ValidationError(
