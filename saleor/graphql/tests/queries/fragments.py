@@ -190,6 +190,12 @@ fragment FulfillmentDetails on Fulfillment {
   fulfillmentOrder
   trackingNumber
   status
+  shippingRefundedAmount{
+    amount
+  }
+  totalRefundedAmount{
+    amount
+  }
   lines {
     id
     quantity
