@@ -13,14 +13,8 @@ from ....tests.utils import get_graphql_content
 from ...enums import DiscountValueTypeEnum
 
 UPDATE_VOUCHER_MUTATION = """
-    mutation  voucherUpdate($code: String,
-        $discountValueType: DiscountValueTypeEnum, $id: ID!,
-        $applyOncePerOrder: Boolean, $minCheckoutItemsQuantity: Int) {
-            voucherUpdate(id: $id, input: {
-                code: $code, discountValueType: $discountValueType,
-                applyOncePerOrder: $applyOncePerOrder,
-                minCheckoutItemsQuantity: $minCheckoutItemsQuantity
-                }) {
+    mutation  voucherUpdate($id: ID!, $input: VoucherInput!) {
+            voucherUpdate(id: $id, input: $input) {
                 errors {
                     field
                     code
@@ -48,10 +42,12 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert voucher.code != new_code
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
-        "code": new_code,
-        "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
-        "applyOncePerOrder": apply_once_per_order,
-        "minCheckoutItemsQuantity": 10,
+        "input": {
+            "code": new_code,
+            "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
+            "applyOncePerOrder": apply_once_per_order,
+            "minCheckoutItemsQuantity": 10,
+        },
     }
 
     # when
@@ -70,6 +66,30 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert code_instance.code == new_code
 
 
+def test_update_voucher_without_code(
+    staff_api_client, voucher, permission_manage_discounts
+):
+    # given
+    code_instance = voucher.codes.first()
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {
+            "countries": ["AO"],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["voucherUpdate"]["voucher"]
+
+    assert data["code"] == code_instance.code
+
+
 def test_update_voucher_lack_of_code_instance(
     staff_api_client, voucher, permission_manage_discounts
 ):
@@ -82,10 +102,12 @@ def test_update_voucher_lack_of_code_instance(
     assert voucher.code != new_code
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
-        "code": new_code,
-        "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
-        "applyOncePerOrder": apply_once_per_order,
-        "minCheckoutItemsQuantity": 10,
+        "input": {
+            "code": new_code,
+            "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
+            "applyOncePerOrder": apply_once_per_order,
+            "minCheckoutItemsQuantity": 10,
+        },
     }
 
     # when
@@ -122,7 +144,9 @@ def test_update_voucher_trigger_webhook(
 
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
-        "code": "testcode123",
+        "input": {
+            "code": "testcode123",
+        },
     }
 
     # when
@@ -138,7 +162,7 @@ def test_update_voucher_trigger_webhook(
             {
                 "id": variables["id"],
                 "name": voucher.name,
-                "code": variables["code"],
+                "code": variables["input"]["code"],
                 "meta": generate_meta(
                     requestor_data=generate_requestor(
                         SimpleLazyObject(lambda: staff_api_client.user)
