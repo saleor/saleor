@@ -1212,7 +1212,8 @@ def create_transaction_event_from_request_and_webhook_response(
 
     psp_reference = transaction_request_response.psp_reference
     request_event.psp_reference = psp_reference
-    request_event.save()
+    request_event.include_in_calculations = True
+    request_event.save(update_fields=["psp_reference", "include_in_calculations"])
     event = None
     if response_event := transaction_request_response.event:
         event, error_msg = _create_event_from_response(
