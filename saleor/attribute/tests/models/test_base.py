@@ -82,6 +82,7 @@ def test_max_sort_order_when_deleting_attribute_value():
     value.delete()
 
     # then
+    attribute.refresh_from_db()
     assert attribute.max_sort_order == 1
     value2.refresh_from_db()
     assert value2.sort_order == 1

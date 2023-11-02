@@ -281,12 +281,7 @@ class AttributeValue(ModelWithExternalReference):
     @transaction.atomic
     def save(self, *args, **kwargs):
         if self.pk is None or self.sort_order is None:
-            if self.attribute.max_sort_order is None:
-                value = self._calculate_sort_order_value()
-            else:
-                value = self.attribute.max_sort_order
-
-            self._save_new_max_sort_order(value + 1)
+            self.set_current_sorting_order()
 
         super().save(*args, **kwargs)
 
@@ -297,13 +292,14 @@ class AttributeValue(ModelWithExternalReference):
             if qs.filter(sort_order__gt=self.sort_order).update(
                 sort_order=F("sort_order") - 1
             ):
-                self.attribute.max_sort_order = max(
-                    0,
-                    self.attribute.max_sort_order - 1
-                    if self.attribute.max_sort_order
-                    else 0,
-                )
-                self.attribute.save(update_fields=["max_sort_order"])
+                if self.attribute.max_sort_order is None:
+                    value = self._calculate_sort_order_value()
+                    self.attribute.max_sort_order = value - 1
+                    self.attribute.save(update_fields=["max_sort_order"])
+                else:
+                    Attribute.objects.filter(pk=self.attribute.pk).update(
+                        max_sort_order=F("max_sort_order") - 1
+                    )
 
         super().delete(*args, **kwargs)
 
@@ -316,6 +312,17 @@ class AttributeValue(ModelWithExternalReference):
         self.sort_order = value
         self.attribute.max_sort_order = value
         self.attribute.save(update_fields=["max_sort_order"])
+
+    def set_current_sorting_order(self):
+        if self.attribute.max_sort_order is None:
+            value = self._calculate_sort_order_value()
+            self._save_new_max_sort_order(value + 1)
+        else:
+            Attribute.objects.filter(pk=self.attribute.pk).update(
+                max_sort_order=F("max_sort_order") + 1
+            )
+            self.attribute.refresh_from_db()
+            self.sort_order = self.attribute.max_sort_order
 
 
 class AttributeValueTranslation(Translation):
