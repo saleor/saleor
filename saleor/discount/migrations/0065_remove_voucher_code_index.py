@@ -12,6 +12,7 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             """
             DROP INDEX CONCURRENTLY IF EXISTS discount_voucher_code_ff8dc52c_like;
-            """
+            """,
+            reverse_sql=migrations.RunSQL.noop,
         )
     ]
