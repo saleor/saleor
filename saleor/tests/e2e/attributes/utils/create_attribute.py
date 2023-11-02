@@ -25,6 +25,7 @@ def attribute_create(
     value_required=True,
     is_variant_only=False,
     values=None,
+    unit=None,
 ):
     variables = {
         "input": {
@@ -35,6 +36,7 @@ def attribute_create(
             "valueRequired": value_required,
             "isVariantOnly": is_variant_only,
             "values": values,
+            "unit": unit,
         }
     }
 
