@@ -171,7 +171,7 @@ def decrease_voucher_code_usage_of_draft_orders(channel_id: int):
 def decrease_voucher_codes_usage_task(voucher_code_ids):
     # Batch of size 1000 takes ~1sec and consumes ~20mb at peak
     BATCH_SIZE = 1000
-    ids = sorted(voucher_code_ids)[:BATCH_SIZE]
+    ids = voucher_code_ids[:BATCH_SIZE]
     if (
         voucher_codes := VoucherCode.objects.filter(pk__in=ids)
         .select_related("voucher")
@@ -198,7 +198,7 @@ def disconnect_voucher_codes_from_draft_orders(channel_id: int):
 def disconnect_voucher_codes_from_draft_orders_task(order_ids):
     # Batch of size 1000 takes ~1sec and consumes ~20mb at peak
     BATCH_SIZE = 1000
-    ids = sorted(order_ids)[:BATCH_SIZE]
+    ids = order_ids[:BATCH_SIZE]
     if orders := Order.objects.filter(pk__in=ids).only(
         "voucher_code", "should_refresh_prices"
     ):
