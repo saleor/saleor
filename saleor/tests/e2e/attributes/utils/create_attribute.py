@@ -26,6 +26,7 @@ def attribute_create(
     is_variant_only=False,
     values=None,
     unit=None,
+    entityType=None,
 ):
     variables = {
         "input": {
@@ -37,6 +38,7 @@ def attribute_create(
             "isVariantOnly": is_variant_only,
             "values": values,
             "unit": unit,
+            "entityType": entityType,
         }
     }
 

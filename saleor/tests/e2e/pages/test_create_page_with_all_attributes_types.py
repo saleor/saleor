@@ -5,6 +5,8 @@ import pytz
 
 from ..attributes.utils import attribute_create
 from ..pages.utils import create_page, create_page_type
+from ..product.utils.preparing_product import prepare_product
+from ..shop.utils.preparing_shop import prepare_shop
 from ..utils import assign_permissions
 
 
@@ -138,6 +140,19 @@ def prepare_attributes(e2e_staff_api_client):
 
     attr_swatch_id = attr_swatch["id"]
 
+    # Reference
+    attr_reference = attribute_create(
+        e2e_staff_api_client,
+        input_type="REFERENCE",
+        name="Reference test",
+        slug="reference-test",
+        type="PAGE_TYPE",
+        value_required=True,
+        entityType="PRODUCT",
+    )
+
+    attr_reference_id = attr_reference["id"]
+
     return (
         attr_dropdown_id,
         attr_multiselect_id,
@@ -148,6 +163,7 @@ def prepare_attributes(e2e_staff_api_client):
         attr_numeric_id,
         attr_bool_id,
         attr_swatch_id,
+        attr_reference_id,
     )
 
 
@@ -156,10 +172,41 @@ def test_order_cancel_fulfillment_core_0220(
     e2e_staff_api_client,
     permission_manage_page_types_and_attributes,
     permission_manage_pages,
+    permission_manage_products,
+    permission_manage_channels,
+    permission_manage_shipping,
+    permission_manage_product_types_and_attributes,
+    permission_manage_discounts,
 ):
     # Before
-    permissions = [permission_manage_page_types_and_attributes, permission_manage_pages]
+    permissions = [
+        permission_manage_page_types_and_attributes,
+        permission_manage_pages,
+        permission_manage_products,
+        permission_manage_channels,
+        permission_manage_shipping,
+        permission_manage_product_types_and_attributes,
+        permission_manage_discounts,
+    ]
     assign_permissions(e2e_staff_api_client, permissions)
+
+    (
+        warehouse_id,
+        channel_id,
+        _channel_slug,
+        _shipping_method_id,
+    ) = prepare_shop(e2e_staff_api_client)
+
+    (
+        product_id,
+        _product_variant_id,
+        _product_variant_price,
+    ) = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        23,
+    )
 
     (
         attr_dropdown_id,
@@ -171,6 +218,7 @@ def test_order_cancel_fulfillment_core_0220(
         attr_numeric_id,
         attr_bool_id,
         attr_swatch_id,
+        attr_reference_id,
     ) = prepare_attributes(e2e_staff_api_client)
 
     # Step 1 - Create page type with attributes
@@ -186,6 +234,7 @@ def test_order_cancel_fulfillment_core_0220(
             attr_numeric_id,
             attr_bool_id,
             attr_swatch_id,
+            attr_reference_id,
         ],
     )
     page_type_id = page_type_data["id"]
@@ -207,6 +256,7 @@ def test_order_cancel_fulfillment_core_0220(
         {"id": attr_numeric_id, "numeric": 10},
         {"id": attr_bool_id, "boolean": True},
         {"id": attr_swatch_id, "values": ["blue"]},
+        {"id": attr_reference_id, "references": [product_id]},
     ]
     page = create_page(
         e2e_staff_api_client,
