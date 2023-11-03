@@ -183,7 +183,7 @@ class OrderGrantRefundCreate(BaseMutation):
         input: dict[str, Any],
     ):
         amount = input.get("amount")
-        reason = input.get("reason", "")
+        reason = input.get("reason") or ""
         input_lines = input.get("lines", [])
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", None)
 

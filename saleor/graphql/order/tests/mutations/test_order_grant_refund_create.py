@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import graphene
+import pytest
 
 from .....core.prices import quantize_price
 from .....order.utils import update_order_charge_data
@@ -84,12 +85,14 @@ mutation OrderGrantRefundCreate(
 """
 
 
-def test_grant_refund_by_user(staff_api_client, permission_manage_orders, order):
+@pytest.mark.parametrize("reason", ["", "Reason", None])
+def test_grant_refund_by_user(
+    reason, staff_api_client, permission_manage_orders, order
+):
     # given
     order_id = to_global_id_or_none(order)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     amount = Decimal("10.00")
-    reason = "Granted refund reason."
     variables = {
         "id": order_id,
         "input": {"amount": amount, "reason": reason},
@@ -114,6 +117,7 @@ def test_grant_refund_by_user(staff_api_client, permission_manage_orders, order)
         == granted_refund_from_db.amount_value
         == amount
     )
+    reason = reason or ""
     assert (
         granted_refund_assigned_to_order["reason"]
         == reason
@@ -127,12 +131,12 @@ def test_grant_refund_by_user(staff_api_client, permission_manage_orders, order)
     assert not granted_refund_assigned_to_order["app"]
 
 
-def test_grant_refund_by_app(app_api_client, permission_manage_orders, order):
+@pytest.mark.parametrize("reason", ["", "Reason", None])
+def test_grant_refund_by_app(reason, app_api_client, permission_manage_orders, order):
     # given
     order_id = to_global_id_or_none(order)
     app_api_client.app.permissions.set([permission_manage_orders])
     amount = Decimal("10.00")
-    reason = "Granted refund reason."
     variables = {
         "id": order_id,
         "input": {"amount": amount, "reason": reason},
@@ -157,6 +161,7 @@ def test_grant_refund_by_app(app_api_client, permission_manage_orders, order):
         == amount
         == granted_refund_from_db.amount_value
     )
+    reason = reason or ""
     assert granted_refund["reason"] == reason == granted_refund_from_db.reason
     assert not granted_refund["user"]
     assert (
