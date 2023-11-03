@@ -31,6 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add transaction items deletion to cleardb command. - #14198 by @jakubkuc
 - Added validation for timestamp comparison #14025 by @ritanjandawn
 - Page -> Attributes refactor. The goal is to simplify the attribute models. The current attribute model relations are complex and really hard to understand. - #13621
+- `requirements.txt` and `requirements_dev.txt` were dropped in favor of only supporting `poetry` - #14611 by @patrys
 
 # 3.17.0
 
