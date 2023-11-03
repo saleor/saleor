@@ -274,3 +274,27 @@ def test_webhook_trigger_object_id_does_not_match_event(
     assert error["field"] == "objectId"
     assert error["code"] == WebhookTriggerErrorCode.INVALID_ID.name
     assert error["message"] == "ObjectId doesn't match event type."
+
+
+def test_webhook_trigger_for_removed_app(
+    staff_api_client,
+    order,
+    subscription_address_created_webhook_removed_app,
+):
+    # given
+    query = WEBHOOK_TRIGGER_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    webhook = subscription_address_created_webhook_removed_app
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
+
+    variables = {"webhookId": webhook_id, "objectId": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["webhookTrigger"]
+    assert app_data["delivery"] is None
+    assert app_data["errors"][0]["code"] == WebhookTriggerErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "webhookId"

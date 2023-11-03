@@ -7,10 +7,10 @@ from . import subscription_queries as queries
 
 @pytest.fixture
 def subscription_webhook(webhook_app):
-    def fun(query, event_type, name="Subscription"):
+    def fun(query, event_type, name="Subscription", app=webhook_app):
         webhook = Webhook.objects.create(
             name=name,
-            app=webhook_app,
+            app=app,
             target_url="http://www.example.com/any",
             subscription_query=query,
         )
@@ -18,6 +18,13 @@ def subscription_webhook(webhook_app):
         return webhook
 
     return fun
+
+
+@pytest.fixture
+def subscription_address_created_webhook_removed_app(subscription_webhook, removed_app):
+    return subscription_webhook(
+        queries.ADDRESS_CREATED, WebhookEventAsyncType.ADDRESS_CREATED, app=removed_app
+    )
 
 
 @pytest.fixture
