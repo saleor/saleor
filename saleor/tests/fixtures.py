@@ -6996,6 +6996,15 @@ def event_delivery(event_payload, webhook, app):
 
 
 @pytest.fixture
+def event_delivery_removed_app(event_payload, webhook_removed_app):
+    return EventDelivery.objects.create(
+        event_type=WebhookEventAsyncType.ANY,
+        payload=event_payload,
+        webhook=webhook_removed_app,
+    )
+
+
+@pytest.fixture
 def event_attempt(event_delivery):
     """Return event delivery attempt object"""
     return EventDeliveryAttempt.objects.create(
