@@ -94,15 +94,12 @@ def test_webhook_trigger_fail(
     assert payload["order"]["id"] == order_id
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")
 def test_webhook_trigger_missing_user_permission(
-    mocked_send_webhook_request,
     staff_api_client,
     order,
     subscription_order_created_webhook,
 ):
     # given
-    mocked_send_webhook_request.return_value = None
     query = WEBHOOK_TRIGGER_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     webhook = subscription_order_created_webhook
@@ -123,16 +120,13 @@ def test_webhook_trigger_missing_user_permission(
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")
 def test_webhook_trigger_staff_user_not_authorized(
-    mocked_send_webhook_request,
     user_api_client,
     order,
     subscription_order_created_webhook,
     permission_manage_orders,
 ):
     # given
-    mocked_send_webhook_request.return_value = None
     user_api_client.user.user_permissions.add(permission_manage_orders)
     query = WEBHOOK_TRIGGER_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -148,16 +142,13 @@ def test_webhook_trigger_staff_user_not_authorized(
     assert_no_permission(response)
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")
 def test_webhook_trigger_missing_subscription_query(
-    mocked_send_webhook_request,
     staff_api_client,
     permission_manage_orders,
     order,
     subscription_order_created_webhook,
 ):
     # given
-    mocked_send_webhook_request.return_value = None
     query = WEBHOOK_TRIGGER_MUTATION
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -180,16 +171,13 @@ def test_webhook_trigger_missing_subscription_query(
     assert error["message"] == "Missing subscription query for given webhook."
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")
 def test_webhook_trigger_invalid_subscription_query(
-    mocked_send_webhook_request,
     staff_api_client,
     permission_manage_orders,
     order,
     subscription_order_created_webhook,
 ):
     # given
-    mocked_send_webhook_request.return_value = None
     query = WEBHOOK_TRIGGER_MUTATION
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -214,16 +202,13 @@ def test_webhook_trigger_invalid_subscription_query(
     assert 'Unknown type "UndefinedEvent"' in error["message"]
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")
 def test_webhook_trigger_event_not_supported(
-    mocked_send_webhook_request,
     staff_api_client,
     permission_manage_orders,
     order,
     subscription_payment_authorize_webhook,
 ):
     # given
-    mocked_send_webhook_request.return_value = None
     query = WEBHOOK_TRIGGER_MUTATION
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -247,16 +232,13 @@ def test_webhook_trigger_event_not_supported(
     )
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")
 def test_webhook_trigger_object_id_does_not_match_event(
-    mocked_send_webhook_request,
     staff_api_client,
     permission_manage_orders,
     product,
     subscription_order_created_webhook,
 ):
     # given
-    mocked_send_webhook_request.return_value = None
     query = WEBHOOK_TRIGGER_MUTATION
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     product_id = graphene.Node.to_global_id("Product", product.id)
