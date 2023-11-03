@@ -261,12 +261,12 @@ def test_webhook_trigger_object_id_does_not_match_event(
 def test_webhook_trigger_for_removed_app(
     staff_api_client,
     order,
-    subscription_address_created_webhook_removed_app,
+    subscription_app_updated_webhook_removed_app,
 ):
     # given
     query = WEBHOOK_TRIGGER_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
-    webhook = subscription_address_created_webhook_removed_app
+    webhook = subscription_app_updated_webhook_removed_app
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
     variables = {"webhookId": webhook_id, "objectId": order_id}

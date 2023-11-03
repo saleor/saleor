@@ -21,13 +21,6 @@ def subscription_webhook(webhook_app):
 
 
 @pytest.fixture
-def subscription_address_created_webhook_removed_app(subscription_webhook, removed_app):
-    return subscription_webhook(
-        queries.ADDRESS_CREATED, WebhookEventAsyncType.ADDRESS_CREATED, app=removed_app
-    )
-
-
-@pytest.fixture
 def subscription_address_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ADDRESS_CREATED, WebhookEventAsyncType.ADDRESS_CREATED
@@ -1015,4 +1008,36 @@ def subscription_calculate_taxes_for_order(
     return subscription_webhook(
         queries.ORDER_CALCULATE_TAXES,
         WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+    )
+
+
+@pytest.fixture
+def subscription_app_installed_webhook_removed_app(subscription_webhook, removed_app):
+    return subscription_webhook(
+        queries.APP_INSTALLED, WebhookEventAsyncType.APP_INSTALLED, app=removed_app
+    )
+
+
+@pytest.fixture
+def subscription_app_updated_webhook_removed_app(subscription_webhook, removed_app):
+    return subscription_webhook(
+        queries.APP_UPDATED, WebhookEventAsyncType.APP_UPDATED, app=removed_app
+    )
+
+
+@pytest.fixture
+def subscription_app_deleted_webhook_removed_app(subscription_webhook, removed_app):
+    return subscription_webhook(
+        queries.APP_DELETED, WebhookEventAsyncType.APP_DELETED, app=removed_app
+    )
+
+
+@pytest.fixture
+def subscription_app_status_changed_webhook_removed_app(
+    subscription_webhook, removed_app
+):
+    return subscription_webhook(
+        queries.APP_STATUS_CHANGED,
+        WebhookEventAsyncType.APP_STATUS_CHANGED,
+        app=removed_app,
     )
