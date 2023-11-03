@@ -126,13 +126,13 @@ class OrderGrantRefundUpdate(BaseMutation):
     @classmethod
     def validate_input(cls, input: dict[str, Any]):
         amount = input.get("amount")
-        reason = input.get("reason", "")
+        reason = input.get("reason")
         input_lines = input.get("add_lines", [])
         remove_lines = input.get("remove_lines", [])
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", False)
         if (
-            not amount
-            and not reason
+            amount is None
+            and reason is None
             and not input_lines
             and not grant_refund_for_shipping
             and not remove_lines
