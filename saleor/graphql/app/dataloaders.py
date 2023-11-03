@@ -105,7 +105,7 @@ class AppByTokenLoader(DataLoader):
 
         apps = (
             App.objects.using(self.database_connection_name)
-            .filter(id__in=authed_apps.values(), is_active=True)
+            .filter(id__in=authed_apps.values(), is_active=True, to_remove=False)
             .in_bulk()
         )
 
