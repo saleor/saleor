@@ -34,13 +34,7 @@ These files should be updated by running `poetry export --without-hashes -f requ
 ## Coding style
 
 Saleor uses various tools to maintain a common coding style and help with development.
-To install all the development tools, run the following commands:
-
-```shell
-python -m pip install -r requirements_dev.txt
-```
-
-or use `poetry`:
+To install all the development tools, use [Poetry](https://python-poetry.org):
 
 ```shell
 poetry install
