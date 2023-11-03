@@ -12,6 +12,9 @@ mutation PageTypeCreate($input: PageTypeCreateInput!) {
       id
       name
       slug
+      attributes{
+        id
+      }
     }
   }
 }
