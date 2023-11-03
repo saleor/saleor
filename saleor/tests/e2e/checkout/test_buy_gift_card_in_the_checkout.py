@@ -1,5 +1,6 @@
 import pytest
 
+from ..account.utils import get_own_data
 from ..channel.utils.channel_update import update_channel
 from ..gift_cards.utils import get_gift_cards
 from ..orders.utils import order_query
@@ -10,7 +11,6 @@ from ..product.utils import (
     create_product_type,
     create_product_variant,
     create_product_variant_channel_listing,
-    get_product,
 )
 from ..shop.utils import update_shop_settings
 from ..shop.utils.preparing_shop import prepare_shop
@@ -77,7 +77,7 @@ def prepare_product_gift_card(
 
 @pytest.mark.e2e
 def test_buy_gift_card_in_the_checkout_CORE_1102(
-    e2e_not_logged_api_client,
+    e2e_logged_api_client,
     e2e_staff_api_client,
     permission_manage_product_types_and_attributes,
     permission_manage_channels,
@@ -130,7 +130,7 @@ def test_buy_gift_card_in_the_checkout_CORE_1102(
         },
     ]
     checkout_data = checkout_create(
-        e2e_not_logged_api_client,
+        e2e_logged_api_client,
         lines,
         channel_slug,
         email="testEmail@example.com",
@@ -142,21 +142,22 @@ def test_buy_gift_card_in_the_checkout_CORE_1102(
 
     # Step 2  - Create payment for checkout.
     checkout_dummy_payment_create(
-        e2e_not_logged_api_client,
+        e2e_logged_api_client,
         checkout_id,
         total_gross_amount,
     )
 
     # Step 3 - Complete checkout.
     order_data = checkout_complete(
-        e2e_not_logged_api_client,
+        e2e_logged_api_client,
         checkout_id,
     )
     assert order_data["isShippingRequired"] is False
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
 
     # extra query because order need a time to change status
-    get_product(e2e_staff_api_client, product_id, channel_slug)
+    me = get_own_data(e2e_logged_api_client)
+    assert len(me["orders"]["edges"]) == 1
 
     # 4 Get Order
     order = order_query(e2e_staff_api_client, order_data["id"])
