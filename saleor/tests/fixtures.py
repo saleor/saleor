@@ -8,7 +8,7 @@ from decimal import Decimal
 from functools import partial
 from io import BytesIO
 from typing import Callable, Optional
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 
 import graphene
 import pytest
@@ -18,7 +18,6 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
-from django.forms import ModelForm
 from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django.utils import timezone
@@ -6072,45 +6071,9 @@ def page(db, page_type, size_page_attribute):
 
 
 @pytest.fixture
-def second_page(page):
-    data = {
-        "slug": "test-url-2",
-        "title": "Test page 2",
-        "content": dummy_editorjs("Test content 2."),
-        "is_published": True,
-        "page_type": page.page_type,
-    }
-    page2 = Page.objects.create(**data)
-
-    # associate attribute value to the second page
-    page_attr = page.page_type.page_attributes.first()
-    page_attr_value = page_attr.values.first()
-
-    associate_attribute_values_to_instance(page2, page_attr, page_attr_value)
-
-    attribute = Attribute.objects.create(
-        slug="test-attribute",
-        name="Test Attribute",
-        type="some_attribute_type",
-        input_type=AttributeInputType.DROPDOWN,
-    )
-    attribute.page_types.add(page.page_type)
-
-    attribute_values = []
-    for i in range(10):
-        attribute_values.append(
-            AttributeValue.objects.create(
-                attribute=attribute,
-                name=f"Test-name-attribute-value-{i}",
-                slug=f"test-slug-attribute-value-{i}",
-            )
-        )
-    associate_attribute_values_to_instance(page2, attribute, *attribute_values)
-    return page, page2
-
-
-@pytest.fixture
-def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
+def page_with_rich_text_attribute(
+    db, page_type_with_rich_text_attribute, rich_text_attribute_page_type
+):
     data = {
         "slug": "test-url",
         "title": "Test page",
@@ -6121,10 +6084,10 @@ def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
     page = Page.objects.create(**data)
 
     # associate attribute value
-    page_attr = page_type_with_rich_text_attribute.page_attributes.first()
-    page_attr_value = page_attr.values.first()
-
-    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+    page_attr_value = rich_text_attribute_page_type.values.first()
+    associate_attribute_values_to_instance(
+        page, rich_text_attribute_page_type, page_attr_value
+    )
 
     return page
 
@@ -6208,15 +6171,6 @@ def page_type_list(db, tag_page_attribute):
 
 
 @pytest.fixture
-def model_form_class():
-    mocked_form_class = MagicMock(name="test", spec=ModelForm)
-    mocked_form_class._meta = Mock(name="_meta")
-    mocked_form_class._meta.model = "test_model"
-    mocked_form_class._meta.fields = "test_field"
-    return mocked_form_class
-
-
-@pytest.fixture
 def menu(db):
     return Menu.objects.get_or_create(name="test-navbar", slug="test-navbar")[0]
 
@@ -6245,14 +6199,6 @@ def menu_with_items(menu, category, published_collection):
         parent=menu_item,
     )
     return menu
-
-
-@pytest.fixture
-def translated_variant_fr(product):
-    attribute = product.product_type.variant_attributes.first()
-    return AttributeTranslation.objects.create(
-        language_code="fr", attribute=attribute, name="Name tranlsated to french"
-    )
 
 
 @pytest.fixture
