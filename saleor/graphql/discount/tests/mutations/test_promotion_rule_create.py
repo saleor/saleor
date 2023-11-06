@@ -907,3 +907,42 @@ def test_promotion_rule_create_events(
     assert PromotionEvents.RULE_CREATED.upper() == events[0]["type"]
 
     assert events[0]["ruleId"] == data["promotionRule"]["id"]
+
+
+@patch("saleor.plugins.manager.PluginsManager.promotion_rule_created")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
+def test_promotion_rule_create_serializable_decimal_in_predicate(
+    update_products_discounted_prices_for_promotion_task_mock,
+    promotion_rule_created_mock,
+    staff_api_client,
+    permission_group_manage_discounts,
+    promotion,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    catalogue_predicate = {
+        "productPredicate": {"minimalPrice": {"range": {"gte": "25"}}}
+    }
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+
+    variables = {
+        "input": {
+            "promotion": promotion_id,
+            "rewardValueType": reward_value_type,
+            "rewardValue": reward_value,
+            "cataloguePredicate": catalogue_predicate,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleCreate"]
+    assert not data["errors"]
+    assert data["promotionRule"]["cataloguePredicate"] == catalogue_predicate
