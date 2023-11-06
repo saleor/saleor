@@ -21,6 +21,7 @@ class SiteSettingsType(BaseObjectType):
     image = graphene.String(required=True)
     cookies_src = graphene.String(required=True)
     css = graphene.String()
+    is_active = graphene.Boolean()
 
 
 class SiteSettingsList(BaseObjectType):

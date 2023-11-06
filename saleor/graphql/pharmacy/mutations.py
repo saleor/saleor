@@ -18,6 +18,7 @@ class SiteSettingsInput(graphene.InputObjectType):
     image = graphene.String(description="Site Settings Image")
     cookies_src = graphene.String(description="Site Settings Cookies SRC")
     css = graphene.String(description="Site Settings CSS")
+    is_active = graphene.Boolean(description="Active Site Settings")
 
 
 class SiteSettingsCreate(graphene.Mutation):
@@ -34,13 +35,19 @@ class SiteSettingsCreate(graphene.Mutation):
 
     @staticmethod
     def mutate(self, info, input: SiteSettingsInput):
+        if input.is_active:
+            update_data = {
+                'is_active': False}
+            models.SiteSettings.objects.update(**update_data)
+
         site_settings = models.SiteSettings(
             name=input.name,
             pharmacy_name=input.pharmacy_name,
             npi=input.npi,
             phone_number=input.phone_number,
             fax_number=input.fax_number,
-            cookies_src=input.cookies_src
+            cookies_src=input.cookies_src,
+            is_active=input.is_active,
         )
 
         site_settings.save()
@@ -88,6 +95,10 @@ class SiteSettingsUpdate(graphene.Mutation):
 
     @staticmethod
     def mutate(self, info, id, input: SiteSettingsInput):
+        if input.is_active:
+            update_data = {
+                'is_active': False}
+            models.SiteSettings.objects.update(**update_data)
         site_settings = models.SiteSettings.objects.get(pk=id)
 
         if site_settings is None:
@@ -99,6 +110,7 @@ class SiteSettingsUpdate(graphene.Mutation):
         site_settings.phone_number = input.phone_number
         site_settings.fax_number = input.fax_number
         site_settings.cookies_src = input.cookies_src
+        site_settings.is_active = input.is_active
 
         site_settings.save()
 
