@@ -19,7 +19,7 @@ mutation AccountRegister($input: AccountRegisterInput!) {
 """
 
 
-def account_register(
+def raw_account_register(
     e2e_not_logged_api_client,
     email,
     password,
@@ -37,11 +37,26 @@ def account_register(
         ACCOUNT_REGISTER_MUTATION,
         variables,
     )
-    content = get_graphql_content(response)
+    content = get_graphql_content(response, ignore_errors=True)
 
-    assert content["data"]["accountRegister"]["errors"] == []
+    return content
 
-    data = content["data"]["accountRegister"]["user"]
+
+def account_register(
+    e2e_not_logged_api_client,
+    email,
+    password,
+    channel_slug,
+):
+    response = raw_account_register(
+        e2e_not_logged_api_client,
+        email,
+        password,
+        channel_slug,
+    )
+    assert response["data"]["accountRegister"]["errors"] == []
+
+    data = response["data"]["accountRegister"]["user"]
     assert data["id"] is not None
     assert data["email"] == email
 
