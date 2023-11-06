@@ -14,10 +14,12 @@ from uuid import UUID
 
 import graphene
 from django.db.models import Exists, F, OuterRef, QuerySet
+from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..core.taxes import zero_money
+from ..core.utils.promo_code import InvalidPromoCode
 from ..discount.models import VoucherCustomer
 from . import DiscountType, PromotionRuleInfo
 from .models import (
@@ -26,6 +28,8 @@ from .models import (
     NotApplicable,
     Promotion,
     PromotionRule,
+    Voucher,
+    VoucherCode,
 )
 
 if TYPE_CHECKING:
@@ -39,19 +43,32 @@ if TYPE_CHECKING:
         ProductVariantChannelListing,
         VariantChannelListingPromotionRule,
     )
-    from .models import Voucher, VoucherCode
 
 CatalogueInfo = defaultdict[str, set[Union[int, str]]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
-def increase_voucher_code_usage(code: "VoucherCode") -> None:
+def increase_voucher_usage(
+    voucher: "Voucher",
+    code: "VoucherCode",
+    customer_email: str,
+    increase_voucher_customer_usage: bool = True,
+) -> None:
+    if voucher.usage_limit:
+        increase_voucher_code_usage_value(code)
+    if voucher.apply_once_per_customer and increase_voucher_customer_usage:
+        add_voucher_usage_by_customer(code, customer_email)
+    if voucher.single_use:
+        deactivate_voucher_code(code)
+
+
+def increase_voucher_code_usage_value(code: "VoucherCode") -> None:
     """Increase voucher code uses by 1."""
     code.used = F("used") + 1
     code.save(update_fields=["used"])
 
 
-def decrease_voucher_code_usage(code: "VoucherCode") -> None:
+def decrease_voucher_code_usage_value(code: "VoucherCode") -> None:
     """Decrease voucher code uses by 1."""
     code.used = F("used") - 1
     code.save(update_fields=["used"])
@@ -93,7 +110,7 @@ def release_voucher_code_usage(
     if not code:
         return
     if voucher and voucher.usage_limit:
-        decrease_voucher_code_usage(code)
+        decrease_voucher_code_usage_value(code)
     if voucher and voucher.single_use:
         activate_voucher_code(code)
     if user_email:
@@ -110,6 +127,32 @@ def get_sale_id(promotion: "Promotion"):
         if promotion.old_sale_id
         else graphene.Node.to_global_id("Promotion", promotion.id)
     )
+
+
+def get_voucher_code_instance(
+    voucher_code: str,
+    channel_slug: str,
+):
+    """Return a voucher code instance if it's valid or raise an error."""
+    if (
+        Voucher.objects.active_in_channel(
+            date=timezone.now(), channel_slug=channel_slug
+        )
+        .filter(
+            Exists(
+                VoucherCode.objects.filter(
+                    code=voucher_code,
+                    voucher_id=OuterRef("id"),
+                    is_active=True,
+                )
+            )
+        )
+        .exists()
+    ):
+        code_instance = VoucherCode.objects.get(code=voucher_code)
+    else:
+        raise InvalidPromoCode()
+    return code_instance
 
 
 def calculate_discounted_price_for_rules(
@@ -233,16 +276,16 @@ def validate_voucher_for_checkout(
 
 
 def validate_voucher_in_order(order: "Order"):
-    subtotal = order.get_subtotal()
-    quantity = order.get_total_quantity()
-    customer_email = order.get_customer_email()
     if not order.voucher:
         return
 
+    subtotal = order.get_subtotal()
+    quantity = order.get_total_quantity()
+    customer_email = order.get_customer_email()
     tax_configuration = order.channel.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
-
     value = subtotal.gross if prices_entered_with_tax else subtotal.net
+
     validate_voucher(
         order.voucher, value, quantity, customer_email, order.channel, order.user
     )

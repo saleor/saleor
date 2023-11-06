@@ -4006,6 +4006,49 @@ def voucher_customer(voucher, customer_user):
 
 
 @pytest.fixture
+def voucher_multiple_use(voucher_with_many_codes):
+    voucher = voucher_with_many_codes
+    voucher.usage_limit = 3
+    voucher.save(update_fields=["usage_limit"])
+    codes = voucher.codes.all()
+    for code in codes:
+        code.used = 1
+    VoucherCode.objects.bulk_update(codes, ["used"])
+    voucher.refresh_from_db()
+    return voucher
+
+
+@pytest.fixture
+def voucher_single_use(voucher_with_many_codes):
+    voucher = voucher_with_many_codes
+    voucher.single_use = True
+    voucher.save(update_fields=["single_use"])
+    return voucher
+
+
+@pytest.fixture
+def draft_order_list_with_multiple_use_voucher(draft_order_list, voucher_multiple_use):
+    codes = voucher_multiple_use.codes.values_list("code", flat=True)
+    for idx, order in enumerate(draft_order_list):
+        order.voucher_code = codes[idx]
+    Order.objects.bulk_update(draft_order_list, ["voucher_code"])
+    return draft_order_list
+
+
+@pytest.fixture
+def draft_order_list_with_single_use_voucher(draft_order_list, voucher_single_use):
+    voucher_codes = voucher_single_use.codes.all()
+    codes = voucher_codes.values_list("code", flat=True)
+    for idx, order in enumerate(draft_order_list):
+        order.voucher_code = codes[idx]
+    for voucher_code in voucher_codes:
+        voucher_code.is_active = False
+    Order.objects.bulk_update(draft_order_list, ["voucher_code"])
+    VoucherCode.objects.bulk_update(voucher_codes, ["is_active"])
+    return draft_order_list
+
+
+@pytest.fixture
 def order_line(order, variant):
     product = variant.product
     channel = order.channel
@@ -4672,8 +4715,6 @@ def order_with_lines(
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
     order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
-    order.total += order.shipping_price
-    order.undiscounted_total += order.shipping_price
     order.save()
 
     recalculate_order(order)
@@ -5218,6 +5259,29 @@ def draft_order_with_fixed_discount_order(draft_order):
     )
     draft_order.save()
     return draft_order
+
+
+@pytest.fixture
+def draft_order_with_voucher(
+    draft_order_with_fixed_discount_order, voucher_multiple_use
+):
+    order = draft_order_with_fixed_discount_order
+    voucher_code = voucher_multiple_use.codes.first()
+    discount = order.discounts.first()
+    discount.type = DiscountType.VOUCHER
+    discount.voucher = voucher_multiple_use
+    discount.voucher_code = voucher_code.code
+    discount.save(update_fields=["type", "voucher", "voucher_code"])
+
+    order.voucher = voucher_multiple_use
+    order.voucher_code = voucher_code.code
+    order.save(update_fields=["voucher", "voucher_code"])
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    return order
 
 
 @pytest.fixture

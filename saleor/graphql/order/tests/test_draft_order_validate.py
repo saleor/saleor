@@ -178,3 +178,16 @@ def test_validate_draft_order_no_shipping_address_no_method_shipping_not_require
     order.is_shipping_required = required_mock
 
     assert validate_draft_order(order, "US", get_plugins_manager()) is None
+
+
+def test_validate_draft_order_voucher(draft_order_with_voucher):
+    # given
+    order = draft_order_with_voucher
+    order.voucher.channel_listings.all().delete()
+
+    # when & then
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order, "US", get_plugins_manager())
+
+    error = e.value.error_dict["voucher"][0]
+    assert error.code == OrderErrorCode.INVALID_VOUCHER.value

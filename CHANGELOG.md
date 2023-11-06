@@ -3,6 +3,14 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
 # 3.18.0 [Unreleased]
+
+### Highlights
+- Allow including draft orders in voucher usage. New `includeDraftOrderInVoucherUsage` flag allows defining if vouchers used in draft orders should be counted into voucher usage. - #14288 by @zedzior, @IKarbowiak, @michal-macioszczyk
+
+  - Add `includeDraftOrderInVoucherUsage` to `OrderSettings`
+  - Add `includeDraftOrderInVoucherUsage` to `OrderSettingsInput`
+
+
 ### Breaking changes
 - Optimize number of queries in bulk mutations when calling webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
   - `attribute_updated`

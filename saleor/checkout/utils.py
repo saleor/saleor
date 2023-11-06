@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Exists, OuterRef, prefetch_related_objects
+from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money
 
@@ -24,6 +24,7 @@ from ..discount.models import NotApplicable, Voucher, VoucherCode
 from ..discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
     get_products_voucher_discount,
+    get_voucher_code_instance,
     validate_voucher_for_checkout,
 )
 from ..giftcard.utils import (
@@ -684,25 +685,7 @@ def add_voucher_code_to_checkout(
 
     Raise InvalidPromoCode() if voucher of given type cannot be applied.
     """
-
-    if (
-        Voucher.objects.active_in_channel(
-            date=timezone.now(), channel_slug=checkout_info.channel.slug
-        )
-        .filter(
-            Exists(
-                VoucherCode.objects.filter(
-                    code=voucher_code,
-                    voucher_id=OuterRef("id"),
-                    is_active=True,
-                )
-            )
-        )
-        .exists()
-    ):
-        code_instance = VoucherCode.objects.get(code=voucher_code)
-    else:
-        raise InvalidPromoCode()
+    code_instance = get_voucher_code_instance(voucher_code, checkout_info.channel.slug)
     try:
         add_voucher_to_checkout(
             manager, checkout_info, lines, code_instance.voucher, code_instance

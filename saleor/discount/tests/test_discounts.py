@@ -19,10 +19,10 @@ from ..utils import (
     activate_voucher_code,
     add_voucher_usage_by_customer,
     deactivate_voucher_code,
-    decrease_voucher_code_usage,
+    decrease_voucher_code_usage_value,
     get_discount_name,
     get_discount_translated_name,
-    increase_voucher_code_usage,
+    increase_voucher_code_usage_value,
     remove_voucher_usage_by_customer,
     validate_voucher,
 )
@@ -202,7 +202,7 @@ def test_increase_voucher_usage(channel_USD):
         channel=channel_USD,
         discount=Money(10, channel_USD.currency_code),
     )
-    increase_voucher_code_usage(code_instance)
+    increase_voucher_code_usage_value(code_instance)
     code_instance.refresh_from_db(fields=["used"])
     assert code_instance.used == 1
 
@@ -220,7 +220,7 @@ def test_decrease_voucher_usage(channel_USD):
         channel=channel_USD,
         discount=Money(10, channel_USD.currency_code),
     )
-    decrease_voucher_code_usage(code_instance)
+    decrease_voucher_code_usage_value(code_instance)
     code_instance.refresh_from_db(fields=["used"])
     assert code_instance.used == 9
 
