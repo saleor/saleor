@@ -11,6 +11,7 @@ mutation ShopSettingsUpdate($input: ShopSettingsInput!) {
     shop {
       enableAccountConfirmationByEmail
       fulfillmentAutoApprove
+      fulfillmentAllowUnpaid
     }
   }
 }
