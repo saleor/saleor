@@ -16,6 +16,7 @@ from .checkout_payment_create import (
     checkout_dummy_payment_create,
     raw_checkout_dummy_payment_create,
 )
+from .checkout_remove_promo_code import checkout_remove_promo_code
 from .checkout_shipping_address_update import checkout_shipping_address_update
 from .query_checkout import get_checkout
 
@@ -38,4 +39,5 @@ __all__ = [
     "checkout_add_promo_code",
     "raw_checkout_add_promo_code",
     "get_checkout",
+    "checkout_remove_promo_code",
 ]
