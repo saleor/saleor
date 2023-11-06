@@ -129,7 +129,7 @@ if TYPE_CHECKING:
     from ...channel.models import Channel
     from ...core.utils.translations import Translation
     from ...csv.models import ExportFile
-    from ...discount.models import Promotion, PromotionRule, Voucher
+    from ...discount.models import Promotion, PromotionRule, Voucher, VoucherCode
     from ...giftcard.models import GiftCard
     from ...invoice.models import Invoice
     from ...menu.models import Menu, MenuItem
@@ -2283,6 +2283,38 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_voucher_event(
             WebhookEventAsyncType.VOUCHER_DELETED, voucher, code, webhooks=webhooks
+        )
+
+    def _trigger_voucher_code_event(self, event_type, voucher_code, webhooks=None):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+            payload = self._serialize_payload(
+                {
+                    "id": graphene.Node.to_global_id("VoucherCode", voucher_code.id),
+                    "code": voucher_code.code,
+                    "used": voucher_code.used,
+                    "is_active": voucher_code.is_active,
+                }
+            )
+            trigger_webhooks_async(
+                payload, event_type, webhooks, voucher_code, self.requestor
+            )
+
+    def voucher_code_created(
+        self, voucher_code: "VoucherCode", previous_value: None, webhooks=None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_voucher_code_event(
+            WebhookEventAsyncType.VOUCHER_CODE_CREATED, voucher_code, webhooks
+        )
+
+    def voucher_code_deleted(
+        self, voucher_code: "VoucherCode", previous_value: None, webhooks=None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_voucher_code_event(
+            WebhookEventAsyncType.VOUCHER_CODE_DELETED, voucher_code, webhooks
         )
 
     def voucher_metadata_updated(

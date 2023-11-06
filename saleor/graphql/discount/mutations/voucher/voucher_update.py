@@ -9,6 +9,7 @@ from .....discount.error_codes import DiscountErrorCode
 from .....order import models as order_models
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.utils import get_webhooks_for_event
 from ....core import ResolveInfo
 from ....core.types import DiscountError
 from ....core.utils import WebhookEventInfo
@@ -35,7 +36,11 @@ class VoucherUpdate(VoucherCreate):
             WebhookEventInfo(
                 type=WebhookEventAsyncType.VOUCHER_UPDATED,
                 description="A voucher was updated.",
-            )
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.VOUCHER_UPDATED,
+                description="A voucher code was created.",
+            ),
         ]
 
     @classmethod
@@ -129,6 +134,13 @@ class VoucherUpdate(VoucherCreate):
             models.VoucherCode.objects.bulk_update(codes_to_update, fields=["code"])
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, code):
+    def post_save_action(cls, info: ResolveInfo, instance, code_instances):
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.voucher_updated, instance, code)
+        code_create_webhook = get_webhooks_for_event(
+            WebhookEventAsyncType.VOUCHER_CODE_CREATED
+        )
+        cls.call_event(manager.voucher_updated, instance, instance.code)
+        for code in code_instances:
+            cls.call_event(
+                manager.voucher_code_created, code, webhooks=code_create_webhook
+            )

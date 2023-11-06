@@ -7,6 +7,7 @@ from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.utils import get_webhooks_for_event
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import (
@@ -120,7 +121,11 @@ class VoucherCreate(ModelMutation):
             WebhookEventInfo(
                 type=WebhookEventAsyncType.VOUCHER_CREATED,
                 description="A voucher was created.",
-            )
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.VOUCHER_CODE_CREATED,
+                description="A voucher code was created.",
+            ),
         ]
 
     @classmethod
@@ -255,9 +260,16 @@ class VoucherCreate(ModelMutation):
             models.VoucherCode.objects.bulk_create(code_instances)
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, code):
+    def post_save_action(cls, info: ResolveInfo, instance, codes_instance):
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.voucher_created, instance, code)
+        code_create_webhook = get_webhooks_for_event(
+            WebhookEventAsyncType.VOUCHER_CODE_CREATED
+        )
+        cls.call_event(manager.voucher_created, instance, codes_instance[-1].code)
+        for code in codes_instance:
+            cls.call_event(
+                manager.voucher_code_created, code, webhooks=code_create_webhook
+            )
 
     @classmethod
     def success_response(cls, instance):
@@ -293,5 +305,5 @@ class VoucherCreate(ModelMutation):
         cls.save(info, voucher_instance, code_instances, has_multiple_codes)
         cls._save_m2m(info, voucher_instance, cleaned_input)
 
-        cls.post_save_action(info, voucher_instance, voucher_instance.code)
+        cls.post_save_action(info, voucher_instance, code_instances)
         return cls.success_response(voucher_instance)

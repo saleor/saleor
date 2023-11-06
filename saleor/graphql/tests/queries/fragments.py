@@ -439,6 +439,16 @@ fragment VoucherDetails on Voucher{
 """
 
 
+VOUCHER_CODE_DETAILS = """
+fragment VoucherCodeDetails on VoucherCode{
+  id
+  code
+  used
+  isActive
+}
+"""
+
+
 VOUCHER_CODE_EXPORT_DETAILS = """
 fragment VoucherCodeExportDetails on ExportFile {
   id

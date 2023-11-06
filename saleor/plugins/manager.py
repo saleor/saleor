@@ -63,7 +63,7 @@ if TYPE_CHECKING:
     from ..core.middleware import Requestor
     from ..core.utils.translations import Translation
     from ..csv.models import ExportFile
-    from ..discount.models import Promotion, PromotionRule, Voucher
+    from ..discount.models import Promotion, PromotionRule, Voucher, VoucherCode
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
@@ -1523,6 +1523,18 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "voucher_deleted", default_value, voucher, code, webhooks=webhooks
+        )
+
+    def voucher_code_created(self, voucher_code: "VoucherCode", webhooks=None):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "voucher_code_created", default_value, voucher_code, webhooks=webhooks
+        )
+
+    def voucher_code_deleted(self, voucher_code: "VoucherCode", webhooks=None):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "voucher_code_deleted", default_value, voucher_code, webhooks=webhooks
         )
 
     def voucher_metadata_updated(self, voucher: "Voucher"):

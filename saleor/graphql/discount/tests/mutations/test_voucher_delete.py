@@ -1,5 +1,5 @@
 import json
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import graphene
 import pytest
@@ -44,11 +44,15 @@ def test_voucher_delete_mutation(
 
 
 @freeze_time("2022-05-12 12:00:00")
+@patch(
+    "saleor.graphql.discount.mutations.voucher.voucher_delete.get_webhooks_for_event"
+)
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_voucher_delete_mutation_trigger_webhook(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
+    mocked_get_webhooks_for_code_event,
     any_webhook,
     staff_api_client,
     voucher,
@@ -57,8 +61,9 @@ def test_voucher_delete_mutation_trigger_webhook(
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
+    mocked_get_webhooks_for_code_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    code = voucher.codes.first().code
+    voucher_code = voucher.codes.first()
     variables = {"id": graphene.Node.to_global_id("Voucher", voucher.id)}
 
     # when
@@ -67,14 +72,12 @@ def test_voucher_delete_mutation_trigger_webhook(
     )
     content = get_graphql_content(response)
 
-    # then
-    assert content["data"]["voucherDelete"]["voucher"]
-    mocked_webhook_trigger.assert_called_once_with(
+    voucher_deleted = call(
         json.dumps(
             {
                 "id": variables["id"],
                 "name": voucher.name,
-                "code": code,
+                "code": voucher_code.code,
                 "meta": generate_meta(
                     requestor_data=generate_requestor(
                         SimpleLazyObject(lambda: staff_api_client.user)
@@ -89,3 +92,25 @@ def test_voucher_delete_mutation_trigger_webhook(
         SimpleLazyObject(lambda: staff_api_client.user),
         allow_replica=False,
     )
+
+    code_deleted = call(
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("VoucherCode", voucher_code.id),
+                "code": voucher_code.code,
+                "used": voucher_code.used,
+                "is_active": voucher_code.is_active,
+            },
+            cls=CustomJsonEncoder,
+        ),
+        WebhookEventAsyncType.VOUCHER_CODE_DELETED,
+        [any_webhook],
+        voucher_code,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+    # then
+    assert content["data"]["voucherDelete"]["voucher"]
+    assert mocked_webhook_trigger.call_count == 2
+    assert voucher_deleted in mocked_webhook_trigger.call_args_list
+    assert code_deleted in mocked_webhook_trigger.call_args_list

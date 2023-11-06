@@ -48,6 +48,7 @@ from .payloads import (
     generate_shipping_method_payload,
     generate_shop_payload,
     generate_staff_payload,
+    generate_voucher_code_payload,
     generate_voucher_created_payload_with_meta,
     generate_voucher_payload,
     generate_warehouse_payload,
@@ -2470,6 +2471,52 @@ def test_voucher_deleted(voucher, subscription_voucher_deleted_webhook):
 
     # then
     expected_payload = generate_voucher_payload(voucher, voucher_global_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_voucher_code_created(voucher, subscription_voucher_code_created_webhook):
+    # given
+    webhooks = [subscription_voucher_code_created_webhook]
+
+    voucher_code = voucher.codes.first()
+
+    event_type = WebhookEventAsyncType.VOUCHER_CODE_CREATED
+    voucher_code_global_id = graphene.Node.to_global_id("VoucherCode", voucher_code.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, voucher_code, webhooks)
+
+    # then
+    expected_payload = generate_voucher_code_payload(
+        voucher_code, voucher_code_global_id
+    )
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_voucher_code_deleted(voucher, subscription_voucher_code_deleted_webhook):
+    # given
+    webhooks = [subscription_voucher_code_deleted_webhook]
+
+    voucher_code = voucher.codes.first()
+
+    voucher_code_id = voucher_code.id
+    voucher_code.delete()
+    voucher_code.id = voucher_code_id
+
+    event_type = WebhookEventAsyncType.VOUCHER_CODE_DELETED
+    voucher_code_global_id = graphene.Node.to_global_id("VoucherCode", voucher_code.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, voucher_code, webhooks)
+
+    # then
+    expected_payload = generate_voucher_code_payload(
+        voucher_code, voucher_code_global_id
+    )
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

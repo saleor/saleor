@@ -2413,6 +2413,46 @@ class VoucherDeleted(SubscriptionObjectType, VoucherBase):
         description = "Event sent when voucher is deleted." + ADDED_IN_34
 
 
+class VoucherCodeBase(AbstractType):
+    voucher_code = graphene.Field(
+        "saleor.graphql.discount.types.VoucherCode",
+        description="The voucher code the event relates to.",
+    )
+    voucher = graphene.Field(
+        "saleor.graphql.discount.types.Voucher",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+        description="The voucher the code relates to.",
+    )
+
+    @staticmethod
+    def resolve_voucher_code(root, _info: ResolveInfo):
+        _, voucher_code = root
+        return voucher_code
+
+    @staticmethod
+    def resolve_voucher(root, _info: ResolveInfo):
+        _, voucher_code = root
+        return ChannelContext(node=voucher_code.voucher, channel_slug=None)
+
+
+class VoucherCodeCreated(SubscriptionObjectType, VoucherCodeBase):
+    class Meta:
+        root_type = "VoucherCode"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new voucher code is created." + ADDED_IN_318
+
+
+class VoucherCodeDeleted(SubscriptionObjectType, VoucherCodeBase):
+    class Meta:
+        root_type = "VoucherCode"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new voucher code is deleted." + ADDED_IN_318
+
+
 class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
     class Meta:
         root_type = "Voucher"
@@ -2853,6 +2893,8 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.VOUCHER_CREATED: VoucherCreated,
     WebhookEventAsyncType.VOUCHER_UPDATED: VoucherUpdated,
     WebhookEventAsyncType.VOUCHER_DELETED: VoucherDeleted,
+    WebhookEventAsyncType.VOUCHER_CODE_CREATED: VoucherCodeCreated,
+    WebhookEventAsyncType.VOUCHER_CODE_DELETED: VoucherCodeDeleted,
     WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: VoucherMetadataUpdated,
     WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED: VoucherCodeExportCompleted,
     WebhookEventAsyncType.WAREHOUSE_CREATED: WarehouseCreated,

@@ -1,6 +1,6 @@
 import json
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import graphene
 from django.utils import timezone
@@ -240,18 +240,23 @@ def test_create_voucher_return_error_when_code_or_codes_arg_not_in_input(
 
 
 @freeze_time("2022-05-12 12:00:00")
+@patch(
+    "saleor.graphql.discount.mutations.voucher.voucher_create.get_webhooks_for_event"
+)
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_create_voucher_trigger_webhook(
     mocked_webhook_trigger,
-    mocked_get_webhooks_for_event,
+    mocked_get_webhooks_for_voucher_event,
+    mocked_get_webhooks_for_code_event,
     any_webhook,
     staff_api_client,
     permission_manage_discounts,
     settings,
 ):
     # given
-    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    mocked_get_webhooks_for_voucher_event.return_value = [any_webhook]
+    mocked_get_webhooks_for_code_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     start_date = timezone.now() - timedelta(days=365)
@@ -282,9 +287,7 @@ def test_create_voucher_trigger_webhook(
     content = get_graphql_content(response)
     voucher = Voucher.objects.last()
 
-    # then
-    assert content["data"]["voucherCreate"]
-    mocked_webhook_trigger.assert_called_once_with(
+    voucher_created = call(
         json.dumps(
             {
                 "id": graphene.Node.to_global_id("Voucher", voucher.id),
@@ -304,6 +307,28 @@ def test_create_voucher_trigger_webhook(
         SimpleLazyObject(lambda: staff_api_client.user),
         allow_replica=False,
     )
+
+    # then
+    assert content["data"]["voucherCreate"]
+    assert mocked_webhook_trigger.call_count == 3
+    assert voucher_created in mocked_webhook_trigger.call_args_list
+    for voucher_code in voucher.codes.all():
+        code_created = call(
+            json.dumps(
+                {
+                    "id": graphene.Node.to_global_id("VoucherCode", voucher_code.id),
+                    "code": voucher_code.code,
+                    "used": voucher_code.used,
+                    "is_active": voucher_code.is_active,
+                },
+                cls=CustomJsonEncoder,
+            ),
+            WebhookEventAsyncType.VOUCHER_CODE_CREATED,
+            [any_webhook],
+            voucher_code,
+            SimpleLazyObject(lambda: staff_api_client.user),
+        )
+        code_created in mocked_webhook_trigger.call_args_list
 
 
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):

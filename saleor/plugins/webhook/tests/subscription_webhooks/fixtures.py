@@ -1001,6 +1001,20 @@ def subscription_voucher_deleted_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_voucher_code_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.VOUCHER_CODE_CREATED, WebhookEventAsyncType.VOUCHER_CODE_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_voucher_code_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.VOUCHER_CODE_DELETED, WebhookEventAsyncType.VOUCHER_CODE_DELETED
+    )
+
+
+@pytest.fixture
 def subscription_voucher_webhook_with_meta(subscription_webhook):
     return subscription_webhook(
         queries.VOUCHER_CREATED_WITH_META,

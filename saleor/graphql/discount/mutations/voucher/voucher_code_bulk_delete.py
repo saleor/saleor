@@ -4,6 +4,7 @@ from .....core.tracing import traced_atomic_transaction
 from .....discount import models
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.utils import get_webhooks_for_event
 from ....core.descriptions import ADDED_IN_318
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.enums import VoucherCodeBulkDeleteErrorCode
@@ -36,7 +37,11 @@ class VoucherCodeBulkDelete(BaseMutation):
             WebhookEventInfo(
                 type=WebhookEventAsyncType.VOUCHER_UPDATED,
                 description="A voucher was updated.",
-            )
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.VOUCHER_CODE_DELETED,
+                description="A voucher code was deleted.",
+            ),
         ]
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -65,10 +70,19 @@ class VoucherCodeBulkDelete(BaseMutation):
         return cleaned_ids
 
     @classmethod
-    def post_save_actions(cls, info, vouchers_code_map):
+    def post_save_actions(cls, info, code_instances):
         manager = get_plugin_manager_promise(info.context).get()
+        code_delete_webhook = get_webhooks_for_event(
+            WebhookEventAsyncType.VOUCHER_CODE_DELETED
+        )
+        vouchers_code_map = {code.voucher: code.code for code in code_instances}
         for voucher, code in vouchers_code_map.items():
             cls.call_event(manager.voucher_updated, voucher, code)
+
+        for code in code_instances:
+            cls.call_event(
+                manager.voucher_code_deleted, code, webhooks=code_delete_webhook
+            )
 
     @classmethod
     @traced_atomic_transaction()
@@ -79,20 +93,19 @@ class VoucherCodeBulkDelete(BaseMutation):
         if errors_list:
             return VoucherCodeBulkDelete(count=0, errors=errors_list)
 
-        queryset = models.VoucherCode.objects.filter(id__in=cleaned_ids).select_related(
-            "voucher"
-        )
+        code_instances = models.VoucherCode.objects.filter(
+            id__in=cleaned_ids
+        ).select_related("voucher")
 
-        count = len(queryset)
+        count = len(code_instances)
 
-        vouchers_code_map = {}
+        codes_ids = [code.id for code in code_instances]
+        codes = [code for code in code_instances]
+        code_instances.delete()
 
-        for code in queryset:
-            if code.voucher not in vouchers_code_map:
-                vouchers_code_map[code.voucher] = code.code
+        for id, code in zip(codes_ids, codes):
+            code.id = id
 
-        queryset.delete()
-
-        cls.post_save_actions(info, vouchers_code_map)
+        cls.post_save_actions(info, codes)
 
         return VoucherCodeBulkDelete(count=count)
