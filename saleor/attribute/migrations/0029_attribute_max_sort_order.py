@@ -5,7 +5,7 @@ from django.db import migrations, models
 from django.apps import apps as registry
 from django.db.models.signals import post_migrate
 
-from ..tasks import setup_max_sort_order
+from .tasks.saleor3_14 import setup_max_sort_order
 
 
 def populate_max_sort_order(apps, _schema_editor):
