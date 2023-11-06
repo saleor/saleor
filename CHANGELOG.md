@@ -66,6 +66,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change the Attribute - Product relation to decrease code complexity and make it easier to understand the relations - #13407 by @aniav
 - Change the Attribute - Page relation to decrease code complexity - #13621 by @michal-macioszczyk
 - Added validation for timestamp comparison - #14025 by @ritanjandawn
+- Added `VOUCHER_CODE_CREATED` and `VOUCHER_CODE_DELETED` webhooks events. - #14495 by @SzymJ
 
 # 3.17.0
 
