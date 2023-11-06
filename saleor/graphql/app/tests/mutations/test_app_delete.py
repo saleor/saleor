@@ -49,7 +49,10 @@ def test_app_delete(
     data = content["data"]["appDelete"]
     assert data["app"]
     assert not data["errors"]
-    assert not App.objects.filter(id=app.id)
+    assert data["app"]["name"] == app.name
+    app.refresh_from_db()
+    assert app.to_remove is True
+    assert app.is_active is False
 
 
 @freeze_time("2022-05-12 12:00:00")
@@ -88,7 +91,7 @@ def test_app_delete_trigger_webhook(
         json.dumps(
             {
                 "id": app_global_id,
-                "is_active": app.is_active,
+                "is_active": False,
                 "name": app.name,
                 "meta": generate_meta(
                     requestor_data=generate_requestor(
@@ -126,7 +129,10 @@ def test_app_delete_for_app(
     data = content["data"]["appDelete"]
     assert data["app"]
     assert not data["errors"]
-    assert not App.objects.filter(id=app.id).exists()
+    assert data["app"]["name"] == app.name
+    app.refresh_from_db()
+    assert app.to_remove is True
+    assert app.is_active is False
 
 
 def test_app_delete_out_of_scope_app(
@@ -176,7 +182,10 @@ def test_app_delete_superuser_can_delete_any_app(
     data = content["data"]["appDelete"]
     assert data["app"]
     assert not data["errors"]
-    assert not App.objects.filter(id=app.id).exists()
+    assert data["app"]["name"] == app.name
+    app.refresh_from_db()
+    assert app.to_remove is True
+    assert app.is_active is False
 
 
 def test_app_delete_for_app_out_of_scope_app(
