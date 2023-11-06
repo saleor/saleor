@@ -11,6 +11,7 @@ from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
 from botocore.exceptions import ClientError
+from celery import Task
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -43,6 +44,7 @@ from ...webhook.utils import get_webhooks_for_event
 from .. import observability
 from ..const import APP_ID_PREFIX
 from ..event_types import WebhookEventSyncType
+from ..models import Webhook
 from . import signature_for_payload
 
 logger = logging.getLogger(__name__)
@@ -167,7 +169,9 @@ def send_webhook_using_http(
         response_status_code=response.status_code,
         duration=response.elapsed.total_seconds(),
         status=(
-            EventDeliveryStatus.SUCCESS if response.ok else EventDeliveryStatus.FAILED
+            EventDeliveryStatus.SUCCESS
+            if 200 <= response.status_code < 300
+            else EventDeliveryStatus.FAILED
         ),
     )
 
@@ -286,7 +290,11 @@ def send_webhook_using_scheme_method(
 
 
 def handle_webhook_retry(
-    celery_task, webhook, response_content, delivery, delivery_attempt
+    celery_task: Task,
+    webhook: Webhook,
+    response: WebhookResponse,
+    delivery: EventDelivery,
+    delivery_attempt: EventDeliveryAttempt,
 ) -> bool:
     """Handle celery retry for webhook requests.
 
@@ -299,10 +307,20 @@ def handle_webhook_retry(
         " Delivery attempt id: %r",
         webhook.id,
         webhook.target_url,
-        response_content,
+        response.content,
         delivery.event_type,
         delivery_attempt.id,
     )
+    if response.response_status_code and 300 <= response.response_status_code < 500:
+        # do not retry for 30x and 40x status codes
+        task_logger.info(
+            "[Webhook ID: %r] Failed request to %r: received HTTP %d. Delivery ID: %r",
+            webhook.id,
+            webhook.target_url,
+            response.response_status_code,
+            delivery.id,
+        )
+        return False
     try:
         countdown = celery_task.retry_backoff * (2**celery_task.request.retries)
         celery_task.retry(countdown=countdown, **celery_task.retry_kwargs)
@@ -313,8 +331,7 @@ def handle_webhook_retry(
     except MaxRetriesExceededError:
         is_success = False
         task_logger.info(
-            "[Webhook ID: %r] Failed request to %r: exceeded retry limit."
-            "Delivery id: %r",
+            "[Webhook ID: %r] Failed request to %r: exceeded retry limit. Delivery ID: %r",
             webhook.id,
             webhook.target_url,
             delivery.id,

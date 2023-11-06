@@ -72,9 +72,7 @@ def handle_transaction_request_task(self, delivery_id, request_event_id):
     attempt = create_attempt(delivery, self.request.id)
     response, response_data = _send_webhook_request_sync(delivery, attempt=attempt)
     if response.response_status_code and response.response_status_code >= 500:
-        handle_webhook_retry(
-            self, delivery.webhook, response.content, delivery, attempt
-        )
+        handle_webhook_retry(self, delivery.webhook, response, delivery, attempt)
         response_data = None
     create_transaction_event_from_request_and_webhook_response(
         request_event,
