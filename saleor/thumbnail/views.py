@@ -2,7 +2,8 @@ from collections import namedtuple
 from typing import Optional
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponseNotFound, HttpResponseRedirect
+from django.http import HttpResponseNotFound, HttpResponseRedirect, \
+    HttpResponsePermanentRedirect
 from graphql.error import GraphQLError
 
 from ..account.models import User
@@ -17,7 +18,7 @@ from .utils import (
     ProcessedIconImage,
     ProcessedImage,
     get_thumbnail_size,
-    prepare_thumbnail_file_name,
+    prepare_thumbnail_file_name, get_image_mimetype,
 )
 
 ModelData = namedtuple("ModelData", ["model", "image_field", "thumbnail_field"])
@@ -115,5 +116,5 @@ def handle_thumbnail(
     setattr(thumbnail, "instance", instance)
     manager = get_plugins_manager()
     call_event(manager.thumbnail_created, thumbnail)
-
-    return HttpResponseRedirect(thumbnail.image.url)
+    content_type = get_image_mimetype(thumbnail.image)
+    return HttpResponsePermanentRedirect(thumbnail.image.url, content_type=content_type)

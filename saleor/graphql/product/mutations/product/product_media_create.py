@@ -14,7 +14,7 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError, Upload
-from ....core.validators.file import clean_image_file, is_image_url, validate_image_url
+from ....core.validators.file import clean_image_file, validate_image_url
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 
@@ -102,11 +102,13 @@ class ProductMediaCreate(BaseMutation):
             media = product.media.create(
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )
+        # import ipdb
+        # ipdb.set_trace()
         if media_url:
             # Remote URLs can point to the images or oembed data.
             # In case of images, file is downloaded. Otherwise we keep only
             # URL to remote media.
-            if is_image_url(media_url):
+            try:
                 validate_image_url(
                     media_url, "media_url", ProductErrorCode.INVALID.value
                 )
@@ -115,7 +117,7 @@ class ProductMediaCreate(BaseMutation):
                     media_url,
                     stream=True,
                     timeout=settings.COMMON_REQUESTS_TIMEOUT,
-                    allow_redirects=False,
+                    allow_redirects=True,
                 )
                 image_file = File(image_data.raw, filename)
                 media = product.media.create(
@@ -123,7 +125,7 @@ class ProductMediaCreate(BaseMutation):
                     alt=alt,
                     type=ProductMediaTypes.IMAGE,
                 )
-            else:
+            except ValidationError:
                 oembed_data, media_type = get_oembed_data(media_url, "media_url")
                 media = product.media.create(
                     external_url=oembed_data["url"],

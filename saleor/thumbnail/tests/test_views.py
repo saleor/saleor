@@ -16,7 +16,7 @@ def test_handle_thumbnail_view_with_format(client, category_with_image, settings
     response = client.get(f"/thumbnail/{category_id}/{size}/{format}/")
 
     # then
-    assert response.status_code == 302
+    assert response.status_code == 301
     file_path, _ = category_with_image.background_image.name.rsplit(".")
     assert (
         response.url
@@ -35,7 +35,7 @@ def test_handle_thumbnail_view_for_category(client, category_with_image, setting
     response = client.get(f"/thumbnail/{category_id}/{size}/")
 
     # then
-    assert response.status_code == 302
+    assert response.status_code == 301
     file_path, ext = category_with_image.background_image.name.rsplit(".")
     assert (
         response.url
@@ -54,7 +54,7 @@ def test_handle_thumbnail_view_for_collection(client, collection_with_image, set
     response = client.get(f"/thumbnail/{collection_id}/{size}/")
 
     # then
-    assert response.status_code == 302
+    assert response.status_code == 301
     file_path, ext = collection_with_image.background_image.name.rsplit(".")
     assert (
         response.url
@@ -78,7 +78,7 @@ def test_handle_thumbnail_view_for_user(
     response = client.get(f"/thumbnail/{user_uuid}/{size}/")
 
     # then
-    assert response.status_code == 302
+    assert response.status_code == 301
     file_path, ext = staff_user.avatar.name.rsplit(".")
     assert (
         response.url
@@ -101,7 +101,7 @@ def test_handle_thumbnail_view_for_product_media(
     response = client.get(f"/thumbnail/{product_media_id}/{size}/")
 
     # then
-    assert response.status_code == 302
+    assert response.status_code == 301
     file_path, ext = product_media.image.name.rsplit(".")
     assert (
         response.url
@@ -272,7 +272,7 @@ def test_handle_icon_thumbnail_view_with_format(
     response = client.get(f"/thumbnail/{app_uuid}/{size}/{format}/")
 
     # then
-    assert response.status_code == 302
+    assert response.status_code == 301
     file_path, _ = app.brand_logo_default.name.rsplit(".")
     assert (
         response.url
@@ -300,7 +300,7 @@ def test_handle_thumbnail_view_for_app_logo_default(
     response = client.get(f"/thumbnail/{uuid}/{size}/")
 
     # then
-    assert response.status_code == 302
+    assert response.status_code == 301
     file_path, ext = app.brand_logo_default.name.rsplit(".")
     assert (
         response.url
@@ -342,7 +342,7 @@ def test_handle_thumbnail_view_for_app_installation_logo_default(
     response = client.get(f"/thumbnail/{uuid}/{size}/")
 
     # then
-    assert response.status_code == 302
+    assert response.status_code == 301
     file_path, ext = app_installation.brand_logo_default.name.rsplit(".")
     assert (
         response.url

@@ -1,4 +1,3 @@
-import mimetypes
 import os
 
 import requests
@@ -26,23 +25,13 @@ def is_supported_image_mimetype(mimetype: str) -> bool:
     return mimetype in MIME_TYPE_TO_PIL_IDENTIFIER.keys()
 
 
-def is_image_url(url: str) -> bool:
-    """Check if file URL seems to be an image."""
-    if url.endswith(".webp"):
-        # webp is not recognized by mimetypes as image
-        # https://bugs.python.org/issue38902
-        return True
-    filetype = mimetypes.guess_type(url)[0]
-    return filetype is not None and is_image_mimetype(filetype)
-
-
 def validate_image_url(url: str, field_name: str, error_code: str) -> None:
     """Check if remote file has content type of image.
 
     Instead of the whole file, only the headers are fetched.
     """
     head = requests.head(
-        url, timeout=settings.COMMON_REQUESTS_TIMEOUT, allow_redirects=False
+        url, timeout=settings.COMMON_REQUESTS_TIMEOUT, allow_redirects=True
     )
     header = head.headers
     content_type = header.get("content-type")

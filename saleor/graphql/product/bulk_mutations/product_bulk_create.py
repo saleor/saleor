@@ -43,7 +43,7 @@ from ...core.types import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import clean_seo_fields
-from ...core.validators.file import clean_image_file, is_image_url, validate_image_url
+from ...core.validators.file import clean_image_file, validate_image_url
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
@@ -802,7 +802,7 @@ class ProductBulkCreate(BaseMutation):
                     )
                 )
             if media_url:
-                if is_image_url(media_url):
+                try:
                     validate_image_url(
                         media_url, "media_url", ProductBulkCreateErrorCode.INVALID.value
                     )
@@ -822,7 +822,7 @@ class ProductBulkCreate(BaseMutation):
                             type=ProductMediaTypes.IMAGE,
                         )
                     )
-                else:
+                except ValidationError:
                     oembed_data, media_type = get_oembed_data(media_url, "media_url")
                     media_to_create.append(
                         models.ProductMedia(

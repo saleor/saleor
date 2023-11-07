@@ -87,6 +87,10 @@ def prepare_thumbnail_file_name(
     return file_path + f"_thumbnail_{size}." + file_ext
 
 
+def get_image_mimetype(image):
+    return magic.from_buffer(image.read(1024), mime=True)
+
+
 class ProcessedImage:
     EXIF_ORIENTATION_KEY = 274
     # Whether to create progressive JPEGs. Read more about progressive JPEGs
@@ -141,7 +145,7 @@ class ProcessedImage:
             [1]: InMemoryUploadedFile-friendly save format (i.e. 'image/jpeg')
         image_format, in_memory_file_type
         """
-        mime_type = magic.from_buffer(file_like.read(1024), mime=True)
+        mime_type = get_image_mimetype(file_like)
         file_like.seek(0)
         image_format = MIME_TYPE_TO_PIL_IDENTIFIER[mime_type]
         return image_format
