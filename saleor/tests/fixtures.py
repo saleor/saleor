@@ -6176,6 +6176,29 @@ def app_with_extensions(app_with_token, permission_manage_products):
 
 
 @pytest.fixture
+def removed_app_with_extensions(removed_app, permission_manage_products):
+    first_app_extension = AppExtension(
+        app=removed_app,
+        label="Create product with App",
+        url="www.example.com/app-product",
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+    )
+    extensions = AppExtension.objects.bulk_create(
+        [
+            first_app_extension,
+            AppExtension(
+                app=removed_app,
+                label="Update product with App",
+                url="www.example.com/app-product-update",
+                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
+            ),
+        ]
+    )
+    first_app_extension.permissions.add(permission_manage_products)
+    return removed_app, extensions
+
+
+@pytest.fixture
 def payment_app(db, permission_manage_payments):
     app = App.objects.create(
         name="Payment App", is_active=True, identifier="saleor.payment.test.app"
@@ -7009,6 +7032,19 @@ def event_attempt(event_delivery):
     """Return event delivery attempt object"""
     return EventDeliveryAttempt.objects.create(
         delivery=event_delivery,
+        task_id="example_task_id",
+        duration=None,
+        response="example_response",
+        response_headers=None,
+        request_headers=None,
+    )
+
+
+@pytest.fixture
+def event_attempt_removed_app(event_delivery_removed_app):
+    """Return event delivery attempt object"""
+    return EventDeliveryAttempt.objects.create(
+        delivery=event_delivery_removed_app,
         task_id="example_task_id",
         duration=None,
         response="example_response",

@@ -609,6 +609,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.order.tasks.expire_orders_task",
         "schedule": BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA,
     },
+    "remove-apps-marked-as-removed": {
+        "task": "saleor.app.tasks.remove_apps_task",
+        "schedule": crontab(hour=3, minute=0),
+    },
 }
 
 # The maximum wait time between each is_due() call on schedulers
