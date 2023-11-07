@@ -44,7 +44,7 @@ class WebhookDelete(ModelDeleteMutation):
                 "App needs to be active to delete webhook",
                 code=WebhookErrorCode.INVALID.value,
             )
-        apps = App.objects.filter(to_remove=False)
+        apps = App.objects.filter(removed_at__isnull=True)
         webhook = cls.get_node_or_error(
             info,
             node_id,

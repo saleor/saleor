@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from ....app import models
 from ....app.error_codes import AppErrorCode
@@ -27,7 +28,7 @@ class AppDelete(ModelMutation):
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
-        data["qs"] = models.App.objects.filter(to_remove=False)
+        data["qs"] = models.App.objects.filter(removed_at__isnull=True)
         instance = super().get_instance(info, **data)
         return instance
 
@@ -51,9 +52,9 @@ class AppDelete(ModelMutation):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
 
-        instance.to_remove = True
+        instance.removed_at = timezone.now()
         instance.is_active = False
-        instance.save(update_fields=["to_remove", "is_active"])
+        instance.save(update_fields=["removed_at", "is_active"])
 
         cls.post_save_action(info, instance, {})
         return cls.success_response(instance)

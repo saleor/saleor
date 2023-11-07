@@ -29,7 +29,7 @@ class EventDeliveryRetry(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, **data):
-        apps = App.objects.filter(to_remove=False).values("pk")
+        apps = App.objects.filter(removed_at__isnull=True).values("pk")
         webhook = Webhook.objects.filter(
             Exists(apps.filter(id=OuterRef("app_id")))
         ).values("pk")

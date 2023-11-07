@@ -51,7 +51,7 @@ def test_app_delete(
     assert not data["errors"]
     assert data["app"]["name"] == app.name
     app.refresh_from_db()
-    assert app.to_remove is True
+    assert app.removed_at is not None
     assert app.is_active is False
 
 
@@ -131,7 +131,7 @@ def test_app_delete_for_app(
     assert not data["errors"]
     assert data["app"]["name"] == app.name
     app.refresh_from_db()
-    assert app.to_remove is True
+    assert app.removed_at is not None
     assert app.is_active is False
 
 
@@ -184,7 +184,7 @@ def test_app_delete_superuser_can_delete_any_app(
     assert not data["errors"]
     assert data["app"]["name"] == app.name
     app.refresh_from_db()
-    assert app.to_remove is True
+    assert app.removed_at is not None
     assert app.is_active is False
 
 

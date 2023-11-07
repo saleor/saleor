@@ -38,7 +38,7 @@ def get_webhooks_for_event(
 
     app_kwargs: dict = {"is_active": True, **permissions}
     if event_type != WebhookEventAsyncType.APP_DELETED:
-        app_kwargs["to_remove"] = False
+        app_kwargs["removed_at__isnull"] = True
     if apps_ids:
         app_kwargs["id__in"] = apps_ids
     if apps_identifier:

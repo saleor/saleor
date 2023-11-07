@@ -32,7 +32,7 @@ def app_is_not_removed(
     field_name: str,
     code: str = AppErrorCode.NOT_FOUND.value,
 ):
-    if app and app.to_remove is True:
+    if app and app.removed_at is not None:
         raise ValidationError(
             {
                 field_name: ValidationError(

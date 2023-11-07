@@ -1,7 +1,9 @@
 import logging
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef, Q
+from django.utils import timezone
 from requests import HTTPError, RequestException
 
 from .. import celeryconf
@@ -69,7 +71,8 @@ def _raw_remove_deliveries(deliveries_ids):
 
 @celeryconf.app.task
 def remove_apps_task():
-    apps = App.objects.filter(to_remove=True)
+    app_delete_period = timezone.now() - settings.DELETE_APP_TTL
+    apps = App.objects.filter(removed_at__lte=app_delete_period)
 
     # Saleor need to remove app by app to prevents timeous
     # on database when removing many deliveries.

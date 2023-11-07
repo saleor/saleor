@@ -1,5 +1,7 @@
 from unittest import mock
 
+from django.utils import timezone
+
 from ....core.models import EventDelivery, EventPayload
 from ....webhook.event_types import WebhookEventSyncType
 from ..tasks import trigger_all_webhooks_sync
@@ -13,8 +15,8 @@ def test_not_trigger_sync_webhook_for_removed_app(
 ):
     # given
     app = tax_checkout_webhook.app
-    app.to_remove = True
-    app.save(update_fields=["to_remove"])
+    app.removed_at = timezone.now()
+    app.save(update_fields=["removed_at"])
     event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
 

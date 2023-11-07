@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+from django.utils import timezone
 from requests import RequestException
 
 from ...core import JobStatus
@@ -149,4 +150,13 @@ def test_remove_app_task_no_app_to_remove(app):
     assert App.objects.count() == 1
 
 
-# TODO Owczar: Add test for remove after date.
+def test_remove_app_task_delete_period_in_progress():
+    # given
+    App.objects.create(name="App", is_active=True, removed_at=timezone.now())
+    assert App.objects.count() == 1
+
+    # when
+    remove_apps_task()
+
+    # then
+    assert App.objects.count() == 1

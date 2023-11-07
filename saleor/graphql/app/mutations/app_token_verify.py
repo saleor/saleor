@@ -26,7 +26,9 @@ class AppTokenVerify(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, _info, /, *, token: str):  # type: ignore[override]
-        apps = models.App.objects.filter(is_active=True, to_remove=False).values("pk")
+        apps = models.App.objects.filter(
+            is_active=True, removed_at__isnull=True
+        ).values("pk")
         tokens = models.AppToken.objects.filter(
             Q(token_last_4=token[-4:]), Exists(apps.filter(pk=OuterRef("app_id")))
         ).values_list("auth_token", flat=True)

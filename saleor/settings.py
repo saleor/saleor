@@ -623,6 +623,12 @@ CELERY_BEAT_MAX_LOOP_INTERVAL = 300  # 5 minutes
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
 )
+# Time needed for the App to send `APP_DELETED` webhook after removing for Saleor.
+# App is not visible for the user after removing, but it still exists in the database.
+# Saleor needs time to process sending `APP_DELETED` webhook and possible retrying,
+# so we need to wait for some time before removing the App from the database.
+DELETE_APP_TTL = timedelta(seconds=parse(os.environ.get("DELETE_APP_TTL", "1 day")))
+
 
 # Observability settings
 OBSERVABILITY_BROKER_URL = os.environ.get("OBSERVABILITY_BROKER_URL")

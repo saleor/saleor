@@ -33,7 +33,7 @@ class AppUpdate(ModelMutation):
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
-        data["qs"] = models.App.objects.filter(to_remove=False)
+        data["qs"] = models.App.objects.filter(removed_at__isnull=True)
         instance = super().get_instance(info, **data)
         return instance
 

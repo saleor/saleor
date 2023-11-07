@@ -104,7 +104,7 @@ class WebhookTrigger(BaseMutation):
         object_id = data.get("object_id")
         webhook_id = data.get("webhook_id")
 
-        apps = App.objects.filter(to_remove=False)
+        apps = App.objects.filter(removed_at__isnull=True)
         webhooks = Webhook.objects.filter(Exists(apps.filter(id=OuterRef("app_id"))))
         webhook = cls.get_node_or_error(
             info, webhook_id, field="webhookId", qs=webhooks

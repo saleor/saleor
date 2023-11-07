@@ -106,7 +106,7 @@ class WebhookDryRun(BaseMutation):
         type_name, _ = graphene.Node.from_global_id(object_id)
         qs = None
         if type_name == "App":
-            qs = App.objects.filter(to_remove=False)
+            qs = App.objects.filter(removed_at__isnull=True)
 
         object = cls.get_node_or_error(info, object_id, field="objectId", qs=qs)
 

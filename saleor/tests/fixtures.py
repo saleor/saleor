@@ -6148,7 +6148,11 @@ def app_with_token(db):
 
 @pytest.fixture
 def removed_app(db):
-    app = App.objects.create(name="Deleted app ", is_active=True, to_remove=True)
+    app = App.objects.create(
+        name="Deleted app ",
+        is_active=True,
+        removed_at=(timezone.now() - datetime.timedelta(days=1, hours=1)),
+    )
     return app
 
 

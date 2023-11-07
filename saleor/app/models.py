@@ -39,7 +39,7 @@ class App(ModelWithMetadata):
     name = models.CharField(max_length=60)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    to_remove = models.BooleanField(default=False)
+    removed_at = models.DateTimeField(blank=True, null=True)
     type = models.CharField(
         choices=AppType.CHOICES, default=AppType.LOCAL, max_length=60
     )

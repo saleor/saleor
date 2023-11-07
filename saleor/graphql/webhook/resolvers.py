@@ -22,7 +22,7 @@ def resolve_webhook(info, id, app):
         return app.webhooks.filter(id=id).first()
     user = info.context.user
     if user.has_perm(AppPermission.MANAGE_APPS):
-        apps = App.objects.filter(to_remove=False).values("pk")
+        apps = App.objects.filter(removed_at__isnull=True).values("pk")
         return models.Webhook.objects.filter(
             Q(pk=id), Exists(apps.filter(id=OuterRef("app_id")))
         ).first()

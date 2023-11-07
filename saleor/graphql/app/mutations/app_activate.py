@@ -22,7 +22,7 @@ class AppActivate(ModelMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, /, *, id):
-        qs = models.App.objects.filter(to_remove=False)
+        qs = models.App.objects.filter(removed_at__isnull=True)
         app = cls.get_instance(
             info,
             id=id,

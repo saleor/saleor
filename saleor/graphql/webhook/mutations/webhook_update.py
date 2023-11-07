@@ -110,7 +110,7 @@ class WebhookUpdate(WebhookCreate):
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
-        apps = App.objects.filter(to_remove=False)
+        apps = App.objects.filter(removed_at__isnull=True)
         if app := get_app_promise(info.context).get():
             apps = apps.filter(id=app.id)
         data["qs"] = models.Webhook.objects.filter(
