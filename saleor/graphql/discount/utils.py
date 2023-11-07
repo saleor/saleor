@@ -27,6 +27,11 @@ from ..product.filters import (
 PREDICATE_OPERATOR_DATA_T = list[dict[str, Union[list, dict, str, bool]]]
 
 
+class PredicateType(Enum):
+    CATALOGUE = "catalogue"
+    ORDER = "order"
+
+
 class Operators(Enum):
     AND = "and"
     OR = "or"
@@ -56,7 +61,7 @@ def get_products_for_promotion(promotion: Promotion) -> ProductsQueryset:
 
 def get_products_for_rule(rule: PromotionRule) -> ProductsQueryset:
     """Get products that are included in the rule based on catalogue predicate."""
-    variants = get_variants_for_predicate(deepcopy(rule.catalogue_predicate))
+    variants = get_variants_for_catalogue_predicate(rule.catalogue_predicate)
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 
@@ -64,7 +69,7 @@ def get_variants_for_promotion(promotion: Promotion) -> ProductVariantQueryset:
     """Get variants that are included in the promotion based on catalogue predicate."""
     queryset = ProductVariant.objects.none()
     for rule in promotion.rules.iterator():
-        queryset |= get_variants_for_predicate(rule.catalogue_predicate)
+        queryset |= get_variants_for_catalogue_predicate(rule.catalogue_predicate)
     return queryset
 
 
@@ -126,52 +131,64 @@ PREDICATE_TO_HANDLE_METHOD = {
 }
 
 
-def get_variants_for_predicate(
-    predicate: dict, queryset: Optional[ProductVariantQueryset] = None
-) -> ProductVariantQueryset:
-    """Get variants that met the predicate conditions."""
+def get_variants_for_catalogue_predicate(
+    predicate, queryset: Optional[ProductVariantQueryset] = None
+):
     if not predicate:
         return ProductVariant.objects.none()
-
     if queryset is None:
         queryset = ProductVariant.objects.all()
+    return filter_qs_by_predicate(predicate, queryset, PredicateType.CATALOGUE)
+
+
+def filter_qs_by_predicate(
+    predicate: dict, queryset: QuerySet, predicate_type: PredicateType
+) -> QuerySet:
+    """Filter QuerySet by predicate conditions."""
+    if not predicate:
+        return queryset.model.objects.none()
+
     and_data: Optional[list[dict]] = predicate.pop("AND", None)
     or_data: Optional[list[dict]] = predicate.pop("OR", None)
 
     if and_data:
-        queryset = _handle_and_data(queryset, and_data)
+        queryset = _handle_and_data(queryset, and_data, predicate_type)
 
     if or_data:
-        queryset = _handle_or_data(queryset, or_data)
+        queryset = _handle_or_data(queryset, or_data, predicate_type)
 
     if predicate:
-        queryset = _handle_catalogue_predicate(queryset, predicate, Operators.AND)
+        queryset = _handle_predicate(queryset, predicate, Operators.AND, predicate_type)
 
     return queryset
 
 
 def _handle_and_data(
-    queryset: ProductVariantQueryset, data: PREDICATE_OPERATOR_DATA_T
-) -> ProductVariantQueryset:
+    queryset: QuerySet,
+    data: PREDICATE_OPERATOR_DATA_T,
+    predicate_type: PredicateType,
+) -> QuerySet:
     for predicate_data in data:
         if contains_filter_operator(predicate_data):
-            queryset &= get_variants_for_predicate(predicate_data, queryset)
+            queryset &= filter_qs_by_predicate(predicate_data, queryset, predicate_type)
         else:
-            queryset = _handle_catalogue_predicate(
-                queryset, predicate_data, Operators.AND
+            queryset = _handle_predicate(
+                queryset, predicate_data, Operators.AND, predicate_type
             )
     return queryset
 
 
 def _handle_or_data(
-    queryset: ProductVariantQueryset, data: PREDICATE_OPERATOR_DATA_T
-) -> ProductVariantQueryset:
+    queryset: QuerySet,
+    data: PREDICATE_OPERATOR_DATA_T,
+    predicate_type: PredicateType,
+) -> QuerySet:
     qs = queryset.model.objects.none()
     for predicate_data in data:
         if contains_filter_operator(predicate_data):
-            qs |= get_variants_for_predicate(predicate_data, queryset)
+            qs |= filter_qs_by_predicate(predicate_data, queryset, predicate_type)
         else:
-            qs = _handle_catalogue_predicate(qs, predicate_data, Operators.OR)
+            qs = _handle_predicate(qs, predicate_data, Operators.OR, predicate_type)
     queryset &= qs
     return queryset
 
@@ -180,11 +197,23 @@ def contains_filter_operator(input: dict[str, Union[dict, str, list, bool]]) -> 
     return any([operator in input for operator in ["AND", "OR", "NOT"]])
 
 
+def _handle_predicate(
+    queryset: QuerySet,
+    predicate_data: dict[str, Union[dict, str, list, bool]],
+    operator: Operators,
+    predicate_type: PredicateType,
+):
+    if predicate_type == PredicateType.CATALOGUE:
+        return _handle_catalogue_predicate(queryset, predicate_data, operator)
+    elif predicate_type == PredicateType.ORDER:
+        return ""
+
+
 def _handle_catalogue_predicate(
-    queryset: ProductVariantQueryset,
+    queryset: QuerySet[ProductVariant],
     predicate_data: dict[str, Union[dict, str, list, bool]],
     operator,
-) -> ProductVariantQueryset:
+) -> QuerySet[ProductVariant]:
     for field, handle_method in PREDICATE_TO_HANDLE_METHOD.items():
         if field_data := predicate_data.get(field):
             field_data = cast(dict[str, Union[dict, list]], field_data)
@@ -296,7 +325,7 @@ def get_categories_from_predicate(catalogue_predicate) -> QuerySet:
 
 
 def get_product_ids_for_predicate(predicate: dict) -> set[int]:
-    variants = get_variants_for_predicate(predicate)
+    variants = get_variants_for_catalogue_predicate(predicate)
     products = Product.objects.filter(
         Exists(variants.filter(product_id=OuterRef("id")))
     )

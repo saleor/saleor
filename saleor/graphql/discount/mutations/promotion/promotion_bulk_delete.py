@@ -15,7 +15,7 @@ from ....core.types import DiscountError, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Promotion
-from ...utils import get_variants_for_predicate
+from ...utils import get_variants_for_catalogue_predicate
 
 
 class PromotionBulkDelete(ModelBulkDeleteMutation):
@@ -57,7 +57,7 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
         )
         variants = product_models.ProductVariant.objects.none()
         for rule in rules:
-            variants |= get_variants_for_predicate(rule.catalogue_predicate)
+            variants |= get_variants_for_catalogue_predicate(rule.catalogue_predicate)
         products = product_models.Product.objects.filter(
             Exists(variants.filter(product_id=OuterRef("id")))
         )

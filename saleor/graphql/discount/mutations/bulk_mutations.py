@@ -24,7 +24,7 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Sale, Voucher
 from ..utils import (
     convert_migrated_sale_predicate_to_catalogue_info,
-    get_variants_for_predicate,
+    get_variants_for_catalogue_predicate,
 )
 
 
@@ -121,7 +121,7 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
     def get_product_ids(cls, get_sale_and_rules: dict):
         variants = product_models.ProductVariant.objects.none()
         for rule in get_sale_and_rules.values():
-            variants |= get_variants_for_predicate(rule.catalogue_predicate)
+            variants |= get_variants_for_catalogue_predicate(rule.catalogue_predicate)
 
         products = product_models.Product.objects.filter(
             Exists(variants.filter(product_id=OuterRef("id")))
