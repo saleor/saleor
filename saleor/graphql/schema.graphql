@@ -18224,7 +18224,7 @@ type Mutation {
   
   Triggers the following webhook events:
   - VOUCHER_UPDATED (async): A voucher was updated.
-  - VOUCHER_UPDATED (async): A voucher code was created.
+  - VOUCHER_CODE_CREATED (async): A voucher code was created.
   """
   voucherUpdate(
     """ID of a voucher to update."""
@@ -18232,7 +18232,7 @@ type Mutation {
 
     """Fields required to update a voucher."""
     input: VoucherInput!
-  ): VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_UPDATED], syncEvents: [])
+  ): VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_CODE_CREATED], syncEvents: [])
 
   """
   Adds products, categories, collections to a voucher. 
@@ -28159,9 +28159,9 @@ Requires one of the following permissions: MANAGE_DISCOUNTS.
 
 Triggers the following webhook events:
 - VOUCHER_UPDATED (async): A voucher was updated.
-- VOUCHER_UPDATED (async): A voucher code was created.
+- VOUCHER_CODE_CREATED (async): A voucher code was created.
 """
-type VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_UPDATED], syncEvents: []) {
+type VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_CODE_CREATED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher

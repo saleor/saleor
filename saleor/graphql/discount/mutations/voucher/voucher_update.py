@@ -38,7 +38,7 @@ class VoucherUpdate(VoucherCreate):
                 description="A voucher was updated.",
             ),
             WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_UPDATED,
+                type=WebhookEventAsyncType.VOUCHER_CODE_CREATED,
                 description="A voucher code was created.",
             ),
         ]
