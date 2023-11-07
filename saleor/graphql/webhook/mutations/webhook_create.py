@@ -13,7 +13,7 @@ from ....webhook.validators import (
     custom_headers_validator,
 )
 from ...app.dataloaders import get_app_promise
-from ...app.utils import app_is_not_removed
+from ...app.utils import validate_app_is_not_removed
 from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_32,
@@ -118,7 +118,7 @@ class WebhookCreate(ModelMutation):
             app = instance.app
             cleaned_data.pop("app", None)
 
-        app_is_not_removed(app, data.get("input", {}).get("app"), "app")
+        validate_app_is_not_removed(app, data.get("input", {}).get("app"), "app")
         if not app or not app.is_active:
             raise ValidationError(
                 "App doesn't exist or is disabled",

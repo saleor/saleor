@@ -26,7 +26,7 @@ def ensure_can_manage_permissions(requestor, permission_items):
         )
 
 
-def app_is_not_removed(
+def validate_app_is_not_removed(
     app: Optional[App],
     app_global_id: str,
     field_name: str,

@@ -12,7 +12,7 @@ from ...core.mutations import ModelDeleteMutation
 from ...core.types import AppError
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from ..types import AppToken
-from ..utils import app_is_not_removed
+from ..utils import validate_app_is_not_removed
 
 
 class AppTokenDelete(ModelDeleteMutation):
@@ -30,10 +30,10 @@ class AppTokenDelete(ModelDeleteMutation):
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
         token_id = data.get("id")
-        # ID is requires we could cast type to string.
+        # ID is required. The type could be cast to str.
         token_id = cast(str, token_id)
         instance = super(ModelDeleteMutation, cls).get_instance(info, id=token_id)
-        app_is_not_removed(instance.app, token_id, "id")
+        validate_app_is_not_removed(instance.app, token_id, "id")
         return instance
 
     @classmethod

@@ -430,6 +430,7 @@ def test_app_update_mutation_removed_app(
     staff_api_client,
     staff_user,
 ):
+    # given
     query = APP_UPDATE_MUTATION
     app = removed_app
     staff_user.user_permissions.add(permission_manage_products, permission_manage_users)
@@ -442,9 +443,13 @@ def test_app_update_mutation_removed_app(
             PermissionEnum.MANAGE_USERS.name,
         ],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=(permission_manage_apps,)
     )
+
+    # then
     content = get_graphql_content(response)
 
     app_data = content["data"]["appUpdate"]
