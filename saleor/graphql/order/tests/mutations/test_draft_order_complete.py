@@ -6,6 +6,7 @@ import pytz
 from django.db.models import Sum
 
 from .....core.taxes import zero_taxed_money
+from .....discount import VoucherType
 from .....discount.models import VoucherCustomer
 from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
@@ -208,6 +209,15 @@ def test_draft_order_complete_with_voucher(
     for line in order.lines.all():
         allocation = line.allocations.get()
         assert allocation.quantity_allocated == line.quantity_unfulfilled
+
+    # ensure entire order discount is not propagated to order lines
+    assert voucher.type == VoucherType.ENTIRE_ORDER
+    lines_undiscounted_total = sum(
+        line.undiscounted_total_price_net_amount for line in order.lines.all()
+    )
+    lines_total = sum(line.total_price_net_amount for line in order.lines.all())
+    assert lines_undiscounted_total == lines_total
+    assert lines_undiscounted_total == order_total - order.base_shipping_price_amount
 
     # ensure there are only 2 events with correct types
     event_params = {
