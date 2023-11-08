@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, TypeVar, Union
 
 from django.contrib.postgres.indexes import GinIndex
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Exists, F, OrderBy, OuterRef, Q
 
 from ...core.db.fields import SanitizedJSONField
@@ -163,6 +163,7 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
 
     storefront_search_position = models.IntegerField(default=0, blank=True)
     available_in_grid = models.BooleanField(default=False, blank=True)
+    max_sort_order = models.IntegerField(default=None, null=True, blank=True)
 
     objects = AttributeManager()
     translated = TranslationProxy()
@@ -214,7 +215,7 @@ class AttributeTranslation(Translation):
         return {"name": self.name}
 
 
-class AttributeValue(SortableModel, ModelWithExternalReference):
+class AttributeValue(ModelWithExternalReference):
     name = models.CharField(max_length=250)
     # keeps hex code color value in #RRGGBBAA format
     value = models.CharField(max_length=100, blank=True, default="")
@@ -251,6 +252,7 @@ class AttributeValue(SortableModel, ModelWithExternalReference):
     reference_page = models.ForeignKey(
         Page, related_name="references", on_delete=models.CASCADE, null=True, blank=True
     )
+    sort_order = models.IntegerField(editable=False, db_index=True, null=True)
 
     translated = TranslationProxy()
 
@@ -275,6 +277,52 @@ class AttributeValue(SortableModel, ModelWithExternalReference):
 
     def get_ordering_queryset(self):
         return self.attribute.values.all()
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        if self.pk is None or self.sort_order is None:
+            self.set_current_sorting_order()
+
+        super().save(*args, **kwargs)
+
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        if self.sort_order is not None:
+            qs = self.get_ordering_queryset()
+            if qs.filter(sort_order__gt=self.sort_order).update(
+                sort_order=F("sort_order") - 1
+            ):
+                if self.attribute.max_sort_order is None:
+                    value = self._calculate_sort_order_value()
+                    self.attribute.max_sort_order = value - 1
+                    self.attribute.save(update_fields=["max_sort_order"])
+                else:
+                    Attribute.objects.filter(pk=self.attribute.pk).update(
+                        max_sort_order=F("max_sort_order") - 1
+                    )
+
+        super().delete(*args, **kwargs)
+
+    def _calculate_sort_order_value(self):
+        qs = self.get_ordering_queryset()
+        existing_max = SortableModel.get_max_sort_order(qs)
+        return 0 if existing_max is None else existing_max
+
+    def _save_new_max_sort_order(self, value):
+        self.sort_order = value
+        self.attribute.max_sort_order = value
+        self.attribute.save(update_fields=["max_sort_order"])
+
+    def set_current_sorting_order(self):
+        if self.attribute.max_sort_order is None:
+            value = self._calculate_sort_order_value()
+            self._save_new_max_sort_order(value + 1)
+        else:
+            Attribute.objects.filter(pk=self.attribute.pk).update(
+                max_sort_order=F("max_sort_order") + 1
+            )
+            self.attribute.refresh_from_db()
+            self.sort_order = self.attribute.max_sort_order
 
 
 class AttributeValueTranslation(Translation):
