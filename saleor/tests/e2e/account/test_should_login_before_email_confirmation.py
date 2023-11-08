@@ -17,8 +17,8 @@ def test_should_login_before_email_confirmation_core_1510(
     permissions = [permission_manage_channels, permission_manage_settings]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    chanel_data = create_channel(e2e_staff_api_client)
-    channel_slug = chanel_data["slug"]
+    channel_data = create_channel(e2e_staff_api_client)
+    channel_slug = channel_data["slug"]
 
     input_data = {
         "enableAccountConfirmationByEmail": True,
