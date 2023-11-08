@@ -12788,6 +12788,10 @@ type SiteSettingsType implements Node {
   cookiesSrc: String!
   css: String
   isActive: Boolean
+  fillFeeRegular: Float
+  fillFeeColdChain: Float
+  marginRegular: Float
+  marginColdChain: Float
 }
 
 type SiteSettingsList {
@@ -20481,6 +20485,18 @@ input SiteSettingsInput {
 
   """Active Site Settings"""
   isActive: Boolean
+
+  """Site Settings Fill Fee Regular"""
+  fillFeeRegular: Float
+
+  """Site Settings Fill Fee Cold Chain"""
+  fillFeeColdChain: Float
+
+  """Site Settings Margin Regular"""
+  marginRegular: Float
+
+  """Site Settings Margin Cold Chain"""
+  marginColdChain: Float
 }
 
 """Update Site Settings by id."""

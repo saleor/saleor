@@ -2,6 +2,7 @@ import graphene
 
 from .types import SiteSettingsType
 from .utils import build_file_uri
+from ..core.scalars import PositiveDecimal
 from ...permission.enums import SitePermissions
 from ...pharmacy import models
 
@@ -19,6 +20,18 @@ class SiteSettingsInput(graphene.InputObjectType):
     cookies_src = graphene.String(description="Site Settings Cookies SRC")
     css = graphene.String(description="Site Settings CSS")
     is_active = graphene.Boolean(description="Active Site Settings")
+    fill_fee_regular = graphene.Float(
+        description="Site Settings Fill Fee Regular"
+    )
+    fill_fee_cold_chain = graphene.Float(
+        description="Site Settings Fill Fee Cold Chain"
+    )
+    margin_regular = graphene.Float(
+        description="Site Settings Margin Regular"
+    )
+    margin_cold_chain = graphene.Float(
+        description="Site Settings Margin Cold Chain"
+    )
 
 
 class SiteSettingsCreate(graphene.Mutation):
@@ -48,6 +61,10 @@ class SiteSettingsCreate(graphene.Mutation):
             fax_number=input.fax_number,
             cookies_src=input.cookies_src,
             is_active=input.is_active,
+            fill_fee_regular=input.fill_fee_regular,
+            fill_fee_cold_chain=input.fill_fee_cold_chain,
+            margin_regular=input.margin_regular,
+            margin_cold_chain=input.margin_cold_chain,
         )
 
         site_settings.save()
@@ -111,6 +128,10 @@ class SiteSettingsUpdate(graphene.Mutation):
         site_settings.fax_number = input.fax_number
         site_settings.cookies_src = input.cookies_src
         site_settings.is_active = input.is_active
+        site_settings.fill_fee_regular = input.fill_fee_regular
+        site_settings.fill_fee_cold_chain = input.fill_fee_cold_chain
+        site_settings.margin_regular = input.margin_regular
+        site_settings.margin_cold_chain = input.margin_cold_chain
 
         site_settings.save()
 
