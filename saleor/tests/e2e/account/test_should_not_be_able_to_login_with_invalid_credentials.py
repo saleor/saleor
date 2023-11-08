@@ -36,9 +36,9 @@ def test_should_not_be_able_to_login_with_invalid_credentials_core_1506(
         user_password,
         channel_slug,
     )
-    user_id = user_account["id"]
+    user_id = user_account["user"]["id"]
     assert user_id is not None
-    assert user_account["isActive"] is True
+    assert user_account["user"]["isActive"] is True
 
     # Step 2 - Login with invalid password
     invalid_password = "password"

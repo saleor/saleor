@@ -3,11 +3,11 @@ import pytest
 from ..channel.utils import create_channel
 from ..shop.utils import update_shop_settings
 from ..utils import assign_permissions
-from .utils import account_register, raw_account_register
+from .utils import account_register, token_create
 
 
 @pytest.mark.e2e
-def test_should_not_be_able_to_create_account_with_existing_email_core_1503(
+def test_should_login_before_email_confirmation_core_1510(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     permission_manage_channels,
@@ -21,34 +21,33 @@ def test_should_not_be_able_to_create_account_with_existing_email_core_1503(
     channel_slug = chanel_data["slug"]
 
     input_data = {
-        "enableAccountConfirmationByEmail": False,
+        "enableAccountConfirmationByEmail": True,
+        "allowLoginWithoutConfirmation": True,
     }
 
     update_shop_settings(e2e_staff_api_client, input_data)
 
-    user_email = "user@saleor.io"
-    user_password = "Test1234!"
+    test_email = "user@saleor.io"
+    test_password = "Password!"
+    redirect_url = "https://www.example.com"
 
     # Step 1 - Create account for the new customer
     user_account = account_register(
         e2e_not_logged_api_client,
-        user_email,
-        user_password,
+        test_email,
+        test_password,
         channel_slug,
+        redirect_url,
     )
-    user_id = user_account["user"]["id"]
-    assert user_id is not None
-    assert user_account["user"]["isActive"] is True
 
-    # Step 2 - Create a new account with the same email address
-    new_password = "Password1!"
-    new_user_account = raw_account_register(
-        e2e_not_logged_api_client,
-        user_email,
-        new_password,
-        channel_slug,
-    )
-    error = new_user_account["data"]["accountRegister"]["errors"][0]
-    assert error["field"] == "email"
-    assert error["message"] == "User with this Email already exists."
-    assert error["code"] == "UNIQUE"
+    user_id = user_account["user"]["id"]
+    assert user_account["user"]["isActive"] is True
+    assert user_account["requiresConfirmation"] is True
+
+    # Step 2 - Login
+
+    login_data = token_create(e2e_not_logged_api_client, test_email, test_password)
+
+    assert login_data["user"]["id"] == user_id
+    assert login_data["user"]["isActive"] is True
+    assert login_data["user"]["isConfirmed"] is False

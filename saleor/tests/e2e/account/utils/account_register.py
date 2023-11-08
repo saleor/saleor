@@ -24,12 +24,14 @@ def raw_account_register(
     email,
     password,
     channel_slug,
+    redirect_url=None,
 ):
     variables = {
         "input": {
             "email": email,
             "password": password,
             "channel": channel_slug,
+            "redirectUrl": redirect_url,
         }
     }
 
@@ -47,17 +49,19 @@ def account_register(
     email,
     password,
     channel_slug,
+    redirect_url=None,
 ):
     response = raw_account_register(
         e2e_not_logged_api_client,
         email,
         password,
         channel_slug,
+        redirect_url,
     )
     assert response["data"]["accountRegister"]["errors"] == []
 
-    data = response["data"]["accountRegister"]["user"]
-    assert data["id"] is not None
-    assert data["email"] == email
+    data = response["data"]["accountRegister"]
+    assert data["user"]["id"] is not None
+    assert data["user"]["email"] == email
 
     return data
