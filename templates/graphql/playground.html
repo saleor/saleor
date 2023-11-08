@@ -8,19 +8,19 @@
 
   <link
     rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@3.0.0-2/dist/umd/index.css"
-    integrity="sha512-At4oauT6nG27Tia9tK5nARI3hjETDUSfKiAYTUaiupfL7EoyNmJ2bsnjIpE09WBkDQMuhQWBS/y+7Q/4xJ9U+g=="
+    href="https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@3.0.0/dist/umd/index.css"
+    integrity="sha512-6yzktgk11EmjCnuWTl0+FImf6MG3c+mqrO33bCiwaeouI5RoAJKSyKmLGFAYt44jRtr/bgkjqvRUxay3Ih05cw=="
     crossorigin="anonymous"
   />
   <!-- sha256-Y/huXlwoYkVyQlxwSVcCi1RCDGDCSVBzDt0hYP9qlTc= is inline css added by the playground when opening settings -->
   <!-- sha256-hM8ziVmFsNZhvY3EjvTholqPBoYTMv/3+1nOBhZrL+c= is the inline code below -->
-  <meta http-equiv="content-security-policy" content="default-src 'none'; connect-src {{ api_url }} {{ plugins_url }}; script-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@3.0.0-2/dist/umd/index.js 'sha256-hM8ziVmFsNZhvY3EjvTholqPBoYTMv/3+1nOBhZrL+c='; style-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@3.0.0-2/dist/umd/index.css 'sha256-Y/huXlwoYkVyQlxwSVcCi1RCDGDCSVBzDt0hYP9qlTc='; font-src 'self' data:; img-src data: https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/favicon.png" />
+  <meta http-equiv="content-security-policy" content="default-src 'none'; connect-src {{ api_url }} {{ plugins_url }}; script-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@3.0.0/dist/umd/index.js 'sha256-hM8ziVmFsNZhvY3EjvTholqPBoYTMv/3+1nOBhZrL+c='; style-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@3.0.0/dist/umd/index.css 'sha256-Y/huXlwoYkVyQlxwSVcCi1RCDGDCSVBzDt0hYP9qlTc='; font-src 'self' data:; img-src data: https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/favicon.png" />
 </head>
 <body>
   <div id="root" data-endpoint="{{ api_url }}" {% if query %}data-query="{{ query }}"{% endif %}></div>
   <script
-    src="https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@3.0.0-2/dist/umd/index.js"
-    integrity="sha512-JgXsQGo6uquPcrn/BItnP+ijuRv8erQYlH8NejqFOqfYHIQJNsYLTbShzclv1ftoXj55thfuMJAcG507qeJa4w=="
+    src="https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@3.0.0/dist/umd/index.js"
+    integrity="sha512-xbGZvNZugfiqQdC42yV5/CDwkcGReW4Jo5v39eWOG6Y63fQuhb/NulSUIH4oWIJxbZOKAdQbgMxwkOEt0U++bA=="
     crossorigin="anonymous">
   </script>
 
