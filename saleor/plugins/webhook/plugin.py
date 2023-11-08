@@ -1634,13 +1634,16 @@ class WebhookPlugin(BasePlugin):
                 apps = (
                     App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
                     .for_event_type(event_type)
-                    .filter(identifier=payment_app_data.app_identifier)
+                    .filter(
+                        identifier=payment_app_data.app_identifier,
+                        removed_at__isnull=True,
+                    )
                 )
             else:
                 apps = (
                     App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
                     .for_event_type(event_type)
-                    .filter(pk=payment_app_data.app_pk)
+                    .filter(pk=payment_app_data.app_pk, removed_at__isnull=True)
                 )
 
         if not apps:

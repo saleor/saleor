@@ -6,6 +6,7 @@ from unittest import mock
 import pytest
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.utils import timezone
 from requests import RequestException, TooManyRedirects
 
 from ....app.models import App
@@ -19,6 +20,7 @@ from ....webhook.models import Webhook, WebhookEvent
 from .. import signature_for_payload
 from ..tasks import send_webhook_request_sync, trigger_webhook_sync
 from ..utils import (
+    from_payment_app_id,
     parse_list_payment_gateways_response,
     parse_payment_action_response,
     to_payment_app_id,
@@ -29,6 +31,18 @@ from .utils import generate_request_headers
 @pytest.fixture
 def payment_invalid_app(payment_dummy):
     app = App.objects.create(name="Dummy app", is_active=True)
+    gateway_id = "credit-card"
+    gateway = to_payment_app_id(app, gateway_id)
+    payment_dummy.gateway = gateway
+    payment_dummy.save()
+    return payment_dummy
+
+
+@pytest.fixture
+def payment_removed_app(payment_dummy):
+    app = App.objects.create(
+        name="Dummy app", is_active=True, removed_at=timezone.now()
+    )
     gateway_id = "credit-card"
     gateway = to_payment_app_id(app, gateway_id)
     payment_dummy.gateway = gateway
@@ -475,6 +489,42 @@ def test_run_payment_webhook(
 def test_run_payment_webhook_invalid_app(payment_invalid_app, webhook_plugin):
     plugin = webhook_plugin()
     payment_information = create_payment_information(payment_invalid_app, "token")
+    with pytest.raises(PaymentError):
+        plugin._WebhookPlugin__run_payment_webhook(
+            WebhookEventSyncType.PAYMENT_AUTHORIZE,
+            TransactionKind.AUTH,
+            payment_information,
+            None,
+        )
+
+
+def test_run_payment_webhook_removed_app_by_id(payment_removed_app, webhook_plugin):
+    # given
+    plugin = webhook_plugin()
+    payment_information = create_payment_information(payment_removed_app, "token")
+
+    # when
+    with pytest.raises(PaymentError):
+        plugin._WebhookPlugin__run_payment_webhook(
+            WebhookEventSyncType.PAYMENT_AUTHORIZE,
+            TransactionKind.AUTH,
+            payment_information,
+            None,
+        )
+
+
+def test_run_payment_webhook_removed_app_by_app_identifier(
+    payment, payment_app, webhook_plugin
+):
+    # given
+    payment_app.removed_at = timezone.now()
+    payment_app.save(update_fields=["removed_at"])
+    plugin = webhook_plugin()
+    payment_information = create_payment_information(payment, "token")
+    payment_data = from_payment_app_id(payment_information.gateway)
+    assert payment_data.app_identifier == payment_app.identifier
+
+    # when
     with pytest.raises(PaymentError):
         plugin._WebhookPlugin__run_payment_webhook(
             WebhookEventSyncType.PAYMENT_AUTHORIZE,

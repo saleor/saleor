@@ -1,6 +1,7 @@
 import graphene
 from graphene.utils.str_converters import to_camel_case
 
+from ....app.models import App
 from ....permission.auth_filters import AuthorizationFilters
 from ....webhook.error_codes import WebhookDryRunErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
@@ -102,7 +103,12 @@ class WebhookDryRun(BaseMutation):
         cls.validate_event_type(event_type, object_id)
         cls.validate_permissions(info, event_type)
 
-        object = cls.get_node_or_error(info, object_id, field="objectId")
+        type_name, _ = graphene.Node.from_global_id(object_id)
+        qs = None
+        if type_name == "App":
+            qs = App.objects.filter(removed_at__isnull=True)
+
+        object = cls.get_node_or_error(info, object_id, field="objectId", qs=qs)
 
         return event_type, object, query
 

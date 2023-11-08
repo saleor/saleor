@@ -732,6 +732,14 @@ def test_fetch_brand_data_task_terminated(
 
 
 @patch("saleor.app.installation_utils.fetch_icon_image")
+def test_fetch_brand_data_task_for_removed_app(
+    mock_fetch_icon_image, removed_app, media_root
+):
+    fetch_brand_data_task({}, app_id=removed_app.id)
+    mock_fetch_icon_image.assert_not_called()
+
+
+@patch("saleor.app.installation_utils.fetch_icon_image")
 def test_fetch_brand_data_task_terminated_when_brand_data_fetched(
     mock_fetch_icon_image, app_installation, app, media_root
 ):
