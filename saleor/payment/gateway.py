@@ -197,7 +197,9 @@ def _create_transaction_data(
     if transaction.app_id:
         app_owner = transaction.app
     elif transaction.app_identifier:
-        app_owner = App.objects.filter(identifier=transaction.app_identifier).first()
+        app_owner = App.objects.filter(
+            identifier=transaction.app_identifier, removed_at__isnull=True
+        ).first()
 
     return TransactionActionData(
         transaction=transaction,
