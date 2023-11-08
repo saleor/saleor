@@ -12787,6 +12787,7 @@ type SiteSettingsType implements Node {
   image: String!
   cookiesSrc: String!
   css: String
+  isActive: Boolean
 }
 
 type SiteSettingsList {
@@ -20477,6 +20478,9 @@ input SiteSettingsInput {
 
   """Site Settings CSS"""
   css: String
+
+  """Active Site Settings"""
+  isActive: Boolean
 }
 
 """Update Site Settings by id."""

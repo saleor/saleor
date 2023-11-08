@@ -15,3 +15,5 @@ class SiteSettings(models.Model):
     image = models.FileField(upload_to='site/images')
     css = models.FileField(upload_to='site/css')
     cookies_src = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=False)
+
