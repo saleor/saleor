@@ -19,6 +19,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - `promotion_deleted`
   - `staff_deleted`
 - Saleor will no longer reattempt delivery for webhooks that return non-transient HTTP errors (400, 404 etc.) or redirects - #14566 by @patrys
+- **Feature preview breaking change**:
+  - Drop `defaultTransactionFlowStrategy` from `OrderSettings` type. Use `PaymentSettings.defaultTransactionFlowStrategy` instead. Drop `defaultTransactionFlowStrategy` from `OrderSettingsInput` type. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead. - #14671 by @korycins
 
 ### GraphQL API
 - Fix draft order voucher assignment - #14336 by @IKarbowiak
