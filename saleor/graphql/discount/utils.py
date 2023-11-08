@@ -29,6 +29,7 @@ PREDICATE_OPERATOR_DATA_T = list[dict[str, Union[list, dict, str, bool]]]
 
 class PredicateType(Enum):
     CATALOGUE = "catalogue"
+    ORDER = "order"
 
 
 class Operators(Enum):
@@ -60,7 +61,7 @@ def get_products_for_promotion(promotion: Promotion) -> ProductsQueryset:
 
 def get_products_for_rule(rule: PromotionRule) -> ProductsQueryset:
     """Get products that are included in the rule based on catalogue predicate."""
-    variants = get_variants_for_catalogue_predicate(rule.catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(deepcopy(rule.catalogue_predicate))
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 
@@ -90,7 +91,13 @@ def _handle_product_predicate(
 def _handle_variant_predicate(
     predicate_data: dict[str, Union[dict, list]], variant_qs: QuerySet[ProductVariant]
 ) -> ProductVariantQueryset:
-    return where_filter_qs(variant_qs, {}, ProductVariantWhere, predicate_data, None)
+    return where_filter_qs(
+        ProductVariant.objects.filter(id__in=variant_qs.values("id")),
+        {},
+        ProductVariantWhere,
+        predicate_data,
+        None,
+    )
 
 
 def _handle_collection_predicate(
@@ -111,7 +118,7 @@ def _handle_collection_predicate(
     collection_products = CollectionProduct.objects.filter(
         Exists(collection_qs.filter(id=OuterRef("collection_id")))
     )
-    return variant_qs.filter(
+    return ProductVariant.objects.filter(
         Exists(collection_products.filter(product_id=OuterRef("product_id")))
     )
 
@@ -130,7 +137,9 @@ def _handle_category_predicate(
     products = Product.objects.filter(
         Exists(category_qs.filter(id=OuterRef("category_id")))
     )
-    return variant_qs.filter(Exists(products.filter(id=OuterRef("product_id"))))
+    return ProductVariant.objects.filter(
+        Exists(products.filter(id=OuterRef("product_id")))
+    )
 
 
 PREDICATE_TO_HANDLE_METHOD = {
