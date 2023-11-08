@@ -5573,15 +5573,6 @@ type OrderSettings {
   markAsPaidStrategy: MarkAsPaidStrategyEnum!
 
   """
-  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.This preview feature field will be removed in Saleor 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
-  """
-  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
-
-  """
   The time in days after expired orders will be deleted.
   
   Added in Saleor 3.14.
@@ -5628,17 +5619,6 @@ enum MarkAsPaidStrategyEnum @doc(category: "Channels") {
   PAYMENT_FLOW
 }
 
-"""
-Determine the transaction flow strategy.
-
-    AUTHORIZATION - the processed transaction should be only authorized
-    CHARGE - the processed transaction should be charged.
-"""
-enum TransactionFlowStrategyEnum @doc(category: "Payments") {
-  AUTHORIZATION
-  CHARGE
-}
-
 """The `Day` scalar type represents number of days by integer value."""
 scalar Day
 
@@ -5668,6 +5648,17 @@ type PaymentSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
+}
+
+"""
+Determine the transaction flow strategy.
+
+    AUTHORIZATION - the processed transaction should be only authorized
+    CHARGE - the processed transaction should be charged.
+"""
+enum TransactionFlowStrategyEnum @doc(category: "Payments") {
+  AUTHORIZATION
+  CHARGE
 }
 
 """Represents shipping method postal code rule."""
@@ -16508,7 +16499,7 @@ type Mutation {
   """
   transactionInitialize(
     """
-    The expected action called for the transaction. By default, the `channel.defaultTransactionFlowStrategy` will be used. The field can be used only by app that has `HANDLE_PAYMENTS` permission.
+    The expected action called for the transaction. By default, the `channel.paymentSettings.defaultTransactionFlowStrategy` will be used.The field can be used only by app that has `HANDLE_PAYMENTS` permission.
     """
     action: TransactionFlowStrategyEnum
 
@@ -21142,7 +21133,7 @@ input OrderSettingsUpdateInput @doc(category: "Orders") {
   automaticallyConfirmAllNewOrders: Boolean
 
   """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
+  When enabled, all non-shippable gift card orders will be fulfilled automatically. By default set to True.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
 }
@@ -29136,17 +29127,6 @@ input OrderSettingsInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   markAsPaidStrategy: MarkAsPaidStrategyEnum
-
-  """
-  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
-  DEPRECATED: this preview feature field will be removed in Saleor 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
-  """
-  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
 
   """
   Determine if it is possible to place unpaid order by calling `checkoutComplete` mutation.

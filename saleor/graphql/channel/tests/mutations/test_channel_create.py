@@ -44,7 +44,6 @@ CHANNEL_CREATE_MUTATION = """
                     automaticallyFulfillNonShippableGiftCard
                     expireOrdersAfter
                     markAsPaidStrategy
-                    defaultTransactionFlowStrategy
                     deleteExpiredOrdersAfter
                     allowUnpaidOrders
                     includeDraftOrderInVoucherUsage
@@ -606,52 +605,6 @@ def test_channel_create_set_order_mark_as_paid(
     assert (
         channel.order_mark_as_paid_strategy
         == MarkAsPaidStrategyEnum.TRANSACTION_FLOW.value
-    )
-
-
-def test_channel_create_set_default_transaction_flow_strategy_via_order_settings(
-    permission_manage_channels,
-    staff_api_client,
-):
-    # given
-    name = "testName"
-    slug = "test_slug"
-    currency_code = "USD"
-    default_country = "US"
-    variables = {
-        "input": {
-            "name": name,
-            "slug": slug,
-            "currencyCode": currency_code,
-            "defaultCountry": default_country,
-            "orderSettings": {
-                "defaultTransactionFlowStrategy": (
-                    TransactionFlowStrategyEnum.AUTHORIZATION.name
-                )
-            },
-        }
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        CHANNEL_CREATE_MUTATION,
-        variables=variables,
-        permissions=(permission_manage_channels,),
-    )
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["channelCreate"]
-    assert not data["errors"]
-    channel_data = data["channel"]
-    channel = Channel.objects.get()
-    assert (
-        channel_data["orderSettings"]["defaultTransactionFlowStrategy"]
-        == TransactionFlowStrategyEnum.AUTHORIZATION.name
-    )
-    assert (
-        channel.default_transaction_flow_strategy
-        == TransactionFlowStrategyEnum.AUTHORIZATION.value
     )
 
 

@@ -19,7 +19,6 @@ from ...core.descriptions import (
     ADDED_IN_316,
     ADDED_IN_318,
     DEPRECATED_IN_3X_INPUT,
-    DEPRECATED_PREVIEW_IN_316_INPUT,
     PREVIEW_FEATURE,
 )
 from ...core.doc_category import (
@@ -119,18 +118,6 @@ class OrderSettingsInput(BaseInputObjectType):
             "\n`TRANSACTION_FLOW` - creates the `TransactionItem` object."
             + ADDED_IN_313
             + PREVIEW_FEATURE
-        ),
-    )
-    default_transaction_flow_strategy = TransactionFlowStrategyEnum(
-        required=False,
-        description=(
-            "Determine the transaction flow strategy to be used. "
-            "Include the selected option in the payload sent to the payment app, as a "
-            "requested action for the transaction."
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
-            + DEPRECATED_PREVIEW_IN_316_INPUT
-            + " Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead."
         ),
     )
     allow_unpaid_orders = graphene.Boolean(
