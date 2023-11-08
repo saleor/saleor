@@ -13,6 +13,8 @@ mutation TokenCreate($email: String!, $password: String!) {
     user {
       id
       email
+      isActive
+      isConfirmed
     }
   }
 }
@@ -44,14 +46,14 @@ def token_create(
         email,
         password,
     )
+    data = response["data"]["tokenCreate"]
+    assert data["errors"] == []
 
-    assert response["data"]["tokenCreate"]["errors"] == []
+    assert data["token"] is not None
+    assert data["refreshToken"] is not None
 
-    assert response["data"]["tokenCreate"]["token"] is not None
-    assert response["data"]["tokenCreate"]["refreshToken"] is not None
-
-    data = response["data"]["tokenCreate"]["user"]
-    assert data["id"] is not None
-    assert data["email"] == email
+    user = data["user"]
+    assert user["id"] is not None
+    assert user["email"] == email
 
     return data

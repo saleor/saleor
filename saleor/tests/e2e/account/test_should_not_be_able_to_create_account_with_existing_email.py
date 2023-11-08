@@ -36,9 +36,9 @@ def test_should_not_be_able_to_create_account_with_existing_email_core_1503(
         user_password,
         channel_slug,
     )
-    user_id = user_account["id"]
+    user_id = user_account["user"]["id"]
     assert user_id is not None
-    assert user_account["isActive"] is True
+    assert user_account["user"]["isActive"] is True
 
     # Step 2 - Create a new account with the same email address
     new_password = "Password1!"
