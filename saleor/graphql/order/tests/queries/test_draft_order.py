@@ -1,3 +1,4 @@
+import graphene
 import pytest
 
 from .....order.models import Order
@@ -119,3 +120,68 @@ def test_query_draft_orders_by_customer(
 
     # then
     assert_no_permission(response)
+
+
+ORDER_WITH_PRICES_QUERY = """
+query OrderQuery($id: ID!) {
+    order(id: $id) {
+        status
+        shippingPrice {
+            gross {
+                amount
+            }
+        }
+        shippingTaxRate
+        lines {
+            id
+            unitPrice{
+                gross{
+                    amount
+                }
+            }
+            unitDiscount{
+                amount
+            }
+            undiscountedUnitPrice{
+                gross{
+                    amount
+                }
+            }
+        }
+        discounts{
+            id
+            valueType
+            value
+            amount{
+                amount
+            }
+        }
+        subtotal {
+            net {
+                amount
+            }
+        }
+        total {
+            net {
+                amount
+            }
+        }
+    }
+}
+"""
+
+
+def test_draft_order_query_calculations(
+    staff_api_client, permission_group_manage_orders, draft_order
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order_global_id = graphene.Node.to_global_id("Order", draft_order.pk)
+    variables = {"id": order_global_id}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_WITH_PRICES_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["order"]
