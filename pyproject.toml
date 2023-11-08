@@ -10,13 +10,14 @@ repository = "https://github.com/saleor/saleor"
 documentation = "https://docs.saleor.io/"
 
   [tool.poetry.dependencies]
-  python = "~3.9"
+  python = ">=3.9, <4.0"
   babel = ">=2.8,<2.14"
   boto3 = "^1.28"
   braintree = ">=4.2,<4.23"
   dj-database-url = "^2"
   dj-email-url = "^1"
-  django = {version = "^3.2.22", extras = ["bcrypt"]}
+  #django = {version = "^3.2.22", extras = ["bcrypt"]}
+  django = {version = "^4.2.7", extras = ["bcrypt"]}
   django-countries = "^7.2"
   django-filter = "^23.1"
   django-measurement = "^3.0"
@@ -39,7 +40,8 @@ documentation = "https://docs.saleor.io/"
   razorpay = "^1.2"
   requests = "^2.22"
   sentry-sdk = "^1.28"
-  stripe = "^3.0.0"
+  #stripe = "^3.0.0"
+  stripe = "^7.3.0
   text-unidecode = "^1.2"
   # libpango >=1.44 is required
   weasyprint = ">=53.0"
