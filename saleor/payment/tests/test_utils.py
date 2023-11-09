@@ -996,7 +996,7 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
 
 
 @pytest.mark.parametrize(
-    ("event_amount",),
+    "event_amount",
     [None, "NaN", "-Inf", "Inf", "One"],
 )
 @freeze_time("2018-05-31 12:00:01")
