@@ -507,17 +507,20 @@ def fetch_active_promotion_rules(
     variant_qs: "ProductVariantQueryset",
     date: Optional[datetime.date] = None,
 ) -> dict[UUID, list[PromotionRuleInfo]]:
-    from ..graphql.discount.utils import get_variants_for_predicate
+    from ..graphql.discount.utils import get_variants_for_catalogue_predicate
 
     rules_info_per_promotion_id = defaultdict(list)
 
     promotions = Promotion.objects.active(date)
+    # TODO: we should add filter for rules with not empty `cataloguePredicate`
     rules = PromotionRule.objects.filter(
         Exists(promotions.filter(id=OuterRef("promotion_id")))
     ).prefetch_related("channels")
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
     for rule in rules.iterator():
-        variants = get_variants_for_predicate(rule.catalogue_predicate, variant_qs)
+        variants = get_variants_for_catalogue_predicate(
+            rule.catalogue_predicate, variant_qs
+        )
         rules_info_per_promotion_id[rule.promotion_id].append(
             PromotionRuleInfo(
                 rule=rule,

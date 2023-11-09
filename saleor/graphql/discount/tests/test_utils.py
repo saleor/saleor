@@ -6,12 +6,14 @@ from ....discount import RewardValueType
 from ....discount.models import Promotion, PromotionRule
 from ..utils import (
     convert_migrated_sale_predicate_to_catalogue_info,
-    get_variants_for_predicate,
+    get_variants_for_catalogue_predicate,
     get_variants_for_promotion,
 )
 
 
-def test_get_variants_for_predicate_with_or(product_with_two_variants, variant):
+def test_get_variants_for_catalogue_predicate_with_or(
+    product_with_two_variants, variant
+):
     # given
     catalogue_predicate = {
         "OR": [
@@ -33,7 +35,7 @@ def test_get_variants_for_predicate_with_or(product_with_two_variants, variant):
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert variant in variants
@@ -41,7 +43,7 @@ def test_get_variants_for_predicate_with_or(product_with_two_variants, variant):
         assert variant in variants
 
 
-def test_get_variants_for_predicate_with_and(collection, product_list):
+def test_get_variants_for_catalogue_predicate_with_and(collection, product_list):
     # given
     product_in_collection = product_list[1]
     collection.products.add(product_in_collection)
@@ -64,7 +66,7 @@ def test_get_variants_for_predicate_with_and(collection, product_list):
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product_in_collection.variants.count()
@@ -81,7 +83,7 @@ def test_get_variants_for_product_predicate(product_with_two_variants, variant):
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product_with_two_variants.variants.count()
@@ -102,7 +104,7 @@ def test_get_variants_for_variant_predicate(product_with_two_variants, variant):
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product_with_two_variants.variants.count()
@@ -125,7 +127,7 @@ def test_get_variants_for_category_predicate(
     product.save(update_fields=["category"])
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product.variants.count()
@@ -147,7 +149,7 @@ def test_get_variants_for_collection_predicate(
     collection.products.add(product)
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product.variants.count()
@@ -174,7 +176,7 @@ def test_get_variants_for_variant_and_empty_list_of_other_predicates(
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == 0
@@ -207,14 +209,14 @@ def test_get_variants_for_variant_or_operator_and_empty_list_of_other_predicates
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product_with_two_variants.variants.count()
     assert variant not in variants
 
 
-def test_get_variants_for_predicate_with_nested_conditions(
+def test_get_variants_for_catalogue_predicate_with_nested_conditions(
     product_list, collection, variant
 ):
     # given
@@ -250,7 +252,7 @@ def test_get_variants_for_predicate_with_nested_conditions(
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product_in_collection.variants.count() + 1
@@ -266,7 +268,7 @@ def test_get_variants_for_variant_predicate_empty_predicate_data(
     catalogue_predicate = {}
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == 0
