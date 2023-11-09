@@ -10,4 +10,5 @@ __all__ = [
     "customer_update",
     "create_staff",
     "update_staff",
+    "get_user",
 ]

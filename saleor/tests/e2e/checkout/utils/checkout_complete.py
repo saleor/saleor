@@ -13,9 +13,6 @@ mutation CheckoutComplete($checkoutId: ID!) {
       status
       paymentStatus
       isPaid
-      user {
-        email
-      }
       isShippingRequired
       total {
         gross {

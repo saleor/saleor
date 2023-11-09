@@ -31,12 +31,14 @@ def create_customer(
     email,
     metadata=None,
     private_metadata=None,
+    is_active=False,
 ):
     variables = {
         "input": {
             "email": email,
             "metadata": metadata,
             "privateMetadata": private_metadata,
+            "isActive": is_active,
         }
     }
 
