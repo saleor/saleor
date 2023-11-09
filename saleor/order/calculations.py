@@ -69,14 +69,23 @@ def _recalculate_order_prices(
                     ),
                     line.currency,
                 )
-                line.undiscounted_total_price = quantize_price(
-                    calculate_flat_rate_tax(
-                        money=line_total.undiscounted_price.net,
-                        tax_rate=line.tax_rate * 100,
-                        prices_entered_with_tax=prices_entered_with_tax,
-                    ),
-                    line.currency,
-                )
+
+                if (
+                    line.tax_rate > 0
+                    and line_total.undiscounted_price.net
+                    == line_total.undiscounted_price.gross
+                ):
+                    line.undiscounted_total_price = quantize_price(
+                        calculate_flat_rate_tax(
+                            # It is calculated when net and gross are equal
+                            money=line_total.undiscounted_price.net,
+                            tax_rate=line.tax_rate,
+                            prices_entered_with_tax=prices_entered_with_tax,
+                        ),
+                        line.currency,
+                    )
+                else:
+                    line.undiscounted_total_price = line_total.undiscounted_price
             except TaxError:
                 pass
 
@@ -514,3 +523,17 @@ def order_undiscounted_total(
     currency = order.currency
     order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
     return quantize_price(order.undiscounted_total, currency)
+
+
+def dd(line, line_total, amount: TaxedMoney, tax_rate: int, prices_entered_with_tax):
+    if tax_rate > 0 and amount.net == amount.gross:
+        quantize_price(
+            calculate_flat_rate_tax(
+                money=line_total.undiscounted_price.net,
+                tax_rate=tax_rate,
+                prices_entered_with_tax=prices_entered_with_tax,
+            ),
+            line.currency,
+        )
+    else:
+        return amount
