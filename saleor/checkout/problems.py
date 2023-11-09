@@ -1,7 +1,8 @@
 import datetime
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, Optional, Tuple, Union
+from typing import Optional, Union
 
 import pytz
 
@@ -50,7 +51,7 @@ def get_insufficient_stock_lines(
         Iterable[Stock],
     ],
     country_code: str,
-) -> list[Tuple["CheckoutLineInfo", int]]:
+) -> list[tuple["CheckoutLineInfo", int]]:
     """Return checkout lines with insufficient stock."""
     variant_to_quantity_map: dict[int, int] = defaultdict(int)
     variant_to_available_quantity_map: dict[int, int] = defaultdict(int)
@@ -183,7 +184,7 @@ def get_checkout_lines_problems(
 def get_checkout_problems(
     checkout_lines_problem: dict[
         CHECKOUT_LINE_PK_TYPE, list[CHECKOUT_LINE_PROBLEM_TYPE]
-    ]
+    ],
 ):
     """Return a list of all problems with the checkout.
 

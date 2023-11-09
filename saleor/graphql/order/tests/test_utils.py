@@ -5,7 +5,7 @@ from ....order.utils import invalidate_order_prices
 
 
 @pytest.mark.parametrize(
-    "status, invalid_prices",
+    ("status", "invalid_prices"),
     [
         (OrderStatus.DRAFT, True),
         (OrderStatus.UNCONFIRMED, True),
@@ -25,7 +25,7 @@ def test_invalidate_order_prices_status(order, status, invalid_prices):
 
 
 @pytest.mark.parametrize(
-    "save, invalid_prices",
+    ("save", "invalid_prices"),
     [
         (True, True),
         (False, False),

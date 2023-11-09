@@ -157,7 +157,7 @@ def test_handle_successful_payment_intent_when_order_creation_raises_exception(
 
 
 @pytest.mark.parametrize(
-    ["metadata", "called"],
+    ("metadata", "called"),
     [({f"key{i}": f"value{i}" for i in range(5)}, True), ({}, False)],
 )
 @patch(
@@ -584,7 +584,7 @@ def test_handle_authorized_payment_intent_for_processing_order_payment(
 
 
 @pytest.mark.parametrize(
-    ["metadata", "called"], [({"key": "value"}, True), ({}, False)]
+    ("metadata", "called"), [({"key": "value"}, True), ({}, False)]
 )
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
@@ -1271,7 +1271,7 @@ def test_handle_refund_different_checkout_channel_slug(
 
 
 @pytest.mark.parametrize(
-    "webhook_type, fun_to_mock",
+    ("webhook_type", "fun_to_mock"),
     [
         (WEBHOOK_SUCCESS_EVENT, "handle_successful_payment_intent"),
         (WEBHOOK_PROCESSING_EVENT, "handle_processing_payment_intent"),

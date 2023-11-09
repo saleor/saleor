@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import List
 
 from prices import Money, TaxedMoney
 
@@ -42,4 +41,4 @@ class TaxData:
     shipping_price_gross_amount: Decimal
     shipping_price_net_amount: Decimal
     shipping_tax_rate: Decimal
-    lines: List[TaxLineData]
+    lines: list[TaxLineData]

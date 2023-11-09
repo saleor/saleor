@@ -12,8 +12,7 @@ from .....order import models as order_models
 from .....order.tasks import recalculate_orders_task
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.search import update_product_search_vector
-from .....product.tasks import update_product_discounted_price_task
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -52,9 +51,12 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     @classmethod
     def success_response(cls, instance):
         # Update the "discounted_prices" of the parent product
-        update_product_discounted_price_task.delay(instance.product_id)
+        update_products_discounted_prices_for_promotion_task.delay(
+            [instance.product_id]
+        )
         product = models.Product.objects.get(id=instance.product_id)
-        update_product_search_vector(product)
+        product.search_index_dirty = True
+        product.save(update_fields=["search_index_dirty"])
         # if the product default variant has been removed set the new one
         if not product.default_variant:
             product.default_variant = product.variants.first()
@@ -71,7 +73,7 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         *,
         external_reference: Optional[str] = None,
         id: Optional[str] = None,
-        sku: Optional[str] = None
+        sku: Optional[str] = None,
     ):
         validate_one_of_args_is_in_mutation(
             "sku",
@@ -135,7 +137,6 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
             order_pks = draft_order_lines_data.order_pks
             if order_pks:
                 recalculate_orders_task.delay(list(order_pks))
-
             cls.call_event(manager.product_variant_deleted, variant)
 
         return response

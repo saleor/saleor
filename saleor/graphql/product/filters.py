@@ -1,7 +1,7 @@
 import datetime
 import math
 from collections import defaultdict
-from typing import DefaultDict, Dict, List, Optional, TypedDict
+from typing import Optional, TypedDict
 
 import django_filters
 import graphene
@@ -36,7 +36,7 @@ from ...product.models import (
 from ...product.search import search_products
 from ...warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
-from ..core.descriptions import ADDED_IN_38
+from ..core.descriptions import ADDED_IN_38, ADDED_IN_317
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.filters import (
     BooleanWhereFilter,
@@ -56,6 +56,7 @@ from ..core.filters import (
 from ..core.types import (
     BaseInputObjectType,
     ChannelFilterInputObjectType,
+    DateTimeFilterInput,
     DateTimeRangeInput,
     FilterInputObjectType,
     IntRangeInput,
@@ -88,7 +89,7 @@ from .enums import (
     StockAvailability,
 )
 
-T_PRODUCT_FILTER_QUERIES = Dict[int, List[int]]
+T_PRODUCT_FILTER_QUERIES = dict[int, list[int]]
 
 
 def _clean_product_attributes_filter_input(filter_value, queries):
@@ -97,9 +98,9 @@ def _clean_product_attributes_filter_input(filter_value, queries):
     for attr_slug, val_slugs in filter_value:
         attribute_slugs.append(attr_slug)
         value_slugs.extend(val_slugs)
-    attributes_slug_pk_map: Dict[str, int] = {}
-    attributes_pk_slug_map: Dict[int, str] = {}
-    values_map: Dict[str, Dict[str, int]] = defaultdict(dict)
+    attributes_slug_pk_map: dict[str, int] = {}
+    attributes_pk_slug_map: dict[int, str] = {}
+    values_map: dict[str, dict[str, int]] = defaultdict(dict)
     for attr_slug, attr_pk in Attribute.objects.filter(
         slug__in=attribute_slugs
     ).values_list("slug", "id"):
@@ -120,7 +121,7 @@ def _clean_product_attributes_filter_input(filter_value, queries):
     # attributes are keys and values are grouped in lists
     for attr_name, val_slugs in filter_value:
         if attr_name not in attributes_slug_pk_map:
-            raise ValueError("Unknown attribute name: %r" % (attr_name,))
+            raise ValueError(f"Unknown attribute name: {attr_name}")
         attr_pk = attributes_slug_pk_map[attr_name]
         attr_val_pk = [
             values_map[attr_name][val_slug]
@@ -140,8 +141,8 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
         .select_related("attribute")
     )
 
-    attributes_map: Dict[str, int] = {}
-    values_map: DefaultDict[str, DefaultDict[str, List[int]]] = defaultdict(
+    attributes_map: dict[str, int] = {}
+    values_map: defaultdict[str, defaultdict[str, list[int]]] = defaultdict(
         lambda: defaultdict(list)
     )
     for value_data in values.values_list(
@@ -153,7 +154,7 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
 
     for attr_name, val_range in filter_value:
         if attr_name not in attributes_map:
-            raise ValueError("Unknown numeric attribute name: %r" % (attr_name,))
+            raise ValueError(f"Unknown numeric attribute name: {attr_name}")
         gte, lte = val_range.get("gte", 0), val_range.get("lte", math.inf)
         attr_pk = attributes_map[attr_name]
         attr_values = values_map[attr_name]
@@ -189,7 +190,7 @@ def _clean_product_attributes_date_time_range_filter_input(filter_value):
 
 class KeyValueDict(TypedDict):
     pk: int
-    values: Dict[Optional[bool], int]
+    values: dict[Optional[bool], int]
 
 
 def _clean_product_attributes_boolean_filter_input(filter_value, queries):
@@ -197,7 +198,7 @@ def _clean_product_attributes_boolean_filter_input(filter_value, queries):
     attributes = Attribute.objects.filter(
         input_type=AttributeInputType.BOOLEAN, slug__in=attribute_slugs
     ).prefetch_related("values")
-    values_map: Dict[str, KeyValueDict] = {
+    values_map: dict[str, KeyValueDict] = {
         attr.slug: {
             "pk": attr.pk,
             "values": {val.boolean: val.pk for val in attr.values.all()},
@@ -282,7 +283,7 @@ def filter_products_by_attributes(
     date_range_list,
     date_time_range_list,
 ):
-    queries: Dict[int, List[int]] = defaultdict(list)
+    queries: dict[int, list[int]] = defaultdict(list)
     try:
         if filter_values:
             _clean_product_attributes_filter_input(filter_values, queries)
@@ -943,11 +944,18 @@ def where_filter_quantity(qs, quantity_value, warehouse_ids=None):
         total_quantity=ExpressionWrapper(stocks, output_field=IntegerField())
     )
     variants = list(
-        filter_where_range_field(
-            variants, "total_quantity", quantity_value
-        ).values_list("product_id", flat=True)
+        _filter_range(variants, "total_quantity", quantity_value).values_list(
+            "product_id", flat=True
+        )
     )
     return qs.filter(pk__in=variants)
+
+
+def _filter_range(qs, field, value):
+    gte, lte = value.get("gte"), value.get("lte")
+    if gte is None and lte is None:
+        return qs.none()
+    return filter_range_field(qs, field, value)
 
 
 def where_filter_stock_availability(qs, _, value, channel_slug):
@@ -1073,7 +1081,7 @@ class ProductWhere(MetadataWhereFilterBase):
         help_text="Filter by product with preordered variants.",
     )
     updated_at = ObjectTypeWhereFilter(
-        input_class=DateTimeRangeInput,
+        input_class=DateTimeFilterInput,
         method=where_filter_updated_at_range,
         help_text="Filter by when was the most recent update.",
     )
@@ -1258,6 +1266,11 @@ class CategoryFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="category_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
     slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
+    updated_at = ObjectTypeFilter(
+        input_class=DateTimeRangeInput,
+        method=filter_updated_at_range,
+        help_text=f"Filter by when was the most recent update. {ADDED_IN_317}",
+    )
 
     class Meta:
         model = Category

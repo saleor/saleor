@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -10,7 +10,7 @@ from promise import Promise
 
 from ...app.models import App
 from ...core.exceptions import PermissionDenied
-from ...settings import get_host
+from ...core.utils import get_domain
 from ..core import SaleorContext
 from ..utils import format_error
 
@@ -20,7 +20,7 @@ logger = get_task_logger(__name__)
 def initialize_request(
     requestor=None,
     sync_event=False,
-    allow_replica=True,
+    allow_replica=False,
     event_type: Optional[str] = None,
 ) -> SaleorContext:
     """Prepare a request object for webhook subscription.
@@ -35,7 +35,7 @@ def initialize_request(
     request.path = "/graphql/"
     request.path_info = "/graphql/"
     request.method = "GET"
-    request.META = {"SERVER_NAME": SimpleLazyObject(get_host), "SERVER_PORT": "80"}
+    request.META = {"SERVER_NAME": SimpleLazyObject(get_domain), "SERVER_PORT": "80"}
     if settings.ENABLE_SSL:
         request.META["HTTP_X_FORWARDED_PROTO"] = "https"
         request.META["SERVER_PORT"] = "443"
@@ -63,7 +63,7 @@ def generate_payload_from_subscription(
     subscription_query: Optional[str],
     request: SaleorContext,
     app: Optional[App] = None,
-) -> Optional[Dict[str, Any]]:
+) -> Optional[dict[str, Any]]:
     """Generate webhook payload from subscription query.
 
     It uses a graphql's engine to build payload by using the same logic as response.
@@ -104,7 +104,7 @@ def generate_payload_from_subscription(
         )
         return None
 
-    payload: List[Any] = []
+    payload: list[Any] = []
     results.subscribe(payload.append)
 
     if not payload:

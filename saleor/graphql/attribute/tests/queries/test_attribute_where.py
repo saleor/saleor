@@ -76,7 +76,7 @@ def test_attributes_filter_by_ids_empty_list(api_client, product_type_attribute_
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"eq": "Color"}, [0]),
         ({"eq": "test"}, []),
@@ -108,7 +108,7 @@ def test_attributes_filter_by_name(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"eq": "color"}, [0]),
         ({"eq": "test"}, []),
@@ -139,7 +139,9 @@ def test_attributes_filter_by_slug(
     assert returned_attrs == {attributes[index].slug for index in indexes}
 
 
-@pytest.mark.parametrize("value, indexes", [(True, [0]), (False, [1, 2]), (None, [])])
+@pytest.mark.parametrize(
+    ("value", "indexes"), [(True, [0]), (False, [1, 2]), (None, [])]
+)
 def test_attributes_filter_by_with_choices(
     value, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
 ):
@@ -159,7 +161,7 @@ def test_attributes_filter_by_with_choices(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"eq": AttributeInputTypeEnum.DROPDOWN.name}, [0]),
         ({"eq": AttributeInputTypeEnum.FILE.name}, []),
@@ -206,7 +208,7 @@ def test_attributes_filter_by_input_type(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"eq": AttributeEntityTypeEnum.PRODUCT_VARIANT.name}, [2]),
         ({"eq": AttributeEntityTypeEnum.PRODUCT.name}, []),
@@ -264,7 +266,7 @@ def test_attributes_filter_by_entity_type(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"eq": AttributeTypeEnum.PRODUCT_TYPE.name}, [0, 1]),
         ({"eq": AttributeTypeEnum.PAGE_TYPE.name}, []),
@@ -316,7 +318,7 @@ def test_attributes_filter_by_type(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"eq": MeasurementUnitsEnum.CM.name}, [1]),
         ({"eq": MeasurementUnitsEnum.SQ_CM.name}, []),
@@ -378,7 +380,9 @@ def test_attributes_filter_by_unit(
     assert returned_attrs == {attributes[index].slug for index in indexes}
 
 
-@pytest.mark.parametrize("value, indexes", [(True, [0, 1]), (False, [2]), (None, [])])
+@pytest.mark.parametrize(
+    ("value", "indexes"), [(True, [0, 1]), (False, [2]), (None, [])]
+)
 def test_attributes_filter_by_value_required(
     value, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
 ):
@@ -404,7 +408,9 @@ def test_attributes_filter_by_value_required(
     assert returned_attrs == {attributes[index].slug for index in indexes}
 
 
-@pytest.mark.parametrize("value, indexes", [(True, [0, 1]), (False, [2]), (None, [])])
+@pytest.mark.parametrize(
+    ("value", "indexes"), [(True, [0, 1]), (False, [2]), (None, [])]
+)
 def test_attributes_filter_by_visible_in_storefront(
     value,
     indexes,
@@ -439,7 +445,9 @@ def test_attributes_filter_by_visible_in_storefront(
     assert returned_attrs == {attributes[index].slug for index in indexes}
 
 
-@pytest.mark.parametrize("value, indexes", [(True, [0]), (False, [1, 2]), (None, [])])
+@pytest.mark.parametrize(
+    ("value", "indexes"), [(True, [0]), (False, [1, 2]), (None, [])]
+)
 def test_attributes_filter_by_filterable_in_dashboard(
     value, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
 ):
@@ -1491,7 +1499,7 @@ def test_attributes_filter_and_where_both_used(api_client, product_type_attribut
 
 
 @pytest.mark.parametrize(
-    "where, field_name",
+    ("where", "field_name"),
     [
         ({"name": {"eq": "Text", "oneOf": ["Color", "Text"]}}, "name"),
         ({"slug": {"eq": "text", "oneOf": ["color", "text"]}}, "slug"),
@@ -1770,7 +1778,7 @@ ATTRIBUTES_SEARCH_QUERY = """
 
 
 @pytest.mark.parametrize(
-    "search, indexes",
+    ("search", "indexes"),
     [
         ("color", [0]),
         ("size", [1]),

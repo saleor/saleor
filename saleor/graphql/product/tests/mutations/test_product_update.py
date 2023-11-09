@@ -82,13 +82,15 @@ MUTATION_UPDATE_PRODUCT = """
 """
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_update_product(
     created_webhook_mock,
     updated_webhook_mock,
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     category,
     non_default_category,
@@ -155,6 +157,7 @@ def test_update_product(
     product.refresh_from_db()
 
     # then
+    assert product.search_index_dirty is True
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
@@ -181,12 +184,16 @@ def test_update_product(
 
     updated_webhook_mock.assert_called_once_with(product)
     created_webhook_mock.assert_not_called()
-    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_update_and_search_product_by_description(
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     category,
     non_default_category,
@@ -222,12 +229,16 @@ def test_update_and_search_product_by_description(
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["description"] == other_description_json
-    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_update_product_only_description(
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     other_description_json,
@@ -252,12 +263,14 @@ def test_update_product_only_description(
     data = content["data"]["productUpdate"]
     assert not data["errors"]
     assert data["product"]["description"] == other_description_json
-    update_product_discounted_price_task_mock.assert_not_called()
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_update_product_only_collections(
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     collection,
@@ -285,7 +298,9 @@ def test_update_product_only_collections(
     assert not data["errors"]
     assert len(data["product"]["collections"]) == 1
     assert data["product"]["collections"][0]["name"] == collection.name
-    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
 def test_update_product_clear_description_plaintext_when_description_is_none(
@@ -1166,9 +1181,6 @@ def test_update_product_with_page_reference_attribute_value(
 def test_update_product_without_supplying_required_product_attribute(
     staff_api_client, product, permission_manage_products, color_attribute
 ):
-    """Ensure assigning an existing value to a product doesn't create a new
-    attribute value."""
-
     # given
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
@@ -1773,7 +1785,7 @@ UPDATE_PRODUCT_SLUG_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, error_message",
+    ("input_slug", "expected_slug", "error_message"),
     [
         ("test-slug", "test-slug", None),
         ("", "", "Slug value cannot be blank."),
@@ -1837,7 +1849,7 @@ def test_update_product_slug_exists(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, input_name, error_message, error_field",
+    ("input_slug", "expected_slug", "input_name", "error_message", "error_field"),
     [
         ("test-slug", "test-slug", "New name", None, None),
         ("", "", "New name", "Slug value cannot be blank.", "slug"),
@@ -1920,10 +1932,6 @@ SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
 def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
     staff_api_client, product, permission_manage_products, color_attribute
 ):
-    """Ensures you cannot assign multiple values to input types
-    that are not multi-select. This also ensures multi-select types
-    can be assigned multiple values as intended."""
-
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     multi_values_attr = Attribute.objects.create(
@@ -1962,9 +1970,6 @@ def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
 def test_update_product_with_existing_attribute_value(
     staff_api_client, product, permission_manage_products, color_attribute
 ):
-    """Ensure assigning an existing value to a product doesn't create a new
-    attribute value."""
-
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     expected_attribute_values_count = color_attribute.values.count()
@@ -2690,7 +2695,7 @@ def test_update_product_with_selectable_attribute_by_both_id_and_value(
 
 
 @pytest.mark.parametrize(
-    "value,expected_result",
+    ("value", "expected_result"),
     [
         ("", AttributeInputErrors.ERROR_NO_VALUE_GIVEN),
         ("  ", AttributeInputErrors.ERROR_BLANK_VALUE),

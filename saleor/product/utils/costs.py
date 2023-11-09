@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from prices import MoneyRange
 
@@ -12,8 +13,8 @@ if TYPE_CHECKING:
 
 @dataclass
 class CostsData:
-    costs: List["Money"]
-    margins: List[float]
+    costs: list["Money"]
+    margins: list[float]
 
     def __post_init__(self):
         self.costs = sorted(self.costs)
@@ -24,7 +25,7 @@ def get_product_costs_data(
     variant_channel_listings: Iterable[ProductVariantChannelListing],
     has_variants: bool,
     currency: str,
-) -> Tuple[MoneyRange, Tuple[float, float]]:
+) -> tuple[MoneyRange, tuple[float, float]]:
     purchase_costs_range = MoneyRange(
         start=zero_money(currency), stop=zero_money(currency)
     )
@@ -44,8 +45,8 @@ def get_product_costs_data(
 def get_cost_data_from_variant_channel_listing(
     variant_channel_listings: Iterable["ProductVariantChannelListing"],
 ) -> CostsData:
-    costs: List[CostsData] = []
-    margins: List[float] = []
+    costs: list[CostsData] = []
+    margins: list[float] = []
     for variant_channel_listing in variant_channel_listings:
         costs_data = get_variant_costs_data(variant_channel_listing)
         costs += costs_data.costs

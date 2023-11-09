@@ -2,7 +2,7 @@ import sys
 from collections import defaultdict
 from dataclasses import asdict
 from decimal import Decimal
-from typing import List, Optional
+from typing import Optional
 
 import graphene
 from graphene import relay
@@ -204,8 +204,7 @@ class VariantPricingInfo(BasePricingInfo):
 class ProductPricingInfo(BasePricingInfo):
     display_gross_prices = graphene.Boolean(
         description=(
-            "Determines whether this product's price displayed in a storefront "
-            "should include taxes." + ADDED_IN_39
+            "Determines whether displayed prices should include taxes." + ADDED_IN_39
         ),
         required=True,
     )
@@ -792,7 +791,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         return variant_channel_listings.then(calculate_global_sold_units)
 
     @staticmethod
-    def __resolve_references(roots: List["ProductVariant"], info):
+    def __resolve_references(roots: list["ProductVariant"], info):
         requestor = get_user_or_app_from_context(info.context)
         requestor_has_access_to_all = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -1065,7 +1064,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         info,
         *,
         size: int = 256,
-        format: Optional[str] = None
+        format: Optional[str] = None,
     ):
         format = get_thumbnail_format(format)
         size = get_thumbnail_size(size)
@@ -1270,7 +1269,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     @staticmethod
     def resolve_attribute(root: ChannelContext[models.Product], info, slug):
         def get_selected_attribute_by_slug(
-            attributes: List[SelectedAttribute],
+            attributes: list[SelectedAttribute],
         ) -> Optional[SelectedAttribute]:
             return next(
                 (atr for atr in attributes if atr["attribute"].slug == slug),
@@ -1552,7 +1551,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         return ProductChargeTaxesByTaxClassIdLoader(info.context).load(tax_class_id)
 
     @staticmethod
-    def __resolve_references(roots: List["Product"], info):
+    def __resolve_references(roots: list["Product"], info):
         requestor = get_user_or_app_from_context(info.context)
         channels = defaultdict(set)
         roots_ids = []
@@ -1780,7 +1779,7 @@ class ProductType(ModelObjectType[models.ProductType]):
         )
 
     @staticmethod
-    def __resolve_references(roots: List["ProductType"], _info):
+    def __resolve_references(roots: list["ProductType"], _info):
         return resolve_federation_references(
             ProductType, roots, models.ProductType.objects
         )
@@ -1820,7 +1819,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         info,
         *,
         size: Optional[int] = None,
-        format: Optional[str] = None
+        format: Optional[str] = None,
     ):
         if root.external_url:
             return root.external_url
@@ -1847,7 +1846,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         )
 
     @staticmethod
-    def __resolve_references(roots: List["ProductMedia"], _info):
+    def __resolve_references(roots: list["ProductMedia"], _info):
         return resolve_federation_references(
             ProductMedia, roots, models.ProductMedia.objects
         )
@@ -1886,7 +1885,7 @@ class ProductImage(BaseObjectType):
         info,
         *,
         size: Optional[int] = None,
-        format: Optional[str] = None
+        format: Optional[str] = None,
     ):
         if not root.image:
             return

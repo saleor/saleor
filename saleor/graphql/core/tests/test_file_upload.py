@@ -121,9 +121,6 @@ def test_file_upload_by_superuser(superuser_api_client, media_root):
 def test_file_upload_file_with_the_same_name_already_exists(
     staff_api_client, media_root, site_settings
 ):
-    """Ensure that when the file with the same name as uploaded file,
-    already exists, the file name will be renamed and save as another file.
-    """
     # given
     image_file1, image_name1 = create_image()
     path = default_storage.save(image_file1._name, image_file1)

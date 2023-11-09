@@ -1,5 +1,4 @@
 from collections import Counter, defaultdict
-from typing import DefaultDict, List
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -11,7 +10,6 @@ from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions, ProductTypePermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
-from ....product.search import update_products_search_vector
 from ...attribute.mutations import (
     BaseReorderAttributesMutation,
     BaseReorderAttributeValuesMutation,
@@ -118,7 +116,7 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
 
     @classmethod
     def get_operations(
-        cls, info: ResolveInfo, operations: List[ProductAttributeAssignInput]
+        cls, info: ResolveInfo, operations: list[ProductAttributeAssignInput]
     ):
         """Resolve all passed global ids into integer PKs of the Attribute type."""
         product_attrs_pks = []
@@ -278,7 +276,7 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         product_type_id: str = data["product_type_id"]
-        operations: List[ProductAttributeAssignInput] = data["operations"]
+        operations: list[ProductAttributeAssignInput] = data["operations"]
         # Retrieve the requested product type
         product_type: models.ProductType = graphene.Node.get_node_from_global_id(
             info, product_type_id, only_type=ProductType
@@ -340,7 +338,7 @@ class ProductAttributeUnassign(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         product_type_id: str = data["product_type_id"]
-        attribute_ids: List[str] = data["attribute_ids"]
+        attribute_ids: list[str] = data["attribute_ids"]
         # Retrieve the requested product type
         product_type = graphene.Node.get_node_from_global_id(
             info, product_type_id, only_type=ProductType
@@ -358,7 +356,7 @@ class ProductAttributeUnassign(BaseMutation):
         cls.save_field_values(product_type, "product_attributes", attribute_pks)
         cls.save_field_values(product_type, "variant_attributes", attribute_pks)
 
-        update_products_search_vector(product_type.products.all())
+        product_type.products.all().update(search_index_dirty=True)
 
         return cls(product_type=product_type)
 
@@ -389,7 +387,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
 
     @classmethod
     def get_operations(
-        cls, info: ResolveInfo, operations: List[ProductAttributeAssignmentUpdateInput]
+        cls, info: ResolveInfo, operations: list[ProductAttributeAssignmentUpdateInput]
     ):
         variant_attrs_pks = []
         for operation in operations:
@@ -473,8 +471,8 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
 
     @classmethod
     def clean_operations(cls, product_type, variant_attrs_data):
-        errors: DefaultDict[str, List[ValidationError]] = defaultdict(list)
-        variant_attrs_pks = [pk for pk, _, in variant_attrs_data]
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
+        variant_attrs_pks = [pk for pk, _ in variant_attrs_data]
 
         cls.check_for_duplicates(errors, variant_attrs_pks)
         if errors:
@@ -529,7 +527,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         product_type_id: str = data["product_type_id"]
-        operations: List[ProductAttributeAssignmentUpdateInput] = data["operations"]
+        operations: list[ProductAttributeAssignmentUpdateInput] = data["operations"]
         # Retrieve the requested product type
 
         product_type: models.ProductType = graphene.Node.get_node_from_global_id(

@@ -1,7 +1,6 @@
 import json
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
-import requests
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import (
     constants,
@@ -11,6 +10,7 @@ from authorizenet.apicontrollers import (
 from lxml import etree
 from lxml.objectify import ObjectifiedElement
 
+from ....core.http_client import HTTPClient
 from ... import TransactionKind
 from ...interface import (
     CustomerSource,
@@ -23,7 +23,7 @@ from ...interface import (
 
 def authenticate_test(
     name: str, transaction_key: str, use_sandbox: bool
-) -> Tuple[bool, str]:
+) -> tuple[bool, str]:
     """Check if credentials are correct.
 
     This API is not present in the authorizenet Python package.
@@ -38,11 +38,11 @@ def authenticate_test(
             "merchantAuthentication": {"name": name, "transactionKey": transaction_key}
         }
     }
-    response = requests.post(
+    response = HTTPClient.send_request(
+        "POST",
         url,
         json=data,
         headers={"content-type": "application/json"},
-        timeout=30,
         allow_redirects=False,
     )
     # Response content is utf-8-sig, which requires usage of json.loads
@@ -250,7 +250,7 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
 
 def list_client_sources(
     config: GatewayConfig, customer_id: str
-) -> List[CustomerSource]:
+) -> list[CustomerSource]:
     merchant_auth = _get_merchant_auth(config.connection_params)
 
     get_customer_profile = apicontractsv1.getCustomerProfileRequest()
@@ -351,7 +351,7 @@ def refund(
 
 def _handle_authorize_net_response(
     response: ObjectifiedElement,
-) -> Tuple[bool, Optional[str], str, Any, Any]:
+) -> tuple[bool, Optional[str], str, Any, Any]:
     success = False
     error: Optional[str] = None
     transaction_id: Optional[int] = None
@@ -416,14 +416,14 @@ def _authorize_net_account_to_payment_method_info(
     return None
 
 
-def _get_merchant_auth(connection_params: Dict[str, Any]):
+def _get_merchant_auth(connection_params: dict[str, Any]):
     merchant_auth = apicontractsv1.merchantAuthenticationType()
     merchant_auth.name = connection_params.get("api_login_id")
     merchant_auth.transactionKey = connection_params.get("transaction_key")
     return merchant_auth
 
 
-def _make_request(create_transaction_request, connection_params: Dict[str, Any]):
+def _make_request(create_transaction_request, connection_params: dict[str, Any]):
     """Create an auth.net transaction controller and execute the request.
 
     Returns auth.net response object
@@ -448,7 +448,7 @@ def _normalize_last_4(account_number: str):
     return account_number.strip("X")
 
 
-def _normalize_card_expiration(expiration_date: str) -> List[Optional[int]]:
+def _normalize_card_expiration(expiration_date: str) -> list[Optional[int]]:
     """Convert authorize.net combined expiration date into month and year.
 
     Example: 2021-02 > [2021, 2]

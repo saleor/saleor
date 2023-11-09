@@ -78,14 +78,14 @@ def test_graphql_view_query_with_invalid_object_type(
     assert content["data"]["order"] is None
 
 
-@pytest.mark.parametrize("playground_on, status", [(True, 200), (False, 405)])
+@pytest.mark.parametrize(("playground_on", "status"), [(True, 200), (False, 405)])
 def test_graphql_view_get_enabled_or_disabled(client, settings, playground_on, status):
     settings.PLAYGROUND_ENABLED = playground_on
     response = client.get(API_PATH)
     assert response.status_code == status
 
 
-@pytest.mark.parametrize("method", ("put", "patch", "delete"))
+@pytest.mark.parametrize("method", ["put", "patch", "delete"])
 def test_graphql_view_not_allowed(method, client):
     func = getattr(client, method)
     response = func(API_PATH)
@@ -140,7 +140,7 @@ def test_query_is_dict(client):
 
 def test_graphql_execution_exception(monkeypatch, api_client):
     def mocked_execute(*args, **kwargs):
-        raise IOError("Spanish inquisition")
+        raise OSError("Spanish inquisition")
 
     monkeypatch.setattr("graphql.backend.core.execute_and_validate", mocked_execute)
     response = api_client.post_graphql("{ shop { name }}")

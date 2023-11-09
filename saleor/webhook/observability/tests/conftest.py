@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Optional
 from unittest.mock import patch
 
 import fakeredis
@@ -23,8 +23,8 @@ def gql_operation_factory():
     def factory(
         query_string: str,
         operation_name: Optional[str] = None,
-        variables: Optional[Dict] = None,
-        result: Optional[Dict] = None,
+        variables: Optional[dict] = None,
+        result: Optional[dict] = None,
         result_invalid=False,
     ) -> GraphQLOperationResponse:
         query = backend.document_from_string(schema, query_string)
@@ -40,7 +40,7 @@ def gql_operation_factory():
 
 
 @pytest.fixture
-def clear_cache():
+def _clear_cache():
     yield
     cache.clear()
 

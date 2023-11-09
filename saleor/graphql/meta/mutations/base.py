@@ -1,5 +1,3 @@
-from typing import List
-
 import graphene
 from django.core.exceptions import ValidationError
 from graphql.error.base import GraphQLError
@@ -10,6 +8,7 @@ from ....core import models
 from ....core.error_codes import MetadataErrorCode
 from ....core.exceptions import PermissionDenied
 from ....discount import models as discount_models
+from ....discount.models import Promotion
 from ....menu import models as menu_models
 from ....order import models as order_models
 from ....product import models as product_models
@@ -55,10 +54,13 @@ class BaseMetadataMutation(BaseMutation):
     @classmethod
     def get_instance(cls, info: ResolveInfo, /, *, id: str, qs=None, **kwargs):
         try:
-            type_name, _ = from_global_id_or_error(id)
+            type_name, db_id = from_global_id_or_error(id)
             # ShippingMethodType represents the ShippingMethod model
             if type_name == "ShippingMethodType":
                 qs = shipping_models.ShippingMethod.objects
+            # Sale is an old implementation of Promotion model
+            if type_name == "Sale":
+                return cls.get_old_sale_instance(id, db_id)
 
             return cls.get_node_or_error(info, id, qs=qs)
         except GraphQLError as e:
@@ -86,6 +88,21 @@ class BaseMetadataMutation(BaseMutation):
             return qs.filter(token=object_id).first()
 
     @classmethod
+    def get_old_sale_instance(cls, global_id, old_sale_id):
+        if instance := discount_models.Promotion.objects.filter(
+            old_sale_id=old_sale_id
+        ).first():
+            return instance
+        else:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        f"Couldn't resolve to a node: {global_id}", code="not_found"
+                    )
+                }
+            )
+
+    @classmethod
     def validate_model_is_model_with_metadata(cls, model, object_id):
         if not issubclass(model, models.ModelWithMetadata) and not model == Checkout:
             raise ValidationError(
@@ -98,7 +115,7 @@ class BaseMetadataMutation(BaseMutation):
             )
 
     @classmethod
-    def validate_metadata_keys(cls, metadata_list: List[dict]):
+    def validate_metadata_keys(cls, metadata_list: list[dict]):
         if metadata_contains_empty_key(metadata_list):
             raise ValidationError(
                 {
@@ -244,7 +261,6 @@ class BaseMetadataMutation(BaseMutation):
             [
                 isinstance(instance, Model)
                 for Model in [
-                    discount_models.Sale,
                     discount_models.Voucher,
                     menu_models.Menu,
                     menu_models.MenuItem,
@@ -258,4 +274,9 @@ class BaseMetadataMutation(BaseMutation):
         )
         if use_channel_context:
             instance = ChannelContext(node=instance, channel_slug=None)
-        return cls(**{"item": instance, "errors": []})
+
+        # For old sales migrated into promotions
+        if isinstance(instance, Promotion) and instance.old_sale_id:
+            instance = ChannelContext(node=instance, channel_slug=None)
+
+        return cls(item=instance, errors=[])

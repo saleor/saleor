@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Callable, List, Optional
+from typing import TYPE_CHECKING, Callable, Optional
 
 from ..account.models import User
 from ..app.models import App
@@ -479,13 +479,13 @@ def list_payment_sources(
     customer_id: str,
     manager: "PluginsManager",
     channel_slug: str,
-) -> List["CustomerSource"]:
+) -> list["CustomerSource"]:
     return manager.list_payment_sources(gateway, customer_id, channel_slug=channel_slug)
 
 
 def list_gateways(
     manager: "PluginsManager", channel_slug: Optional[str] = None
-) -> List["PaymentGateway"]:
+) -> list["PaymentGateway"]:
     return manager.list_payment_gateways(channel_slug=channel_slug)
 
 
@@ -506,7 +506,8 @@ def _fetch_gateway_response(fn, *args, **kwargs):
 
 
 def _get_past_transaction_token(
-    payment: Payment, kind: str  # for kind use "TransactionKind"
+    payment: Payment,
+    kind: str,  # for kind use "TransactionKind"
 ) -> str:
     txn = payment.transactions.filter(kind=kind, is_success=True).last()
     if txn is None:

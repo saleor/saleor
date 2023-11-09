@@ -3,14 +3,31 @@ import graphene
 from ...permission.enums import DiscountPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import (
+    ADDED_IN_317,
+    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
-from ..translations.mutations import SaleTranslate, VoucherTranslate
-from .filters import SaleFilter, VoucherFilter
+from ..translations.mutations import (
+    PromotionRuleTranslate,
+    PromotionTranslate,
+    SaleTranslate,
+    VoucherTranslate,
+)
+from .filters import PromotionWhereInput, SaleFilter, VoucherFilter
 from .mutations import (
+    PromotionBulkDelete,
+    PromotionCreate,
+    PromotionDelete,
+    PromotionRuleCreate,
+    PromotionRuleDelete,
+    PromotionRuleUpdate,
+    PromotionUpdate,
     SaleAddCatalogues,
     SaleChannelListingUpdate,
     SaleCreate,
@@ -19,15 +36,30 @@ from .mutations import (
     SaleUpdate,
     VoucherAddCatalogues,
     VoucherChannelListingUpdate,
+    VoucherCodeBulkDelete,
     VoucherCreate,
     VoucherDelete,
     VoucherRemoveCatalogues,
     VoucherUpdate,
 )
 from .mutations.bulk_mutations import SaleBulkDelete, VoucherBulkDelete
-from .resolvers import resolve_sale, resolve_sales, resolve_voucher, resolve_vouchers
-from .sorters import SaleSortingInput, VoucherSortingInput
-from .types import Sale, SaleCountableConnection, Voucher, VoucherCountableConnection
+from .resolvers import (
+    resolve_promotion,
+    resolve_promotions,
+    resolve_sale,
+    resolve_sales,
+    resolve_voucher,
+    resolve_vouchers,
+)
+from .sorters import PromotionSortingInput, SaleSortingInput, VoucherSortingInput
+from .types import (
+    Promotion,
+    Sale,
+    SaleCountableConnection,
+    Voucher,
+    VoucherCountableConnection,
+)
+from .types.promotions import PromotionCountableConnection
 
 
 class VoucherFilterInput(FilterInputObjectType):
@@ -50,6 +82,9 @@ class DiscountQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         description="Look up a sale by ID.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `promotion` query instead."
+        ),
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
@@ -69,6 +104,9 @@ class DiscountQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         description="List of the shop's sales.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `promotions` query instead."
+        ),
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
@@ -107,6 +145,25 @@ class DiscountQueries(graphene.ObjectType):
         ],
         doc_category=DOC_CATEGORY_DISCOUNTS,
     )
+    promotion = PermissionsField(
+        Promotion,
+        id=graphene.Argument(
+            graphene.ID, description="ID of the promotion.", required=True
+        ),
+        description="Look up a promotion by ID." + ADDED_IN_317 + PREVIEW_FEATURE,
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
+        doc_category=DOC_CATEGORY_DISCOUNTS,
+    )
+    promotions = FilterConnectionField(
+        PromotionCountableConnection,
+        where=PromotionWhereInput(description="Where filtering options."),
+        sort_by=PromotionSortingInput(description="Sort promotions."),
+        description="List of the promotions." + ADDED_IN_317 + PREVIEW_FEATURE,
+        permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
+        doc_category=DOC_CATEGORY_DISCOUNTS,
+    )
 
     @staticmethod
     def resolve_sale(_root, _info, *, id, channel=None):
@@ -132,8 +189,29 @@ class DiscountQueries(graphene.ObjectType):
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, VoucherCountableConnection)
 
+    @staticmethod
+    def resolve_promotion(_root, _info, *, id, channel=None):
+        _, id = from_global_id_or_error(id, Promotion)
+        return resolve_promotion(id)
+
+    @staticmethod
+    def resolve_promotions(_root, info: ResolveInfo, **kwargs):
+        qs = resolve_promotions()
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, PromotionCountableConnection)
+
 
 class DiscountMutations(graphene.ObjectType):
+    promotion_create = PromotionCreate.Field()
+    promotion_update = PromotionUpdate.Field()
+    promotion_delete = PromotionDelete.Field()
+    promotion_rule_create = PromotionRuleCreate.Field()
+    promotion_rule_update = PromotionRuleUpdate.Field()
+    promotion_rule_delete = PromotionRuleDelete.Field()
+    promotion_translate = PromotionTranslate.Field()
+    promotion_rule_translate = PromotionRuleTranslate.Field()
+    promotion_bulk_delete = PromotionBulkDelete.Field()
+
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()
     sale_bulk_delete = SaleBulkDelete.Field()
@@ -151,3 +229,4 @@ class DiscountMutations(graphene.ObjectType):
     voucher_catalogues_remove = VoucherRemoveCatalogues.Field()
     voucher_translate = VoucherTranslate.Field()
     voucher_channel_listing_update = VoucherChannelListingUpdate.Field()
+    voucher_code_bulk_delete = VoucherCodeBulkDelete.Field()

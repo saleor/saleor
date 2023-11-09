@@ -100,6 +100,16 @@ class WebhookEventAsyncType:
     SALE_DELETED = "sale_deleted"
     SALE_TOGGLE = "sale_toggle"
 
+    PROMOTION_CREATED = "promotion_created"
+    PROMOTION_UPDATED = "promotion_updated"
+    PROMOTION_DELETED = "promotion_deleted"
+    PROMOTION_STARTED = "promotion_started"
+    PROMOTION_ENDED = "promotion_ended"
+
+    PROMOTION_RULE_CREATED = "promotion_rule_created"
+    PROMOTION_RULE_UPDATED = "promotion_rule_updated"
+    PROMOTION_RULE_DELETED = "promotion_rule_deleted"
+
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_DELETED = "invoice_deleted"
     INVOICE_SENT = "invoice_sent"
@@ -180,6 +190,7 @@ class WebhookEventAsyncType:
     VOUCHER_UPDATED = "voucher_updated"
     VOUCHER_DELETED = "voucher_deleted"
     VOUCHER_METADATA_UPDATED = "voucher_metadata_updated"
+    VOUCHER_CODE_EXPORT_COMPLETED = "voucher_code_export_completed"
 
     OBSERVABILITY = "observability"
 
@@ -448,6 +459,38 @@ class WebhookEventAsyncType:
             "name": "Sale toggle",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
         },
+        PROMOTION_CREATED: {
+            "name": "Promotion created",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_UPDATED: {
+            "name": "Promotion updated",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_DELETED: {
+            "name": "Promotion deleted",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_STARTED: {
+            "name": "Promotion started",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_ENDED: {
+            "name": "Promotion ended",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_RULE_CREATED: {
+            "name": "Promotion rule created",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_RULE_UPDATED: {
+            "name": "Promotion rule updated",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_RULE_DELETED: {
+            "name": "Promotion rule deleted",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
         INVOICE_REQUESTED: {
             "name": "Invoice requested",
             "permission": OrderPermissions.MANAGE_ORDERS,
@@ -696,6 +739,10 @@ class WebhookEventAsyncType:
             "name": "Voucher metadata updated",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
         },
+        VOUCHER_CODE_EXPORT_COMPLETED: {
+            "name": "Voucher code export completed",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
         OBSERVABILITY: {
             "name": "Observability",
             "permission": AppPermission.MANAGE_OBSERVABILITY,
@@ -749,6 +796,16 @@ class WebhookEventSyncType:
 
     LIST_STORED_PAYMENT_METHODS = "list_stored_payment_methods"
     STORED_PAYMENT_METHOD_DELETE_REQUESTED = "stored_payment_method_delete_requested"
+
+    PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION = (
+        "payment_gateway_initialize_tokenization_session"
+    )
+    PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION = (
+        "payment_method_initialize_tokenization_session"
+    )
+    PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION = (
+        "payment_method_process_tokenization_session"
+    )
 
     EVENT_MAP: dict[str, dict[str, Any]] = {
         PAYMENT_LIST_GATEWAYS: {
@@ -829,6 +886,18 @@ class WebhookEventSyncType:
         },
         STORED_PAYMENT_METHOD_DELETE_REQUESTED: {
             "name": "Request deletion of a tokenized payment method.",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION: {
+            "name": "Initialize payment gateway tokenization session.",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION: {
+            "name": "Initialize payment method tokenization session.",
+            "permission": PaymentPermissions.HANDLE_PAYMENTS,
+        },
+        PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION: {
+            "name": "Process payment method tokenization.",
             "permission": PaymentPermissions.HANDLE_PAYMENTS,
         },
     }

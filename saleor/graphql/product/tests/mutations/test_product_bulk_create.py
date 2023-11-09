@@ -74,7 +74,9 @@ PRODUCT_BULK_CREATE_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_product_bulk_create_with_base_data(
     update_products_discounted_price_task_mock,
     staff_api_client,
@@ -146,6 +148,52 @@ def test_product_bulk_create_with_base_data(
     update_products_discounted_price_task_mock.assert_called_once()
     args = set(update_products_discounted_price_task_mock.call_args.args[0])
     assert args == {product.id for product in products}
+
+
+def test_product_bulk_create_with_no_slug_and_name_with_unslugify_characters(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+):
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name = "-->"
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+        },
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    products = Product.objects.all()
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+    assert data["count"] == 2
+    assert data["results"][0]["product"]["name"] == product_name
+    assert data["results"][0]["product"]["slug"] == "-"
+    assert data["results"][1]["product"]["name"] == product_name
+    assert data["results"][1]["product"]["slug"] == "--2"
+    assert len(products) == 2
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_created")
@@ -320,7 +368,7 @@ def test_product_bulk_create_with_invalid_attributes(
     assert data["results"][0]["errors"]
     error = data["results"][0]["errors"][0]
     assert error["path"] == "attributes"
-    assert error["message"] == "Couldn't resolve id: invalidID."
+    assert error["message"] == "Invalid ID: invalidID. Expected: Attribute."
 
 
 def test_product_bulk_create_with_media(
@@ -1192,19 +1240,30 @@ def test_product_bulk_create_with_variants_with_duplicated_sku(
     assert prod_2_errors[0]["code"] == ProductBulkCreateErrorCode.UNIQUE.name
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_bulk_create.get_webhooks_for_event"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_product_bulk_create_with_variants_send_product_variant_created_event(
     product_created_webhook_mock,
     variant_created_webhook_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product_type,
     category,
     size_attribute,
     description_json,
     permission_manage_products,
+    gift_card_expiry_date,
+    any_webhook,
+    settings,
 ):
     # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
     description_json = json.dumps(description_json)
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
@@ -1499,9 +1558,14 @@ def test_product_bulk_create_with_variants_and_invalid_stock(
     assert data["count"] == 0
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_bulk_create.get_webhooks_for_event"
+)
 @patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_product_bulk_create_with_variants_and_channel_listings(
     channel_updated_webhook_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product_type,
     category,
@@ -1509,7 +1573,12 @@ def test_product_bulk_create_with_variants_and_channel_listings(
     description_json,
     permission_manage_products,
     channel_USD,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     # given
     description_json = json.dumps(description_json)
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1627,7 +1696,9 @@ def test_product_bulk_create_with_variants_and_channel_listings(
 
     # 2 product channel listing and 2 variant channel listing were created but
     # all are using same channel so only one event should be sent
-    channel_updated_webhook_mock.assert_called_once_with(channel_USD)
+    channel_updated_webhook_mock.assert_called_once_with(
+        channel_USD, webhooks=[any_webhook]
+    )
 
 
 def test_product_bulk_create_with_variants_and_channel_listings_with_wrong_price(

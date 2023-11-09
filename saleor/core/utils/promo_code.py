@@ -2,7 +2,7 @@ import secrets
 
 from django.core.exceptions import ValidationError
 
-from ...discount.models import Voucher
+from ...discount.models import VoucherCode
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.models import GiftCard
 
@@ -37,7 +37,7 @@ def is_available_promo_code(code):
 
 
 def promo_code_is_voucher(code):
-    return Voucher.objects.filter(code=code).exists()
+    return VoucherCode.objects.filter(code=code).exists()
 
 
 def promo_code_is_gift_card(code):

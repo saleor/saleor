@@ -13,10 +13,27 @@ mutation TokenCreate($email: String!, $password: String!) {
     user {
       id
       email
+      isActive
+      isConfirmed
     }
   }
 }
 """
+
+
+def raw_token_create(
+    e2e_not_logged_api_client,
+    email,
+    password,
+):
+    variables = {"email": email, "password": password}
+    response = e2e_not_logged_api_client.post_graphql(
+        TOKEN_CREATE_MUTATION,
+        variables,
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+
+    return content
 
 
 def token_create(
@@ -24,21 +41,19 @@ def token_create(
     email,
     password,
 ):
-    variables = {"email": email, "password": password}
-
-    response = e2e_not_logged_api_client.post_graphql(
-        TOKEN_CREATE_MUTATION,
-        variables,
+    response = raw_token_create(
+        e2e_not_logged_api_client,
+        email,
+        password,
     )
-    content = get_graphql_content(response)
+    data = response["data"]["tokenCreate"]
+    assert data["errors"] == []
 
-    assert content["data"]["tokenCreate"]["errors"] == []
+    assert data["token"] is not None
+    assert data["refreshToken"] is not None
 
-    assert content["data"]["tokenCreate"]["token"] is not None
-    assert content["data"]["tokenCreate"]["refreshToken"] is not None
-
-    data = content["data"]["tokenCreate"]["user"]
-    assert data["id"] is not None
-    assert data["email"] == email
+    user = data["user"]
+    assert user["id"] is not None
+    assert user["email"] == email
 
     return data

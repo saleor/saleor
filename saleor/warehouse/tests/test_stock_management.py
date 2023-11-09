@@ -104,8 +104,12 @@ def test_allocate_stock_many_stocks_the_highest_stock_strategy(
 def test_allocate_stocks_the_highest_stock_strategy_with_collection_point(
     order_line, variant_with_many_stocks, channel_USD, warehouse_for_cc
 ):
-    """Ensure that when the collection point is set as delivery method,
-    the stock will be allocate in this warehouse."""
+    """Test that collection points take precedence during stock allocation.
+
+    Ensure that when the collection point is set as delivery method,
+    the stock will be allocated in this warehouse even if strategy is set
+    to follow the highest stock quantity.
+    """
     variant = variant_with_many_stocks
 
     quantity = 5
@@ -182,8 +186,12 @@ def test_allocate_stock_many_stocks_prioritize_sorting_order_strategy(
 def test_allocate_stock_prioritize_sorting_order_strategy_with_collection_point(
     order_line, variant_with_many_stocks, channel_USD, warehouse_for_cc
 ):
-    """Ensure that when the collection point is set as delivery method,
-    the stock will be allocate in this warehouse."""
+    """Test that collection points take precedence during stock allocation.
+
+    Ensure that when the collection point is set as delivery method,
+    the stock will be allocated in this warehouse even if strategy is set
+    to follow the warehouse sorting order.
+    """
     # given
     channel_USD.allocation_strategy = AllocationStrategy.PRIORITIZE_SORTING_ORDER
     channel_USD.save(update_fields=["allocation_strategy"])
@@ -594,7 +602,7 @@ def test_increase_stock_with_new_allocation(order_line, stock):
     assert allocation.quantity_allocated == 50
 
 
-@pytest.mark.parametrize("quantity", (19, 20))
+@pytest.mark.parametrize("quantity", [19, 20])
 def test_increase_allocations(quantity, allocation):
     order_line = allocation.order_line
     order_line_info = OrderLineInfo(
@@ -704,7 +712,7 @@ def test_decrease_stock(allocation):
     assert allocation.quantity_allocated == 30
 
 
-@pytest.mark.parametrize("quantity, expected_allocated", ((50, 30), (200, 0)))
+@pytest.mark.parametrize(("quantity", "expected_allocated"), [(50, 30), (200, 0)])
 def test_decrease_stock_without_stock_update(quantity, expected_allocated, allocation):
     stock = allocation.stock
     stock.quantity = 100
@@ -774,8 +782,11 @@ def test_decrease_stock_multiple_lines(allocations):
 
 
 def test_decrease_stock_multiple_lines_deallocate_stock_raises_error(order_with_lines):
-    """Ensure that when some of the lines raise an error during the deallocation
-    quantity allocated value for all allocation will be updated."""
+    """Test that stock deallocations are immune to errors.
+
+    Ensure that when some of the lines raise an error during the deallocation
+    quantity allocated value for all allocation will be updated.
+    """
 
     # given
     order_line_1 = order_with_lines.lines.first()

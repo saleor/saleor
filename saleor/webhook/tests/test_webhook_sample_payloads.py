@@ -31,7 +31,7 @@ def _remove_anonymized_order_data(order_data: dict) -> dict:
 
 @freezegun.freeze_time("1914-06-28 10:50", ignore=["faker"])
 @pytest.mark.parametrize(
-    "event_name, order_status",
+    ("event_name", "order_status"),
     [
         (WebhookEventAsyncType.ORDER_CREATED, OrderStatus.UNFULFILLED),
         (WebhookEventAsyncType.ORDER_UPDATED, OrderStatus.CANCELED),

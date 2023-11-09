@@ -145,7 +145,9 @@ def test_staff_query_shipping_zone_by_invalid_id(
     # then
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert (
+        content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: ShippingZone."
+    )
     assert content["data"]["shippingZone"] is None
 
 

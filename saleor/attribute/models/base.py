@@ -129,21 +129,21 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
         ProductType,
         blank=True,
         related_name="product_attributes",
-        through="AttributeProduct",
+        through="attribute.AttributeProduct",
         through_fields=("attribute", "product_type"),
     )
     product_variant_types = models.ManyToManyField(
         ProductType,
         blank=True,
         related_name="variant_attributes",
-        through="AttributeVariant",
+        through="attribute.AttributeVariant",
         through_fields=("attribute", "product_type"),
     )
     page_types = models.ManyToManyField(
         PageType,
         blank=True,
         related_name="page_attributes",
-        through="AttributePage",
+        through="attribute.AttributePage",
         through_fields=("attribute", "page_type"),
     )
 
@@ -196,12 +196,7 @@ class AttributeTranslation(Translation):
 
     def __repr__(self):
         class_ = type(self)
-        return "%s(pk=%r, name=%r, attribute_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.name,
-            self.attribute_id,
-        )
+        return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, attribute_pk={self.attribute_id!r})"
 
     def __str__(self) -> str:
         return self.name
@@ -290,12 +285,7 @@ class AttributeValueTranslation(Translation):
 
     def __repr__(self) -> str:
         class_ = type(self)
-        return "%s(pk=%r, name=%r, attribute_value_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.name,
-            self.attribute_value_id,
-        )
+        return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, attribute_value_pk={self.attribute_value_id!r})"
 
     def __str__(self) -> str:
         return self.name
@@ -330,7 +320,7 @@ class AttributeValueTranslation(Translation):
                 if assigned_page_attribute_value := (
                     attribute_value.pagevalueassignment.first()
                 ):
-                    if page := assigned_page_attribute_value.assignment.page:
+                    if page := assigned_page_attribute_value.page:
                         context["page_id"] = page.id
                         if page_type_id := page.page_type_id:
                             context["page_type_id"] = page_type_id

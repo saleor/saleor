@@ -3,7 +3,6 @@ from datetime import datetime
 
 import graphene
 import pytz
-import requests
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db.models import F
@@ -11,6 +10,7 @@ from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 from text_unidecode import unidecode
 
+from ....core.http_client import HTTPClient
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
 from ....core.utils.editorjs import clean_editor_js
@@ -18,9 +18,11 @@ from ....core.utils.validators import get_oembed_data
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
-from ....product.tasks import update_products_discounted_prices_task
+from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....thumbnail.utils import get_filename_from_url
 from ....warehouse.models import Warehouse
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
 from ...channel import ChannelContext
@@ -207,6 +209,12 @@ class ProductBulkCreate(BaseMutation):
     @classmethod
     def generate_unique_slug(cls, slugable_value, new_slugs):
         slug = slugify(unidecode(slugable_value))
+
+        # in case when slugable_value contains only not allowed in slug characters,
+        # slugify function will return empty string, so we need to provide some default
+        # value
+        if slug == "":
+            slug = "-"
 
         search_field = "slug__iregex"
         pattern = rf"{slug}-\d+$|{slug}$"
@@ -802,8 +810,8 @@ class ProductBulkCreate(BaseMutation):
                         media_url, "media_url", ProductBulkCreateErrorCode.INVALID.value
                     )
                     filename = get_filename_from_url(media_url)
-                    image_data = requests.get(
-                        media_url, stream=True, timeout=30, allow_redirects=False
+                    image_data = HTTPClient.send_request(
+                        "GET", media_url, stream=True, timeout=30, allow_redirects=False
                     )
                     image_data = File(image_data.raw, filename)
                     media_to_create.append(
@@ -830,17 +838,20 @@ class ProductBulkCreate(BaseMutation):
     def post_save_actions(cls, info, products, variants, channels):
         manager = get_plugin_manager_promise(info.context).get()
         product_ids = []
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_CREATED)
         for product in products:
-            cls.call_event(manager.product_created, product.node)
+            cls.call_event(manager.product_created, product.node, webhooks=webhooks)
             product_ids.append(product.node.id)
 
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_CREATED)
         for variant in variants:
-            cls.call_event(manager.product_variant_created, variant)
+            cls.call_event(manager.product_variant_created, variant, webhooks=webhooks)
 
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.CHANNEL_UPDATED)
         for channel in channels:
-            cls.call_event(manager.channel_updated, channel)
+            cls.call_event(manager.channel_updated, channel, webhooks=webhooks)
 
-        update_products_discounted_prices_task.delay(product_ids)
+        update_products_discounted_prices_for_promotion_task.delay(product_ids)
 
     @classmethod
     @traced_atomic_transaction()

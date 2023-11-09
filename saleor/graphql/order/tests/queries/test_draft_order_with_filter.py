@@ -62,7 +62,7 @@ def test_draft_orders_query_with_filter_search_by_number_with_hash(
 
 
 @pytest.mark.parametrize(
-    "orders_filter, user_field, user_value",
+    ("orders_filter", "user_field", "user_value"),
     [
         ({"customer": "admin"}, "email", "admin@example.com"),
         ({"customer": "John"}, "first_name", "johnny"),
@@ -107,7 +107,7 @@ def test_draft_order_query_with_filter_customer_fields(
 
 
 @pytest.mark.parametrize(
-    "orders_filter, count",
+    ("orders_filter", "count"),
     [
         (
             {
@@ -147,7 +147,7 @@ def test_draft_order_query_with_filter_created(
 
 
 @pytest.mark.parametrize(
-    "draft_orders_filter, count",
+    ("draft_orders_filter", "count"),
     [
         ({"search": "discount name"}, 2),
         ({"search": "Some other"}, 1),

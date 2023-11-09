@@ -6,15 +6,16 @@ import jwt
 import pytest
 from django.core.serializers import serialize
 from google.cloud.pubsub_v1 import PublisherClient
+from requests_hardened import HTTPSession
 
 from ....webhook.event_types import WebhookEventAsyncType
-from ...webhook import signature_for_payload
-from ...webhook.tasks import trigger_webhooks_async
+from ....webhook.transport import signature_for_payload
+from ....webhook.transport.asynchronous.transport import trigger_webhooks_async
 
 
 @pytest.mark.parametrize(
-    "queue_name, additional_call_args",
-    (("queue_name", {}), ("queue_name.fifo", {"MessageGroupId": "mirumee.com"})),
+    ("queue_name", "additional_call_args"),
+    [("queue_name", {}), ("queue_name.fifo", {"MessageGroupId": "mirumee.com"})],
 )
 def test_trigger_webhooks_with_aws_sqs(
     queue_name,
@@ -31,7 +32,7 @@ def test_trigger_webhooks_with_aws_sqs(
     mocked_client_constructor = MagicMock(spec=boto3.client, return_value=mocked_client)
 
     monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.boto3.client",
+        "saleor.webhook.transport.utils.boto3.client",
         mocked_client_constructor,
     )
 
@@ -76,7 +77,7 @@ def test_trigger_webhooks_with_aws_sqs(
 
 
 @pytest.mark.parametrize(
-    "secret_key, unquoted_secret",
+    ("secret_key", "unquoted_secret"),
     [
         ("secret_access", "secret_access"),
         ("secret%2B%2Faccess", "secret+/access"),
@@ -97,7 +98,7 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
     mocked_client_constructor = MagicMock(spec=boto3.client, return_value=mocked_client)
 
     monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.boto3.client",
+        "saleor.webhook.transport.utils.boto3.client",
         mocked_client_constructor,
     )
 
@@ -153,7 +154,7 @@ def test_trigger_webhooks_with_google_pub_sub(
     mocked_publisher = MagicMock(spec=PublisherClient)
     mocked_publisher.publish.return_value.result.return_value = "message_id"
     monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.pubsub_v1.PublisherClient",
+        "saleor.webhook.transport.utils.pubsub_v1.PublisherClient",
         lambda: mocked_publisher,
     )
     webhook.app.permissions.add(permission_manage_orders)
@@ -186,7 +187,7 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
     mocked_publisher = MagicMock(spec=PublisherClient)
     mocked_publisher.publish.return_value.result.return_value = "message_id"
     monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.pubsub_v1.PublisherClient",
+        "saleor.webhook.transport.utils.pubsub_v1.PublisherClient",
         lambda: mocked_publisher,
     )
     webhook.app.permissions.add(permission_manage_orders)
@@ -212,7 +213,7 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
     )
 
 
-@patch("saleor.plugins.webhook.tasks.requests.post")
+@patch.object(HTTPSession, "request")
 def test_trigger_webhooks_with_http(
     mock_request,
     webhook,
@@ -254,6 +255,7 @@ def test_trigger_webhooks_with_http(
     }
 
     mock_request.assert_called_once_with(
+        "POST",
         webhook.target_url,
         data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
@@ -262,7 +264,7 @@ def test_trigger_webhooks_with_http(
     )
 
 
-@patch("saleor.plugins.webhook.tasks.requests.post")
+@patch.object(HTTPSession, "request")
 def test_trigger_webhooks_with_http_and_secret_key(
     mock_request, webhook, order_with_lines, permission_manage_orders
 ):
@@ -299,6 +301,7 @@ def test_trigger_webhooks_with_http_and_secret_key(
     }
 
     mock_request.assert_called_once_with(
+        "POST",
         webhook.target_url,
         data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
@@ -307,7 +310,7 @@ def test_trigger_webhooks_with_http_and_secret_key(
     )
 
 
-@patch("saleor.plugins.webhook.tasks.requests.post")
+@patch.object(HTTPSession, "request")
 def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
     mock_request, webhook, order_with_lines, permission_manage_orders
 ):
@@ -348,6 +351,7 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
     assert signature_headers["alg"] == "RS256"
 
     mock_request.assert_called_once_with(
+        "POST",
         webhook.target_url,
         data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
@@ -356,7 +360,7 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
     )
 
 
-@patch("saleor.plugins.webhook.tasks.requests.post")
+@patch.object(HTTPSession, "request")
 def test_trigger_webhooks_with_http_and_custom_headers(
     mock_request, webhook, order_with_lines, permission_manage_orders
 ):

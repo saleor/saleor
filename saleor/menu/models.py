@@ -72,12 +72,7 @@ class MenuItemTranslation(Translation):
 
     def __repr__(self):
         class_ = type(self)
-        return "%s(pk=%r, name=%r, menu_item_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.name,
-            self.menu_item_id,
-        )
+        return f"{class_.__name__}(pk={self.id!r}, name={self.name!r}, menu_item_pk={self.menu_item_id!r})"
 
     def __str__(self):
         return self.name

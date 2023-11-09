@@ -8,7 +8,6 @@ SENSITIVE_GQL_FIELDS is a dict of sets representing fields of GraphGL types to a
 - Type
 - Fields
 """
-from typing import Dict, Set
 
 from ...app.headers import AppHeaders, DeprecatedAppHeaders
 
@@ -43,7 +42,7 @@ SENSITIVE_HEADERS = {
     }
 }
 
-SensitiveFieldsMap = Dict[str, Set[str]]
+SensitiveFieldsMap = dict[str, set[str]]
 SENSITIVE_GQL_FIELDS: SensitiveFieldsMap = {
     "RefreshToken": {"token"},
     "CreateToken": {"token", "refreshToken", "csrfToken"},

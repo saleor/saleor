@@ -23,7 +23,11 @@ def prepare_sale_for_variant(
     sale_discount_value,
 ):
     sale_name = "Sale"
-    sale = create_sale(e2e_staff_api_client, sale_name, sale_discount_type)
+    sale = create_sale(
+        e2e_staff_api_client,
+        sale_name,
+        sale_discount_type,
+    )
     sale_id = sale["id"]
     sale_listing_input = [
         {
@@ -32,10 +36,16 @@ def prepare_sale_for_variant(
         }
     ]
     create_sale_channel_listing(
-        e2e_staff_api_client, sale_id, add_channels=sale_listing_input
+        e2e_staff_api_client,
+        sale_id,
+        add_channels=sale_listing_input,
     )
     catalogue_input = {"variants": [product_variant_id]}
-    sale_catalogues_add(e2e_staff_api_client, sale_id, catalogue_input)
+    sale_catalogues_add(
+        e2e_staff_api_client,
+        sale_id,
+        catalogue_input,
+    )
 
     return sale_id, sale_discount_value
 
@@ -47,26 +57,40 @@ def prepare_voucher(
     voucher_discount_type,
     voucher_discount_value,
 ):
-    voucher_data = create_voucher(
-        e2e_staff_api_client,
-        voucher_discount_type,
-        voucher_code,
-        "ENTIRE_ORDER",
-    )
+    input = {
+        "code": voucher_code,
+        "discountValueType": voucher_discount_type,
+        "type": "ENTIRE_ORDER",
+    }
+    voucher_data = create_voucher(e2e_staff_api_client, input)
     voucher_id = voucher_data["id"]
     channel_listing = [
-        {"channelId": channel_id, "discountValue": voucher_discount_value}
+        {
+            "channelId": channel_id,
+            "discountValue": voucher_discount_value,
+        }
     ]
-    create_voucher_channel_listing(e2e_staff_api_client, voucher_id, channel_listing)
+    create_voucher_channel_listing(
+        e2e_staff_api_client,
+        voucher_id,
+        channel_listing,
+    )
 
     return voucher_discount_value, voucher_code
 
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    "variant_price, sale_discount_value, sale_discount_type, expected_sale_discount, "
-    "voucher_discount_value, voucher_discount_type, expected_voucher_discount, "
-    "expected_unit_price",
+    (
+        "variant_price",
+        "sale_discount_value",
+        "sale_discount_type",
+        "expected_sale_discount",
+        "voucher_discount_value",
+        "voucher_discount_type",
+        "expected_voucher_discount",
+        "expected_unit_price",
+    ),
     [
         ("19.99", 13, "PERCENTAGE", 2.60, 13, "PERCENTAGE", 2.26, 15.13),
         ("30", 10, "FIXED", 10, 5, "FIXED", 5, 17.5),
@@ -101,12 +125,22 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    warehouse_id, channel_id, channel_slug, shipping_method_id = prepare_shop(
-        e2e_staff_api_client
-    )
+    (
+        warehouse_id,
+        channel_id,
+        channel_slug,
+        shipping_method_id,
+    ) = prepare_shop(e2e_staff_api_client)
 
-    _, product_variant_id, product_variant_price = prepare_product(
-        e2e_staff_api_client, warehouse_id, channel_id, variant_price
+    (
+        _product_id,
+        product_variant_id,
+        product_variant_price,
+    ) = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        variant_price,
     )
 
     sale_id, sale_discount_value = prepare_sale_for_variant(
@@ -159,7 +193,11 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     lines_add = [
         {"variantId": product_variant_id, "quantity": 1},
     ]
-    checkout_data = checkout_lines_add(e2e_staff_api_client, checkout_id, lines_add)
+    checkout_data = checkout_lines_add(
+        e2e_staff_api_client,
+        checkout_id,
+        lines_add,
+    )
     checkout_lines = checkout_data["lines"][0]
     assert checkout_lines["quantity"] == 2
     assert checkout_lines["unitPrice"]["gross"]["amount"] == expected_unit_price
@@ -183,7 +221,10 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     )
 
     # Step 6 - Complete checkout.
-    order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
+    order_data = checkout_complete(
+        e2e_not_logged_api_client,
+        checkout_id,
+    )
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["discounts"][0]["type"] == "VOUCHER"
     assert order_data["voucher"]["code"] == voucher_code

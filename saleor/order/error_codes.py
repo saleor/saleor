@@ -34,6 +34,8 @@ class OrderErrorCode(Enum):
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     NOT_AVAILABLE_IN_CHANNEL = "not_available_in_channel"
     CHANNEL_INACTIVE = "channel_inactive"
+    INVALID_VOUCHER = "invalid_voucher"
+    INVALID_VOUCHER_CODE = "invalid_voucher_code"
 
 
 class OrderGrantRefundCreateErrorCode(Enum):

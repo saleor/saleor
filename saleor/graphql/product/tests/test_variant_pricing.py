@@ -55,12 +55,16 @@ query ($channel: String, $address: AddressInput) {
 """
 
 
-def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
+def test_get_variant_pricing_on_promotion(
+    api_client, promotion_with_single_rule, product, channel_USD
+):
     # given
     variant_listing = product.variants.first().channel_listings.get()
     price = variant_listing.price
-    sale_discounted_value = sale.channel_listings.get().discount_value
-    discounted_price = price.amount - sale_discounted_value
+    promotion = promotion_with_single_rule
+    rule = promotion.rules.first()
+    discounted_value = rule.reward_value
+    discounted_price = price.amount - discounted_value
     variant_listing.discounted_price_amount = discounted_price
     variant_listing.save(update_fields=["discounted_price_amount"])
 
@@ -93,7 +97,7 @@ def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
     assert pricing["price"]["net"]["amount"] == discounted_price
 
 
-def test_get_variant_pricing_not_on_sale(api_client, product, channel_USD):
+def test_get_variant_pricing_not_on_promotion(api_client, product, channel_USD):
     price = product.variants.first().channel_listings.get().price
 
     variables = {"channel": channel_USD.slug, "address": {"country": "US"}}
@@ -224,7 +228,7 @@ QUERY_GET_PRODUCT_VARIANTS_PRICING = """
 
 
 @pytest.mark.parametrize(
-    "variant_price_amount, api_variant_price",
+    ("variant_price_amount", "api_variant_price"),
     [(200, 200), (0, 0)],
 )
 def test_product_variant_price(
@@ -472,7 +476,7 @@ def _configure_tax_rates(product):
 
 
 @pytest.mark.parametrize(
-    "net_PL, gross_PL, net_DE, gross_DE, prices_entered_with_tax",
+    ("net_PL", "gross_PL", "net_DE", "gross_DE", "prices_entered_with_tax"),
     [
         (40.65, 50.00, 42.02, 50.00, True),
         (50.00, 61.50, 50.00, 59.50, False),

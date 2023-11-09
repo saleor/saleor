@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Union
 
 from django.utils import timezone
 
@@ -69,20 +69,24 @@ def filter_by_ids(object_type):
 
 
 def filter_where_range_field(qs, field, value):
-    gte, lte = value.get("gte"), value.get("lte")
-    if gte is None and lte is None:
+    if value is None:
         return qs.none()
-    if gte is not None:
-        lookup = {f"{field}__gte": gte}
-        qs = qs.filter(**lookup)
-    if lte is not None:
-        lookup = {f"{field}__lte": lte}
-        qs = qs.filter(**lookup)
-    return qs
+    range = value.get("range")
+    if range:
+        gte, lte = range.get("gte"), range.get("lte")
+        if gte is None and lte is None:
+            return qs.none()
+        return filter_range_field(qs, field, range)
+    if "eq" in value:
+        # allow filtering by `None` value
+        return qs.filter(**{field: value["eq"]})
+    if one_of := value.get("one_of"):
+        return qs.filter(**{f"{field}__in": one_of})
+    return qs.none()
 
 
 def filter_where_by_string_field(
-    qs: "QuerySet", field: str, value: Dict[str, Union[str, List[str]]]
+    qs: "QuerySet", field: str, value: dict[str, Union[str, list[str]]]
 ):
     if value is None:
         return qs.none()
@@ -95,7 +99,7 @@ def filter_where_by_string_field(
 
 
 def filter_where_by_id_field(
-    qs: "QuerySet", field: str, value: Dict[str, Union[str, List[str]]], type: str
+    qs: "QuerySet", field: str, value: dict[str, Union[str, list[str]]], type: str
 ):
     from . import resolve_global_ids_to_primary_keys
 
@@ -113,7 +117,7 @@ def filter_where_by_id_field(
 def filter_where_by_numeric_field(
     qs: "QuerySet",
     field: str,
-    value: Dict[str, Union[Number, List[Number], Dict[str, Number]]],
+    value: dict[str, Union[Number, list[Number], dict[str, Number]]],
 ):
     one_of = value.get("one_of")
     range = value.get("range")

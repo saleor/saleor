@@ -1,4 +1,5 @@
 import datetime
+import itertools
 import uuid
 from collections import namedtuple
 from contextlib import contextmanager
@@ -6,8 +7,8 @@ from datetime import timedelta
 from decimal import Decimal
 from functools import partial
 from io import BytesIO
-from typing import Callable, List, Optional
-from unittest.mock import MagicMock, Mock
+from typing import Callable, Optional
+from unittest.mock import MagicMock
 
 import graphene
 import pytest
@@ -17,7 +18,6 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
-from django.forms import ModelForm
 from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django.utils import timezone
@@ -50,14 +50,25 @@ from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
-from ..discount import DiscountInfo, DiscountValueType, VoucherType
+from ..discount import (
+    DiscountType,
+    DiscountValueType,
+    PromotionEvents,
+    RewardValueType,
+    VoucherType,
+)
+from ..discount.interface import VariantPromotionRuleInfo
 from ..discount.models import (
+    CheckoutLineDiscount,
     NotApplicable,
-    Sale,
-    SaleChannelListing,
-    SaleTranslation,
+    Promotion,
+    PromotionEvent,
+    PromotionRule,
+    PromotionRuleTranslation,
+    PromotionTranslation,
     Voucher,
     VoucherChannelListing,
+    VoucherCode,
     VoucherCustomer,
     VoucherTranslation,
 )
@@ -93,9 +104,7 @@ from ..payment.utils import create_manual_adjustment_events
 from ..permission.enums import get_permissions
 from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
-from ..plugins.webhook.tasks import WebhookResponse
 from ..plugins.webhook.tests.subscription_webhooks import subscription_queries
-from ..plugins.webhook.utils import to_payment_app_id
 from ..product import ProductMediaTypes, ProductTypeKind
 from ..product.models import (
     Category,
@@ -140,6 +149,7 @@ from ..warehouse.models import (
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.models import Webhook, WebhookEvent
 from ..webhook.observability import WebhookData
+from ..webhook.transport.utils import WebhookResponse, to_payment_app_id
 from .utils import dummy_editorjs
 
 
@@ -168,9 +178,7 @@ class CaptureQueriesContext(BaseCaptureQueriesContext):
 
 
 def _assert_num_queries(context, *, config, num, exact=True, info=None):
-    """
-    Extracted from pytest_django.fixtures._assert_num_queries
-    """
+    # Extracted from pytest_django.fixtures._assert_num_queries
     yield context
 
     verbose = config.getoption("verbose") > 0
@@ -192,7 +200,7 @@ def _assert_num_queries(context, *, config, num, exact=True, info=None):
         ),
     )
     if info:
-        msg += "\n{}".format(info)
+        msg += f"\n{info}"
     if verbose:
         sqls = (q["sql"] for q in context.captured_queries)
         msg += "\n\nQueries:\n========\n\n%s" % "\n\n".join(sqls)
@@ -237,7 +245,7 @@ def setup_dummy_gateways(settings):
 
 
 @pytest.fixture
-def sample_gateway(settings):
+def _sample_gateway(settings):
     settings.PLUGINS += [
         "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"
     ]
@@ -314,6 +322,85 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_item_on_sale(checkout_with_item, promotion_converted_from_sale):
+    line = checkout_with_item.lines.first()
+    channel = checkout_with_item.channel
+    discount_amount = Decimal("5.0")
+    variant = line.variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    predicate = {"variantPredicate": {"ids": [variant_id]}}
+    rule = promotion_converted_from_sale.rules.first()
+    rule.catalogue_predicate = predicate
+    rule.reward_value = discount_amount
+    rule.save(update_fields=["catalogue_predicate", "reward_value"])
+    rule.channels.add(channel)
+    channel_listing = variant.channel_listings.get(channel=channel)
+    channel_listing.discounted_price_amount = (
+        channel_listing.price_amount - discount_amount
+    )
+    channel_listing.save(update_fields=["discounted_price_amount"])
+
+    CheckoutLineDiscount.objects.create(
+        line=line,
+        promotion_rule=rule,
+        type=DiscountType.SALE,
+        value_type=rule.reward_value_type,
+        value=discount_amount,
+        amount_value=discount_amount * line.quantity,
+        currency=channel.currency_code,
+    )
+
+    return checkout_with_item
+
+
+@pytest.fixture
+def checkout_with_item_on_promotion(checkout_with_item):
+    line = checkout_with_item.lines.first()
+    channel = checkout_with_item.channel
+    promotion = Promotion.objects.create(name="Checkout promotion")
+
+    variant = line.variant
+
+    channel = checkout_with_item.channel
+
+    reward_value = Decimal("5")
+    rule = promotion.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel)
+
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel.currency_code,
+    )
+    CheckoutLineDiscount.objects.create(
+        line=line,
+        type=DiscountType.PROMOTION,
+        value_type=DiscountValueType.FIXED,
+        value=reward_value,
+        amount_value=reward_value * line.quantity,
+        currency=channel.currency_code,
+        promotion_rule=rule,
+    )
+
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_with_item_and_transaction_item(checkout_with_item):
     TransactionItem.objects.create(
         name="Credit card",
@@ -351,7 +438,11 @@ def checkout_with_item_and_voucher_specific_products(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     add_voucher_to_checkout(
-        manager, checkout_info, lines, voucher_specific_product_type
+        manager,
+        checkout_info,
+        lines,
+        voucher_specific_product_type,
+        voucher_specific_product_type.codes.first(),
     )
     checkout_with_item.refresh_from_db()
     return checkout_with_item
@@ -364,7 +455,9 @@ def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
     checkout_with_item.refresh_from_db()
     return checkout_with_item
 
@@ -374,7 +467,9 @@ def checkout_with_item_and_voucher(checkout_with_item, voucher):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
     checkout_with_item.refresh_from_db()
     return checkout_with_item
 
@@ -548,7 +643,7 @@ def checkout_with_variant_without_inventory_tracking(
     return checkout
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_variants(
     checkout,
     stock,
@@ -573,7 +668,7 @@ def checkout_with_variants(
     return checkout
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_shipping_address(checkout_with_variants, address):
     checkout = checkout_with_variants
 
@@ -612,7 +707,7 @@ def checkout_with_variants_for_cc(
     return checkout
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_shipping_address_for_cc(checkout_with_variants_for_cc, address):
     checkout = checkout_with_variants_for_cc
 
@@ -675,7 +770,13 @@ def checkout_with_voucher_free_shipping(
     checkout_info = fetch_checkout_info(
         checkout_with_items_and_shipping, lines, manager
     )
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher_free_shipping)
+    add_voucher_to_checkout(
+        manager,
+        checkout_info,
+        lines,
+        voucher_free_shipping,
+        voucher_free_shipping.codes.first(),
+    )
     return checkout_with_items_and_shipping
 
 
@@ -686,7 +787,7 @@ def checkout_with_gift_card(checkout_with_item, gift_card):
     return checkout_with_item
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_preorders_only(
     checkout,
     stocks_for_cc,
@@ -702,7 +803,7 @@ def checkout_with_preorders_only(
     return checkout
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkout_with_preorders_and_regular_variant(
     checkout, stocks_for_cc, preorder_variant_with_end_date, product_variant_list
 ):
@@ -1922,9 +2023,7 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def size_attribute(
-    db, attribute_generator, attribute_values_generator
-):  # pylint: disable=W0613
+def size_attribute(db, attribute_generator, attribute_values_generator):  # pylint: disable=W0613
     attribute = attribute_generator(
         external_reference="sizeAttributeExternalReference",
         slug="size",
@@ -2194,7 +2293,7 @@ def page_file_attribute(db):
 
 
 @pytest.fixture
-def product_type_attribute_list() -> List[Attribute]:
+def product_type_attribute_list() -> list[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
@@ -2213,7 +2312,7 @@ def product_type_attribute_list() -> List[Attribute]:
 
 
 @pytest.fixture
-def page_type_attribute_list() -> List[Attribute]:
+def page_type_attribute_list() -> list[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
@@ -3603,6 +3702,7 @@ def product_list_with_variants_many_channel(
             ),
         ]
     )
+    return products
 
 
 @pytest.fixture
@@ -3689,12 +3789,13 @@ def product_with_image_list(product, image_list, media_root):
 
 @pytest.fixture
 def product_with_image_list_and_one_null_sort_order(product_with_image_list):
-    """
+    """Return a product with mixed sorting order.
+
     As we allow to have `null` in `sort_order` in database, but our logic
     covers changing any new `null` values to proper `int` need to execute
-    raw SQL query on database to test behaviour of `null` `sort_order`.
+    raw SQL query on database to test behavior of `null` `sort_order`.
 
-    SQL query behaviour:
+    SQL query behavior:
     Updates one of the product media `sort_order` to `null`.
     """
     with connection.cursor() as cursor:
@@ -3800,7 +3901,9 @@ def product_with_images(
 
 @pytest.fixture
 def voucher_without_channel(db):
-    return Voucher.objects.create(code="mirumee")
+    voucher = Voucher.objects.create()
+    VoucherCode.objects.create(code="mirumee", voucher=voucher)
+    return voucher
 
 
 @pytest.fixture
@@ -3811,6 +3914,19 @@ def voucher(voucher_without_channel, channel_USD):
         discount=Money(20, channel_USD.currency_code),
     )
     return voucher_without_channel
+
+
+@pytest.fixture
+def voucher_with_many_codes(voucher):
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="Multi1", voucher=voucher),
+            VoucherCode(code="Multi2", voucher=voucher),
+            VoucherCode(code="Multi3", voucher=voucher),
+            VoucherCode(code="Multi4", voucher=voucher),
+        ]
+    )
+    return voucher
 
 
 @pytest.fixture
@@ -3826,9 +3942,9 @@ def voucher_with_many_channels(voucher, channel_PLN):
 @pytest.fixture
 def voucher_percentage(channel_USD):
     voucher = Voucher.objects.create(
-        code="saleor",
         discount_value_type=DiscountValueType.PERCENTAGE,
     )
+    VoucherCode.objects.create(code="saleor", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -3848,7 +3964,8 @@ def voucher_specific_product_type(voucher_percentage, product):
 
 @pytest.fixture
 def voucher_with_high_min_spent_amount(channel_USD):
-    voucher = Voucher.objects.create(code="mirumee")
+    voucher = Voucher.objects.create()
+    VoucherCode.objects.create(code="mirumee", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -3860,9 +3977,8 @@ def voucher_with_high_min_spent_amount(channel_USD):
 
 @pytest.fixture
 def voucher_shipping_type(channel_USD):
-    voucher = Voucher.objects.create(
-        code="mirumee", type=VoucherType.SHIPPING, countries="IS"
-    )
+    voucher = Voucher.objects.create(type=VoucherType.SHIPPING, countries="IS")
+    VoucherCode.objects.create(code="mirumee", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -3885,7 +4001,51 @@ def voucher_free_shipping(voucher_percentage, channel_USD):
 @pytest.fixture
 def voucher_customer(voucher, customer_user):
     email = customer_user.email
-    return VoucherCustomer.objects.create(voucher=voucher, customer_email=email)
+    code = voucher.codes.first()
+    return VoucherCustomer.objects.create(voucher_code=code, customer_email=email)
+
+
+@pytest.fixture
+def voucher_multiple_use(voucher_with_many_codes):
+    voucher = voucher_with_many_codes
+    voucher.usage_limit = 3
+    voucher.save(update_fields=["usage_limit"])
+    codes = voucher.codes.all()
+    for code in codes:
+        code.used = 1
+    VoucherCode.objects.bulk_update(codes, ["used"])
+    voucher.refresh_from_db()
+    return voucher
+
+
+@pytest.fixture
+def voucher_single_use(voucher_with_many_codes):
+    voucher = voucher_with_many_codes
+    voucher.single_use = True
+    voucher.save(update_fields=["single_use"])
+    return voucher
+
+
+@pytest.fixture
+def draft_order_list_with_multiple_use_voucher(draft_order_list, voucher_multiple_use):
+    codes = voucher_multiple_use.codes.values_list("code", flat=True)
+    for idx, order in enumerate(draft_order_list):
+        order.voucher_code = codes[idx]
+    Order.objects.bulk_update(draft_order_list, ["voucher_code"])
+    return draft_order_list
+
+
+@pytest.fixture
+def draft_order_list_with_single_use_voucher(draft_order_list, voucher_single_use):
+    voucher_codes = voucher_single_use.codes.all()
+    codes = voucher_codes.values_list("code", flat=True)
+    for idx, order in enumerate(draft_order_list):
+        order.voucher_code = codes[idx]
+    for voucher_code in voucher_codes:
+        voucher_code.is_active = False
+    Order.objects.bulk_update(draft_order_list, ["voucher_code"])
+    VoucherCode.objects.bulk_update(voucher_codes, ["is_active"])
+    return draft_order_list
 
 
 @pytest.fixture
@@ -3893,7 +4053,7 @@ def order_line(order, variant):
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -3919,6 +4079,55 @@ def order_line(order, variant):
 
 
 @pytest.fixture
+def order_line_on_promotion(order_line, promotion):
+    variant = order_line.variant
+
+    channel = order_line.order.channel
+    reward_value = Decimal("1.0")
+    rule = promotion.rules.first()
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel.currency_code,
+    )
+    order_line.total_price_gross_amount = (
+        variant_channel_listing.discounted_price_amount * order_line.quantity
+    )
+    order_line.total_price_net_amount = (
+        variant_channel_listing.discounted_price_amount * order_line.quantity
+    )
+    order_line.undiscounted_total_price_gross_amount = (
+        variant_channel_listing.price_amount * order_line.quantity
+    )
+    order_line.undiscounted_total_price_net_amount = (
+        variant_channel_listing.price_amount * order_line.quantity
+    )
+
+    order_line.unit_price_gross_amount = variant_channel_listing.discounted_price_amount
+    order_line.unit_price_net_amount = variant_channel_listing.discounted_price_amount
+    order_line.undiscounted_unit_price_gross_amount = (
+        variant_channel_listing.price_amount
+    )
+    order_line.undiscounted_unit_price_net_amount = variant_channel_listing.price_amount
+
+    order_line.base_unit_price_amount = variant_channel_listing.discounted_price_amount
+    order_line.undiscounted_base_unit_price_amount = (
+        variant_channel_listing.price_amount
+    )
+
+    order_line.unit_discount_amount = reward_value
+    order_line.save()
+    return order_line
+
+
+@pytest.fixture
 def gift_card_non_shippable_order_line(
     order, gift_card_non_shippable_variant, warehouse
 ):
@@ -3926,7 +4135,7 @@ def gift_card_non_shippable_order_line(
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 1
@@ -3959,7 +4168,7 @@ def gift_card_shippable_order_line(order, gift_card_shippable_variant, warehouse
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -3996,7 +4205,7 @@ def order_line_JPY(order_generator, channel_JPY, product_in_channel_JPY):
     variant = product_in_channel_JPY.variants.get()
     channel = order_JPY.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    base_price = variant.get_price(product, [], channel, channel_listing)
+    base_price = variant.get_price(channel_listing)
     currency = base_price.currency
     gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4037,7 +4246,7 @@ def order_line_with_allocation_in_many_stocks(
 
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel_USD)
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4094,7 +4303,7 @@ def order_line_with_one_allocation(
 
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel_USD)
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 2
@@ -4406,7 +4615,7 @@ def order_with_lines(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    base_price = variant.get_price(product, [], channel_USD, channel_listing)
+    base_price = variant.get_price(channel_listing)
     currency = base_price.currency
     gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4461,7 +4670,7 @@ def order_with_lines(
     )
     stock.refresh_from_db()
 
-    base_price = variant.get_price(product, [], channel_USD, channel_listing)
+    base_price = variant.get_price(channel_listing)
     currency = base_price.currency
     gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     unit_price = TaxedMoney(net=base_price, gross=gross)
@@ -4506,8 +4715,6 @@ def order_with_lines(
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
     order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
-    order.total += order.shipping_price
-    order.undiscounted_total += order.shipping_price
     order.save()
 
     recalculate_order(order)
@@ -4542,7 +4749,7 @@ def order_with_lines_for_cc(
     variant = product_variant_list[0]
     channel_listing = variant.channel_listings.get(channel=channel_USD)
     quantity = 1
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     unit_price = TaxedMoney(net=net, gross=gross)
@@ -4693,7 +4900,7 @@ def order_with_lines_channel_PLN(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(product, [], channel_PLN, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4746,7 +4953,7 @@ def order_with_lines_channel_PLN(
         product_variant=variant, warehouse=warehouse, quantity=2
     )
 
-    net = variant.get_price(product, [], channel_PLN, channel_listing, None)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 2
@@ -4803,7 +5010,7 @@ def order_with_line_without_inventory_tracking(
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -4863,7 +5070,7 @@ def order_with_preorder_lines(
         preorder_quantity_threshold=10,
     )
 
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -5055,6 +5262,29 @@ def draft_order_with_fixed_discount_order(draft_order):
 
 
 @pytest.fixture
+def draft_order_with_voucher(
+    draft_order_with_fixed_discount_order, voucher_multiple_use
+):
+    order = draft_order_with_fixed_discount_order
+    voucher_code = voucher_multiple_use.codes.first()
+    discount = order.discounts.first()
+    discount.type = DiscountType.VOUCHER
+    discount.voucher = voucher_multiple_use
+    discount.voucher_code = voucher_code.code
+    discount.save(update_fields=["type", "voucher", "voucher_code"])
+
+    order.voucher = voucher_multiple_use
+    order.voucher_code = voucher_code.code
+    order.save(update_fields=["voucher", "voucher_code"])
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    return order
+
+
+@pytest.fixture
 def draft_order_without_inventory_tracking(order_with_line_without_inventory_tracking):
     order_with_line_without_inventory_tracking.status = OrderStatus.DRAFT
     order_with_line_without_inventory_tracking.origin = OrderStatus.DRAFT
@@ -5230,84 +5460,315 @@ def dummy_webhook_app_payment_data(dummy_payment_data, payment_app):
 
 
 @pytest.fixture
-def new_sale(category, channel_USD):
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
+def promotion(channel_USD, product, collection):
+    promotion = Promotion.objects.create(
+        name="Promotion",
+        description=dummy_editorjs("Test description."),
+        end_date=timezone.now() + timedelta(days=30),
+    )
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                name="Percentage promotion rule",
+                promotion=promotion,
+                description=dummy_editorjs(
+                    "Test description for percentage promotion rule."
+                ),
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [graphene.Node.to_global_id("Product", product.id)]
+                    }
+                },
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=Decimal("10"),
+            ),
+            PromotionRule(
+                name="Fixed promotion rule",
+                promotion=promotion,
+                description=dummy_editorjs(
+                    "Test description for fixes promotion rule."
+                ),
+                catalogue_predicate={
+                    "collectionPredicate": {
+                        "ids": [graphene.Node.to_global_id("Collection", collection.id)]
+                    }
+                },
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=Decimal("5"),
+            ),
+        ]
+    )
+    for rule in rules:
+        rule.channels.add(channel_USD)
+    return promotion
+
+
+@pytest.fixture
+def promotion_without_rules(db):
+    promotion = Promotion.objects.create(
+        name="Promotion",
+        description=dummy_editorjs("Test description."),
+        end_date=timezone.now() + timedelta(days=30),
+    )
+    return promotion
+
+
+@pytest.fixture
+def promotion_with_single_rule(catalogue_predicate, channel_USD):
+    promotion = Promotion.objects.create(name="Promotion with single rule")
+    rule = PromotionRule.objects.create(
+        name="Sale rule",
+        promotion=promotion,
+        catalogue_predicate=catalogue_predicate,
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+    )
+    rule.channels.add(channel_USD)
+    return promotion
+
+
+@pytest.fixture
+def promotion_list(channel_USD, product, collection):
+    promotions = Promotion.objects.bulk_create(
+        [
+            Promotion(
+                name="Promotion 1",
+                description=dummy_editorjs("Promotion 1 description."),
+                start_date=timezone.now() + timedelta(days=1),
+                end_date=timezone.now() + timedelta(days=10),
+            ),
+            Promotion(
+                name="Promotion 2",
+                description=dummy_editorjs("Promotion 2 description."),
+                start_date=timezone.now() + timedelta(days=5),
+                end_date=timezone.now() + timedelta(days=20),
+            ),
+            Promotion(
+                name="Promotion 3",
+                description=dummy_editorjs("TePromotion 3 description."),
+                start_date=timezone.now() + timedelta(days=15),
+                end_date=timezone.now() + timedelta(days=30),
+            ),
+        ]
+    )
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                name="Promotion 1 percentage rule",
+                promotion=promotions[0],
+                description=dummy_editorjs(
+                    "Test description for promotion 1 percentage rule."
+                ),
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [graphene.Node.to_global_id("Product", product.id)]
+                    }
+                },
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=Decimal("10"),
+            ),
+            PromotionRule(
+                name="Promotion 1 fixed rule",
+                promotion=promotions[0],
+                description=dummy_editorjs(
+                    "Test description for promotion 1 fixed rule."
+                ),
+                catalogue_predicate={
+                    "collectionPredicate": {
+                        "ids": [graphene.Node.to_global_id("Collection", collection.id)]
+                    }
+                },
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=Decimal("5"),
+            ),
+            PromotionRule(
+                name="Promotion 2 percentage rule",
+                promotion=promotions[1],
+                description=dummy_editorjs(
+                    "Test description for promotion 2 percentage rule."
+                ),
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [graphene.Node.to_global_id("Product", product.id)]
+                    }
+                },
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=Decimal("10"),
+            ),
+            PromotionRule(
+                name="Promotion 3 fixed rule",
+                promotion=promotions[2],
+                description=dummy_editorjs(
+                    "Test description for promotion 3 fixed rule."
+                ),
+                catalogue_predicate={
+                    "collectionPredicate": {
+                        "ids": [graphene.Node.to_global_id("Collection", collection.id)]
+                    }
+                },
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=Decimal("5"),
+            ),
+        ]
+    )
+    for rule in rules:
+        rule.channels.add(channel_USD)
+    return promotions
+
+
+@pytest.fixture
+def promotion_rule(channel_USD, promotion, product):
+    rule = PromotionRule.objects.create(
+        name="Promotion rule name",
+        promotion=promotion,
+        description=dummy_editorjs("Test description for percentage promotion rule."),
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("25"),
+    )
+    rule.channels.add(channel_USD)
+    return rule
+
+
+@pytest.fixture
+def rule_info(
+    promotion_rule,
+    promotion_translation_fr,
+    promotion_rule_translation_fr,
+    variant,
+    channel_USD,
+):
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    listing_promotion_rule = variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=promotion_rule,
+        discount_amount=Decimal("10"),
         currency=channel_USD.currency_code,
     )
-    return sale
-
-
-@pytest.fixture
-def sale(product, category, collection, variant, channel_USD):
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-    )
-    sale.products.add(product)
-    sale.categories.add(category)
-    sale.collections.add(collection)
-    sale.variants.add(variant)
-    return sale
-
-
-@pytest.fixture
-def sale_with_many_channels(product, category, collection, channel_USD, channel_PLN):
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-    )
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_PLN,
-        discount_value=5,
-        currency=channel_PLN.currency_code,
-    )
-    sale.products.add(product)
-    sale.categories.add(category)
-    sale.collections.add(collection)
-    return sale
-
-
-@pytest.fixture
-def discount_info(category, collection, sale, channel_USD):
-    sale_channel_listing = sale.channel_listings.get(channel=channel_USD)
-
-    return DiscountInfo(
-        sale=sale,
-        channel_listings={channel_USD.slug: sale_channel_listing},
-        product_ids=set(),
-        category_ids={category.id},  # assumes this category does not have children
-        collection_ids={collection.id},
-        variants_ids=set(),
+    return VariantPromotionRuleInfo(
+        rule=promotion_rule,
+        promotion=promotion_rule.promotion,
+        variant_listing_promotion_rule=listing_promotion_rule,
+        promotion_translation=promotion_translation_fr,
+        rule_translation=promotion_rule_translation_fr,
     )
 
 
 @pytest.fixture
-def discount_info_JPY(sale, product_in_channel_JPY, channel_JPY):
-    sale_channel_listing = sale.channel_listings.create(
-        channel=channel_JPY,
-        discount_value=5,
-        currency=channel_JPY.currency_code,
-    )
+def catalogue_predicate(product, category, collection, variant):
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    return {
+        "OR": [
+            {"collectionPredicate": {"ids": [collection_id]}},
+            {"categoryPredicate": {"ids": [category_id]}},
+            {"productPredicate": {"ids": [product_id]}},
+            {"variantPredicate": {"ids": [variant_id]}},
+        ]
+    }
 
-    return DiscountInfo(
-        sale=sale,
-        channel_listings={channel_JPY.slug: sale_channel_listing},
-        product_ids={product_in_channel_JPY.id},
-        category_ids=set(),
-        collection_ids=set(),
-        variants_ids=set(),
+
+@pytest.fixture
+def promotion_converted_from_sale(catalogue_predicate, channel_USD):
+    promotion = Promotion.objects.create(name="Sale")
+    promotion.assign_old_sale_id()
+
+    rule = PromotionRule.objects.create(
+        name="Sale rule",
+        promotion=promotion,
+        catalogue_predicate=catalogue_predicate,
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+        old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
     )
+    rule.channels.add(channel_USD)
+    return promotion
+
+
+@pytest.fixture
+def promotion_converted_from_sale_with_many_channels(
+    promotion_converted_from_sale, catalogue_predicate, channel_PLN
+):
+    promotion = promotion_converted_from_sale
+    rule = PromotionRule.objects.create(
+        name="Sale rule 2",
+        promotion=promotion,
+        catalogue_predicate=catalogue_predicate,
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+        old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
+    )
+    rule.channels.add(channel_PLN)
+    return promotion
+
+
+@pytest.fixture
+def promotion_converted_from_sale_with_empty_predicate(channel_USD):
+    promotion = Promotion.objects.create(name="Sale with empty predicate")
+    promotion.assign_old_sale_id()
+    rule = PromotionRule.objects.create(
+        name="Sale with empty predicate rule",
+        promotion=promotion,
+        catalogue_predicate={},
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+        old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
+    )
+    rule.channels.add(channel_USD)
+    return promotion
+
+
+@pytest.fixture
+def promotion_events(promotion, staff_user):
+    rule_id = promotion.rules.first().pk
+    events = PromotionEvent.objects.bulk_create(
+        [
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_CREATED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_UPDATED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+            PromotionEvent(
+                type=PromotionEvents.RULE_CREATED,
+                user=staff_user,
+                promotion=promotion,
+                parameters={"rule_id": rule_id},
+            ),
+            PromotionEvent(
+                type=PromotionEvents.RULE_UPDATED,
+                user=staff_user,
+                promotion=promotion,
+                parameters={"rule_id": rule_id},
+            ),
+            PromotionEvent(
+                type=PromotionEvents.RULE_DELETED,
+                user=staff_user,
+                promotion=promotion,
+                parameters={"rule_id": rule_id},
+            ),
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_STARTED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_ENDED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+        ]
+    )
+    return events
 
 
 @pytest.fixture
@@ -5378,6 +5839,17 @@ def permission_manage_channels():
 @pytest.fixture
 def permission_manage_payments():
     return Permission.objects.get(codename="handle_payments")
+
+
+@pytest.fixture
+def permission_group_manage_discounts(permission_manage_discounts, staff_users):
+    group = Group.objects.create(
+        name="Manage discounts group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_discounts)
+
+    group.user_set.add(staff_users[1])
+    return group
 
 
 @pytest.fixture
@@ -5645,7 +6117,7 @@ def collection_list(db, channel_USD):
 
 
 @pytest.fixture
-def page(db, page_type):
+def page(db, page_type, size_page_attribute):
     data = {
         "slug": "test-url",
         "title": "Test page",
@@ -5656,54 +6128,16 @@ def page(db, page_type):
     page = Page.objects.create(**data)
 
     # associate attribute value
-    page_attr = page_type.page_attributes.first()
-    page_attr_value = page_attr.values.first()
-
-    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+    page_attr_value = size_page_attribute.values.get(slug="10")
+    associate_attribute_values_to_instance(page, size_page_attribute, page_attr_value)
 
     return page
 
 
 @pytest.fixture
-def second_page(page):
-    data = {
-        "slug": "test-url-2",
-        "title": "Test page 2",
-        "content": dummy_editorjs("Test content 2."),
-        "is_published": True,
-        "page_type": page.page_type,
-    }
-    page2 = Page.objects.create(**data)
-
-    # associate attribute value to the second page
-    page_attr = page.page_type.page_attributes.first()
-    page_attr_value = page_attr.values.first()
-
-    associate_attribute_values_to_instance(page2, page_attr, page_attr_value)
-
-    attribute = Attribute.objects.create(
-        slug="test-attribute",
-        name="Test Attribute",
-        type="some_attribute_type",
-        input_type=AttributeInputType.DROPDOWN,
-    )
-    attribute.page_types.add(page.page_type)
-
-    attribute_values = []
-    for i in range(10):
-        attribute_values.append(
-            AttributeValue.objects.create(
-                attribute=attribute,
-                name=f"Test-name-attribute-value-{i}",
-                slug=f"test-slug-attribute-value-{i}",
-            )
-        )
-    associate_attribute_values_to_instance(page2, attribute, *attribute_values)
-    return page, page2
-
-
-@pytest.fixture
-def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
+def page_with_rich_text_attribute(
+    db, page_type_with_rich_text_attribute, rich_text_attribute_page_type
+):
     data = {
         "slug": "test-url",
         "title": "Test page",
@@ -5714,10 +6148,10 @@ def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
     page = Page.objects.create(**data)
 
     # associate attribute value
-    page_attr = page_type_with_rich_text_attribute.page_attributes.first()
-    page_attr_value = page_attr.values.first()
-
-    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+    page_attr_value = rich_text_attribute_page_type.values.first()
+    associate_attribute_values_to_instance(
+        page, rich_text_attribute_page_type, page_attr_value
+    )
 
     return page
 
@@ -5801,15 +6235,6 @@ def page_type_list(db, tag_page_attribute):
 
 
 @pytest.fixture
-def model_form_class():
-    mocked_form_class = MagicMock(name="test", spec=ModelForm)
-    mocked_form_class._meta = Mock(name="_meta")
-    mocked_form_class._meta.model = "test_model"
-    mocked_form_class._meta.fields = "test_field"
-    return mocked_form_class
-
-
-@pytest.fixture
 def menu(db):
     return Menu.objects.get_or_create(name="test-navbar", slug="test-navbar")[0]
 
@@ -5838,14 +6263,6 @@ def menu_with_items(menu, category, published_collection):
         parent=menu_item,
     )
     return menu
-
-
-@pytest.fixture
-def translated_variant_fr(product):
-    attribute = product.product_type.variant_attributes.first()
-    return AttributeTranslation.objects.create(
-        language_code="fr", attribute=attribute, name="Name tranlsated to french"
-    )
 
 
 @pytest.fixture
@@ -5974,16 +6391,32 @@ def shipping_method_translation_fr(shipping_method):
 
 
 @pytest.fixture
-def sale_translation_fr(sale):
-    return SaleTranslation.objects.create(
-        language_code="fr", sale=sale, name="French sale name"
+def promotion_translation_fr(promotion):
+    return PromotionTranslation.objects.create(
+        language_code="fr",
+        promotion=promotion,
+        name="French promotion name",
+        description=dummy_editorjs("French promotion description."),
     )
 
 
 @pytest.fixture
-def new_sale_translation_fr(new_sale):
-    return SaleTranslation.objects.create(
-        language_code="fr", sale=new_sale, name="French sale name"
+def promotion_converted_from_sale_translation_fr(promotion_converted_from_sale):
+    return PromotionTranslation.objects.create(
+        language_code="fr",
+        promotion=promotion_converted_from_sale,
+        name="French sale name",
+        description=dummy_editorjs("French sale description."),
+    )
+
+
+@pytest.fixture
+def promotion_rule_translation_fr(promotion_rule):
+    return PromotionRuleTranslation.objects.create(
+        language_code="fr",
+        promotion_rule=promotion_rule,
+        name="French promotion rule name",
+        description=dummy_editorjs("French promotion rule description."),
     )
 
 
@@ -6154,13 +6587,13 @@ def transaction_item_generator():
 @pytest.fixture
 def transaction_events_generator() -> (
     Callable[
-        [List[str], List[str], List[Decimal], TransactionItem], List[TransactionEvent]
+        [list[str], list[str], list[Decimal], TransactionItem], list[TransactionEvent]
     ]
 ):
     def factory(
-        psp_references: List[str],
-        types: List[str],
-        amounts: List[Decimal],
+        psp_references: list[str],
+        types: list[str],
+        amounts: list[Decimal],
         transaction: TransactionItem,
     ):
         return TransactionEvent.objects.bulk_create(
@@ -6265,7 +6698,9 @@ def digital_content_url(digital_content, order_line):
 
 @pytest.fixture
 def media_root(tmpdir, settings):
-    settings.MEDIA_ROOT = str(tmpdir.mkdir("media"))
+    root = str(tmpdir.mkdir("media"))
+    settings.MEDIA_ROOT = root
+    return root
 
 
 @pytest.fixture
@@ -6562,6 +6997,69 @@ def stored_payment_method_request_delete_app(db, permission_manage_payments):
 
 
 @pytest.fixture
+def payment_gateway_initialize_tokenization_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment method request delete",
+        is_active=True,
+        identifier="saleor.payment.app.payment.gateway.initialize.tokenization",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment_gateway_initialize_tokenization",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION,
+    )
+    return app
+
+
+@pytest.fixture
+def payment_method_initialize_tokenization_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment method initialize tokenization",
+        is_active=True,
+        identifier="saleor.payment.app.payment.method.initialize.tokenization",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment_method_initialize_tokenization",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION,
+    )
+    return app
+
+
+@pytest.fixture
+def payment_method_process_tokenization_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment method process tokenization",
+        is_active=True,
+        identifier="saleor.payment.app.payment.method.process.tokenization",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment_method_process_tokenization",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION,
+    )
+    return app
+
+
+@pytest.fixture
 def tax_app(db, permission_handle_taxes):
     app = App.objects.create(name="Tax App", is_active=True)
     app.permissions.add(permission_handle_taxes)
@@ -6730,7 +7228,7 @@ def warehouses(address, address_usa, channel_USD):
     return warehouses
 
 
-@pytest.fixture()
+@pytest.fixture
 def warehouses_for_cc(address, shipping_zones, channel_USD):
     warehouses = Warehouse.objects.bulk_create(
         [
@@ -7040,7 +7538,7 @@ def allocations(order_list, stock, channel_USD):
     variant = stock.product_variant
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel_USD)
-    net = variant.get_price(product, [], channel_USD, channel_listing)
+    net = variant.get_price(channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     price = TaxedMoney(net=net, gross=gross)
     lines = OrderLine.objects.bulk_create(
@@ -7285,7 +7783,7 @@ def event_payload():
 
 @pytest.fixture
 def event_delivery(event_payload, webhook, app):
-    """Return event delivery object"""
+    """Return an event delivery object."""
     return EventDelivery.objects.create(
         event_type=WebhookEventAsyncType.ANY,
         payload=event_payload,
@@ -7295,7 +7793,7 @@ def event_delivery(event_payload, webhook, app):
 
 @pytest.fixture
 def event_attempt(event_delivery):
-    """Return event delivery attempt object"""
+    """Return an event delivery attempt object."""
     return EventDeliveryAttempt.objects.create(
         delivery=event_delivery,
         task_id="example_task_id",
@@ -7368,7 +7866,7 @@ def check_payment_balance_input():
 
 @pytest.fixture
 def delivery_attempts(event_delivery):
-    """Return consecutive deliveries attempts ids"""
+    """Return consecutive delivery attempt IDs."""
     with freeze_time("2020-03-18 12:00:00"):
         attempt_1 = EventDeliveryAttempt.objects.create(
             delivery=event_delivery,
@@ -7414,7 +7912,7 @@ def delivery_attempts(event_delivery):
 
 @pytest.fixture
 def event_deliveries(event_payload, webhook, app):
-    """Return consecutive event deliveries ids"""
+    """Return consecutive event delivery IDs."""
     delivery_1 = EventDelivery.objects.create(
         event_type=WebhookEventAsyncType.ANY,
         payload=event_payload,
@@ -7537,3 +8035,508 @@ class Info:
 @pytest.fixture
 def dummy_info(request):
     return Info(request)
+
+
+@pytest.fixture
+def async_subscription_webhooks_with_root_objects(
+    subscription_account_deleted_webhook,
+    subscription_account_confirmed_webhook,
+    subscription_account_email_changed_webhook,
+    subscription_account_set_password_requested_webhook,
+    subscription_account_confirmation_requested_webhook,
+    subscription_account_delete_requested_webhook,
+    subscription_account_change_email_requested_webhook,
+    subscription_staff_set_password_requested_webhook,
+    subscription_address_created_webhook,
+    subscription_address_updated_webhook,
+    subscription_address_deleted_webhook,
+    subscription_app_installed_webhook,
+    subscription_app_updated_webhook,
+    subscription_app_deleted_webhook,
+    subscription_app_status_changed_webhook,
+    subscription_attribute_created_webhook,
+    subscription_attribute_updated_webhook,
+    subscription_attribute_deleted_webhook,
+    subscription_attribute_value_created_webhook,
+    subscription_attribute_value_updated_webhook,
+    subscription_attribute_value_deleted_webhook,
+    subscription_category_created_webhook,
+    subscription_category_updated_webhook,
+    subscription_category_deleted_webhook,
+    subscription_channel_created_webhook,
+    subscription_channel_updated_webhook,
+    subscription_channel_deleted_webhook,
+    subscription_channel_status_changed_webhook,
+    subscription_gift_card_created_webhook,
+    subscription_gift_card_updated_webhook,
+    subscription_gift_card_deleted_webhook,
+    subscription_gift_card_sent_webhook,
+    subscription_gift_card_status_changed_webhook,
+    subscription_gift_card_metadata_updated_webhook,
+    subscription_gift_card_export_completed_webhook,
+    subscription_menu_created_webhook,
+    subscription_menu_updated_webhook,
+    subscription_menu_deleted_webhook,
+    subscription_menu_item_created_webhook,
+    subscription_menu_item_updated_webhook,
+    subscription_menu_item_deleted_webhook,
+    subscription_shipping_price_created_webhook,
+    subscription_shipping_price_updated_webhook,
+    subscription_shipping_price_deleted_webhook,
+    subscription_shipping_zone_created_webhook,
+    subscription_shipping_zone_updated_webhook,
+    subscription_shipping_zone_deleted_webhook,
+    subscription_shipping_zone_metadata_updated_webhook,
+    subscription_product_updated_webhook,
+    subscription_product_created_webhook,
+    subscription_product_deleted_webhook,
+    subscription_product_export_completed_webhook,
+    subscription_product_media_updated_webhook,
+    subscription_product_media_created_webhook,
+    subscription_product_media_deleted_webhook,
+    subscription_product_metadata_updated_webhook,
+    subscription_product_variant_created_webhook,
+    subscription_product_variant_updated_webhook,
+    subscription_product_variant_deleted_webhook,
+    subscription_product_variant_metadata_updated_webhook,
+    subscription_product_variant_out_of_stock_webhook,
+    subscription_product_variant_back_in_stock_webhook,
+    subscription_order_created_webhook,
+    subscription_order_updated_webhook,
+    subscription_order_confirmed_webhook,
+    subscription_order_fully_paid_webhook,
+    subscription_order_refunded_webhook,
+    subscription_order_fully_refunded_webhook,
+    subscription_order_paid_webhook,
+    subscription_order_cancelled_webhook,
+    subscription_order_expired_webhook,
+    subscription_order_fulfilled_webhook,
+    subscription_order_metadata_updated_webhook,
+    subscription_order_bulk_created_webhook,
+    subscription_draft_order_created_webhook,
+    subscription_draft_order_updated_webhook,
+    subscription_draft_order_deleted_webhook,
+    subscription_sale_created_webhook,
+    subscription_sale_updated_webhook,
+    subscription_sale_deleted_webhook,
+    subscription_sale_toggle_webhook,
+    subscription_invoice_requested_webhook,
+    subscription_invoice_deleted_webhook,
+    subscription_invoice_sent_webhook,
+    subscription_fulfillment_canceled_webhook,
+    subscription_fulfillment_created_webhook,
+    subscription_fulfillment_approved_webhook,
+    subscription_fulfillment_metadata_updated_webhook,
+    subscription_fulfillment_tracking_number_updated,
+    subscription_customer_created_webhook,
+    subscription_customer_updated_webhook,
+    subscription_customer_deleted_webhook,
+    subscription_customer_metadata_updated_webhook,
+    subscription_collection_created_webhook,
+    subscription_collection_updated_webhook,
+    subscription_collection_deleted_webhook,
+    subscription_collection_metadata_updated_webhook,
+    subscription_checkout_created_webhook,
+    subscription_checkout_updated_webhook,
+    subscription_checkout_fully_paid_webhook,
+    subscription_checkout_metadata_updated_webhook,
+    subscription_page_created_webhook,
+    subscription_page_updated_webhook,
+    subscription_page_deleted_webhook,
+    subscription_page_type_created_webhook,
+    subscription_page_type_updated_webhook,
+    subscription_page_type_deleted_webhook,
+    subscription_permission_group_created_webhook,
+    subscription_permission_group_updated_webhook,
+    subscription_permission_group_deleted_webhook,
+    subscription_product_created_multiple_events_webhook,
+    subscription_staff_created_webhook,
+    subscription_staff_updated_webhook,
+    subscription_staff_deleted_webhook,
+    subscription_transaction_item_metadata_updated_webhook,
+    subscription_translation_created_webhook,
+    subscription_translation_updated_webhook,
+    subscription_warehouse_created_webhook,
+    subscription_warehouse_updated_webhook,
+    subscription_warehouse_deleted_webhook,
+    subscription_warehouse_metadata_updated_webhook,
+    subscription_voucher_created_webhook,
+    subscription_voucher_updated_webhook,
+    subscription_voucher_deleted_webhook,
+    subscription_voucher_webhook_with_meta,
+    subscription_voucher_metadata_updated_webhook,
+    subscription_voucher_code_export_completed_webhook,
+    address,
+    app,
+    numeric_attribute,
+    category,
+    channel_PLN,
+    gift_card,
+    menu_item,
+    shipping_method,
+    product,
+    fulfilled_order,
+    fulfillment,
+    stock,
+    customer_user,
+    collection,
+    checkout,
+    page,
+    permission_group_manage_users,
+    shipping_zone,
+    staff_user,
+    voucher,
+    warehouse,
+    translated_attribute,
+    transaction_item_created_by_app,
+    product_media_image,
+    user_export_file,
+    promotion_converted_from_sale,
+):
+    events = WebhookEventAsyncType
+    attr = numeric_attribute
+    attr_value = attr.values.first()
+    menu = menu_item.menu
+    order = fulfilled_order
+    invoice = order.invoices.first()
+    page_type = page.page_type
+    transaction_item_created_by_app.use_old_id = True
+    transaction_item_created_by_app.save()
+
+    return {
+        events.ACCOUNT_DELETED: [
+            subscription_account_deleted_webhook,
+            customer_user,
+        ],
+        events.ACCOUNT_EMAIL_CHANGED: [
+            subscription_account_email_changed_webhook,
+            customer_user,
+        ],
+        events.ACCOUNT_CONFIRMED: [
+            subscription_account_confirmed_webhook,
+            customer_user,
+        ],
+        events.ACCOUNT_DELETE_REQUESTED: [
+            subscription_account_delete_requested_webhook,
+            customer_user,
+        ],
+        events.ACCOUNT_SET_PASSWORD_REQUESTED: [
+            subscription_account_set_password_requested_webhook,
+            customer_user,
+        ],
+        events.ACCOUNT_CHANGE_EMAIL_REQUESTED: [
+            subscription_account_change_email_requested_webhook,
+            customer_user,
+        ],
+        events.ACCOUNT_CONFIRMATION_REQUESTED: [
+            subscription_account_confirmation_requested_webhook,
+            customer_user,
+        ],
+        events.STAFF_SET_PASSWORD_REQUESTED: [
+            subscription_staff_set_password_requested_webhook,
+            staff_user,
+        ],
+        events.ADDRESS_UPDATED: [subscription_address_updated_webhook, address],
+        events.ADDRESS_CREATED: [subscription_address_created_webhook, address],
+        events.ADDRESS_DELETED: [subscription_address_deleted_webhook, address],
+        events.APP_UPDATED: [subscription_app_updated_webhook, app],
+        events.APP_DELETED: [subscription_app_deleted_webhook, app],
+        events.APP_INSTALLED: [subscription_app_installed_webhook, app],
+        events.APP_STATUS_CHANGED: [subscription_app_status_changed_webhook, app],
+        events.ATTRIBUTE_CREATED: [subscription_attribute_created_webhook, attr],
+        events.ATTRIBUTE_UPDATED: [subscription_attribute_updated_webhook, attr],
+        events.ATTRIBUTE_DELETED: [subscription_attribute_deleted_webhook, attr],
+        events.ATTRIBUTE_VALUE_UPDATED: [
+            subscription_attribute_value_updated_webhook,
+            attr_value,
+        ],
+        events.ATTRIBUTE_VALUE_CREATED: [
+            subscription_attribute_value_created_webhook,
+            attr_value,
+        ],
+        events.ATTRIBUTE_VALUE_DELETED: [
+            subscription_attribute_value_deleted_webhook,
+            attr_value,
+        ],
+        events.CATEGORY_CREATED: [subscription_category_created_webhook, category],
+        events.CATEGORY_UPDATED: [subscription_category_updated_webhook, category],
+        events.CATEGORY_DELETED: [subscription_category_deleted_webhook, category],
+        events.CHANNEL_CREATED: [subscription_channel_created_webhook, channel_PLN],
+        events.CHANNEL_UPDATED: [subscription_channel_updated_webhook, channel_PLN],
+        events.CHANNEL_DELETED: [subscription_channel_deleted_webhook, channel_PLN],
+        events.CHANNEL_STATUS_CHANGED: [
+            subscription_channel_status_changed_webhook,
+            channel_PLN,
+        ],
+        events.GIFT_CARD_CREATED: [subscription_gift_card_created_webhook, gift_card],
+        events.GIFT_CARD_UPDATED: [subscription_gift_card_updated_webhook, gift_card],
+        events.GIFT_CARD_DELETED: [subscription_gift_card_deleted_webhook, gift_card],
+        events.GIFT_CARD_SENT: [subscription_gift_card_sent_webhook, gift_card],
+        events.GIFT_CARD_STATUS_CHANGED: [
+            subscription_gift_card_status_changed_webhook,
+            gift_card,
+        ],
+        events.GIFT_CARD_METADATA_UPDATED: [
+            subscription_gift_card_metadata_updated_webhook,
+            gift_card,
+        ],
+        events.GIFT_CARD_EXPORT_COMPLETED: [
+            subscription_gift_card_export_completed_webhook,
+            user_export_file,
+        ],
+        events.MENU_CREATED: [subscription_menu_created_webhook, menu],
+        events.MENU_UPDATED: [subscription_menu_updated_webhook, menu],
+        events.MENU_DELETED: [subscription_menu_deleted_webhook, menu],
+        events.MENU_ITEM_CREATED: [subscription_menu_item_created_webhook, menu_item],
+        events.MENU_ITEM_UPDATED: [subscription_menu_item_updated_webhook, menu_item],
+        events.MENU_ITEM_DELETED: [subscription_menu_item_deleted_webhook, menu_item],
+        events.ORDER_CREATED: [subscription_order_created_webhook, order],
+        events.ORDER_UPDATED: [subscription_order_updated_webhook, order],
+        events.ORDER_CONFIRMED: [subscription_order_confirmed_webhook, order],
+        events.ORDER_FULLY_PAID: [subscription_order_fully_paid_webhook, order],
+        events.ORDER_PAID: [subscription_order_paid_webhook, order],
+        events.ORDER_REFUNDED: [subscription_order_refunded_webhook, order],
+        events.ORDER_FULLY_REFUNDED: [subscription_order_fully_refunded_webhook, order],
+        events.ORDER_FULFILLED: [subscription_order_fulfilled_webhook, order],
+        events.ORDER_CANCELLED: [subscription_order_cancelled_webhook, order],
+        events.ORDER_EXPIRED: [subscription_order_expired_webhook, order],
+        events.ORDER_METADATA_UPDATED: [
+            subscription_order_metadata_updated_webhook,
+            order,
+        ],
+        events.ORDER_BULK_CREATED: [subscription_order_bulk_created_webhook, order],
+        events.DRAFT_ORDER_CREATED: [subscription_draft_order_created_webhook, order],
+        events.DRAFT_ORDER_UPDATED: [subscription_draft_order_updated_webhook, order],
+        events.DRAFT_ORDER_DELETED: [subscription_draft_order_deleted_webhook, order],
+        events.PRODUCT_CREATED: [subscription_product_created_webhook, product],
+        events.PRODUCT_UPDATED: [subscription_product_updated_webhook, product],
+        events.PRODUCT_DELETED: [subscription_product_deleted_webhook, product],
+        events.PRODUCT_EXPORT_COMPLETED: [
+            subscription_product_export_completed_webhook,
+            user_export_file,
+        ],
+        events.PRODUCT_MEDIA_CREATED: [
+            subscription_product_media_created_webhook,
+            product_media_image,
+        ],
+        events.PRODUCT_MEDIA_UPDATED: [
+            subscription_product_media_updated_webhook,
+            product_media_image,
+        ],
+        events.PRODUCT_MEDIA_DELETED: [
+            subscription_product_media_deleted_webhook,
+            product_media_image,
+        ],
+        events.PRODUCT_METADATA_UPDATED: [
+            subscription_product_metadata_updated_webhook,
+            product,
+        ],
+        events.PRODUCT_VARIANT_CREATED: [
+            subscription_product_variant_created_webhook,
+            product,
+        ],
+        events.PRODUCT_VARIANT_UPDATED: [
+            subscription_product_variant_updated_webhook,
+            product,
+        ],
+        events.PRODUCT_VARIANT_OUT_OF_STOCK: [
+            subscription_product_variant_out_of_stock_webhook,
+            stock,
+        ],
+        events.PRODUCT_VARIANT_BACK_IN_STOCK: [
+            subscription_product_variant_back_in_stock_webhook,
+            stock,
+        ],
+        events.PRODUCT_VARIANT_DELETED: [
+            subscription_product_variant_deleted_webhook,
+            product,
+        ],
+        events.PRODUCT_VARIANT_METADATA_UPDATED: [
+            subscription_product_variant_metadata_updated_webhook,
+            product,
+        ],
+        events.SALE_CREATED: [
+            subscription_sale_created_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_UPDATED: [
+            subscription_sale_updated_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_DELETED: [
+            subscription_sale_deleted_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.SALE_TOGGLE: [
+            subscription_sale_toggle_webhook,
+            promotion_converted_from_sale,
+        ],
+        events.INVOICE_REQUESTED: [subscription_invoice_requested_webhook, invoice],
+        events.INVOICE_DELETED: [subscription_invoice_deleted_webhook, invoice],
+        events.INVOICE_SENT: [subscription_invoice_sent_webhook, invoice],
+        events.FULFILLMENT_CANCELED: [
+            subscription_fulfillment_canceled_webhook,
+            fulfillment,
+        ],
+        events.FULFILLMENT_CREATED: [
+            subscription_fulfillment_created_webhook,
+            fulfillment,
+        ],
+        events.FULFILLMENT_APPROVED: [
+            subscription_fulfillment_approved_webhook,
+            fulfillment,
+        ],
+        events.FULFILLMENT_METADATA_UPDATED: [
+            subscription_fulfillment_metadata_updated_webhook,
+            fulfillment,
+        ],
+        events.FULFILLMENT_TRACKING_NUMBER_UPDATED: [
+            subscription_fulfillment_tracking_number_updated,
+            fulfillment,
+        ],
+        events.CUSTOMER_CREATED: [subscription_customer_created_webhook, customer_user],
+        events.CUSTOMER_UPDATED: [subscription_customer_updated_webhook, customer_user],
+        events.CUSTOMER_METADATA_UPDATED: [
+            subscription_customer_metadata_updated_webhook,
+            customer_user,
+        ],
+        events.COLLECTION_CREATED: [
+            subscription_collection_created_webhook,
+            collection,
+        ],
+        events.COLLECTION_UPDATED: [
+            subscription_collection_updated_webhook,
+            collection,
+        ],
+        events.COLLECTION_DELETED: [
+            subscription_collection_deleted_webhook,
+            collection,
+        ],
+        events.COLLECTION_METADATA_UPDATED: [
+            subscription_collection_metadata_updated_webhook,
+            collection,
+        ],
+        events.CHECKOUT_CREATED: [subscription_checkout_created_webhook, checkout],
+        events.CHECKOUT_UPDATED: [subscription_checkout_updated_webhook, checkout],
+        events.CHECKOUT_FULLY_PAID: [
+            subscription_checkout_fully_paid_webhook,
+            checkout,
+        ],
+        events.CHECKOUT_METADATA_UPDATED: [
+            subscription_checkout_metadata_updated_webhook,
+            checkout,
+        ],
+        events.PAGE_CREATED: [subscription_page_created_webhook, page],
+        events.PAGE_UPDATED: [subscription_page_updated_webhook, page],
+        events.PAGE_DELETED: [subscription_page_deleted_webhook, page],
+        events.PAGE_TYPE_CREATED: [subscription_page_type_created_webhook, page_type],
+        events.PAGE_TYPE_UPDATED: [subscription_page_type_updated_webhook, page_type],
+        events.PAGE_TYPE_DELETED: [subscription_page_type_deleted_webhook, page_type],
+        events.PERMISSION_GROUP_CREATED: [
+            subscription_permission_group_created_webhook,
+            permission_group_manage_users,
+        ],
+        events.PERMISSION_GROUP_UPDATED: [
+            subscription_permission_group_updated_webhook,
+            permission_group_manage_users,
+        ],
+        events.PERMISSION_GROUP_DELETED: [
+            subscription_permission_group_deleted_webhook,
+            permission_group_manage_users,
+        ],
+        events.SHIPPING_PRICE_CREATED: [
+            subscription_shipping_price_created_webhook,
+            shipping_method,
+        ],
+        events.SHIPPING_PRICE_UPDATED: [
+            subscription_shipping_price_updated_webhook,
+            shipping_method,
+        ],
+        events.SHIPPING_PRICE_DELETED: [
+            subscription_shipping_price_deleted_webhook,
+            shipping_method,
+        ],
+        events.SHIPPING_ZONE_CREATED: [
+            subscription_shipping_zone_created_webhook,
+            shipping_zone,
+        ],
+        events.SHIPPING_ZONE_UPDATED: [
+            subscription_shipping_zone_updated_webhook,
+            shipping_zone,
+        ],
+        events.SHIPPING_ZONE_DELETED: [
+            subscription_shipping_zone_deleted_webhook,
+            shipping_zone,
+        ],
+        events.SHIPPING_ZONE_METADATA_UPDATED: [
+            subscription_shipping_zone_metadata_updated_webhook,
+            shipping_zone,
+        ],
+        events.STAFF_CREATED: [subscription_staff_created_webhook, staff_user],
+        events.STAFF_UPDATED: [subscription_staff_updated_webhook, staff_user],
+        events.STAFF_DELETED: [subscription_staff_deleted_webhook, staff_user],
+        events.TRANSACTION_ITEM_METADATA_UPDATED: [
+            subscription_transaction_item_metadata_updated_webhook,
+            transaction_item_created_by_app,
+        ],
+        events.TRANSLATION_CREATED: [
+            subscription_translation_created_webhook,
+            translated_attribute,
+        ],
+        events.TRANSLATION_UPDATED: [
+            subscription_translation_updated_webhook,
+            translated_attribute,
+        ],
+        events.VOUCHER_CREATED: [subscription_voucher_created_webhook, voucher],
+        events.VOUCHER_UPDATED: [subscription_voucher_updated_webhook, voucher],
+        events.VOUCHER_DELETED: [subscription_voucher_deleted_webhook, voucher],
+        events.VOUCHER_METADATA_UPDATED: [
+            subscription_voucher_metadata_updated_webhook,
+            voucher,
+        ],
+        events.VOUCHER_CODE_EXPORT_COMPLETED: [
+            subscription_voucher_code_export_completed_webhook,
+            user_export_file,
+        ],
+        events.WAREHOUSE_CREATED: [subscription_warehouse_created_webhook, warehouse],
+        events.WAREHOUSE_UPDATED: [subscription_warehouse_updated_webhook, warehouse],
+        events.WAREHOUSE_DELETED: [subscription_warehouse_deleted_webhook, warehouse],
+        events.WAREHOUSE_METADATA_UPDATED: [
+            subscription_warehouse_metadata_updated_webhook,
+            warehouse,
+        ],
+    }
+
+
+@pytest.fixture
+def lots_of_products_with_variants(product_type):
+    def chunks(iterable, size):
+        it = iter(iterable)
+        chunk = tuple(itertools.islice(it, size))
+        while chunk:
+            yield chunk
+            chunk = tuple(itertools.islice(it, size))
+
+    variants_per_product = 4
+    products_count = 10000
+    slug_generator = (f"test-slug-{i}" for i in range(products_count))
+
+    for batch in chunks(range(products_count), 500):
+        batch_len = len(batch)
+        variants = []
+        for product in Product.objects.bulk_create(
+            [
+                Product(
+                    name=i,
+                    slug=next(slug_generator),
+                    product_type_id=product_type.pk,
+                )
+                for i in range(batch_len)
+            ]
+        ):
+            for x in range(variants_per_product):
+                variant = ProductVariant(name=x, product_id=product.id)
+                variants.append(variant)
+        ProductVariant.objects.bulk_create(variants)
+
+    return Product.objects.all()

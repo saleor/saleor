@@ -631,8 +631,6 @@ def test_checkout_create_with_custom_price_duplicated_items(
     channel_USD,
     permission_handle_checkouts,
 ):
-    """Ensure that when the same item with a custom price is provided multiple times,
-    the price from the last occurrence will be set."""
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
@@ -1036,8 +1034,8 @@ def test_checkout_create_with_variant_without_inventory_tracking(
 
 
 @pytest.mark.parametrize(
-    "quantity, expected_error_message, error_code",
-    (
+    ("quantity", "expected_error_message", "error_code"),
+    [
         (
             -1,
             "The quantity should be higher than zero.",
@@ -1048,7 +1046,7 @@ def test_checkout_create_with_variant_without_inventory_tracking(
             "Cannot add more than 50 times this item: SKU_A.",
             CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT,
         ),
-    ),
+    ],
 )
 def test_checkout_create_cannot_add_invalid_quantities(
     api_client,
@@ -1406,9 +1404,6 @@ def test_checkout_create_check_lines_quantity_for_zone_insufficient_stocks(
     graphql_address_data,
     channel_USD,
 ):
-    """Check if insufficient stock exception will be raised.
-    If item from checkout will not have enough quantity in correct shipping zone for
-    shipping address INSUFICIENT_STOCK checkout error should be raised."""
     variant = variant_with_many_stocks_different_shipping_zones
     Stock.objects.filter(
         warehouse__shipping_zones__countries__contains="US", product_variant=variant
@@ -1780,7 +1775,7 @@ def test_create_checkout_with_unpublished_product(
 
 
 @pytest.mark.parametrize(
-    "address_data, address_input_name, address_db_field_name",
+    ("address_data", "address_input_name", "address_db_field_name"),
     [
         (
             {"country": "PL"},  # missing postalCode, streetAddress
@@ -1811,7 +1806,6 @@ def test_create_checkout_with_unpublished_product(
             "billingAddress",
             "billing_address",
         ),
-        ({"country": "US"}, "shippingAddress", "shipping_address"),
         (
             {
                 "country": "US",
@@ -1890,7 +1884,7 @@ def test_checkout_create_with_skip_required_raises_validation_error(
 
 
 @pytest.mark.parametrize(
-    "address_input_name, address_db_field_name",
+    ("address_input_name", "address_db_field_name"),
     [("shippingAddress", "shipping_address"), ("billingAddress", "billing_address")],
 )
 def test_checkout_create_with_skip_required_saves_address(
@@ -1925,7 +1919,7 @@ def test_checkout_create_with_skip_required_saves_address(
 
 
 @pytest.mark.parametrize(
-    "address_data, address_input_name, address_db_field_name",
+    ("address_data", "address_input_name", "address_db_field_name"),
     [
         (
             {
@@ -2006,7 +2000,7 @@ def test_checkout_create_with_skip_value_check_doesnt_raise_error(
 
 
 @pytest.mark.parametrize(
-    "address_data, address_input_name",
+    ("address_data", "address_input_name"),
     [
         (
             {
@@ -2074,7 +2068,7 @@ def test_checkout_create_with_skip_value_raises_required_fields_error(
 
 
 @pytest.mark.parametrize(
-    "address_input_name, address_db_field_name",
+    ("address_input_name", "address_db_field_name"),
     [("shippingAddress", "shipping_address"), ("billingAddress", "billing_address")],
 )
 def test_checkout_create_with_skip_value_check_saves_address(
@@ -2123,11 +2117,8 @@ def test_checkout_create_with_skip_value_check_saves_address(
     assert getattr(created_checkout, address_db_field_name).country.code == country_code
 
 
-[("shippingAddress", "shipping_address"), ("billingAddress", "billing_address")],
-
-
 @pytest.mark.parametrize(
-    "address_data, address_input_name, address_db_field_name",
+    ("address_data", "address_input_name", "address_db_field_name"),
     [
         (
             {
@@ -2203,7 +2194,7 @@ def test_checkout_create_with_skip_value_and_skip_required_fields(
 
 
 @pytest.mark.parametrize(
-    "address_input_name, address_db_field_name",
+    ("address_input_name", "address_db_field_name"),
     [("shippingAddress", "shipping_address"), ("billingAddress", "billing_address")],
 )
 def test_checkout_create_with_skip_value_and_skip_required_saves_address(

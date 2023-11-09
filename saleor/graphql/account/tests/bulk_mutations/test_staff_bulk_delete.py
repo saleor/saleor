@@ -48,7 +48,7 @@ def test_delete_staff_members(
     assert User.objects.filter(id__in=[user.id for user in users]).count() == len(users)
 
 
-@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.graphql.account.bulk_mutations.staff_bulk_delete.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_staff_members_trigger_webhook(
     mocked_webhook_trigger,
@@ -164,9 +164,6 @@ def test_delete_staff_members_superuser_can_delete_when_delete_left_notmanageabl
     permission_manage_users,
     permission_manage_orders,
 ):
-    """Ensure that superuser can delete users even when not all permissions which be
-    manageable by other users.
-    """
     query = STAFF_BULK_DELETE_MUTATION
 
     groups = Group.objects.bulk_create(
@@ -320,8 +317,6 @@ def test_delete_staff_members_superuser_can_delete__out_of_scope_users(
     permission_manage_users,
     permission_manage_orders,
 ):
-    """Ensure superuser can delete users when
-    some users has wider scope of permissions."""
     query = STAFF_BULK_DELETE_MUTATION
 
     groups = Group.objects.bulk_create(

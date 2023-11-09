@@ -86,13 +86,15 @@ CREATE_PRODUCT_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_create_product(
     created_webhook_mock,
     updated_webhook_mock,
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product_type,
     category,
@@ -181,12 +183,68 @@ def test_create_product(
     assert color_value_slug in values
 
     product = Product.objects.first()
+    assert product.search_index_dirty is True
     assert product.metadata == {metadata_key: metadata_value}
     assert product.private_metadata == {metadata_key: metadata_value}
 
     created_webhook_mock.assert_called_once_with(product)
     updated_webhook_mock.assert_not_called()
-    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
+
+
+def test_create_product_without_slug_and_not_allowed_characters_for_slug_in_name(
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": "->>",
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["slug"] == "-"
+
+
+def test_create_second_product_without_slug_and_not_allowed_characters_for_slug_in_name(
+    staff_api_client, product_type, permission_manage_products, product
+):
+    # given
+    product.slug = "-"
+    product.save(update_fields=["slug"])
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": "->>",
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["slug"] == "--2"
 
 
 def test_create_product_use_tax_class_from_product_type(
@@ -526,8 +584,6 @@ def test_create_product_no_value_for_rich_text_attribute(
     rich_text_attribute,
     permission_manage_products,
 ):
-    """Ensure mutation not fail when as attributes input only rich text attribute id
-    is provided."""
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -652,8 +708,6 @@ def test_create_product_no_value_for_plain_text_attribute(
     permission_manage_products,
 ):
     # given
-    """Ensure mutation not fail when as attributes input only plain text attribute id
-    is provided."""
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -828,8 +882,6 @@ def test_create_product_no_value_for_date_attribute(
     date_attribute,
     permission_manage_products,
 ):
-    """Ensure mutation not fail when as attributes input only date attribute id
-    is provided."""
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -933,8 +985,6 @@ def test_create_product_no_value_for_boolean_attribute(
     boolean_attribute,
     permission_manage_products,
 ):
-    """Ensure mutation not fail when as attributes input only boolean attribute id
-    is provided."""
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1039,9 +1089,11 @@ def test_create_product_no_category_id(
     assert data["product"]["category"] is None
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_create_product_with_negative_weight(
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product_type,
     category,
@@ -1070,7 +1122,7 @@ def test_create_product_with_negative_weight(
     error = data["errors"][0]
     assert error["field"] == "weight"
     assert error["code"] == ProductErrorCode.INVALID.name
-    update_product_discounted_price_task_mock.assert_not_called()
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
 def test_create_product_with_unicode_in_slug_and_name(
@@ -2169,7 +2221,7 @@ def test_create_product_no_values_given(
 
 
 @pytest.mark.parametrize(
-    "value, expected_name, expected_slug",
+    ("value", "expected_name", "expected_slug"),
     [(20.1, "20.1", "20_1"), (20, "20", "20"), ("1", "1", "1")],
 )
 def test_create_product_with_numeric_attribute_new_attribute_value(
@@ -2589,8 +2641,8 @@ mutation createProduct(
 
 
 @pytest.mark.parametrize(
-    "weight, expected_weight_value",
-    (
+    ("weight", "expected_weight_value"),
+    [
         ("0", 0),
         (0, 0),
         (11.11, 11.11),
@@ -2599,7 +2651,7 @@ mutation createProduct(
         ({"value": 11.11, "unit": "kg"}, 11.11),
         ({"value": 11, "unit": "g"}, 0.011),
         ({"value": "1", "unit": "ounce"}, 0.028),
-    ),
+    ],
 )
 def test_create_product_with_weight_variable(
     weight,
@@ -2632,8 +2684,8 @@ def test_create_product_with_weight_variable(
 
 
 @pytest.mark.parametrize(
-    "weight, expected_weight_value",
-    (
+    ("weight", "expected_weight_value"),
+    [
         ("0", 0),
         (0, 0),
         ("11.11", 11.11),
@@ -2642,7 +2694,7 @@ def test_create_product_with_weight_variable(
         ('{value: 11.11, unit: "kg"}', 11.11),
         ('{value: 11, unit: "g"}', 0.011),
         ('{value: "1", unit: "ounce"}', 0.028),
-    ),
+    ],
 )
 def test_create_product_with_weight_input(
     weight,

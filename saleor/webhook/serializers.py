@@ -1,5 +1,7 @@
+from collections.abc import Iterable
 from datetime import date, datetime
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
+from decimal import Decimal
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import graphene
 from prices import Money
@@ -18,7 +20,7 @@ if TYPE_CHECKING:
     from ..product.models import ProductVariant
 
 
-def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
+def serialize_checkout_lines(checkout: "Checkout") -> list[dict]:
     data = []
     channel = checkout.channel
     currency = channel.currency_code
@@ -26,20 +28,16 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     for line_info in lines:
         variant = line_info.variant
         channel_listing = line_info.channel_listing
-        collections = line_info.collections
         product = variant.product
-        price_override = line_info.line.price_override
-        undiscounted_base_price = variant.get_price(
-            product,
-            collections,
-            channel,
-            channel_listing,
-            [],
-            price_override,
+        base_price = variant.get_base_price(
+            channel_listing, line_info.line.price_override
         )
-        base_price = undiscounted_base_price
-        if discount_object_from_sale := line_info.get_sale_discount():
-            total_discount_amount_for_line = discount_object_from_sale.amount_value
+        total_discount_amount_for_line = Decimal("0")
+        total_discount_amount_for_line = sum(
+            [discount.amount_value for discount in line_info.get_promotion_discounts()],
+            Decimal("0"),
+        )
+        if total_discount_amount_for_line:
             unit_discount_amount = (
                 total_discount_amount_for_line / line_info.line.quantity
             )
@@ -62,7 +60,7 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     return data
 
 
-def _get_checkout_line_payload_data(line_info: "CheckoutLineInfo") -> Dict[str, Any]:
+def _get_checkout_line_payload_data(line_info: "CheckoutLineInfo") -> dict[str, Any]:
     line_id = graphene.Node.to_global_id("CheckoutLine", line_info.line.pk)
     variant = line_info.variant
     product = variant.product
@@ -82,7 +80,7 @@ def _get_checkout_line_payload_data(line_info: "CheckoutLineInfo") -> Dict[str, 
 def serialize_checkout_lines_for_tax_calculation(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-) -> List[dict]:
+) -> list[dict]:
     channel = checkout_info.channel
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     return [
@@ -108,7 +106,7 @@ def serialize_checkout_lines_for_tax_calculation(
 
 def serialize_product_or_variant_attributes(
     product_or_variant: Union["Product", "ProductVariant"]
-) -> List[Dict]:
+) -> list[dict]:
     data = []
 
     def _prepare_reference(attribute, attr_value):
@@ -127,7 +125,7 @@ def serialize_product_or_variant_attributes(
     for attr in product_or_variant.attributes.all():
         attr_id = graphene.Node.to_global_id("Attribute", attr.assignment.attribute_id)
         attribute = attr.assignment.attribute
-        attr_data: Dict[Any, Any] = {
+        attr_data: dict[Any, Any] = {
             "name": attribute.name,
             "input_type": attribute.input_type,
             "slug": attribute.slug,
@@ -139,8 +137,8 @@ def serialize_product_or_variant_attributes(
 
         for attr_value in attr.values.all():
             attr_slug = attr_value.slug
-            value: Dict[
-                str, Optional[Union[str, datetime, date, bool, Dict[str, Any]]]
+            value: dict[
+                str, Optional[Union[str, datetime, date, bool, dict[str, Any]]]
             ] = {
                 "name": attr_value.name,
                 "slug": attr_slug,

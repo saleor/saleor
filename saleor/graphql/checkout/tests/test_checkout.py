@@ -22,7 +22,6 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_voucher_to_checkout
 from ....core.prices import quantize_price
 from ....discount import DiscountValueType, VoucherType
-from ....discount.utils import generate_sale_discount_objects_for_checkout
 from ....payment import TransactionAction
 from ....payment.interface import (
     ListStoredPaymentMethodsRequestData,
@@ -234,7 +233,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
     api_client,
     checkout_with_item,
     expected_dummy_gateway,
-    sample_gateway,
+    _sample_gateway,
 ):
     checkout_with_item.currency = "USD"
     checkout_with_item.save(update_fields=["currency"])
@@ -253,7 +252,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
 
 
 def test_checkout_available_payment_gateways_currency_specified_EUR(
-    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway
+    api_client, checkout_with_item, expected_dummy_gateway, _sample_gateway
 ):
     checkout_with_item.currency = "EUR"
     checkout_with_item.save(update_fields=["currency"])
@@ -583,8 +582,6 @@ def test_checkout_shipping_methods_with_price_based_shipping_method_and_discount
     address,
     shipping_method,
 ):
-    """Ensure that price based shipping method is not returned when
-    checkout with discounts subtotal is lower than minimal order price."""
     checkout_with_item.shipping_address = address
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
@@ -626,8 +623,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discou
     shipping_method,
     voucher_shipping_type,
 ):
-    """Ensure that price based shipping method is returned when checkout
-    has discount on shipping."""
+    """Test that shipping discounts properly qualify checkout for price-based shipping."""
     checkout_with_item.shipping_address = address
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
@@ -668,10 +664,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discou
 def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
     api_client, checkout_with_item, address, shipping_method, voucher, channel_USD
 ):
-    """Ensure that price based shipping method is returned when
-    checkout with discounts subtotal is lower than maximal order price with
-    specific product discount."""
-
+    """Test that product discounts properly qualify checkout for price-based shipping."""
     # given
     checkout_with_item.shipping_address = address
     manager = get_plugins_manager()
@@ -692,7 +685,9 @@ def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
     checkout_with_item.save(update_fields=["shipping_address"])
 
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
 
     subtotal = calculations.checkout_subtotal(
         manager=manager,
@@ -763,7 +758,7 @@ def test_checkout_available_shipping_methods_excluded_postal_codes(
     assert data["availableShippingMethods"] == []
 
 
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_checkout_available_shipping_methods_with_price_displayed(
     send_webhook_request_sync,
     monkeypatch,
@@ -1563,11 +1558,7 @@ def test_checkout_prices(user_api_client, checkout_with_item):
         == line_total_price.gross.amount
     )
     undiscounted_unit_price = line_info.variant.get_price(
-        line_info.product,
-        line_info.collections,
-        checkout_info.channel,
         line_info.channel_listing,
-        [],
         line_info.line.price_override,
     )
     assert (
@@ -1630,16 +1621,15 @@ def test_checkout_prices_checkout_with_custom_prices(
     )
 
 
-def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discount_info):
+def test_checkout_prices_with_sales(user_api_client, checkout_with_item_on_sale):
     # given
     query = QUERY_CHECKOUT_PRICES
-    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    checkout = checkout_with_item_on_sale
+    variables = {"id": to_global_id_or_none(checkout)}
 
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    # To properly apply a sale at checkout, we need to generate discount objects.
-    generate_sale_discount_objects_for_checkout(checkout_info, lines)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     response = user_api_client.post_graphql(query, variables)
@@ -1647,25 +1637,94 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
     data = content["data"]["checkout"]
 
     # then
-    assert data["token"] == str(checkout_with_item.token)
-    assert len(data["lines"]) == checkout_with_item.lines.count()
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
 
-    checkout_with_item.refresh_from_db()
-    lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+    checkout.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout_with_item.shipping_address,
+        address=checkout.shipping_address,
     )
     assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
     subtotal = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout_with_item.shipping_address,
+        address=checkout.shipping_address,
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == float(
+        round(line_total_price.gross.amount / line_info.line.quantity, 2)
+    )
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.variant.get_base_price(
+        line_info.channel_listing,
+        line_info.line.price_override,
+    )
+    undiscounted_total_price = undiscounted_unit_price.amount * line_info.line.quantity
+    assert (
+        data["lines"][0]["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        data["lines"][0]["undiscountedTotalPrice"]["amount"] == undiscounted_total_price
+    )
+    assert line_total_price.gross.amount < undiscounted_total_price
+
+
+def test_checkout_prices_with_promotion(
+    user_api_client, checkout_with_item_on_promotion
+):
+    # given
+    query = QUERY_CHECKOUT_PRICES
+    checkout = checkout_with_item_on_promotion
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+
+    checkout.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
     )
     assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
     line_info = lines[0]
@@ -1683,12 +1742,8 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         data["lines"][0]["totalPrice"]["gross"]["amount"]
         == line_total_price.gross.amount
     )
-    undiscounted_unit_price = line_info.variant.get_price(
-        line_info.product,
-        line_info.collections,
-        checkout_info.channel,
+    undiscounted_unit_price = line_info.variant.get_base_price(
         line_info.channel_listing,
-        [],
         line_info.line.price_override,
     )
     undiscounted_total_price = undiscounted_unit_price.amount * line_info.line.quantity
@@ -1789,11 +1844,7 @@ def test_checkout_prices_with_specific_voucher(
         == line_total_price.gross.amount
     )
     undiscounted_unit_price = line_info.variant.get_price(
-        line_info.product,
-        line_info.collections,
-        checkout_info.channel,
         line_info.channel_listing,
-        [],
         line_info.line.price_override,
     )
     assert (
@@ -1857,11 +1908,7 @@ def test_checkout_prices_with_voucher_once_per_order(
         == line_total_price.gross.amount
     )
     undiscounted_unit_price = line_info.variant.get_price(
-        line_info.product,
-        line_info.collections,
-        checkout_info.channel,
         line_info.channel_listing,
-        [],
         line_info.line.price_override,
     )
     assert (
@@ -1923,11 +1970,7 @@ def test_checkout_prices_with_voucher(user_api_client, checkout_with_item_and_vo
         == line_total_price.gross.amount
     )
     undiscounted_unit_price = line_info.variant.get_price(
-        line_info.product,
-        line_info.collections,
-        checkout_info.channel,
         line_info.channel_listing,
-        [],
         line_info.line.price_override,
     )
     assert (
@@ -2706,3 +2749,57 @@ def test_checkout_with_stored_payment_methods_requested_by_app(
 
     assert not mocked_list_stored_payment_methods.called
     assert content["data"]["checkout"]["storedPaymentMethods"] == []
+
+
+CHECKOUT_WITH_VOUCHER_QUERY = """
+query getCheckout($id: ID) {
+    checkout(id: $id) {
+        voucher {
+            id
+            code
+            name
+        }
+    }
+}
+"""
+
+
+def test_query_checkout_voucher(
+    staff_api_client,
+    checkout_with_voucher_free_shipping,
+    permission_manage_discounts,
+    voucher_free_shipping,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_discounts)
+    query = CHECKOUT_WITH_VOUCHER_QUERY
+    checkout = checkout_with_voucher_free_shipping
+    voucher = voucher_free_shipping
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    voucher_data = content["data"]["checkout"]["voucher"]
+    assert voucher_data["id"] == to_global_id_or_none(voucher)
+    assert voucher_data["code"] == voucher.code
+    assert voucher_data["name"] == voucher.name
+
+
+def test_query_checkout_voucher_by_customer_no_permission(
+    user_api_client,
+    checkout_with_voucher_free_shipping,
+    voucher_free_shipping,
+):
+    # given
+    query = CHECKOUT_WITH_VOUCHER_QUERY
+    checkout = checkout_with_voucher_free_shipping
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)

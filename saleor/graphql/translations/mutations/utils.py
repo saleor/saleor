@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Tuple, Type
 
 import graphene
 from django.core.exceptions import ImproperlyConfigured, ValidationError
@@ -51,17 +50,23 @@ TRANSLATABLE_CONTENT_TO_MODEL = {
     ): shipping_models.ShippingMethod._meta.object_name,
     str(
         translation_types.SaleTranslatableContent
-    ): discount_models.Sale._meta.object_name,
+    ): discount_models.Promotion._meta.object_name,
     str(
         translation_types.VoucherTranslatableContent
     ): discount_models.Voucher._meta.object_name,
     str(
         translation_types.MenuItemTranslatableContent
     ): menu_models.MenuItem._meta.object_name,
+    str(
+        translation_types.PromotionTranslatableContent
+    ): discount_models.Promotion._meta.object_name,
+    str(
+        translation_types.PromotionRuleTranslatableContent
+    ): discount_models.PromotionRule._meta.object_name,
 }
 
 
-def validate_input_against_model(model: Type[Model], input_data: dict):
+def validate_input_against_model(model: type[Model], input_data: dict):
     data_to_validate = {key: value for key, value in input_data.items() if value}
     instance = model(**data_to_validate)
     all_fields = [field.name for field in model._meta.fields]
@@ -74,7 +79,7 @@ class BaseTranslateMutation(ModelMutation):
         abstract = True
 
     @classmethod
-    def clean_node_id(cls, id: str) -> Tuple[str, Type[graphene.ObjectType]]:
+    def clean_node_id(cls, id: str) -> tuple[str, type[graphene.ObjectType]]:
         if not id:
             raise ValidationError(
                 {"id": ValidationError("This field is required", code="required")}
@@ -171,7 +176,7 @@ class BaseBulkTranslateMutation(BaseMutation):
         base_model_relation_field=None,
         result_type=None,
         _meta=None,
-        **kwargs
+        **kwargs,
     ):
         if not base_model:
             raise ImproperlyConfigured(

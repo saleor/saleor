@@ -3,6 +3,7 @@ import graphene
 from ....giftcard import models
 from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import ModelBulkDeleteMutation
@@ -35,6 +36,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         instances = [card for card in queryset]
         queryset.delete()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.GIFT_CARD_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
         for instance in instances:
-            manager.gift_card_deleted(instance)
+            cls.call_event(manager.gift_card_deleted, instance, webhooks=webhooks)

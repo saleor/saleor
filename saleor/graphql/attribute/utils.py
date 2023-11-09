@@ -1,8 +1,9 @@
 import datetime
 import re
 from collections import defaultdict, namedtuple
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -16,8 +17,15 @@ from text_unidecode import unidecode
 
 from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ...attribute import models as attribute_models
-from ...attribute.utils import associate_attribute_values_to_instance
-from ...core.utils import generate_unique_slug, prepare_unique_slug
+from ...attribute.utils import (
+    associate_attribute_values_to_instance,
+    disassociate_attributes_from_instance,
+)
+from ...core.utils import (
+    generate_unique_slug,
+    prepare_unique_attribute_value_slug,
+    prepare_unique_slug,
+)
 from ...core.utils.editorjs import clean_editor_js
 from ...core.utils.url import get_default_storage_root_url
 from ...page import models as page_models
@@ -45,12 +53,12 @@ class AttrValuesForSelectableFieldInput:
 class AttrValuesInput:
     global_id: Optional[str] = None
     external_reference: Optional[str] = None
-    values: Optional[List[str]] = None
+    values: Optional[list[str]] = None
     dropdown: Optional[AttrValuesForSelectableFieldInput] = None
     swatch: Optional[AttrValuesForSelectableFieldInput] = None
-    multiselect: Optional[List[AttrValuesForSelectableFieldInput]] = None
+    multiselect: Optional[list[AttrValuesForSelectableFieldInput]] = None
     numeric: Optional[str] = None
-    references: Union[List[str], List[page_models.Page], None] = None
+    references: Union[list[str], list[page_models.Page], None] = None
     file_url: Optional[str] = None
     content_type: Optional[str] = None
     rich_text: Optional[dict] = None
@@ -63,8 +71,8 @@ class AttrValuesInput:
 T_INSTANCE = Union[
     product_models.Product, product_models.ProductVariant, page_models.Page
 ]
-T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
-T_ERROR_DICT = Dict[Tuple[str, str], List]
+T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
+T_ERROR_DICT = dict[tuple[str, str], list]
 
 EntityTypeData = namedtuple("EntityTypeData", ["model", "name_field", "value_field"])
 
@@ -106,14 +114,14 @@ class AttributeAssignmentMixin:
         qs: "QuerySet",
         error_class,
         *,
-        global_ids: List[str],
+        global_ids: list[str],
         external_references: Iterable[str],
         pks: Iterable[int],
     ):
         """Retrieve attributes nodes from given global IDs or external reference."""
 
         qs = qs.filter(Q(pk__in=pks) | Q(external_reference__in=external_references))
-        nodes: List[attribute_models.Attribute] = list(qs)
+        nodes: list[attribute_models.Attribute] = list(qs)
 
         if not nodes:
             raise ValidationError(
@@ -171,9 +179,10 @@ class AttributeAssignmentMixin:
         lookup_field: str,
         value,
     ):
-        assignment = instance.attributes.filter(
+        assignment = instance.attributes.filter(  # type:ignore[union-attr]
             assignment__attribute=attribute, **{f"values__{lookup_field}": value}
         ).first()
+
         return (
             None
             if assignment is None
@@ -181,26 +190,23 @@ class AttributeAssignmentMixin:
         )
 
     @classmethod
-    def _create_value_instance(
-        cls, attribute, attr_value, external_ref, attr_and_value_slugs_map
-    ):
+    def _create_value_instance(cls, attribute, attr_value, external_ref):
         try:
-            slug = prepare_unique_slug(
-                slugify(unidecode(attr_value)), attr_and_value_slugs_map[attribute]
+            value_slug = prepare_unique_attribute_value_slug(
+                attribute, slugify(unidecode(attr_value))
             )
             value = attribute_models.AttributeValue.objects.create(
                 external_reference=external_ref,
                 attribute=attribute,
                 name=attr_value,
-                slug=slug,
+                slug=value_slug,
             )
         except IntegrityError:
             raise ValidationError(
                 "Attribute value with given externalReference already exists."
             )
 
-        attr_and_value_slugs_map[attribute].add(slug)
-        return (value,)
+        return value
 
     @classmethod
     def clean_input(
@@ -222,7 +228,7 @@ class AttributeAssignmentMixin:
         :raises ValidationError: contain the message.
         :return: The resolved data
         """
-        error_class: Union[Type[PageErrorCode], Type[ProductErrorCode]] = (
+        error_class: Union[type[PageErrorCode], type[ProductErrorCode]] = (
             PageErrorCode if is_page_attributes else ProductErrorCode
         )
 
@@ -354,7 +360,7 @@ class AttributeAssignmentMixin:
         attribute_qs: "QuerySet",
         *,
         creation: bool,
-        is_page_attributes: bool
+        is_page_attributes: bool,
     ):
         """Check the cleaned attribute input.
 
@@ -396,13 +402,6 @@ class AttributeAssignmentMixin:
             AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
         }
         clean_assignment = []
-        attr_and_value_slugs_map = {}
-
-        for attribute, _ in cleaned_input:
-            if attribute not in attr_and_value_slugs_map:
-                attr_and_value_slugs_map[attribute] = set(
-                    attribute.values.all().values_list("slug", flat=True)
-                )
 
         for attribute, attr_values in cleaned_input:
             is_handled_by_values_field = (
@@ -418,9 +417,7 @@ class AttributeAssignmentMixin:
                 attribute_values = cls._pre_save_values(attribute, attr_values)
             else:
                 pre_save_func = pre_save_methods_mapping[attribute.input_type]
-                attribute_values = pre_save_func(
-                    instance, attribute, attr_values, attr_and_value_slugs_map
-                )
+                attribute_values = pre_save_func(instance, attribute, attr_values)
 
             associate_attribute_values_to_instance(
                 instance, attribute, *attribute_values
@@ -430,7 +427,7 @@ class AttributeAssignmentMixin:
 
         # drop attribute assignment model when values are unassigned from instance
         if clean_assignment:
-            instance.attributes.filter(
+            instance.attributes.filter(  # type:ignore[union-attr]
                 assignment__attribute_id__in=clean_assignment
             ).delete()
 
@@ -440,7 +437,6 @@ class AttributeAssignmentMixin:
         _,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
-        attr_and_value_slugs_map,
     ):
         if not attr_values.dropdown:
             return tuple()
@@ -449,10 +445,8 @@ class AttributeAssignmentMixin:
         external_ref = attr_values.dropdown.external_reference
 
         if external_ref and attr_value:
-            value = cls._create_value_instance(
-                attribute, attr_value, external_ref, attr_and_value_slugs_map
-            )
-            return value
+            value = cls._create_value_instance(attribute, attr_value, external_ref)
+            return (value,)
 
         if external_ref:
             value = attribute_models.AttributeValue.objects.get(
@@ -472,8 +466,7 @@ class AttributeAssignmentMixin:
             return (value,)
 
         if attr_value:
-            value = prepare_attribute_values(attribute, [attr_value])
-            return value
+            return prepare_attribute_values(attribute, [attr_value])
 
         return tuple()
 
@@ -483,7 +476,6 @@ class AttributeAssignmentMixin:
         _,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
-        attr_and_value_slugs_map,
     ):
         if not attr_values.swatch:
             return tuple()
@@ -492,10 +484,8 @@ class AttributeAssignmentMixin:
         external_ref = attr_values.swatch.external_reference
 
         if external_ref and attr_value:
-            value = cls._create_value_instance(
-                attribute, attr_value, external_ref, attr_and_value_slugs_map
-            )
-            return value
+            value = cls._create_value_instance(attribute, attr_value, external_ref)
+            return (value,)
 
         if external_ref:
             value = attribute_models.AttributeValue.objects.get(
@@ -526,20 +516,19 @@ class AttributeAssignmentMixin:
         _,
         attribute: attribute_models.Attribute,
         attr_values_input: AttrValuesInput,
-        attr_and_value_slugs_map,
     ):
         if not attr_values_input.multiselect:
             return tuple()
 
-        attribute_values: List[attribute_models.AttributeValue] = []
+        attribute_values: list[attribute_models.AttributeValue] = []
         for attr_value in attr_values_input.multiselect:
             external_ref = attr_value.external_reference
 
             if external_ref and attr_value.value:
                 value = cls._create_value_instance(
-                    attribute, attr_value.value, external_ref, attr_and_value_slugs_map
+                    attribute, attr_value.value, external_ref
                 )
-                return value
+                return (value,)
 
             if external_ref:
                 value = attribute_models.AttributeValue.objects.get(
@@ -578,7 +567,6 @@ class AttributeAssignmentMixin:
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
-        attr_and_value_slugs_map,
     ):
         if attr_values.values:
             value = attr_values.values[0]
@@ -614,7 +602,6 @@ class AttributeAssignmentMixin:
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
-        attr_and_value_slugs_map,
     ):
         if not attr_values.rich_text:
             return tuple()
@@ -632,7 +619,6 @@ class AttributeAssignmentMixin:
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
-        attr_and_value_slugs_map,
     ):
         if not attr_values.plain_text:
             return tuple()
@@ -648,7 +634,6 @@ class AttributeAssignmentMixin:
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
-        attr_and_value_slugs_map,
     ):
         if attr_values.boolean is None:
             return tuple()
@@ -670,7 +655,6 @@ class AttributeAssignmentMixin:
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
-        attr_and_value_slugs_map,
     ):
         is_date_attr = attribute.input_type == AttributeInputType.DATE
         tz = timezone.utc
@@ -716,7 +700,6 @@ class AttributeAssignmentMixin:
         instance,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
-        attr_and_value_slugs_map,
     ):
         """Lazy-retrieve or create the database objects from the supplied raw values.
 
@@ -751,7 +734,6 @@ class AttributeAssignmentMixin:
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_value: AttrValuesInput,
-        attr_and_value_slugs_map,
     ):
         """Create database file attribute value object from the supplied value.
 
@@ -778,13 +760,89 @@ class AttributeAssignmentMixin:
         return (value,)
 
 
+class PageAttributeAssignmentMixin(AttributeAssignmentMixin):
+    # TODO: Merge the code here with the mixin above
+    # after the refactor of Page <> Attribute and
+    # Product <> Attribute dedicated mixins
+    # should me merged into AttributeAssignmentMixin
+
+    @classmethod
+    def _get_assigned_attribute_value_if_exists(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        lookup_field: str,
+        value,
+    ):
+        return (
+            attribute.values.filter(
+                pagevalueassignment__page_id=instance.pk,
+                **{lookup_field: value},
+            ).first()
+            or None
+        )
+
+    @classmethod
+    def save(
+        cls,
+        instance: T_INSTANCE,
+        cleaned_input: T_INPUT_MAP,
+    ):
+        """Save the cleaned input into the database against the given instance.
+
+        Note: this should always be ran inside a transaction.
+        :param instance: the product or variant to associate the attribute against.
+        :param cleaned_input: the cleaned user input (refer to clean_attributes)
+        """
+        pre_save_methods_mapping = {
+            AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
+            AttributeInputType.DATE: cls._pre_save_date_time_values,
+            AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
+            AttributeInputType.DROPDOWN: cls._pre_save_dropdown_value,
+            AttributeInputType.SWATCH: cls._pre_save_swatch_value,
+            AttributeInputType.FILE: cls._pre_save_file_value,
+            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
+            AttributeInputType.MULTISELECT: cls._pre_save_multiselect_values,
+            AttributeInputType.PLAIN_TEXT: cls._pre_save_plain_text_values,
+            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
+            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
+        }
+        clean_assignment = []
+
+        for attribute, attr_values in cleaned_input:
+            is_handled_by_values_field = (
+                attr_values.values
+                and attribute.input_type
+                in (
+                    AttributeInputType.DROPDOWN,
+                    AttributeInputType.MULTISELECT,
+                    AttributeInputType.SWATCH,
+                )
+            )
+            if is_handled_by_values_field:
+                attribute_values = cls._pre_save_values(attribute, attr_values)
+            else:
+                pre_save_func = pre_save_methods_mapping[attribute.input_type]
+                attribute_values = pre_save_func(instance, attribute, attr_values)
+
+            associate_attribute_values_to_instance(
+                instance, attribute, *attribute_values
+            )
+            if not attribute_values:
+                clean_assignment.append(attribute)
+
+        # drop attribute assignment model when values are unassigned from instance
+        if clean_assignment:
+            disassociate_attributes_from_instance(instance, *clean_assignment)
+
+
 def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
     return qs.filter(
         type=AttributeType.PRODUCT_TYPE, attributevariant__variant_selection=True
     )
 
 
-def prepare_attribute_values(attribute: attribute_models.Attribute, values: List[str]):
+def prepare_attribute_values(attribute: attribute_models.Attribute, values: list[str]):
     slug_to_value_map = {}
     name_to_value_map = {}
     for val in attribute.values.filter(Q(name__in=values) | Q(slug__in=values)):
@@ -820,7 +878,7 @@ def prepare_attribute_values(attribute: attribute_models.Attribute, values: List
     return result
 
 
-def get_existing_slugs(attribute: attribute_models.Attribute, values: List[str]):
+def get_existing_slugs(attribute: attribute_models.Attribute, values: list[str]):
     lookup = Q()
     for value in values:
         lookup |= Q(slug__startswith=slugify(unidecode(value)))
@@ -893,7 +951,7 @@ class AttributeInputErrors:
 
 
 def validate_attributes_input(
-    input_data: List[Tuple["Attribute", "AttrValuesInput"]],
+    input_data: list[tuple["Attribute", "AttrValuesInput"]],
     attribute_qs: "QuerySet",
     *,
     is_page_attributes: bool,
@@ -1121,12 +1179,12 @@ def validate_single_selectable_field(
         return
 
     if value:
-        max_length = attribute.values.model.name.field.max_length  # type: ignore
+        max_length = attribute.values.model.name.field.max_length
         if not value.strip():
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
                 attr_identifier
             )
-        elif len(value) > max_length:
+        elif max_length and len(value) > max_length:
             attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(
                 attr_identifier
             )
@@ -1300,7 +1358,7 @@ def validate_values(
     attribute_errors: T_ERROR_DICT,
 ):
     """To be deprecated together with `AttributeValueInput.values` field."""
-    name_field = attribute.values.model.name.field  # type: ignore
+    name_field = attribute.values.model.name.field
     is_numeric = attribute.input_type == AttributeInputType.NUMERIC
     if get_duplicated_values(values):
         attribute_errors[AttributeInputErrors.ERROR_DUPLICATED_VALUES].append(
@@ -1318,16 +1376,16 @@ def validate_values(
                 attribute_errors[
                     AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
                 ].append(attr_identifier)
-        elif len(value) > name_field.max_length:
+        elif name_field.max_length and len(value) > name_field.max_length:
             attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(
                 attr_identifier
             )
 
 
 def validate_required_attributes(
-    input_data: List[Tuple["Attribute", "AttrValuesInput"]],
+    input_data: list[tuple["Attribute", "AttrValuesInput"]],
     attribute_qs: "QuerySet",
-    errors: List[ValidationError],
+    errors: list[ValidationError],
     error_code_enum,
 ):
     """Ensure all required attributes are supplied."""

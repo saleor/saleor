@@ -1,12 +1,10 @@
+from collections import defaultdict
+from collections.abc import Iterable
 from decimal import Decimal
 from typing import (
     TYPE_CHECKING,
     Any,
-    DefaultDict,
-    Iterable,
     Optional,
-    Set,
-    Tuple,
     Union,
 )
 
@@ -32,7 +30,7 @@ if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
     from ...core.models import EventDelivery
-    from ...discount.models import Sale
+    from ...discount.models import Promotion
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductVariant
 
@@ -204,7 +202,7 @@ class PluginSample(BasePlugin):
 
     def external_verify(
         self, data: dict, request: WSGIRequest, previous_value
-    ) -> Tuple[Optional[User], dict]:
+    ) -> tuple[Optional[User], dict]:
         user = User.objects.get()
         return user, {"some_data": "data"}
 
@@ -218,36 +216,51 @@ class PluginSample(BasePlugin):
 
     def sale_created(
         self,
-        sale: "Sale",
-        current_catalogue: DefaultDict[str, Set[str]],
+        sale: "Promotion",
+        current_catalogue: defaultdict[str, set[str]],
         previous_value: Any,
     ):
         return sale, current_catalogue
 
     def sale_updated(
         self,
-        sale: "Sale",
-        previous_catalogue: DefaultDict[str, Set[str]],
-        current_catalogue: DefaultDict[str, Set[str]],
+        sale: "Promotion",
+        previous_catalogue: defaultdict[str, set[str]],
+        current_catalogue: defaultdict[str, set[str]],
         previous_value: Any,
     ):
         return sale, previous_catalogue, current_catalogue
 
     def sale_deleted(
         self,
-        sale: "Sale",
-        previous_catalogue: DefaultDict[str, Set[str]],
+        sale: "Promotion",
+        previous_catalogue: defaultdict[str, set[str]],
         previous_value: Any,
     ):
         return sale, previous_catalogue
 
     def sale_toggle(
         self,
-        sale: "Sale",
-        catalogue: DefaultDict[str, Set[str]],
+        sale: "Promotion",
+        catalogue: defaultdict[str, set[str]],
         previous_value: Any,
     ):
         return sale, catalogue
+
+    def promotion_created(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_updated(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_deleted(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_started(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_ended(self, promotion: "Promotion", previous_value: Any):
+        return None
 
     def get_checkout_line_tax_rate(
         self,
@@ -356,6 +369,15 @@ class PluginSample(BasePlugin):
     def stored_payment_method_request_delete(self, request_delete_data, previous_value):
         return previous_value
 
+    def payment_gateway_initialize_tokenization(self, request_data, previous_value):
+        return previous_value
+
+    def payment_method_initialize_tokenization(self, request_data, previous_value):
+        return previous_value
+
+    def payment_method_process_tokenization(self, request_data, previous_value):
+        return previous_value
+
 
 class ChannelPluginSample(PluginSample):
     PLUGIN_ID = "channel.plugin.sample"
@@ -451,6 +473,16 @@ class ActiveDummyPaymentGateway(BasePlugin):
 
     def check_payment_balance(self, request_data: dict, previous_value):
         return {"test_response": "success"}
+
+
+class SampleAuthorizationPlugin(BasePlugin):
+    PLUGIN_ID = "saleor.sample.authorization"
+    PLUGIN_NAME = "SampleAuthorization"
+    DEFAULT_ACTIVE = True
+
+    def authenticate_user(self, request, previous_value) -> Optional[User]:
+        # This function will be mocked in test
+        raise NotImplementedError()
 
 
 class InactivePaymentGateway(BasePlugin):

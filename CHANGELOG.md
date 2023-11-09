@@ -2,16 +2,184 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
-# 3.16.0 [Unreleased]
+# 3.18.0 [Unreleased]
+
+### Highlights
+- Allow including draft orders in voucher usage. New `includeDraftOrderInVoucherUsage` flag allows defining if vouchers used in draft orders should be counted into voucher usage. - #14288 by @zedzior, @IKarbowiak, @michal-macioszczyk
+
+  - Add `includeDraftOrderInVoucherUsage` to `OrderSettings`
+  - Add `includeDraftOrderInVoucherUsage` to `OrderSettingsInput`
+
+
+### Breaking changes
+- Optimize number of queries in bulk mutations when calling webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
+  - `attribute_updated`
+  - `attribute_deleted`
+  - `attribute_value_deleted`
+  - `promotion_deleted`
+  - `staff_deleted`
+- Saleor will no longer reattempt delivery for webhooks that return non-transient HTTP errors (400, 404 etc.) or redirects - #14566 by @patrys
+
+### GraphQL API
+- Fix draft order voucher assignment - #14336 by @IKarbowiak
+- Allow add multiple codes per voucher - #14123 by @SzymJ, @IKarbowiak, @michal-macioszczyk, @zedzior
+  - Add `VoucherInput.addCodes` to `voucherCreate` and `voucherUpdate` mutations.
+  - Add `Voucher.singleUse` flag.
+  - Deprecate `OrderBulkCreateInput.voucher`.
+  - Deprecate `VoucherInput.code` in `voucherCreate` and `voucherUpdate` mutations.
+  - Add `exportVoucherCodes` mutation.
+  - Add `voucherCodeBulkDelete` mutation.
+  - Adjust voucher usage calculations.
+- Improved GraphQL ID validation messages - #14447 by @patrys
+- Add `voucher` to `checkout` query - #14512 by @zedzior
+
+### Saleor Apps
+
+### Other changes
+
+- Add transaction items deletion to cleardb command. - #14198 by @jakubkuc
+- Added validation for timestamp comparison #14025 by @ritanjandawn
+- Page -> Attributes refactor. The goal is to simplify the attribute models. The current attribute model relations are complex and really hard to understand. - #13621
+- `requirements.txt` and `requirements_dev.txt` were dropped in favor of only supporting `poetry` - #14611 by @patrys
+
+# 3.17.0
+
+### Highlights
+
+- Introduce promotions, that allow applying discounts based on certain conditions.
+  The promotions are replacement for current sales and covers all sales functionalities and provide additional features. - #12980 by @IKarbowiak @zedzior
+  - Add new types:
+    - `Promotion` - Represents the promotion.
+    - `PromotionRule` - Specifies conditions that must be met to apply the discount.
+    - `PromotionTranslation` - Represents promotion translations.
+    - `PromotionTranslatableContent` - Represents promotion's original translatable fields and related translations.
+    - `PromotionRuleTranslation` - Represents promotion rule translations.
+    - `PromotionRuleTranslatableContent` - Represents promotion rule's original translatable fields and related translations.
+  - Add new mutations:
+    - `promotionCreate` - Creates a new promotion.
+    - `promotionUpdate` - Updates an existing promotion.
+    - `promotionDelete` - Deletes a promotion.
+    - `promotionBulkDelete` - Deletes multiple promotions.
+    - `promotionRuleCreate` - Creates a new promotion rule.
+    - `promotionRuleUpdate` - Updates an existing promotion rule.
+    - `promotionRuleDelete` - Deletes a promotion rule.
+    - `promotionTranslae` - Translates a promotion.
+    - `promotionRuleTranslae` - Translates a promotion rule.
+  - Add new webhooks:
+    - `PROMOTION_CREATED` - triggered when promotion is created.
+    - `PROMOTION_UPDATED` - triggered when promotion is updated.
+    - `PROMOTION_DELETED` - triggered when promotion is deleted.
+    - `PROMOTION_STARTED` - triggered when promotion is started.
+    - `PROMOTION_ENDED` - triggered when promotion is ended.
+    - `PROMOTION_RULE_CREATED` - triggered when promotion rule is created.
+    - `PROMOTION_RULE_UPDATED` - triggered when promotion rule is updated.
+    - `PROMOTION_RULE_DELETED` - triggered when promotion rule is deleted.
+  - Add new subscriptions:
+    - `PromotionCreated` - Event sent when promotion is created.
+    - `PromotionUpdated` - Event sent when promotion is updated.
+    - `PromotionDeleted` - Event sent when promotion is deleted.
+    - `PromotionStarted` - Event sent when promotion is started.
+    - `PromotionEnded` - Event sent when promotion is ended.
+    - `PromotionRuleCreated` - Event sent when promotion rule is created.
+    - `PromotionRuleUpdated` - Event sent when promotion rule is updated.
+    - `PromotionRuleDeleted` - Event sent when promotion rule is deleted.
+  - Add new event types:
+    - `PromotionCreatedEvent` - Represents history log of the promotion created event.
+    - `PromotionUpdatedEvent` - Represents history log of the promotion updated event.
+    - `PromotionStartedEvent` - Represents history log of the promotion started event.
+    - `PromotionEndedEvent` - Represents history log of the promotion ended event.
+    - `PromotionRuleCreatedEvent` - Represents history log of the promotion rule created event.
+    - `PromotionRuleUpdatedEvent` - Represents history log of the promotion rule updated event.
+    - `PromotionRuleDeletedEvent` - Represents history log of the promotion rule deleted event.
+    - `PromotionEventInterface` - Interface for promotion related event history log.
+    - `PromotionRuleEventInterface` - Interface for promotion rule related event history log.
+  - Deprecate types (Saleor 4.0):
+    - `Sale` - Use `Promotion` and `PromotionRule` instead.
+    - `SaleChannelListing` - Use `PromotionRule` instead.
+  - Deprecate mutations (Saleor 4.0):
+    - `saleCreate` - Use `promotionCreate` mutation instead.
+    - `saleUpdate` - Use `promotionUpdate` mutation instead.
+    - `saleDelete` - Use `promotionDelete` mutation instead.
+    - `saleBulkDelete` - Use `promotionBulkDelete` mutation instead.
+    - `saleCataloguesAdd` - Use `promotionRuleCreate` mutation instead.
+    - `saleCataloguesRemove` - Use `promotionRuleUpdate` or `promotionRuleDelete` mutations instead.
+    - `saleChannelListingUpdate` - Use `promotionRuleCreate` or `promotionRuleUpdate` mutations instead.
+    - `saleTranslate` - Use `promotionTranslate` mutation instead.
+  - Deprecate webhooks (Saleor 4.0):
+    - `SALE_CREATED` - Use `PROMOTION_CREATED` instead.
+    - `SALE_UPDATED` - Use `PROMOTION_UPDATED` instead.
+    - `SALE_DELETED` - Use `PROMOTION_DELETED` instead.
+    - `SALE_TOGGLE` - Use `PROMOTION_STARTED` and `PROMOTION_ENDED` instead.
+  - Deprecate subscriptions (Saleor 4.0):
+    - `SaleCreated` - Use `PromotionCreated` instead.
+    - `SaleUpdated` - Use `PromotionUpdate` instead.
+    - `SaleDeleted` - Use `PromotionDeleted` instead.
+    - `SaleToggle` - Use `PromotionStarted` and `PromotionEnded` instead.
+
+### Breaking changes
+- Deprecate `external_url` on `Invoice` GraphQL type in favour of `url`. No matter if the invoice is stored on Saleor or is a link to an external invoice it will get returned in the `url` field.
+- Optimize number of queries in bulk mutations when calling Webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
+  - `channel_updated`
+  - `category_deleted`
+  - `gift_card_created`
+  - `gift_card_deleted`
+  - `gift_card_status_changed`
+  - `menu_deleted`
+  - `menu_item_deleted`
+  - `order_updated`
+  - `order_cancelled`
+  - `customer_updated`
+  - `customer_deleted`
+  - `customer_metadata_updated`
+  - `collection_deleted`
+  - `product_created`
+  - `product_updated`
+  - `product_deleted`
+  - `product_variant_created`
+  - `product_variant_updated`
+  - `product_variant_deleted`
+  - `product_variant_out_of_stock`
+  - `product_variant_back_in_stock`
+  - `product_variant_stock_updated`
+  - `shipping_price_deleted`
+  - `shipping_zone_deleted`
+  - `voucher_deleted`
+
+### GraphQL API
+
+- **Feature preview change**:
+  - Order bulk create allow to import archive orders - #14177 by @kadewu
+    - `orderBulkCreate` now will attempt to create order with `IGNORE_FAILED` policy even if:
+      - `User` cannot be resolved and `email` wasn't provided.
+      - `Variant` wasn't provided but `product_name` was provided.
+
+### Saleor Apps
+
+### Other changes
+
+- Fix thumbnail redirects sometimes failing with an unsafe redirect warning - #14023 by @patrys
+- New environment variable `PUBLIC_URL` to define URL on which Saleor is hosted (e.g., https://api.example.com/). Takes precedence over `ENABLE_SSL` and `Shop.domain` for URL generation - #13841 by @przlada
+- Add a new `updatedAt` field and a filter for product categories. - #13825 by @rafiwts
+- Made the triggering frequency of update-search Celery beat tasks customizable (settable using `BEAT_UPDATE_SEARCH_FREQUENCY`) - #14152 by @NyanKiyoshi
+
+# 3.16.0
 
 ### Breaking changes
 
 - **Feature preview breaking change**:
+
   - Deprecate `OrderSettingsInput.defaultTransactionFlowStrategy`. It will be removed
     in 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
   - Deprecate `OrderSettings.defaultTransactionFlowStrategy`. It will be removed
     in 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
   - Change in the CSV export. It will now use empty string for empty attribute values instead of a single whitespace value.
+
+- Add IP filter feature to backend HTTP requests - #13891 by @NyanKiyoshi
+
+  This rejects server-side HTTP requests (webhooks, OIDC, etc.) if they try to communicate
+  with private or loopback IP addresses, to change the default behavior,
+  refer to `HTTP_IP_FILTER_ENABLED`, and `HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS` settings
+  for more details.
 
 ### GraphQL API
 
@@ -22,6 +190,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `externalReference` to `updateWarehouse`. It will allow update warehouse by
   external reference. - #13342 by @Smit-Parmar
 - Add Filter warehouses by metadata - #13345 by @Smit-Parmar
+- Add API for tokenizing payment methods - #13879 by @korycins
+
 - Deprecate the `NOTIFY_USER` webhook and the `externalNotificationTrigger` mutation - #13881 by @maarcingebala
   - See the docs for more details about migrating from the `NOTIFY_USER` webhook to other events: https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation
 
@@ -39,7 +209,9 @@ All notable, unreleased changes to this project will be documented in this file.
   - Event sent when CSV export for products is completed.
 - Add `FULFILLMENT_TRACKING_NUMBER_UPDATED` webhook - #13708, by @Air-t
   - Called after `fulfillmentUpdateTracking` or `orderFulfill` mutation if tracking number is updated.
+- Add support for tokenizing payment methods via sync webhooks - #13879 by @korycins
 - Add missing `FULFILLMENT_CREATED` event call to `automatically_fulfill_digital_lines_with_fulfillment_created` action. - #13823, by @Air-t
+- Increase timeout of shipping filtering webhooks: `ORDER_FILTER_SHIPPING_METHODS` and `CHECKOUT_FILTER_SHIPPING_METHODS` to 20 seconds - #13989 by @maarcingebala
 
 ### Other changes
 
@@ -54,6 +226,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix NoneType in `prodcutChannelsListingUpdate` - #13694 by @Manoj-gowra
 - Extended `AttributeValueTranslation.name` to 250 characters - #13776 by @aniav
 - Add a new `page` field on `AssignedPageAttributeValue`. First stage (migration) of a simplification of Attribute - Page relation from #13403. by michal-macioszczyk
+- Update workflow actions with poetry dependencies - #13736 by @rafiwts
 
 # 3.15.0
 

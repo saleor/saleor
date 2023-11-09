@@ -219,9 +219,7 @@ def test_menu_reorder_move_without_effect(
 def test_menu_reorder_assign_parent(
     staff_api_client, permission_manage_menus, menu_item_list
 ):
-    """Assign a menu item as parent of given menu items. Ensure the menu items
-    are properly pushed at the bottom of the item's children.
-    """
+    """Test that assigning parents results in the correct item order."""
     # given
     menu_item_list = list(menu_item_list)
     assert len(menu_item_list) == 3
@@ -295,10 +293,7 @@ def test_menu_reorder_assign_parent(
 def test_menu_reorder_assign_and_unassign_parent(
     staff_api_client, permission_manage_menus, menu_item_list
 ):
-    """Assign a menu item as parent of given menu items. Ensure the menu items
-    are properly pushed at the bottom of the item's children.
-    """
-
+    """Test that assigning and removing parents results in the correct item order."""
     # given
     menu_item_list = list(menu_item_list)
     assert len(menu_item_list) == 3
@@ -374,10 +369,7 @@ def test_menu_reorder_assign_and_unassign_parent(
 def test_menu_reorder_unassign_and_assign_parent(
     staff_api_client, permission_manage_menus, menu_item_list
 ):
-    """Assign a menu item as parent of given menu items. Ensure the menu items
-    are properly pushed at the bottom of the item's children.
-    """
-
+    """Test that removing and assigning parents results in the correct item order."""
     # given
     menu_item_list = list(menu_item_list)
     assert len(menu_item_list) == 3
@@ -548,7 +540,7 @@ def test_menu_reorder_cannot_assign_to_ancestor(
     assert response["errors"] == [
         {
             "field": "parentId",
-            "message": "Cannot assign a node as child of " "one of its descendants.",
+            "message": "Cannot assign a node as child of one of its descendants.",
         }
     ]
 
@@ -579,9 +571,6 @@ def test_menu_reorder_cannot_assign_to_itself(
 def test_menu_cannot_get_menu_item_not_from_same_menu(
     staff_api_client, permission_manage_menus, menu_item
 ):
-    """You shouldn't be able to edit menu items that are not from the menu
-    you are actually editing"""
-
     menu_without_items = Menu.objects.create(
         name="this menu has no items", slug="menu-no-items"
     )
@@ -612,9 +601,6 @@ def test_menu_cannot_get_menu_item_not_from_same_menu(
 def test_menu_cannot_pass_an_invalid_menu_item_node_type(
     staff_api_client, staff_user, permission_manage_menus, menu_item
 ):
-    """You shouldn't be able to pass a menu item node
-    that is not an actual MenuType."""
-
     # given
     menu_without_items = Menu.objects.create(
         name="this menu has no items", slug="menu-without-items"
@@ -630,9 +616,15 @@ def test_menu_cannot_pass_an_invalid_menu_item_node_type(
     )
 
     # then
+    message = f"Invalid ID: {node_id}. Expected: MenuItem, received: User."
     assert json.loads(response.content)["data"] == {
         "menuItemMove": {
-            "errors": [{"field": "item", "message": "Must receive a MenuItem id."}],
+            "errors": [
+                {
+                    "field": "item",
+                    "message": message,
+                }
+            ],
             "menu": None,
         }
     }

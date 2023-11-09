@@ -13,7 +13,7 @@ def export_started_event(
     *,
     export_file: "ExportFile",
     user: Optional["User"] = None,
-    app: Optional["App"] = None
+    app: Optional["App"] = None,
 ) -> None:
     ExportEvent.objects.create(
         export_file=export_file, user=user, app=app, type=ExportEvents.EXPORT_PENDING
@@ -24,7 +24,7 @@ def export_success_event(
     *,
     export_file: "ExportFile",
     user: Optional["User"] = None,
-    app: Optional["App"] = None
+    app: Optional["App"] = None,
 ) -> None:
     ExportEvent.objects.create(
         export_file=export_file, user=user, app=app, type=ExportEvents.EXPORT_SUCCESS
@@ -37,7 +37,7 @@ def export_failed_event(
     user: Optional["User"] = None,
     app: Optional["App"] = None,
     message: str,
-    error_type: str
+    error_type: str,
 ) -> None:
     ExportEvent.objects.create(
         export_file=export_file,
@@ -52,7 +52,7 @@ def export_deleted_event(
     *,
     export_file: "ExportFile",
     user: Optional["User"] = None,
-    app: Optional["App"] = None
+    app: Optional["App"] = None,
 ) -> None:
     ExportEvent.objects.create(
         export_file=export_file, user=user, app=app, type=ExportEvents.EXPORT_DELETED

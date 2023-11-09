@@ -54,13 +54,13 @@ def test_request(rf):
 
 
 @pytest.fixture
-def observability_enabled(settings):
+def _observability_enabled(settings):
     settings.OBSERVABILITY_ACTIVE = True
     settings.OBSERVABILITY_REPORT_ALL_API_CALLS = False
 
 
 @pytest.fixture
-def observability_disabled(settings):
+def _observability_disabled(settings):
     settings.OBSERVABILITY_ACTIVE = False
     settings.OBSERVABILITY_REPORT_ALL_API_CALLS = False
 
@@ -70,7 +70,7 @@ def observability_disabled(settings):
 def test_get_webhooks(
     mocked_get_webhooks_for_event,
     mock_cache_get,
-    clear_cache,
+    _clear_cache,
     observability_webhook,
     observability_webhook_data,
 ):
@@ -98,7 +98,7 @@ def test_custom_json_encoder_dumps_json_trunc_text():
 
 
 @pytest.mark.parametrize(
-    "text,limit,expected_size,expected_text,expected_truncated",
+    ("text", "limit", "expected_size", "expected_text", "expected_truncated"),
     [
         ("abcde", 5, 5, "abcde", False),
         ("abó", 3, 2, "ab", True),
@@ -128,7 +128,7 @@ def test_json_truncate_text_comparison():
 
 
 @pytest.mark.parametrize(
-    "retry, next_retry_date",
+    ("retry", "next_retry_date"),
     [
         (Retry(), None),
         (Retry(when=60 * 10), datetime(1914, 6, 28, 11, tzinfo=timezone.utc)),
@@ -169,14 +169,15 @@ def test_report_gql_operation_scope(test_request):
 @patch("saleor.webhook.observability.utils.put_event")
 def test_api_call_report(
     mock_put_event,
-    observability_enabled,
+    _observability_enabled,
     patch_get_webhooks,
     app,
     api_call,
     test_request,
 ):
     test_request.app = app
-    api_call.report(), api_call.report()
+    api_call.report()
+    api_call.report()
 
     mock_put_event.assert_called_once()
 
@@ -184,7 +185,7 @@ def test_api_call_report(
 @patch("saleor.webhook.observability.utils.put_event")
 def test_api_call_response_report_when_observability_not_active(
     mock_put_event,
-    observability_disabled,
+    _observability_disabled,
     patch_get_webhooks,
     api_call,
 ):
@@ -197,7 +198,7 @@ def test_api_call_response_report_when_observability_not_active(
 @patch("saleor.webhook.observability.utils.put_event")
 def test_api_call_response_report_when_request_not_from_app(
     mock_put_event,
-    observability_enabled,
+    _observability_enabled,
     patch_get_webhooks,
     api_call,
 ):
@@ -210,7 +211,7 @@ def test_api_call_response_report_when_request_not_from_app(
 @patch("saleor.webhook.observability.utils.put_event")
 def test_api_call_response_report_when_no_gql_response(
     mock_put_event,
-    observability_enabled,
+    _observability_enabled,
     patch_get_webhooks,
     api_call,
 ):
@@ -224,7 +225,7 @@ def test_api_call_response_report_when_no_gql_response(
 @patch("saleor.webhook.observability.utils.put_event")
 def test_report_event_delivery_attempt(
     mock_put_event,
-    observability_enabled,
+    _observability_enabled,
     patch_get_webhooks,
     event_attempt,
 ):
@@ -235,7 +236,7 @@ def test_report_event_delivery_attempt(
 @patch("saleor.webhook.observability.utils.put_event")
 def test_report_event_delivery_attempt_not_active(
     mock_put_event,
-    observability_disabled,
+    _observability_disabled,
     patch_get_webhooks,
     event_attempt,
 ):

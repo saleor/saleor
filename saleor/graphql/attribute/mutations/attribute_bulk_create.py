@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Tuple, Union
+from typing import Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -233,8 +233,8 @@ class AttributeBulkCreate(BaseMutation):
     def clean_attributes(
         cls,
         info: ResolveInfo,
-        attributes_data: List[AttributeCreateInput],
-        index_error_map: dict[int, List[AttributeBulkCreateError]],
+        attributes_data: list[AttributeCreateInput],
+        index_error_map: dict[int, list[AttributeBulkCreateError]],
     ):
         cleaned_inputs_map: dict = {}
 
@@ -335,7 +335,7 @@ class AttributeBulkCreate(BaseMutation):
         existing_slugs: set,
         values_existing_external_refs: set,
         duplicated_values_external_ref: set,
-        index_error_map: dict[int, List[AttributeBulkCreateError]],
+        index_error_map: dict[int, list[AttributeBulkCreateError]],
     ):
         values = attribute_data.pop("values", None)
         cleaned_input = ModelMutation.clean_input(
@@ -343,7 +343,7 @@ class AttributeBulkCreate(BaseMutation):
         )
 
         # check permissions based on attribute type
-        permissions: Union[Tuple[ProductTypePermissions], Tuple[PageTypePermissions]]
+        permissions: Union[tuple[ProductTypePermissions], tuple[PageTypePermissions]]
         if cleaned_input["type"] == AttributeTypeEnum.PRODUCT_TYPE.value:
             permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         else:
@@ -425,9 +425,9 @@ class AttributeBulkCreate(BaseMutation):
         info: ResolveInfo,
         cleaned_inputs_map: dict[int, dict],
         error_policy: str,
-        index_error_map: dict[int, List[AttributeBulkCreateError]],
-    ) -> List[dict]:
-        instances_data_and_errors_list: List[dict] = []
+        index_error_map: dict[int, list[AttributeBulkCreateError]],
+    ) -> list[dict]:
+        instances_data_and_errors_list: list[dict] = []
 
         for index, cleaned_input in cleaned_inputs_map.items():
             if not cleaned_input:
@@ -483,7 +483,7 @@ class AttributeBulkCreate(BaseMutation):
         values_data: list[AttributeValueCreateInput],
         values: list[models.AttributeValue],
         attr_index: int,
-        index_error_map: dict[int, List[AttributeBulkCreateError]],
+        index_error_map: dict[int, list[AttributeBulkCreateError]],
     ):
         for value_index, value_data in enumerate(values_data):
             value = models.AttributeValue(attribute=attribute)

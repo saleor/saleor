@@ -1,7 +1,9 @@
 import pytest
 
+from ...attribute.models import AssignedPageAttributeValue
 from ...product.models import ProductType
 from ..utils import associate_attribute_values_to_instance
+from .model_helpers import get_page_attribute_values, get_page_attributes
 
 
 def test_associate_attribute_to_non_product_instance(color_attribute):
@@ -18,9 +20,6 @@ def test_associate_attribute_to_non_product_instance(color_attribute):
 def test_associate_attribute_to_product_instance_from_different_attribute(
     product, color_attribute, size_attribute
 ):
-    """Ensure an assertion error is raised when one tries to associate attribute values
-    to an object that don't belong to the supplied attribute.
-    """
     instance = product
     attribute = color_attribute
     value = size_attribute.values.first()
@@ -77,24 +76,28 @@ def test_associate_attribute_to_product_instance_multiple_values(
 
 def test_associate_attribute_to_page_instance_multiple_values(page):
     """Ensure multiple values in proper order are assigned."""
-    old_assignment = page.attributes.first()
-    assert old_assignment is not None, "The page doesn't have attribute-values"
-    assert old_assignment.values.count() == 1
+    attribute = get_page_attributes(page).first()
+    assert attribute is not None, "The page doesn't have attribute-values"
+    assert get_page_attribute_values(page, attribute).count() == 1
 
-    attribute = old_assignment.attribute
     values = attribute.values.all()
 
     # Clear the values
-    new_assignment = associate_attribute_values_to_instance(
-        page, attribute, values[1], values[0]
-    )
+    associate_attribute_values_to_instance(page, attribute, values[1], values[0])
 
     # Ensure the new assignment was created and ordered correctly
-    assert new_assignment.pk == old_assignment.pk
-    assert new_assignment.values.count() == 2
-    assert list(
-        new_assignment.pagevalueassignment.values_list("value_id", "sort_order")
-    ) == [(values[1].pk, 0), (values[0].pk, 1)]
+    assigned_values = (
+        AssignedPageAttributeValue.objects.filter(
+            page_id=page.pk, value__attribute_id=attribute.id
+        )
+        .prefetch_related("value")
+        .order_by("sort_order")
+    )
+    assert len(assigned_values) == 2
+    assert assigned_values[0].value == values[1]
+    assert assigned_values[0].sort_order == 0
+    assert assigned_values[1].value == values[0]
+    assert assigned_values[1].sort_order == 1
 
 
 def test_associate_attribute_to_variant_instance_multiple_values(

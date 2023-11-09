@@ -99,16 +99,28 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_create.get_webhooks_for_event"
+)
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_product_variant_bulk_create_by_name(
     product_variant_created_webhook_mock,
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product,
     size_attribute,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     # given
     product_variant_count = ProductVariant.objects.count()
     attribute_value_count = size_attribute.values.count()
@@ -163,19 +175,33 @@ def test_product_variant_bulk_create_by_name(
     product.refresh_from_db()
     assert product.default_variant == product_variant
     assert product_variant_created_webhook_mock.call_count == data["count"]
-    update_product_discounted_price_task_mock.call_count == data["count"]
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_create.get_webhooks_for_event"
+)
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_product_variant_bulk_create_by_attribute_id(
     product_variant_created_webhook_mock,
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product,
     size_attribute,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     # given
     product_variant_count = ProductVariant.objects.count()
     attribute_value_count = size_attribute.values.count()
@@ -213,7 +239,9 @@ def test_product_variant_bulk_create_by_attribute_id(
     product.refresh_from_db()
     assert product.default_variant == product_variant
     assert product_variant_created_webhook_mock.call_count == data["count"]
-    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
 def test_product_variant_bulk_create_by_attribute_external_ref(
@@ -829,10 +857,7 @@ def test_product_variant_bulk_create_with_multiselect_attribute(
 def test_product_variant_bulk_create_only_not_variant_selection_attributes(
     staff_api_client, product, size_attribute, permission_manage_products
 ):
-    """Ensure that sku is set as variant name when only variant selection attributes
-    are assigned.
-    """
-
+    """Test that variant name defaults to SKU if no selection attributes exist."""
     # given
     product_variant_count = ProductVariant.objects.count()
     attribute_value_count = size_attribute.values.count()
@@ -1984,9 +2009,11 @@ def test_product_variant_bulk_create_without_sku(
     assert ProductVariant.objects.filter(sku__isnull=True).count() == 2
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_product_variant_bulk_create_many_errors(
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     size_attribute,
@@ -2050,7 +2077,7 @@ def test_product_variant_bulk_create_many_errors(
         "channels": None,
     }
     assert product_variant_count == ProductVariant.objects.count()
-    update_product_discounted_price_task_mock.assert_not_called()
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
 def test_product_variant_bulk_create_many_errors_with_ignore_failed(

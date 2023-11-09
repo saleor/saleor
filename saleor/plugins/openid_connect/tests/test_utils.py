@@ -3,7 +3,7 @@ import time
 import warnings
 from datetime import datetime, timedelta
 from unittest import mock
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 import pytz
@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 from requests import Response
+from requests_hardened import HTTPSession
 
 from ....account.models import Group, User
 from ....core.jwt import (
@@ -27,6 +28,8 @@ from ..exceptions import AuthenticationError
 from ..utils import (
     JWKS_CACHE_TIME,
     JWKS_KEY,
+    OIDC_DEFAULT_CACHE_TIME,
+    _update_user_details,
     assign_staff_to_default_group_and_update_permissions,
     create_jwt_refresh_token,
     create_jwt_token,
@@ -42,6 +45,8 @@ from ..utils import (
     validate_refresh_token,
 )
 
+OIDC_CACHE_TIMEOUT = min(JWKS_CACHE_TIME, OIDC_DEFAULT_CACHE_TIME)
+
 
 @pytest.mark.parametrize(
     "error",
@@ -54,7 +59,7 @@ def test_fetch_jwks_raises_error(monkeypatch, error):
     mocked_get = Mock()
     mocked_get.side_effect = error
     jwks_url = "http://localhost:3000/"
-    monkeypatch.setattr("saleor.plugins.openid_connect.utils.requests.get", mocked_get)
+    monkeypatch.setattr(HTTPSession, "request", mocked_get)
 
     with pytest.raises(AuthenticationError):
         fetch_jwks(jwks_url)
@@ -196,9 +201,7 @@ def test_get_saleor_permissions_from_scope():
 def test_get_user_info_raises_decode_error(monkeypatch):
     response = Response()
     response.status_code = 200
-    monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.requests.get", Mock(return_value=response)
-    )
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=response))
 
     user_info = get_user_info("https://saleor.io/userinfo", "access_token")
     assert user_info is None
@@ -207,84 +210,137 @@ def test_get_user_info_raises_decode_error(monkeypatch):
 def test_get_user_info_raises_http_error(monkeypatch):
     response = Response()
     response.status_code = 500
-    monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.requests.get", Mock(return_value=response)
-    )
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=response))
 
     user_info = get_user_info("https://saleor.io/userinfo", "access_token")
     assert user_info is None
 
 
-def test_get_or_create_user_from_payload_retrieve_user_by_sub(customer_user):
-    oauth_url = "https://saleor.io/oauth"
-    sub_id = "oauth|1234"
-    customer_user.private_metadata = {f"oidc-{oauth_url}": sub_id}
-    customer_user.save()
-
-    user_from_payload = get_or_create_user_from_payload(
-        payload={"sub": sub_id, "email": customer_user.email},
-        oauth_url=oauth_url,
-    )
-
-    assert user_from_payload.id == customer_user.id
-    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
-
-
-def test_get_or_create_user_from_payload_updates_sub(customer_user):
-    oauth_url = "https://saleor.io/oauth"
-    sub_id = "oauth|1234"
-    customer_user.private_metadata = {f"oidc-{oauth_url}": "old-sub"}
-    customer_user.save()
-
-    user_from_payload = get_or_create_user_from_payload(
-        payload={"sub": sub_id, "email": customer_user.email},
-        oauth_url=oauth_url,
-    )
-
-    assert user_from_payload.id == customer_user.id
-    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
-
-
-def test_get_or_create_user_from_payload_assigns_sub(customer_user):
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_retrieve_user_by_sub(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
     # given
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
+    customer_user.private_metadata = {f"oidc:{oauth_url}": sub_id}
+    customer_user.save()
+
+    mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
     user_from_payload = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
     )
+    cache_key = f"oidc:{oauth_url}" + ":" + str(sub_id)
+    # then
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.id, OIDC_CACHE_TIMEOUT
+    )
+    assert user_from_payload.id == customer_user.id
+    assert user_from_payload.private_metadata[f"oidc:{oauth_url}"] == sub_id
+
+
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_updates_sub(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+    customer_user.private_metadata = {f"oidc:{oauth_url}": "old-sub"}
+    customer_user.save()
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
+    user_from_payload = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+    )
+    cache_key = f"oidc:{oauth_url}" + ":" + str(sub_id)
 
     # then
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.id, OIDC_CACHE_TIMEOUT
+    )
     assert user_from_payload.id == customer_user.id
-    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
+    assert user_from_payload.private_metadata[f"oidc:{oauth_url}"] == sub_id
+
+
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_assigns_sub(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
+    user_from_payload = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+    )
+    cache_key = f"oidc:{oauth_url}" + ":" + str(sub_id)
+
+    # then
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.id, OIDC_CACHE_TIMEOUT
+    )
+    assert user_from_payload.id == customer_user.id
+    assert user_from_payload.private_metadata[f"oidc:{oauth_url}"] == sub_id
     assert customer_user.is_staff is False
 
 
-def test_get_or_create_user_from_payload_creates_user_with_sub():
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_creates_user_with_sub(
+    mocked_cache_get, mocked_cache_set
+):
     # given
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
     customer_email = "email.customer@example.com"
+
+    mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
     user_from_payload = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_email},
         oauth_url=oauth_url,
     )
+    cache_key = f"oidc:{oauth_url}" + ":" + str(sub_id)
 
     # then
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, user_from_payload.id, OIDC_CACHE_TIMEOUT
+    )
     assert user_from_payload.email == customer_email
-    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
+    assert user_from_payload.private_metadata[f"oidc:{oauth_url}"] == sub_id
     assert not user_from_payload.has_usable_password()
 
 
-def test_get_or_create_user_from_payload_match_orders_for_new_user(order):
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_match_orders_for_new_user(
+    mocked_cache_get, mocked_cache_set, order
+):
     # given
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
     customer_email = "email.customer@example.com"
+
+    mocked_cache_get.side_effect = lambda cache_key: None
 
     order.user = None
     order.user_email = customer_email
@@ -295,21 +351,30 @@ def test_get_or_create_user_from_payload_match_orders_for_new_user(order):
         payload={"sub": sub_id, "email": customer_email},
         oauth_url=oauth_url,
     )
+    cache_key = f"oidc:{oauth_url}" + ":" + str(sub_id)
 
     # then
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, user_from_payload.id, OIDC_CACHE_TIMEOUT
+    )
     order.refresh_from_db()
     assert order.user == user_from_payload
 
 
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_get_or_create_user_from_payload_match_orders_when_changing_email(
-    customer_user, order
+    mocked_cache_get, mocked_cache_set, customer_user, order
 ):
     # given
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
     new_customer_email = "new.customer@example.com"
 
-    customer_user.private_metadata = {f"oidc-{oauth_url}": sub_id}
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    customer_user.private_metadata = {f"oidc:{oauth_url}": sub_id}
     customer_user.save()
 
     order.user_email = new_customer_email
@@ -321,8 +386,13 @@ def test_get_or_create_user_from_payload_match_orders_when_changing_email(
         payload={"sub": sub_id, "email": new_customer_email},
         oauth_url=oauth_url,
     )
+    cache_key = f"oidc:{oauth_url}" + ":" + str(sub_id)
 
     # then
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.id, OIDC_CACHE_TIMEOUT
+    )
     customer_user.refresh_from_db()
     order.refresh_from_db()
     assert order.user == user_from_payload
@@ -351,13 +421,19 @@ def test_get_or_create_user_from_payload_multiple_subs(customer_user, admin_user
     assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
 
 
-def test_get_or_create_user_from_payload_different_email(customer_user):
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_different_email(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
     # given
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
     new_customer_email = "new.customer@example.com"
 
-    customer_user.private_metadata = {f"oidc-{oauth_url}": sub_id}
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    customer_user.private_metadata = {f"oidc:{oauth_url}": sub_id}
     customer_user.save()
 
     # when
@@ -365,84 +441,143 @@ def test_get_or_create_user_from_payload_different_email(customer_user):
         payload={"sub": sub_id, "email": new_customer_email},
         oauth_url=oauth_url,
     )
+    cache_key = f"oidc:{oauth_url}" + ":" + str(sub_id)
 
     # then
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.id, OIDC_CACHE_TIMEOUT
+    )
     customer_user.refresh_from_db()
     assert user_from_payload.id == customer_user.id
     assert customer_user.email == new_customer_email
-    assert customer_user.private_metadata[f"oidc-{oauth_url}"] == sub_id
+    assert customer_user.private_metadata[f"oidc:{oauth_url}"] == sub_id
 
 
 @freeze_time("2019-03-18 12:00:00")
-def test_get_or_create_user_from_payload_with_last_login(customer_user, settings):
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_with_last_login(
+    mocked_cache_get, mocked_cache_set, customer_user, settings
+):
+    # given
     settings.TIME_ZONE = "UTC"
     current_ts = int(time.time())
 
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
 
+    mocked_cache_get.side_effect = lambda cache_key: None
+
     customer_user.last_login = timezone.make_aware(
         datetime.fromtimestamp(current_ts - 10), timezone=pytz.timezone("UTC")
     )
     customer_user.save()
 
+    # when
     user_from_payload = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
         last_login=current_ts,
     )
+    cache_key = f"oidc:{oauth_url}" + ":" + str(sub_id)
 
+    # then
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.id, OIDC_CACHE_TIMEOUT
+    )
     customer_user.refresh_from_db()
     assert customer_user.last_login == timezone.make_aware(
         datetime.fromtimestamp(current_ts), timezone=pytz.timezone("UTC")
     )
     assert user_from_payload.email == customer_user.email
-    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
+    assert user_from_payload.private_metadata[f"oidc:{oauth_url}"] == sub_id
 
 
 @freeze_time("2019-03-18 12:00:00")
-def test_get_or_create_user_from_payload_update_last_login(customer_user):
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_update_last_login(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
+    # given
     assert customer_user.last_login is None
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
     get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
     )
+    cache_key = f"oidc:{oauth_url}" + ":" + str(sub_id)
 
+    # then
     customer_user.refresh_from_db()
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.id, OIDC_CACHE_TIMEOUT
+    )
     assert customer_user.last_login
     last_login = customer_user.last_login.strftime("%Y-%m-%d %H:%M:%S")
     assert last_login == "2019-03-18 12:00:00"
 
 
-def test_get_or_create_user_from_payload_last_login_stays_same(customer_user):
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_last_login_stays_same(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
+    # given
     last_login = timezone.now() - timedelta(minutes=14)
     customer_user.last_login = last_login
     customer_user.save()
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
     get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
     )
 
+    # then
     customer_user.refresh_from_db()
     assert customer_user.last_login == last_login
 
 
-def test_get_or_create_user_from_payload_last_login_modifies(customer_user):
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_last_login_modifies(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
+    # given
     last_login = timezone.now() - timedelta(minutes=16)
     customer_user.last_login = last_login
     customer_user.save()
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
     get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
     )
+    cache_key = f"oidc:{oauth_url}" + ":" + str(sub_id)
 
+    # then
     customer_user.refresh_from_db()
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.id, OIDC_CACHE_TIMEOUT
+    )
     assert customer_user.last_login
     assert customer_user.last_login != last_login
 
@@ -473,8 +608,15 @@ def test_jwt_token_without_expiration_claim(monkeypatch, decoded_access_token):
     assert user.email == "test@example.org"
 
 
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_jwt_token_without_expiration_claim_mixed_permissions_from_group(
-    customer_user, monkeypatch, decoded_access_token, permission_group_manage_shipping
+    mocked_cache_get,
+    mocked_cache_set,
+    customer_user,
+    monkeypatch,
+    decoded_access_token,
+    permission_group_manage_shipping,
 ):
     # given
     customer_user.groups.add(permission_group_manage_shipping)
@@ -491,6 +633,8 @@ def test_jwt_token_without_expiration_claim_mixed_permissions_from_group(
         decoded_access_token,
         {},
     )
+
+    mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
     user = get_user_from_oauth_access_token_in_jwt_format(
@@ -512,8 +656,10 @@ def test_jwt_token_without_expiration_claim_mixed_permissions_from_group(
     assert "saleor:manage_shipping" not in token_payload["scope"]
 
 
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_jwt_token_without_expiration_claim_email_not_match_staff_user_domains(
-    customer_user, monkeypatch, decoded_access_token
+    mocked_cache_get, mocked_cache_set, customer_user, monkeypatch, decoded_access_token
 ):
     # given
     monkeypatch.setattr(
@@ -531,6 +677,8 @@ def test_jwt_token_without_expiration_claim_email_not_match_staff_user_domains(
     )
     default_group_name = "test group"
     assert Group.objects.count() == 0
+
+    mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
     user = get_user_from_oauth_access_token_in_jwt_format(
@@ -551,8 +699,10 @@ def test_jwt_token_without_expiration_claim_email_not_match_staff_user_domains(
     assert user.groups.count() == 0
 
 
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_jwt_token_without_expiration_claim_default_channel_group(
-    customer_user, monkeypatch, decoded_access_token
+    mocked_cache_get, mocked_cache_set, customer_user, monkeypatch, decoded_access_token
 ):
     # given
     decoded_access_token["scope"] = ""
@@ -571,6 +721,8 @@ def test_jwt_token_without_expiration_claim_default_channel_group(
     )
     default_group_name = "test group"
     assert Group.objects.count() == 0
+
+    mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
     user = get_user_from_oauth_access_token_in_jwt_format(
@@ -594,8 +746,15 @@ def test_jwt_token_without_expiration_claim_default_channel_group(
     assert user.groups.first() == group
 
 
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_jwt_token_without_expiration_claim_with_existing_default_channel_group(
-    customer_user, monkeypatch, decoded_access_token, permission_manage_users
+    mocked_cache_get,
+    mocked_cache_set,
+    customer_user,
+    monkeypatch,
+    decoded_access_token,
+    permission_manage_users,
 ):
     # given
     monkeypatch.setattr(
@@ -615,6 +774,8 @@ def test_jwt_token_without_expiration_claim_with_existing_default_channel_group(
     group = Group.objects.create(name=default_group_name)
     group.permissions.add(permission_manage_users)
     group_count = Group.objects.count()
+
+    mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
     user = get_user_from_oauth_access_token_in_jwt_format(
@@ -639,8 +800,15 @@ def test_jwt_token_without_expiration_claim_with_existing_default_channel_group(
 
 
 @pytest.mark.parametrize("staff_default_group_name", ["  ", ""])
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_jwt_token_without_expiration_claim_empty_default_channel_group(
-    staff_default_group_name, customer_user, monkeypatch, decoded_access_token
+    mocked_cache_get,
+    mocked_cache_set,
+    staff_default_group_name,
+    customer_user,
+    monkeypatch,
+    decoded_access_token,
 ):
     # given
     decoded_access_token["scope"] = ""
@@ -658,6 +826,8 @@ def test_jwt_token_without_expiration_claim_empty_default_channel_group(
         {},
     )
     assert Group.objects.count() == 0
+
+    mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
     user = get_user_from_oauth_access_token_in_jwt_format(
@@ -679,7 +849,7 @@ def test_jwt_token_without_expiration_claim_empty_default_channel_group(
 
 
 @pytest.mark.parametrize(
-    "email, expected_domain",
+    ("email", "expected_domain"),
     [
         ("test@example.com", "example.com"),
         ("ABCd", None),
@@ -735,3 +905,112 @@ def test_assign_staff_to_default_group_and_update_permissions_update_user_permis
         permission_manage_users.name,
         permission_manage_orders.name,
     }
+
+
+@patch("saleor.plugins.openid_connect.utils.match_orders_with_new_user")
+@patch("saleor.plugins.openid_connect.utils.logger")
+def test_update_user_details_no_user_with_new_email_in_db(
+    mock_logger,
+    mock_match_orders_with_new_user,
+    customer_user,
+):
+    # given
+    assert customer_user.email != "test_user_email@example.com"
+
+    # when
+    _update_user_details(
+        customer_user,
+        "test oidc_key",
+        "test_user_email@example.com",
+        customer_user.first_name,
+        customer_user.last_name,
+        "test oidc_sub",
+        customer_user.last_login,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.email == "test_user_email@example.com"
+    assert mock_logger.mock_calls == []
+    mock_match_orders_with_new_user.assert_called_once_with(customer_user)
+
+
+@patch("saleor.plugins.openid_connect.utils.match_orders_with_new_user")
+@patch("saleor.plugins.openid_connect.utils.logger")
+def test_update_user_details_user_with_new_email_in_db(
+    mock_logger, mock_match_orders_with_new_user, customer_user, customer_user2
+):
+    # given
+    assert customer_user.email != customer_user2.email
+
+    # when
+    _update_user_details(
+        customer_user,
+        "test oidc_key",
+        customer_user2.email,
+        customer_user.first_name,
+        customer_user.last_name,
+        "test oidc_sub",
+        customer_user.last_login,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.email != customer_user2.email
+    assert mock_logger.mock_calls == [
+        call.warning(
+            "Unable to update user email as the new one already exists in DB",
+            extra={"oidc_key": "test oidc_key"},
+        )
+    ]
+    mock_match_orders_with_new_user.assert_not_called()
+
+
+def test_update_user_details_update_user_first_name(
+    customer_user,
+):
+    # given
+    expected_search_document = "test@example.com\ntest user_first_name\nwade\n"
+    assert customer_user.first_name != "test user_first_name"
+    assert customer_user.search_document != expected_search_document
+
+    # when
+    _update_user_details(
+        customer_user,
+        "test oidc_key",
+        customer_user.email,
+        "test user_first_name",
+        customer_user.last_name,
+        "test oidc_sub",
+        customer_user.last_login,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.first_name == "test user_first_name"
+    assert customer_user.search_document == expected_search_document
+
+
+def test_update_user_details_update_user_last_name(
+    customer_user,
+):
+    # given
+    expected_search_document = "test@example.com\nleslie\ntest user_last_name\n"
+    assert customer_user.last_name != "test user_last_name"
+    assert customer_user.search_document != expected_search_document
+
+    # when
+    _update_user_details(
+        customer_user,
+        "test oidc_key",
+        customer_user.email,
+        customer_user.first_name,
+        "test user_last_name",
+        "test oidc_sub",
+        customer_user.last_login,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.last_name == "test user_last_name"
+    assert customer_user.search_document == expected_search_document

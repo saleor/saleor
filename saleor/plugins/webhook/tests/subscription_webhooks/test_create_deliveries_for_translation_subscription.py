@@ -3,7 +3,9 @@ import json
 import graphene
 
 from .....webhook.event_types import WebhookEventAsyncType
-from ...tasks import create_deliveries_for_subscriptions
+from .....webhook.transport.asynchronous.transport import (
+    create_deliveries_for_subscriptions,
+)
 
 
 def test_translation_created_product(
@@ -158,16 +160,66 @@ def test_translation_created_shipping_method(
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_translation_created_sale(
-    sale_translation_fr, subscription_translation_created_webhook
+def test_translation_created_promotion(
+    promotion_translation_fr, subscription_translation_created_webhook
 ):
     webhooks = [subscription_translation_created_webhook]
     event_type = WebhookEventAsyncType.TRANSLATION_CREATED
     translation_id = graphene.Node.to_global_id(
-        "SaleTranslation", sale_translation_fr.id
+        "PromotionTranslation", promotion_translation_fr.id
     )
     deliveries = create_deliveries_for_subscriptions(
-        event_type, sale_translation_fr, webhooks
+        event_type, promotion_translation_fr, webhooks
+    )
+
+    expected_payload = json.dumps(
+        {
+            "translation": {
+                "id": translation_id,
+                "__typename": "PromotionTranslation",
+            }
+        }
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_translation_created_promotion_converted_from_sale(
+    promotion_converted_from_sale_translation_fr,
+    subscription_translation_created_webhook,
+):
+    translation = promotion_converted_from_sale_translation_fr
+    webhooks = [subscription_translation_created_webhook]
+    event_type = WebhookEventAsyncType.TRANSLATION_CREATED
+    translation_id = graphene.Node.to_global_id("SaleTranslation", translation.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, translation, webhooks)
+
+    expected_payload = json.dumps(
+        {
+            "translation": {
+                "id": translation_id,
+                "__typename": "SaleTranslation",
+            }
+        }
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_translation_created_promotion_rule(
+    promotion_rule_translation_fr, subscription_translation_created_webhook
+):
+    webhooks = [subscription_translation_created_webhook]
+    event_type = WebhookEventAsyncType.TRANSLATION_CREATED
+    translation_id = graphene.Node.to_global_id(
+        "PromotionRuleTranslation", promotion_rule_translation_fr.id
+    )
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, promotion_rule_translation_fr, webhooks
     )
 
     expected_payload = json.dumps({"translation": {"id": translation_id}})
@@ -367,16 +419,37 @@ def test_translation_updated_shipping_method(
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_translation_updated_sale(
-    sale_translation_fr, subscription_translation_updated_webhook
+def test_translation_updated_promotion(
+    promotion_translation_fr, subscription_translation_updated_webhook
 ):
     webhooks = [subscription_translation_updated_webhook]
     event_type = WebhookEventAsyncType.TRANSLATION_UPDATED
     translation_id = graphene.Node.to_global_id(
-        "SaleTranslation", sale_translation_fr.id
+        "PromotionTranslation", promotion_translation_fr.id
     )
     deliveries = create_deliveries_for_subscriptions(
-        event_type, sale_translation_fr, webhooks
+        event_type, promotion_translation_fr, webhooks
+    )
+
+    expected_payload = json.dumps(
+        {"translation": {"id": translation_id, "__typename": "PromotionTranslation"}}
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_translation_updated_promotion_rule(
+    promotion_rule_translation_fr, subscription_translation_updated_webhook
+):
+    webhooks = [subscription_translation_updated_webhook]
+    event_type = WebhookEventAsyncType.TRANSLATION_UPDATED
+    translation_id = graphene.Node.to_global_id(
+        "PromotionRuleTranslation", promotion_rule_translation_fr.id
+    )
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, promotion_rule_translation_fr, webhooks
     )
 
     expected_payload = json.dumps({"translation": {"id": translation_id}})

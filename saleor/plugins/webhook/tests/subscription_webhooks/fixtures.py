@@ -613,6 +613,62 @@ def subscription_sale_toggle_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_promotion_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PROMOTION_CREATED, WebhookEventAsyncType.PROMOTION_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_promotion_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PROMOTION_UPDATED, WebhookEventAsyncType.PROMOTION_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_promotion_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PROMOTION_DELETED, WebhookEventAsyncType.PROMOTION_DELETED
+    )
+
+
+@pytest.fixture
+def subscription_promotion_started_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PROMOTION_STARTED, WebhookEventAsyncType.PROMOTION_STARTED
+    )
+
+
+@pytest.fixture
+def subscription_promotion_ended_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PROMOTION_ENDED, WebhookEventAsyncType.PROMOTION_ENDED
+    )
+
+
+@pytest.fixture
+def subscription_promotion_rule_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PROMOTION_RULE_CREATED, WebhookEventAsyncType.PROMOTION_RULE_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_promotion_rule_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PROMOTION_RULE_UPDATED, WebhookEventAsyncType.PROMOTION_RULE_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_promotion_rule_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PROMOTION_RULE_DELETED, WebhookEventAsyncType.PROMOTION_RULE_DELETED
+    )
+
+
+@pytest.fixture
 def subscription_invoice_requested_webhook(subscription_webhook):
     return subscription_webhook(
         queries.INVOICE_REQUESTED, WebhookEventAsyncType.INVOICE_REQUESTED
@@ -956,6 +1012,14 @@ def subscription_voucher_webhook_with_meta(subscription_webhook):
 def subscription_voucher_metadata_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.VOUCHER_METADATA_UPDATED, WebhookEventAsyncType.VOUCHER_METADATA_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_voucher_code_export_completed_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.VOUCHER_CODE_EXPORT_COMPLETED,
+        WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED,
     )
 
 

@@ -49,13 +49,13 @@ def test_delete_expired_reservations_task_skips_active_preorder_reservations(
 
 
 @pytest.mark.parametrize(
-    "allocation_allocated, stock_allocated, expected",
-    (
+    ("allocation_allocated", "stock_allocated", "expected"),
+    [
         (10, 9, 10),
         (9, 10, 9),
         (0, 9, 0),
         (9, 0, 9),
-    ),
+    ],
 )
 def test_update_stocks_quantity_allocated_task(
     allocation_allocated, stock_allocated, expected, allocation

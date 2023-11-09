@@ -27,7 +27,7 @@ mutation UpdateProductVariantChannelListing(
 """
 
 
-def create_product_variant_channel_listing(
+def raw_create_product_variant_channel_listing(
     staff_api_client,
     product_variant_id,
     channel_id,
@@ -50,9 +50,26 @@ def create_product_variant_channel_listing(
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["productVariantChannelListingUpdate"]["errors"] == []
+    data = content["data"]["productVariantChannelListingUpdate"]
+    assert data["errors"] == []
 
-    data = content["data"]["productVariantChannelListingUpdate"]["variant"]
+    return data
+
+
+def create_product_variant_channel_listing(
+    staff_api_client,
+    product_variant_id,
+    channel_id,
+    price,
+):
+    response = raw_create_product_variant_channel_listing(
+        staff_api_client,
+        product_variant_id,
+        channel_id,
+        price,
+    )
+
+    data = response["variant"]
     assert data["id"] == product_variant_id
     channel_listing_data = data["channelListings"][0]
     assert channel_listing_data["channel"]["id"] == channel_id

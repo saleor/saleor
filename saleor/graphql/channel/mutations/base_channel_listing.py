@@ -1,5 +1,6 @@
 import datetime
-from typing import DefaultDict, Dict, Iterable, List
+from collections import defaultdict
+from collections.abc import Iterable
 
 import pytz
 from django.core.exceptions import ValidationError
@@ -11,7 +12,7 @@ from ...core.mutations import BaseMutation
 from ...core.utils import get_duplicated_values, get_duplicates_items
 from ..types import Channel
 
-ErrorType = DefaultDict[str, List[ValidationError]]
+ErrorType = defaultdict[str, list[ValidationError]]
 
 
 class BaseChannelListingMutation(BaseMutation):
@@ -64,7 +65,7 @@ class BaseChannelListingMutation(BaseMutation):
         errors: ErrorType,
         error_code,
         input_source="add_channels",
-    ) -> Dict:
+    ) -> dict:
         add_channels = input.get(input_source, [])
         add_channels_ids = [channel["channel_id"] for channel in add_channels]
         remove_channels_ids = input.get("remove_channels", [])
@@ -79,7 +80,7 @@ class BaseChannelListingMutation(BaseMutation):
         )
         if errors:
             return {}
-        channels_to_add: List["models.Channel"] = []
+        channels_to_add: list["models.Channel"] = []
         if add_channels_ids:
             channels_to_add = cls.get_nodes_or_error(
                 add_channels_ids, "channel_id", Channel

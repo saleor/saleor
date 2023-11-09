@@ -178,8 +178,8 @@ def test_get_braintree_gateway_sandbox(gateway_config):
 
 
 def test_get_braintree_gateway_inproperly_configured(gateway_config):
+    gateway_config.connection_params["private_key"] = None
     with pytest.raises(ImproperlyConfigured):
-        gateway_config.connection_params["private_key"] = None
         get_braintree_gateway(**gateway_config.connection_params)
 
 
@@ -421,13 +421,8 @@ def test_capture(payment_txn_preauth, sandbox_braintree_gateway_config):
 def test_capture_incorrect_token(payment_txn_preauth, sandbox_braintree_gateway_config):
     payment_info = create_payment_information(payment_txn_preauth, "12345")
     with pytest.raises(BraintreeException) as e:
-        response = capture(payment_info, sandbox_braintree_gateway_config)
-        assert str(e.value) == DEFAULT_ERROR_MESSAGE
-        assert response.raw_response == extract_gateway_response(
-            braintree_error_response
-        )
-        assert not response.is_success
-        assert response.error == DEFAULT_ERROR
+        capture(payment_info, sandbox_braintree_gateway_config)
+    assert str(e.value) == DEFAULT_ERROR_MESSAGE
 
 
 @pytest.mark.integration

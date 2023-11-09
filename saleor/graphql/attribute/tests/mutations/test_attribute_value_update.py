@@ -217,8 +217,6 @@ def test_update_attribute_value_the_same_name_as_different_attribute_value(
     color_attribute,
     permission_manage_product_types_and_attributes,
 ):
-    """Ensure the attribute value with the same slug as value of different attribute
-    can be set."""
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
 
@@ -413,7 +411,7 @@ def test_update_swatch_attribute_value_clear_file_value(
 
 
 @pytest.mark.parametrize(
-    "field, input_value",
+    ("field", "input_value"),
     [
         ("fileUrl", "http://mirumee.com/test_media/test_file.jpeg"),
         ("contentType", "jpeg"),

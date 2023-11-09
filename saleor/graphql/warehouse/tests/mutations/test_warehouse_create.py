@@ -267,12 +267,12 @@ def test_create_warehouse_creates_address(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug",
-    (
+    ("input_slug", "expected_slug"),
+    [
         ("test-slug", "test-slug"),
         (None, "test-warehouse"),
         ("", "test-warehouse"),
-    ),
+    ],
 )
 def test_create_warehouse_with_given_slug(
     staff_api_client, permission_manage_products, input_slug, expected_slug

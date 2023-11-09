@@ -7,7 +7,6 @@ import requests
 from celery.exceptions import MaxRetriesExceededError
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files import File
 from django.core.files.storage import default_storage
@@ -18,7 +17,8 @@ from requests import HTTPError, Response
 from .. import schema_version
 from ..app.headers import AppHeaders, DeprecatedAppHeaders
 from ..celeryconf import app
-from ..core.utils import build_absolute_uri
+from ..core.http_client import HTTPClient
+from ..core.utils import build_absolute_uri, get_domain
 from ..permission.enums import get_permission_names
 from ..plugins.manager import PluginsManager
 from ..thumbnail import ICON_MIME_TYPES
@@ -30,7 +30,6 @@ from .manifest_validations import clean_manifest_data
 from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
 
-REQUEST_TIMEOUT = 20
 MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
 
 logger = logging.getLogger(__name__)
@@ -49,11 +48,13 @@ def validate_app_install_response(response: Response):
             error_msg = str(response.json()["error"]["message"])
         except Exception:
             raise err
-        raise AppInstallationError(error_msg, response=response)
+        raise AppInstallationError(
+            error_msg, request=response.request, response=response
+        )
 
 
 def send_app_token(target_url: str, token: str):
-    domain = Site.objects.get_current().domain
+    domain = get_domain()
     headers = {
         "Content-Type": "application/json",
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
@@ -63,26 +64,29 @@ def send_app_token(target_url: str, token: str):
         AppHeaders.SCHEMA_VERSION: schema_version,
     }
     json_data = {"auth_token": token}
-    response = requests.post(
+    response = HTTPClient.send_request(
+        "POST",
         target_url,
         json=json_data,
         headers=headers,
-        timeout=REQUEST_TIMEOUT,
         allow_redirects=False,
     )
     validate_app_install_response(response)
 
 
 def fetch_icon_image(
-    url: str, *, max_file_size=MAX_ICON_FILE_SIZE, timeout=REQUEST_TIMEOUT
+    url: str,
+    *,
+    max_file_size=MAX_ICON_FILE_SIZE,
+    timeout=settings.COMMON_REQUESTS_TIMEOUT,
 ) -> File:
     filename = get_filename_from_url(url)
     size_error_msg = f"File too big. Maximal icon image file size is {max_file_size}."
     code = AppErrorCode.INVALID.value
     fetch_start = time.monotonic()
     try:
-        with requests.get(
-            url, stream=True, timeout=timeout, allow_redirects=False
+        with HTTPClient.send_request(
+            "GET", url, stream=True, timeout=timeout, allow_redirects=False
         ) as res:
             res.raise_for_status()
             content_type = res.headers.get("content-type")
@@ -98,7 +102,8 @@ def fetch_icon_image(
                 content.write(chunk)
                 if content.tell() > max_file_size:
                     raise ValidationError(size_error_msg, code=code)
-                if (time.monotonic() - fetch_start) > timeout:
+                timeout_in_secs = sum(timeout)
+                if (time.monotonic() - fetch_start) > timeout_in_secs:
                     raise ValidationError(
                         "Timeout occurred while reading image file.",
                         code=AppErrorCode.MANIFEST_URL_CANT_CONNECT.value,
@@ -113,7 +118,7 @@ def fetch_icon_image(
     return image_file
 
 
-def fetch_brand_data(manifest_data, timeout=REQUEST_TIMEOUT):
+def fetch_brand_data(manifest_data, timeout=settings.COMMON_REQUESTS_TIMEOUT):
     brand_data = manifest_data.get("brand")
     if not brand_data:
         return None
@@ -177,7 +182,7 @@ def fetch_brand_data_async(
     manifest_data: dict,
     *,
     app_installation: Optional[AppInstallation] = None,
-    app: Optional[App] = None
+    app: Optional[App] = None,
 ):
     if brand_data := manifest_data.get("brand"):
         app_id = app.pk if app else None
@@ -187,10 +192,10 @@ def fetch_brand_data_async(
         )
 
 
-def fetch_manifest(manifest_url: str, timeout=REQUEST_TIMEOUT):
+def fetch_manifest(manifest_url: str, timeout=settings.COMMON_REQUESTS_TIMEOUT):
     headers = {AppHeaders.SCHEMA_VERSION: schema_version}
-    response = requests.get(
-        manifest_url, headers=headers, timeout=timeout, allow_redirects=False
+    response = HTTPClient.send_request(
+        "GET", manifest_url, headers=headers, timeout=timeout, allow_redirects=False
     )
     response.raise_for_status()
     return response.json()

@@ -21,7 +21,9 @@ def prepare_shop_with_no_shipping_method(
     )
 
     channel_data = create_channel(
-        e2e_staff_api_client, slug="test___0e00", warehouse_ids=warehouse_ids
+        e2e_staff_api_client,
+        slug="test___0e00",
+        warehouse_ids=warehouse_ids,
     )
     channel_id = channel_data["id"]
     channel_ids = [channel_id]
@@ -63,7 +65,11 @@ def test_unlogged_customer_unable_to_buy_product_without_shipping_option_CORE_01
     )
     variant_price = 10
 
-    _, result_product_variant_id, _ = prepare_product(
+    (
+        _product_id,
+        product_variant_id,
+        _product_variant_price,
+    ) = prepare_product(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
@@ -72,7 +78,10 @@ def test_unlogged_customer_unable_to_buy_product_without_shipping_option_CORE_01
 
     # Step 1 - Create checkout with no shipping method
     lines = [
-        {"variantId": result_product_variant_id, "quantity": 1},
+        {
+            "variantId": product_variant_id,
+            "quantity": 1,
+        },
     ]
     checkout_data = checkout_create(
         e2e_not_logged_api_client,
@@ -93,7 +102,10 @@ def test_unlogged_customer_unable_to_buy_product_without_shipping_option_CORE_01
 
     # Step 2 - Create dummy payment and verify no purchase was made
     checkout_payment_data = raw_checkout_dummy_payment_create(
-        e2e_not_logged_api_client, checkout_id, total_gross_amount
+        e2e_not_logged_api_client,
+        checkout_id,
+        total_gross_amount,
+        token="fully_charged",
     )
     errors = checkout_payment_data["errors"]
 

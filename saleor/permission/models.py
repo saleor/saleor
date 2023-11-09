@@ -18,19 +18,6 @@ def _user_has_perm(user, perm, obj):
     return False
 
 
-def _user_has_module_perms(user, app_label):
-    """Backend can raise `PermissionDenied` to short-circuit permission checking."""
-    for backend in auth.get_backends():
-        if not hasattr(backend, "has_module_perms"):
-            continue
-        try:
-            if backend.has_module_perms(user, app_label):
-                return True
-        except PermissionDenied:
-            return False
-    return False
-
-
 def _user_get_permissions(user, obj, from_name):
     permissions = set()
     name = "get_%s_permissions" % from_name
@@ -92,7 +79,7 @@ class Permission(models.Model):
         ordering = ["content_type__app_label", "content_type__model", "codename"]
 
     def __str__(self):
-        return "%s | %s" % (self.content_type, self.name)
+        return f"{self.content_type} | {self.name}"
 
     def natural_key(self):
         return (self.codename,) + self.content_type.natural_key()
@@ -101,10 +88,7 @@ class Permission(models.Model):
 
 
 class PermissionsMixin(models.Model):  # noqa: D205, D212, D400, D415
-    """
-    Add the fields and methods necessary to support the Group and Permission
-    models using the ModelBackend.
-    """
+    """Add the fields and methods necessary to support permissions."""
 
     is_superuser = models.BooleanField(
         _("superuser status"),
@@ -138,18 +122,18 @@ class PermissionsMixin(models.Model):  # noqa: D205, D212, D400, D415
         abstract = True
 
     def get_user_permissions(self, obj=None):  # noqa: D205, D212
-        """
-        Return a list of permission strings that this user has directly.
-        Query all available auth backends. If an object is passed in,
-        return only permissions matching this object.
+        """Return a list of permission strings that this user has directly.
+
+        Query all available auth backends. If an object is passed in, return only
+        permissions matching this object.
         """
         return _user_get_permissions(self, obj, "user")
 
     def get_group_permissions(self, obj=None):  # noqa: D205, D212, D400, D415
-        """
-        Return a list of permission strings that this user has through their
-        groups. Query all available auth backends. If an object is passed in,
-        return only permissions matching this object.
+        """Return a list of permission strings that this user has through their groups.
+
+        Query all available auth backends. If an object is passed in, return only
+        permissions matching this object.
         """
         return _user_get_permissions(self, obj, "group")
 
@@ -157,10 +141,10 @@ class PermissionsMixin(models.Model):  # noqa: D205, D212, D400, D415
         return _user_get_permissions(self, obj, "all")
 
     def has_perm(self, perm, obj=None):  # noqa: D205, D212, D400, D415
-        """
-        Return True if the user has the specified permission. Query all
-        available auth backends, but return immediately if any backend returns
-        True. Thus, a user who has permission from a single auth backend is
+        """Return True if the user has the specified permission.
+
+        Query all available auth backends, but return immediately if any backend
+        returns True. Thus, a user who has permission from a single auth backend is
         assumed to have permission in general. If an object is provided, check
         permissions for that object.
         """
@@ -172,19 +156,8 @@ class PermissionsMixin(models.Model):  # noqa: D205, D212, D400, D415
         return _user_has_perm(self, perm, obj)
 
     def has_perms(self, perm_list, obj=None):  # noqa: D205, D212, D400, D415
-        """
-        Return True if the user has each of the specified permissions. If
-        object is passed, check if the user has all required perms for it.
+        """Return True if the user has each of the specified permissions.
+
+        If an object is passed, check if the user has all required perms for it.
         """
         return all(self.has_perm(perm, obj) for perm in perm_list)
-
-    def has_module_perms(self, app_label):  # noqa: D205, D212
-        """
-        Return True if the user has any permissions in the given app label.
-        Use similar logic as has_perm(), above.
-        """
-        # Active superusers have all permissions.
-        if self.is_active and self.is_superuser:  # type: ignore[attr-defined] # mixin
-            return True
-
-        return _user_has_module_perms(self, app_label)

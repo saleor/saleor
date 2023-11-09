@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -22,8 +22,8 @@ from ..core.types import FilterInputObjectType, TaxedMoney
 from ..core.utils import ext_ref_to_global_id_or_error, from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
+from .bulk_mutations.order_bulk_cancel import OrderBulkCancel
 from .bulk_mutations.order_bulk_create import OrderBulkCreate
-from .bulk_mutations.orders import OrderBulkCancel
 from .filters import DraftOrderFilter, OrderFilter
 from .mutations.draft_order_complete import DraftOrderComplete
 from .mutations.draft_order_create import DraftOrderCreate
@@ -68,10 +68,11 @@ from .types import Order, OrderCountableConnection, OrderEventCountableConnectio
 
 
 def search_string_in_kwargs(kwargs: dict) -> bool:
-    return bool(kwargs.get("filter", {}).get("search", "").strip())
+    filter_search = kwargs.get("filter", {}).get("search", "") or ""
+    return bool(filter_search.strip())
 
 
-def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
+def sort_field_from_kwargs(kwargs: dict) -> Optional[list[str]]:
     return kwargs.get("sort_by", {}).get("field") or None
 
 

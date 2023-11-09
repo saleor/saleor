@@ -1,6 +1,6 @@
 from decimal import Decimal
+from unittest import mock
 
-import mock
 import pytest
 
 from .....channel import TransactionFlowStrategy

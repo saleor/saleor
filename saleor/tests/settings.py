@@ -1,5 +1,6 @@
 import re
-from typing import List, Pattern, Union
+from re import Pattern
+from typing import Union
 
 from django.utils.functional import SimpleLazyObject
 
@@ -46,7 +47,7 @@ PASSWORD_HASHERS = ["saleor.tests.dummy_password_hasher.DummyHasher"]
 
 PLUGINS = []
 
-PATTERNS_IGNORED_IN_QUERY_CAPTURES: List[Union[Pattern, SimpleLazyObject]] = [
+PATTERNS_IGNORED_IN_QUERY_CAPTURES: list[Union[Pattern, SimpleLazyObject]] = [
     lazy_re_compile(r"^SET\s+")
 ]
 
@@ -85,3 +86,6 @@ FdkAmFzQhgLtnEtnb+eBI7DNOJEuPLD52Jwnq2pGnJ/LxlqjjWJ5FsQQVSoDHGfM
 -----END RSA PRIVATE KEY-----"""
 
 DATABASE_CONNECTION_REPLICA_NAME = DATABASE_CONNECTION_DEFAULT_NAME  # noqa: F405
+
+HTTP_IP_FILTER_ENABLED = False
+HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS = True

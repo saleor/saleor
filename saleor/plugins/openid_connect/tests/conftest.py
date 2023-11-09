@@ -5,7 +5,7 @@ from ...manager import get_plugins_manager
 from ..plugin import OpenIDConnectPlugin
 
 
-@pytest.fixture()
+@pytest.fixture
 def plugin_configuration():
     def fun(
         client_id=None,
@@ -123,7 +123,7 @@ def user_info_response():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def id_payload():
     return {
         "given_name": "Saleor",
@@ -143,7 +143,7 @@ def id_payload():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def id_token(id_payload):
     private_key = """-----BEGIN RSA PRIVATE KEY-----
 MIIEogIBAAKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWw

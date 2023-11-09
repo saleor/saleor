@@ -1,7 +1,7 @@
 from ...utils import get_graphql_content
 
 CHECKOUT_DELIVERY_METHOD_UPDATE_MUTATION = """
-mutation checkoutDeliveryMethodUpdate($checkoutId: ID!, $deliveryMethodId: ID!) {
+mutation checkoutDeliveryMethodUpdate($checkoutId: ID!, $deliveryMethodId: ID) {
   checkoutDeliveryMethodUpdate(
     id: $checkoutId
     deliveryMethodId: $deliveryMethodId
@@ -17,9 +17,34 @@ mutation checkoutDeliveryMethodUpdate($checkoutId: ID!, $deliveryMethodId: ID!) 
         gross {
           amount
         }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
       }
       subtotalPrice {
         gross {
+          amount
+        }
+      }
+      shippingPrice{
+        gross {
+        amount
+        }
+      }
+      shippingMethods {
+        id
+      }
+      shippingPrice {
+        gross {
+          amount
+        }
+        net {
+          amount
+        }
+        tax {
           amount
         }
       }
@@ -43,7 +68,7 @@ mutation checkoutDeliveryMethodUpdate($checkoutId: ID!, $deliveryMethodId: ID!) 
 def checkout_delivery_method_update(
     staff_api_client,
     checkout_id,
-    delivery_method_id,
+    delivery_method_id=None,
 ):
     variables = {
         "checkoutId": checkout_id,

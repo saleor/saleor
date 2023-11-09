@@ -10,6 +10,7 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import DatabaseError
 from freezegun import freeze_time
+from requests_hardened import HTTPSession
 
 from ... import __version__, schema_version
 from ...core.utils.json_serializer import CustomJsonEncoder
@@ -32,6 +33,7 @@ def test_validate_app_install_response():
     error_message = "Test error msg"
     response = Mock(spec=requests.Response)
     response.raise_for_status.side_effect = requests.HTTPError
+    response.request = Mock()
     response.json.return_value = {"error": {"message": error_message}}
 
     with pytest.raises(AppInstallationError) as error:
@@ -39,7 +41,7 @@ def test_validate_app_install_response():
     assert str(error.value) == error_message
 
 
-@pytest.mark.parametrize("json_response", ({}, {"error": {}}, Exception))
+@pytest.mark.parametrize("json_response", [{}, {"error": {}}, Exception])
 def test_validate_app_install_response_when_wrong_error_message(json_response):
     response = Mock(spec=requests.Response)
     response.raise_for_status.side_effect = requests.HTTPError
@@ -56,10 +58,18 @@ def test_install_app_created_app(
     app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
     mocked_get = Mock(return_value=Mock())
     mocked_get.return_value.json = Mock(return_value=app_manifest)
-
-    monkeypatch.setattr(requests, "get", mocked_get)
     mocked_post = Mock()
-    monkeypatch.setattr(requests, "post", mocked_post)
+
+    def _side_effect(_self, method, *args, **kwargs):
+        if method == "GET":
+            func = mocked_get
+        elif method == "POST":
+            func = mocked_post
+        else:
+            raise NotImplementedError("Method not implemented", method)
+        return func(method, *args, **kwargs)
+
+    monkeypatch.setattr(HTTPSession, "request", _side_effect)
 
     app_installation.permissions.set([permission_manage_products])
 
@@ -68,12 +78,14 @@ def test_install_app_created_app(
 
     # then
     mocked_get.assert_called_once_with(
+        "GET",
         app_installation.manifest_url,
         headers={"Saleor-Schema-Version": schema_version},
         timeout=ANY,
         allow_redirects=False,
     )
     mocked_post.assert_called_once_with(
+        "POST",
         app_manifest["tokenTargetUrl"],
         headers={
             "Content-Type": "application/json",
@@ -84,7 +96,6 @@ def test_install_app_created_app(
             "Saleor-Schema-Version": schema_version,
         },
         json={"auth_token": ANY},
-        timeout=ANY,
         allow_redirects=False,
     )
     assert App.objects.get().id == app.id
@@ -101,7 +112,7 @@ def test_install_app_created_app_with_audience(
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
 
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     # when
@@ -118,7 +129,7 @@ def test_install_app_with_required_saleor_version(
     app_manifest["requiredSaleorVersion"] = f"^{__version__}"
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     # when
@@ -135,7 +146,7 @@ def test_install_app_when_saleor_version_unsupported(
     app_manifest["requiredSaleorVersion"] = "<3.11"
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     # when
@@ -153,7 +164,7 @@ def test_install_app_with_author(app_manifest, app_installation, monkeypatch):
     app_manifest["author"] = "Acme Ltd"
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     # when
@@ -169,7 +180,7 @@ def test_install_app_with_empty_author(app_manifest, app_installation, monkeypat
     app_manifest["author"] = " "
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     # when
@@ -188,7 +199,7 @@ def test_install_app_with_brand_data(app_manifest, app_installation, monkeypatch
     app_manifest["brand"] = brand_data
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
     mocked_fetch_brand_data_task = Mock()
     monkeypatch.setattr(
@@ -226,7 +237,7 @@ def test_install_app_created_app_trigger_webhook(
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
 
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     app_installation.permissions.set([permission_manage_products])
@@ -274,7 +285,7 @@ def test_install_app_with_extension(
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
 
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     app_installation.permissions.set(
@@ -296,7 +307,7 @@ def test_install_app_with_extension(
 
 
 @pytest.mark.parametrize(
-    "app_permissions, extension_permissions",
+    ("app_permissions", "extension_permissions"),
     [
         ([], ["MANAGE_PRODUCTS"]),
         (["MANAGE_PRODUCTS"], ["MANAGE_PRODUCTS", "MANAGE_APPS"]),
@@ -325,7 +336,7 @@ def test_install_app_extension_permission_out_of_scope(
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
 
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     # when & then
@@ -361,7 +372,7 @@ def test_install_app_extension_incorrect_url(
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
 
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     # when & then
@@ -392,7 +403,7 @@ def test_install_app_extension_invalid_permission(
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
 
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     # when & then
@@ -432,7 +443,7 @@ def test_install_app_extension_incorrect_values(
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
 
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     # when & then
@@ -450,7 +461,7 @@ def test_install_app_with_webhook(
 
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     # when
@@ -479,7 +490,7 @@ def test_install_app_webhook_incorrect_url(
 
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
 
     # when & then
     with pytest.raises(ValidationError) as excinfo:
@@ -490,7 +501,7 @@ def test_install_app_webhook_incorrect_url(
     assert error_dict["webhooks"][0].message == "Invalid target url."
 
 
-@pytest.mark.parametrize("is_active", (True, False))
+@pytest.mark.parametrize("is_active", [True, False])
 def test_install_app_with_webhook_is_active(
     is_active, app_manifest, app_manifest_webhook, app_installation, monkeypatch
 ):
@@ -500,7 +511,7 @@ def test_install_app_with_webhook_is_active(
 
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
     # when
@@ -520,7 +531,7 @@ def test_install_app_with_webhook_incorrect_is_active_value(
 
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
 
     # when & then
     with pytest.raises(ValidationError) as excinfo:
@@ -535,9 +546,7 @@ def test_install_app_webhook_incorrect_query(
     app_manifest, app_manifest_webhook, app_installation, monkeypatch
 ):
     # given
-    app_manifest_webhook[
-        "query"
-    ] = """
+    app_manifest_webhook["query"] = """
         no {
             that's {
                 not {
@@ -554,7 +563,7 @@ def test_install_app_webhook_incorrect_query(
 
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
 
     # when & then
     with pytest.raises(ValidationError) as excinfo:
@@ -575,7 +584,7 @@ def test_install_app_webhook_incorrect_custom_headers(
 
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
 
     # when & then
     with pytest.raises(ValidationError) as excinfo:
@@ -599,7 +608,7 @@ def test_install_app_lack_of_token_target_url_in_manifest_data(
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
 
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
     mocked_post = Mock()
     monkeypatch.setattr(requests, "post", mocked_post)
 
@@ -629,7 +638,7 @@ def image_response_mock():
 
 
 @patch("saleor.app.installation_utils.validate_icon_image")
-@patch("saleor.app.installation_utils.requests.get")
+@patch.object(HTTPSession, "request")
 def test_fetch_icon_image(
     mock_get_request, mock_validate_icon_image, image_response_mock
 ):
@@ -643,7 +652,7 @@ def test_fetch_icon_image(
 
     # then
     mock_get_request.assert_called_once_with(
-        image_url, stream=True, timeout=ANY, allow_redirects=False
+        "GET", image_url, stream=True, timeout=ANY, allow_redirects=False
     )
     mock_validate_icon_image.assert_called_once_with(image_file, ANY)
     assert isinstance(image_file, File)
@@ -652,7 +661,7 @@ def test_fetch_icon_image(
 
 
 @patch("saleor.app.installation_utils.validate_icon_image")
-@patch("saleor.app.installation_utils.requests.get")
+@patch.object(HTTPSession, "request")
 def test_fetch_icon_image_invalid_type(
     mock_get_request, mock_validate_icon_image, image_response_mock
 ):
@@ -665,7 +674,7 @@ def test_fetch_icon_image_invalid_type(
     mock_validate_icon_image.assert_not_called()
 
 
-@patch("saleor.app.installation_utils.requests.get")
+@patch.object(HTTPSession, "request")
 def test_fetch_icon_image_content_length(mock_get_request, image_response_mock):
     mock_get_request.return_value.__enter__.return_value = image_response_mock
     image_response_mock.headers["content-length"] = MAX_ICON_FILE_SIZE + 1
@@ -676,7 +685,7 @@ def test_fetch_icon_image_content_length(mock_get_request, image_response_mock):
     assert "File too big. Maximal icon image file size is" in error.value.message
 
 
-@patch("saleor.app.installation_utils.requests.get")
+@patch.object(HTTPSession, "request")
 def test_fetch_icon_image_file_too_big(mock_get_request, image_response_mock):
     def content_chunks():
         while True:
@@ -691,7 +700,7 @@ def test_fetch_icon_image_file_too_big(mock_get_request, image_response_mock):
     assert "File too big. Maximal icon image file size is" in error.value.message
 
 
-@patch("saleor.app.installation_utils.requests.get")
+@patch.object(HTTPSession, "request")
 def test_fetch_icon_image_network_error(mock_get_request):
     mock_get_request.side_effect = requests.RequestException
     with pytest.raises(ValidationError) as error:

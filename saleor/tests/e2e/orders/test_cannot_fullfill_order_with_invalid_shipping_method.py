@@ -129,10 +129,15 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
 
     price = 2
     (
-        _,
-        result_product_variant_id,
-        _,
-    ) = prepare_product(e2e_staff_api_client, warehouse_id, channel_id, price)
+        _product_id,
+        product_variant_id,
+        _product_variant_price,
+    ) = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        price,
+    )
 
     # Step 1 - Create draft order and add lines
     draft_order_input = {
@@ -145,10 +150,14 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
     order_id = data["order"]["id"]
     assert order_id is not None
 
-    lines = [{"variantId": result_product_variant_id, "quantity": 1}]
-    order_lines = order_lines_create(e2e_staff_api_client, order_id, lines)
+    lines = [{"variantId": product_variant_id, "quantity": 1}]
+    order_lines = order_lines_create(
+        e2e_staff_api_client,
+        order_id,
+        lines,
+    )
     order_product_variant_id = order_lines["order"]["lines"][0]["variant"]["id"]
-    assert order_product_variant_id == result_product_variant_id
+    assert order_product_variant_id == product_variant_id
 
     # Step 2 - Update order's shipping method
     input = {
@@ -156,7 +165,11 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
         "shippingAddress": first_address,
         "billingAddress": first_address,
     }
-    draft_order = draft_order_update(e2e_staff_api_client, order_id, input)
+    draft_order = draft_order_update(
+        e2e_staff_api_client,
+        order_id,
+        input,
+    )
     order_shipping_id = draft_order["order"]["deliveryMethod"]["id"]
     first_shipping_id_number = decode_base64_and_get_last_2_chars(
         first_shipping_method_id
@@ -179,17 +192,27 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
         "streetAddress2": "13/1",
     }
     update_input = {"shippingAddress": second_address}
-    draft_update = draft_order_update(e2e_staff_api_client, order_id, update_input)
+    draft_update = draft_order_update(
+        e2e_staff_api_client,
+        order_id,
+        update_input,
+    )
     draft_order_shipping_id = draft_update["order"]["deliveryMethod"]["id"]
     assert draft_order_shipping_id == order_shipping_id
 
     # Step 4 - Complete the order and check that 2nd shipping method is now available
-    order_complete = raw_draft_order_complete(e2e_staff_api_client, order_id)
+    order_complete = raw_draft_order_complete(
+        e2e_staff_api_client,
+        order_id,
+    )
     assert (
         order_complete["errors"][0]["message"]
         == "Shipping method is not valid for chosen shipping address"
     )
-    order_details = order_query(e2e_staff_api_client, order_id)
+    order_details = order_query(
+        e2e_staff_api_client,
+        order_id,
+    )
     order_shipping_method = order_details["availableShippingMethods"][0]["id"]
     second_shipping_id_number = decode_base64_and_get_last_2_chars(
         second_shipping_method_id

@@ -1,5 +1,3 @@
-from typing import List
-
 import pytest
 from asgiref.typing import (
     ASGI3Application,
@@ -38,7 +36,7 @@ def build_scope(origin: str, method: str) -> HTTPScope:
     }
 
 
-async def run_app(app: ASGI3Application, scope: HTTPScope) -> List[dict]:
+async def run_app(app: ASGI3Application, scope: HTTPScope) -> list[dict]:
     events = []
 
     async def send(event) -> None:
@@ -98,7 +96,7 @@ async def test_access_control_header_simple(asgi_app: ASGI3Application, settings
 
 
 @pytest.mark.parametrize(
-    "allowed_origins,origin",
+    ("allowed_origins", "origin"),
     [
         (["*"], "http://example.org"),
         (["*"], "https://example.org"),
@@ -125,7 +123,7 @@ async def test_access_control_allowed_origins(
 
 
 @pytest.mark.parametrize(
-    "allowed_origins,origin",
+    ("allowed_origins", "origin"),
     [
         (["http://example.org"], "https://example.org"),
         (["http://example.org"], "http://localhost:3000"),

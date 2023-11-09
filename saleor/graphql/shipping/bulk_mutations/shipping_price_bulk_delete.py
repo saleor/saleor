@@ -2,6 +2,8 @@ import graphene
 
 from ....permission.enums import ShippingPermissions
 from ....shipping import models
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import NonNullList, ShippingError
@@ -46,6 +48,7 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         shipping_methods = [sm for sm in queryset]
         queryset.delete()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.SHIPPING_PRICE_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
         for method in shipping_methods:
-            manager.shipping_price_deleted(method)
+            cls.call_event(manager.shipping_price_deleted, method, webhooks=webhooks)

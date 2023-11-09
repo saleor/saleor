@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import DefaultDict, Dict, List, Tuple, cast
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -111,7 +111,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         requestor = info.context.user
         cls.ensure_requestor_can_manage_group(info, requestor, instance)
 
-        errors: DefaultDict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         permission_fields = ("add_permissions", "remove_permissions", "permissions")
         user_fields = ("add_users", "remove_users", "users")
         channel_fields = ("add_channels", "remove_channels", "channels")
@@ -151,7 +151,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cls,
         info: ResolveInfo,
         group: models.Group,
-        user_accessible_channels: List["Channel"],
+        user_accessible_channels: list["Channel"],
         errors: dict,
         cleaned_input: dict,
     ):
@@ -178,7 +178,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cls,
         requestor: "User",
         group: models.Group,
-        errors: Dict[str, List[ValidationError]],
+        errors: dict[str, list[ValidationError]],
         cleaned_input: dict,
     ):
         super().clean_permissions(requestor, group, errors, cleaned_input)
@@ -197,7 +197,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cls,
         errors: dict,
         group: models.Group,
-        permissions: List["str"],
+        permissions: list["str"],
     ):
         missing_perms = get_not_manageable_permissions_after_removing_perms_from_group(
             group, permissions
@@ -233,7 +233,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def ensure_can_manage_users(
         cls,
         requestor: "User",
-        errors: Dict[str, List[ValidationError]],
+        errors: dict[str, list[ValidationError]],
         field: str,
         cleaned_input: dict,
     ):
@@ -322,7 +322,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cls,
         errors: dict,
         input_data: dict,
-        fields: Tuple[str, str, str],
+        fields: tuple[str, str, str],
     ):
         """Check if any items are on both input field.
 

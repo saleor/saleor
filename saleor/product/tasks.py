@@ -1,5 +1,6 @@
 import logging
-from typing import Iterable, List, Optional
+from collections.abc import Iterable
+from uuid import UUID
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -9,22 +10,19 @@ from django.utils import timezone
 from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
-from ..discount.models import Sale
+from ..discount.models import Promotion
 from ..warehouse.management import deactivate_preorder_for_variant
 from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
-from .utils.variant_prices import (
-    update_products_discounted_price,
-    update_products_discounted_prices,
-    update_products_discounted_prices_of_catalogues,
-    update_products_discounted_prices_of_sale,
-)
+from .utils.variant_prices import update_discounted_prices_for_promotion
 from .utils.variants import generate_and_set_variant_name
 
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
 
 VARIANTS_UPDATE_BATCH = 500
+# Results in update time ~2s for 500 promotions
+DISCOUNTED_PRODUCT_BATCH = 500
 
 
 def _variants_in_batches(variants_qs):
@@ -66,7 +64,7 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
 
 
 @app.task
-def update_variants_names(product_type_pk: int, saved_attributes_ids: List[int]):
+def update_variants_names(product_type_pk: int, saved_attributes_ids: list[int]):
     try:
         instance = ProductType.objects.get(pk=product_type_pk)
     except ObjectDoesNotExist:
@@ -77,41 +75,29 @@ def update_variants_names(product_type_pk: int, saved_attributes_ids: List[int])
 
 
 @app.task
-def update_product_discounted_price_task(product_pk: int):
+def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
+    from ..graphql.discount.utils import get_products_for_promotion
+
     try:
-        product = Product.objects.get(pk=product_pk)
+        promotion = Promotion.objects.get(pk=promotion_pk)
     except ObjectDoesNotExist:
-        logging.warning(f"Cannot find product with id: {product_pk}.")
+        logging.warning(f"Cannot find promotion with id: {promotion_pk}.")
         return
-    update_products_discounted_price([product])
-
-
-@app.task
-def update_products_discounted_prices_of_catalogues_task(
-    product_ids: Optional[List[int]] = None,
-    category_ids: Optional[List[int]] = None,
-    collection_ids: Optional[List[int]] = None,
-    variant_ids: Optional[List[int]] = None,
-):
-    update_products_discounted_prices_of_catalogues(
-        product_ids, category_ids, collection_ids, variant_ids
+    products = get_products_for_promotion(promotion)
+    update_products_discounted_prices_for_promotion_task.delay(
+        list(products.values_list("id", flat=True))
     )
 
 
 @app.task
-def update_products_discounted_prices_of_sale_task(discount_pk: int):
-    try:
-        discount = Sale.objects.get(pk=discount_pk)
-    except ObjectDoesNotExist:
-        logging.warning(f"Cannot find discount with id: {discount_pk}.")
-        return
-    update_products_discounted_prices_of_sale(discount)
-
-
-@app.task
-def update_products_discounted_prices_task(product_ids: List[int]):
-    products = Product.objects.filter(pk__in=product_ids)
-    update_products_discounted_prices(products)
+def update_products_discounted_prices_for_promotion_task(product_ids: Iterable[int]):
+    """Update the product discounted prices for given product ids."""
+    ids = sorted(product_ids)[:DISCOUNTED_PRODUCT_BATCH]
+    qs = Product.objects.filter(pk__in=ids)
+    if ids:
+        update_discounted_prices_for_promotion(qs)
+        remaining_ids = list(set(product_ids) - set(ids))
+        update_products_discounted_prices_for_promotion_task.delay(remaining_ids)
 
 
 @app.task

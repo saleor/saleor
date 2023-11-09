@@ -96,9 +96,9 @@ def create_superuser(credentials):
     if created:
         user.set_password(credentials["password"])
         user.save()
-        msg = "Superuser - %(email)s/%(password)s" % credentials
+        msg = f"Superuser - {credentials['email']}/{credentials['password']}"
     else:
-        msg = "Superuser already exists - %(email)s" % credentials
+        msg = f"Superuser already exists - {credentials['email']}"
     return msg
 
 
@@ -135,7 +135,7 @@ def retrieve_user_by_email(email):
 
 def get_user_groups_permissions(user: User):
     GroupUser = User.groups.through
-    group_users = GroupUser.objects.filter(user_id=user.id).values("group_id")
+    group_users = GroupUser._default_manager.filter(user_id=user.id).values("group_id")
     GroupPermissions = Group.permissions.through
     group_permissions = GroupPermissions.objects.filter(
         Exists(group_users.filter(group_id=OuterRef("group_id")))

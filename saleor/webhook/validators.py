@@ -1,5 +1,3 @@
-from typing import Dict
-
 from django.core.exceptions import ValidationError
 
 HEADERS_NUMBER_LIMIT = 5
@@ -14,7 +12,7 @@ VALUE_CHARS_ALLOWED = (
 )
 
 
-def custom_headers_validator(headers: Dict[str, str]) -> Dict[str, str]:
+def custom_headers_validator(headers: dict[str, str]) -> dict[str, str]:
     """Validate headers in accordance with RFC5322.
 
     https://www.rfc-editor.org/rfc/rfc5322#section-2.2

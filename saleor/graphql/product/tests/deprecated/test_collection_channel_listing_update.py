@@ -238,8 +238,7 @@ def test_collection_channel_listing_update_update_publication_date(
 def test_collection_channel_listing_update_update_publication_date_and_published_at(
     staff_api_client, collection, permission_manage_products, channel_USD
 ):
-    """Ensure an error is raised when both publicationDate and publishedAt date
-    is given."""
+    """Test that filtering by publication time and date are mutually exclusive."""
     # given
     publication_date = datetime.date.today()
     published_at = datetime.datetime.now(pytz.utc)

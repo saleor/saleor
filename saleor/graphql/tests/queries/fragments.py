@@ -190,6 +190,12 @@ fragment FulfillmentDetails on Fulfillment {
   fulfillmentOrder
   trackingNumber
   status
+  shippingRefundedAmount{
+    amount
+  }
+  totalRefundedAmount{
+    amount
+  }
   lines {
     id
     quantity
@@ -374,6 +380,32 @@ fragment SaleDetails on Sale {
 }
 """
 
+PROMOTION_DETAILS = """
+fragment PromotionDetails on Promotion {
+  id
+  name
+  startDate
+  endDate
+  rules{
+    name
+  }
+}
+"""
+
+PROMOTION_RULE_DETAILS = """
+fragment PromotionRuleDetails on PromotionRule {
+  id
+  name
+  rewardValue
+  rewardValueType
+  cataloguePredicate
+  promotion {
+    id
+    name
+  }
+}
+"""
+
 GIFT_CARD_DETAILS = """
 fragment GiftCardDetails on GiftCard{
   id
@@ -403,6 +435,18 @@ fragment VoucherDetails on Voucher{
   name
   code
   usageLimit
+}
+"""
+
+
+VOUCHER_CODE_EXPORT_DETAILS = """
+fragment VoucherCodeExportDetails on ExportFile {
+  id
+  createdAt
+  updatedAt
+  status
+  url
+  message
 }
 """
 

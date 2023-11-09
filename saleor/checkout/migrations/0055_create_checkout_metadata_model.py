@@ -1,6 +1,5 @@
-from django.db import migrations, models
 import django.contrib.postgres.indexes
-
+from django.db import migrations, models
 
 import saleor.core.utils.json_serializer
 

@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, Mock, patch
 import graphene
 import pytest
 from django.core.files import File
+from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -85,7 +86,10 @@ def test_category_query_invalid_id(user_api_client, product, channel_USD):
     response = user_api_client.post_graphql(QUERY_CATEGORY, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {category_id}."
+    assert (
+        content["errors"][0]["message"]
+        == f"Invalid ID: {category_id}. Expected: Category."
+    )
     assert content["data"]["category"] is None
 
 
@@ -528,13 +532,13 @@ def test_category_create_trigger_webhook(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug",
-    (
+    ("input_slug", "expected_slug"),
+    [
         ("test-slug", "test-slug"),
         (None, "test-category"),
         ("", "test-category"),
         ("わたし-わ-にっぽん-です", "わたし-わ-にっぽん-です"),
-    ),
+    ],
 )
 def test_create_category_with_given_slug(
     staff_api_client, permission_manage_products, input_slug, expected_slug
@@ -610,6 +614,7 @@ MUTATION_CATEGORY_UPDATE_MUTATION = """
                 id
                 name
                 description
+                updatedAt
                 parent {
                     id
                 }
@@ -687,6 +692,45 @@ def test_category_update_mutation(
     assert data["category"]["backgroundImage"]["alt"] == image_alt
     assert category.metadata == {metadata_key: metadata_value, **old_meta}
     assert category.private_metadata == {metadata_key: metadata_value, **old_meta}
+
+
+@freeze_time("2023-09-01 12:00:00")
+def test_category_update_mutation_with_update_at_field(
+    monkeypatch, staff_api_client, category, permission_manage_products, media_root
+):
+    # given
+    query = MUTATION_CATEGORY_UPDATE_MUTATION
+
+    # create child category and test that the update mutation won't change
+    # it's parent
+    child_category = category.children.create(name="child")
+
+    category_name = "Updated name"
+    description = "description"
+    category_slug = slugify(category_name)
+    category_description = dummy_editorjs(description, True)
+
+    category_id = graphene.Node.to_global_id("Category", child_category.pk)
+    variables = {
+        "name": category_name,
+        "description": category_description,
+        "id": category_id,
+        "slug": category_slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["categoryUpdate"]
+
+    # then
+    assert data["category"]["id"] == category_id
+    assert data["category"]["name"] == category_name
+    assert data["category"]["description"] == category_description
+    assert data["category"]["updatedAt"] == timezone.now().isoformat()
 
 
 @freeze_time("2022-05-12 12:00:00")
@@ -975,7 +1019,7 @@ UPDATE_CATEGORY_SLUG_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, error_message",
+    ("input_slug", "expected_slug", "error_message"),
     [
         ("test-slug", "test-slug", None),
         ("", "", "Slug value cannot be blank."),
@@ -1039,7 +1083,7 @@ def test_update_category_slug_exists(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, input_name, error_message, error_field",
+    ("input_slug", "expected_slug", "input_name", "error_message", "error_field"),
     [
         ("test-slug", "test-slug", "New name", None, None),
         ("", "", "New name", "Slug value cannot be blank.", "slug"),
@@ -1120,7 +1164,9 @@ MUTATION_CATEGORY_DELETE = """
 """
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_category_delete_mutation(
     delete_from_storage_task_mock,
@@ -1164,7 +1210,7 @@ def test_category_delete_mutation(
 
 
 @freeze_time("2022-05-12 12:00:00")
-@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.product.utils.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_category_delete_trigger_webhook(
     mocked_webhook_trigger,
@@ -1226,9 +1272,9 @@ def test_delete_category_with_background_image(
         category.refresh_from_db()
 
 
-@patch("saleor.product.utils.update_products_discounted_prices_task")
+@patch("saleor.product.utils.update_products_discounted_prices_for_promotion_task")
 def test_category_delete_mutation_for_categories_tree(
-    mock_update_products_discounted_prices_task,
+    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     categories_tree_with_published_products,
     permission_manage_products,
@@ -1249,11 +1295,11 @@ def test_category_delete_mutation_for_categories_tree(
     with pytest.raises(parent._meta.model.DoesNotExist):
         parent.refresh_from_db()
 
-    mock_update_products_discounted_prices_task.delay.assert_called_once()
+    mock_update_products_discounted_prices_for_promotion_task.delay.assert_called_once()
     (
         _call_args,
         call_kwargs,
-    ) = mock_update_products_discounted_prices_task.delay.call_args
+    ) = mock_update_products_discounted_prices_for_promotion_task.delay.call_args
     assert set(call_kwargs["product_ids"]) == set(p.pk for p in product_list)
 
     product_channel_listings = ProductChannelListing.objects.filter(
@@ -1265,9 +1311,9 @@ def test_category_delete_mutation_for_categories_tree(
     assert product_channel_listings.count() == 4
 
 
-@patch("saleor.product.utils.update_products_discounted_prices_task")
+@patch("saleor.product.utils.update_products_discounted_prices_for_promotion_task")
 def test_category_delete_mutation_for_children_from_categories_tree(
-    mock_update_products_discounted_prices_task,
+    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     categories_tree_with_published_products,
     permission_manage_products,
@@ -1287,7 +1333,7 @@ def test_category_delete_mutation_for_children_from_categories_tree(
     with pytest.raises(child._meta.model.DoesNotExist):
         child.refresh_from_db()
 
-    mock_update_products_discounted_prices_task.delay.assert_called_once_with(
+    mock_update_products_discounted_prices_for_promotion_task.delay.assert_called_once_with(
         product_ids=[child_product.pk]
     )
 
@@ -1692,7 +1738,7 @@ QUERY_CATEGORIES_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "category_sort, result_order",
+    ("category_sort", "result_order"),
     [
         (
             {"field": "NAME", "direction": "ASC"},
@@ -1772,7 +1818,7 @@ def test_categories_query_with_sort(
 
 
 @pytest.mark.parametrize(
-    "category_filter, count",
+    ("category_filter", "count"),
     [
         ({"search": "slug_"}, 4),
         ({"search": "Category1"}, 1),

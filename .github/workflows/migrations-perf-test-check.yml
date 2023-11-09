@@ -1,0 +1,24 @@
+name: "Migration performance test required"
+on:
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - "**/migrations/**"
+    types: [labeled, unlabeled, opened, closed]
+
+jobs:
+  # Contributors of Saleor sometimes forget about executing migrations performance
+  # tests on PRs. This job is enforcing decision what to do. The decision is made by
+  # adding/removing the label to the PR. One of the label is required.
+  # Available labels:
+  # - skip migrations perf test - whenever migrations don't require performance
+  #   tests(e.g. when migrations are run in celery tasks)
+  # - migrations perf test - whenever migrations require performance tests
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check if the decision about migrations perf test was made
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip migrations perf test') && !contains(github.event.pull_request.labels.*.name, 'migrations perf test') }}
+        run: exit 1

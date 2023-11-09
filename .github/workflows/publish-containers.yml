@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Outputs the name of the repository (owner/repo)
       - name: Build Image Name
@@ -24,94 +24,28 @@ jobs:
           IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
           echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
 
-      # Outputs container tags for tagged pushes starting by 'v'
-      # Pushes only to GitHub Container Repository (ghcr.io)
-      #
-      # Tags stable versions as :latest
-      # Pre-releases, alphas, etc. as :snapshot
-      - name: Prepare Image Tags from Git Tag
-        id: tagged
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        run: |
-          set -x
-
-          # Remove everything else than the tagged version
-          VERSION=${GITHUB_REF#refs/tags/}
-
-          # Tag as stable (:latest) if there is no letters in the version
-          # Otherwise, tag as preview (:snapshot)
-          if [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            # Matches 1.0.0, 1.0.1, etc.
-            NAMED_VERSION="latest"
-          else
-            # Matches 1.0.0a1, 1.0.0rc1, etc.
-            NAMED_VERSION="snapshot"
-          fi
-
-          TAGS=$"\
-          ghcr.io/${{ steps.image.outputs.image_name }}:${NAMED_VERSION},\
-          ghcr.io/${{ steps.image.outputs.image_name }}:${VERSION}\
-          "
-
-          # Output the target tags
-          echo "
-          CONTAINER_TAGS=${TAGS}
-          NAMED_VERSION=${NAMED_VERSION}
-          VERSION=${VERSION}
-          " >> "${GITHUB_ENV}"
-
-      # Outputs the containers tags for staging branches
-      # Only publishes them onto Docker Hub
-      - name: Prepare Tags for Staging
-        id: staging
-        if: ${{ startsWith(github.ref, 'refs/heads/') }}
-        run: |
-          set -x
-
-          # Version name is the branch name
-          # Slashes are substitued by dashes
-          CLEAN_BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
-
-          # Target GHCR with the branch name as the tag, e.g. unstable-main
-          TAGS=$"\
-          ghcr.io/${{ steps.image.outputs.image_name }}:unstable-${CLEAN_BRANCH_NAME}
-          "
-
-          # Set version name for open-containers version label as:
-          # <branch>-<drift>-g<6-digit-hash>
-          NAMED_VERSION=$(git describe --all --long | tr -d $'\n')
-
-          # Output the target tags
-          echo "
-          CONTAINER_TAGS=${TAGS}
-          NAMED_VERSION=${NAMED_VERSION}
-          " >> "${GITHUB_ENV}"
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ steps.image.outputs.image_name }}
+          tags: |
+            type=ref,event=branch,prefix=unstable-
+            type=pep440,pattern={{version}}
+            type=pep440,pattern={{major}}.{{minor}}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: all
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        # This condition is a temporary fix until
-        # https://github.com/docker/buildx/issues/1044 is resolved, as it
-        # prevents usage of image registry.
-        # Due to limitation of local cache size we are skipping main branch and
-        # prioritize local cache for other branches e.g 3.x.
-        if: github.ref != 'refs/heads/main'
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ hashFiles('requirements_dev.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ secrets.CR_USERNAME }}
@@ -119,24 +53,22 @@ jobs:
 
       - name: Build and Push
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v5
         with:
           builder: ${{ steps.buildx.outputs.name }}
-          context: ./
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          context: .
+          labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.CONTAINER_TAGS }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
-          build-args: |
-            PROJECT_VERSION=${{ env.NAMED_VERSION }}
-            COMMIT_ID=${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
 
       - name: Image digest
         run: |
           echo $"\
             Digest: ${{ steps.docker_build.outputs.digest }}
-            Tags: ${{ env.CONTAINER_TAGS }}"
+            Tags: ${{ steps.meta.outputs.tags }}"
 
       - name: Trigger staging deployments for tagged release
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
@@ -145,13 +77,13 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
             https://api.github.com/repos/saleor/saleor-multitenant/dispatches \
-            -d "{\"event_type\":\"deploy-staging\",\"client_payload\":{\"version\":\"$VERSION\"}}"
+            -d "{\"event_type\":\"deploy-staging\",\"client_payload\":{\"version\":\"${{ steps.meta.outputs.version }}\"}}"
 
           curl -f -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
             https://api.github.com/repos/saleor/saleor-cloud-deployments/dispatches \
-            -d "{\"event_type\":\"deploy-demo-staging\",\"client_payload\":{\"version\":\"$VERSION\"}}"
+            -d "{\"event_type\":\"deploy-demo-staging\",\"client_payload\":{\"version\":\"${{ steps.meta.outputs.version }}\"}}"
 
       - name: Notify Slack
         if: ${{ failure() }}
@@ -159,6 +91,6 @@ jobs:
           JOB_STATUS: ${{ job.status }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
           SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
-          JOB_TITLE: "Build of Saleor Core ${{ env.VERSION || env.NAMED_VERSION }}"
+          JOB_TITLE: "Build of Saleor Core ${{ steps.meta.outputs.version }}"
         run: |
           python3 ./.github/workflows/notify/notify-slack.py

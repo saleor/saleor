@@ -60,7 +60,7 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
     product = variant.product
     channel = order.channel
     variant_channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, variant_channel_listing, None)
+    net = variant.get_price(variant_channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
@@ -160,8 +160,7 @@ def test_handle_fully_paid_order_gift_cards_created(
     non_shippable_gift_card_product,
     shippable_gift_card_product,
 ):
-    """Ensure the non shippable gift card are fulfilled when the flag for automatic
-    fulfillment non shippable gift card is set."""
+    """Test that digital gift cards are issued when automatic fulfillment is enabled."""
     # given
     channel = order_with_lines.channel
     channel.automatically_fulfill_non_shippable_gift_card = True
@@ -232,8 +231,7 @@ def test_handle_fully_paid_order_gift_cards_not_created(
     non_shippable_gift_card_product,
     shippable_gift_card_product,
 ):
-    """Ensure the non shippable gift card are not fulfilled when the flag for
-    automatic fulfillment non shippable gift card is not set."""
+    """Ensure digital gift cards are not issued when automatic fulfillment is disabled."""
     # given
     channel = order_with_lines.channel
     channel.automatically_fulfill_non_shippable_gift_card = False
@@ -316,13 +314,15 @@ def test_mark_as_paid_no_billing_address(admin_user, draft_order):
     draft_order.save()
 
     manager = get_plugins_manager()
-    with pytest.raises(Exception):
+    with pytest.raises(PaymentError, match="Order does not have a billing address."):
         mark_order_as_paid_with_payment(draft_order, admin_user, None, manager)
 
 
 def test_clean_mark_order_as_paid(payment_txn_preauth):
     order = payment_txn_preauth.order
-    with pytest.raises(PaymentError):
+    with pytest.raises(
+        PaymentError, match="Orders with payments can not be manually marked as paid."
+    ):
         clean_mark_order_as_paid(order)
 
 

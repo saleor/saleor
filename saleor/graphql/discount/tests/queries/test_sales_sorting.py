@@ -1,89 +1,80 @@
 import pytest
 from django.utils import timezone
 
-from .....discount import DiscountValueType
-from .....discount.models import Sale, SaleChannelListing
+from .....discount import RewardValueType
+from .....discount.models import Promotion, PromotionRule
 from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 
 @pytest.fixture
 def sales_for_sorting_with_channels(db, channel_USD, channel_PLN):
-    sales = Sale.objects.bulk_create(
+    promotions = Promotion.objects.bulk_create(
         [
-            Sale(
-                name="Sale1",
-                type=DiscountValueType.PERCENTAGE,
-            ),
-            Sale(name="Sale2"),
-            Sale(
-                name="Sale3",
-                type=DiscountValueType.PERCENTAGE,
-            ),
-            Sale(name="Sale4"),
-            Sale(name="Sale15"),
-        ]
-    )
-    SaleChannelListing.objects.bulk_create(
-        [
-            SaleChannelListing(
-                discount_value=1,
-                sale=sales[0],
-                channel=channel_USD,
-                currency=channel_USD.currency_code,
-            ),
-            SaleChannelListing(
-                discount_value=7,
-                sale=sales[1],
-                channel=channel_USD,
-                currency=channel_USD.currency_code,
-            ),
-            SaleChannelListing(
-                discount_value=5,
-                sale=sales[2],
-                channel=channel_USD,
-                currency=channel_USD.currency_code,
-            ),
-            SaleChannelListing(
-                discount_value=2,
-                sale=sales[4],
-                channel=channel_USD,
-                currency=channel_USD.currency_code,
-            ),
-            # Second channel
-            SaleChannelListing(
-                discount_value=7,
-                sale=sales[0],
-                channel=channel_PLN,
-                currency=channel_PLN.currency_code,
-            ),
-            SaleChannelListing(
-                discount_value=1,
-                sale=sales[1],
-                channel=channel_PLN,
-                currency=channel_PLN.currency_code,
-            ),
-            SaleChannelListing(
-                discount_value=2,
-                sale=sales[3],
-                channel=channel_PLN,
-                currency=channel_PLN.currency_code,
-            ),
-            SaleChannelListing(
-                discount_value=5,
-                sale=sales[4],
-                channel=channel_PLN,
-                currency=channel_PLN.currency_code,
-            ),
+            Promotion(name="Sale1"),
+            Promotion(name="Sale2"),
+            Promotion(name="Sale3"),
+            Promotion(name="Sale4"),
+            Promotion(name="Sale15"),
         ]
     )
 
-    sales[4].save()
-    sales[2].save()
-    sales[0].save()
-    sales[1].save()
-    sales[3].save()
+    for promotion in promotions:
+        promotion.assign_old_sale_id()
 
-    return sales
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                promotion=promotions[0],
+                reward_value=1,
+                reward_value_type=RewardValueType.PERCENTAGE,
+            ),
+            PromotionRule(
+                promotion=promotions[0],
+                reward_value=7,
+                reward_value_type=RewardValueType.PERCENTAGE,
+            ),
+            PromotionRule(
+                promotion=promotions[1],
+                reward_value=7,
+                reward_value_type=RewardValueType.FIXED,
+            ),
+            PromotionRule(
+                promotion=promotions[1],
+                reward_value=1,
+                reward_value_type=RewardValueType.FIXED,
+            ),
+            PromotionRule(
+                promotion=promotions[2],
+                reward_value=5,
+                reward_value_type=RewardValueType.PERCENTAGE,
+            ),
+            PromotionRule(
+                promotion=promotions[3],
+                reward_value=2,
+                reward_value_type=RewardValueType.FIXED,
+            ),
+            PromotionRule(
+                promotion=promotions[4],
+                reward_value=2,
+                reward_value_type=RewardValueType.FIXED,
+            ),
+            PromotionRule(
+                promotion=promotions[4],
+                reward_value=5,
+                reward_value_type=RewardValueType.FIXED,
+            ),
+        ]
+    )
+    channel_USD.promotionrule_set.add(rules[0], rules[2], rules[4], rules[6])
+    channel_PLN.promotionrule_set.add(rules[1], rules[3], rules[5], rules[7])
+
+    promotions[4].save()
+    promotions[2].save()
+    promotions[0].save()
+    promotions[1].save()
+    promotions[3].save()
+
+    return promotions
 
 
 QUERY_SALES_WITH_SORTING_AND_FILTERING = """
@@ -123,7 +114,7 @@ def test_sales_with_sorting_and_without_channel(
 
 
 @pytest.mark.parametrize(
-    "sort_by, sales_order",
+    ("sort_by", "sales_order"),
     [
         (
             {"field": "VALUE", "direction": "ASC"},
@@ -178,7 +169,7 @@ def test_sales_with_sorting_and_channel_USD(
 
 
 @pytest.mark.parametrize(
-    "sort_by, sales_order",
+    ("sort_by", "sales_order"),
     [
         (
             {"field": "VALUE", "direction": "ASC"},
@@ -271,7 +262,7 @@ QUERY_SALE_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "sale_sort, result_order",
+    ("sale_sort", "result_order"),
     [
         ({"field": "NAME", "direction": "ASC"}, ["BigSale", "Sale2", "Sale3"]),
         ({"field": "NAME", "direction": "DESC"}, ["Sale3", "Sale2", "BigSale"]),
@@ -286,26 +277,45 @@ QUERY_SALE_WITH_SORT = """
 def test_query_sales_with_sort(
     sale_sort, result_order, staff_api_client, permission_manage_discounts, channel_USD
 ):
-    sales = Sale.objects.bulk_create(
+    # given
+    promotions = Promotion.objects.bulk_create(
         [
-            Sale(name="BigSale", type="PERCENTAGE"),
-            Sale(
+            Promotion(name="BigSale"),
+            Promotion(
                 name="Sale2",
-                type="FIXED",
                 start_date=timezone.now().replace(year=2012, month=1, day=5),
                 end_date=timezone.now().replace(year=2013, month=1, day=5),
             ),
-            Sale(
+            Promotion(
                 name="Sale3",
-                type="FIXED",
                 start_date=timezone.now().replace(year=2011, month=1, day=5),
                 end_date=timezone.now().replace(year=2015, month=12, day=31),
             ),
         ]
     )
+    for promotion in promotions:
+        promotion.assign_old_sale_id()
+
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                promotion=promotion,
+                reward_value=5,
+                reward_value_type=RewardValueType.FIXED,
+            )
+            for promotion in promotions
+        ]
+    )
+    rules[0].reward_value_type = RewardValueType.PERCENTAGE
+    rules[0].save(update_fields=["reward_value_type"])
+
     variables = {"sort_by": sale_sort}
     staff_api_client.user.user_permissions.add(permission_manage_discounts)
+
+    # when
     response = staff_api_client.post_graphql(QUERY_SALE_WITH_SORT, variables)
+
+    # then
     content = get_graphql_content(response)
     sales = content["data"]["sales"]["edges"]
 

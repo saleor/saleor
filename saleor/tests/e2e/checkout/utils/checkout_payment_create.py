@@ -19,13 +19,15 @@ mutation createPayment($checkoutId: ID, $input: PaymentInput!) {
 """
 
 
-def raw_checkout_dummy_payment_create(api_client, checkout_id, total_gross_amount):
+def raw_checkout_dummy_payment_create(
+    api_client, checkout_id, total_gross_amount, token
+):
     variables = {
         "checkoutId": checkout_id,
         "input": {
             "amount": total_gross_amount,
             "gateway": "mirumee.payments.dummy",
-            "token": "fully_charged",
+            "token": token,
         },
     }
 
@@ -42,7 +44,10 @@ def raw_checkout_dummy_payment_create(api_client, checkout_id, total_gross_amoun
 
 def checkout_dummy_payment_create(api_client, checkout_id, total_gross_amount):
     checkout_payment_create_response = raw_checkout_dummy_payment_create(
-        api_client, checkout_id, total_gross_amount
+        api_client,
+        checkout_id,
+        total_gross_amount,
+        token="fully_charged",
     )
 
     assert checkout_payment_create_response["errors"] == []

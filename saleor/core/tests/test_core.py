@@ -11,14 +11,29 @@ from ...account.models import Address, User
 from ...account.utils import create_superuser
 from ...attribute.models import AttributeValue
 from ...channel.models import Channel
-from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
+from ...discount.models import (
+    Promotion,
+    PromotionRule,
+    Voucher,
+    VoucherChannelListing,
+    VoucherCode,
+)
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.models import Order
+from ...payment.models import TransactionItem
 from ...product import ProductTypeKind
 from ...product.models import ProductType
 from ...shipping.models import ShippingZone
 from ..storages import S3MediaStorage
-from ..utils import build_absolute_uri, generate_unique_slug, get_client_ip, random_data
+from ..utils import (
+    build_absolute_uri,
+    generate_unique_slug,
+    get_client_ip,
+    get_domain,
+    is_ssl_enabled,
+    prepare_unique_attribute_value_slug,
+    random_data,
+)
 
 type_schema = {
     "Vegetable": {
@@ -35,7 +50,7 @@ type_schema = {
 
 
 @pytest.mark.parametrize(
-    "ip_address, expected_ip",
+    ("ip_address", "expected_ip"),
     [
         ("83.0.0.1", "83.0.0.1"),
         ("::1", "::1"),
@@ -46,9 +61,6 @@ type_schema = {
     ],
 )
 def test_get_client_ip(ip_address, expected_ip):
-    """Test providing a valid IP in X-Forwarded-For returns the valid IP.
-    Otherwise, if no valid IP were found, returns the requester's IP.
-    """
     expected_ip = expected_ip
     headers = {"HTTP_X_FORWARDED_FOR": ip_address} if ip_address else {}
     request = RequestFactory(**headers).get("/")
@@ -136,15 +148,15 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
     assert Order.objects.all().count() == how_many_orders
 
 
-def test_create_product_sales(db):
+def test_create_product_promotions(db):
     how_many = 5
     channel_count = 0
     for _ in random_data.create_channels():
         channel_count += 1
-    for _ in random_data.create_product_sales(how_many):
+    for _ in random_data.create_product_promotions(how_many):
         pass
-    assert Sale.objects.all().count() == how_many
-    assert SaleChannelListing.objects.all().count() == how_many * channel_count
+    assert Promotion.objects.all().count() == how_many
+    assert PromotionRule.objects.all().count() == how_many * 2
 
 
 def test_create_vouchers(db):
@@ -156,6 +168,7 @@ def test_create_vouchers(db):
     for _ in random_data.create_vouchers():
         pass
     assert Voucher.objects.all().count() == voucher_count
+    assert VoucherCode.objects.all().count() == voucher_count
     assert VoucherChannelListing.objects.all().count() == voucher_count * channel_count
 
 
@@ -219,17 +232,76 @@ def test_build_absolute_uri_with_host(site_settings, settings):
     assert url == f"http://{host}/{location}"
 
 
-def test_delete_sort_order_with_null_value(menu_item):
-    """Ensures there is no error when trying to delete a sortable item,
-    which triggers a shifting of the sort orders--which can be null."""
+@pytest.mark.parametrize(
+    "public_url", ["https://api.example.com", "http://api.example.com"]
+)
+@pytest.mark.parametrize("enable_ssl", [True, False])
+@pytest.mark.parametrize("host", [None, "test.com"])
+def test_build_absolute_uri_with_public_url(
+    public_url, enable_ssl, host, site_settings, settings
+):
+    # given
+    location = "images/close.svg"
+    settings.PUBLIC_URL = public_url
+    settings.ENABLE_SSL = enable_ssl
+    # when
+    url = build_absolute_uri(location, host)
+    # then
+    assert url == f"{public_url}/{location}"
 
+
+def test_build_absolute_uri_with_public_url_and_absolute_location(
+    site_settings, settings
+):
+    # given
+    location = "https://example.com/static/images/image.jpg"
+    settings.PUBLIC_URL = "https://api.example.com"
+    # when
+    url = build_absolute_uri(location)
+    # then
+    assert url == location
+
+
+@pytest.mark.parametrize("enable_ssl", [True, False])
+def test_is_ssl_enabled(enable_ssl, settings):
+    # given
+    settings.ENABLE_SSL = enable_ssl
+    # then
+    assert is_ssl_enabled() == enable_ssl
+
+
+@pytest.mark.parametrize(
+    ("public_url", "expected"),
+    [("https://api.example.com", True), ("http://api.example.com", False)],
+)
+@pytest.mark.parametrize("enable_ssl", [True, False])
+def test_is_ssl_enabled_with_public_url(public_url, expected, enable_ssl, settings):
+    # given
+    settings.PUBLIC_URL = public_url
+    settings.ENABLE_SSL = enable_ssl
+    # then
+    assert is_ssl_enabled() == expected
+
+
+def test_get_domain(site_settings, settings):
+    assert get_domain() == site_settings.site.domain
+
+
+def test_get_domain_with_public_url(site_settings, settings):
+    # given
+    domain = "api.example.com"
+    settings.PUBLIC_URL = f"https://{domain}"
+    assert get_domain() == domain
+
+
+def test_delete_sort_order_with_null_value(menu_item):
     menu_item.sort_order = None
     menu_item.save(update_fields=["sort_order"])
     menu_item.delete()
 
 
 @pytest.mark.parametrize(
-    "product_name, slug_result",
+    ("product_name", "slug_result"),
     [
         ("Paint", "paint"),
         ("paint", "paint-3"),
@@ -274,11 +346,6 @@ def test_generate_unique_slug_for_slug_with_max_characters_number(category):
     category.slug = result
     with pytest.raises(DataError):
         category.save()
-
-
-def test_generate_unique_slug_non_slugable_value_and_slugable_field(category):
-    with pytest.raises(Exception):
-        generate_unique_slug(category)
 
 
 def test_generate_unique_slug_with_additional_lookup_slug_not_changed(
@@ -348,3 +415,39 @@ def test_cleardb_preserves_data(admin_user, app, site_settings, staff_user):
     app.refresh_from_db()
     site_settings.refresh_from_db()
     staff_user.refresh_from_db()
+
+
+@override_settings(DEBUG=True)
+def test_cleardb_remove_orders_and_transactions(transaction_item):
+    transaction_item.refresh_from_db()
+
+    call_command("cleardb")
+    with pytest.raises(TransactionItem.DoesNotExist):
+        transaction_item.refresh_from_db()
+    with pytest.raises(Order.DoesNotExist):
+        transaction_item.order.refresh_from_db()
+
+
+def test_prepare_unique_attribute_value_slug(color_attribute):
+    # given
+    value_1 = color_attribute.values.first()
+
+    # when
+    value_2 = AttributeValue(
+        name=value_1.name, attribute=color_attribute, slug=value_1.slug
+    )
+
+    # then
+    result = prepare_unique_attribute_value_slug(value_2.attribute, value_2.slug)
+
+    assert result == f"{value_1.slug}-2"
+
+
+def test_prepare_unique_attribute_value_slug_non_existing_slug(color_attribute):
+    # when
+    non_existing_slug = "non-existing-slug"
+
+    # then
+    result = prepare_unique_attribute_value_slug(color_attribute, non_existing_slug)
+
+    assert result == non_existing_slug

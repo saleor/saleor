@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Optional
 
 from ..account.models import User
 from ..app.models import App
@@ -119,7 +120,7 @@ def gift_card_expiry_date_updated_event(
 
 def gift_card_tags_updated_event(
     gift_card: GiftCard,
-    old_tags: List[str],
+    old_tags: list[str],
     user: Optional[User],
     app: Optional[App],
 ):
@@ -210,7 +211,7 @@ def gift_card_note_added_event(
 
 
 def gift_cards_used_in_order_event(
-    balance_data: Iterable[Tuple[GiftCard, float]],
+    balance_data: Iterable[tuple[GiftCard, float]],
     order: "Order",
     user: Optional[User],
     app: Optional[App],

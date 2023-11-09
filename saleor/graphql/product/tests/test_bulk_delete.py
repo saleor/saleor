@@ -38,7 +38,9 @@ MUTATION_CATEGORY_BULK_DELETE = """
 """
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_delete_categories(
     update_products_discounted_price_task_mock,
     staff_api_client,
@@ -78,7 +80,7 @@ def test_delete_categories(
     assert set(kwargs["product_ids"]) == {product.id for product in product_list}
 
 
-@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.product.utils.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_categories_trigger_webhook(
     mocked_webhook_trigger,
@@ -156,14 +158,22 @@ def test_delete_categories_with_images(
     assert not Thumbnail.objects.all()
 
 
+@patch("saleor.product.utils.get_webhooks_for_event")
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_delete_categories_trigger_product_updated_webhook(
     product_updated_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     category_list,
     product_list,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
     first_product = product_list[0]
     first_product.category = category_list[0]
     first_product.save()
@@ -194,9 +204,9 @@ def test_delete_categories_trigger_product_updated_webhook(
     assert product_updated_mock.call_count == 2
 
 
-@patch("saleor.product.utils.update_products_discounted_prices_task")
+@patch("saleor.product.utils.update_products_discounted_prices_for_promotion_task")
 def test_delete_categories_with_subcategories_and_products(
-    mock_update_products_discounted_prices_task,
+    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     category_list,
     permission_manage_products,
@@ -249,11 +259,11 @@ def test_delete_categories_with_subcategories_and_products(
         id__in=[category.id for category in category_list]
     ).exists()
 
-    mock_update_products_discounted_prices_task.delay.assert_called_once()
+    mock_update_products_discounted_prices_for_promotion_task.delay.assert_called_once()
     (
         _call_args,
         call_kwargs,
-    ) = mock_update_products_discounted_prices_task.delay.call_args
+    ) = mock_update_products_discounted_prices_for_promotion_task.delay.call_args
 
     assert set(call_kwargs["product_ids"]) == set([p.pk for p in product_list])
 
@@ -279,7 +289,9 @@ MUTATION_COLLECTION_BULK_DELETE = """
 """
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_delete_collections(
     update_products_discounted_price_task_mock,
     staff_api_client,
@@ -360,13 +372,23 @@ def test_delete_collections_with_images(
     assert not Thumbnail.objects.all()
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "collection_bulk_delete.get_webhooks_for_event"
+)
 @patch("saleor.plugins.manager.PluginsManager.collection_deleted")
 def test_delete_collections_trigger_collection_deleted_webhook(
     collection_deleted_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     collection_list,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variables = {
         "ids": [
             graphene.Node.to_global_id("Collection", collection.id)
@@ -387,14 +409,24 @@ def test_delete_collections_trigger_collection_deleted_webhook(
     assert len(collection_list) == collection_deleted_mock.call_count
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "collection_bulk_delete.get_webhooks_for_event"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_delete_collections_trigger_product_updated_webhook(
     product_updated_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     collection_list,
     product_list,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     for collection in collection_list:
         collection.products.add(*product_list)
     variables = {
@@ -452,7 +484,7 @@ def test_delete_products(
     for variant in [product_list[0].variants.first(), product_list[1].variants.first()]:
         product = variant.product
         variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-        net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
+        net = variant.get_price(variant_channel_listing)
         gross = Money(amount=net.amount, currency=net.currency)
         quantity = 3
         total_price = TaxedMoney(net=net * quantity, gross=gross * quantity)
@@ -569,7 +601,10 @@ def test_delete_products_with_images(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_bulk_delete.get_webhooks_for_event"
+)
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_products_trigger_webhook(
@@ -604,7 +639,10 @@ def test_delete_products_trigger_webhook(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_bulk_delete.get_webhooks_for_event"
+)
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_products_without_variants(
     mocked_webhook_trigger,
@@ -898,16 +936,24 @@ mutation productVariantBulkDelete($skus: [String!]!) {
 """
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_variant_bulk_delete.get_webhooks_for_event"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_by_sku(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product_variant_list,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
     # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     product = product_variant_list[0].product
 
     variant = product.variants.get(sku="123")
@@ -941,18 +987,29 @@ def test_delete_product_variants_by_sku(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_delete.get_webhooks_for_event"
+)
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_by_sku_task_for_recalculate_product_prices_called(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
     update_products_discounted_price_task_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product_list,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
     # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variants = [product.variants.first() for product in product_list]
     assert ProductVariantChannelListing.objects.filter(
         variant_id__in=[variant.id for variant in variants]
@@ -997,15 +1054,25 @@ mutation productVariantBulkDelete($ids: [ID!]!) {
 """
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_delete.get_webhooks_for_event"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product_variant_list,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
 
     product = product_variant_list[0].product
@@ -1041,17 +1108,29 @@ def test_delete_product_variants(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_delete.get_webhooks_for_event"
+)
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_task_for_recalculate_product_prices_called(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
     update_products_discounted_price_task_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product_list,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
 
     variants = [product.variants.first() for product in product_list]
@@ -1085,7 +1164,9 @@ def test_delete_product_variants_task_for_recalculate_product_prices_called(
     assert args == {product.id for product in product_list}
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_delete_product_variants_invalid_object_typed_of_given_ids(
     update_products_discounted_price_task_mock,
     staff_api_client,
@@ -1157,6 +1238,10 @@ def test_delete_product_variants_removes_checkout_lines(
     assert old_quantity == calculate_checkout_quantity(lines) + 2
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_delete.get_webhooks_for_event"
+)
 @patch("saleor.product.signals.delete_from_storage_task")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -1164,12 +1249,18 @@ def test_delete_product_variants_with_images(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
     delete_from_storage_task_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product_variant_list,
     image_list,
     permission_manage_products,
     media_root,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
 
     assert ProductVariantChannelListing.objects.filter(
@@ -1378,16 +1469,26 @@ def test_product_delete_removes_reference_to_page(
     assert not data["errors"]
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_delete.get_webhooks_for_event"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_with_file_attribute(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product_variant_list,
     permission_manage_products,
     file_attribute,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
 
     assert ProductVariantChannelListing.objects.filter(
@@ -1450,9 +1551,7 @@ def test_delete_product_variants_in_draft_orders(
     second_variant_channel_listing = second_variant_in_draft.channel_listings.get(
         channel=channel_USD
     )
-    net = second_variant_in_draft.get_price(
-        second_product, [], channel_USD, second_variant_channel_listing, None
-    )
+    net = second_variant_in_draft.get_price(second_variant_channel_listing)
     gross = Money(amount=net.amount, currency=net.currency)
     unit_price = TaxedMoney(net=net, gross=gross)
     quantity = 3
@@ -1474,7 +1573,7 @@ def test_delete_product_variants_in_draft_orders(
     variant = variants[0]
     product = variant.product
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-    net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
+    net = variant.get_price(variant_channel_listing)
     gross = Money(amount=net.amount, currency=net.currency)
     unit_price = TaxedMoney(net=net, gross=gross)
     quantity = 3
@@ -1705,10 +1804,7 @@ def test_delete_variants_delete_product_channel_listing_without_available_channe
     product_with_two_variants,
     permission_manage_products,
 ):
-    """Ensure that when the last available variant for channel is removed,
-    the corresponging product channel listings will be removed too, and when
-    any available variant for channel exist the product channel listing will
-    be not removed."""
+    """Test that a channel listing is removed when the last listed variant is removed."""
     # given
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
 

@@ -1,9 +1,11 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
+    from ..discount.models import OrderLineDiscount
     from ..payment.models import Payment
     from ..product.models import DigitalContent, ProductVariant
     from .models import Order, OrderLine
@@ -27,6 +29,7 @@ class OrderLineInfo:
     digital_content: Optional["DigitalContent"] = None
     replace: bool = False
     warehouse_pk: Optional[UUID] = None
+    line_discounts: Optional[Iterable["OrderLineDiscount"]] = None
 
 
 def fetch_order_info(order: "Order") -> OrderInfo:
@@ -41,7 +44,7 @@ def fetch_order_info(order: "Order") -> OrderInfo:
     return order_data
 
 
-def fetch_order_lines(order: "Order") -> List[OrderLineInfo]:
+def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
     lines = order.lines.prefetch_related("variant__digital_content")
     lines_info = []
     for line in lines:

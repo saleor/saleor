@@ -253,7 +253,7 @@ def test_order_query_with_filter_gift_card_bought_false(
 
 
 @pytest.mark.parametrize(
-    "orders_filter, count",
+    ("orders_filter", "count"),
     [
         (
             {
@@ -291,7 +291,7 @@ def test_order_query_with_filter_created(
 
 
 @pytest.mark.parametrize(
-    "orders_filter, count",
+    ("orders_filter", "count"),
     [
         ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 2),
         ({"updatedAt": {"lte": "2012-01-14T12:00:05+00:00"}}, 2),
@@ -334,7 +334,7 @@ def test_order_query_with_filter_updated_at(
 
 
 @pytest.mark.parametrize(
-    "orders_filter, count, payment_status",
+    ("orders_filter", "count", "payment_status"),
     [
         ({"paymentStatus": "FULLY_CHARGED"}, 1, ChargeStatus.FULLY_CHARGED),
         ({"paymentStatus": "NOT_CHARGED"}, 2, ChargeStatus.NOT_CHARGED),
@@ -397,7 +397,7 @@ def test_order_query_with_filter_payment_fully_refunded_not_active(
 
 
 @pytest.mark.parametrize(
-    "orders_filter, count, status",
+    ("orders_filter", "count", "status"),
     [
         ({"status": "UNFULFILLED"}, 2, OrderStatus.UNFULFILLED),
         ({"status": "UNCONFIRMED"}, 1, OrderStatus.UNCONFIRMED),
@@ -432,7 +432,7 @@ def test_order_query_with_filter_status(
 
 
 @pytest.mark.parametrize(
-    "orders_filter, user_field, user_value",
+    ("orders_filter", "user_field", "user_value"),
     [
         ({"customer": "admin"}, "email", "admin@example.com"),
         ({"customer": "John"}, "first_name", "johnny"),
@@ -618,7 +618,7 @@ def test_order_query_with_filter_is_preorder_false(
 
 
 @pytest.mark.parametrize(
-    "orders_filter, count",
+    ("orders_filter", "count"),
     [
         ({"search": "discount name"}, 2),
         ({"search": "Some other"}, 1),
@@ -686,8 +686,8 @@ def test_orders_query_with_filter_search(
 
     order_with_orderline = orders[2]
     channel = order_with_orderline.channel
-    channel_listening = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listening)
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     unit_price = TaxedMoney(net=net, gross=gross)
@@ -739,13 +739,15 @@ def test_orders_query_with_filter_search_by_global_payment_id(
             ),
         ]
     )
-    OrderDiscount.objects.create(
-        order=orders[0],
-        name="test_discount1",
-        value=Decimal("1"),
-        amount_value=Decimal("1"),
-        translated_name="translated_discount1_name",
-    ),
+    (
+        OrderDiscount.objects.create(
+            order=orders[0],
+            name="test_discount1",
+            value=Decimal("1"),
+            amount_value=Decimal("1"),
+            translated_name="translated_discount1_name",
+        ),
+    )
 
     order_with_payment = orders[0]
     payment = Payment.objects.create(order=order_with_payment)
@@ -993,7 +995,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
     product = product
     channel = order.channel
     channel_listening = variants[0].channel_listings.get(channel=channel)
-    net = variants[0].get_price(product, [], channel, channel_listening)
+    net = variants[0].get_price(channel_listening)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
@@ -1046,7 +1048,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
 
 
 @pytest.mark.parametrize(
-    "transaction_data, statuses, expected_count",
+    ("transaction_data", "statuses", "expected_count"),
     [
         (
             {"authorized_value": Decimal("10")},
@@ -1127,7 +1129,7 @@ def test_orders_query_with_filter_authorize_status(
 
 
 @pytest.mark.parametrize(
-    "transaction_data, statuses, expected_count",
+    ("transaction_data", "statuses", "expected_count"),
     [
         (
             {"charged_value": Decimal("10")},

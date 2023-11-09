@@ -77,7 +77,7 @@ def test_address_query_invalid_id(
     response = staff_api_client.post_graphql(ADDRESS_QUERY, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: Address."
     assert content["data"]["address"] is None
 
 

@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import List, Tuple
 
 import i18naddress
 from django import forms
@@ -139,7 +138,7 @@ class AddressForm(forms.ModelForm):
 
 
 class CountryAwareAddressForm(AddressForm):
-    I18N_MAPPING: List[Tuple[str, List[str]]] = [
+    I18N_MAPPING: list[tuple[str, list[str]]] = [
         ("name", ["first_name", "last_name"]),
         ("street_address", ["street_address_1", "street_address_2"]),
         ("city_area", ["city_area"]),
@@ -255,7 +254,7 @@ def construct_address_form(country_code, i18n_rules):
     class_name = f"AddressForm{country_code}"
     base_class = CountryAwareAddressForm
     form_kwargs = {
-        "Meta": type(str("Meta"), (base_class.Meta, object), {}),
+        "Meta": type("Meta", (base_class.Meta, object), {}),
         "formfield_callback": None,
         "i18n_country_code": country_code,
         "i18n_fields_order": property(get_form_i18n_lines),

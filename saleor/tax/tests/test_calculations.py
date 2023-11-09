@@ -8,7 +8,7 @@ from ..calculations import calculate_flat_rate_tax
 
 
 @pytest.mark.parametrize(
-    "amount, net, gross, rate, prices_entered_with_tax",
+    ("amount", "net", "gross", "rate", "prices_entered_with_tax"),
     [
         ("10.00", "10.00", "12.30", Decimal(23), False),
         ("10.00", "8.13", "10.00", Decimal(23), True),

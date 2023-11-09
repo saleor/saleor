@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchRank
@@ -53,16 +53,9 @@ def update_products_search_vector(products: "QuerySet", use_batches=True):
         _prep_product_search_vector_index(products)
 
 
-def update_product_search_vector(product: "Product"):
-    product.search_vector = FlatConcatSearchVector(
-        *prepare_product_search_vector_value(product)
-    )
-    product.save(update_fields=["search_vector", "updated_at"])
-
-
 def prepare_product_search_vector_value(
     product: "Product", *, already_prefetched=False
-) -> List[NoValidationSearchVector]:
+) -> list[NoValidationSearchVector]:
     if not already_prefetched:
         prefetch_related_objects([product], *PRODUCT_FIELDS_TO_PREFETCH)
     search_vectors = [
@@ -80,7 +73,7 @@ def prepare_product_search_vector_value(
 
 def generate_variants_search_vector_value(
     product: "Product",
-) -> List[NoValidationSearchVector]:
+) -> list[NoValidationSearchVector]:
     variants = list(product.variants.all()[: settings.PRODUCT_MAX_INDEXED_VARIANTS])
 
     search_vectors = [
@@ -102,7 +95,7 @@ def generate_variants_search_vector_value(
 
 def generate_attributes_search_vector_value(
     assigned_attributes: "QuerySet",
-) -> List[NoValidationSearchVector]:
+) -> list[NoValidationSearchVector]:
     """Prepare `search_vector` value for assigned attributes.
 
     Method should receive assigned attributes with prefetched `values`

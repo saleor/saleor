@@ -14,9 +14,12 @@ from .utils import checkout_create, checkout_lines_update
 
 
 def prepare_product_with_limit(e2e_staff_api_client):
-    result_warehouse_id, result_channel_id, result_channel_slug, _ = prepare_shop(
-        e2e_staff_api_client
-    )
+    (
+        warehouse_id,
+        channel_id,
+        channel_slug,
+        _shipping_method_id,
+    ) = prepare_shop(e2e_staff_api_client)
 
     product_type_data = create_product_type(
         e2e_staff_api_client,
@@ -26,14 +29,22 @@ def prepare_product_with_limit(e2e_staff_api_client):
     category_data = create_category(e2e_staff_api_client)
     category_id = category_data["id"]
 
-    product_data = create_product(e2e_staff_api_client, product_type_id, category_id)
+    product_data = create_product(
+        e2e_staff_api_client,
+        product_type_id,
+        category_id,
+    )
     product_id = product_data["id"]
 
-    create_product_channel_listing(e2e_staff_api_client, product_id, result_channel_id)
+    create_product_channel_listing(
+        e2e_staff_api_client,
+        product_id,
+        channel_id,
+    )
 
     stocks = [
         {
-            "warehouse": result_warehouse_id,
+            "warehouse": warehouse_id,
             "quantity": 5,
         }
     ]
@@ -52,7 +63,7 @@ def prepare_product_with_limit(e2e_staff_api_client):
     create_product_variant_channel_listing(
         e2e_staff_api_client,
         product_variant_id,
-        result_channel_id,
+        channel_id,
         price=10,
     )
 
@@ -60,7 +71,7 @@ def prepare_product_with_limit(e2e_staff_api_client):
         product_variant_id,
         product_variant_name,
         product_variant_quantity_limit_per_customer,
-        result_channel_slug,
+        channel_slug,
     )
 
 
@@ -85,7 +96,7 @@ def test_checkout_with_product_quantity_exceeding_the_limit_per_customer_core_01
         product_variant_id,
         product_variant_name,
         product_variant_quantity_limit_per_customer,
-        result_channel_slug,
+        channel_slug,
     ) = prepare_product_with_limit(
         e2e_staff_api_client,
     )
@@ -97,7 +108,7 @@ def test_checkout_with_product_quantity_exceeding_the_limit_per_customer_core_01
     checkout_data = checkout_create(
         e2e_logged_api_client,
         lines,
-        result_channel_slug,
+        channel_slug,
         email="testEmail@example.com",
         set_default_billing_address=True,
     )

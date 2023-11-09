@@ -1,8 +1,10 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, List, Set, Union
+from typing import TYPE_CHECKING
+
+from django.db.models import QuerySet
 
 if TYPE_CHECKING:
-    from .models import Sale, SaleChannelListing
+    from .models import PromotionRule
 
 
 class DiscountValueType:
@@ -17,9 +19,15 @@ class DiscountValueType:
 
 class DiscountType:
     SALE = "sale"
+    PROMOTION = "promotion"
     VOUCHER = "voucher"
     MANUAL = "manual"
-    CHOICES = [(SALE, "Sale"), (VOUCHER, "Voucher"), (MANUAL, "Manual")]
+    CHOICES = [
+        (SALE, "Sale"),
+        (VOUCHER, "Voucher"),
+        (MANUAL, "Manual"),
+        (PROMOTION, "Promotion"),
+    ]
 
 
 class VoucherType:
@@ -34,11 +42,40 @@ class VoucherType:
     ]
 
 
+class RewardValueType:
+    FIXED = "fixed"
+    PERCENTAGE = "percentage"
+
+    CHOICES = [
+        (FIXED, "fixed"),
+        (PERCENTAGE, "%"),
+    ]
+
+
+class PromotionEvents:
+    PROMOTION_CREATED = "promotion_created"
+    PROMOTION_UPDATED = "promotion_updated"
+    PROMOTION_STARTED = "promotion_started"
+    PROMOTION_ENDED = "promotion_ended"
+
+    RULE_CREATED = "rule_created"
+    RULE_UPDATED = "rule_updated"
+    RULE_DELETED = "rule_deleted"
+
+    CHOICES = [
+        (PROMOTION_CREATED, "Promotion created"),
+        (PROMOTION_UPDATED, "Promotion updated"),
+        (PROMOTION_STARTED, "Promotion started"),
+        (PROMOTION_ENDED, "Promotion ended"),
+        (RULE_CREATED, "Rule created"),
+        (RULE_UPDATED, "Rule updated"),
+        (RULE_DELETED, "Rule deleted"),
+    ]
+
+
 @dataclass
-class DiscountInfo:
-    sale: "Sale"
-    channel_listings: Dict[str, "SaleChannelListing"]
-    product_ids: Union[List[int], Set[int]]
-    category_ids: Union[List[int], Set[int]]
-    collection_ids: Union[List[int], Set[int]]
-    variants_ids: Union[List[int], Set[int]]
+class PromotionRuleInfo:
+    rule: "PromotionRule"
+    variant_ids: list[int]
+    variants: QuerySet
+    channel_ids: list[int]

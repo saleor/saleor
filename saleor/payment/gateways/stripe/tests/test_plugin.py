@@ -1241,7 +1241,7 @@ def test_confirm_payment_for_webhook(kind, stripe_plugin, payment_stripe_for_che
 
 
 @pytest.mark.parametrize(
-    "kind, status",
+    ("kind", "status"),
     [
         (TransactionKind.AUTH, AUTHORIZED_STATUS),
         (TransactionKind.CAPTURE, SUCCESS_STATUS),
@@ -1298,7 +1298,7 @@ def test_confirm_payment_intent_without_details(
 
 
 @pytest.mark.parametrize(
-    "kind, status",
+    ("kind", "status"),
     [
         (TransactionKind.AUTH, AUTHORIZED_STATUS),
         (TransactionKind.CAPTURE, SUCCESS_STATUS),

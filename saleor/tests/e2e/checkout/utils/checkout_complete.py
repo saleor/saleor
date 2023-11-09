@@ -11,12 +11,20 @@ mutation CheckoutComplete($checkoutId: ID!) {
     order {
       id
       status
+      paymentStatus
+      isPaid
       user {
         email
       }
       isShippingRequired
       total {
         gross {
+          amount
+        }
+        net {
+          amount
+        }
+        tax {
           amount
         }
       }
@@ -45,6 +53,12 @@ mutation CheckoutComplete($checkoutId: ID!) {
         gross {
           amount
         }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
       }
       lines {
         id
@@ -71,6 +85,10 @@ mutation CheckoutComplete($checkoutId: ID!) {
       }
       voucher {
         code
+      }
+      giftCards {
+        id
+        last4CodeChars
       }
     }
   }

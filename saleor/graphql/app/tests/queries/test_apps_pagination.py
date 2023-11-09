@@ -4,7 +4,7 @@ from .....app.models import App
 from ....tests.utils import get_graphql_content
 
 
-@pytest.fixture()
+@pytest.fixture
 def apps_for_pagination():
     apps = App.objects.bulk_create(
         [
@@ -44,7 +44,7 @@ QUERY_APP_PAGINATION = """
 
 
 @pytest.mark.parametrize(
-    "sort_by, apps_order",
+    ("sort_by", "apps_order"),
     [
         ({"field": "NAME", "direction": "ASC"}, ["Account1", "Account2", "Account3"]),
         (
@@ -76,7 +76,7 @@ def test_apps_pagination_with_sorting(
 
 
 @pytest.mark.parametrize(
-    "filter_by, apps_order",
+    ("filter_by", "apps_order"),
     [
         ({"search": "Account"}, ["Account1", "Account2"]),
         ({"search": "AccountAccount"}, ["AccountAccount1", "AccountAccount2"]),

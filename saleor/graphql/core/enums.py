@@ -204,6 +204,11 @@ ExportErrorCode = graphene.Enum.from_enum(csv_error_codes.ExportErrorCode)
 DiscountErrorCode = graphene.Enum.from_enum(discount_error_codes.DiscountErrorCode)
 DiscountErrorCode.doc_category = DOC_CATEGORY_DISCOUNTS
 
+VoucherCodeBulkDeleteErrorCode = graphene.Enum.from_enum(
+    discount_error_codes.VoucherCodeBulkDeleteErrorCode
+)
+VoucherCodeBulkDeleteErrorCode.doc_category = DOC_CATEGORY_DISCOUNTS
+
 PluginErrorCode = graphene.Enum.from_enum(plugin_error_codes.PluginErrorCode)
 
 GiftCardErrorCode = graphene.Enum.from_enum(giftcard_error_codes.GiftCardErrorCode)
@@ -299,6 +304,21 @@ StoredPaymentMethodRequestDeleteErrorCode = graphene.Enum.from_enum(
     payment_error_codes.StoredPaymentMethodRequestDeleteErrorCode
 )
 StoredPaymentMethodRequestDeleteErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
+
+PaymentGatewayInitializeTokenizationErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.PaymentGatewayInitializeTokenizationErrorCode
+)
+PaymentGatewayInitializeTokenizationErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
+
+PaymentMethodInitializeTokenizationErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.PaymentMethodInitializeTokenizationErrorCode
+)
+PaymentMethodInitializeTokenizationErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
+
+PaymentMethodProcessTokenizationErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.PaymentMethodProcessTokenizationErrorCode
+)
+PaymentMethodProcessTokenizationErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
 PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode

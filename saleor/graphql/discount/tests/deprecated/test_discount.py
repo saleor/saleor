@@ -1,7 +1,7 @@
 import warnings
 
 from .....channel.utils import DEPRECATION_WARNING_MESSAGE
-from .....discount.models import Sale, Voucher
+from .....discount.models import Promotion, Voucher, VoucherCode
 from ....tests.utils import get_graphql_content
 
 QUERY_SALES_WITH_SORTING_AND_FILTERING = """
@@ -18,12 +18,12 @@ QUERY_SALES_WITH_SORTING_AND_FILTERING = """
 
 
 def test_sales_with_sorting_and_without_channel(
-    staff_api_client, permission_manage_discounts, new_sale, sale, channel_USD
+    staff_api_client,
+    permission_manage_discounts,
+    promotion_converted_from_sale,
+    promotion_converted_from_sale_with_empty_predicate,
 ):
     # given
-    listing = new_sale.channel_listings.first()
-    listing.discount_value = 10
-    listing.save(update_fields=["discount_value"])
     variables = {"sortBy": {"field": "VALUE", "direction": "ASC"}}
 
     # when
@@ -38,7 +38,14 @@ def test_sales_with_sorting_and_without_channel(
     # then
     content = get_graphql_content(response)
     sales_nodes = content["data"]["sales"]["edges"]
-    assert [node["node"]["name"] for node in sales_nodes] == [sale.name, new_sale.name]
+    promotion_names = [
+        promotion.name
+        for promotion in [
+            promotion_converted_from_sale,
+            promotion_converted_from_sale_with_empty_predicate,
+        ]
+    ]
+    assert all([node["node"]["name"] in promotion_names for node in sales_nodes])
 
     assert any(
         [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
@@ -83,8 +90,13 @@ def test_query_vouchers_with_sort(
 
 
 def test_filter_sales_by_query(staff_api_client, permission_manage_discounts):
-    sales = Sale.objects.bulk_create([Sale(name="Spanish"), Sale(name="Inquisition")])
-    sale = sales[1]
+    promotions = Promotion.objects.bulk_create(
+        [Promotion(name="Promotion"), Promotion(name="Sale")]
+    )
+    for promotion in promotions:
+        promotion.assign_old_sale_id()
+
+    promotion = promotions[1]
 
     query = """
         query Sales($query: String) {
@@ -99,16 +111,27 @@ def test_filter_sales_by_query(staff_api_client, permission_manage_discounts):
     """
 
     staff_api_client.user.user_permissions.add(permission_manage_discounts)
-    response = staff_api_client.post_graphql(query, {"query": sale.name})
+
+    # when
+    response = staff_api_client.post_graphql(query, {"query": promotion.name})
+
+    # then
     content = get_graphql_content(response)
-    assert content["data"]["sales"]["edges"][0]["node"]["name"] == sale.name
+    assert content["data"]["sales"]["edges"][0]["node"]["name"] == promotion.name
 
 
 def test_filter_vouchers_by_query(staff_api_client, permission_manage_discounts):
     vouchers = Voucher.objects.bulk_create(
         [
-            Voucher(code="code1", name="Spanish"),
-            Voucher(code="code2", name="Inquisition"),
+            Voucher(name="Spanish"),
+            Voucher(name="Inquisition"),
+        ]
+    )
+
+    codes = VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="code1", voucher=vouchers[0]),
+            VoucherCode(code="code2", voucher=vouchers[1]),
         ]
     )
     voucher = vouchers[1]
@@ -129,4 +152,4 @@ def test_filter_vouchers_by_query(staff_api_client, permission_manage_discounts)
     staff_api_client.user.user_permissions.add(permission_manage_discounts)
     response = staff_api_client.post_graphql(query, {"query": voucher.name})
     content = get_graphql_content(response)
-    assert content["data"]["vouchers"]["edges"][0]["node"]["code"] == voucher.code
+    assert content["data"]["vouchers"]["edges"][0]["node"]["code"] == codes[1].code

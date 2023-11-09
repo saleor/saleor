@@ -412,7 +412,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(62):
+    with django_assert_num_queries(61):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -430,7 +430,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(62):
+    with django_assert_num_queries(61):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -736,7 +736,7 @@ MUTATION_CHECKOUT_LINES_ADD = (
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_add_checkout_lines(
     mock_send_request,
     api_client,
@@ -809,7 +809,7 @@ def test_add_checkout_lines(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_add_checkout_lines_with_external_shipping(
     mock_send_request,
     api_client,

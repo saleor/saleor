@@ -18,7 +18,7 @@ QUERY_STAFF_USERS_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "customer_sort, result_order",
+    ("customer_sort", "result_order"),
     [
         # Empty string in result is first_name for staff_api_client.
         ({"field": "FIRST_NAME", "direction": "ASC"}, ["", "Joe", "John", "Leslie"]),
