@@ -374,6 +374,9 @@ class PromotionRule(models.Model):
         blank=True, default=dict, encoder=CustomJsonEncoder
     )
     variants = models.ManyToManyField("product.ProductVariant", blank=True)
+    checkout_and_order_predicate = models.JSONField(
+        blank=True, default=dict, encoder=CustomJsonEncoder
+    )
     reward_value_type = models.CharField(
         max_length=255, choices=RewardValueType.CHOICES, blank=True, null=True
     )
