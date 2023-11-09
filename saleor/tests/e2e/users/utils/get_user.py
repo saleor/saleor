@@ -4,6 +4,9 @@ USER_QUERY = """
 query CustomerDetails($id:ID!){
   user(id: $id) {
     id
+    email
+    isConfirmed
+    isActive
     orders(first: 10){
       edges {
         node {

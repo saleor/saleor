@@ -1,8 +1,10 @@
 import pytest
 
+from ..account.utils import account_register
 from ..product.utils.preparing_product import prepare_product
+from ..shop.utils import update_shop_settings
 from ..shop.utils.preparing_shop import prepare_shop
-from ..users.utils import create_customer, get_user
+from ..users.utils import customer_update, get_user
 from ..utils import assign_permissions
 from .utils import (
     checkout_complete,
@@ -12,24 +14,10 @@ from .utils import (
 )
 
 
-def create_active_customer(
-    e2e_staff_api_client,
-):
-    email = "user@saleor.io"
-
-    user_data = create_customer(
-        e2e_staff_api_client,
-        email,
-        is_active=True,
-    )
-    user_id = user_data["id"]
-
-    return user_id, email
-
-
 @pytest.mark.e2e
-def test_guest_checkout_should_be_associated_with_user_account_CORE_1517(
+def test_guest_checkout_should_be_assigned_to_user_after_creating_the_account_CORE_1518(
     e2e_staff_api_client,
+    app_api_client,
     e2e_not_logged_api_client,
     permission_manage_products,
     permission_manage_channels,
@@ -39,6 +27,7 @@ def test_guest_checkout_should_be_associated_with_user_account_CORE_1517(
     permission_manage_checkouts,
     permission_manage_users,
     permission_manage_settings,
+    permission_manage_payments,
 ):
     # Before
     permissions = [
@@ -50,7 +39,16 @@ def test_guest_checkout_should_be_associated_with_user_account_CORE_1517(
         permission_manage_checkouts,
         permission_manage_users,
         permission_manage_settings,
+        permission_manage_payments,
     ]
+    assign_permissions(
+        app_api_client,
+        [
+            permission_manage_checkouts,
+            permission_manage_orders,
+            permission_manage_payments,
+        ],
+    )
     assign_permissions(e2e_staff_api_client, permissions)
 
     (
@@ -59,6 +57,11 @@ def test_guest_checkout_should_be_associated_with_user_account_CORE_1517(
         channel_slug,
         shipping_method_id,
     ) = prepare_shop(e2e_staff_api_client)
+
+    input_data = {
+        "enableAccountConfirmationByEmail": False,
+    }
+    update_shop_settings(e2e_staff_api_client, input_data)
 
     variant_price = 10
 
@@ -73,9 +76,8 @@ def test_guest_checkout_should_be_associated_with_user_account_CORE_1517(
         variant_price,
     )
 
-    user_id, email = create_active_customer(e2e_staff_api_client)
-
-    # Step 1 - Create checkout as a guest user
+    # Step 1 - Create checkout
+    email = "test@saleor.io"
     lines = [
         {
             "variantId": product_variant_id,
@@ -83,7 +85,7 @@ def test_guest_checkout_should_be_associated_with_user_account_CORE_1517(
         },
     ]
     checkout_data = checkout_create(
-        e2e_not_logged_api_client,
+        app_api_client,
         lines,
         channel_slug,
         email,
@@ -98,7 +100,7 @@ def test_guest_checkout_should_be_associated_with_user_account_CORE_1517(
 
     # Step 2 - Set DeliveryMethod for checkout
     checkout_data = checkout_delivery_method_update(
-        e2e_not_logged_api_client,
+        app_api_client,
         checkout_id,
         shipping_method_id,
     )
@@ -107,14 +109,14 @@ def test_guest_checkout_should_be_associated_with_user_account_CORE_1517(
 
     # Step 3 - Create payment for checkout
     checkout_dummy_payment_create(
-        e2e_not_logged_api_client,
+        app_api_client,
         checkout_id,
         total_gross_amount,
     )
 
-    # Step 4 - Complete checkout.
+    # Step 4 - Complete checkout
     order_data = checkout_complete(
-        e2e_not_logged_api_client,
+        app_api_client,
         checkout_id,
     )
     order_id = order_data["id"]
@@ -123,7 +125,24 @@ def test_guest_checkout_should_be_associated_with_user_account_CORE_1517(
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
     assert order_data["deliveryMethod"]["id"] == shipping_method_id
 
-    # Step 5 - Check the order is assigned to the customer's account
+    # Step 5 - Register new account
+    password = "Test1234!"
+    redirect_url = "https://www.example.com"
+    user_account = account_register(
+        e2e_not_logged_api_client,
+        email,
+        password,
+        channel_slug,
+        redirect_url,
+    )
+    user_id = user_account["user"]["id"]
+    assert user_account["user"]["isActive"] is True
+
+    # Step 6 - Confirm new account
+    input_data = {"isConfirmed": True}
+    customer_update(e2e_staff_api_client, user_id, input_data)
+
+    # Step 7 - Check the order is assigned to the customer's account
     data = get_user(e2e_staff_api_client, user_id)
     assert data["id"] == user_id
     assert data["orders"]["edges"][0]["node"]["id"] == order_id
