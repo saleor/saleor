@@ -32,7 +32,6 @@ from ..core.descriptions import (
     ADDED_IN_316,
     ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
-    DEPRECATED_PREVIEW_IN_316_FIELD,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -244,18 +243,6 @@ class OrderSettings(ObjectType):
             "\n`TRANSACTION_FLOW` - creates the `TransactionItem` object."
             + ADDED_IN_313
             + PREVIEW_FEATURE
-        ),
-    )
-    default_transaction_flow_strategy = TransactionFlowStrategyEnum(
-        required=True,
-        description=(
-            "Determine the transaction flow strategy to be used. "
-            "Include the selected option in the payload sent to the payment app, as a "
-            "requested action for the transaction."
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
-            + DEPRECATED_PREVIEW_IN_316_FIELD
-            + " Use `PaymentSettings.defaultTransactionFlowStrategy` instead."
         ),
     )
     delete_expired_orders_after = Day(
@@ -563,7 +550,6 @@ class Channel(ModelObjectType):
             ),
             expire_orders_after=root.expire_orders_after,
             mark_as_paid_strategy=root.order_mark_as_paid_strategy,
-            default_transaction_flow_strategy=root.default_transaction_flow_strategy,
             delete_expired_orders_after=root.delete_expired_orders_after.days,
             include_draft_order_in_voucher_usage=(
                 root.include_draft_order_in_voucher_usage

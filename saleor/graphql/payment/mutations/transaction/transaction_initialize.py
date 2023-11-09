@@ -52,8 +52,9 @@ class TransactionInitialize(TransactionSessionBase):
             TransactionFlowStrategyEnum,
             description=(
                 "The expected action called for the transaction. By default, the "
-                "`channel.defaultTransactionFlowStrategy` will be used. The field "
-                "can be used only by app that has `HANDLE_PAYMENTS` permission."
+                "`channel.paymentSettings.defaultTransactionFlowStrategy` will be used."
+                "The field can be used only by app that has `HANDLE_PAYMENTS` "
+                "permission."
             ),
         )
         customer_ip_address = graphene.String(

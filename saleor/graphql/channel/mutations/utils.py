@@ -47,7 +47,6 @@ def clean_input_order_settings(
     channel_settings = [
         "automatically_confirm_all_new_orders",
         "automatically_fulfill_non_shippable_gift_card",
-        "default_transaction_flow_strategy",
         "allow_unpaid_orders",
         "include_draft_order_in_voucher_usage",
     ]
