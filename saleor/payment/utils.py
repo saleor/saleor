@@ -8,6 +8,7 @@ from typing import Any, Optional, Union, cast, overload
 import graphene
 from aniso8601 import parse_datetime
 from babel.numbers import get_currency_precision
+from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 from django.db.models import Q
@@ -731,6 +732,33 @@ def get_correct_event_types_based_on_request_type(request_type: str) -> list[str
     return type_map.get(request_type, [])
 
 
+def parse_transaction_event_amount(
+    amount_data: Union[str, int, float, None],
+    parsed_event_data: dict,
+    error_field_msg: list[str],
+    invalid_msg: str,
+    missing_msg: str,
+):
+    if amount_data is not None:
+        amount_valid = True
+        try:
+            amount = decimal.Decimal(amount_data).quantize(
+                decimal.Decimal(10) ** (-settings.DEFAULT_DECIMAL_PLACES)
+            )
+            parsed_event_data["amount"] = amount
+            if not amount.is_finite():
+                amount_valid = False
+        except decimal.DecimalException:
+            amount_valid = False
+
+        if not amount_valid:
+            logger.warning(invalid_msg, "amount", amount_data)
+            error_field_msg.append(invalid_msg % ("amount", amount_data))
+    else:
+        logger.warning(missing_msg, "amount")
+        error_field_msg.append(missing_msg % "amount")
+
+
 def parse_transaction_event_data(
     event_data: dict,
     parsed_event_data: dict,
@@ -777,15 +805,13 @@ def parse_transaction_event_data(
         error_field_msg.append(missing_msg % "result")
 
     amount_data = event_data.get("amount")
-    if amount_data is not None:
-        try:
-            parsed_event_data["amount"] = decimal.Decimal(amount_data)
-        except decimal.DecimalException:
-            logger.warning(invalid_msg, "amount", amount_data)
-            error_field_msg.append(invalid_msg % ("amount", amount_data))
-    else:
-        logger.warning(missing_msg, "amount")
-        error_field_msg.append(missing_msg % "amount")
+    parse_transaction_event_amount(
+        amount_data,
+        parsed_event_data=parsed_event_data,
+        error_field_msg=error_field_msg,
+        invalid_msg=invalid_msg,
+        missing_msg=missing_msg,
+    )
 
     if event_time_data := event_data.get("time"):
         try:
