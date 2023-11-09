@@ -72,13 +72,27 @@ def resolve_user(info, id=None, email=None, external_reference=None):
         if requester.has_perms(
             [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
         ):
-            return models.User.objects.filter(**filter_kwargs).first()
+            return (
+                models.User.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+                .filter(**filter_kwargs)
+                .first()
+            )
         if requester.has_perm(AccountPermissions.MANAGE_STAFF):
-            return models.User.objects.staff().filter(**filter_kwargs).first()
+            return (
+                models.User.objects.staff()
+                .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+                .filter(**filter_kwargs)
+                .first()
+            )
         if has_one_of_permissions(
             requester, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS]
         ):
-            return models.User.objects.customers().filter(**filter_kwargs).first()
+            return (
+                models.User.objects.customers()
+                .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+                .filter(**filter_kwargs)
+                .first()
+            )
     return PermissionDenied(
         permissions=[
             AccountPermissions.MANAGE_STAFF,

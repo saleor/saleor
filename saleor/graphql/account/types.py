@@ -472,7 +472,7 @@ class User(ModelObjectType[models.User]):
 
     @staticmethod
     def resolve_permission_groups(root: models.User, _info: ResolveInfo):
-        return root.groups.all()
+        return root.groups.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()
 
     @staticmethod
     def resolve_editable_groups(root: models.User, _info: ResolveInfo):
