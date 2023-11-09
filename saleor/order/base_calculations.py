@@ -23,8 +23,8 @@ def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     subtotal = zero_money(currency)
     for line in lines:
         quantity = line.quantity
-        price_with_discounts = line.base_unit_price * quantity
-        subtotal += price_with_discounts
+        base_line_total = line.base_unit_price * quantity
+        subtotal += base_line_total
     return subtotal
 
 

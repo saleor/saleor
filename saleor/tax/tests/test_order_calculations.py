@@ -8,7 +8,7 @@ from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
 from ...discount import DiscountType, DiscountValueType
 from ...order import OrderStatus
-from ...order.calculations import fetch_order_prices_if_expired
+from ...order.calculations import fetch_order_prices_and_update_if_expired
 from ...order.utils import get_order_country
 from ...plugins.manager import get_plugins_manager
 from .. import TaxCalculationStrategy
@@ -724,7 +724,7 @@ def test_use_default_country_rate_when_no_tax_class_was_set_before(
     order.refresh_from_db()
 
     # when
-    fetch_order_prices_if_expired(order, manager, force_update=True)
+    fetch_order_prices_and_update_if_expired(order, manager, force_update=True)
     order.refresh_from_db()
 
     # then
