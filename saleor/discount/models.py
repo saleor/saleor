@@ -362,6 +362,9 @@ class PromotionRule(models.Model):
     catalogue_predicate = models.JSONField(
         blank=True, default=dict, encoder=CustomJsonEncoder
     )
+    checkout_and_order_predicate = models.JSONField(
+        blank=True, default=dict, encoder=CustomJsonEncoder
+    )
     reward_value_type = models.CharField(
         max_length=255, choices=RewardValueType.CHOICES, blank=True, null=True
     )
