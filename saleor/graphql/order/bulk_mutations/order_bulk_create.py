@@ -695,7 +695,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             pk__in=identifiers.shipping_method_ids.keys
         )
         tax_classes = TaxClass.objects.filter(pk__in=identifiers.tax_class_ids.keys)
-        apps = App.objects.filter(pk__in=identifiers.app_ids.keys)
+        apps = App.objects.filter(
+            pk__in=identifiers.app_ids.keys, removed_at__isnull=True
+        )
         gift_cards = GiftCard.objects.filter(code__in=identifiers.gift_card_codes.keys)
         orders = Order.objects.filter(
             external_reference__in=identifiers.order_external_references.keys

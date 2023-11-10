@@ -17,7 +17,11 @@ class AppByIdLoader(DataLoader):
     context_key = "app_by_id"
 
     def batch_load(self, keys):
-        apps = App.objects.using(self.database_connection_name).in_bulk(keys)
+        apps = (
+            App.objects.using(self.database_connection_name)
+            .filter(removed_at__isnull=True)
+            .in_bulk(keys)
+        )
         return [apps.get(key) for key in keys]
 
 
@@ -101,7 +105,9 @@ class AppByTokenLoader(DataLoader):
 
         apps = (
             App.objects.using(self.database_connection_name)
-            .filter(id__in=authed_apps.values(), is_active=True)
+            .filter(
+                id__in=authed_apps.values(), is_active=True, removed_at__isnull=True
+            )
             .in_bulk()
         )
 

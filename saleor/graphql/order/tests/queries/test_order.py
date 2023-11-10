@@ -9,7 +9,7 @@ from .....core.prices import quantize_price
 from .....core.taxes import zero_taxed_money
 from .....order import OrderStatus
 from .....order.events import transaction_event
-from .....order.models import Order
+from .....order.models import Order, OrderGrantedRefund
 from .....order.utils import (
     get_order_country,
     update_order_authorize_data,
@@ -1593,3 +1593,141 @@ def test_query_orders_by_customer(
 
     # then
     assert_no_permission(response)
+
+
+QUERY_ORDER_PAYMENT_STATUSES = """
+    query OrderQuery($id: ID!) {
+        order(id: $id) {
+            paymentStatus
+            paymentStatusDisplay
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "order_total, granted_refund_amount, total_charged, expected_payment_status",
+    [
+        (Decimal(100), Decimal(0), Decimal(0), PaymentChargeStatusEnum.NOT_CHARGED),
+        (Decimal(100), Decimal(50), Decimal(0), PaymentChargeStatusEnum.NOT_CHARGED),
+        # order total - total granted refund is bigger than total charged
+        (
+            Decimal(100),
+            Decimal(25),
+            Decimal(50),
+            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+        ),
+        # order total is bigger than total charged
+        (
+            Decimal(100),
+            Decimal(0),
+            Decimal(50),
+            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+        ),
+        # order total - total granted refund is 0, total charged is 100, order is
+        # marked as fully charged
+        (
+            Decimal(100),
+            Decimal(100),
+            Decimal(100),
+            PaymentChargeStatusEnum.FULLY_CHARGED,
+        ),
+        # order total is 0, total charged is 0, order is fully charged
+        (Decimal(0), Decimal(0), Decimal(0), PaymentChargeStatusEnum.FULLY_CHARGED),
+        # order total - total granted refund is equal to total charged = 0
+        (Decimal(100), Decimal(100), Decimal(0), PaymentChargeStatusEnum.FULLY_CHARGED),
+        # order total - total granted refund is equal to total charged = 50
+        (Decimal(100), Decimal(50), Decimal(50), PaymentChargeStatusEnum.FULLY_CHARGED),
+        # order total - total granted refund is equal to total charged = 100
+        (Decimal(100), Decimal(0), Decimal(100), PaymentChargeStatusEnum.FULLY_CHARGED),
+    ],
+)
+def test_order_payment_status_with_transaction_and_granted_refunds(
+    order_total,
+    granted_refund_amount,
+    total_charged,
+    expected_payment_status,
+    user_api_client,
+    order_with_lines,
+):
+    # given
+    variables = {"id": graphene.Node.to_global_id("Order", order_with_lines.id)}
+    order_with_lines.payment_transactions.create(
+        charged_value=total_charged, currency=order_with_lines.currency
+    )
+    order_with_lines.total_gross_amount = order_total
+    order_with_lines.total_net_amount = order_total
+    OrderGrantedRefund.objects.bulk_create(
+        [
+            OrderGrantedRefund(
+                order=order_with_lines,
+                amount_value=Decimal(0),
+                currency=order_with_lines.currency,
+            ),
+            OrderGrantedRefund(
+                order=order_with_lines,
+                amount_value=granted_refund_amount,
+                currency=order_with_lines.currency,
+            ),
+        ]
+    )
+    order_with_lines.total_charged_amount = total_charged
+    order_with_lines.save()
+    # when
+    response = user_api_client.post_graphql(QUERY_ORDER_PAYMENT_STATUSES, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["order"]
+
+    # then
+    assert data["paymentStatus"] == expected_payment_status.name
+    assert data["paymentStatusDisplay"] == dict(ChargeStatus.CHOICES).get(
+        expected_payment_status.value
+    )
+
+
+@pytest.mark.parametrize(
+    "order_total, total_charged, expected_payment_status",
+    [
+        (Decimal(100), Decimal(0), PaymentChargeStatusEnum.NOT_CHARGED),
+        # order total is bigger than total charged
+        (
+            Decimal(100),
+            Decimal(50),
+            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+        ),
+        # order total is 100, total charged is 100, order is fully charged
+        (
+            Decimal(100),
+            Decimal(100),
+            PaymentChargeStatusEnum.FULLY_CHARGED,
+        ),
+        # order total is 0, total charged is 0, order is fully charged
+        (Decimal(0), Decimal(0), PaymentChargeStatusEnum.FULLY_CHARGED),
+    ],
+)
+def test_order_payment_status_with_transaction_and_without_granted_refunds(
+    order_total,
+    total_charged,
+    expected_payment_status,
+    user_api_client,
+    order_with_lines,
+):
+    # given
+    order_with_lines.payment_transactions.create(
+        charged_value=total_charged, currency=order_with_lines.currency
+    )
+    variables = {"id": graphene.Node.to_global_id("Order", order_with_lines.id)}
+    order_with_lines.total_gross_amount = order_total
+    order_with_lines.total_net_amount = order_total
+    order_with_lines.total_charged_amount = total_charged
+    order_with_lines.save()
+    # when
+    response = user_api_client.post_graphql(QUERY_ORDER_PAYMENT_STATUSES, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["order"]
+
+    # then
+    assert data["paymentStatus"] == expected_payment_status.name
+    assert data["paymentStatusDisplay"] == dict(ChargeStatus.CHOICES).get(
+        expected_payment_status.value
+    )

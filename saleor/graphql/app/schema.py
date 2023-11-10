@@ -153,7 +153,7 @@ class AppQueries(graphene.ObjectType):
     def resolve_app_extension(_root, info: ResolveInfo, *, id):
         def app_is_active(app_extension):
             def is_active(app):
-                if app.is_active:
+                if app and app.is_active:
                     return app_extension
                 return None
 

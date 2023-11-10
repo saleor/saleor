@@ -1,12 +1,13 @@
 from decimal import Decimal
 
+from .....order.utils import update_order_charge_data
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
     get_graphql_content_from_response,
 )
-from ...enums import OrderGrantRefundUpdateErrorCode
+from ...enums import OrderChargeStatusEnum, OrderGrantRefundUpdateErrorCode
 
 ORDER_GRANT_REFUND_UPDATE = """
 mutation OrderGrantRefundUpdate(
@@ -422,3 +423,53 @@ def test_grant_refund_update_by_app_missing_input(
     assert len(errors) == 1
     assert errors[0]["code"] == OrderGrantRefundUpdateErrorCode.REQUIRED.name
     assert errors[0]["field"] == "input"
+
+
+def test_grant_refund_updates_order_charge_status(
+    staff_api_client, app, permission_manage_orders, order_with_lines
+):
+    # given
+    order = order_with_lines
+    new_granted_refund_amount = Decimal("5.00")
+    order.payment_transactions.create(
+        charged_value=order.total.gross.amount - new_granted_refund_amount,
+        authorized_value=Decimal(12),
+        currency=order_with_lines.currency,
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("10.00")
+    granted_refund = order.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order.currency,
+        reason=current_reason,
+        app=app,
+    )
+
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "amount": new_granted_refund_amount,
+        },
+    }
+    update_order_charge_data(order)
+
+    # overcharged as total(98.40) - current grantedRefund(10.00) is less than
+    # total charged(98.40 - 5.00)
+    assert order.charge_status == OrderChargeStatusEnum.OVERCHARGED.value
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    order.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    assert not data["errors"]
+
+    assert data["order"]["id"] == to_global_id_or_none(order)
+    assert len(data["order"]["grantedRefunds"]) == 1
+
+    assert order.charge_status == OrderChargeStatusEnum.FULL.value

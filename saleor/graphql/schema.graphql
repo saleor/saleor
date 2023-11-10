@@ -10689,6 +10689,20 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """Warehouse from fulfillment was fulfilled."""
   warehouse: Warehouse
+
+  """
+  Amount of refunded shipping price.
+  
+  Added in Saleor 3.14.
+  """
+  shippingRefundedAmount: Money
+
+  """
+  Total refunded amount assigned to this fulfillment.
+  
+  Added in Saleor 3.14.
+  """
+  totalRefundedAmount: Money
 }
 
 """An enumeration."""

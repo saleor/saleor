@@ -1,6 +1,7 @@
 from urllib.parse import urljoin, urlparse
 
 from django.conf import settings
+from django.db.models import Exists, OuterRef
 
 from ...app import models
 from ...app.types import AppExtensionTarget
@@ -21,7 +22,7 @@ def resolve_apps_installations(info):
 def resolve_apps(info):
     return (
         models.App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .filter(is_installed=True)
+        .filter(is_installed=True, removed_at__isnull=True)
         .all()
     )
 
@@ -53,17 +54,20 @@ def resolve_app(_info, id):
     if not id:
         return None
     _, id = from_global_id_or_error(id, "App")
-    return (
-        models.App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .filter(id=id, is_installed=True)
-        .first()
-    )
+    return models.App.objects.filter(
+        id=id, is_installed=True, removed_at__isnull=True
+    ).first()
 
 
 def resolve_app_extensions(_info):
+    apps = (
+        models.App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(is_active=True, removed_at__isnull=True)
+        .values("pk")
+    )
     return models.AppExtension.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(app__is_active=True)
+    ).filter(Exists(apps.filter(id=OuterRef("app_id"))))
 
 
 def resolve_app_extension_url(root):

@@ -894,9 +894,7 @@ def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
 
     current_total_gross = order.total_gross_amount - granted_refund_amount
     current_total_gross = max(current_total_gross, Decimal("0"))
-    current_total_gross = quantize_price(
-        current_total_gross - granted_refund_amount, order.currency
-    )
+    current_total_gross = quantize_price(current_total_gross, order.currency)
 
     if total_charged == current_total_gross:
         order.charge_status = OrderChargeStatus.FULL
@@ -914,8 +912,8 @@ def _update_order_total_charged(
     order_transactions: Iterable["TransactionItem"],
 ):
     order.total_charged_amount = sum(
-        order_payments.values_list("captured_amount", flat=True)
-    ) or Decimal(0)
+        [p.captured_amount for p in order_payments], Decimal(0)
+    )
     order.total_charged_amount += sum([tr.charged_value for tr in order_transactions])
 
 
@@ -933,7 +931,7 @@ def update_order_charge_data(
     if order_granted_refunds is None:
         order_granted_refunds = order.granted_refunds.all()
     granted_refund_amount = sum(
-        [refund.amount.amount for refund in order_granted_refunds]
+        [refund.amount.amount for refund in order_granted_refunds], Decimal(0)
     )
     _update_order_total_charged(
         order, order_payments=order_payments, order_transactions=order_transactions

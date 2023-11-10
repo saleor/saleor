@@ -49,7 +49,10 @@ def test_app_delete(
     data = content["data"]["appDelete"]
     assert data["app"]
     assert not data["errors"]
-    assert not App.objects.filter(id=app.id)
+    assert data["app"]["name"] == app.name
+    app.refresh_from_db()
+    assert app.removed_at is not None
+    assert app.is_active is False
 
 
 @freeze_time("2022-05-12 12:00:00")
@@ -88,7 +91,7 @@ def test_app_delete_trigger_webhook(
         json.dumps(
             {
                 "id": app_global_id,
-                "is_active": app.is_active,
+                "is_active": False,
                 "name": app.name,
                 "meta": generate_meta(
                     requestor_data=generate_requestor(
@@ -126,7 +129,10 @@ def test_app_delete_for_app(
     data = content["data"]["appDelete"]
     assert data["app"]
     assert not data["errors"]
-    assert not App.objects.filter(id=app.id).exists()
+    assert data["app"]["name"] == app.name
+    app.refresh_from_db()
+    assert app.removed_at is not None
+    assert app.is_active is False
 
 
 def test_app_delete_out_of_scope_app(
@@ -176,7 +182,10 @@ def test_app_delete_superuser_can_delete_any_app(
     data = content["data"]["appDelete"]
     assert data["app"]
     assert not data["errors"]
-    assert not App.objects.filter(id=app.id).exists()
+    assert data["app"]["name"] == app.name
+    app.refresh_from_db()
+    assert app.removed_at is not None
+    assert app.is_active is False
 
 
 def test_app_delete_for_app_out_of_scope_app(
@@ -202,3 +211,26 @@ def test_app_delete_for_app_out_of_scope_app(
     error = errors[0]
     assert error["code"] == AppErrorCode.OUT_OF_SCOPE_APP.name
     assert error["field"] == "id"
+
+
+def test_app_delete_with_removed_app(
+    staff_api_client,
+    staff_user,
+    removed_app,
+    permission_manage_orders,
+    permission_manage_apps,
+):
+    query = APP_DELETE_MUTATION
+    staff_user.user_permissions.add(permission_manage_orders)
+    id = graphene.Node.to_global_id("App", removed_app.id)
+
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=(permission_manage_apps,)
+    )
+    content = get_graphql_content(response)
+
+    app_data = content["data"]["appDelete"]
+    assert app_data["app"] is None
+    assert app_data["errors"][0]["code"] == AppErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "id"

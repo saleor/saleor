@@ -1,5 +1,7 @@
 from django.conf import settings
+from django.db.models import Exists, OuterRef, Q
 
+from ...app.models import App
 from ...checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
@@ -21,9 +23,14 @@ def resolve_webhook(info, id, app):
         return app.webhooks.filter(id=id).first()
     user = info.context.user
     if user.has_perm(AppPermission.MANAGE_APPS):
+        apps = (
+            App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(removed_at__isnull=True)
+            .values("pk")
+        )
         return (
             models.Webhook.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-            .filter(pk=id)
+            .filter(Q(pk=id), Exists(apps.filter(id=OuterRef("app_id"))))
             .first()
         )
     raise PermissionDenied(permissions=[AppPermission.MANAGE_APPS])

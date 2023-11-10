@@ -5,6 +5,7 @@ from ....app import models
 from ....app.error_codes import AppErrorCode
 from ....permission.enums import AppPermission, get_permissions
 from ...account.utils import can_manage_app
+from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import AppError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -29,6 +30,12 @@ class AppUpdate(ModelMutation):
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
+
+    @classmethod
+    def get_instance(cls, info: ResolveInfo, **data):
+        data["qs"] = models.App.objects.filter(removed_at__isnull=True)
+        instance = super().get_instance(info, **data)
+        return instance
 
     @classmethod
     def clean_input(cls, info, instance, data, **kwargs):
