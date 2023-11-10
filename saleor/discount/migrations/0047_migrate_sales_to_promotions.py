@@ -9,7 +9,7 @@ from django.db import migrations, transaction
 from django.db.models import Exists, OuterRef
 from django.db.models.signals import post_migrate
 
-from .tasks.saleor3_17 import update_discounted_prices_task
+from ..tasks import update_discounted_prices_task
 
 # The batch of size 100 takes ~0.9 second and consumes ~30MB memory at peak
 BATCH_SIZE = 100
