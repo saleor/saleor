@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -16,4 +17,27 @@ class SiteSettings(models.Model):
     css = models.FileField(upload_to='site/css')
     cookies_src = models.CharField(max_length=255)
     is_active = models.BooleanField(default=False)
-
+    fill_fee_regular = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
+    fill_fee_cold_chain = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
+    margin_regular = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
+    margin_cold_chain = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
