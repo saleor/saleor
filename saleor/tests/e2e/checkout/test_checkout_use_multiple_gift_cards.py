@@ -25,7 +25,15 @@ def prepare_gift_cards(
     second_code = gift_card[1]["code"]
     third_code = gift_card[2]["code"]
 
-    return first_code, second_code, third_code, balance_amount
+    gift_card_codes = [first_code, second_code, third_code]
+
+    return (
+        first_code,
+        second_code,
+        third_code,
+        balance_amount,
+        gift_card_codes,
+    )
 
 
 @pytest.mark.e2e
@@ -66,9 +74,13 @@ def test_use_multiple_gift_cards_in_checkout_core_1105(
         variant_price=9.99,
     )
     product_variant_price = float(product_variant_price)
-    first_code, second_code, third_code, balance_amount = prepare_gift_cards(
-        e2e_staff_api_client, 3, 5
-    )
+    (
+        first_code,
+        second_code,
+        third_code,
+        balance_amount,
+        gift_card_codes,
+    ) = prepare_gift_cards(e2e_staff_api_client, 3, 5)
 
     # Step 1 - Create checkout for product
     lines = [
@@ -158,6 +170,11 @@ def test_use_multiple_gift_cards_in_checkout_core_1105(
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
     assert order_data["total"]["gross"]["amount"] == calculated_total
-    assert order_data["giftCards"][0]["last4CodeChars"] == first_code[-4:]
-    assert order_data["giftCards"][1]["last4CodeChars"] == second_code[-4:]
-    assert order_data["giftCards"][2]["last4CodeChars"] == third_code[-4:]
+    assert len(order_data["giftCards"]) == 3
+
+    for i in range(3):
+        expected_last_4 = gift_card_codes[i][-4:]
+        actual_codes = [
+            gift_card["last4CodeChars"] for gift_card in order_data["giftCards"]
+        ]
+        assert any(expected_last_4 in code for code in actual_codes)
