@@ -1,10 +1,17 @@
-from typing import TYPE_CHECKING
+from collections import defaultdict
+from typing import TYPE_CHECKING, Union
 
 from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, Value, prefetch_related_objects
+from django.db.models.expressions import Exists, OuterRef
 
 from ..attribute import AttributeInputType
+from ..attribute.models import (
+    AssignedProductAttributeValue,
+    Attribute,
+    AttributeProduct,
+)
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 from ..core.utils.editorjs import clean_editor_js
 from .models import Product
@@ -15,9 +22,9 @@ if TYPE_CHECKING:
 PRODUCT_SEARCH_FIELDS = ["name", "description_plaintext"]
 PRODUCT_FIELDS_TO_PREFETCH = [
     "variants__attributes__values",
-    "variants__attributes__assignment__attribute",
-    "attributes__values",
-    "attributes__assignment__attribute",
+    "variants__attributes",
+    "attributevalues__value",
+    "product_type__attributeproduct__attribute",
 ]
 
 PRODUCTS_BATCH_SIZE = 300
@@ -58,13 +65,14 @@ def prepare_product_search_vector_value(
 ) -> list[NoValidationSearchVector]:
     if not already_prefetched:
         prefetch_related_objects([product], *PRODUCT_FIELDS_TO_PREFETCH)
+
     search_vectors = [
         NoValidationSearchVector(Value(product.name), config="simple", weight="A"),
         NoValidationSearchVector(
             Value(product.description_plaintext), config="simple", weight="C"
         ),
         *generate_attributes_search_vector_value(
-            product.attributes.all()[: settings.PRODUCT_MAX_INDEXED_ATTRIBUTES]
+            product,
         ),
         *generate_variants_search_vector_value(product),
     ]
@@ -87,13 +95,49 @@ def generate_variants_search_vector_value(
     ]
     if search_vectors:
         for variant in variants:
-            search_vectors += generate_attributes_search_vector_value(
+            search_vectors += generate_attributes_search_vector_value_with_assignment(
                 variant.attributes.all()[: settings.PRODUCT_MAX_INDEXED_ATTRIBUTES]
             )
     return search_vectors
 
 
 def generate_attributes_search_vector_value(
+    product: "Product",
+) -> list[NoValidationSearchVector]:
+    """Prepare `search_vector` value for assigned attributes.
+
+    Method should receive assigned attributes with prefetched `values`
+    """
+    product_attributes = AttributeProduct.objects.filter(
+        product_type_id=product.product_type_id
+    )
+    attributes = Attribute.objects.filter(
+        Exists(product_attributes.filter(attribute_id=OuterRef("id")))
+    ).order_by("attributeproduct__sort_order")[
+        : settings.PRODUCT_MAX_INDEXED_ATTRIBUTES
+    ]
+
+    assigned_values = AssignedProductAttributeValue.objects.filter(
+        product_id=product.pk
+    )
+    prefetch_related_objects(assigned_values, "value")
+
+    search_vectors = []
+
+    values_map = defaultdict(list)
+    for av in assigned_values:
+        values_map[av.value.attribute_id].append(av.value)
+
+    for attribute in attributes:
+        values = values_map[attribute.pk][
+            : settings.PRODUCT_MAX_INDEXED_ATTRIBUTE_VALUES
+        ]
+
+        search_vectors += get_search_vectors_for_values(attribute, values)
+    return search_vectors
+
+
+def generate_attributes_search_vector_value_with_assignment(
     assigned_attributes: "QuerySet",
 ) -> list[NoValidationSearchVector]:
     """Prepare `search_vector` value for assigned attributes.
@@ -104,51 +148,59 @@ def generate_attributes_search_vector_value(
     search_vectors = []
     for assigned_attribute in assigned_attributes:
         attribute = assigned_attribute.assignment.attribute
-
-        input_type = attribute.input_type
         values = assigned_attribute.values.all()[
             : settings.PRODUCT_MAX_INDEXED_ATTRIBUTE_VALUES
         ]
-        if input_type in [AttributeInputType.DROPDOWN, AttributeInputType.MULTISELECT]:
-            search_vectors += [
-                NoValidationSearchVector(Value(value.name), config="simple", weight="B")
-                for value in values
-            ]
-        elif input_type == AttributeInputType.RICH_TEXT:
-            search_vectors += [
-                NoValidationSearchVector(
-                    Value(clean_editor_js(value.rich_text, to_string=True)),
-                    config="simple",
-                    weight="B",
-                )
-                for value in values
-            ]
-        elif input_type == AttributeInputType.PLAIN_TEXT:
-            search_vectors += [
-                NoValidationSearchVector(
-                    Value(value.plain_text), config="simple", weight="B"
-                )
-                for value in values
-            ]
-        elif input_type == AttributeInputType.NUMERIC:
-            unit = attribute.unit
-            search_vectors += [
-                NoValidationSearchVector(
-                    Value(value.name + " " + unit if unit else value.name),
-                    config="simple",
-                    weight="B",
-                )
-                for value in values
-            ]
-        elif input_type in [AttributeInputType.DATE, AttributeInputType.DATE_TIME]:
-            search_vectors += [
-                NoValidationSearchVector(
-                    Value(value.date_time.strftime("%Y-%m-%d %H:%M:%S")),
-                    config="simple",
-                    weight="B",
-                )
-                for value in values
-            ]
+        search_vectors += get_search_vectors_for_values(attribute, values)
+    return search_vectors
+
+
+def get_search_vectors_for_values(
+    attribute: Attribute, values: Union[list, "QuerySet"]
+) -> list[NoValidationSearchVector]:
+    search_vectors = []
+
+    input_type = attribute.input_type
+    if input_type in [AttributeInputType.DROPDOWN, AttributeInputType.MULTISELECT]:
+        search_vectors += [
+            NoValidationSearchVector(Value(value.name), config="simple", weight="B")
+            for value in values
+        ]
+    elif input_type == AttributeInputType.RICH_TEXT:
+        search_vectors += [
+            NoValidationSearchVector(
+                Value(clean_editor_js(value.rich_text, to_string=True)),
+                config="simple",
+                weight="B",
+            )
+            for value in values
+        ]
+    elif input_type == AttributeInputType.PLAIN_TEXT:
+        search_vectors += [
+            NoValidationSearchVector(
+                Value(value.plain_text), config="simple", weight="B"
+            )
+            for value in values
+        ]
+    elif input_type == AttributeInputType.NUMERIC:
+        unit = attribute.unit
+        search_vectors += [
+            NoValidationSearchVector(
+                Value(value.name + " " + unit if unit else value.name),
+                config="simple",
+                weight="B",
+            )
+            for value in values
+        ]
+    elif input_type in [AttributeInputType.DATE, AttributeInputType.DATE_TIME]:
+        search_vectors += [
+            NoValidationSearchVector(
+                Value(value.date_time.strftime("%Y-%m-%d %H:%M:%S")),
+                config="simple",
+                weight="B",
+            )
+            for value in values
+        ]
     return search_vectors
 
 

@@ -50,7 +50,8 @@ from .payload_serializers import PayloadSerializer
 from .serializers import (
     serialize_checkout_lines,
     serialize_checkout_lines_for_tax_calculation,
-    serialize_product_or_variant_attributes,
+    serialize_product_attributes,
+    serialize_variant_attributes,
 )
 
 if TYPE_CHECKING:
@@ -724,7 +725,7 @@ def generate_product_payload(
         },
         extra_dict_data={
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
-            "attributes": serialize_product_or_variant_attributes(product),
+            "attributes": serialize_product_attributes(product),
             "media": [
                 {
                     "alt": media_obj.alt,
@@ -840,7 +841,7 @@ def generate_product_variant_payload(
 ):
     extra_dict_data = {
         "id": lambda v: v.get_global_id(),
-        "attributes": lambda v: serialize_product_or_variant_attributes(v),
+        "attributes": lambda v: serialize_variant_attributes(v),
         "product_id": lambda v: graphene.Node.to_global_id("Product", v.product_id),
         "media": lambda v: generate_product_variant_media_payload(v),
         "channel_listings": lambda v: json.loads(
@@ -1130,7 +1131,13 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         payload = generate_customer_payload(user)
     elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
         product = _get_sample_object(
-            Product.objects.prefetch_related("category", "collections", "variants")
+            Product.objects.prefetch_related(
+                "category",
+                "collections",
+                "variants",
+                "attributevalues__value",
+                "product_type__attributeproduct__attribute",
+            )
         )
         payload = generate_product_payload(product) if product else None
     elif event_name in checkout_events:

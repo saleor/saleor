@@ -21,6 +21,8 @@ if TYPE_CHECKING:
 
 
 class BaseAssignedAttribute(models.Model):
+    # TODO: stop using this class in new code
+    # See: https://github.com/saleor/saleor/issues/12881
     class Meta:
         abstract = True
 
@@ -312,9 +314,7 @@ class AttributeValueTranslation(Translation):
                 elif assigned_product_attribute_value := (
                     attribute_value.productvalueassignment.first()
                 ):
-                    if product_id := (
-                        assigned_product_attribute_value.assignment.product_id
-                    ):
+                    if product_id := assigned_product_attribute_value.product_id:
                         context["product_id"] = product_id
             elif attribute.type == AttributeType.PAGE_TYPE:
                 if assigned_page_attribute_value := (

@@ -5,10 +5,15 @@ import pytest
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute.models import (
+    AssignedProductAttributeValue,
     Attribute,
     AttributeProduct,
     AttributeValue,
     AttributeVariant,
+)
+from ....attribute.tests.model_helpers import (
+    get_product_attribute_values,
+    get_product_attributes,
 )
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....product import ProductTypeKind
@@ -72,7 +77,7 @@ def test_resolve_attributes_with_hidden(
     product_attribute = color_attribute
     variant_attribute = size_attribute
 
-    expected_product_attribute_count = product.attributes.count() - 1
+    expected_product_attribute_count = get_product_attributes(product).count() - 1
     expected_variant_attribute_count = variant.attributes.count() - 1
 
     if is_staff:
@@ -102,11 +107,12 @@ def test_resolve_attribute_values(user_api_client, product, staff_user, channel_
 
     variant = product.variants.first()
 
-    assert product.attributes.count() == 1
+    assert get_product_attributes(product).count() == 1
     assert variant.attributes.count() == 1
 
+    attribute = get_product_attributes(product).first()
     product_attribute_values = list(
-        product.attributes.first().values.values_list("slug", flat=True)
+        get_product_attribute_values(product, attribute).values_list("slug", flat=True)
     )
     variant_attribute_values = list(
         variant.attributes.first().values.values_list("slug", flat=True)
@@ -173,10 +179,16 @@ def test_resolve_attribute_values_non_assigned_to_node(
         attribute=unassigned_product_attribute, product_type=product_type, sort_order=0
     )
     AttributeVariant.objects.create(
-        attribute=unassigned_variant_attribute, product_type=product_type, sort_order=0
+        attribute=unassigned_variant_attribute,
+        product_type=product_type,
+        sort_order=0,
     )
 
-    assert product.attributes.count() == 1
+    # All attributes assigned for the same product type should be returned
+    assert get_product_attributes(product).count() == 2
+
+    # no additional values should be added
+    assert product.attributevalues.count() == 1
     assert variant.attributes.count() == 1
 
     product = get_graphql_content(api_client.post_graphql(query, variables))["data"][
@@ -204,7 +216,7 @@ def test_resolve_assigned_attribute_without_values(
     variant = product.variants.get()
 
     # Remove all attributes and values from the product and its variant
-    product.attributesrelated.clear()
+    AssignedProductAttributeValue.objects.filter(product_id=product.pk).delete()
     variant.attributesrelated.clear()
 
     # Retrieve the product and variant's attributes
@@ -1325,6 +1337,7 @@ def test_sort_product_attribute_values(
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     product_type = product.product_type
+
     product_type.product_attributes.clear()
     product_type.product_attributes.add(product_type_page_reference_attribute)
 

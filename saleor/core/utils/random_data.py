@@ -30,7 +30,6 @@ from ...account.search import (
 )
 from ...account.utils import store_user_address
 from ...attribute.models import (
-    AssignedProductAttribute,
     AssignedProductAttributeValue,
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
@@ -366,21 +365,12 @@ def assign_attributes_to_page_types(
         association_model.objects.update_or_create(pk=pk, defaults=defaults)
 
 
-def assign_attributes_to_products(product_attributes):
-    for value in product_attributes:
-        pk = value["pk"]
-        defaults = dict(value["fields"])
-        defaults["product_id"] = defaults.pop("product")
-        defaults["assignment_id"] = defaults.pop("assignment")
-        AssignedProductAttribute.objects.update_or_create(pk=pk, defaults=defaults)
-
-
 def assign_attribute_values_to_products(values):
     for value in values:
         pk = value["pk"]
         defaults = dict(value["fields"])
         defaults["value_id"] = defaults.pop("value")
-        defaults["assignment_id"] = defaults.pop("assignment")
+        defaults["product_id"] = defaults.pop("product")
         AssignedProductAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
 
 
@@ -442,9 +432,6 @@ def create_products_by_schema(placeholder_dir, create_images):
     )
     assign_attributes_to_page_types(
         AttributePage, attributes=types["attribute.attributepage"]
-    )
-    assign_attributes_to_products(
-        product_attributes=types["attribute.assignedproductattribute"]
     )
     assign_attribute_values_to_products(
         types["attribute.assignedproductattributevalue"]

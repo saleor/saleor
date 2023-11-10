@@ -5,6 +5,10 @@ import pytest
 from django.utils import timezone
 
 from .....attribute.models import Attribute, AttributeValue
+from .....attribute.tests.model_helpers import (
+    get_product_attribute_values,
+    get_product_attributes,
+)
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....product import ProductTypeKind
 from .....product.models import Product, ProductChannelListing, ProductType
@@ -859,8 +863,9 @@ def test_products_filter_by_attributes_values_and_range(
     channel_USD,
 ):
     # given
-    product_attr = product_list[0].attributes.first()
-    attr_value_1 = product_attr.values.first()
+    product = product_list[0]
+    product_attr = get_product_attributes(product).first()
+    attr_value_1 = get_product_attribute_values(product, product_attr).first()
     product_list[0].product_type.product_attributes.add(numeric_attribute)
     associate_attribute_values_to_instance(
         product_list[0], numeric_attribute, *numeric_attribute.values.all()

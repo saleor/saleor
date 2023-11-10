@@ -4,7 +4,7 @@ from .....attribute import models as attribute_models
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
-from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
+from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_310
 from ....core.mutations import ModelWithExtRefMutation
@@ -42,7 +42,7 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
         attributes_qs = product_type.product_attributes.all()
-        attributes = AttributeAssignmentMixin.clean_input(
+        attributes = ProductAttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False
         )
         return attributes
@@ -62,7 +62,7 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
         # prefetch them.
         object_id = cls.get_object_id(**data)
         if object_id and data.get("attributes"):
-            # Prefetches needed by AttributeAssignmentMixin and
+            # Prefetches needed by ProductAttributeAssignmentMixin and
             # associate_attribute_values_to_instance
             qs = cls.Meta.model.objects.prefetch_related(
                 "product_type__product_attributes__values",

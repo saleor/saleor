@@ -8,6 +8,10 @@ from django.utils import timezone
 
 from .....attribute import AttributeInputType, AttributeType
 from .....attribute.models import Attribute, AttributeValue
+from .....attribute.tests.model_helpers import (
+    get_product_attribute_values,
+    get_product_attributes,
+)
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.postgres import FlatConcatSearchVector
 from .....core.units import MeasurementUnits
@@ -259,8 +263,8 @@ def test_products_query_with_filter_by_attributes_values_and_range(
     numeric_attribute,
     permission_manage_products,
 ):
-    product_attr = product.attributes.first()
-    attr_value_1 = product_attr.values.first()
+    product_attr = get_product_attributes(product).first()
+    attr_value_1 = get_product_attribute_values(product, product_attr).first()
     product.product_type.product_attributes.add(numeric_attribute)
     associate_attribute_values_to_instance(
         product, numeric_attribute, *numeric_attribute.values.all()
