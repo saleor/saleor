@@ -547,17 +547,18 @@ def fetch_promotion_rules_for_order(
         .prefetch_related("channels")
     )
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
+
     order_channel_id = order.channel_id
+    currency = order.channel.currency_code
     order_qs = Order.objects.filter(id=order.id)
     for rule in list(rules.iterator()):
         rule_channel_ids = rule_to_channel_ids_map.get(rule.id, [])
         if order_channel_id not in rule_channel_ids:
             continue
-        # TODO: get currency for rule
         orders = filter_qs_by_predicate(
-            rule.checkout_and_order_predicate, order_qs, PredicateType.ORDER
+            rule.checkout_and_order_predicate, order_qs, PredicateType.ORDER, currency
         )
-        if orders:
+        if orders.exists():
             rules_per_promotion_id[rule.promotion_id].append(rule)
 
     return rules_per_promotion_id
