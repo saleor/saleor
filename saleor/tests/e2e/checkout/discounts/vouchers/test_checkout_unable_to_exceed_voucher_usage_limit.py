@@ -1,14 +1,14 @@
 import pytest
 
-from ...product.utils.preparing_product import prepare_product
-from ...shop.utils.preparing_shop import prepare_shop
-from ...utils import assign_permissions
-from ...vouchers.utils import (
+from ....product.utils.preparing_product import prepare_product
+from ....shop.utils.preparing_shop import prepare_shop
+from ....utils import assign_permissions
+from ....vouchers.utils import (
     create_voucher,
     create_voucher_channel_listing,
     get_voucher,
 )
-from ..utils import (
+from ...utils import (
     checkout_add_promo_code,
     checkout_complete,
     checkout_create,
@@ -32,9 +32,7 @@ def prepare_voucher(
         "discountValueType": voucher_discount_type,
         "type": voucher_type,
         "usageLimit": 1,
-        "singleUse": False,
-        "products": products,
-        "applyOncePerCustomer": True,
+        "singleUse": True,
     }
     voucher_data = create_voucher(e2e_staff_api_client, input)
 
@@ -55,8 +53,9 @@ def prepare_voucher(
 
 
 @pytest.mark.e2e
-def test_checkout_with_voucher_limit_per_customer_CORE_0910(
+def test_checkout_unable_to_exceed_voucher_usage_limit_CORE_0909(
     e2e_not_logged_api_client,
+    e2e_logged_api_client,
     e2e_staff_api_client,
     permission_manage_products,
     permission_manage_channels,
@@ -104,7 +103,7 @@ def test_checkout_with_voucher_limit_per_customer_CORE_0910(
         products=product_id,
     )
 
-    # Step 1 - Create checkout
+    # Step 1 - Create checkout for not logged in user
     lines = [
         {
             "variantId": product_variant_id,
@@ -172,7 +171,7 @@ def test_checkout_with_voucher_limit_per_customer_CORE_0910(
     )
     assert order_line["unitPrice"]["gross"]["amount"] == discounted_unit_price
 
-    # Step 6 - Create checkout for the same user
+    # Step 6 - Create checkout for a logged in user
     lines = [
         {
             "variantId": product_variant_id,
@@ -180,7 +179,7 @@ def test_checkout_with_voucher_limit_per_customer_CORE_0910(
         },
     ]
     checkout = checkout_create(
-        e2e_not_logged_api_client,
+        e2e_logged_api_client,
         lines,
         channel_slug,
         email="testEmail@example.com",
@@ -206,5 +205,5 @@ def test_checkout_with_voucher_limit_per_customer_CORE_0910(
 
     voucher_data = get_voucher(e2e_staff_api_client, voucher_id)
     assert voucher_data["voucher"]["id"] == voucher_id
-    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["isActive"] is True
+    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["isActive"] is False
     assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["used"] == 1

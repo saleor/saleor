@@ -1,15 +1,15 @@
 import pytest
 
-from ...product.utils.preparing_product import prepare_product
-from ...shop.utils.preparing_shop import prepare_shop
-from ...utils import assign_permissions
-from ...vouchers.utils import (
+from ....product.utils.preparing_product import prepare_product
+from ....shop.utils.preparing_shop import prepare_shop
+from ....utils import assign_permissions
+from ....vouchers.utils import (
     create_voucher,
     create_voucher_channel_listing,
     get_voucher,
     voucher_delete,
 )
-from ..utils import checkout_create, raw_checkout_add_promo_code
+from ...utils import checkout_create, raw_checkout_add_promo_code
 
 
 def prepare_voucher(

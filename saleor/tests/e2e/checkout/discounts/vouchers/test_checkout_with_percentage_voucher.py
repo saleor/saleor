@@ -1,14 +1,10 @@
 import pytest
 
-from ...product.utils.preparing_product import prepare_product
-from ...shop.utils.preparing_shop import prepare_shop
-from ...utils import assign_permissions
-from ...vouchers.utils import (
-    create_voucher,
-    create_voucher_channel_listing,
-    raw_update_voucher,
-)
-from ..utils import (
+from ....product.utils.preparing_product import prepare_product
+from ....shop.utils.preparing_shop import prepare_shop
+from ....utils import assign_permissions
+from ....vouchers.utils import create_voucher, create_voucher_channel_listing
+from ...utils import (
     checkout_add_promo_code,
     checkout_complete,
     checkout_create,
@@ -17,21 +13,20 @@ from ..utils import (
 )
 
 
-def prepare_voucher(
+def prepare_percentage_voucher(
     e2e_staff_api_client,
     channel_id,
-    voucher_code_list,
+    voucher_code,
     voucher_discount_type,
     voucher_discount_value,
     voucher_type,
 ):
-    input_data = {
-        "addCodes": voucher_code_list,
+    input = {
+        "code": voucher_code,
         "discountValueType": voucher_discount_type,
         "type": voucher_type,
-        "singleUse": True,
     }
-    voucher_data = create_voucher(e2e_staff_api_client, input_data)
+    voucher_data = create_voucher(e2e_staff_api_client, input)
 
     voucher_id = voucher_data["id"]
     channel_listing = [
@@ -46,11 +41,11 @@ def prepare_voucher(
         channel_listing,
     )
 
-    return voucher_code_list, voucher_id
+    return voucher_code
 
 
 @pytest.mark.e2e
-def test_checkout_unable_to_update_single_use_settings_after_usage_CORE_0926(
+def test_checkout_use_percentage_voucher_core_0902(
     e2e_logged_api_client,
     e2e_staff_api_client,
     permission_manage_products,
@@ -58,7 +53,6 @@ def test_checkout_unable_to_update_single_use_settings_after_usage_CORE_0926(
     permission_manage_shipping,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
-    permission_manage_checkouts,
 ):
     # Before
     permissions = [
@@ -67,7 +61,6 @@ def test_checkout_unable_to_update_single_use_settings_after_usage_CORE_0926(
         permission_manage_shipping,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
-        permission_manage_checkouts,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
@@ -88,14 +81,16 @@ def test_checkout_unable_to_update_single_use_settings_after_usage_CORE_0926(
         channel_id,
         variant_price=19.99,
     )
-    voucher_code_list, voucher_id = prepare_voucher(
+
+    voucher_code = prepare_percentage_voucher(
         e2e_staff_api_client,
         channel_id,
-        voucher_code_list=["single_use_1", "single_use_2"],
+        voucher_code="PERCENTAGE_VOUCHER",
         voucher_discount_type="PERCENTAGE",
-        voucher_discount_value=15,
+        voucher_discount_value=10,
         voucher_type="ENTIRE_ORDER",
     )
+
     # Step 1 - Create checkout
     lines = [
         {
@@ -134,17 +129,18 @@ def test_checkout_unable_to_update_single_use_settings_after_usage_CORE_0926(
     data = checkout_add_promo_code(
         e2e_logged_api_client,
         checkout_id,
-        voucher_code_list[0],
+        voucher_code,
     )
     discounted_total_gross = data["totalPrice"]["gross"]["amount"]
     discounted_unit_price = data["lines"][0]["unitPrice"]["gross"]["amount"]
-    voucher_discount = 2 * (round(float(product_variant_price) * 15 / 100, 2))
-    unit_price = float(product_variant_price)
+    voucher_discount = 2 * (round(float(product_variant_price) * 10 / 100, 2))
+
     assert data["discount"]["amount"] == voucher_discount
     assert discounted_total_gross == total_gross_amount - voucher_discount
     assert discounted_unit_price == unit_price - (
-        round(float(product_variant_price) * 15 / 100, 2)
+        round(float(product_variant_price) * 10 / 100, 2)
     )
+
     # Step 4 - Create payment for checkout.
     checkout_dummy_payment_create(
         e2e_logged_api_client,
@@ -162,13 +158,3 @@ def test_checkout_unable_to_update_single_use_settings_after_usage_CORE_0926(
         product_variant_price
     )
     assert order_line["unitPrice"]["gross"]["amount"] == discounted_unit_price
-
-    # Step 6 - Update the voucher's single use settings
-    data = raw_update_voucher(e2e_staff_api_client, voucher_id, {"singleUse": False})
-    errors = data["errors"][0]
-    assert errors["code"] == "VOUCHER_ALREADY_USED"
-    assert errors["field"] == "singleUse"
-    assert (
-        errors["message"]
-        == "Cannot change single use setting when any voucher code has already been used."
-    )

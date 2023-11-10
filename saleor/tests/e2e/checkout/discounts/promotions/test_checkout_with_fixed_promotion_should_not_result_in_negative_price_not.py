@@ -1,11 +1,11 @@
 import pytest
 
-from ...product.utils import get_product
-from ...product.utils.preparing_product import prepare_product
-from ...promotions.utils import create_promotion, create_promotion_rule
-from ...shop.utils.preparing_shop import prepare_shop
-from ...utils import assign_permissions
-from ..utils import checkout_create
+from ....product.utils import get_product
+from ....product.utils.preparing_product import prepare_product
+from ....promotions.utils import create_promotion, create_promotion_rule
+from ....shop.utils.preparing_shop import prepare_shop
+from ....utils import assign_permissions
+from ...utils import checkout_create
 
 
 @pytest.mark.e2e

@@ -1,25 +1,22 @@
 import pytest
 
-from ...product.utils.preparing_product import prepare_product
-from ...shop.utils.preparing_shop import prepare_shop
-from ...utils import assign_permissions
-from ...vouchers.utils import (
+from ....product.utils.preparing_product import prepare_product
+from ....shop.utils.preparing_shop import prepare_shop
+from ....utils import assign_permissions
+from ....vouchers.utils import (
     create_voucher,
     create_voucher_channel_listing,
     get_voucher,
 )
-from ..utils import (
+from ...utils import (
     checkout_add_promo_code,
-    checkout_complete,
     checkout_create,
     checkout_delivery_method_update,
-    checkout_dummy_payment_create,
-    checkout_remove_promo_code,
-    checkout_shipping_address_update,
+    raw_checkout_dummy_payment_create,
 )
 
 
-def prepare_fixed_voucher(
+def prepare_voucher(
     e2e_staff_api_client,
     channel_id,
     voucher_code,
@@ -51,7 +48,7 @@ def prepare_fixed_voucher(
 
 
 @pytest.mark.e2e
-def test_should_be_able_to_remove_voucher_code_from_checkout_CORE_0917(
+def test_checkout_voucher_is_still_active_when_payment_fails_core_0919(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     permission_manage_products,
@@ -87,14 +84,14 @@ def test_should_be_able_to_remove_voucher_code_from_checkout_CORE_0917(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
-        variant_price=30,
+        variant_price=19.99,
     )
 
-    voucher_code, voucher_id = prepare_fixed_voucher(
+    voucher_code, voucher_id = prepare_voucher(
         e2e_staff_api_client,
         channel_id,
-        voucher_code="FIXED_VOUCHER",
-        voucher_discount_type="FIXED",
+        voucher_code="PERCENTAGE_VOUCHER",
+        voucher_discount_type="PERCENTAGE",
         voucher_discount_value=10,
         voucher_type="ENTIRE_ORDER",
     )
@@ -116,29 +113,24 @@ def test_should_be_able_to_remove_voucher_code_from_checkout_CORE_0917(
     )
     checkout_id = checkout["id"]
     checkout_lines = checkout["lines"][0]
-    subtotal_amount = float(product_variant_price)
+    shipping_method_id = checkout["shippingMethods"][0]["id"]
+    unit_price = float(product_variant_price)
+    total_gross_amount = checkout["totalPrice"]["gross"]["amount"]
+
     assert checkout["isShippingRequired"] is True
-    total_without_shipping = checkout["totalPrice"]["gross"]["amount"]
-    assert total_without_shipping == subtotal_amount * 2
-    assert checkout_lines["unitPrice"]["gross"]["amount"] == subtotal_amount
-    assert checkout_lines["undiscountedUnitPrice"]["amount"] == product_variant_price
-
-    # Step 2 - Set shipping address and delivery method
-    checkout_data = checkout_shipping_address_update(
-        e2e_not_logged_api_client, checkout_id
+    assert checkout_lines["unitPrice"]["gross"]["amount"] == unit_price
+    assert checkout_lines["undiscountedUnitPrice"]["amount"] == float(
+        product_variant_price
     )
-    assert len(checkout_data["shippingMethods"]) == 1
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
+    # Step 2 - Set DeliveryMethod for checkout.
     checkout_data = checkout_delivery_method_update(
         e2e_not_logged_api_client,
         checkout_id,
         shipping_method_id,
     )
     assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
-    shipping_price = checkout_data["deliveryMethod"]["price"]["amount"]
-    undiscounted_total_gross = checkout_data["totalPrice"]["gross"]["amount"]
-    assert undiscounted_total_gross == total_without_shipping + shipping_price
+    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
 
     # Step 3 - Add voucher code to checkout
     data = checkout_add_promo_code(
@@ -147,42 +139,31 @@ def test_should_be_able_to_remove_voucher_code_from_checkout_CORE_0917(
         voucher_code,
     )
     discounted_total_gross = data["totalPrice"]["gross"]["amount"]
-    discount_value = data["discount"]["amount"]
-    assert discounted_total_gross == undiscounted_total_gross - discount_value
+    discounted_unit_price = data["lines"][0]["unitPrice"]["gross"]["amount"]
+    voucher_discount = 2 * (round(float(product_variant_price) * 10 / 100, 2))
 
-    # Step 4 - Remove the voucher code from the checkout
-    data = checkout_remove_promo_code(
+    assert data["discount"]["amount"] == voucher_discount
+    assert discounted_total_gross == total_gross_amount - voucher_discount
+    assert discounted_unit_price == unit_price - (
+        round(float(product_variant_price) * 10 / 100, 2)
+    )
+
+    # Step 4 - Create an invalid payment
+    data = raw_checkout_dummy_payment_create(
         e2e_not_logged_api_client,
         checkout_id,
-        voucher_code,
+        discounted_total_gross,
+        token=None,
     )
-    assert data["checkout"]["voucherCode"] is None
-    undiscounted_total_price = data["checkout"]["totalPrice"]["gross"]["amount"]
-
-    # Step 5 - Create payment for checkout
-    checkout_dummy_payment_create(
-        e2e_not_logged_api_client,
-        checkout_id,
-        undiscounted_total_price,
+    assert data["errors"] != []
+    assert data["errors"][0]["field"] == "token"
+    assert data["errors"][0]["code"] == "REQUIRED"
+    assert (
+        data["errors"][0]["message"] == "Token is required for mirumee.payments.dummy."
     )
 
-    # Step 6 - Complete checkout
-    order_data = checkout_complete(
-        e2e_staff_api_client,
-        checkout_id,
-    )
-    assert order_data["status"] == "UNFULFILLED"
-    assert order_data["discounts"] == []
-    assert order_data["voucher"] is None
-    assert order_data["total"]["gross"]["amount"] == undiscounted_total_gross
-    assert order_data["deliveryMethod"]["id"] == shipping_method_id
-    assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
-    order_line = order_data["lines"][0]
-    assert order_line["unitPrice"]["gross"]["amount"] == float(product_variant_price)
-    assert order_data["total"]["gross"]["amount"] != discounted_total_gross
-
-    # Step 7 - Check the voucher code has not been used
+    # Step 5 - Check the voucher code is still active and is assigned to checkout
     voucher_data = get_voucher(e2e_staff_api_client, voucher_id)
     assert voucher_data["voucher"]["id"] == voucher_id
-    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["isActive"] is True
     assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["used"] == 0
+    assert voucher_data["checkouts"]["edges"][0]["node"]["id"] == checkout_id

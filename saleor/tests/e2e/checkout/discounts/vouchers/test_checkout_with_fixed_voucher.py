@@ -1,14 +1,10 @@
 import pytest
 
-from ...product.utils.preparing_product import prepare_product
-from ...shop.utils.preparing_shop import prepare_shop
-from ...utils import assign_permissions
-from ...vouchers.utils import (
-    create_voucher,
-    create_voucher_channel_listing,
-    get_voucher,
-)
-from ..utils import (
+from ....product.utils.preparing_product import prepare_product
+from ....shop.utils.preparing_shop import prepare_shop
+from ....utils import assign_permissions
+from ....vouchers.utils import create_voucher, create_voucher_channel_listing
+from ...utils import (
     checkout_add_promo_code,
     checkout_complete,
     checkout_create,
@@ -18,46 +14,16 @@ from ..utils import (
 )
 
 
-def prepare_free_shipping_voucher(
-    e2e_staff_api_client,
-    channel_id,
-    free_shipping_voucher_code,
-    voucher_discount_type,
-    voucher_discount_value,
-    voucher_type,
-):
-    input = {
-        "code": free_shipping_voucher_code,
-        "discountValueType": voucher_discount_type,
-        "type": voucher_type,
-    }
-    voucher_data = create_voucher(e2e_staff_api_client, input)
-    free_shipping_voucher_code_id = voucher_data["id"]
-    channel_listing = [
-        {
-            "channelId": channel_id,
-            "discountValue": voucher_discount_value,
-        },
-    ]
-    create_voucher_channel_listing(
-        e2e_staff_api_client,
-        free_shipping_voucher_code_id,
-        channel_listing,
-    )
-
-    return free_shipping_voucher_code, free_shipping_voucher_code_id
-
-
 def prepare_fixed_voucher(
     e2e_staff_api_client,
     channel_id,
-    fixed_voucher_code,
+    voucher_code,
     voucher_discount_type,
     voucher_discount_value,
     voucher_type,
 ):
     input = {
-        "code": fixed_voucher_code,
+        "code": voucher_code,
         "discountValueType": voucher_discount_type,
         "type": voucher_type,
     }
@@ -76,7 +42,7 @@ def prepare_fixed_voucher(
         channel_listing,
     )
 
-    return fixed_voucher_code
+    return voucher_code
 
 
 @pytest.mark.e2e
@@ -88,7 +54,6 @@ def test_checkout_use_fixed_voucher_core_0901(
     permission_manage_shipping,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
-    permission_manage_checkouts,
 ):
     # Before
     permissions = [
@@ -97,7 +62,6 @@ def test_checkout_use_fixed_voucher_core_0901(
         permission_manage_shipping,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
-        permission_manage_checkouts,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
@@ -116,25 +80,15 @@ def test_checkout_use_fixed_voucher_core_0901(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
-        variant_price=15.55,
+        variant_price=30,
     )
-    (
-        free_shipping_voucher_code,
-        free_shipping_voucher_code_id,
-    ) = prepare_free_shipping_voucher(
+
+    voucher_code = prepare_fixed_voucher(
         e2e_staff_api_client,
         channel_id,
-        free_shipping_voucher_code="FREESHIPPING",
-        voucher_discount_type="PERCENTAGE",
-        voucher_discount_value=100,
-        voucher_type="SHIPPING",
-    )
-    fixed_voucher_code = prepare_fixed_voucher(
-        e2e_staff_api_client,
-        channel_id,
-        fixed_voucher_code="FIXED_VOUCHER",
+        voucher_code="FIXED_VOUCHER",
         voucher_discount_type="FIXED",
-        voucher_discount_value=50,
+        voucher_discount_value=10,
         voucher_type="ENTIRE_ORDER",
     )
 
@@ -142,7 +96,7 @@ def test_checkout_use_fixed_voucher_core_0901(
     lines = [
         {
             "variantId": product_variant_id,
-            "quantity": 1,
+            "quantity": 2,
         },
     ]
     checkout = checkout_create(
@@ -151,13 +105,14 @@ def test_checkout_use_fixed_voucher_core_0901(
         channel_slug,
         email="testEmail@example.com",
         set_default_billing_address=True,
+        set_default_shipping_address=True,
     )
     checkout_id = checkout["id"]
     checkout_lines = checkout["lines"][0]
     subtotal_amount = float(product_variant_price)
     assert checkout["isShippingRequired"] is True
     total_without_shipping = checkout["totalPrice"]["gross"]["amount"]
-    assert total_without_shipping == subtotal_amount
+    assert total_without_shipping == subtotal_amount * 2
     assert checkout_lines["unitPrice"]["gross"]["amount"] == subtotal_amount
     assert checkout_lines["undiscountedUnitPrice"]["amount"] == product_variant_price
 
@@ -178,51 +133,38 @@ def test_checkout_use_fixed_voucher_core_0901(
     undiscounted_total_gross = checkout_data["totalPrice"]["gross"]["amount"]
     assert undiscounted_total_gross == total_without_shipping + shipping_price
 
-    # Step 3 - Add free shipping voucher code to checkout
+    # Step 3 - Add voucher code to checkout
     data = checkout_add_promo_code(
         e2e_not_logged_api_client,
         checkout_id,
-        free_shipping_voucher_code,
-    )
-    total_gross = data["totalPrice"]["gross"]["amount"]
-    assert data["shippingPrice"]["gross"]["amount"] != shipping_price
-    assert data["shippingPrice"]["gross"]["amount"] == 0
-    assert total_gross == subtotal_amount
-
-    # Step 4 - Add fixed voucher code to checkout
-    data = checkout_add_promo_code(
-        e2e_not_logged_api_client,
-        checkout_id,
-        fixed_voucher_code,
+        voucher_code,
     )
     discounted_total_gross = data["totalPrice"]["gross"]["amount"]
-    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == 0
-    assert discounted_total_gross == shipping_price
+    discount_value = data["discount"]["amount"]
+    assert discounted_total_gross == undiscounted_total_gross - discount_value
 
-    # Step 5 - Create payment for checkout.
+    # Step 4 - Create payment for checkout.
     checkout_dummy_payment_create(
         e2e_not_logged_api_client,
         checkout_id,
         discounted_total_gross,
     )
 
-    # Step 6 - Complete checkout.
+    # Step 5 - Complete checkout.
     order_data = checkout_complete(
         e2e_staff_api_client,
         checkout_id,
     )
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["discounts"][0]["type"] == "VOUCHER"
-    assert order_data["voucher"]["code"] == fixed_voucher_code
+    assert order_data["voucher"]["code"] == voucher_code
     assert order_data["total"]["gross"]["amount"] == discounted_total_gross
     assert order_data["deliveryMethod"]["id"] == shipping_method_id
     assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
     order_line = order_data["lines"][0]
-    assert order_line["unitPrice"]["gross"]["amount"] == 0
+    assert (
+        order_line["unitPrice"]["gross"]["amount"]
+        == float(product_variant_price) - discount_value / 2
+    )
     total = order_data["total"]["gross"]["amount"]
     assert total != undiscounted_total_gross
-
-    # Step 7 - Check the first voucher code is unused
-    data = get_voucher(e2e_staff_api_client, free_shipping_voucher_code_id)
-    assert data["voucher"]["used"] == 0
-    assert data["voucher"]["codes"]["edges"][0]["node"]["isActive"] is True

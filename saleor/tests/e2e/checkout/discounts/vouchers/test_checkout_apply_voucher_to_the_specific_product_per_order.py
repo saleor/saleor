@@ -1,6 +1,6 @@
 import pytest
 
-from ...product.utils import (
+from ....product.utils import (
     create_category,
     create_product,
     create_product_channel_listing,
@@ -8,14 +8,14 @@ from ...product.utils import (
     create_product_variant,
     create_product_variant_channel_listing,
 )
-from ...shop.utils.preparing_shop import prepare_shop
-from ...utils import assign_permissions
-from ...vouchers.utils import (
+from ....shop.utils.preparing_shop import prepare_shop
+from ....utils import assign_permissions
+from ....vouchers.utils import (
     create_voucher,
     create_voucher_channel_listing,
     get_voucher,
 )
-from ..utils import (
+from ...utils import (
     checkout_add_promo_code,
     checkout_complete,
     checkout_create,

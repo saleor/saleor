@@ -1,10 +1,10 @@
 import pytest
 
-from ...product.utils.preparing_product import prepare_product
-from ...shop.utils.preparing_shop import prepare_shop
-from ...utils import assign_permissions
-from ...vouchers.utils import create_voucher, create_voucher_channel_listing
-from ..utils import (
+from ....product.utils.preparing_product import prepare_product
+from ....shop.utils.preparing_shop import prepare_shop
+from ....utils import assign_permissions
+from ....vouchers.utils import create_voucher, create_voucher_channel_listing
+from ...utils import (
     checkout_add_promo_code,
     checkout_complete,
     checkout_create,
@@ -22,13 +22,12 @@ def prepare_free_shipping_voucher(
     voucher_discount_type,
     voucher_discount_value,
     voucher_type,
-    min_product_quantity,
+    min_amount_spent,
 ):
     input = {
         "code": voucher_code,
         "discountValueType": voucher_discount_type,
         "type": voucher_type,
-        "minCheckoutItemsQuantity": min_product_quantity,
     }
     voucher_data = create_voucher(e2e_staff_api_client, input)
     voucher_id = voucher_data["id"]
@@ -36,6 +35,7 @@ def prepare_free_shipping_voucher(
         {
             "channelId": channel_id,
             "discountValue": voucher_discount_value,
+            "minAmountSpent": min_amount_spent,
         },
     ]
     create_voucher_channel_listing(
@@ -48,7 +48,7 @@ def prepare_free_shipping_voucher(
 
 
 @pytest.mark.e2e
-def test_checkout_use_free_shipping_voucher_with_min_quantity_of_items_0906(
+def test_checkout_use_free_shipping_voucher_with_min_spent_amount_0903(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     permission_manage_products,
@@ -92,7 +92,7 @@ def test_checkout_use_free_shipping_voucher_with_min_quantity_of_items_0906(
         voucher_discount_type="PERCENTAGE",
         voucher_discount_value=100,
         voucher_type="SHIPPING",
-        min_product_quantity=2,
+        min_amount_spent=75,
     )
 
     # Step 1 - Create checkout for product
@@ -126,7 +126,7 @@ def test_checkout_use_free_shipping_voucher_with_min_quantity_of_items_0906(
     )
     assert checkout_data["errors"][0]["code"] == "VOUCHER_NOT_APPLICABLE"
 
-    # Step 3 Add lines to the checkout to increase the item quantity
+    # Step 3 Add lines to the checkout to increase the total amount
     lines_add = [
         {
             "variantId": product_variant_id,

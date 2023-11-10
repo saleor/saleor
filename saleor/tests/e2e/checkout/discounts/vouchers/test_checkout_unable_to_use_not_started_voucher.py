@@ -1,20 +1,21 @@
-import pytest
+import datetime
 
-from ...product.utils.preparing_product import prepare_product
-from ...shop.utils.preparing_shop import prepare_shop
-from ...utils import assign_permissions
-from ...vouchers.utils import (
+import pytest
+from django.utils import timezone
+
+from ....product.utils.preparing_product import prepare_product
+from ....shop.utils.preparing_shop import prepare_shop
+from ....utils import assign_permissions
+from ....vouchers.utils import (
     create_voucher,
     create_voucher_channel_listing,
     get_voucher,
 )
-from ..utils import (
-    checkout_add_promo_code,
+from ...utils import (
     checkout_complete,
     checkout_create,
     checkout_delivery_method_update,
     checkout_dummy_payment_create,
-    checkout_lines_add,
     raw_checkout_add_promo_code,
 )
 
@@ -26,16 +27,15 @@ def prepare_voucher(
     voucher_discount_type,
     voucher_discount_value,
     voucher_type,
-    products,
+    start_date,
 ):
     input = {
         "code": voucher_code,
         "discountValueType": voucher_discount_type,
         "type": voucher_type,
-        "minCheckoutItemsQuantity": 3,
         "usageLimit": 1,
         "singleUse": True,
-        "products": products,
+        "startDate": start_date,
     }
     voucher_data = create_voucher(e2e_staff_api_client, input)
 
@@ -56,7 +56,7 @@ def prepare_voucher(
 
 
 @pytest.mark.e2e
-def test_checkout_with_voucher_with_min_item_quantity_core_0908(
+def test_checkout_unable_to_use_not_started_voucher_CORE_0920(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     permission_manage_products,
@@ -85,7 +85,7 @@ def test_checkout_with_voucher_with_min_item_quantity_core_0908(
     ) = prepare_shop(e2e_staff_api_client)
 
     (
-        product_id,
+        _product_id,
         product_variant_id,
         product_variant_price,
     ) = prepare_product(
@@ -95,17 +95,20 @@ def test_checkout_with_voucher_with_min_item_quantity_core_0908(
         variant_price=19.99,
     )
 
+    now = timezone.now()
+    date_in_the_future = now + datetime.timedelta(days=2)
+
     voucher_code, voucher_id = prepare_voucher(
         e2e_staff_api_client,
         channel_id,
-        voucher_code="PERCENTAGE_VOUCHER",
+        voucher_code="percentage_voucher",
         voucher_discount_type="PERCENTAGE",
-        voucher_discount_value=10,
-        voucher_type="SPECIFIC_PRODUCT",
-        products=product_id,
+        voucher_discount_value=15,
+        voucher_type="ENTIRE_ORDER",
+        start_date=date_in_the_future,
     )
 
-    # Step 1 - Create checkout
+    # Step 1 - Create checkout for not logged in user
     lines = [
         {
             "variantId": product_variant_id,
@@ -124,41 +127,12 @@ def test_checkout_with_voucher_with_min_item_quantity_core_0908(
     checkout_lines = checkout["lines"][0]
     shipping_method_id = checkout["shippingMethods"][0]["id"]
     unit_price = float(product_variant_price)
+    total_gross_amount = checkout["totalPrice"]["gross"]["amount"]
     assert checkout["isShippingRequired"] is True
     assert checkout_lines["unitPrice"]["gross"]["amount"] == unit_price
-    assert checkout_lines["undiscountedUnitPrice"]["amount"] == float(
-        product_variant_price
-    )
+    assert checkout_lines["undiscountedUnitPrice"]["amount"] == unit_price
 
-    # Step 2 - Add voucher code to checkout and check it's not applicable
-    data = raw_checkout_add_promo_code(
-        e2e_not_logged_api_client,
-        checkout_id,
-        voucher_code,
-    )
-    error = data["errors"][0]
-    assert error["code"] == "VOUCHER_NOT_APPLICABLE"
-    assert error["field"] == "promoCode"
-    assert error["message"] == "Voucher is not applicable to this checkout."
-
-    # Step 3 - Increase item's quantity in checkout
-    lines = [
-        {
-            "variantId": product_variant_id,
-            "quantity": 2,
-        },
-    ]
-    checkout_data = checkout_lines_add(
-        e2e_staff_api_client,
-        checkout_id,
-        lines,
-    )
-    checkout_lines = checkout_data["lines"][0]
-    assert checkout_lines["quantity"] == 3
-    subtotal_amount = float(product_variant_price) * 3
-    assert checkout_lines["totalPrice"]["gross"]["amount"] == subtotal_amount
-
-    # Step 4 - Set DeliveryMethod for checkout.
+    # Step 2 - Set DeliveryMethod for checkout.
     checkout_data = checkout_delivery_method_update(
         e2e_not_logged_api_client,
         checkout_id,
@@ -167,40 +141,32 @@ def test_checkout_with_voucher_with_min_item_quantity_core_0908(
     assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
 
-    # Step 5 - Add voucher code again and check it has been applied
-    data = checkout_add_promo_code(
+    # Step 3 - Add voucher code to the checkout
+    data = raw_checkout_add_promo_code(
         e2e_not_logged_api_client,
         checkout_id,
         voucher_code,
     )
+    errors = data["errors"][0]
+    assert errors["code"] == "INVALID"
+    assert errors["field"] == "promoCode"
+    assert errors["message"] == "Promo code is invalid"
 
-    discounted_total_gross = data["totalPrice"]["gross"]["amount"]
-    discounted_unit_price = data["lines"][0]["unitPrice"]["gross"]["amount"]
-    voucher_discount = 3 * (round(float(product_variant_price) * 10 / 100, 2))
+    voucher_data = get_voucher(e2e_staff_api_client, voucher_id)
+    assert voucher_data["voucher"]["id"] == voucher_id
+    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["used"] == 0
 
-    assert data["discount"]["amount"] == voucher_discount
-    assert discounted_total_gross == total_gross_amount - voucher_discount
-    assert discounted_unit_price == unit_price - (
-        round(float(product_variant_price) * 10 / 100, 2)
-    )
-
-    # Step 6 - Create payment for checkout.
+    # Step 4 - Create payment for checkout.
     checkout_dummy_payment_create(
         e2e_not_logged_api_client,
         checkout_id,
-        discounted_total_gross,
+        total_gross_amount,
     )
 
-    # Step 7 - Complete checkout.
+    # Step 5 - Complete checkout.
     order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
     order_line = order_data["lines"][0]
     assert order_data["status"] == "UNFULFILLED"
-    assert order_data["total"]["gross"]["amount"] != total_gross_amount
-    assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == float(
-        product_variant_price
-    )
-    assert order_line["unitPrice"]["gross"]["amount"] == discounted_unit_price
-    voucher_data = get_voucher(e2e_staff_api_client, voucher_id)
-    assert voucher_data["voucher"]["id"] == voucher_id
-    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["isActive"] is False
-    assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["used"] == 1
+    assert order_data["total"]["gross"]["amount"] == total_gross_amount
+    assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == unit_price
+    assert order_data["discounts"] == []
