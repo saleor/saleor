@@ -12,13 +12,17 @@ from ...order.models import Order, OrderLine
 from ...order.search import search_orders
 from ...payment import ChargeStatus
 from ...product.models import ProductVariant
+from ..channel.filters import get_currency_from_filter_data
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
     ObjectTypeFilter,
+    OperationObjectTypeWhereFilter,
+    WhereFilterSet,
 )
 from ..core.types import DateRangeInput, DateTimeRangeInput
+from ..core.types.filter_input import DecimalFilterInput
 from ..core.utils import from_global_id_or_error
 from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import resolve_global_ids_to_primary_keys
@@ -224,3 +228,54 @@ class OrderFilter(DraftOrderFilter):
                 message="'ids' and 'numbers` are not allowed to use together in filter."
             )
         return super().is_valid()
+
+
+class OrderDiscountedObjectWhere(WhereFilterSet):
+    total_price = OperationObjectTypeWhereFilter(
+        input_class=DecimalFilterInput,
+        method="filter_total_price",
+        field_name="filter_total_price",
+        help_text="Filter by the order total price.",
+    )
+
+    class Meta:
+        model = Order
+        fields = ["total_price"]
+
+    def filter_total_price(self, queryset, name, value):
+        currency = get_currency_from_filter_data(self.data)
+        return _filter_total_price(queryset, name, value, currency)
+
+
+def _filter_total_price(qs, _, value, currency):
+    # We will have single channel/currency as the rule can applied only
+    # on channels with the same currencies
+    # TODO: maybe we should have `currency` as a filter argument instead
+    # of `channel_slug`?
+
+    # TODO: handle `oneOf` as well
+    range = value.get("range")
+    if not range:
+        return qs._meta.model.objects.none()
+
+    # TODO: raise a ValidationError if `currency` is not provided
+    total_price_lte = range.get("lte")
+    total_price_gte = range.get("gte")
+    # qs could contains all orders from all channels with given currencies
+    # so we cannot filter by channel
+    # from other side - this method is per channel and a setting deciding
+    # if price entered with taxes included or not is per channel
+
+    # TODO: this is temporary solution - we should use gross or net, depending on
+    # order channel tax configuration - prices_entered_with_tax
+    if total_price_gte:
+        qs = qs.filter(
+            currency=currency,
+            total_gross_amount__gte=total_price_gte,
+        )
+    if total_price_lte:
+        qs = qs.filter(
+            currency=currency,
+            total_gross_amount__lte=total_price_lte,
+        )
+    return qs
