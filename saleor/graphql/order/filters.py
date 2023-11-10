@@ -270,12 +270,12 @@ def _filter_total_price(qs, _, value, currency):
     # order channel tax configuration - prices_entered_with_tax
     if total_price_gte:
         qs = qs.filter(
-            currency=currency,
+            # currency=currency,
             total_gross_amount__gte=total_price_gte,
         )
     if total_price_lte:
         qs = qs.filter(
-            currency=currency,
+            # currency=currency,
             total_gross_amount__lte=total_price_lte,
         )
     return qs

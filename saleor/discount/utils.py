@@ -21,6 +21,7 @@ from ..channel.models import Channel
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
 from ..discount.models import VoucherCustomer
+from ..order.models import Order
 from . import DiscountType, PromotionRuleInfo
 from .models import (
     CheckoutLineDiscount,
@@ -36,7 +37,6 @@ if TYPE_CHECKING:
     from ..account.models import User
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..discount.interface import VariantPromotionRuleInfo
-    from ..order.models import Order
     from ..plugins.manager import PluginsManager
     from ..product.managers import ProductVariantQueryset
     from ..product.models import (
@@ -530,6 +530,37 @@ def fetch_active_promotion_rules(
             )
         )
     return rules_info_per_promotion_id
+
+
+def fetch_promotion_rules_for_order(
+    order: "Order",
+):
+    from ..graphql.discount.utils import PredicateType, filter_qs_by_predicate
+
+    rules_per_promotion_id = defaultdict(list)
+    promotions = Promotion.objects.active()
+    rules = (
+        PromotionRule.objects.filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id")))
+        )
+        .exclude(checkout_and_order_predicate={})
+        .prefetch_related("channels")
+    )
+    rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
+    order_channel_id = order.channel_id
+    order_qs = Order.objects.filter(id=order.id)
+    for rule in list(rules.iterator()):
+        rule_channel_ids = rule_to_channel_ids_map.get(rule.id, [])
+        if order_channel_id not in rule_channel_ids:
+            continue
+        # TODO: get currency for rule
+        orders = filter_qs_by_predicate(
+            rule.checkout_and_order_predicate, order_qs, PredicateType.ORDER
+        )
+        if orders:
+            rules_per_promotion_id[rule.promotion_id].append(rule)
+
+    return rules_per_promotion_id
 
 
 def _get_rule_to_channel_ids_map(rules: QuerySet):

@@ -8,6 +8,7 @@ from django.db.models import Exists, OuterRef, QuerySet
 from graphene.utils.str_converters import to_camel_case
 
 from ...discount.models import Promotion, PromotionRule
+from ...order.models import Order
 from ...product.managers import ProductsQueryset, ProductVariantQueryset
 from ...product.models import (
     Category,
@@ -17,6 +18,7 @@ from ...product.models import (
     ProductVariant,
 )
 from ..core.connection import where_filter_qs
+from ..order.filters import OrderDiscountedObjectWhere
 from ..product.filters import (
     CategoryWhere,
     CollectionWhere,
@@ -251,7 +253,8 @@ def _handle_predicate(
 ):
     if predicate_type == PredicateType.CATALOGUE:
         return _handle_catalogue_predicate(result_qs, base_qs, predicate_data, operator)
-    return result_qs
+    elif predicate_type == PredicateType.ORDER:
+        return _handle_order_predicate(result_qs, base_qs, predicate_data, operator)
 
 
 def _handle_catalogue_predicate(
@@ -267,6 +270,26 @@ def _handle_catalogue_predicate(
                 result_qs &= handle_method(field_data, base_qs)
             else:
                 result_qs |= handle_method(field_data, base_qs)
+    return result_qs
+
+
+def _handle_order_predicate(
+    result_qs: QuerySet,
+    base_qs: QuerySet,
+    predicate_data: dict[str, Union[dict, str, list, bool]],
+    operator,
+):
+    orders = where_filter_qs(
+        Order.objects.filter(id__in=base_qs.values("id")),
+        {},
+        OrderDiscountedObjectWhere,
+        predicate_data,
+        None,
+    )
+    if operator == Operators.AND:
+        result_qs &= orders
+    else:
+        result_qs |= orders
     return result_qs
 
 

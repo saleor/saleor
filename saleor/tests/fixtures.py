@@ -5635,6 +5635,25 @@ def promotion_rule(channel_USD, promotion, product):
 
 
 @pytest.fixture
+def checkout_and_order_promotion_rule(channel_USD, promotion, product):
+    rule = PromotionRule.objects.create(
+        name="Checkout and order promotion rule",
+        promotion=promotion,
+        checkout_and_order_predicate={
+            "total_price": {
+                "range": {
+                    "gte": 20,
+                }
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("25"),
+    )
+    rule.channels.add(channel_USD)
+    return rule
+
+
+@pytest.fixture
 def rule_info(
     promotion_rule,
     promotion_translation_fr,
