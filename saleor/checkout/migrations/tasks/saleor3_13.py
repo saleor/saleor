@@ -67,7 +67,7 @@ def _update_authorize_status(
         checkout.authorize_status = "none"
     elif total_covered >= checkout_total_gross:
         checkout.authorize_status = "full"
-    elif total_covered < checkout_total_gross and total_covered > zero_money_amount:
+    elif checkout_total_gross > total_covered > zero_money_amount:
         checkout.authorize_status = "partial"
     else:
         checkout.authorize_status = "none"
@@ -125,7 +125,7 @@ def fix_statuses_for_empty_checkouts_task():
         for checkout in checkouts:
             update_checkout_payment_statuses(
                 checkout,
-                checkout.total_gross_amount,
+                Money(checkout.total_gross_amount, checkout.currency),
                 False,
                 checkout.payment_transactions.all(),
             )
