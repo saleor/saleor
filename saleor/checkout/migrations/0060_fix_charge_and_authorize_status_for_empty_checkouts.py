@@ -19,9 +19,9 @@ def zero_money(currency):
 
 def _update_charge_status(
     checkout,
-    checkout_total_gross,
-    total_charged,
-    checkout_has_lines,
+    checkout_total_gross: Money,
+    total_charged: Money,
+    checkout_has_lines: bool,
 ):
     zero_money_amount = zero_money(checkout.currency)
     total_charged = max(zero_money_amount, total_charged)
@@ -45,10 +45,10 @@ def _update_charge_status(
 
 def _update_authorize_status(
     checkout,
-    checkout_total_gross,
-    total_authorized,
-    total_charged,
-    checkout_has_lines,
+    checkout_total_gross: Money,
+    total_authorized: Money,
+    total_charged: Money,
+    checkout_has_lines: bool,
 ):
     total_covered = total_authorized + total_charged
     zero_money_amount = zero_money(checkout.currency)
@@ -63,7 +63,7 @@ def _update_authorize_status(
         checkout.authorize_status = "none"
     elif total_covered >= checkout_total_gross:
         checkout.authorize_status = "full"
-    elif total_covered < checkout_total_gross and total_covered > zero_money_amount:
+    elif checkout_total_gross > total_covered > zero_money_amount:
         checkout.authorize_status = "partial"
     else:
         checkout.authorize_status = "none"
@@ -73,18 +73,18 @@ def _get_payment_amount_for_checkout(checkout_transactions, currency):
     total_charged_amount = zero_money(currency)
     total_authorized_amount = zero_money(currency)
     for transaction in checkout_transactions:
-        total_authorized_amount += transaction.amount_authorized
-        total_authorized_amount += transaction.amount_authorize_pending
+        total_authorized_amount += Money(transaction.authorized_value, currency)
+        total_authorized_amount += Money(transaction.authorize_pending_value, currency)
 
-        total_charged_amount += transaction.amount_charged
-        total_charged_amount += transaction.amount_charge_pending
+        total_charged_amount += Money(transaction.charged_value, currency)
+        total_charged_amount += Money(transaction.charge_pending_value, currency)
     return total_authorized_amount, total_charged_amount
 
 
 def update_checkout_payment_statuses(
     checkout,
-    checkout_total_gross,
-    checkout_has_lines,
+    checkout_total_gross: Money,
+    checkout_has_lines: bool,
     checkout_transactions,
 ):
     total_authorized_amount, total_charged_amount = _get_payment_amount_for_checkout(
@@ -112,7 +112,7 @@ def fix_statuses_for_batch_of_empty_checkouts(
     for checkout in checkouts:
         update_checkout_payment_statuses(
             checkout,
-            checkout.total_gross_amount,
+            Money(checkout.total_gross_amount, checkout.currency),
             False,
             checkout.payment_transactions.all(),
         )
