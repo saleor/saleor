@@ -189,7 +189,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     + ADDED_IN_312,
     WebhookEventAsyncType.PRODUCT_VARIANT_CREATED: "A new product variant is created.",
     WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: "A product variant is updated.",
-    WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: "A product variant is deleted.",
+    WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: "A product variant is deleted. Warning: this event will not be executed when parent product has been deleted. Check PRODUCT_DELETED.",
     WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED: (
         "A product variant metadata is updated." + ADDED_IN_38
     ),

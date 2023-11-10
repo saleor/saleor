@@ -2124,7 +2124,9 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A product variant is updated."""
   PRODUCT_VARIANT_UPDATED
 
-  """A product variant is deleted."""
+  """
+  A product variant is deleted. Warning: this event will not be executed when parent product has been deleted. Check PRODUCT_DELETED.
+  """
   PRODUCT_VARIANT_DELETED
 
   """
@@ -2846,7 +2848,9 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A product variant is updated."""
   PRODUCT_VARIANT_UPDATED
 
-  """A product variant is deleted."""
+  """
+  A product variant is deleted. Warning: this event will not be executed when parent product has been deleted. Check PRODUCT_DELETED.
+  """
   PRODUCT_VARIANT_DELETED
 
   """
