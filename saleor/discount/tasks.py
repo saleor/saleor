@@ -226,7 +226,9 @@ def disconnect_voucher_codes_from_draft_orders_task(order_ids):
 def update_discounted_prices_task():
     """Recalculate discounted prices during sale to promotion migration."""
     # WARNING: this function is run during `0047_migrate_sales_to_promotions` migration,
-    # so please be careful while updating.
+    # so please be careful while updating. 
+    # This task can be deleted after we introduce a different process for calculating
+    # discounted prices for promotions.
 
     # For 100 rules, with 1000 variants for each rule it takes around 15s
     BATCH_SIZE = 100
