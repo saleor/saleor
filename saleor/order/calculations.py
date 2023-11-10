@@ -230,7 +230,7 @@ def _calculate_and_add_tax(
     prices_entered_with_tax: bool,
 ):
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
-        # Call the tax plugins.
+        # Get the taxes calculated with plugins.
         _apply_tax_data_from_plugins(manager, order, lines)
         # Get the taxes calculated with apps and apply to order.
         tax_data = manager.get_taxes_for_order(order)
