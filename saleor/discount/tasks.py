@@ -222,7 +222,9 @@ def disconnect_voucher_codes_from_draft_orders_task(order_ids):
             disconnect_voucher_codes_from_draft_orders_task.delay(remaining_ids)
 
 
-@app.task
+@app.task(
+    name="saleor.discount.migrations.tasks.saleor3_17.update_discounted_prices_task"
+)
 def update_discounted_prices_task():
     """Recalculate discounted prices during sale to promotion migration."""
     # WARNING: this function is run during `0047_migrate_sales_to_promotions` migration,
