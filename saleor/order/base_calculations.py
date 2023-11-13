@@ -172,7 +172,7 @@ def apply_subtotal_discount_to_order_lines(
         for idx, line in enumerate(lines):
             if idx < lines_count - 1:
                 share = line.total_price_net_amount / undiscounted_subtotal.amount
-                line_discount = share * subtotal_discount.amount
+                line_discount = round(share * subtotal_discount.amount, 5)
                 apply_discount_to_order_line(line, line_discount)
 
         _ensure_order_lines_prices_sum_up_to_order_prices(

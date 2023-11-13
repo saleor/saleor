@@ -1,10 +1,12 @@
 from decimal import ROUND_HALF_UP, Decimal
 
+import pytest
 from prices import Money
 
 from ....core.taxes import zero_money
 from ....discount import DiscountType, DiscountValueType
 from ... import base_calculations
+from ...base_calculations import apply_subtotal_discount_to_order_lines
 
 
 def test_base_order_total(order_with_lines):
@@ -624,3 +626,214 @@ def test_base_order_total_with_percentage_manual_discount_and_percentage_voucher
     assert manual_order_discount.amount_value == manual_discount_amount
     voucher_order_discount.refresh_from_db()
     assert voucher_order_discount.amount_value == voucher_discount_amount
+
+
+def test_base_order_total_with_shipping_voucher(
+    order_with_lines, voucher_shipping_type
+):
+    # given
+    order = order_with_lines
+    lines = order.lines.all()
+    shipping_price = order.shipping_price.net
+    subtotal = zero_money(order.currency)
+    for line in lines:
+        subtotal += line.base_unit_price * line.quantity
+    undiscounted_total = subtotal + shipping_price
+
+    discount_amount = 5
+    order_discount = order.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=discount_amount,
+        name="Voucher",
+        translated_name="VoucherPL",
+        currency=order.currency,
+        amount_value=0,
+        voucher=voucher_shipping_type,
+    )
+
+    # when
+    order_total = base_calculations.base_order_total(order, lines)
+
+    # then
+    assert order_total == undiscounted_total - Money(discount_amount, order.currency)
+    order_discount.refresh_from_db()
+    assert order_discount.amount_value == discount_amount
+
+
+def test_apply_order_discounts_with_shipping_voucher(
+    order_with_lines, voucher_shipping_type
+):
+    # given
+    order = order_with_lines
+    lines = order.lines.all()
+    shipping_price = order.shipping_price.net
+    subtotal = zero_money(order.currency)
+    for line in lines:
+        subtotal += line.base_unit_price * line.quantity
+
+    discount_amount = 5
+    order_discount = order.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=discount_amount,
+        name="Voucher",
+        translated_name="VoucherPL",
+        currency=order.currency,
+        amount_value=0,
+        voucher=voucher_shipping_type,
+    )
+
+    # when
+    (
+        discounted_subtotal,
+        discounted_shipping_price,
+    ) = base_calculations.apply_order_discounts(subtotal, shipping_price, order)
+
+    # then
+    assert discounted_subtotal == subtotal
+    assert discounted_shipping_price == shipping_price - Money(
+        discount_amount, order.currency
+    )
+    order_discount.refresh_from_db()
+    assert order_discount.amount_value == discount_amount
+
+
+def test_apply_order_discounts_with_entire_order_voucher(order_with_lines, voucher):
+    # given
+    order = order_with_lines
+    lines = order.lines.all()
+    shipping_price = order.shipping_price.net
+    subtotal = zero_money(order.currency)
+    for line in lines:
+        subtotal += line.base_unit_price * line.quantity
+
+    discount_amount = 10
+    order_discount = order.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=discount_amount,
+        name="Voucher",
+        translated_name="VoucherPL",
+        currency=order.currency,
+        amount_value=0,
+        voucher=voucher,
+    )
+
+    # when
+    (
+        discounted_subtotal,
+        discounted_shipping_price,
+    ) = base_calculations.apply_order_discounts(subtotal, shipping_price, order)
+
+    # then
+    assert discounted_subtotal == subtotal - Money(discount_amount, order.currency)
+    assert discounted_shipping_price == shipping_price
+    order_discount.refresh_from_db()
+    assert order_discount.amount_value == discount_amount
+
+
+@pytest.mark.parametrize("discount", ["10", "1", "17.3", "10000", "0"])
+def test_apply_subtotal_discount_to_order_lines(
+    discount,
+    order_with_lines,
+    voucher,
+):
+    # given
+    order = order_with_lines
+    currency = order.currency
+    lines = order.lines.all()
+    subtotal = zero_money(currency)
+    for line in lines:
+        subtotal += line.base_unit_price * line.quantity
+    subtotal_discount = Money(Decimal(discount), currency)
+    expected_subtotal = max(subtotal - subtotal_discount, zero_money(currency))
+    line_0_share = lines[0].total_price_net_amount / subtotal.amount
+
+    # when
+    apply_subtotal_discount_to_order_lines(lines, subtotal, subtotal_discount)
+
+    # then
+    discounted_subtotal = zero_money(currency)
+    for line in lines:
+        discounted_subtotal += line.base_unit_price * line.quantity
+    assert discounted_subtotal == expected_subtotal
+
+    line_0_total_price_net = round(lines[0].total_price_net_amount, 5)
+    line_0_total_price_gross = round(lines[0].total_price_gross_amount, 5)
+    line_0_unit_price_net = round(lines[0].unit_price_net_amount, 5)
+    line_0_unit_price_gross = round(lines[0].unit_price_gross_amount, 5)
+    line_0_base_unit_price = round(lines[0].base_unit_price_amount, 5)
+    line_0_unit_discount = round(lines[0].unit_discount_amount, 5)
+    line_0_quantity = lines[0].quantity
+    line_0_total_discount = line_0_unit_discount * line_0_quantity
+
+    line_1_total_price_net = round(lines[1].total_price_net_amount, 5)
+    line_1_total_price_gross = round(lines[1].total_price_gross_amount, 5)
+
+    assert discounted_subtotal.amount == line_0_total_price_net + line_1_total_price_net
+    assert (
+        discounted_subtotal.amount
+        == line_0_total_price_gross + line_1_total_price_gross
+    )
+
+    max_diff = 0.00001
+    assert (
+        abs(round(line_0_share * subtotal_discount.amount, 5) - line_0_total_discount)
+        <= max_diff
+    )
+    assert (
+        abs(line_0_total_price_net - (line_0_unit_price_net * line_0_quantity))
+        <= max_diff
+    )
+    assert (
+        abs(line_0_total_price_gross - (line_0_unit_price_gross * line_0_quantity))
+        <= max_diff
+    )
+    assert line_0_base_unit_price == line_0_unit_price_net
+
+
+def test_apply_subtotal_discount_to_order_lines_order_with_single_line(
+    order_with_lines,
+    voucher,
+):
+    # given
+    order = order_with_lines
+    order.lines.last().delete()
+    currency = order.currency
+
+    lines = order.lines.all()
+    assert lines.count() == 1
+    subtotal = lines[0].base_unit_price * lines[0].quantity
+    subtotal_discount = Money(Decimal("10"), currency)
+    discounted_subtotal = subtotal - subtotal_discount
+
+    # when
+    apply_subtotal_discount_to_order_lines(lines, subtotal, subtotal_discount)
+
+    # then
+    assert lines[0].base_unit_price * lines[0].quantity == subtotal - subtotal_discount
+
+    line_0_total_price_net = round(lines[0].total_price_net_amount, 5)
+    line_0_total_price_gross = round(lines[0].total_price_gross_amount, 5)
+    line_0_unit_price_net = round(lines[0].unit_price_net_amount, 5)
+    line_0_unit_price_gross = round(lines[0].unit_price_gross_amount, 5)
+    line_0_base_unit_price = round(lines[0].base_unit_price_amount, 5)
+    line_0_unit_discount = round(lines[0].unit_discount_amount, 5)
+    line_0_quantity = lines[0].quantity
+    line_0_total_discount = line_0_unit_discount * line_0_quantity
+
+    assert line_0_total_price_net == discounted_subtotal.amount
+    assert line_0_total_price_gross == discounted_subtotal.amount
+
+    max_diff = 0.00001
+    assert abs(line_0_total_discount - subtotal_discount.amount) <= max_diff
+    assert (
+        abs(line_0_unit_price_net - (line_0_total_price_net / line_0_quantity))
+        <= max_diff
+    )
+    assert (
+        abs(line_0_unit_price_gross - (line_0_total_price_gross / line_0_quantity))
+        <= max_diff
+    )
+    assert line_0_base_unit_price == line_0_unit_price_net

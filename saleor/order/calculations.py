@@ -133,6 +133,7 @@ def fetch_order_prices_and_update_if_expired(
         prefetch_related_objects(lines, "variant__product__product_type")
 
     order.should_refresh_prices = False
+    # TODO: zaaplikuj tutaj discounty
 
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
@@ -144,6 +145,7 @@ def fetch_order_prices_and_update_if_expired(
         if not should_charge_tax:
             # If charge_taxes is disabled or order is exempt from taxes, remove the
             # tax from the original gross prices.
+            # TODO: tutaj nie liczymy discountow
             _remove_tax(order, lines)
 
     else:
