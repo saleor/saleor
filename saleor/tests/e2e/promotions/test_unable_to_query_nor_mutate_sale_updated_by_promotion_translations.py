@@ -16,16 +16,15 @@ from .utils import promotions_query, translate_promotion
 def prepare_sale(e2e_staff_api_client):
     price = 10
 
-    (
-        warehouse_id,
-        channel_id,
-        _channel_slug,
-        _shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+    )
+    channel_id = shop_data["channel_id"]
+    warehouse_id = shop_data["warehouse_id"]
 
     (
         product_id,
-        product_variant_id,
+        _product_variant_id,
         _product_variant_price,
     ) = prepare_product(
         e2e_staff_api_client,
@@ -76,6 +75,8 @@ def test_unable_to_query_nor_mutate_sale_updated_by_promotion_translations_CORE_
     permission_manage_shipping,
     permission_manage_discounts,
     permission_manage_translations,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -85,6 +86,8 @@ def test_unable_to_query_nor_mutate_sale_updated_by_promotion_translations_CORE_
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
         permission_manage_translations,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 

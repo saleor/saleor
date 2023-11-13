@@ -3,15 +3,9 @@ import base64
 import pytest
 
 from .. import DEFAULT_ADDRESS
-from ..channel.utils import create_channel
 from ..product.utils.preparing_product import prepare_product
-from ..shipping_zone.utils import (
-    create_shipping_method,
-    create_shipping_method_channel_listing,
-    create_shipping_zone,
-)
+from ..shop.utils import prepare_shop
 from ..utils import assign_permissions
-from ..warehouse.utils import create_warehouse
 from .utils.draft_order_complete import raw_draft_order_complete
 from .utils.draft_order_create import draft_order_create
 from .utils.draft_order_update import draft_order_update
@@ -29,78 +23,6 @@ def decode_base64_and_get_last_2_chars(encoded_string):
     return decoded_string[-2:]
 
 
-first_address = DEFAULT_ADDRESS
-
-
-def prepare_shipping_methods(
-    e2e_staff_api_client,
-):
-    warehouse_data = create_warehouse(
-        e2e_staff_api_client,
-        name="Warehouse 1",
-        slug="warehouse-1",
-        address=first_address,
-    )
-    warehouse_id = warehouse_data["id"]
-
-    channel_data = create_channel(
-        e2e_staff_api_client,
-        warehouse_ids=[warehouse_id],
-    )
-    channel_id = channel_data["id"]
-
-    first_shipping_zone_data = create_shipping_zone(
-        e2e_staff_api_client,
-        warehouse_ids=[warehouse_id],
-        channel_ids=[channel_id],
-    )
-    first_shipping_zone_id = first_shipping_zone_data["id"]
-
-    first_shipping_method_data = create_shipping_method(
-        e2e_staff_api_client,
-        first_shipping_zone_id,
-        name="First shipping method",
-        type="PRICE",
-    )
-    first_shipping_method_id = first_shipping_method_data["id"]
-
-    create_shipping_method_channel_listing(
-        e2e_staff_api_client,
-        first_shipping_method_id,
-        channel_id,
-    )
-
-    second_shipping_zone_data = create_shipping_zone(
-        e2e_staff_api_client,
-        name="second shipping zone",
-        countries="PL",
-        warehouse_ids=[warehouse_id],
-        channel_ids=[channel_id],
-    )
-    second_shipping_zone_id = second_shipping_zone_data["id"]
-
-    second_shipping_method_data = create_shipping_method(
-        e2e_staff_api_client,
-        second_shipping_zone_id,
-        name="Second shipping method",
-        type="PRICE",
-    )
-    second_shipping_method_id = second_shipping_method_data["id"]
-
-    create_shipping_method_channel_listing(
-        e2e_staff_api_client,
-        second_shipping_method_id,
-        channel_id,
-    )
-
-    return (
-        warehouse_id,
-        channel_id,
-        first_shipping_method_id,
-        second_shipping_method_id,
-    )
-
-
 @pytest.mark.e2e
 def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
     e2e_staff_api_client,
@@ -109,6 +31,8 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
     permission_manage_product_types_and_attributes,
     permission_manage_shipping,
     permission_manage_orders,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -117,16 +41,23 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
         permission_manage_shipping,
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        first_shipping_method_id,
-        second_shipping_method_id,
-    ) = prepare_shipping_methods(e2e_staff_api_client)
-
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+        num_shipping_zones=2,
+        shipping_zones_structure=[
+            {"countries": ["US"]},
+            {"countries": ["PL"]},
+        ],
+    )
+    first_shipping_method_id = shop_data["shipping_method_ids"][0]
+    second_shipping_method_id = shop_data["shipping_method_ids"][1]
+    channel_id = shop_data["channel_id"]
+    warehouse_id = shop_data["warehouse_id"]
     price = 2
     (
         _product_id,
@@ -160,15 +91,15 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
     assert order_product_variant_id == product_variant_id
 
     # Step 2 - Update order's shipping method
-    input = {
+    input_data = {
         "shippingMethod": first_shipping_method_id,
-        "shippingAddress": first_address,
-        "billingAddress": first_address,
+        "shippingAddress": DEFAULT_ADDRESS,
+        "billingAddress": DEFAULT_ADDRESS,
     }
     draft_order = draft_order_update(
         e2e_staff_api_client,
         order_id,
-        input,
+        input_data,
     )
     order_shipping_id = draft_order["order"]["deliveryMethod"]["id"]
     first_shipping_id_number = decode_base64_and_get_last_2_chars(
@@ -179,7 +110,7 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
     assert shipping_id_number == first_shipping_id_number
 
     # Step 3 - Update order's shipping address for country PL
-    second_address = {
+    polish_address = {
         "firstName": "Jan",
         "lastName": "Kowalski",
         "phone": "+48123456787",
@@ -191,7 +122,7 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
         "streetAddress1": "Smolna",
         "streetAddress2": "13/1",
     }
-    update_input = {"shippingAddress": second_address}
+    update_input = {"shippingAddress": polish_address}
     draft_update = draft_order_update(
         e2e_staff_api_client,
         order_id,
@@ -205,6 +136,7 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
         e2e_staff_api_client,
         order_id,
     )
+
     assert (
         order_complete["errors"][0]["message"]
         == "Shipping method is not valid for chosen shipping address"

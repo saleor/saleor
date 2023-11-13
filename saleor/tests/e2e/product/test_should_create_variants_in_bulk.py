@@ -66,6 +66,8 @@ def test_should_create_product_with_few_variants_core_0301(
     permission_manage_products,
     permission_manage_channels,
     permission_manage_shipping,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -73,15 +75,17 @@ def test_should_create_product_with_few_variants_core_0301(
         permission_manage_products,
         permission_manage_channels,
         permission_manage_shipping,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        _shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+    )
+    channel_id = shop_data["channel_id"]
+    channel_slug = shop_data["channel_slug"]
+    warehouse_id = shop_data["warehouse_id"]
 
     (
         attribute_product_id,

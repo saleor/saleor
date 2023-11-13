@@ -67,6 +67,8 @@ def test_apply_best_promotion_to_product_core_2105(
     permission_manage_discounts,
     permission_manage_orders,
     permission_manage_shipping,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -76,19 +78,21 @@ def test_apply_best_promotion_to_product_core_2105(
         permission_manage_discounts,
         permission_manage_orders,
         permission_manage_shipping,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
-    (
-        result_warehouse_id,
-        result_channel_id,
-        result_channel_slug,
-        _,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+    )
+    channel_id = shop_data["channel_id"]
+    channel_slug = shop_data["channel_slug"]
+    warehouse_id = shop_data["warehouse_id"]
 
     product_id, product_variant_id, product_variant_price = prepare_product(
         e2e_staff_api_client,
-        result_warehouse_id,
-        result_channel_id,
+        warehouse_id,
+        channel_id,
         variant_price,
     )
 
@@ -102,7 +106,7 @@ def test_apply_best_promotion_to_product_core_2105(
         first_discount_type,
         first_discount_value,
         first_rule_name,
-        result_channel_id,
+        channel_id,
         product_id,
     )
 
@@ -116,12 +120,12 @@ def test_apply_best_promotion_to_product_core_2105(
         second_discount_type,
         second_discount_value,
         second_rule_name,
-        result_channel_id,
+        channel_id,
         product_id,
     )
 
     # Step 1 - Get product and check if it is on promotion
-    product_data = get_product(e2e_staff_api_client, product_id, result_channel_slug)
+    product_data = get_product(e2e_staff_api_client, product_id, channel_slug)
 
     assert product_data["pricing"]["onSale"] is True
 
@@ -136,7 +140,7 @@ def test_apply_best_promotion_to_product_core_2105(
 
     # Step 2 - Create draft order
     input = {
-        "channelId": result_channel_id,
+        "channelId": channel_id,
         "billingAddress": DEFAULT_ADDRESS,
         "shippingAddress": DEFAULT_ADDRESS,
     }

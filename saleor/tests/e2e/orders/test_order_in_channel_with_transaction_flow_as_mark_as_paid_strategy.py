@@ -1,15 +1,9 @@
 import pytest
 
 from .. import DEFAULT_ADDRESS
-from ..channel.utils import create_channel
 from ..product.utils.preparing_product import prepare_product
-from ..shipping_zone.utils import (
-    create_shipping_method,
-    create_shipping_method_channel_listing,
-    create_shipping_zone,
-)
+from ..shop.utils import prepare_shop
 from ..utils import assign_permissions
-from ..warehouse.utils import create_warehouse
 from .utils import (
     draft_order_complete,
     draft_order_create,
@@ -18,47 +12,6 @@ from .utils import (
     order_lines_create,
     order_query,
 )
-
-
-def prepare_shop_in_channel_with_transaction_flow_as_mark_as_paid_strategy(
-    e2e_staff_api_client,
-):
-    warehouse_data = create_warehouse(e2e_staff_api_client)
-    warehouse_id = warehouse_data["id"]
-    warehouse_ids = [warehouse_id]
-
-    channel_data = create_channel(
-        e2e_staff_api_client,
-        warehouse_ids=[warehouse_ids],
-        mark_as_paid_strategy="TRANSACTION_FLOW",
-    )
-    channel_id = channel_data["id"]
-
-    shipping_zone_data = create_shipping_zone(
-        e2e_staff_api_client,
-        warehouse_ids=[warehouse_id],
-        channel_ids=[channel_id],
-    )
-    shipping_zone_id = shipping_zone_data["id"]
-
-    shipping_method_data = create_shipping_method(
-        e2e_staff_api_client,
-        shipping_zone_id,
-        type="PRICE",
-    )
-    shipping_method_id = shipping_method_data["id"]
-
-    create_shipping_method_channel_listing(
-        e2e_staff_api_client,
-        shipping_method_id,
-        channel_id,
-    )
-
-    return (
-        warehouse_id,
-        channel_id,
-        shipping_method_id,
-    )
 
 
 @pytest.mark.e2e
@@ -71,6 +24,8 @@ def test_order_in_channel_with_transaction_flow_as_mark_as_paid_strategy_CORE_02
     permission_manage_shipping,
     permission_manage_orders,
     permission_manage_payments,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -80,18 +35,21 @@ def test_order_in_channel_with_transaction_flow_as_mark_as_paid_strategy_CORE_02
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
         permission_manage_payments,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
     app_permissions = [permission_manage_payments]
     assign_permissions(e2e_app_api_client, app_permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        shipping_method_id,
-    ) = prepare_shop_in_channel_with_transaction_flow_as_mark_as_paid_strategy(
-        e2e_staff_api_client
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+        fulfillment_auto_approve=True,
+        mark_as_paid_strategy="TRANSACTION_FLOW",
     )
+    channel_id = shop_data["channel_id"]
+    warehouse_id = shop_data["warehouse_id"]
+    shipping_method_id = shop_data["shipping_method_id"]
 
     price = 2
     (

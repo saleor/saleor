@@ -5,7 +5,6 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ....order.tasks import expire_orders_task
-from ..channel.utils import update_channel
 from ..checkout.utils import checkout_create, checkout_delivery_method_update
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_shop
@@ -24,6 +23,8 @@ def test_order_is_expired_after_specific_time_CORE_0214(
     permission_manage_orders,
     permission_manage_payments,
     permission_handle_checkouts,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -32,6 +33,8 @@ def test_order_is_expired_after_specific_time_CORE_0214(
         permission_manage_shipping,
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
     app_permissions = [
@@ -44,28 +47,15 @@ def test_order_is_expired_after_specific_time_CORE_0214(
 
     price = 10
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
-
-    expire_order_after_in_minutes = 1
-    channel_update_input = {
-        "orderSettings": {
-            "allowUnpaidOrders": True,
-            "automaticallyFulfillNonShippableGiftCard": True,
-            "automaticallyConfirmAllNewOrders": True,
-            "expireOrdersAfter": expire_order_after_in_minutes,
-        }
-    }
-
-    update_channel(
+    shop_data = prepare_shop(
         e2e_staff_api_client,
-        channel_id,
-        channel_update_input,
+        expire_order_after_in_minutes=1,
     )
+    channel_id = shop_data["channel_id"]
+    channel_slug = shop_data["channel_slug"]
+    warehouse_id = shop_data["warehouse_id"]
+    shipping_method_id = shop_data["shipping_method_id"]
+    expire_order_after_in_minutes = shop_data["expire_order_after_in_minutes"]
 
     (
         _product_id,

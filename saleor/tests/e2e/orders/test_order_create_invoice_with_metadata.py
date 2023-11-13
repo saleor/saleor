@@ -2,7 +2,7 @@ import pytest
 
 from .. import DEFAULT_ADDRESS
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils import prepare_shop, update_shop_settings
+from ..shop.utils import prepare_shop
 from ..utils import assign_permissions
 from .utils import (
     draft_order_complete,
@@ -18,15 +18,13 @@ from .utils import (
 
 def prepare_fulfilled_order(e2e_staff_api_client):
     price = 10
-    (
-        warehouse_id,
-        channel_id,
-        _channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
-
-    data = {"fulfillmentAutoApprove": True, "fulfillmentAllowUnpaid": False}
-    update_shop_settings(e2e_staff_api_client, data)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+        fulfillment_auto_approve=True,
+    )
+    channel_id = shop_data["channel_id"]
+    warehouse_id = shop_data["warehouse_id"]
+    shipping_method_id = shop_data["shipping_method_id"]
 
     _product_id, product_variant_id, _product_variant_price = prepare_product(
         e2e_staff_api_client,
@@ -105,6 +103,7 @@ def test_order_create_invoice_with_metadata_CORE_0212(
     permission_manage_shipping,
     permission_manage_orders,
     permission_manage_settings,
+    permission_manage_taxes,
 ):
     # Before
     permissions = [
@@ -114,6 +113,7 @@ def test_order_create_invoice_with_metadata_CORE_0212(
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
         permission_manage_settings,
+        permission_manage_taxes,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 

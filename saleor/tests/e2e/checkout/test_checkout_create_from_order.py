@@ -16,6 +16,8 @@ def test_checkout_create_from_order_core_0104(
     permission_manage_shipping,
     permission_manage_orders,
     permission_manage_checkouts,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -25,17 +27,18 @@ def test_checkout_create_from_order_core_0104(
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
         permission_manage_checkouts,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
     price = 10
 
-    (
-        warehouse_id,
-        channel_id,
-        _channel_slug,
-        _shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+    )
+    warehouse_id = shop_data["warehouse_id"]
+    channel_id = shop_data["channel_id"]
 
     (
         _product_id,
@@ -48,7 +51,7 @@ def test_checkout_create_from_order_core_0104(
         price,
     )
 
-    # Step 1 - Create checkout from order
+    # Step 1 - Create order
     channel_id = {"channelId": channel_id}
     data = draft_order_create(
         e2e_staff_api_client,
@@ -72,6 +75,7 @@ def test_checkout_create_from_order_core_0104(
     order_product_variant_id = order_data["order"]["lines"][0]["variant"]
     order_product_quantity = order_data["order"]["lines"][0]["quantity"]
 
+    # Step 2 - Create checkout from order
     checkout_data = checkout_create_from_order(
         e2e_staff_api_client,
         order_id,

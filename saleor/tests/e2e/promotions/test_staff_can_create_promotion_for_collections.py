@@ -1,6 +1,5 @@
 import pytest
 
-from ..channel.utils import create_channel
 from ..product.utils import (
     create_category,
     create_collection,
@@ -13,31 +12,19 @@ from ..product.utils import (
     get_product,
 )
 from ..promotions.utils import create_promotion, create_promotion_rule
+from ..shop.utils import prepare_shop
 from ..utils import assign_permissions
 
 
 def prepare_product(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_product_types_and_attributes,
-    permission_manage_discounts,
-    channel_slug,
     variant_price,
 ):
-    permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_product_types_and_attributes,
-        permission_manage_discounts,
-    ]
-    assign_permissions(e2e_staff_api_client, permissions)
-
-    channel_data = create_channel(
+    shop_data = prepare_shop(
         e2e_staff_api_client,
-        slug=channel_slug,
     )
-    channel_id = channel_data["id"]
+    channel_id = shop_data["channel_id"]
+    channel_slug = shop_data["channel_slug"]
 
     product_type_data = create_product_type(
         e2e_staff_api_client,
@@ -76,7 +63,7 @@ def prepare_product(
         variant_price,
     )
 
-    return product_id, channel_id, collection_id
+    return product_id, channel_id, channel_slug, collection_id
 
 
 @pytest.mark.e2e
@@ -86,17 +73,29 @@ def test_create_promotion_for_collection_core_2109(
     permission_manage_channels,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
+    permission_manage_shipping,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
-    channel_slug = "promotion_collections_channel"
-    variant_price = "9.99"
-    product_id, channel_id, collection_id = prepare_product(
-        e2e_staff_api_client,
+    permissions = [
         permission_manage_products,
         permission_manage_channels,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
+        permission_manage_shipping,
+        permission_manage_taxes,
+        permission_manage_settings,
+    ]
+    assign_permissions(e2e_staff_api_client, permissions)
+    variant_price = "9.99"
+    (
+        product_id,
+        channel_id,
         channel_slug,
+        collection_id,
+    ) = prepare_product(
+        e2e_staff_api_client,
         variant_price,
     )
 

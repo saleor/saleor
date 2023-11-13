@@ -22,6 +22,8 @@ def test_order_products_on_percentage_promotion_CORE_2103(
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
     permission_manage_orders,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     permissions = [
         permission_manage_products,
@@ -30,22 +32,24 @@ def test_order_products_on_percentage_promotion_CORE_2103(
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
         permission_manage_orders,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        result_warehouse_id,
-        result_channel_id,
-        _,
-        result_shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+    )
+    channel_id = shop_data["channel_id"]
+    warehouse_id = shop_data["warehouse_id"]
+    shipping_method_id = shop_data["shipping_method_id"]
 
     (
         product_id,
         product_variant_id,
         product_variant_price,
     ) = prepare_product(
-        e2e_staff_api_client, result_warehouse_id, result_channel_id, variant_price=20
+        e2e_staff_api_client, warehouse_id, channel_id, variant_price=20
     )
 
     promotion_name = "Promotion Fixed"
@@ -65,18 +69,18 @@ def test_order_products_on_percentage_promotion_CORE_2103(
         discount_type,
         discount_value,
         promotion_rule_name,
-        result_channel_id,
+        channel_id,
     )
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
-    assert promotion_rule["channels"][0]["id"] == result_channel_id
+    assert promotion_rule["channels"][0]["id"] == channel_id
     assert product_predicate[0] == product_id
 
     # Step 1 - Create a draft order for a product with fixed promotion
     input = {
-        "channelId": result_channel_id,
+        "channelId": channel_id,
         "billingAddress": DEFAULT_ADDRESS,
         "shippingAddress": DEFAULT_ADDRESS,
-        "shippingMethod": result_shipping_method_id,
+        "shippingMethod": shipping_method_id,
     }
     data = draft_order_create(e2e_staff_api_client, input)
     order_id = data["order"]["id"]
@@ -103,7 +107,7 @@ def test_order_products_on_percentage_promotion_CORE_2103(
     assert promotion_reason == f"Promotion: {promotion_id}"
 
     # Step 3 - Add a shipping method to the order
-    input = {"shippingMethod": result_shipping_method_id}
+    input = {"shippingMethod": shipping_method_id}
     draft_update = draft_order_update(e2e_staff_api_client, order_id, input)
     order_shipping_id = draft_update["order"]["deliveryMethod"]["id"]
     shipping_price = draft_update["order"]["shippingPrice"]["gross"]["amount"]

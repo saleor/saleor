@@ -47,6 +47,8 @@ def test_staff_can_delete_vouchers_in_bulk_CORE_0924(
     permission_manage_products,
     permission_manage_discounts,
     permission_manage_checkouts,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -55,15 +57,15 @@ def test_staff_can_delete_vouchers_in_bulk_CORE_0924(
         permission_manage_products,
         permission_manage_discounts,
         permission_manage_checkouts,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        _warehouse_id,
-        channel_id,
-        _channel_slug,
-        _shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+    )
+    channel_id = shop_data["channel_id"]
 
     voucher_ids = create_multiple_vouchers(e2e_staff_api_client, channel_id)
 

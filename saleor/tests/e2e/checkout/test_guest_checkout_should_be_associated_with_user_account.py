@@ -39,6 +39,7 @@ def test_guest_checkout_should_be_associated_with_user_account_CORE_1517(
     permission_manage_checkouts,
     permission_manage_users,
     permission_manage_settings,
+    permission_manage_taxes,
 ):
     # Before
     permissions = [
@@ -50,15 +51,17 @@ def test_guest_checkout_should_be_associated_with_user_account_CORE_1517(
         permission_manage_checkouts,
         permission_manage_users,
         permission_manage_settings,
+        permission_manage_taxes,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+    )
+    warehouse_id = shop_data["warehouse_id"]
+    channel_id = shop_data["channel_id"]
+    channel_slug = shop_data["channel_slug"]
+    shipping_method_id = shop_data["shipping_method_id"]
 
     variant_price = 10
 

@@ -2,7 +2,6 @@ import pytest
 
 from ..account.utils import account_register
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils import update_shop_settings
 from ..shop.utils.preparing_shop import prepare_shop
 from ..users.utils import customer_update, get_user
 from ..utils import assign_permissions
@@ -28,6 +27,7 @@ def test_guest_checkout_should_be_assigned_to_user_after_creating_the_account_CO
     permission_manage_users,
     permission_manage_settings,
     permission_manage_payments,
+    permission_manage_taxes,
 ):
     # Before
     permissions = [
@@ -40,6 +40,7 @@ def test_guest_checkout_should_be_assigned_to_user_after_creating_the_account_CO
         permission_manage_users,
         permission_manage_settings,
         permission_manage_payments,
+        permission_manage_taxes,
     ]
     assign_permissions(
         app_api_client,
@@ -51,17 +52,14 @@ def test_guest_checkout_should_be_assigned_to_user_after_creating_the_account_CO
     )
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
-
-    input_data = {
-        "enableAccountConfirmationByEmail": False,
-    }
-    update_shop_settings(e2e_staff_api_client, input_data)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+        enable_account_confirmation_by_email=False,
+    )
+    warehouse_id = shop_data["warehouse_id"]
+    channel_id = shop_data["channel_id"]
+    channel_slug = shop_data["channel_slug"]
+    shipping_method_id = shop_data["shipping_method_id"]
 
     variant_price = 10
 

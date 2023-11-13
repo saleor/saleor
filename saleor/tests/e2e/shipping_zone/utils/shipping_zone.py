@@ -18,6 +18,13 @@ mutation createShipping($input: ShippingZoneCreateInput!) {
       channels {
         id
       }
+      countries {
+        code
+        country
+      }
+      shippingMethods {
+        id
+      }
     }
   }
 }

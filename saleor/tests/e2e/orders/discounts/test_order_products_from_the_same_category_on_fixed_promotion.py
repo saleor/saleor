@@ -1,7 +1,6 @@
 import pytest
 
 from ... import DEFAULT_ADDRESS
-from ...channel.utils import create_channel
 from ...product.utils import (
     create_category,
     create_product,
@@ -11,13 +10,8 @@ from ...product.utils import (
     create_product_variant_channel_listing,
 )
 from ...promotions.utils import create_promotion, create_promotion_rule
-from ...shipping_zone.utils import (
-    create_shipping_method,
-    create_shipping_method_channel_listing,
-    create_shipping_zone,
-)
+from ...shop.utils import prepare_shop
 from ...utils import assign_permissions
-from ...warehouse.utils import create_warehouse, update_warehouse
 from ..utils import (
     draft_order_complete,
     draft_order_create,
@@ -28,13 +22,10 @@ from ..utils import (
 
 def prepare_product(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
-    permission_manage_product_types_and_attributes,
-    permission_manage_discounts,
-    permission_manage_orders,
+    warehouse_id,
+    channel_id,
     channel_slug,
+    shipping_method_id,
     variant_price_1,
     variant_price_2,
     promotion_name,
@@ -42,39 +33,6 @@ def prepare_product(
     discount_type,
     promotion_rule_name,
 ):
-    warehouse_data = create_warehouse(e2e_staff_api_client)
-    warehouse_id = warehouse_data["id"]
-    update_warehouse(
-        e2e_staff_api_client,
-        warehouse_data["id"],
-        is_private=False,
-    )
-    warehouse_ids = [warehouse_id]
-
-    channel_data = create_channel(
-        e2e_staff_api_client,
-        warehouse_ids,
-        slug=channel_slug,
-    )
-    channel_id = channel_data["id"]
-    channel_ids = [channel_id]
-
-    shipping_zone_data = create_shipping_zone(
-        e2e_staff_api_client,
-        warehouse_ids=warehouse_ids,
-        channel_ids=channel_ids,
-    )
-    shipping_zone_id = shipping_zone_data["id"]
-
-    shipping_method_data = create_shipping_method(
-        e2e_staff_api_client, shipping_zone_id
-    )
-    shipping_method_id = shipping_method_data["id"]
-
-    create_shipping_method_channel_listing(
-        e2e_staff_api_client, shipping_method_id, channel_id
-    )
-
     product_type_data = create_product_type(
         e2e_staff_api_client,
     )
@@ -96,7 +54,7 @@ def prepare_product(
 
     stocks = [
         {
-            "warehouse": warehouse_data["id"],
+            "warehouse": warehouse_id,
             "quantity": 5,
         }
     ]
@@ -121,7 +79,7 @@ def prepare_product(
 
     stocks = [
         {
-            "warehouse": warehouse_data["id"],
+            "warehouse": warehouse_id,
             "quantity": 5,
         }
     ]
@@ -177,6 +135,8 @@ def test_order_products_from_category_on_fixed_promotion_CORE_2106(
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
     permission_manage_orders,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -186,10 +146,18 @@ def test_order_products_from_category_on_fixed_promotion_CORE_2106(
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
         permission_manage_orders,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
-
-    channel_slug = "test-channel"
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+    )
+    channel_id = shop_data["channel_id"]
+    channel_id = shop_data["channel_id"]
+    channel_slug = shop_data["channel_slug"]
+    warehouse_id = shop_data["warehouse_id"]
+    shipping_method_id = shop_data["shipping_method_id"]
     variant_price_1 = "20"
     variant_price_2 = "10"
     promotion_name = "Promotion Fixed"
@@ -204,13 +172,10 @@ def test_order_products_from_category_on_fixed_promotion_CORE_2106(
         promotion_id,
     ) = prepare_product(
         e2e_staff_api_client,
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_product_types_and_attributes,
-        permission_manage_discounts,
-        permission_manage_orders,
+        warehouse_id,
+        channel_id,
         channel_slug,
+        shipping_method_id,
         variant_price_1,
         variant_price_2,
         promotion_name,

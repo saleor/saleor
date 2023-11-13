@@ -18,6 +18,8 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
     permission_manage_orders,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -27,23 +29,23 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
         permission_manage_orders,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        result_warehouse_id,
-        result_channel_id,
-        result_channel_slug,
-        _,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+    )
+    channel_id = shop_data["channel_id"]
+    channel_slug = shop_data["channel_slug"]
+    warehouse_id = shop_data["warehouse_id"]
 
     (
         product_id,
         product_variant_id,
         product_variant_price,
-    ) = prepare_product(
-        e2e_staff_api_client, result_warehouse_id, result_channel_id, variant_price=5
-    )
+    ) = prepare_product(e2e_staff_api_client, warehouse_id, channel_id, variant_price=5)
 
     promotion_name = "Promotion Fixed"
 
@@ -69,14 +71,14 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
         discount_type,
         discount_value,
         promotion_rule_name,
-        result_channel_id,
+        channel_id,
     )
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
-    assert promotion_rule["channels"][0]["id"] == result_channel_id
+    assert promotion_rule["channels"][0]["id"] == channel_id
     assert product_predicate[0] == product_id
 
     # Step 2 - Get product and check if it is on promotion
-    product_data = get_product(e2e_staff_api_client, product_id, result_channel_slug)
+    product_data = get_product(e2e_staff_api_client, product_id, channel_slug)
     assert product_data["id"] == product_id
     assert product_data["pricing"]["onSale"] is True
     variant_data = product_data["variants"][0]
@@ -91,7 +93,7 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
     checkout_data = checkout_create(
         e2e_not_logged_api_client,
         lines,
-        result_channel_slug,
+        channel_slug,
         email="testEmail@example.com",
         set_default_billing_address=True,
         set_default_shipping_address=True,

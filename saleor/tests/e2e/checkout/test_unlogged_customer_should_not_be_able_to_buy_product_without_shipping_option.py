@@ -1,41 +1,9 @@
 import pytest
 
-from ..channel.utils import create_channel
 from ..product.utils.preparing_product import prepare_product
-from ..shipping_zone.utils import create_shipping_zone
+from ..shop.utils import prepare_shop
 from ..utils import assign_permissions
-from ..warehouse.utils import create_warehouse, update_warehouse
 from .utils import checkout_create, raw_checkout_dummy_payment_create
-
-
-def prepare_shop_with_no_shipping_method(
-    e2e_staff_api_client,
-):
-    warehouse_data = create_warehouse(e2e_staff_api_client)
-    warehouse_id = warehouse_data["id"]
-    warehouse_ids = [warehouse_id]
-
-    update_warehouse(
-        e2e_staff_api_client,
-        warehouse_data["id"],
-    )
-
-    channel_data = create_channel(
-        e2e_staff_api_client,
-        slug="test___0e00",
-        warehouse_ids=warehouse_ids,
-    )
-    channel_id = channel_data["id"]
-    channel_ids = [channel_id]
-    channel_slug = channel_data["slug"]
-
-    create_shipping_zone(
-        e2e_staff_api_client,
-        warehouse_ids=warehouse_ids,
-        channel_ids=channel_ids,
-    )
-
-    return channel_id, channel_slug, warehouse_id
 
 
 @pytest.mark.e2e
@@ -46,6 +14,8 @@ def test_unlogged_customer_unable_to_buy_product_without_shipping_option_CORE_01
     permission_manage_channels,
     permission_manage_product_types_and_attributes,
     permission_manage_shipping,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -53,16 +23,20 @@ def test_unlogged_customer_unable_to_buy_product_without_shipping_option_CORE_01
         permission_manage_channels,
         permission_manage_product_types_and_attributes,
         permission_manage_shipping,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
 
     assign_permissions(e2e_staff_api_client, permissions)
-    (
-        channel_id,
-        channel_slug,
-        warehouse_id,
-    ) = prepare_shop_with_no_shipping_method(
+    shop_data = prepare_shop(
         e2e_staff_api_client,
+        shipping_zones_structure=[{"countries": ["US"], "num_shipping_methods": 0}],
     )
+
+    channel_id = shop_data["channel_id"]
+    channel_slug = shop_data["channel_slug"]
+    warehouse_id = shop_data["warehouse_id"]
+
     variant_price = 10
 
     (

@@ -1,15 +1,10 @@
 import pytest
 
 from ... import DEFAULT_ADDRESS
+from ...product.utils import update_product
 from ...product.utils.preparing_product import prepare_product
-from ...shipping_zone.utils import update_shipping_price
 from ...shop.utils import prepare_shop
-from ...taxes.utils import (
-    create_tax_class,
-    get_tax_configurations,
-    update_country_tax_rates,
-    update_tax_configuration,
-)
+from ...taxes.utils import update_country_tax_rates
 from ...utils import assign_permissions
 from ..utils import (
     draft_order_complete,
@@ -17,44 +12,6 @@ from ..utils import (
     draft_order_update,
     order_lines_create,
 )
-
-
-def prepare_tax_configuration(
-    e2e_staff_api_client,
-    channel_slug,
-    country_code,
-    country_tax_rate,
-    shipping_tax_rate,
-    prices_entered_with_tax,
-):
-    tax_config_data = get_tax_configurations(e2e_staff_api_client)
-    channel_tax_config = tax_config_data[0]["node"]
-    assert channel_tax_config["channel"]["slug"] == channel_slug
-    tax_config_id = channel_tax_config["id"]
-
-    tax_config_data = update_tax_configuration(
-        e2e_staff_api_client,
-        tax_config_id,
-        charge_taxes=True,
-        tax_calculation_strategy="FLAT_RATES",
-        display_gross_prices=True,
-        prices_entered_with_tax=prices_entered_with_tax,
-    )
-    update_country_tax_rates(
-        e2e_staff_api_client,
-        country_code,
-        [{"rate": country_tax_rate}],
-    )
-
-    country_rates = [{"countryCode": country_code, "rate": shipping_tax_rate}]
-    tax_class_data = create_tax_class(
-        e2e_staff_api_client,
-        "Shipping tax class",
-        country_rates,
-    )
-    tax_class_id = tax_class_data["id"]
-
-    return country_tax_rate, shipping_tax_rate, tax_class_id
 
 
 @pytest.mark.e2e
@@ -66,6 +23,7 @@ def test_order_calculate_simple_tax_based_on_shipping_tax_class_CORE_2010(
     permission_manage_shipping,
     permission_manage_taxes,
     permission_manage_orders,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -74,39 +32,40 @@ def test_order_calculate_simple_tax_based_on_shipping_tax_class_CORE_2010(
         permission_manage_shipping,
         permission_manage_product_types_and_attributes,
         permission_manage_taxes,
+        permission_manage_settings,
         permission_manage_orders,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
-
-    country_tax_rate, shipping_tax_rate, tax_class_id = prepare_tax_configuration(
+    shop_data = prepare_shop(
         e2e_staff_api_client,
-        channel_slug,
-        country_code="US",
         country_tax_rate=10,
-        shipping_tax_rate=8,
+        shipping_country_tax_rate=8,
         prices_entered_with_tax=True,
     )
-
+    channel_id = shop_data["channel_id"]
+    warehouse_id = shop_data["warehouse_id"]
+    shipping_price = shop_data["shipping_price"]
+    shipping_method_id = shop_data["shipping_method_id"]
+    shipping_country_tax_rate = shop_data["shipping_country_tax_rate"]
+    country_tax_rate = shop_data["country_tax_rate"]
+    country_tax_class_id = shop_data["country_tax_class_id"]
+    country = shop_data["country"]
+    update_country_tax_rates(
+        e2e_staff_api_client,
+        country,
+        [{"rate": shipping_country_tax_rate}],
+    )
     variant_price = "33.33"
-    (
-        _product_id,
-        product_variant_id,
-        product_variant_price,
-    ) = prepare_product(
+    (product_id, product_variant_id, product_variant_price) = prepare_product(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
         variant_price,
     )
-    shipping_tax_class = {"taxClass": tax_class_id}
-    update_shipping_price(e2e_staff_api_client, shipping_method_id, shipping_tax_class)
+
+    tax_class = {"taxClass": country_tax_class_id}
+    update_product(e2e_staff_api_client, product_id, tax_class)
 
     # Step 1 - Create a draft order
     input = {
@@ -134,6 +93,7 @@ def test_order_calculate_simple_tax_based_on_shipping_tax_class_CORE_2010(
     shipping_price = float(shipping_price)
 
     subtotal_gross = round((product_variant_price * 2), 2)
+
     subtotal_tax = round(
         (subtotal_gross * country_tax_rate) / (100 + country_tax_rate),
         2,
@@ -156,7 +116,9 @@ def test_order_calculate_simple_tax_based_on_shipping_tax_class_CORE_2010(
 
     shipping_gross = shipping_price
     shipping_tax = round(
-        (shipping_price * shipping_tax_rate) / (shipping_tax_rate + 100), 2
+        (shipping_price * shipping_country_tax_rate)
+        / (shipping_country_tax_rate + 100),
+        2,
     )
     shipping_net = round(shipping_price - shipping_tax, 2)
 

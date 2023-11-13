@@ -45,6 +45,8 @@ def test_use_multiple_gift_cards_in_checkout_core_1105(
     permission_manage_shipping,
     permission_manage_product_types_and_attributes,
     permission_manage_gift_card,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -53,15 +55,17 @@ def test_use_multiple_gift_cards_in_checkout_core_1105(
         permission_manage_shipping,
         permission_manage_product_types_and_attributes,
         permission_manage_gift_card,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+    )
+    warehouse_id = shop_data["warehouse_id"]
+    channel_id = shop_data["channel_id"]
+    channel_slug = shop_data["channel_slug"]
 
     (
         _product_id,

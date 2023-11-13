@@ -72,6 +72,9 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
           gross {
             amount
           }
+          tax {
+            amount
+          }
         }
         undiscountedUnitPrice {
           amount

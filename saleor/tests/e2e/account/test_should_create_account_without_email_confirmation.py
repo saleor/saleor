@@ -1,7 +1,6 @@
 import pytest
 
-from ..channel.utils import create_channel
-from ..shop.utils import update_shop_settings
+from ..shop.utils import prepare_shop
 from ..utils import assign_permissions
 from .utils import account_register, token_create
 
@@ -10,22 +9,29 @@ from .utils import account_register, token_create
 def test_should_create_account_without_email_confirmation_core_1502(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
+    permission_manage_products,
     permission_manage_channels,
+    permission_manage_product_types_and_attributes,
+    permission_manage_shipping,
+    permission_manage_taxes,
     permission_manage_settings,
 ):
     # Before
-    permissions = [permission_manage_channels, permission_manage_settings]
+    permissions = [
+        permission_manage_products,
+        permission_manage_channels,
+        permission_manage_product_types_and_attributes,
+        permission_manage_shipping,
+        permission_manage_taxes,
+        permission_manage_settings,
+    ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    chanel_data = create_channel(e2e_staff_api_client)
-    channel_slug = chanel_data["slug"]
-
-    input = {
-        "enableAccountConfirmationByEmail": False,
-    }
-
-    update_shop_settings(e2e_staff_api_client, input)
-
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+        enable_account_confirmation_by_email=False,
+    )
+    channel_slug = shop_data["channel_slug"]
     test_email = "new-user@saleor.io"
     test_password = "password!"
     redirect_url = ""

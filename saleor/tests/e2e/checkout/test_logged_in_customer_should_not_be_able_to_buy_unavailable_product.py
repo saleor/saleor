@@ -16,12 +16,12 @@ from .utils import raw_checkout_create
 def prepare_unavailable_product(
     e2e_staff_api_client,
 ):
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        _shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+    )
+    channel_id = shop_data["channel_id"]
+    channel_slug = shop_data["channel_slug"]
+    warehouse_id = shop_data["warehouse_id"]
 
     product_type_data = create_product_type(
         e2e_staff_api_client,
@@ -83,6 +83,8 @@ def test_should_not_be_able_to_buy_unavailable_product_core_0108(
     permission_manage_channels,
     permission_manage_product_types_and_attributes,
     permission_manage_shipping,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -90,6 +92,8 @@ def test_should_not_be_able_to_buy_unavailable_product_core_0108(
         permission_manage_channels,
         permission_manage_product_types_and_attributes,
         permission_manage_shipping,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
 
     assign_permissions(e2e_staff_api_client, permissions)

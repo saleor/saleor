@@ -25,6 +25,8 @@ def test_cancel_fully_paid_order_CORE_0206(
     permission_manage_shipping,
     permission_manage_orders,
     permission_manage_payments,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -34,6 +36,8 @@ def test_cancel_fully_paid_order_CORE_0206(
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
         permission_manage_payments,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
     app_permissions = [permission_manage_payments, permission_manage_orders]
@@ -41,12 +45,12 @@ def test_cancel_fully_paid_order_CORE_0206(
 
     price = 10
 
-    (
-        warehouse_id,
-        channel_id,
-        _channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_shop(
+        e2e_staff_api_client,
+    )
+    channel_id = shop_data["channel_id"]
+    warehouse_id = shop_data["warehouse_id"]
+    shipping_method_id = shop_data["shipping_method_id"]
 
     (
         _product_id,

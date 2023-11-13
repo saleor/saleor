@@ -38,7 +38,6 @@ def create_channel(
     allow_unpaid_orders=False,
     automatically_confirm_all_new_orders=True,
     mark_as_paid_strategy="PAYMENT_FLOW",
-    expire_orders_after=0,
 ):
     if not warehouse_ids:
         warehouse_ids = []
@@ -60,7 +59,6 @@ def create_channel(
                 "automaticallyConfirmAllNewOrders": (
                     automatically_confirm_all_new_orders
                 ),
-                "expireOrdersAfter": expire_orders_after,
             },
         }
     }

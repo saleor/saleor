@@ -1,36 +1,14 @@
 import pytest
 
-from ..channel.utils import create_channel
 from ..product.utils.preparing_product import prepare_product
+from ..shop.utils import prepare_shop
 from ..utils import assign_permissions
-from ..warehouse.utils import create_warehouse, update_warehouse
 from .utils import (
     checkout_complete,
     checkout_create,
     checkout_delivery_method_update,
     checkout_dummy_payment_create,
 )
-
-
-def prepare_shop_click_and_collect(
-    e2e_staff_api_client,
-):
-    warehouse_data = create_warehouse(e2e_staff_api_client)
-    warehouse_id = warehouse_data["id"]
-    update_warehouse(
-        e2e_staff_api_client,
-        warehouse_data["id"],
-        is_private=False,
-        click_and_collect_option="LOCAL",
-    )
-    channel_data = create_channel(
-        e2e_staff_api_client,
-        warehouse_data["id"],
-    )
-    channel_id = channel_data["id"]
-    channel_slug = channel_data["slug"]
-
-    return channel_id, channel_slug, warehouse_id
 
 
 @pytest.mark.e2e
@@ -40,22 +18,28 @@ def test_unlogged_customer_buy_by_click_and_collect_CORE_0105(
     permission_manage_products,
     permission_manage_channels,
     permission_manage_product_types_and_attributes,
+    permission_manage_shipping,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
         permission_manage_products,
         permission_manage_channels,
         permission_manage_product_types_and_attributes,
+        permission_manage_shipping,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
 
     assign_permissions(e2e_staff_api_client, permissions)
-    (
-        channel_id,
-        channel_slug,
-        warehouse_id,
-    ) = prepare_shop_click_and_collect(
+    shop_data = prepare_shop(
         e2e_staff_api_client,
+        click_and_collect_option="LOCAL",
     )
+    channel_id = shop_data["channel_id"]
+    channel_slug = shop_data["channel_slug"]
+    warehouse_id = shop_data["warehouse_id"]
 
     variant_price = 10
 

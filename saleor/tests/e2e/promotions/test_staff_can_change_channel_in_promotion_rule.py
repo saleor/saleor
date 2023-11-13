@@ -1,6 +1,5 @@
 import pytest
 
-from ..channel.utils import create_channel
 from ..product.utils import (
     get_product,
     raw_create_product_channel_listing,
@@ -43,16 +42,20 @@ def prepare_promotion(
     return promotion_rule_id
 
 
-def prepare_second_channel_and_listing(
-    e2e_staff_api_client, warehouse_id, product_id, product_variant_id
-):
-    second_channel_slug = "channel_pln"
-    channel_data = create_channel(
+def prepare_channels_with_product(e2e_staff_api_client):
+    shop_data = prepare_shop(
         e2e_staff_api_client,
-        warehouse_ids=[warehouse_id],
-        slug=second_channel_slug,
+        num_channels=2,
     )
-    second_channel_id = channel_data["id"]
+    warehouse_id = shop_data["warehouse_id"]
+    first_channel_id = shop_data["created_channels"][0]["id"]
+    first_channel_slug = shop_data["created_channels"][0]["slug"]
+    second_channel_id = shop_data["created_channels"][1]["id"]
+    second_channel_slug = shop_data["created_channels"][1]["slug"]
+
+    product_id, product_variant_id, _ = prepare_product(
+        e2e_staff_api_client, warehouse_id, first_channel_id, "7.99"
+    )
 
     product_listing_data = raw_create_product_channel_listing(
         e2e_staff_api_client,
@@ -74,7 +77,13 @@ def prepare_second_channel_and_listing(
         variant_listing_data["variant"]["channelListings"][1]["channel"]["id"]
         == second_channel_id
     )
-    return second_channel_id, second_channel_slug
+    return (
+        first_channel_id,
+        first_channel_slug,
+        second_channel_id,
+        second_channel_slug,
+        product_id,
+    )
 
 
 @pytest.mark.e2e
@@ -85,6 +94,8 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
     permission_manage_shipping,
+    permission_manage_taxes,
+    permission_manage_settings,
 ):
     # Before
     permissions = [
@@ -93,14 +104,18 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
         permission_manage_shipping,
+        permission_manage_taxes,
+        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    warehouse_id, channel_id, channel_slug, _ = prepare_shop(e2e_staff_api_client)
-
-    product_id, product_variant_id, _ = prepare_product(
-        e2e_staff_api_client, warehouse_id, channel_id, "7.99"
-    )
+    (
+        first_channel_id,
+        first_channel_slug,
+        second_channel_id,
+        second_channel_slug,
+        product_id,
+    ) = prepare_channels_with_product(e2e_staff_api_client)
 
     predicate_input = {"productPredicate": {"ids": [product_id]}}
     promotion_rule_id = prepare_promotion(
@@ -108,18 +123,16 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
         50,
         "PERCENTAGE",
         predicate_input,
-        channel_id=[channel_id],
+        channel_id=[first_channel_id],
     )
-    second_channel_id, second_channel_slug = prepare_second_channel_and_listing(
-        e2e_staff_api_client, warehouse_id, product_id, product_variant_id
-    )
+
     # Step 1 Update promotion rule: switch channels
     update_promotion_rule(
         e2e_staff_api_client,
         promotion_rule_id,
         input={
             "addChannels": [second_channel_id],
-            "removeChannels": [channel_id],
+            "removeChannels": [first_channel_id],
             "cataloguePredicate": predicate_input,
         },
     )
@@ -133,5 +146,7 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
     assert variant["pricing"]["discount"]["gross"]["amount"] == 49.5
 
     # Step 3 Check if promotion is not applied for product on first channel
-    product_data_channel_1 = get_product(e2e_staff_api_client, product_id, channel_slug)
+    product_data_channel_1 = get_product(
+        e2e_staff_api_client, product_id, first_channel_slug
+    )
     assert product_data_channel_1["pricing"]["onSale"] is False
