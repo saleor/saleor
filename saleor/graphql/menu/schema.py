@@ -92,11 +92,11 @@ class MenuQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, MenuCountableConnection)
 
     @staticmethod
-    def resolve_menu_item(_root, _info: ResolveInfo, *, channel=None, id: str):
+    def resolve_menu_item(_root, info: ResolveInfo, *, channel=None, id: str):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         _, id = from_global_id_or_error(id, MenuItem)
-        return resolve_menu_item(id, channel)
+        return resolve_menu_item(info, id, channel)
 
     @staticmethod
     def resolve_menu_items(_root, info: ResolveInfo, *, channel=None, **kwargs):

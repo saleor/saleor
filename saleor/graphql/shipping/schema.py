@@ -1,11 +1,11 @@
 import graphene
-from django.conf import settings
 
 from ...permission.enums import ShippingPermissions
 from ...shipping import models
 from ..channel.types import ChannelContext
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.context import get_database_connection_name
 from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
@@ -54,10 +54,12 @@ class ShippingQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_shipping_zone(_root, _info: ResolveInfo, *, id, channel=None):
+    def resolve_shipping_zone(_root, info: ResolveInfo, *, id, channel=None):
         _, id = from_global_id_or_error(id, ShippingZone)
         instance = (
-            models.ShippingZone.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            models.ShippingZone.objects.using(
+                get_database_connection_name(info.context)
+            )
             .filter(id=id)
             .first()
         )
@@ -65,7 +67,7 @@ class ShippingQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_shipping_zones(_root, info: ResolveInfo, *, channel=None, **kwargs):
-        qs = resolve_shipping_zones(channel)
+        qs = resolve_shipping_zones(info, channel)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(
             qs, info, kwargs, ShippingZoneCountableConnection

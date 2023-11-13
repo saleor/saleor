@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db.models import Exists, OuterRef, Q
 
 from ...app.models import App
@@ -12,6 +11,7 @@ from ...permission.enums import AppPermission
 from ...webhook import models, payloads
 from ...webhook.deprecated_event_types import WebhookEventType
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..core.context import get_database_connection_name
 from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
 from .types import Webhook, WebhookEvent
@@ -23,13 +23,14 @@ def resolve_webhook(info, id, app):
         return app.webhooks.filter(id=id).first()
     user = info.context.user
     if user.has_perm(AppPermission.MANAGE_APPS):
+        connection_name = get_database_connection_name(info.context)
         apps = (
-            App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            App.objects.using(connection_name)
             .filter(removed_at__isnull=True)
             .values("pk")
         )
         return (
-            models.Webhook.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            models.Webhook.objects.using(connection_name)
             .filter(Q(pk=id), Exists(apps.filter(id=OuterRef("app_id"))))
             .first()
         )

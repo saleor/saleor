@@ -1,5 +1,3 @@
-from django.conf import settings
-
 from ...attribute import models as attribute_models
 from ...discount import models as discount_models
 from ...menu import models as menu_models
@@ -9,6 +7,7 @@ from ...shipping import interface as shipping_interface
 from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..core import ResolveInfo
+from ..core.context import get_database_connection_name
 from . import dataloaders
 
 TYPE_TO_TRANSLATION_LOADER_MAP = {
@@ -51,43 +50,43 @@ def resolve_translation(instance, info: ResolveInfo, *, language_code):
     raise TypeError(f"No dataloader found to {type(instance)}")
 
 
-def resolve_shipping_methods(_info):
+def resolve_shipping_methods(info):
     return shipping_models.ShippingMethod.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
+        get_database_connection_name(info.context)
     ).all()
 
 
-def resolve_attribute_values(_info):
+def resolve_attribute_values(info):
     return attribute_models.AttributeValue.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
+        get_database_connection_name(info.context)
     ).all()
 
 
-def resolve_products(_info):
+def resolve_products(info):
     return product_models.Product.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
+        get_database_connection_name(info.context)
     ).all()
 
 
-def resolve_product_variants(_info):
+def resolve_product_variants(info):
     return product_models.ProductVariant.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
+        get_database_connection_name(info.context)
     ).all()
 
 
-def resolve_sales(_info):
+def resolve_sales(info):
     return discount_models.Sale.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
+        get_database_connection_name(info.context)
     ).all()
 
 
-def resolve_vouchers(_info):
+def resolve_vouchers(info):
     return discount_models.Voucher.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
+        get_database_connection_name(info.context)
     ).all()
 
 
-def resolve_collections(_info):
+def resolve_collections(info):
     return product_models.Collection.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
+        get_database_connection_name(info.context)
     ).all()

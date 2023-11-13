@@ -1,6 +1,5 @@
-from django.conf import settings
-
 from ...page import models
+from ..core.context import get_database_connection_name
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..utils import get_user_or_app_from_context
@@ -14,7 +13,7 @@ def resolve_page(info, global_page_id=None, slug=None):
     if slug is not None:
         page = (
             models.Page.objects.visible_to_user(requestor)
-            .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .using(get_database_connection_name(info.context))
             .filter(slug=slug)
             .first()
         )
@@ -22,7 +21,7 @@ def resolve_page(info, global_page_id=None, slug=None):
         _type, page_pk = from_global_id_or_error(global_page_id, Page)
         page = (
             models.Page.objects.visible_to_user(requestor)
-            .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .using(get_database_connection_name(info.context))
             .filter(pk=page_pk)
             .first()
         )
@@ -32,19 +31,19 @@ def resolve_page(info, global_page_id=None, slug=None):
 def resolve_pages(info):
     requestor = get_user_or_app_from_context(info.context)
     return models.Page.objects.visible_to_user(requestor).using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
+        get_database_connection_name(info.context)
     )
 
 
-def resolve_page_type(id):
+def resolve_page_type(info, id):
     return (
-        models.PageType.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        models.PageType.objects.using(get_database_connection_name(info.context))
         .filter(id=id)
         .first()
     )
 
 
-def resolve_page_types(_info):
+def resolve_page_types(info):
     return models.PageType.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
+        get_database_connection_name(info.context)
     ).all()

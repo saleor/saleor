@@ -2,7 +2,6 @@ import base64
 from typing import List, Optional, Type, Union
 
 import graphene
-from django.conf import settings
 
 from ...app import models
 from ...app.types import AppExtensionTarget
@@ -23,6 +22,7 @@ from ...thumbnail.utils import (
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection
+from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
@@ -450,7 +450,7 @@ class AppToken(BaseObjectType):
     def get_node(info: ResolveInfo, id):
         try:
             return models.AppToken.objects.using(
-                settings.DATABASE_CONNECTION_REPLICA_NAME
+                get_database_connection_name(info.context)
             ).get(pk=id)
         except models.AppToken.DoesNotExist:
             return None
@@ -536,9 +536,9 @@ class App(ModelObjectType[models.App]):
         return root.created_at
 
     @staticmethod
-    def resolve_permissions(root: models.App, _info: ResolveInfo):
+    def resolve_permissions(root: models.App, info: ResolveInfo):
         permissions = (
-            root.permissions.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            root.permissions.using(get_database_connection_name(info.context))
             .prefetch_related("content_type")
             .order_by("codename")
         )

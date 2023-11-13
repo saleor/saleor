@@ -1,7 +1,6 @@
 from typing import List
 
 import graphene
-from django.conf import settings
 
 from ...attribute import models as attribute_models
 from ...page import models
@@ -14,6 +13,7 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+from ..core.context import get_database_connection_name
 from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.federation import federated_entity, resolve_federation_references
@@ -80,7 +80,7 @@ class PageType(ModelObjectType[models.PageType]):
     ):
         qs = attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
-        ).using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        ).using(get_database_connection_name(info.context))
         qs = filter_connection_queryset(qs, kwargs, info.context)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 

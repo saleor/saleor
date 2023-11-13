@@ -16,6 +16,7 @@ from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..attribute.dataloaders import AttributesByAttributeId
 from ..channel import ChannelContext
+from ..core.context import get_database_connection_name
 from ..core.descriptions import ADDED_IN_39, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import JSONString, PermissionsField
@@ -326,7 +327,7 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
     def resolve_collection(root: product_models.Collection, info):
         collection = (
             product_models.Collection.objects.using(
-                settings.DATABASE_CONNECTION_REPLICA_NAME
+                get_database_connection_name(info.context)
             )
             .filter(pk=root.id)
             .first()
@@ -457,7 +458,7 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
     def resolve_page(root: page_models.Page, info):
         return (
             page_models.Page.objects.visible_to_user(info.context.user)
-            .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .using(get_database_connection_name(info.context))
             .filter(pk=root.id)
             .first()
         )

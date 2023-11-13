@@ -1,21 +1,20 @@
-from django.conf import settings
-
 from ...warehouse import models
+from ..core.context import get_database_connection_name
 
 
-def resolve_stock(id):
+def resolve_stock(info, id):
     return (
-        models.Stock.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        models.Stock.objects.using(get_database_connection_name(info.context))
         .filter(id=id)
         .first()
     )
 
 
-def resolve_stocks():
-    return models.Stock.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()
+def resolve_stocks(info):
+    return models.Stock.objects.using(get_database_connection_name(info.context)).all()
 
 
-def resolve_warehouses():
+def resolve_warehouses(info):
     return models.Warehouse.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
+        get_database_connection_name(info.context)
     ).all()

@@ -1,6 +1,5 @@
 from urllib.parse import urljoin, urlparse
 
-from django.conf import settings
 from django.db.models import Exists, OuterRef
 
 from ...app import models
@@ -9,19 +8,20 @@ from ...core.jwt import (
     create_access_token_for_app,
     create_access_token_for_app_extension,
 )
+from ..core.context import get_database_connection_name
 from ..core.utils import from_global_id_or_error
 from .enums import AppTypeEnum
 
 
 def resolve_apps_installations(info):
     return models.AppInstallation.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
+        get_database_connection_name(info.context)
     ).all()
 
 
 def resolve_apps(info):
     return (
-        models.App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        models.App.objects.using(get_database_connection_name(info.context))
         .filter(is_installed=True, removed_at__isnull=True)
         .all()
     )
@@ -42,7 +42,7 @@ def resolve_access_token_for_app_extension(info, root, app):
     if not user:
         return None
     extension_permissions = root.permissions.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
+        get_database_connection_name(info.context)
     ).all()
     user_permissions = user.effective_permissions
     if set(extension_permissions).issubset(user_permissions):
@@ -52,26 +52,27 @@ def resolve_access_token_for_app_extension(info, root, app):
     return None
 
 
-def resolve_app(_info, id):
+def resolve_app(info, id):
     if not id:
         return None
     _, id = from_global_id_or_error(id, "App")
     return (
-        models.App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        models.App.objects.using(get_database_connection_name(info.context))
         .filter(id=id, is_installed=True, removed_at__isnull=True)
         .first()
     )
 
 
-def resolve_app_extensions(_info):
+def resolve_app_extensions(info):
+    connection_name = get_database_connection_name(info.context)
     apps = (
-        models.App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        models.App.objects.using(connection_name)
         .filter(is_active=True, removed_at__isnull=True)
         .values("pk")
     )
-    return models.AppExtension.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(Exists(apps.filter(id=OuterRef("app_id"))))
+    return models.AppExtension.objects.using(connection_name).filter(
+        Exists(apps.filter(id=OuterRef("app_id")))
+    )
 
 
 def resolve_app_extension_url(root):
