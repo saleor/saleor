@@ -523,17 +523,3 @@ def order_undiscounted_total(
     currency = order.currency
     order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
     return quantize_price(order.undiscounted_total, currency)
-
-
-def dd(line, line_total, amount: TaxedMoney, tax_rate: int, prices_entered_with_tax):
-    if tax_rate > 0 and amount.net == amount.gross:
-        quantize_price(
-            calculate_flat_rate_tax(
-                money=line_total.undiscounted_price.net,
-                tax_rate=tax_rate,
-                prices_entered_with_tax=prices_entered_with_tax,
-            ),
-            line.currency,
-        )
-    else:
-        return amount
