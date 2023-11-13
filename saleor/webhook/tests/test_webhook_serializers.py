@@ -29,7 +29,7 @@ def test_serialize_variant_attributes(product_with_variant_with_two_attributes):
         product_with_variant_with_two_attributes.variants.first()
     )
     assert len(variant_data) == 2
-    assert variant_data[1] == {
+    assert {
         "entity_type": None,
         "id": ANY,
         "input_type": "dropdown",
@@ -49,7 +49,7 @@ def test_serialize_variant_attributes(product_with_variant_with_two_attributes):
                 "value": "",
             }
         ],
-    }
+    } in variant_data
 
 
 def test_serialize_product_attributes(
