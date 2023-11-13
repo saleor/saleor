@@ -289,7 +289,28 @@ class ProductVariantBulkUpdate(BaseMutation):
         variant_index,
         index_error_map,
     ):
+        used_warehouses = defaultdict(list)
+        for stock in stock_global_id_to_instance_map.values():
+            warehouse_global_id = graphene.Node.to_global_id(
+                "Warehouse", stock.warehouse_id
+            )
+            used_warehouses[warehouse_global_id].append(stock.product_variant_id)
+
         if stocks_data := cleaned_input["stocks"].get("create"):
+            variant = cleaned_input["id"]
+            for stock_index, stock in enumerate(stocks_data):
+                if variant.id in used_warehouses.get(stock["warehouse"], {}):
+                    index_error_map[variant_index].append(
+                        ProductVariantBulkError(
+                            field="warehouse",
+                            path=f"stocks.create.{stock_index}.warehouse",
+                            message="Stock for provided warehouse already exists.",
+                            code=ProductVariantBulkErrorCode.STOCK_ALREADY_EXISTS.value,
+                            warehouses=[stock["warehouse"]],
+                        )
+                    )
+                    continue
+
             cleaned_input["stocks"]["create"] = ProductVariantBulkCreate.clean_stocks(
                 stocks_data,
                 warehouse_global_id_to_instance_map,
@@ -411,6 +432,23 @@ class ProductVariantBulkUpdate(BaseMutation):
         return cleaned_input if cleaned_input else None
 
     @classmethod
+    def _get_input_warehouses_ids(cls, variants_data):
+        warehouses_from_input = []
+        stocks = (
+            stock
+            for v in variants_data
+            if v.get("stocks", {}).get("create")
+            for stock in v["stocks"]["create"]
+        )
+        for stock in stocks:
+            try:
+                warehouse_id = graphene.Node.from_global_id(stock["warehouse"])[1]
+                warehouses_from_input.append(warehouse_id)
+            except UnicodeDecodeError:
+                continue
+        return warehouses_from_input
+
+    @classmethod
     def clean_variants(
         cls,
         info,
@@ -422,10 +460,11 @@ class ProductVariantBulkUpdate(BaseMutation):
         cleaned_inputs_map: dict = {}
         product_type = product.product_type
 
-        # fetch existing data required to validate inputs
         warehouse_global_id_to_instance_map = {
             graphene.Node.to_global_id("Warehouse", warehouse.id): warehouse
-            for warehouse in warehouse_models.Warehouse.objects.all()
+            for warehouse in warehouse_models.Warehouse.objects.filter(
+                id__in=cls._get_input_warehouses_ids(variants)
+            )
         }
         stock_global_id_to_instance_map = {
             graphene.Node.to_global_id("Stock", stock.id): stock
