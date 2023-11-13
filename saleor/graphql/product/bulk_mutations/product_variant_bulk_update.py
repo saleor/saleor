@@ -291,13 +291,13 @@ class ProductVariantBulkUpdate(BaseMutation):
     ):
         used_warehouses = defaultdict(list)
         for stock in stock_global_id_to_instance_map.values():
-            variant = cleaned_input["id"]
             warehouse_global_id = graphene.Node.to_global_id(
                 "Warehouse", stock.warehouse_id
             )
             used_warehouses[warehouse_global_id].append(stock.product_variant_id)
 
         if stocks_data := cleaned_input["stocks"].get("create"):
+            variant = cleaned_input["id"]
             for stock_index, stock in enumerate(stocks_data):
                 if variant.id in used_warehouses.get(stock["warehouse"], {}):
                     index_error_map[variant_index].append(
