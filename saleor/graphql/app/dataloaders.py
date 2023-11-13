@@ -80,14 +80,6 @@ class AppByTokenLoader(DataLoader):
         for raw_token in keys:
             last_4s_to_raw_token_map[raw_token[-4:]].append(raw_token)
 
-        # The app should always be taken from the default database.
-        # The app is retrieved from the database before the mutation code is reached,
-        # in case the replica database is set the app from the replica will be returned.
-        # In such case, when in the mutation there is another ask for an app,
-        # the cached instance from the replica is returned. Then the error is raised
-        # when any object is saved with a reference to this app.
-        # Because of that loaders that are used in context shouldn't use
-        # the replica database.
         tokens = (
             AppToken.objects.using(self.database_connection_name)
             .filter(token_last_4__in=last_4s_to_raw_token_map.keys())

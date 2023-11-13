@@ -2124,7 +2124,9 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A product variant is updated."""
   PRODUCT_VARIANT_UPDATED
 
-  """A product variant is deleted."""
+  """
+  A product variant is deleted. Warning: this event will not be executed when parent product has been deleted. Check PRODUCT_DELETED.
+  """
   PRODUCT_VARIANT_DELETED
 
   """
@@ -2846,7 +2848,9 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A product variant is updated."""
   PRODUCT_VARIANT_UPDATED
 
-  """A product variant is deleted."""
+  """
+  A product variant is deleted. Warning: this event will not be executed when parent product has been deleted. Check PRODUCT_DELETED.
+  """
   PRODUCT_VARIANT_DELETED
 
   """
@@ -5573,15 +5577,6 @@ type OrderSettings {
   markAsPaidStrategy: MarkAsPaidStrategyEnum!
 
   """
-  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.This preview feature field will be removed in Saleor 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
-  """
-  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
-
-  """
   The time in days after expired orders will be deleted.
   
   Added in Saleor 3.14.
@@ -5598,6 +5593,15 @@ type OrderSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   allowUnpaidOrders: Boolean!
+
+  """
+  Determine if voucher applied on draft order should be count toward voucher usage.
+  
+  Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  includeDraftOrderInVoucherUsage: Boolean!
 }
 
 """
@@ -5617,17 +5621,6 @@ Determine the mark as paid strategy for the channel.
 enum MarkAsPaidStrategyEnum @doc(category: "Channels") {
   TRANSACTION_FLOW
   PAYMENT_FLOW
-}
-
-"""
-Determine the transaction flow strategy.
-
-    AUTHORIZATION - the processed transaction should be only authorized
-    CHARGE - the processed transaction should be charged.
-"""
-enum TransactionFlowStrategyEnum @doc(category: "Payments") {
-  AUTHORIZATION
-  CHARGE
 }
 
 """The `Day` scalar type represents number of days by integer value."""
@@ -5659,6 +5652,17 @@ type PaymentSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
+}
+
+"""
+Determine the transaction flow strategy.
+
+    AUTHORIZATION - the processed transaction should be only authorized
+    CHARGE - the processed transaction should be charged.
+"""
+enum TransactionFlowStrategyEnum @doc(category: "Payments") {
+  AUTHORIZATION
+  CHARGE
 }
 
 """Represents shipping method postal code rule."""
@@ -10601,6 +10605,15 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   translatedDiscountName: String
 
+  """
+  The voucher assigned to the checkout.
+  
+  Added in Saleor 3.18.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  voucher: Voucher
+
   """The code of voucher assigned to the checkout."""
   voucherCode: String
 
@@ -11794,6 +11807,20 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """Warehouse from fulfillment was fulfilled."""
   warehouse: Warehouse
+
+  """
+  Amount of refunded shipping price.
+  
+  Added in Saleor 3.14.
+  """
+  shippingRefundedAmount: Money
+
+  """
+  Total refunded amount assigned to this fulfillment.
+  
+  Added in Saleor 3.14.
+  """
+  totalRefundedAmount: Money
 }
 
 """An enumeration."""
@@ -16476,7 +16503,7 @@ type Mutation {
   """
   transactionInitialize(
     """
-    The expected action called for the transaction. By default, the `channel.defaultTransactionFlowStrategy` will be used. The field can be used only by app that has `HANDLE_PAYMENTS` permission.
+    The expected action called for the transaction. By default, the `channel.paymentSettings.defaultTransactionFlowStrategy` will be used.The field can be used only by app that has `HANDLE_PAYMENTS` permission.
     """
     action: TransactionFlowStrategyEnum
 
@@ -18179,7 +18206,7 @@ type Mutation {
   voucherCodeBulkDelete(
     """List of voucher codes IDs to delete."""
     ids: [ID!]!
-  ): VoucherCodeBulkDelete @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
+  ): VoucherCodeBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
   Export products to csv file. 
@@ -21110,7 +21137,7 @@ input OrderSettingsUpdateInput @doc(category: "Orders") {
   automaticallyConfirmAllNewOrders: Boolean
 
   """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
+  When enabled, all non-shippable gift card orders will be fulfilled automatically. By default set to True.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
 }
@@ -28121,7 +28148,7 @@ Requires one of the following permissions: MANAGE_DISCOUNTS.
 Triggers the following webhook events:
 - VOUCHER_UPDATED (async): A voucher was updated.
 """
-type VoucherCodeBulkDelete @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
+type VoucherCodeBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
   """Returns how many codes were deleted."""
   count: Int!
   errors: [VoucherCodeBulkDeleteError!]!
@@ -29106,17 +29133,6 @@ input OrderSettingsInput @doc(category: "Orders") {
   markAsPaidStrategy: MarkAsPaidStrategyEnum
 
   """
-  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
-  DEPRECATED: this preview feature field will be removed in Saleor 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
-  """
-  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
-
-  """
   Determine if it is possible to place unpaid order by calling `checkoutComplete` mutation.
   
   Added in Saleor 3.15.
@@ -29124,6 +29140,17 @@ input OrderSettingsInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   allowUnpaidOrders: Boolean
+
+  """
+  Specify whether a coupon applied to draft orders will count toward voucher usage.
+  
+  Warning:  when switching this setting from `false` to `true`, the vouchers will be disconnected from all draft orders.
+  
+  Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  includeDraftOrderInVoucherUsage: Boolean
 }
 
 input CheckoutSettingsInput @doc(category: "Checkout") {

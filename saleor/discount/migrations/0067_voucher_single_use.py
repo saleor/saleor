@@ -19,6 +19,7 @@ class Migration(migrations.Migration):
                 ALTER TABLE discount_voucher
                 ALTER COLUMN single_use
                 SET DEFAULT false;
-            """
+            """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
     ]

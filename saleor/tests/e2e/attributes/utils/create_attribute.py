@@ -24,6 +24,9 @@ def attribute_create(
     type="PRODUCT_TYPE",
     value_required=True,
     is_variant_only=False,
+    values=None,
+    unit=None,
+    entityType=None,
 ):
     variables = {
         "input": {
@@ -33,6 +36,9 @@ def attribute_create(
             "type": type,
             "valueRequired": value_required,
             "isVariantOnly": is_variant_only,
+            "values": values,
+            "unit": unit,
+            "entityType": entityType,
         }
     }
 

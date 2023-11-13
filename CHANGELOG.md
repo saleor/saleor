@@ -3,6 +3,14 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
 # 3.18.0 [Unreleased]
+
+### Highlights
+- Allow including draft orders in voucher usage. New `includeDraftOrderInVoucherUsage` flag allows defining if vouchers used in draft orders should be counted into voucher usage. - #14288 by @zedzior, @IKarbowiak, @michal-macioszczyk
+
+  - Add `includeDraftOrderInVoucherUsage` to `OrderSettings`
+  - Add `includeDraftOrderInVoucherUsage` to `OrderSettingsInput`
+
+
 ### Breaking changes
 - Optimize number of queries in bulk mutations when calling webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
   - `attribute_updated`
@@ -10,6 +18,9 @@ All notable, unreleased changes to this project will be documented in this file.
   - `attribute_value_deleted`
   - `promotion_deleted`
   - `staff_deleted`
+- Saleor will no longer reattempt delivery for webhooks that return non-transient HTTP errors (400, 404 etc.) or redirects - #14566 by @patrys
+- **Feature preview breaking change**:
+  - Drop `defaultTransactionFlowStrategy` from `OrderSettings` type. Use `PaymentSettings.defaultTransactionFlowStrategy` instead. Drop `defaultTransactionFlowStrategy` from `OrderSettingsInput` type. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead. - #14671 by @korycins
 
 ### GraphQL API
 - Fix draft order voucher assignment - #14336 by @IKarbowiak
@@ -23,6 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Adjust voucher usage calculations.
 - Improved GraphQL ID validation messages - #14447 by @patrys
 - Add taxes to undiscounted prices - #14095 by @jakubkuc
+- Add `voucher` to `checkout` query - #14512 by @zedzior
 
 ### Saleor Apps
 
@@ -30,6 +42,9 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add transaction items deletion to cleardb command. - #14198 by @jakubkuc
 - Added validation for timestamp comparison #14025 by @ritanjandawn
+- Page -> Attributes refactor. The goal is to simplify the attribute models. The current attribute model relations are complex and really hard to understand. - #13621
+- `requirements.txt` and `requirements_dev.txt` were dropped in favor of only supporting `poetry` - #14611 by @patrys
+- Change the Attribute - Product relation to decrease code complexity and make it easier to understand the relations - #13407 by @aniav
 
 # 3.17.0
 

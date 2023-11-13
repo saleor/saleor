@@ -18,6 +18,7 @@ from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import (
     AccountPermissions,
     CheckoutPermissions,
+    DiscountPermissions,
     PaymentPermissions,
 )
 from ...shipping.interface import ShippingMethodData
@@ -45,17 +46,19 @@ from ..core.descriptions import (
     ADDED_IN_39,
     ADDED_IN_313,
     ADDED_IN_315,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.enums import LanguageCodeEnum
-from ..core.fields import BaseField
+from ..core.fields import BaseField, PermissionsField
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo, str_to_enum
 from ..decorators import one_of_permissions_required
+from ..discount.dataloaders import VoucherByCodeLoader
 from ..giftcard.dataloaders import GiftCardsByCheckoutIdLoader
 from ..giftcard.types import GiftCard
 from ..meta import resolvers as MetaResolvers
@@ -517,6 +520,11 @@ class Checkout(ModelObjectType[models.Checkout]):
             "Note: this field is set automatically when "
             "Checkout.languageCode is defined; otherwise it's null"
         )
+    )
+    voucher = PermissionsField(
+        "saleor.graphql.discount.types.vouchers.Voucher",
+        description="The voucher assigned to the checkout." + ADDED_IN_318,
+        permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
     )
     voucher_code = graphene.String(
         description="The code of voucher assigned to the checkout."
@@ -1160,6 +1168,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 lines=lines,
                 address=address,
                 checkout_transactions=transactions,
+                force_status_update=True,
             )
             return checkout_info.checkout.authorize_status
 
@@ -1179,6 +1188,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 lines=lines,
                 address=address,
                 checkout_transactions=transactions,
+                force_status_update=True,
             )
             return checkout_info.checkout.charge_status
 
@@ -1243,6 +1253,20 @@ class Checkout(ModelObjectType[models.Checkout]):
         return Promise.all([channel_loader, user_loader, manager]).then(
             _resolve_stored_payment_methods
         )
+
+    @staticmethod
+    def resolve_voucher(root: models.Checkout, info):
+        if not root.voucher_code:
+            return None
+
+        def wrap_voucher_with_channel_context(data):
+            voucher, channel = data
+            return ChannelContext(node=voucher, channel_slug=channel.slug)
+
+        voucher = VoucherByCodeLoader(info.context).load(root.voucher_code)
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+
+        return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
 
 
 class CheckoutCountableConnection(CountableConnection):

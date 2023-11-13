@@ -96,7 +96,6 @@ def test_process_checkout_with_physical_product_CORE_0103(
         checkout_id,
     )
     assert order_data["isShippingRequired"] is True
-    assert order_data["user"]["email"] == expected_email
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
     assert order_data["deliveryMethod"]["id"] == shipping_method_id

@@ -65,7 +65,7 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
             Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
         )
         product_ids = product_models.Product.objects.filter(
-            Q(Exists(instance.productassignments.filter(product_id=OuterRef("id"))))
+            Q(Exists(instance.productvalueassignment.filter(product_id=OuterRef("id"))))
             | Q(Exists(variants.filter(product_id=OuterRef("id"))))
         ).values_list("id", flat=True)
         return list(product_ids)

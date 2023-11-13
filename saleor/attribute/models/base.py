@@ -21,6 +21,8 @@ if TYPE_CHECKING:
 
 
 class BaseAssignedAttribute(models.Model):
+    # TODO: stop using this class in new code
+    # See: https://github.com/saleor/saleor/issues/12881
     class Meta:
         abstract = True
 
@@ -129,21 +131,21 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
         ProductType,
         blank=True,
         related_name="product_attributes",
-        through="AttributeProduct",
+        through="attribute.AttributeProduct",
         through_fields=("attribute", "product_type"),
     )
     product_variant_types = models.ManyToManyField(
         ProductType,
         blank=True,
         related_name="variant_attributes",
-        through="AttributeVariant",
+        through="attribute.AttributeVariant",
         through_fields=("attribute", "product_type"),
     )
     page_types = models.ManyToManyField(
         PageType,
         blank=True,
         related_name="page_attributes",
-        through="AttributePage",
+        through="attribute.AttributePage",
         through_fields=("attribute", "page_type"),
     )
 
@@ -312,15 +314,13 @@ class AttributeValueTranslation(Translation):
                 elif assigned_product_attribute_value := (
                     attribute_value.productvalueassignment.first()
                 ):
-                    if product_id := (
-                        assigned_product_attribute_value.assignment.product_id
-                    ):
+                    if product_id := assigned_product_attribute_value.product_id:
                         context["product_id"] = product_id
             elif attribute.type == AttributeType.PAGE_TYPE:
                 if assigned_page_attribute_value := (
                     attribute_value.pagevalueassignment.first()
                 ):
-                    if page := assigned_page_attribute_value.assignment.page:
+                    if page := assigned_page_attribute_value.page:
                         context["page_id"] = page.id
                         if page_type_id := page.page_type_id:
                             context["page_type_id"] = page_type_id

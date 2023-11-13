@@ -8,7 +8,7 @@ from decimal import Decimal
 from functools import partial
 from io import BytesIO
 from typing import Callable, Optional
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 
 import graphene
 import pytest
@@ -18,7 +18,6 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
-from django.forms import ModelForm
 from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django.utils import timezone
@@ -3091,7 +3090,7 @@ def product_with_variant_with_file_attribute(
 
 
 @pytest.fixture
-def product_with_multiple_values_attributes(product, product_type, category) -> Product:
+def product_with_multiple_values_attributes(product, product_type) -> Product:
     attribute = Attribute.objects.create(
         slug="modes",
         name="Available Modes",
@@ -4007,6 +4006,49 @@ def voucher_customer(voucher, customer_user):
 
 
 @pytest.fixture
+def voucher_multiple_use(voucher_with_many_codes):
+    voucher = voucher_with_many_codes
+    voucher.usage_limit = 3
+    voucher.save(update_fields=["usage_limit"])
+    codes = voucher.codes.all()
+    for code in codes:
+        code.used = 1
+    VoucherCode.objects.bulk_update(codes, ["used"])
+    voucher.refresh_from_db()
+    return voucher
+
+
+@pytest.fixture
+def voucher_single_use(voucher_with_many_codes):
+    voucher = voucher_with_many_codes
+    voucher.single_use = True
+    voucher.save(update_fields=["single_use"])
+    return voucher
+
+
+@pytest.fixture
+def draft_order_list_with_multiple_use_voucher(draft_order_list, voucher_multiple_use):
+    codes = voucher_multiple_use.codes.values_list("code", flat=True)
+    for idx, order in enumerate(draft_order_list):
+        order.voucher_code = codes[idx]
+    Order.objects.bulk_update(draft_order_list, ["voucher_code"])
+    return draft_order_list
+
+
+@pytest.fixture
+def draft_order_list_with_single_use_voucher(draft_order_list, voucher_single_use):
+    voucher_codes = voucher_single_use.codes.all()
+    codes = voucher_codes.values_list("code", flat=True)
+    for idx, order in enumerate(draft_order_list):
+        order.voucher_code = codes[idx]
+    for voucher_code in voucher_codes:
+        voucher_code.is_active = False
+    Order.objects.bulk_update(draft_order_list, ["voucher_code"])
+    VoucherCode.objects.bulk_update(voucher_codes, ["is_active"])
+    return draft_order_list
+
+
+@pytest.fixture
 def order_line(order, variant):
     product = variant.product
     channel = order.channel
@@ -4673,8 +4715,6 @@ def order_with_lines(
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
     order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
-    order.total += order.shipping_price
-    order.undiscounted_total += order.shipping_price
     order.save()
 
     recalculate_order(order)
@@ -5219,6 +5259,29 @@ def draft_order_with_fixed_discount_order(draft_order):
     )
     draft_order.save()
     return draft_order
+
+
+@pytest.fixture
+def draft_order_with_voucher(
+    draft_order_with_fixed_discount_order, voucher_multiple_use
+):
+    order = draft_order_with_fixed_discount_order
+    voucher_code = voucher_multiple_use.codes.first()
+    discount = order.discounts.first()
+    discount.type = DiscountType.VOUCHER
+    discount.voucher = voucher_multiple_use
+    discount.voucher_code = voucher_code.code
+    discount.save(update_fields=["type", "voucher", "voucher_code"])
+
+    order.voucher = voucher_multiple_use
+    order.voucher_code = voucher_code.code
+    order.save(update_fields=["voucher", "voucher_code"])
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    return order
 
 
 @pytest.fixture
@@ -6054,7 +6117,7 @@ def collection_list(db, channel_USD):
 
 
 @pytest.fixture
-def page(db, page_type):
+def page(db, page_type, size_page_attribute):
     data = {
         "slug": "test-url",
         "title": "Test page",
@@ -6065,54 +6128,16 @@ def page(db, page_type):
     page = Page.objects.create(**data)
 
     # associate attribute value
-    page_attr = page_type.page_attributes.first()
-    page_attr_value = page_attr.values.first()
-
-    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+    page_attr_value = size_page_attribute.values.get(slug="10")
+    associate_attribute_values_to_instance(page, size_page_attribute, page_attr_value)
 
     return page
 
 
 @pytest.fixture
-def second_page(page):
-    data = {
-        "slug": "test-url-2",
-        "title": "Test page 2",
-        "content": dummy_editorjs("Test content 2."),
-        "is_published": True,
-        "page_type": page.page_type,
-    }
-    page2 = Page.objects.create(**data)
-
-    # associate attribute value to the second page
-    page_attr = page.page_type.page_attributes.first()
-    page_attr_value = page_attr.values.first()
-
-    associate_attribute_values_to_instance(page2, page_attr, page_attr_value)
-
-    attribute = Attribute.objects.create(
-        slug="test-attribute",
-        name="Test Attribute",
-        type="some_attribute_type",
-        input_type=AttributeInputType.DROPDOWN,
-    )
-    attribute.page_types.add(page.page_type)
-
-    attribute_values = []
-    for i in range(10):
-        attribute_values.append(
-            AttributeValue.objects.create(
-                attribute=attribute,
-                name=f"Test-name-attribute-value-{i}",
-                slug=f"test-slug-attribute-value-{i}",
-            )
-        )
-    associate_attribute_values_to_instance(page2, attribute, *attribute_values)
-    return page, page2
-
-
-@pytest.fixture
-def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
+def page_with_rich_text_attribute(
+    db, page_type_with_rich_text_attribute, rich_text_attribute_page_type
+):
     data = {
         "slug": "test-url",
         "title": "Test page",
@@ -6123,10 +6148,10 @@ def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
     page = Page.objects.create(**data)
 
     # associate attribute value
-    page_attr = page_type_with_rich_text_attribute.page_attributes.first()
-    page_attr_value = page_attr.values.first()
-
-    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+    page_attr_value = rich_text_attribute_page_type.values.first()
+    associate_attribute_values_to_instance(
+        page, rich_text_attribute_page_type, page_attr_value
+    )
 
     return page
 
@@ -6210,15 +6235,6 @@ def page_type_list(db, tag_page_attribute):
 
 
 @pytest.fixture
-def model_form_class():
-    mocked_form_class = MagicMock(name="test", spec=ModelForm)
-    mocked_form_class._meta = Mock(name="_meta")
-    mocked_form_class._meta.model = "test_model"
-    mocked_form_class._meta.fields = "test_field"
-    return mocked_form_class
-
-
-@pytest.fixture
 def menu(db):
     return Menu.objects.get_or_create(name="test-navbar", slug="test-navbar")[0]
 
@@ -6247,14 +6263,6 @@ def menu_with_items(menu, category, published_collection):
         parent=menu_item,
     )
     return menu
-
-
-@pytest.fixture
-def translated_variant_fr(product):
-    attribute = product.product_type.variant_attributes.first()
-    return AttributeTranslation.objects.create(
-        language_code="fr", attribute=attribute, name="Name tranlsated to french"
-    )
 
 
 @pytest.fixture

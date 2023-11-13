@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Optional, Union
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.db.models.expressions import Exists, OuterRef
 from django.db.utils import IntegrityError
 from django.template.defaultfilters import truncatechars
 from django.utils import timezone
@@ -15,9 +16,11 @@ from django.utils.text import slugify
 from graphql.error import GraphQLError
 from text_unidecode import unidecode
 
-from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
+from ...attribute import AttributeEntityType, AttributeInputType
 from ...attribute import models as attribute_models
-from ...attribute.utils import associate_attribute_values_to_instance
+from ...attribute.utils import (
+    associate_attribute_values_to_instance,
+)
 from ...core.utils import (
     generate_unique_slug,
     prepare_unique_attribute_value_slug,
@@ -117,8 +120,11 @@ class AttributeAssignmentMixin:
     ):
         """Retrieve attributes nodes from given global IDs or external reference."""
 
-        qs = qs.filter(Q(pk__in=pks) | Q(external_reference__in=external_references))
-        nodes: list[attribute_models.Attribute] = list(qs)
+        nodes: list[attribute_models.Attribute] = list(
+            qs.filter(
+                Q(pk__in=pks) | Q(external_reference__in=external_references)
+            ).iterator()
+        )
 
         if not nodes:
             raise ValidationError(
@@ -176,9 +182,10 @@ class AttributeAssignmentMixin:
         lookup_field: str,
         value,
     ):
-        assignment = instance.attributes.filter(
+        assignment = instance.attributes.filter(  # type:ignore[union-attr]
             assignment__attribute=attribute, **{f"values__{lookup_field}": value}
         ).first()
+
         return (
             None
             if assignment is None
@@ -423,7 +430,7 @@ class AttributeAssignmentMixin:
 
         # drop attribute assignment model when values are unassigned from instance
         if clean_assignment:
-            instance.attributes.filter(
+            instance.attributes.filter(  # type:ignore[union-attr]
                 assignment__attribute_id__in=clean_assignment
             ).delete()
 
@@ -756,10 +763,145 @@ class AttributeAssignmentMixin:
         return (value,)
 
 
-def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
-    return qs.filter(
-        type=AttributeType.PRODUCT_TYPE, attributevariant__variant_selection=True
-    )
+class PageAttributeAssignmentMixin(AttributeAssignmentMixin):
+    # TODO: Merge the code here with the mixin above
+    # after the refactor of Page <> Attribute and
+    # Product <> Attribute dedicated mixins
+    # should me merged into AttributeAssignmentMixin
+
+    @classmethod
+    def _get_assigned_attribute_value_if_exists(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        lookup_field: str,
+        value,
+    ):
+        assigned_values = attribute_models.AssignedPageAttributeValue.objects.filter(
+            page_id=instance.pk
+        )
+
+        return attribute_models.AttributeValue.objects.filter(
+            Exists(assigned_values.filter(value_id=OuterRef("id"))),
+            attribute_id=attribute.pk,
+            **{lookup_field: value},
+        ).first()
+
+    @classmethod
+    def save(
+        cls,
+        instance: T_INSTANCE,
+        cleaned_input: T_INPUT_MAP,
+    ):
+        """Save the cleaned input into the database against the given instance.
+
+        Note: this should always be ran inside a transaction.
+        :param instance: the product or variant to associate the attribute against.
+        :param cleaned_input: the cleaned user input (refer to clean_attributes)
+        """
+        pre_save_methods_mapping = {
+            AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
+            AttributeInputType.DATE: cls._pre_save_date_time_values,
+            AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
+            AttributeInputType.DROPDOWN: cls._pre_save_dropdown_value,
+            AttributeInputType.SWATCH: cls._pre_save_swatch_value,
+            AttributeInputType.FILE: cls._pre_save_file_value,
+            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
+            AttributeInputType.MULTISELECT: cls._pre_save_multiselect_values,
+            AttributeInputType.PLAIN_TEXT: cls._pre_save_plain_text_values,
+            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
+            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
+        }
+
+        for attribute, attr_values in cleaned_input:
+            is_handled_by_values_field = (
+                attr_values.values
+                and attribute.input_type
+                in (
+                    AttributeInputType.DROPDOWN,
+                    AttributeInputType.MULTISELECT,
+                    AttributeInputType.SWATCH,
+                )
+            )
+            if is_handled_by_values_field:
+                attribute_values = cls._pre_save_values(attribute, attr_values)
+            else:
+                pre_save_func = pre_save_methods_mapping[attribute.input_type]
+                attribute_values = pre_save_func(instance, attribute, attr_values)
+
+            associate_attribute_values_to_instance(
+                instance, attribute, *attribute_values
+            )
+
+
+class ProductAttributeAssignmentMixin(AttributeAssignmentMixin):
+    # TODO: merge the code here with the mixin above
+    # when all attribute relations are cleaned up
+
+    @classmethod
+    def _get_assigned_attribute_value_if_exists(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        lookup_field: str,
+        value,
+    ):
+        assigned_values = attribute_models.AssignedProductAttributeValue.objects.filter(
+            product_id=instance.pk
+        )
+
+        return attribute_models.AttributeValue.objects.filter(
+            Exists(assigned_values.filter(value_id=OuterRef("id"))),
+            attribute_id=attribute.pk,
+            **{lookup_field: value},
+        ).first()
+
+    @classmethod
+    def save(
+        cls,
+        instance: T_INSTANCE,
+        cleaned_input: T_INPUT_MAP,
+    ):
+        """Save the cleaned input into the database against the given instance.
+
+        Note: this should always be ran inside a transaction.
+
+        :param instance: the product or variant to associate the attribute against.
+        :param cleaned_input: the cleaned user input (refer to clean_attributes)
+        """
+        pre_save_methods_mapping = {
+            AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
+            AttributeInputType.DATE: cls._pre_save_date_time_values,
+            AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
+            AttributeInputType.DROPDOWN: cls._pre_save_dropdown_value,
+            AttributeInputType.SWATCH: cls._pre_save_swatch_value,
+            AttributeInputType.FILE: cls._pre_save_file_value,
+            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
+            AttributeInputType.MULTISELECT: cls._pre_save_multiselect_values,
+            AttributeInputType.PLAIN_TEXT: cls._pre_save_plain_text_values,
+            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
+            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
+        }
+
+        for attribute, attr_values in cleaned_input:
+            is_handled_by_values_field = (
+                attr_values.values
+                and attribute.input_type
+                in (
+                    AttributeInputType.DROPDOWN,
+                    AttributeInputType.MULTISELECT,
+                    AttributeInputType.SWATCH,
+                )
+            )
+            if is_handled_by_values_field:
+                attribute_values = cls._pre_save_values(attribute, attr_values)
+            else:
+                pre_save_func = pre_save_methods_mapping[attribute.input_type]
+                attribute_values = pre_save_func(instance, attribute, attr_values)
+
+            associate_attribute_values_to_instance(
+                instance, attribute, *attribute_values
+            )
 
 
 def prepare_attribute_values(attribute: attribute_models.Attribute, values: list[str]):
@@ -1099,12 +1241,12 @@ def validate_single_selectable_field(
         return
 
     if value:
-        max_length = attribute.values.model.name.field.max_length  # type: ignore
+        max_length = attribute.values.model.name.field.max_length
         if not value.strip():
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
                 attr_identifier
             )
-        elif len(value) > max_length:
+        elif max_length and len(value) > max_length:
             attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(
                 attr_identifier
             )
@@ -1278,7 +1420,7 @@ def validate_values(
     attribute_errors: T_ERROR_DICT,
 ):
     """To be deprecated together with `AttributeValueInput.values` field."""
-    name_field = attribute.values.model.name.field  # type: ignore
+    name_field = attribute.values.model.name.field
     is_numeric = attribute.input_type == AttributeInputType.NUMERIC
     if get_duplicated_values(values):
         attribute_errors[AttributeInputErrors.ERROR_DUPLICATED_VALUES].append(
@@ -1296,7 +1438,7 @@ def validate_values(
                 attribute_errors[
                     AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
                 ].append(attr_identifier)
-        elif len(value) > name_field.max_length:
+        elif name_field.max_length and len(value) > name_field.max_length:
             attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(
                 attr_identifier
             )

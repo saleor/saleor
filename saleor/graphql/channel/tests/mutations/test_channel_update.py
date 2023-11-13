@@ -42,9 +42,9 @@ CHANNEL_UPDATE_MUTATION = """
                     automaticallyFulfillNonShippableGiftCard
                     expireOrdersAfter
                     markAsPaidStrategy
-                    defaultTransactionFlowStrategy
                     deleteExpiredOrdersAfter
                     allowUnpaidOrders
+                    includeDraftOrderInVoucherUsage
                 }
             }
             errors{
@@ -60,7 +60,9 @@ CHANNEL_UPDATE_MUTATION = """
 
 
 def test_channel_update_mutation_as_staff_user(
-    permission_manage_channels, staff_api_client, channel_USD
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
@@ -80,6 +82,7 @@ def test_channel_update_mutation_as_staff_user(
                 "automaticallyFulfillNonShippableGiftCard": False,
                 "expireOrdersAfter": 10,
                 "allowUnpaidOrders": True,
+                "includeDraftOrderInVoucherUsage": True,
             },
         },
     }
@@ -112,6 +115,7 @@ def test_channel_update_mutation_as_staff_user(
         is False
     )
     assert channel_data["orderSettings"]["expireOrdersAfter"] == 10
+    assert channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"] is True
     assert channel_data["orderSettings"]["allowUnpaidOrders"] is True
 
 
@@ -1021,47 +1025,6 @@ def test_channel_update_order_mark_as_paid_strategy(
     )
 
 
-def test_channel_update_default_transaction_flow_strategy_via_order_settings(
-    permission_manage_orders,
-    staff_api_client,
-    channel_USD,
-):
-    # given
-    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    variables = {
-        "id": channel_id,
-        "input": {
-            "orderSettings": {
-                "defaultTransactionFlowStrategy": (
-                    TransactionFlowStrategyEnum.AUTHORIZATION.name
-                ),
-            },
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        CHANNEL_UPDATE_MUTATION,
-        variables=variables,
-        permissions=(permission_manage_orders,),
-    )
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["channelUpdate"]
-    assert not data["errors"]
-    channel_data = data["channel"]
-    assert (
-        channel_data["orderSettings"]["defaultTransactionFlowStrategy"]
-        == TransactionFlowStrategyEnum.AUTHORIZATION.name
-    )
-    channel_USD.refresh_from_db()
-    assert (
-        channel_USD.default_transaction_flow_strategy
-        == TransactionFlowStrategyEnum.AUTHORIZATION.value
-    )
-
-
 def test_channel_update_delete_expired_orders_after(
     permission_manage_orders,
     staff_api_client,
@@ -1137,6 +1100,80 @@ def test_channel_update_set_incorrect_delete_expired_orders_after(
     error = content["data"]["channelUpdate"]["errors"][0]
     assert error["field"] == "deleteExpiredOrdersAfter"
     assert error["code"] == ChannelErrorCode.INVALID.name
+
+
+@patch("saleor.discount.tasks.decrease_voucher_codes_usage_task.delay")
+def test_channel_update_order_settings_voucher_usage_disable(
+    decrease_voucher_codes_usage_task_mock,
+    permission_manage_orders,
+    staff_api_client,
+    channel_USD,
+    draft_order_list_with_multiple_use_voucher,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_USD.include_draft_order_in_voucher_usage = True
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {
+                "includeDraftOrderInVoucherUsage": False,
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_orders,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    assert data["channel"]["orderSettings"]["includeDraftOrderInVoucherUsage"] is False
+    decrease_voucher_codes_usage_task_mock.assert_called_once()
+
+
+@patch("saleor.discount.tasks.disconnect_voucher_codes_from_draft_orders_task.delay")
+def test_channel_update_order_settings_voucher_usage_enable(
+    disconnect_voucher_codes_from_draft_orders_task_mock,
+    permission_manage_orders,
+    staff_api_client,
+    channel_USD,
+    draft_order_list_with_multiple_use_voucher,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_USD.include_draft_order_in_voucher_usage = False
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {
+                "includeDraftOrderInVoucherUsage": True,
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_orders,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    assert data["channel"]["orderSettings"]["includeDraftOrderInVoucherUsage"] is True
+    disconnect_voucher_codes_from_draft_orders_task_mock.assert_called_once()
 
 
 CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """

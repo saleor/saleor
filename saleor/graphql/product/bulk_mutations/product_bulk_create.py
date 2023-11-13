@@ -24,7 +24,7 @@ from ....warehouse.models import Warehouse
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...attribute.types import AttributeValueInput
-from ...attribute.utils import AttributeAssignmentMixin
+from ...attribute.utils import ProductAttributeAssignmentMixin
 from ...channel import ChannelContext
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -210,6 +210,12 @@ class ProductBulkCreate(BaseMutation):
     def generate_unique_slug(cls, slugable_value, new_slugs):
         slug = slugify(unidecode(slugable_value))
 
+        # in case when slugable_value contains only not allowed in slug characters,
+        # slugify function will return empty string, so we need to provide some default
+        # value
+        if slug == "":
+            slug = "-"
+
         search_field = "slug__iregex"
         pattern = rf"{slug}-\d+$|{slug}$"
         lookup = {search_field: pattern}
@@ -282,7 +288,7 @@ class ProductBulkCreate(BaseMutation):
         if attributes := cleaned_input.get("attributes"):
             try:
                 attributes_qs = cleaned_input["product_type"].product_attributes.all()
-                attributes = AttributeAssignmentMixin.clean_input(
+                attributes = ProductAttributeAssignmentMixin.clean_input(
                     attributes, attributes_qs
                 )
                 cleaned_input["attributes"] = attributes
@@ -749,7 +755,7 @@ class ProductBulkCreate(BaseMutation):
         models.ProductChannelListing.objects.bulk_create(listings_to_create)
 
         for product, attributes in attributes_to_save:
-            AttributeAssignmentMixin.save(product, attributes)
+            ProductAttributeAssignmentMixin.save(product, attributes)
 
         if variants_input_data:
             variants = cls.save_variants(info, variants_input_data)

@@ -30,8 +30,8 @@ from ..core.descriptions import (
     ADDED_IN_314,
     ADDED_IN_315,
     ADDED_IN_316,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
-    DEPRECATED_PREVIEW_IN_316_FIELD,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -245,18 +245,6 @@ class OrderSettings(ObjectType):
             + PREVIEW_FEATURE
         ),
     )
-    default_transaction_flow_strategy = TransactionFlowStrategyEnum(
-        required=True,
-        description=(
-            "Determine the transaction flow strategy to be used. "
-            "Include the selected option in the payload sent to the payment app, as a "
-            "requested action for the transaction."
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
-            + DEPRECATED_PREVIEW_IN_316_FIELD
-            + " Use `PaymentSettings.defaultTransactionFlowStrategy` instead."
-        ),
-    )
     delete_expired_orders_after = Day(
         required=True,
         description=(
@@ -270,6 +258,13 @@ class OrderSettings(ObjectType):
         description=(
             "Determine if it is possible to place unpdaid order by calling "
             "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
+        ),
+    )
+    include_draft_order_in_voucher_usage = graphene.Boolean(
+        required=True,
+        description=(
+            "Determine if voucher applied on draft order should be count toward "
+            "voucher usage." + ADDED_IN_318 + PREVIEW_FEATURE
         ),
     )
 
@@ -555,8 +550,10 @@ class Channel(ModelObjectType):
             ),
             expire_orders_after=root.expire_orders_after,
             mark_as_paid_strategy=root.order_mark_as_paid_strategy,
-            default_transaction_flow_strategy=root.default_transaction_flow_strategy,
             delete_expired_orders_after=root.delete_expired_orders_after.days,
+            include_draft_order_in_voucher_usage=(
+                root.include_draft_order_in_voucher_usage
+            ),
             allow_unpaid_orders=(root.allow_unpaid_orders),
         )
 

@@ -8,6 +8,8 @@ from django.core.exceptions import ValidationError
 
 from ...core.exceptions import InsufficientStock
 from ...discount.interface import VariantPromotionRuleInfo
+from ...discount.models import NotApplicable
+from ...discount.utils import validate_voucher_in_order
 from ...order.error_codes import OrderErrorCode
 from ...order.utils import get_valid_shipping_methods_for_order
 from ...plugins.manager import PluginsManager
@@ -269,6 +271,19 @@ def validate_channel_is_active(channel: "Channel", errors: T_ERRORS):
         )
 
 
+def _validate_voucher(order: "Order", errors: T_ERRORS):
+    if order.channel.include_draft_order_in_voucher_usage:
+        try:
+            validate_voucher_in_order(order)
+        except NotApplicable as e:
+            errors["voucher"].append(
+                ValidationError(
+                    message=e.args[0],
+                    code=OrderErrorCode.INVALID_VOUCHER.value,
+                )
+            )
+
+
 def validate_draft_order(order: "Order", country: str, manager: "PluginsManager"):
     """Check if the given order contains the proper data.
 
@@ -277,6 +292,7 @@ def validate_draft_order(order: "Order", country: str, manager: "PluginsManager"
     - Product variants for order lines still exists in database.
     - Product variants are available in requested quantity.
     - Product variants are published.
+    - Voucher is properly applied.
 
     Returns a list of errors if any were found.
     """
@@ -291,6 +307,8 @@ def validate_draft_order(order: "Order", country: str, manager: "PluginsManager"
     validate_product_is_published(order, errors)
     validate_product_is_available_for_purchase(order, errors)
     validate_variants_is_available(order, errors)
+    _validate_voucher(order, errors)
+
     if errors:
         raise ValidationError(errors)
 

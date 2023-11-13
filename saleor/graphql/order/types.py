@@ -186,14 +186,27 @@ def get_order_discount_event(discount_obj: dict):
     )
 
 
-def get_payment_status_for_order(order):
-    status = ChargeStatus.NOT_CHARGED
+def get_payment_status_for_order(
+    order, granted_refunds: list[models.OrderGrantedRefund]
+):
+    zero_price = zero_money(order.currency)
+    total_granted = sum(
+        [granted_refund.amount for granted_refund in granted_refunds],
+        zero_price,
+    )
     charged_money = order.total_charged
+    current_order_total = quantize_price(
+        order.total.gross - total_granted, order.currency
+    )
 
-    if charged_money >= order.total.gross:
+    if charged_money == zero_price and current_order_total <= zero_price:
         status = ChargeStatus.FULLY_CHARGED
-    elif charged_money and charged_money < order.total.gross:
+    elif charged_money >= current_order_total:
+        status = ChargeStatus.FULLY_CHARGED
+    elif charged_money < current_order_total and charged_money > zero_price:
         status = ChargeStatus.PARTIALLY_CHARGED
+    else:
+        status = ChargeStatus.NOT_CHARGED
     return status
 
 
@@ -619,6 +632,17 @@ class Fulfillment(ModelObjectType[models.Fulfillment]):
         required=False,
         description="Warehouse from fulfillment was fulfilled.",
     )
+    shipping_refunded_amount = graphene.Field(
+        Money,
+        description="Amount of refunded shipping price." + ADDED_IN_314,
+        required=False,
+    )
+    total_refunded_amount = graphene.Field(
+        Money,
+        description="Total refunded amount assigned to this fulfillment."
+        + ADDED_IN_314,
+        required=False,
+    )
 
     class Meta:
         description = "Represents order fulfillment."
@@ -659,6 +683,34 @@ class Fulfillment(ModelObjectType[models.Fulfillment]):
             FulfillmentLinesByFulfillmentIdLoader(info.context)
             .load(root.id)
             .then(_resolve_stock)
+        )
+
+    @staticmethod
+    def resolve_shipping_refunded_amount(root: models.Fulfillment, info):
+        if root.shipping_refund_amount is None:
+            return None
+
+        def _resolve_shipping_refund(order):
+            return prices.Money(root.shipping_refund_amount, currency=order.currency)
+
+        return (
+            OrderByIdLoader(info.context)
+            .load(root.order_id)
+            .then(_resolve_shipping_refund)
+        )
+
+    @staticmethod
+    def resolve_total_refunded_amount(root: models.Fulfillment, info):
+        if root.total_refund_amount is None:
+            return None
+
+        def _resolve_total_refund_amount(order):
+            return prices.Money(root.total_refund_amount, currency=order.currency)
+
+        return (
+            OrderByIdLoader(info.context)
+            .load(root.order_id)
+            .then(_resolve_total_refund_amount)
         )
 
 
@@ -1706,7 +1758,7 @@ class Order(ModelObjectType[models.Order]):
     @traced_resolver
     def resolve_payment_status(root: models.Order, info):
         def _resolve_payment_status(data):
-            transactions, payments, fulfillments = data
+            transactions, payments, fulfillments, granted_refunds = data
 
             total_fulfillment_refund = sum(
                 [
@@ -1722,7 +1774,7 @@ class Order(ModelObjectType[models.Order]):
                 return ChargeStatus.FULLY_REFUNDED
 
             if transactions:
-                return get_payment_status_for_order(root)
+                return get_payment_status_for_order(root, granted_refunds)
             last_payment = get_last_payment(payments)
             if not last_payment:
                 if root.total.gross.amount == 0:
@@ -1733,16 +1785,17 @@ class Order(ModelObjectType[models.Order]):
         transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
         payments = PaymentsByOrderIdLoader(info.context).load(root.id)
         fulfillments = FulfillmentsByOrderIdLoader(info.context).load(root.id)
-        return Promise.all([transactions, payments, fulfillments]).then(
-            _resolve_payment_status
-        )
+        granted_refunds = OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
+        return Promise.all(
+            [transactions, payments, fulfillments, granted_refunds]
+        ).then(_resolve_payment_status)
 
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):
         def _resolve_payment_status(data):
-            transactions, payments = data
+            transactions, payments, granted_refunds = data
             if transactions:
-                status = get_payment_status_for_order(root)
+                status = get_payment_status_for_order(root, granted_refunds)
                 return dict(ChargeStatus.CHOICES).get(status)
             last_payment = get_last_payment(payments)
             if not last_payment:
@@ -1753,7 +1806,10 @@ class Order(ModelObjectType[models.Order]):
 
         transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
         payments = PaymentsByOrderIdLoader(info.context).load(root.id)
-        return Promise.all([transactions, payments]).then(_resolve_payment_status)
+        granted_refunds = OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
+        return Promise.all([transactions, payments, granted_refunds]).then(
+            _resolve_payment_status
+        )
 
     @staticmethod
     def resolve_payments(root: models.Order, info):
