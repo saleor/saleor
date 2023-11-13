@@ -22094,6 +22094,7 @@ enum ProductVariantBulkErrorCode @doc(category: "Products") {
   REQUIRED
   UNIQUE
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
+  STOCK_ALREADY_EXISTS
 }
 
 type BulkProductError @doc(category: "Products") {
