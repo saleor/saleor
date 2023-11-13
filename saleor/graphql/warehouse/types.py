@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -119,7 +120,9 @@ class Warehouse(ModelObjectType[models.Warehouse]):
     def resolve_shipping_zones(root, info: ResolveInfo, *_args, **kwargs):
         from ..shipping.types import ShippingZoneCountableConnection
 
-        instances = root.shipping_zones.all()
+        instances = root.shipping_zones.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).all()
         slice = create_connection_slice(
             instances, info, kwargs, ShippingZoneCountableConnection
         )
@@ -206,9 +209,11 @@ class Stock(ModelObjectType[models.Stock]):
 
     @staticmethod
     def resolve_quantity_allocated(root, _info: ResolveInfo):
-        return root.allocations.aggregate(
-            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
-        )["quantity_allocated"]
+        return root.allocations.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).aggregate(quantity_allocated=Coalesce(Sum("quantity_allocated"), 0))[
+            "quantity_allocated"
+        ]
 
     @staticmethod
     @load_site_callback
@@ -216,7 +221,9 @@ class Stock(ModelObjectType[models.Stock]):
         if not is_reservation_enabled(site.settings):
             return 0
 
-        return root.reservations.aggregate(
+        return root.reservations.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).aggregate(
             quantity_reserved=Coalesce(
                 Sum(
                     "quantity_reserved",
@@ -224,7 +231,9 @@ class Stock(ModelObjectType[models.Stock]):
                 ),
                 0,
             )
-        )["quantity_reserved"]
+        )[
+            "quantity_reserved"
+        ]
 
     @staticmethod
     def resolve_warehouse(root, info: ResolveInfo):

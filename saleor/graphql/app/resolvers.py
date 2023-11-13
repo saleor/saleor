@@ -41,7 +41,9 @@ def resolve_access_token_for_app_extension(info, root, app):
     user = info.context.user
     if not user:
         return None
-    extension_permissions = root.permissions.all()
+    extension_permissions = root.permissions.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
     user_permissions = user.effective_permissions
     if set(extension_permissions).issubset(user_permissions):
         return create_access_token_for_app_extension(
@@ -54,9 +56,11 @@ def resolve_app(_info, id):
     if not id:
         return None
     _, id = from_global_id_or_error(id, "App")
-    return models.App.objects.filter(
-        id=id, is_installed=True, removed_at__isnull=True
-    ).first()
+    return (
+        models.App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(id=id, is_installed=True, removed_at__isnull=True)
+        .first()
+    )
 
 
 def resolve_app_extensions(_info):

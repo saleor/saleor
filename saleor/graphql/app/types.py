@@ -537,8 +537,10 @@ class App(ModelObjectType[models.App]):
 
     @staticmethod
     def resolve_permissions(root: models.App, _info: ResolveInfo):
-        permissions = root.permissions.prefetch_related("content_type").order_by(
-            "codename"
+        permissions = (
+            root.permissions.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .prefetch_related("content_type")
+            .order_by("codename")
         )
         return format_permissions_for_display(permissions)
 

@@ -1245,12 +1245,20 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     @staticmethod
     def resolve_media_by_id(root: ChannelContext[models.Product], _info, *, id):
         _type, pk = from_global_id_or_error(id, ProductMedia)
-        return root.node.media.filter(pk=pk).first()
+        return (
+            root.node.media.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(pk=pk)
+            .first()
+        )
 
     @staticmethod
     def resolve_image_by_id(root: ChannelContext[models.Product], _info, *, id):
         _type, pk = from_global_id_or_error(id, ProductImage)
-        return root.node.media.filter(pk=pk).first()
+        return (
+            root.node.media.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(pk=pk)
+            .first()
+        )
 
     @staticmethod
     def resolve_media(root: ChannelContext[models.Product], info, sort_by=None):

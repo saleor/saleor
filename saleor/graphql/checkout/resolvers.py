@@ -9,12 +9,16 @@ from ..utils import get_user_or_app_from_context
 
 
 def resolve_checkout_lines():
-    queryset = models.CheckoutLine.objects.all()
+    queryset = models.CheckoutLine.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
     return queryset
 
 
 def resolve_checkouts(channel_slug):
-    queryset = models.Checkout.objects.all()
+    queryset = models.Checkout.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
     if channel_slug:
         queryset = queryset.filter(channel__slug=channel_slug)
     return queryset

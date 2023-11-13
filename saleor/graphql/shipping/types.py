@@ -1,6 +1,7 @@
 from typing import Union
 
 import graphene
+from django.conf import settings
 from django.db.models import QuerySet
 from graphene import relay
 
@@ -237,7 +238,10 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
             qs = product_models.Product.objects.none()
         else:
             qs = ChannelQsContext(
-                qs=root.node.excluded_products.all(), channel_slug=None
+                qs=root.node.excluded_products.using(
+                    settings.DATABASE_CONNECTION_REPLICA_NAME
+                ).all(),
+                channel_slug=None,
             )
 
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
