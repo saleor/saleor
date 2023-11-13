@@ -52,12 +52,12 @@ def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
         undiscounted_subtotal, shipping_price, order
     )
     subtotal_discount = undiscounted_subtotal - discounted_subtotal
-    if subtotal_discount >= zero_money(currency):
+    if subtotal_discount > zero_money(currency):
         apply_subtotal_discount_to_order_lines(
             lines, undiscounted_subtotal, subtotal_discount
         )
 
-    return max(undiscounted_subtotal + shipping_price, zero_money(currency))
+    return max(discounted_subtotal + discounted_shipping_price, zero_money(currency))
 
 
 def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
@@ -94,7 +94,7 @@ def apply_order_discounts(
         subtotal_before_discount = subtotal
         shipping_price_before_discount = shipping_price
         if order_discount.type == DiscountType.VOUCHER:
-            voucher = order.voucher
+            voucher = order_discount.voucher
             if voucher and voucher.type == VoucherType.ENTIRE_ORDER:
                 subtotal = apply_discount_to_value(
                     value=order_discount.value,
