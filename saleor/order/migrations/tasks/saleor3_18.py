@@ -1,10 +1,10 @@
-from django.db.models import Sum
+from django.db.models import F, Func, OuterRef, Subquery
 
 from ....celeryconf import app
-from ...models import Order
+from ...models import Order, OrderLine
 
-# time it !
-BATCH_SIZE = 5
+# celery task for one batch took 0.1s and 10.54MB at its peak
+BATCH_SIZE = 1000
 
 
 @app.task
@@ -24,11 +24,20 @@ def update_order_subtotals(batch_id=None, batch_size=BATCH_SIZE):
     if not current_batch_order_numbers:
         return
 
+    order_line = OrderLine.objects.filter(order=OuterRef("pk"))
+    subtotal_net_sum = order_line.annotate(
+        net_sum=Func(F("total_price_net_amount"), function="Sum")
+    ).values("net_sum")
+
+    subtotal_gross_sum = order_line.annotate(
+        gross_sum=Func(F("total_price_gross_amount"), function="Sum")
+    ).values("gross_sum")
+
     orders_with_totals = Order.objects.filter(
         number__in=current_batch_order_numbers
     ).annotate(
-        subtotal_net_sum=Sum("lines__total_price_net_amount"),
-        subtotal_gross_sum=Sum("lines__total_price_gross_amount"),
+        subtotal_net_sum=Subquery(subtotal_net_sum),
+        subtotal_gross_sum=Subquery(subtotal_gross_sum),
     )
 
     # Iterate over annotated orders and update them in batches
