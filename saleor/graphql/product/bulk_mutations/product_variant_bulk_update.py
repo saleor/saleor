@@ -291,6 +291,7 @@ class ProductVariantBulkUpdate(BaseMutation):
     ):
         used_warehouses = defaultdict(list)
         for stock in stock_global_id_to_instance_map.values():
+            variant = cleaned_input["id"]
             warehouse_global_id = graphene.Node.to_global_id(
                 "Warehouse", stock.warehouse_id
             )
@@ -298,10 +299,7 @@ class ProductVariantBulkUpdate(BaseMutation):
 
         if stocks_data := cleaned_input["stocks"].get("create"):
             for stock_index, stock in enumerate(stocks_data):
-                if (
-                    stock["warehouse"] in used_warehouses
-                    and cleaned_input["id"].id in used_warehouses[stock["warehouse"]]
-                ):
+                if variant.id in used_warehouses.get(stock["warehouse"], {}):
                     index_error_map[variant_index].append(
                         ProductVariantBulkError(
                             field="warehouse",
@@ -434,7 +432,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         return cleaned_input if cleaned_input else None
 
     @classmethod
-    def _get_input_warehouses_its(cls, variants_data):
+    def _get_input_warehouses_ids(cls, variants_data):
         warehouses_from_input = []
         stocks = (
             stock
@@ -465,7 +463,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         warehouse_global_id_to_instance_map = {
             graphene.Node.to_global_id("Warehouse", warehouse.id): warehouse
             for warehouse in warehouse_models.Warehouse.objects.filter(
-                id__in=cls._get_input_warehouses_its(variants)
+                id__in=cls._get_input_warehouses_ids(variants)
             )
         }
         stock_global_id_to_instance_map = {
