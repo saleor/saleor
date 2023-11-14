@@ -2,16 +2,29 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
-# 3.18.0 [Unreleased]
+# 3.19.0 [Unreleased]
 
 ### Highlights
+
+### Breaking changes
+
+### GraphQL API
+
+### Saleor Apps
+
+### Other changes
+
+# 3.18.0
+
+### Highlights
+
 - Allow including draft orders in voucher usage. New `includeDraftOrderInVoucherUsage` flag allows defining if vouchers used in draft orders should be counted into voucher usage. - #14288 by @zedzior, @IKarbowiak, @michal-macioszczyk
 
   - Add `includeDraftOrderInVoucherUsage` to `OrderSettings`
   - Add `includeDraftOrderInVoucherUsage` to `OrderSettingsInput`
 
-
 ### Breaking changes
+
 - Optimize number of queries in bulk mutations when calling webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
   - `attribute_updated`
   - `attribute_deleted`
@@ -23,6 +36,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Drop `defaultTransactionFlowStrategy` from `OrderSettings` type. Use `PaymentSettings.defaultTransactionFlowStrategy` instead. Drop `defaultTransactionFlowStrategy` from `OrderSettingsInput` type. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead. - #14671 by @korycins
 
 ### GraphQL API
+
 - Fix draft order voucher assignment - #14336 by @IKarbowiak
 - Allow add multiple codes per voucher - #14123 by @SzymJ, @IKarbowiak, @michal-macioszczyk, @zedzior
   - Add `VoucherInput.addCodes` to `voucherCreate` and `voucherUpdate` mutations.
@@ -120,6 +134,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `SaleToggle` - Use `PromotionStarted` and `PromotionEnded` instead.
 
 ### Breaking changes
+
 - Deprecate `external_url` on `Invoice` GraphQL type in favour of `url`. No matter if the invoice is stored on Saleor or is a link to an external invoice it will get returned in the `url` field.
 - Optimize number of queries in bulk mutations when calling Webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
   - `channel_updated`
