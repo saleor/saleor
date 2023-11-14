@@ -84,7 +84,7 @@ def _recalculate_order_prices(
 
 
 def get_undiscounted_price(
-    line_price : OrderTaxedPricesData, tax_rate, prices_entered_with_tax, currency
+    line_price: OrderTaxedPricesData, tax_rate, prices_entered_with_tax, currency
 ):
     if (
         tax_rate > 0
