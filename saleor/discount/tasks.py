@@ -12,8 +12,14 @@ from ..graphql.discount.utils import get_variants_for_predicate
 from ..order import OrderStatus
 from ..order.models import Order, OrderLine
 from ..plugins.manager import get_plugins_manager
-from ..product.models import Product, ProductVariant
+from ..product.models import (
+    Product,
+    ProductVariant,
+    ProductVariantChannelListing,
+    VariantChannelListingPromotionRule,
+)
 from ..product.tasks import update_products_discounted_prices_for_promotion_task
+from ..product.utils.variant_prices import update_discounted_prices_for_promotion
 from . import DiscountType
 from .models import (
     OrderDiscount,
@@ -214,3 +220,40 @@ def disconnect_voucher_codes_from_draft_orders_task(order_ids):
         ).filter(type=DiscountType.VOUCHER).delete()
         if remaining_ids := list(set(order_ids) - set(ids)):
             disconnect_voucher_codes_from_draft_orders_task.delay(remaining_ids)
+
+
+@app.task(
+    name="saleor.discount.migrations.tasks.saleor3_17.update_discounted_prices_task"
+)
+def update_discounted_prices_task():
+    """Recalculate discounted prices during sale to promotion migration."""
+    # WARNING: this function is run during `0047_migrate_sales_to_promotions` migration,
+    # so please be careful while updating.
+    # This task can be deleted after we introduce a different process for calculating
+    # discounted prices for promotions.
+
+    # For 100 rules, with 1000 variants for each rule it takes around 15s
+    BATCH_SIZE = 100
+    variant_listing_qs = (
+        ProductVariantChannelListing.objects.annotate(
+            discount=F("price_amount") - F("discounted_price_amount")
+        )
+        .filter(discount__gt=0)
+        .filter(
+            ~Exists(
+                VariantChannelListingPromotionRule.objects.filter(
+                    variant_channel_listing_id=OuterRef("id")
+                )
+            )
+        )
+    )
+    variant_qs = ProductVariant.objects.filter(
+        Exists(variant_listing_qs.filter(variant_id=OuterRef("id")))
+    )
+    products_ids = Product.objects.filter(
+        Exists(variant_qs.filter(product_id=OuterRef("id")))
+    ).values_list("id", flat=True)[:BATCH_SIZE]
+    if products_ids:
+        products = Product.objects.filter(id__in=products_ids)
+        update_discounted_prices_for_promotion(products)
+        update_discounted_prices_task.delay()
