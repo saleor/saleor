@@ -47,8 +47,8 @@ class ChannelQueries(graphene.ObjectType):
         return resolve_channel(info, id, slug)
 
     @staticmethod
-    def resolve_channels(_root, _info: ResolveInfo, **kwargs):
-        return resolve_channels()
+    def resolve_channels(_root, info: ResolveInfo, **kwargs):
+        return resolve_channels(info)
 
 
 class ChannelMutations(graphene.ObjectType):

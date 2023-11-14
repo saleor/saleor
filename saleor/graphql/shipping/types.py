@@ -21,6 +21,7 @@ from ..channel.types import (
     ChannelContextTypeWithMetadataForObjectType,
 )
 from ..core.connection import CountableConnection, create_connection_slice
+from ..core.context import get_database_connection_name
 from ..core.descriptions import ADDED_IN_36, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import ConnectionField, JSONString, PermissionsField
@@ -245,7 +246,10 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
             qs = product_models.Product.objects.none()
         else:
             qs = ChannelQsContext(
-                qs=root.node.excluded_products.all(), channel_slug=None
+                qs=root.node.excluded_products.using(
+                    get_database_connection_name(info.context)
+                ).all(),
+                channel_slug=None,
             )
 
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
@@ -304,8 +308,8 @@ class ShippingZone(ChannelContextTypeWithMetadata[models.ShippingZone]):
 
     @staticmethod
     @traced_resolver
-    def resolve_price_range(root: ChannelContext[models.ShippingZone], _info):
-        return resolve_price_range(root.channel_slug)
+    def resolve_price_range(root: ChannelContext[models.ShippingZone], info):
+        return resolve_price_range(info, root.channel_slug)
 
     @staticmethod
     def resolve_countries(root: ChannelContext[models.ShippingZone], _info):

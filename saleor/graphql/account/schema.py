@@ -223,9 +223,9 @@ class AccountQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, GroupCountableConnection)
 
     @staticmethod
-    def resolve_permission_group(_root, _info: ResolveInfo, *, id):
+    def resolve_permission_group(_root, info: ResolveInfo, *, id):
         _, id = from_global_id_or_error(id, Group)
-        return resolve_permission_group(id)
+        return resolve_permission_group(info, id)
 
     @staticmethod
     def resolve_me(_root, info):
