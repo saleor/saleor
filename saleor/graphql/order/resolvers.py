@@ -107,7 +107,9 @@ def resolve_homepage_events(info):
         # get order events from orders that user has access to
         accessible_channels = get_user_accessible_channels(info, info.context.user)
         channel_ids = [channel.id for channel in accessible_channels]
-        accessible_orders = models.Order.objects.filter(channel_id__in=channel_ids)
+        accessible_orders = models.Order.objects.using(database_connection_name).filter(
+            channel_id__in=channel_ids
+        )
         lookup &= Q(order_id__in=accessible_orders.values("id"))
     return models.OrderEvent.objects.using(database_connection_name).filter(lookup)
 
