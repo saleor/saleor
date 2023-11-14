@@ -29,6 +29,7 @@ from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUse
 from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
+from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_310,
@@ -287,11 +288,11 @@ class UserPermission(Permission):
 
     @staticmethod
     @traced_resolver
-    def resolve_source_permission_groups(root: Permission, _info: ResolveInfo, user_id):
+    def resolve_source_permission_groups(root: Permission, info: ResolveInfo, user_id):
         _type, user_id = from_global_id_or_error(user_id, only_type="User")
-        groups = models.Group.objects.filter(
-            user__pk=user_id, permissions__name=root.name
-        )
+        groups = models.Group.objects.using(
+            get_database_connection_name(info.context)
+        ).filter(user__pk=user_id, permissions__name=root.name)
         return groups
 
 
@@ -542,8 +543,8 @@ class User(ModelObjectType[models.User]):
         return resolve_permissions(root)
 
     @staticmethod
-    def resolve_permission_groups(root: models.User, _info: ResolveInfo):
-        return root.groups.all()
+    def resolve_permission_groups(root: models.User, info: ResolveInfo):
+        return root.groups.using(get_database_connection_name(info.context)).all()
 
     @staticmethod
     def resolve_editable_groups(root: models.User, _info: ResolveInfo):
@@ -866,7 +867,9 @@ class StaffNotificationRecipient(graphene.ObjectType):
     @staticmethod
     def get_node(info: ResolveInfo, id):
         try:
-            return models.StaffNotificationRecipient.objects.get(pk=id)
+            return models.StaffNotificationRecipient.objects.using(
+                get_database_connection_name(info.context)
+            ).get(pk=id)
         except models.StaffNotificationRecipient.DoesNotExist:
             return None
 

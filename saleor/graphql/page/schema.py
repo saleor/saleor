@@ -72,9 +72,9 @@ class PageQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, PageCountableConnection)
 
     @staticmethod
-    def resolve_page_type(_root, _info: ResolveInfo, *, id):
+    def resolve_page_type(_root, info: ResolveInfo, *, id):
         _, id = from_global_id_or_error(id, PageType)
-        return resolve_page_type(id)
+        return resolve_page_type(info, id)
 
     @staticmethod
     def resolve_page_types(_root, info: ResolveInfo, **kwargs):
