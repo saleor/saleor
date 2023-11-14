@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import graphene
 import pytz
+from freezegun import freeze_time
 
 from .....product.error_codes import ProductErrorCode
 from .....product.utils.costs import get_product_costs_data
@@ -58,6 +59,7 @@ mutation UpdateProductChannelListing(
 """
 
 
+@freeze_time("2023-11-13T14:53:59.655366")
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
@@ -142,6 +144,7 @@ def test_product_channel_listing_update_as_staff_user(
     )
 
 
+@freeze_time("2023-11-13T14:53:59.655366")
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_product_channel_listing_update_trigger_webhook_product_updated(
     mock_product_updated,
@@ -184,6 +187,7 @@ def test_product_channel_listing_update_trigger_webhook_product_updated(
     mock_product_updated.assert_called_once_with(product)
 
 
+@freeze_time("2023-11-13T14:53:59.655366")
 def test_product_channel_listing_update_add_channel(
     staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
 ):
@@ -238,6 +242,7 @@ def test_product_channel_listing_update_add_channel(
     )
 
 
+@freeze_time("2023-11-13T14:53:59.655366")
 def test_product_channel_listing_update_update_publication_data(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
@@ -285,6 +290,7 @@ def test_product_channel_listing_update_update_publication_data(
     )
 
 
+@freeze_time("2023-11-13T14:53:59.655366")
 def test_product_channel_listing_update_update_publication_date_and_published_at(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
@@ -369,6 +375,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_past_da
     )
 
 
+@freeze_time("2023-11-13T14:53:59.655366")
 def test_product_channel_listing_update_update_is_available_for_purchase_future_date(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
@@ -413,6 +420,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_future_
     )
 
 
+@freeze_time("2023-11-13T14:53:59.655366")
 def test_product_channel_listing_update_update_is_available_for_purchase_false_and_date(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
@@ -450,6 +458,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_false_a
     assert len(errors) == 1
 
 
+@freeze_time("2023-11-13T14:53:59.655366")
 def test_product_channel_listing_update_available_for_purchase_both_date_value_given(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
