@@ -9,6 +9,7 @@ from ...webhook import models, payloads
 from ...webhook.deprecated_event_types import WebhookEventType
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core import ResolveInfo
+from ..core.context import get_database_connection_name
 from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
 from .types import Webhook, WebhookEvent
@@ -20,7 +21,11 @@ def resolve_webhook(info: ResolveInfo, id, app):
         return app.webhooks.filter(id=id).first()
     user = info.context.user
     if user and user.has_perm(AppPermission.MANAGE_APPS):
-        return models.Webhook.objects.filter(pk=id).first()
+        return (
+            models.Webhook.objects.using(get_database_connection_name(info.context))
+            .filter(pk=id)
+            .first()
+        )
     raise PermissionDenied(permissions=[AppPermission.MANAGE_APPS])
 
 

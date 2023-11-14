@@ -53,6 +53,7 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+from ...core.context import get_database_connection_name
 from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_39,
@@ -1287,14 +1288,22 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         return SelectedAttributesByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_media_by_id(root: ChannelContext[models.Product], _info, *, id):
+    def resolve_media_by_id(root: ChannelContext[models.Product], info, *, id):
         _type, pk = from_global_id_or_error(id, ProductMedia)
-        return root.node.media.filter(pk=pk).first()
+        return (
+            root.node.media.using(get_database_connection_name(info.context))
+            .filter(pk=pk)
+            .first()
+        )
 
     @staticmethod
-    def resolve_image_by_id(root: ChannelContext[models.Product], _info, *, id):
+    def resolve_image_by_id(root: ChannelContext[models.Product], info, *, id):
         _type, pk = from_global_id_or_error(id, ProductImage)
-        return root.node.media.filter(pk=pk).first()
+        return (
+            root.node.media.using(get_database_connection_name(info.context))
+            .filter(pk=pk)
+            .first()
+        )
 
     @staticmethod
     def resolve_media(root: ChannelContext[models.Product], info, sort_by=None):
@@ -1761,7 +1770,7 @@ class ProductType(ModelObjectType[models.ProductType]):
     def resolve_available_attributes(root: models.ProductType, info, **kwargs):
         qs = attribute_models.Attribute.objects.get_unassigned_product_type_attributes(
             root.pk
-        )
+        ).using(get_database_connection_name(info.context))
         qs = resolve_attributes(info, qs=qs)
         qs = filter_connection_queryset(qs, kwargs, info.context)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)

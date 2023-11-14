@@ -226,7 +226,9 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     def resolve_collections(
         root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
     ):
-        qs = root.node.collections.all()
+        qs = root.node.collections.using(
+            get_database_connection_name(info.context)
+        ).all()
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
         return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
 
@@ -234,7 +236,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     def resolve_products(
         root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
     ):
-        qs = root.node.products.all()
+        qs = root.node.products.using(get_database_connection_name(info.context)).all()
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
@@ -242,7 +244,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     def resolve_variants(
         root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
     ):
-        qs = root.node.variants.all()
+        qs = root.node.variants.using(get_database_connection_name(info.context)).all()
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
         return create_connection_slice(
             qs, info, kwargs, ProductVariantCountableConnection

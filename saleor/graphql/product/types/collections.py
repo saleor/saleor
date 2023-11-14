@@ -2,7 +2,6 @@ from collections import defaultdict
 from typing import Optional
 
 import graphene
-from django.conf import settings
 from graphene import relay
 
 from ....permission.enums import ProductPermissions
@@ -21,6 +20,7 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+from ...core.context import get_database_connection_name
 from ...core.descriptions import (
     ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
@@ -144,7 +144,7 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         requestor = get_user_or_app_from_context(info.context)
         qs = root.node.products.visible_to_user(  # type: ignore[attr-defined] # mypy does not properly resolve the related manager # noqa: E501
             requestor, root.channel_slug
-        ).using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        ).using(get_database_connection_name(info.context))
 
         if search:
             qs = ChannelQsContext(
