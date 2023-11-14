@@ -3,6 +3,7 @@ import graphene
 from ...channel import models as channel_models
 from ...permission.enums import GiftcardPermissions, OrderPermissions
 from ..channel.types import OrderSettings
+from ..core.context import get_database_connection_name
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_MUTATION
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS, DOC_CATEGORY_ORDERS
 from ..core.fields import PermissionsField
@@ -53,9 +54,12 @@ class ShopQueries(graphene.ObjectType):
     def resolve_shop(self, _info):
         return Shop()
 
-    def resolve_order_settings(self, _info):
+    def resolve_order_settings(self, info):
         channel = (
-            channel_models.Channel.objects.filter(is_active=True)
+            channel_models.Channel.objects.using(
+                get_database_connection_name(info.context)
+            )
+            .filter(is_active=True)
             .order_by("slug")
             .first()
         )

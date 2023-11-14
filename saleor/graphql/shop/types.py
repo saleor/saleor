@@ -15,6 +15,7 @@ from ...permission.enums import SitePermissions, get_permissions
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
+from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
@@ -372,14 +373,16 @@ class Shop(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_channel_currencies(_, _info):
+    def resolve_channel_currencies(_, info):
         return set(
-            channel_models.Channel.objects.values_list("currency_code", flat=True)
+            channel_models.Channel.objects.using(
+                get_database_connection_name(info.context)
+            ).values_list("currency_code", flat=True)
         )
 
     @staticmethod
-    def resolve_countries(_, _info, **kwargs):
-        return resolve_countries(**kwargs)
+    def resolve_countries(_, info, **kwargs):
+        return resolve_countries(info, **kwargs)
 
     @staticmethod
     @load_site_callback
@@ -451,11 +454,15 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_default_country(_, _info):
+    def resolve_default_country(_, info):
         default_country_code = settings.DEFAULT_COUNTRY
         default_country_name = countries.countries.get(default_country_code)
         if default_country_name:
-            vat = VAT.objects.filter(country_code=default_country_code).first()
+            vat = (
+                VAT.objects.using(get_database_connection_name(info.context))
+                .filter(country_code=default_country_code)
+                .first()
+            )
             default_country = CountryDisplay(
                 code=default_country_code, country=default_country_name, vat=vat
             )
@@ -519,8 +526,10 @@ class Shop(graphene.ObjectType):
         return site.settings.default_digital_url_valid_days
 
     @staticmethod
-    def resolve_staff_notification_recipients(_, _info):
-        return account_models.StaffNotificationRecipient.objects.all()
+    def resolve_staff_notification_recipients(_, info):
+        return account_models.StaffNotificationRecipient.objects.using(
+            get_database_connection_name(info.context)
+        ).all()
 
     @staticmethod
     @load_site_callback

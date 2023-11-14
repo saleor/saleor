@@ -5,6 +5,7 @@ from ...giftcard import models
 from ...permission.enums import GiftcardPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.context import get_database_connection_name
 from ..core.descriptions import ADDED_IN_31
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import FilterConnectionField, PermissionsField
@@ -77,9 +78,9 @@ class GiftCardQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_gift_card(_root, _info: ResolveInfo, /, *, id: str):
+    def resolve_gift_card(_root, info: ResolveInfo, /, *, id: str):
         _, id = from_global_id_or_error(id, GiftCard)
-        return resolve_gift_card(id)
+        return resolve_gift_card(info, id)
 
     @staticmethod
     def resolve_gift_cards(
@@ -91,7 +92,7 @@ class GiftCardQueries(graphene.ObjectType):
         filtering_by_currency = filter and "currency" in filter
         if sorting_by_balance and not filtering_by_currency:
             raise GraphQLError("Sorting by balance requires filtering by currency.")
-        qs = resolve_gift_cards()
+        qs = resolve_gift_cards(info)
         qs = filter_connection_queryset(
             qs, {"sort_by": sort_by, "filter": filter, **kwargs}
         )
@@ -103,12 +104,16 @@ class GiftCardQueries(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_gift_card_currencies(_root, _info: ResolveInfo):
-        return set(models.GiftCard.objects.values_list("currency", flat=True))
+    def resolve_gift_card_currencies(_root, info: ResolveInfo):
+        return set(
+            models.GiftCard.objects.using(
+                get_database_connection_name(info.context)
+            ).values_list("currency", flat=True)
+        )
 
     @staticmethod
     def resolve_gift_card_tags(_root, info: ResolveInfo, **data):
-        qs = resolve_gift_card_tags()
+        qs = resolve_gift_card_tags(info)
         qs = filter_connection_queryset(qs, data)
         return create_connection_slice(qs, info, data, GiftCardTagCountableConnection)
 
