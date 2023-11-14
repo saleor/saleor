@@ -56,7 +56,7 @@ def resolve_app(info, id):
     _, id = from_global_id_or_error(id, "App")
     return (
         models.App.objects.using(get_database_connection_name(info.context))
-        .filter(id=id, is_installed=True, removed_at__isnull=True)
+        .filter(id=id, is_installed=True)
         .first()
     )
 
