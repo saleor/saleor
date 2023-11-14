@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 from unittest import mock
 from uuid import UUID
 
@@ -222,6 +223,111 @@ def test_delete_expired_checkouts(checkouts_list, customer_user, variant):
     for checkout in [expired_anonymous_checkout, expired_user_checkout, empty_checkout]:
         with pytest.raises(Checkout.DoesNotExist):
             checkout.refresh_from_db()
+
+
+@pytest.mark.parametrize(
+    (
+        "authorized",
+        "auth_pending",
+        "charged",
+        "charge_pending",
+        "refund_pending",
+        "refund",
+        "canceled",
+        "cancel_pending",
+        "expected_checkout_count",
+    ),
+    [
+        (0, 0, 0, 0, 0, 0, 0, 0, 2),
+        (1, 0, 0, 0, 0, 0, 0, 0, 5),
+        (0, 1, 0, 0, 0, 0, 0, 0, 5),
+        (0, 0, 1, 0, 0, 0, 0, 0, 5),
+        (0, 0, 0, 1, 0, 0, 0, 0, 5),
+        (0, 0, 0, 0, 1, 0, 0, 0, 5),
+        # The checkout count is 2 as transaction which is fully refunded can be deleted
+        (0, 0, 0, 0, 0, 1, 0, 0, 2),
+        # The checkout count is 2 as transaction which is fully canceled can be deleted
+        (0, 0, 0, 0, 0, 0, 1, 0, 2),
+        (0, 0, 0, 0, 0, 0, 0, 1, 5),
+        (1, 1, 1, 1, 1, 1, 1, 1, 5),
+    ],
+)
+def test_delete_expired_checkouts_doesnt_delete_when_transaction_amount_exists(
+    authorized,
+    auth_pending,
+    charged,
+    charge_pending,
+    refund_pending,
+    refund,
+    canceled,
+    cancel_pending,
+    expected_checkout_count,
+    checkouts_list,
+    customer_user,
+    variant,
+):
+    # given
+    now = timezone.now()
+
+    expired_anonymous_checkout = checkouts_list[0]
+    expired_anonymous_checkout.email = None
+    expired_anonymous_checkout.created_at = now - timedelta(days=40)
+    expired_anonymous_checkout.last_change = now - timedelta(days=35)
+    expired_anonymous_checkout.lines.create(
+        checkout=expired_anonymous_checkout, variant=variant, quantity=1
+    )
+    expired_anonymous_checkout.payment_transactions.create(
+        authorized_value=Decimal(authorized),
+        authorize_pending_value=Decimal(auth_pending),
+        charged_value=Decimal(charged),
+        charge_pending_value=Decimal(charge_pending),
+        refund_pending_value=Decimal(refund_pending),
+        refunded_value=Decimal(refund),
+        canceled_value=Decimal(canceled),
+        cancel_pending_value=Decimal(cancel_pending),
+    )
+
+    empty_checkout = checkouts_list[1]
+    empty_checkout.last_change = now - timedelta(hours=8)
+    assert empty_checkout.lines.count() == 0
+    empty_checkout.payment_transactions.create(
+        authorized_value=Decimal(authorized),
+        authorize_pending_value=Decimal(auth_pending),
+        charged_value=Decimal(charged),
+        charge_pending_value=Decimal(charge_pending),
+        refund_pending_value=Decimal(refund_pending),
+        refunded_value=Decimal(refund),
+        canceled_value=Decimal(canceled),
+        cancel_pending_value=Decimal(cancel_pending),
+    )
+
+    expired_user_checkout = checkouts_list[2]
+    expired_user_checkout.email = None
+    expired_user_checkout.user = customer_user
+    expired_user_checkout.created_at = now - timedelta(days=100)
+    expired_user_checkout.last_change = now - timedelta(days=98)
+    expired_user_checkout.lines.create(variant=variant, quantity=1)
+    expired_user_checkout.payment_transactions.create(
+        authorized_value=Decimal(authorized),
+        authorize_pending_value=Decimal(auth_pending),
+        charged_value=Decimal(charged),
+        charge_pending_value=Decimal(charge_pending),
+        refund_pending_value=Decimal(refund_pending),
+        refunded_value=Decimal(refund),
+        canceled_value=Decimal(canceled),
+        cancel_pending_value=Decimal(cancel_pending),
+    )
+
+    Checkout.objects.bulk_update(
+        [expired_anonymous_checkout, expired_user_checkout, empty_checkout],
+        ["created_at", "last_change", "email", "user"],
+    )
+
+    # when
+    delete_expired_checkouts()
+
+    # then
+    assert Checkout.objects.count() == expected_checkout_count
 
 
 def test_delete_expired_checkouts_no_checkouts_to_delete(checkout):

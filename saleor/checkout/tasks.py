@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -6,6 +7,7 @@ from django.db.models import Exists, OuterRef, Q, QuerySet, Subquery
 from django.utils import timezone
 
 from ..celeryconf import app
+from ..payment.models import TransactionItem
 from .models import Checkout, CheckoutLine
 
 task_logger: logging.Logger = get_task_logger(__name__)
@@ -63,8 +65,21 @@ def delete_expired_checkouts(
         )
     )
 
+    with_transactions = TransactionItem.objects.filter(
+        Q(checkout_id=OuterRef("pk"))
+        & (
+            Q(authorized_value__gt=Decimal(0))
+            | Q(authorize_pending_value__gt=Decimal(0))
+            | Q(charged_value__gt=Decimal(0))
+            | Q(charge_pending_value__gt=Decimal(0))
+            | Q(refund_pending_value__gt=Decimal(0))
+            | Q(cancel_pending_value__gt=Decimal(0))
+        )
+    )
+
     qs: QuerySet[Checkout] = Checkout.objects.filter(
-        empty_checkouts | expired_anonymous_checkouts | expired_user_checkout
+        (empty_checkouts | expired_anonymous_checkouts | expired_user_checkout)
+        & ~Q(Exists(with_transactions))
     )
     qs = qs.only("pk").order_by()[:batch_size]
 
