@@ -7,6 +7,7 @@ from ...shipping import interface as shipping_interface
 from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..core import ResolveInfo
+from ..core.context import get_database_connection_name
 from . import dataloaders
 
 TYPE_TO_TRANSLATION_LOADER_MAP = {
@@ -54,37 +55,55 @@ def resolve_translation(instance, info: ResolveInfo, *, language_code):
     raise TypeError(f"No dataloader found to {type(instance)}")
 
 
-def resolve_shipping_methods(_info):
-    return shipping_models.ShippingMethod.objects.all()
+def resolve_shipping_methods(info):
+    return shipping_models.ShippingMethod.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
 
 
-def resolve_attribute_values(_info):
-    return attribute_models.AttributeValue.objects.all()
+def resolve_attribute_values(info):
+    return attribute_models.AttributeValue.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
 
 
-def resolve_products(_info):
-    return product_models.Product.objects.all()
+def resolve_products(info):
+    return product_models.Product.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
 
 
-def resolve_product_variants(_info):
-    return product_models.ProductVariant.objects.all()
+def resolve_product_variants(info):
+    return product_models.ProductVariant.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
 
 
-def resolve_sales(_info):
-    return discount_models.Promotion.objects.all()
+def resolve_sales(info):
+    return discount_models.Promotion.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
 
 
-def resolve_vouchers(_info):
-    return discount_models.Voucher.objects.all()
+def resolve_vouchers(info):
+    return discount_models.Voucher.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
 
 
-def resolve_collections(_info):
-    return product_models.Collection.objects.all()
+def resolve_collections(info):
+    return product_models.Collection.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
 
 
-def resolve_promotions(_info):
-    return discount_models.Promotion.objects.all()
+def resolve_promotions(info):
+    return discount_models.Promotion.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
 
 
-def resolve_promotion_rules(_info):
-    return discount_models.PromotionRule.objects.all()
+def resolve_promotion_rules(info):
+    return discount_models.PromotionRule.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
