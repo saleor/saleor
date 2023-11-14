@@ -69,12 +69,20 @@ def _recalculate_order_prices(
                     ),
                     line.currency,
                 )
+                if undiscounted_price_need_recalculation(line, line_unit):
+                    line.undiscounted_unit_price = quantize_price(
+                        calculate_flat_rate_tax(
+                            # It is calculated when net and gross are equal
+                            money=line_unit.undiscounted_price.net,
+                            tax_rate=line.tax_rate,
+                            prices_entered_with_tax=prices_entered_with_tax,
+                        ),
+                        line.currency,
+                    )
+                else:
+                    line.undiscounted_unit_price = line_unit.undiscounted_price
 
-                if (
-                    line.tax_rate > 0
-                    and line_total.undiscounted_price.net
-                    == line_total.undiscounted_price.gross
-                ):
+                if undiscounted_price_need_recalculation(line, line_total):
                     line.undiscounted_total_price = quantize_price(
                         calculate_flat_rate_tax(
                             # It is calculated when net and gross are equal
@@ -100,6 +108,13 @@ def _recalculate_order_prices(
         net=order.base_shipping_price, gross=order.base_shipping_price
     )
     order.total = manager.calculate_order_total(order, lines)
+
+
+def undiscounted_price_need_recalculation(line, line_price):
+    return (
+        line.tax_rate > 0
+        and line_price.undiscounted_price.net == line_price.undiscounted_price.gross
+    )
 
 
 def _update_order_discounts_and_base_undiscounted_total(
