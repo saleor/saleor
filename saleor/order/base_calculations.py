@@ -51,11 +51,6 @@ def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     discounted_subtotal, discounted_shipping_price = apply_order_discounts(
         undiscounted_subtotal, shipping_price, order
     )
-    subtotal_discount = undiscounted_subtotal - discounted_subtotal
-    if subtotal_discount > zero_money(currency):
-        apply_subtotal_discount_to_order_lines(
-            lines, undiscounted_subtotal, subtotal_discount
-        )
 
     return max(discounted_subtotal + discounted_shipping_price, zero_money(currency))
 
@@ -212,27 +207,3 @@ def _ensure_order_lines_prices_sum_up_to_order_prices(
     )
     last_line_discount = subtotal_discount - other_lines_discount
     apply_discount_to_order_line(lines[-1], last_line_discount)
-
-
-# def _ensure_order_lines_prices_sum_up_to_order_prices(
-#     lines: list["OrderLine"],
-#     undiscounted_subtotal: Decimal,
-#     subtotal_discount: Decimal,
-# ):
-#     other_lines_total = sum([line.total_price_net_amount for line in lines[:-1]])
-#     discounted_subtotal = undiscounted_subtotal - subtotal_discount
-#     last_line_total = discounted_subtotal - other_lines_total
-#
-#     last_line = lines[-1]
-#     last_line.total_price_net_amount = last_line_total
-#
-#     quantity = last_line.quantity
-#     unit_price = last_line_total / quantity
-#     last_line.base_unit_price_amount = unit_price
-#     last_line.unit_price_net_amount = unit_price
-#     last_line.unit_price_gross_amount = unit_price
-#
-#     other_lines_discount = sum([line.unit_discount_amount * line.quantity for line in lines[:-1]])
-#     last_line_discount = subtotal_discount - other_lines_discount
-#     unit_discount = last_line_discount / quantity
-#     last_line.unit_discount = unit_discount

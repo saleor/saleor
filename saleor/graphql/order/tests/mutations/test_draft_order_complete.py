@@ -184,6 +184,7 @@ def test_draft_order_complete_with_voucher(
     order.save(update_fields=["voucher", "voucher_code", "should_refresh_prices"])
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    discount_value = voucher_listing.discount_value
     order_total = order.total_net_amount
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -201,23 +202,21 @@ def test_draft_order_complete_with_voucher(
     assert data["voucherCode"] == code_instance.code
     assert data["voucher"]["code"] == voucher.code
     assert data["undiscountedTotal"]["net"]["amount"] == order_total
-    assert (
-        data["total"]["net"]["amount"] == order_total - voucher_listing.discount_value
-    )
+    assert data["total"]["net"]["amount"] == order_total - discount_value
     assert order.search_vector
 
-    for line in order.lines.all():
+    lines = order.lines.all()
+    for line in lines:
         allocation = line.allocations.get()
         assert allocation.quantity_allocated == line.quantity_unfulfilled
 
-    # ensure entire order discount is not propagated to order lines
+    # ensure entire order discount is propagated to order lines
     assert voucher.type == VoucherType.ENTIRE_ORDER
     lines_undiscounted_total = sum(
-        line.undiscounted_total_price_net_amount for line in order.lines.all()
+        line.undiscounted_total_price_net_amount for line in lines
     )
-    lines_total = sum(line.total_price_net_amount for line in order.lines.all())
-    assert lines_undiscounted_total == lines_total
-    assert lines_undiscounted_total == order_total - order.base_shipping_price_amount
+    lines_total = sum(line.total_price_net_amount for line in lines)
+    assert lines_undiscounted_total == lines_total + discount_value
 
     # ensure there are only 2 events with correct types
     event_params = {

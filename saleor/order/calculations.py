@@ -33,6 +33,7 @@ def _update_order_discounts_and_base_undiscounted_total(
 
     Entire order vouchers and staff order discounts are recalculated and updated.
     """
+    # Run below function to update OrderDiscount object
     base_order_total(order, lines)
     subtotal = base_order_subtotal(order, lines)
     undiscounted_total = subtotal + order.base_shipping_price
@@ -133,7 +134,6 @@ def fetch_order_prices_and_update_if_expired(
         prefetch_related_objects(lines, "variant__product__product_type")
 
     order.should_refresh_prices = False
-    # TODO: zaaplikuj tutaj discounty
 
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
@@ -145,7 +145,6 @@ def fetch_order_prices_and_update_if_expired(
         if not should_charge_tax:
             # If charge_taxes is disabled or order is exempt from taxes, remove the
             # tax from the original gross prices.
-            # TODO: tutaj nie liczymy discountow
             _remove_tax(order, lines)
 
     else:
@@ -159,6 +158,12 @@ def fetch_order_prices_and_update_if_expired(
         else:
             # Calculate net prices without taxes.
             _get_order_base_prices(order, lines)
+
+    # subtotal_discount = undiscounted_subtotal - discounted_subtotal
+    # if subtotal_discount > zero_money(currency):
+    #     apply_subtotal_discount_to_order_lines(
+    #         lines, undiscounted_subtotal, subtotal_discount
+    #     )
 
     with transaction.atomic(savepoint=False):
         order.save(
@@ -252,7 +257,6 @@ def _apply_tax_data_from_plugins(
     undiscounted_subtotal = zero_taxed_money(order.currency)
 
     _update_order_discounts_and_base_undiscounted_total(order, lines)
-
     for line in lines:
         variant = line.variant
         if variant:
@@ -277,7 +281,6 @@ def _apply_tax_data_from_plugins(
                 )
             except TaxError:
                 pass
-
     try:
         order.shipping_price = manager.calculate_order_shipping(order)
         order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
