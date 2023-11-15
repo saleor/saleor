@@ -10,6 +10,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- Add taxes to undiscounted prices - #14095 by @jakubkuc
+
 ### Saleor Apps
 
 ### Other changes
@@ -47,7 +49,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `voucherCodeBulkDelete` mutation.
   - Adjust voucher usage calculations.
 - Improved GraphQL ID validation messages - #14447 by @patrys
-- Add taxes to undiscounted prices - #14095 by @jakubkuc
 - Add `voucher` to `checkout` query - #14512 by @zedzior
 
 ### Saleor Apps
