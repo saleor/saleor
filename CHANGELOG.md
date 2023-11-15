@@ -2,31 +2,31 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
-# 3.18.0 [Unreleased]
+# 3.18.0
 
 ### Highlights
-- Allow including draft orders in voucher usage. New `includeDraftOrderInVoucherUsage` flag allows defining if vouchers used in draft orders should be counted into voucher usage. - #14288 by @zedzior, @IKarbowiak, @michal-macioszczyk
 
+- Allow including draft orders in voucher usage. The new `includeDraftOrderInVoucherUsage` flag allows defining if vouchers used in draft orders should be counted into voucher usage. - #14288 by @zedzior, @IKarbowiak, @michal-macioszczyk
   - Add `includeDraftOrderInVoucherUsage` to `OrderSettings`
   - Add `includeDraftOrderInVoucherUsage` to `OrderSettingsInput`
 
-
 ### Breaking changes
-- Optimize number of queries in bulk mutations when calling webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
+
+- Optimize the number of queries in bulk mutations when calling webhooks. This change affects only users of open-source Saleor, who have their custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected methods. Affected methods:
   - `attribute_updated`
   - `attribute_deleted`
   - `attribute_value_deleted`
   - `promotion_deleted`
   - `staff_deleted`
-- Saleor will no longer reattempt delivery for webhooks that return non-transient HTTP errors (400, 404 etc.) or redirects - #14566 by @patrys
-- **Feature preview breaking change**:
+- Saleor will no longer reattempt delivery for webhooks that return non-transient HTTP errors (400, 404, etc.) or redirects - #14566 by @patrys
+- Feature preview breaking changes:
   - Drop `defaultTransactionFlowStrategy` from `OrderSettings` type. Use `PaymentSettings.defaultTransactionFlowStrategy` instead. Drop `defaultTransactionFlowStrategy` from `OrderSettingsInput` type. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead. - #14671 by @korycins
 
 ### GraphQL API
-- Fix draft order voucher assignment - #14336 by @IKarbowiak
+
 - Allow add multiple codes per voucher - #14123 by @SzymJ, @IKarbowiak, @michal-macioszczyk, @zedzior
   - Add `VoucherInput.addCodes` to `voucherCreate` and `voucherUpdate` mutations.
-  - Add `Voucher.singleUse` flag.
+  - Add the `Voucher.singleUse` flag.
   - Deprecate `OrderBulkCreateInput.voucher`.
   - Deprecate `VoucherInput.code` in `voucherCreate` and `voucherUpdate` mutations.
   - Add `exportVoucherCodes` mutation.
@@ -34,16 +34,15 @@ All notable, unreleased changes to this project will be documented in this file.
   - Adjust voucher usage calculations.
 - Improved GraphQL ID validation messages - #14447 by @patrys
 - Add `voucher` to `checkout` query - #14512 by @zedzior
-
-### Saleor Apps
+- Fix draft order voucher assignment - #14336 by @IKarbowiak
 
 ### Other changes
 
-- Add transaction items deletion to cleardb command. - #14198 by @jakubkuc
-- Added validation for timestamp comparison #14025 by @ritanjandawn
-- Page -> Attributes refactor. The goal is to simplify the attribute models. The current attribute model relations are complex and really hard to understand. - #13621
+- Add transaction items deletion to the `cleardb` command. - #14198 by @jakubkuc
 - `requirements.txt` and `requirements_dev.txt` were dropped in favor of only supporting `poetry` - #14611 by @patrys
 - Change the Attribute - Product relation to decrease code complexity and make it easier to understand the relations - #13407 by @aniav
+- Change the Attribute - Page relation to decrease code complexity - #13621 by @michal-macioszczyk
+- Added validation for timestamp comparison - #14025 by @ritanjandawn
 
 # 3.17.0
 
@@ -120,6 +119,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `SaleToggle` - Use `PromotionStarted` and `PromotionEnded` instead.
 
 ### Breaking changes
+
 - Deprecate `external_url` on `Invoice` GraphQL type in favour of `url`. No matter if the invoice is stored on Saleor or is a link to an external invoice it will get returned in the `url` field.
 - Optimize number of queries in bulk mutations when calling Webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
   - `channel_updated`
