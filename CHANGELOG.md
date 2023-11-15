@@ -7,8 +7,10 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Highlights
 
 ### Breaking changes
+- `status` of `orders` in `OrderBulkCreate`  now become required field.
 
 ### GraphQL API
+- Fix field validation of `orderBulkCreate` that requires status field. - #14506 by @maarcingebala
 
 ### Saleor Apps
 

@@ -481,7 +481,7 @@ class OrderBulkCreateInput(BaseInputObjectType):
         required=True,
         description="The date, when the order was inserted to Saleor database.",
     )
-    status = OrderStatusEnum(description="Status of the order.")
+    status = OrderStatusEnum(description="Status of the order.", required=True)
     user = graphene.Field(
         OrderBulkCreateUserInput,
         required=True,

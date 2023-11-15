@@ -763,6 +763,37 @@ def test_order_bulk_create(
     assert OrderDiscount.objects.count() == discount_count + 1
 
 
+def test_order_bulk_create_without_status_fails(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    del order["status"]
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+
+    # then
+    assert len(content["errors"]) == 1
+
+    error0 = content["errors"][0]
+    assert error0["message"].startswith('Variable "$orders" got invalid value')
+
+
 def test_order_bulk_create_with_voucher(
     staff_api_client,
     permission_manage_orders,
