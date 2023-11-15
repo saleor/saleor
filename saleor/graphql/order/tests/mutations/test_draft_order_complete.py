@@ -159,7 +159,7 @@ def test_draft_order_complete_by_app(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
-def test_draft_order_complete_with_voucher(
+def test_draft_order_complete_with_voucher_entire_order_tax_app(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
     permission_group_manage_orders,

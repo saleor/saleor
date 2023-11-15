@@ -21,87 +21,76 @@ from ..tax.utils import (
     normalize_tax_rate_for_db,
 )
 from . import ORDER_EDITABLE_STATUS
-from .base_calculations import (
-    apply_order_discounts,
-    base_order_subtotal,
-    base_order_total,
-)
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
 
-def _update_order_discounts_and_base_undiscounted_total(
-    order: Order, lines: Iterable[OrderLine]
-):
-    """Update order discounts and order undiscounted_total price.
+# def _update_order_discounts_and_base_undiscounted_total(
+#     order: Order, lines: Iterable[OrderLine]
+# ):
+#     """Update order discounts and order undiscounted_total price.
+#
+#     Entire order vouchers and staff order discounts are recalculated and updated.
+#     """
+#     # Run below function to update OrderDiscount object
+#     subtotal = base_calculations.base_order_subtotal(order, lines)
+#     undiscounted_total = subtotal + order.base_shipping_price
+#     order.undiscounted_total = TaxedMoney(
+#         net=undiscounted_total, gross=undiscounted_total
+#     )
 
-    Entire order vouchers and staff order discounts are recalculated and updated.
-    """
-    # Run below function to update OrderDiscount object
-    base_order_total(order, lines)
-    subtotal = base_order_subtotal(order, lines)
-    undiscounted_total = subtotal + order.base_shipping_price
-    order.undiscounted_total = TaxedMoney(
-        net=undiscounted_total, gross=undiscounted_total
-    )
 
-
+# TODO check if this function is needed
 def _get_order_base_prices(order, lines):
-    currency = order.currency
-    undiscounted_subtotal = zero_taxed_money(currency)
-
-    # Calculate order lines prices.
-    for line in lines:
-        variant = line.variant
-        if not variant:
-            continue
-
-        line_unit_default = OrderTaxedPricesData(
-            undiscounted_price=TaxedMoney(
-                line.undiscounted_base_unit_price,
-                line.undiscounted_base_unit_price,
-            ),
-            price_with_discounts=TaxedMoney(
-                line.base_unit_price,
-                line.base_unit_price,
-            ),
-        )
-        line_unit_default.price_with_discounts = quantize_price(
-            line_unit_default.price_with_discounts, currency
-        )
-        line_unit_default.undiscounted_price = quantize_price(
-            line_unit_default.undiscounted_price, currency
-        )
-
-        line.undiscounted_unit_price = line_unit_default.undiscounted_price
-        line.unit_price = line_unit_default.price_with_discounts
-
-        line_total = base_calculations.base_order_line_total(line)
-        line_total.price_with_discounts = quantize_price(
-            line_total.price_with_discounts, currency
-        )
-        line_total.undiscounted_price = quantize_price(
-            line_total.undiscounted_price, currency
-        )
-
-        line.undiscounted_total_price = line_total.undiscounted_price
-        undiscounted_subtotal += line_total.undiscounted_price
-        line.total_price = line_total.price_with_discounts
-
-        line.tax_rate = calculate_tax_rate(line.unit_price)
-
-    # Calculate shipping price.
-    shipping_price = order.base_shipping_price
-    order.shipping_price = quantize_price(
-        TaxedMoney(net=shipping_price, gross=shipping_price),
-        shipping_price.currency,
-    )
-    order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
-
-    # Calculate order total.
-    order.undiscounted_total = undiscounted_subtotal + order.shipping_price
-    total = base_calculations.base_order_total(order, lines)
-    order.total = quantize_price(TaxedMoney(total, total), currency)
+    pass
+    # currency = order.currency
+    # undiscounted_subtotal = zero_taxed_money(currency)
+    #
+    # # Calculate order lines prices.
+    # for line in lines:
+    #     variant = line.variant
+    #     if not variant:
+    #         continue
+    #
+    #     line_unit_default = OrderTaxedPricesData(
+    #         undiscounted_price=TaxedMoney(
+    #             line.undiscounted_base_unit_price,
+    #             line.undiscounted_base_unit_price,
+    #         ),
+    #         price_with_discounts=TaxedMoney(
+    #             line.base_unit_price,
+    #             line.base_unit_price,
+    #         ),
+    #     )
+    #     line_unit_default.price_with_discounts = quantize_price(
+    #         line_unit_default.price_with_discounts, currency
+    #     )
+    #     line_unit_default.undiscounted_price = quantize_price(
+    #         line_unit_default.undiscounted_price, currency
+    #     )
+    #
+    #     line.undiscounted_unit_price = line_unit_default.undiscounted_price
+    #     line.unit_price = line_unit_default.price_with_discounts
+    #
+    #     line_total = base_calculations.base_order_line_total(line)
+    #     line_total.price_with_discounts = quantize_price(
+    #         line_total.price_with_discounts, currency
+    #     )
+    #     line_total.undiscounted_price = quantize_price(
+    #         line_total.undiscounted_price, currency
+    #     )
+    #
+    #     line.undiscounted_total_price = line_total.undiscounted_price
+    #     undiscounted_subtotal += line_total.undiscounted_price
+    #     line.total_price = line_total.price_with_discounts
+    #
+    #     line.tax_rate = Decimal("0")
+    #
+    # # Calculate order total.
+    # order.shipping_tax_rate = Decimal("0")
+    # order.undiscounted_total = undiscounted_subtotal + order.shipping_price
+    # total = base_calculations.base_order_total(order, lines)
+    # order.total = quantize_price(TaxedMoney(total, total), currency)
 
 
 def fetch_order_prices_and_update_if_expired(
@@ -139,7 +128,7 @@ def fetch_order_prices_and_update_if_expired(
         prefetch_related_objects(lines, "variant__product__product_type")
 
     order.should_refresh_prices = False
-    apply_order_discounts(order, lines, override_prices=True)
+    base_calculations.apply_order_discounts(order, lines, override_prices=True)
 
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
@@ -147,7 +136,6 @@ def fetch_order_prices_and_update_if_expired(
         _calculate_and_add_tax(
             tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
         )
-
         if not should_charge_tax:
             # If charge_taxes is disabled or order is exempt from taxes, remove the
             # tax from the original gross prices.
@@ -163,7 +151,8 @@ def fetch_order_prices_and_update_if_expired(
             )
         else:
             # Calculate net prices without taxes.
-            _get_order_base_prices(order, lines)
+            _remove_tax(order, lines)
+            # _get_order_base_prices(order, lines)
 
     with transaction.atomic(savepoint=False):
         order.save(
@@ -174,6 +163,7 @@ def fetch_order_prices_and_update_if_expired(
                 "undiscounted_total_gross_amount",
                 "shipping_price_net_amount",
                 "shipping_price_gross_amount",
+                "base_shipping_price_amount",
                 "shipping_tax_rate",
                 "should_refresh_prices",
             ]
@@ -190,6 +180,9 @@ def fetch_order_prices_and_update_if_expired(
                 "undiscounted_total_price_net_amount",
                 "undiscounted_total_price_gross_amount",
                 "tax_rate",
+                "base_unit_price_amount",
+                "undiscounted_base_unit_price_amount",
+                "unit_discount_amount",
             ],
         )
         return order, lines
@@ -255,7 +248,7 @@ def _apply_tax_data_from_plugins(
     Does not throw TaxError.
     """
     undiscounted_subtotal = zero_taxed_money(order.currency)
-    _update_order_discounts_and_base_undiscounted_total(order, lines)
+    # _update_order_discounts_and_base_undiscounted_total(order, lines)
     for line in lines:
         variant = line.variant
         if variant:
