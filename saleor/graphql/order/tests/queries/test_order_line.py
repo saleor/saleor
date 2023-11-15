@@ -1,9 +1,13 @@
-from unittest.mock import MagicMock
+from decimal import Decimal
+from unittest.mock import MagicMock, patch
 
 import graphene
 from django.core.files import File
-from prices import Money
+from prices import Money, TaxedMoney
 
+from .....core.prices import quantize_price
+from .....order import OrderStatus
+from .....order.interface import OrderTaxedPricesData
 from .....thumbnail.models import Thumbnail
 from .....warehouse.models import Stock
 from ....core.enums import ThumbnailFormatEnum
@@ -639,3 +643,117 @@ def test_order_line_tax_class_query_by_app(
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
     assert order_data["lines"][0]["taxClass"]["id"]
+
+
+UNDISCOUNTED_PRICE_QUERY = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        lines {
+                            undiscountedUnitPrice {
+                                net {
+                                    amount
+                                }
+                                gross {
+                                    amount
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+"""
+
+
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
+def test_order_query_undiscounted_prices_taxed(
+    mocked_calculate_order_line_unit,
+    staff_api_client,
+    permission_group_all_perms_all_channels,
+    fulfilled_order,
+):
+    # given
+
+    order = fulfilled_order
+    query = UNDISCOUNTED_PRICE_QUERY
+    order.status = OrderStatus.UNCONFIRMED
+    order.should_refresh_prices = True
+    order.save(update_fields=["status", "should_refresh_prices"])
+    tc = order.channel.tax_configuration
+    tc.prices_entered_with_tax = False
+    tc.save(update_fields=["prices_entered_with_tax"])
+    line = order.lines.first()
+    tax_rate = line.tax_rate
+    permission_group_all_perms_all_channels.user_set.add(staff_api_client.user)
+
+    line_undiscounted_price = TaxedMoney(
+        line.undiscounted_base_unit_price,
+        line.undiscounted_base_unit_price * (1 + tax_rate),
+    )
+    mocked_calculate_order_line_unit.return_value = OrderTaxedPricesData(
+        undiscounted_price=line_undiscounted_price,
+        price_with_discounts=line_undiscounted_price,
+    )
+
+    # set gross the same as net as to make sure prices were recalculated
+    line.undiscounted_unit_price_gross_amount = line.undiscounted_unit_price_net_amount
+    line.save(update_fields=["undiscounted_unit_price_gross_amount"])
+
+    # when
+    response = staff_api_client.post_graphql(query)
+
+    # then
+
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    first_order_data_line_price = order_data["lines"][0]["undiscountedUnitPrice"]
+    assert first_order_data_line_price["net"]["amount"] == line.unit_price.net.amount
+
+    expected_gross = quantize_price(
+        line.unit_price.net.amount * (tax_rate + 1), line.currency
+    )
+    result_gross = quantize_price(
+        Decimal(first_order_data_line_price["gross"]["amount"]), line.currency
+    )
+    assert result_gross == expected_gross
+
+
+def test_order_query_undiscounted_prices_no_tax(
+    staff_api_client, permission_group_all_perms_all_channels, order_with_lines
+):
+    # given
+    order = order_with_lines
+    query = UNDISCOUNTED_PRICE_QUERY
+    order.status = OrderStatus.UNCONFIRMED
+    order.should_refresh_prices = True
+    order.save(update_fields=["status", "should_refresh_prices"])
+    tc = order.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = None
+    tc.charge_taxes = False
+    tc.save(
+        update_fields=[
+            "prices_entered_with_tax",
+            "tax_calculation_strategy",
+            "charge_taxes",
+        ]
+    )
+
+    line = order.lines.first()
+    line.undiscounted_unit_price_gross_amount = line.undiscounted_unit_price_net_amount
+    line.tax_rate = Decimal(0)
+    line.save()
+
+    permission_group_all_perms_all_channels.user_set.add(staff_api_client.user)
+    # when
+    response = staff_api_client.post_graphql(query)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    first_order_data_line_price = order_data["lines"][0]["undiscountedUnitPrice"]
+    assert first_order_data_line_price["net"]["amount"] == line.unit_price.net.amount
+    assert first_order_data_line_price["gross"]["amount"] == line.unit_price.net.amount

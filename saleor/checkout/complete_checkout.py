@@ -88,6 +88,7 @@ from .models import Checkout
 from .utils import (
     get_checkout_metadata,
     get_or_create_checkout_metadata,
+    get_taxed_undiscounted_price,
     get_voucher_for_checkout_info,
 )
 
@@ -227,12 +228,6 @@ def _create_line_for_order(
         line_info=checkout_line_info,
         channel=checkout_info.channel,
     )
-    undiscounted_unit_price = TaxedMoney(
-        net=undiscounted_base_unit_price, gross=undiscounted_base_unit_price
-    )
-    undiscounted_total_price = TaxedMoney(
-        net=undiscounted_base_total_price, gross=undiscounted_base_total_price
-    )
     # total price after applying all discounts - sales and vouchers
     total_line_price = calculations.checkout_line_total(
         manager=manager,
@@ -252,6 +247,20 @@ def _create_line_for_order(
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=checkout_line_info,
+    )
+    # unit price before applying discounts
+    undiscounted_unit_price = get_taxed_undiscounted_price(
+        undiscounted_base_unit_price,
+        unit_price,
+        tax_rate,
+        prices_entered_with_tax,
+    )
+    # total price before applying discounts
+    undiscounted_total_price = get_taxed_undiscounted_price(
+        undiscounted_base_total_price,
+        total_line_price,
+        tax_rate,
+        prices_entered_with_tax,
     )
 
     voucher_code = None

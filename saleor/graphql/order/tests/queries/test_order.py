@@ -100,6 +100,9 @@ query OrdersQuery {
                         gross{
                             amount
                         }
+                        net{
+                            amount
+                        }
                     }
                 }
                 discounts{
@@ -918,8 +921,13 @@ def test_order_line_discount_query(
     unit_discount_amount = quantize_price(
         Decimal(line_with_discount["unitDiscount"]["amount"]), currency=order.currency
     )
-    undiscounted_unit_price = quantize_price(
+
+    undiscounted_unit_price_gross = quantize_price(
         Decimal(line_with_discount["undiscountedUnitPrice"]["gross"]["amount"]),
+        currency=order.currency,
+    )
+    undiscounted_unit_price_net = quantize_price(
+        Decimal(line_with_discount["undiscountedUnitPrice"]["net"]["amount"]),
         currency=order.currency,
     )
 
@@ -929,13 +937,21 @@ def test_order_line_discount_query(
     expected_unit_discount_amount = quantize_price(
         line.unit_discount.amount, currency=order.currency
     )
-    expected_undiscounted_unit_price = quantize_price(
+    expected_undiscounted_unit_price_gross = quantize_price(
         line.undiscounted_unit_price.gross.amount, currency=order.currency
+    )
+    expected_calculated_gross = quantize_price(
+        line.undiscounted_unit_price.net.amount * (line.tax_rate + 1), line.currency
+    )
+    expected_undiscounted_unit_price_net = quantize_price(
+        line.undiscounted_unit_price.net.amount, currency=order.currency
     )
 
     assert unit_gross_amount == expected_unit_price_gross_amount
     assert unit_discount_amount == expected_unit_discount_amount
-    assert undiscounted_unit_price == expected_undiscounted_unit_price
+    assert undiscounted_unit_price_gross == expected_undiscounted_unit_price_gross
+    assert undiscounted_unit_price_net == expected_undiscounted_unit_price_net
+    assert undiscounted_unit_price_gross == expected_calculated_gross
 
 
 def test_order_query_in_pln_channel(

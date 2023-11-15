@@ -10,6 +10,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- Add taxes to undiscounted prices - #14095 by @jakubkuc
+
 ### Saleor Apps
 
 ### Other changes

@@ -4,10 +4,11 @@ from unittest import mock
 import before_after
 import pytest
 from django.test import override_settings
-from prices import TaxedMoney
+from prices import Money, TaxedMoney
 
 from ...checkout.models import Checkout, CheckoutLine
 from ...core.exceptions import InsufficientStock
+from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
@@ -678,6 +679,60 @@ def test_create_order_from_checkout_store_shipping_prices(
     )
 
 
+def test_create_order_from_checkout_valid_undiscounted_prices(
+    checkout_with_items_and_shipping, shipping_method, customer_user, app
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    tc = checkout.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.tax_calculation_strategy = "FLAT_RATES"
+    tc.prices_entered_with_tax = False
+    tc.save()
+    line = checkout.lines.first()
+    product = line.variant.product
+    product.tax_class.country_rates.update_or_create(
+        country=checkout.shipping_address.country.code, defaults={"rate": 7.75}
+    )
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+
+    checkout_info = fetch_checkout_info(checkout, lines, manager, [])
+
+    # when
+    order = create_order_from_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        user=None,
+        app=app,
+    )
+
+    # then
+    for line in order.lines.all():
+        expected_gross = quantize_price(
+            Money((line.base_unit_price.amount * (1 + line.tax_rate)), line.currency),
+            line.currency,
+        )
+        expected_undiscounted_unit_price = TaxedMoney(
+            net=line.base_unit_price,
+            gross=expected_gross,
+        )
+
+        assert line.undiscounted_unit_price == expected_undiscounted_unit_price
+        expected_total_gross = quantize_price(
+            Money(
+                (line.base_unit_price.amount * (1 + line.tax_rate)) * line.quantity,
+                line.currency,
+            ),
+            line.currency,
+        )
+        expected_undiscounted_total_price = TaxedMoney(
+            net=line.base_unit_price * line.quantity,
+            gross=expected_total_gross,
+        )
+        assert line.undiscounted_total_price == expected_undiscounted_total_price
+
+
 def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
     checkout_with_voucher_free_shipping,
     shipping_method,
@@ -791,6 +846,60 @@ def test_note_in_created_order_checkout_deleted_in_the_meantime(
 
     # then
     assert order is None
+
+
+@mock.patch("saleor.checkout.calculations.checkout_line_total")
+@mock.patch("saleor.checkout.calculations.checkout_line_unit_price")
+def test_create_order_from_checkout_update_undiscounted_prices_match(
+    mock_unit,
+    mock_total,
+    checkout_with_items_and_shipping,
+    shipping_method,
+    customer_user,
+    app,
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    tc = checkout.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.tax_calculation_strategy = "TAX_APP"
+    tc.prices_entered_with_tax = False
+    tc.save()
+
+    # mock tax app returning different prices than local calculations
+    expected_price = TaxedMoney(
+        net=Money("35.000", "USD"),
+        gross=Money("37.720", "USD"),
+    )
+    mock_unit.return_value = expected_price
+    mock_total.return_value = expected_price
+
+    manager = get_plugins_manager()
+    country_code = checkout.shipping_address.country.code
+    line = checkout.lines.first()
+    line.quantity = 1
+    line.save()
+    product = line.variant.product
+    channel_listing = line.variant.channel_listings.first()
+
+    channel_listing.price = Money("35.000", "USD")
+    channel_listing.save()
+    product.tax_class.country_rates.update_or_create(
+        country=country_code, defaults={"rate": 7.75}
+    )
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager, [])
+
+    # when
+    order = create_order_from_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        user=None,
+        app=app,
+    )
+    line = order.lines.first()
+    assert line.unit_price == line.undiscounted_unit_price
+    assert line.total_price == line.undiscounted_total_price
 
 
 def test_create_order_product_on_promotion(
