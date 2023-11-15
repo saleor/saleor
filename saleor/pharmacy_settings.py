@@ -10,6 +10,8 @@ import dj_database_url
 import dj_email_url
 import django_cache_url
 import django_stubs_ext
+import google
+from google.cloud.exceptions import NotFound
 import jaeger_client.config
 import pkg_resources
 import sentry_sdk
@@ -216,9 +218,20 @@ jwt_private_key = google_secret_manager.get_secret_single_value("jwt_private_key
 # below is important as it is needed to validate the JWT token
 SECRET_KEY = jwt_secret_key
 
+# RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
+# RSA_PRIVATE_PASSWORD = os.environ.get("RSA_PRIVATE_PASSWORD", None)
+try:
+    rsa_config = google_secret_manager.get_secret("saleor_rsa")
+    if not rsa_config['key'] or not rsa_config['password']:
+        raise ValueError('RSA Key or Password not configured, check the secret')
 
-RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
-RSA_PRIVATE_PASSWORD = os.environ.get("RSA_PRIVATE_PASSWORD", None)
+    RSA_PRIVATE_KEY = rsa_config['key']
+    RSA_PRIVATE_PASSWORD = rsa_config['password']
+except google.cloud.exceptions.NotFound:
+    RSA_PRIVATE_KEY = None
+    RSA_PRIVATE_PASSWORD = None
+    warnings.warn("Saleor RSA config not found, check the environment and secret")
+
 JWT_MANAGER_PATH = os.environ.get(
     "JWT_MANAGER_PATH", "saleor.core.jwt_manager.JWTManager"
 )
