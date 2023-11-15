@@ -309,6 +309,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                             warehouses=[stock["warehouse"]],
                         )
                     )
+                    stocks_data.pop(stock_index)
                     continue
 
             cleaned_input["stocks"]["create"] = ProductVariantBulkCreate.clean_stocks(
