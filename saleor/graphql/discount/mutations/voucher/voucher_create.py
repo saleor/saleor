@@ -259,7 +259,7 @@ class VoucherCreate(ModelMutation):
             models.VoucherCode.objects.bulk_create(code_instances)
 
     @classmethod
-    def post_save_action(
+    def post_save_action(  # type: ignore[override]
         cls, info: ResolveInfo, instance, codes_instances, cleaned_input
     ):
         manager = get_plugin_manager_promise(info.context).get()

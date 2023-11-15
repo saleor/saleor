@@ -34,12 +34,8 @@ class VoucherCodeBulkDelete(BaseMutation):
         error_type_class = VoucherCodeBulkDeleteError
         webhook_events_info = [
             WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_UPDATED,
-                description="A voucher was updated.",
-            ),
-            WebhookEventInfo(
                 type=WebhookEventAsyncType.VOUCHER_CODES_DELETED,
-                description="A voucher code was deleted.",
+                description="A voucher codes were deleted.",
             ),
         ]
         doc_category = DOC_CATEGORY_DISCOUNTS

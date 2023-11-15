@@ -58,6 +58,7 @@ from ..core.descriptions import (
     ADDED_IN_316,
     ADDED_IN_317,
     ADDED_IN_318,
+    ADDED_IN_319,
     DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
@@ -2430,7 +2431,7 @@ class VoucherCodesCreated(SubscriptionObjectType, VoucherCodeBase):
         root_type = "VoucherCode"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when new voucher code were created." + ADDED_IN_318
+        description = "Event sent when new voucher codes were created." + ADDED_IN_319
 
 
 class VoucherCodesDeleted(SubscriptionObjectType, VoucherCodeBase):
@@ -2438,7 +2439,7 @@ class VoucherCodesDeleted(SubscriptionObjectType, VoucherCodeBase):
         root_type = "VoucherCode"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when voucher codes were deleted." + ADDED_IN_318
+        description = "Event sent when voucher codes were deleted." + ADDED_IN_319
 
 
 class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
