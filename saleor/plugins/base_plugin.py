@@ -1227,14 +1227,14 @@ class BasePlugin:
     # Trigger when voucher code is created.
     #
     # Overwrite this method if you need to trigger specific logic after a voucher code
-    # is created.
-    voucher_code_created: Callable[["VoucherCode", None, None], None]
+    # are created.
+    voucher_codes_created: Callable[[list["VoucherCode"], None, None], None]
 
     # Trigger when voucher code is deleted.
     #
-    # Overwrite this method if you need to trigger specific logic after a voucher code
-    # is deleted.
-    voucher_code_deleted: Callable[["VoucherCode", None, None], None]
+    # Overwrite this method if you need to trigger specific logic after a voucher codes
+    # are deleted.
+    voucher_codes_deleted: Callable[[list["VoucherCode"], None, None], None]
 
     # Trigger when voucher metadata is updated.
     #

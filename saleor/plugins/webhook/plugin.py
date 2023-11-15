@@ -2285,36 +2285,36 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.VOUCHER_DELETED, voucher, code, webhooks=webhooks
         )
 
-    def _trigger_voucher_code_event(self, event_type, voucher_code, webhooks=None):
+    def _trigger_voucher_code_event(self, event_type, voucher_codes, webhooks=None):
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            payload = self._serialize_payload(
+            data = [
                 {
                     "id": graphene.Node.to_global_id("VoucherCode", voucher_code.id),
                     "code": voucher_code.code,
-                    "used": voucher_code.used,
-                    "is_active": voucher_code.is_active,
                 }
-            )
+                for voucher_code in voucher_codes
+            ]
+            payload = self._serialize_payload(data)
             trigger_webhooks_async(
-                payload, event_type, webhooks, voucher_code, self.requestor
+                payload, event_type, webhooks, voucher_codes, self.requestor
             )
 
-    def voucher_code_created(
-        self, voucher_code: "VoucherCode", previous_value: None, webhooks=None
+    def voucher_codes_created(
+        self, voucher_codes: list["VoucherCode"], previous_value: None, webhooks=None
     ) -> None:
         if not self.active:
             return previous_value
         self._trigger_voucher_code_event(
-            WebhookEventAsyncType.VOUCHER_CODE_CREATED, voucher_code, webhooks
+            WebhookEventAsyncType.VOUCHER_CODES_CREATED, voucher_codes, webhooks
         )
 
-    def voucher_code_deleted(
-        self, voucher_code: "VoucherCode", previous_value: None, webhooks=None
+    def voucher_codes_deleted(
+        self, voucher_codes: list["VoucherCode"], previous_value: None, webhooks=None
     ) -> None:
         if not self.active:
             return previous_value
         self._trigger_voucher_code_event(
-            WebhookEventAsyncType.VOUCHER_CODE_DELETED, voucher_code, webhooks
+            WebhookEventAsyncType.VOUCHER_CODES_DELETED, voucher_codes, webhooks
         )
 
     def voucher_metadata_updated(

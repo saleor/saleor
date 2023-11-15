@@ -2476,30 +2476,29 @@ def test_voucher_deleted(voucher, subscription_voucher_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_voucher_code_created(voucher, subscription_voucher_code_created_webhook):
+def test_voucher_codes_created(voucher, subscription_voucher_codes_created_webhook):
     # given
-    webhooks = [subscription_voucher_code_created_webhook]
+    webhooks = [subscription_voucher_codes_created_webhook]
 
     voucher_code = voucher.codes.first()
 
-    event_type = WebhookEventAsyncType.VOUCHER_CODE_CREATED
-    voucher_code_global_id = graphene.Node.to_global_id("VoucherCode", voucher_code.id)
+    event_type = WebhookEventAsyncType.VOUCHER_CODES_CREATED
 
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, voucher_code, webhooks)
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, [voucher_code], webhooks
+    )
 
     # then
-    expected_payload = generate_voucher_code_payload(
-        voucher_code, voucher_code_global_id
-    )
+    expected_payload = generate_voucher_code_payload([voucher_code])
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_voucher_code_deleted(voucher, subscription_voucher_code_deleted_webhook):
+def test_voucher_codes_deleted(voucher, subscription_voucher_codes_deleted_webhook):
     # given
-    webhooks = [subscription_voucher_code_deleted_webhook]
+    webhooks = [subscription_voucher_codes_deleted_webhook]
 
     voucher_code = voucher.codes.first()
 
@@ -2507,16 +2506,15 @@ def test_voucher_code_deleted(voucher, subscription_voucher_code_deleted_webhook
     voucher_code.delete()
     voucher_code.id = voucher_code_id
 
-    event_type = WebhookEventAsyncType.VOUCHER_CODE_DELETED
-    voucher_code_global_id = graphene.Node.to_global_id("VoucherCode", voucher_code.id)
+    event_type = WebhookEventAsyncType.VOUCHER_CODES_DELETED
 
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, voucher_code, webhooks)
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, [voucher_code], webhooks
+    )
 
     # then
-    expected_payload = generate_voucher_code_payload(
-        voucher_code, voucher_code_global_id
-    )
+    expected_payload = generate_voucher_code_payload([voucher_code])
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

@@ -7,7 +7,6 @@ from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
-from .....webhook.utils import get_webhooks_for_event
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import (
@@ -123,8 +122,8 @@ class VoucherCreate(ModelMutation):
                 description="A voucher was created.",
             ),
             WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_CODE_CREATED,
-                description="A voucher code was created.",
+                type=WebhookEventAsyncType.VOUCHER_CODES_CREATED,
+                description="A voucher codes were created.",
             ),
         ]
 
@@ -260,15 +259,15 @@ class VoucherCreate(ModelMutation):
             models.VoucherCode.objects.bulk_create(code_instances)
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, codes_instance):
+    def post_save_action(
+        cls, info: ResolveInfo, instance, codes_instances, cleaned_input
+    ):
         manager = get_plugin_manager_promise(info.context).get()
-        code_create_webhook = get_webhooks_for_event(
-            WebhookEventAsyncType.VOUCHER_CODE_CREATED
-        )
-        cls.call_event(manager.voucher_created, instance, codes_instance[-1].code)
-        for code in codes_instance:
+        cls.call_event(manager.voucher_created, instance, codes_instances[-1].code)
+        if codes_instances:
             cls.call_event(
-                manager.voucher_code_created, code, webhooks=code_create_webhook
+                manager.voucher_codes_created,
+                codes_instances,
             )
 
     @classmethod
@@ -305,5 +304,5 @@ class VoucherCreate(ModelMutation):
         cls.save(info, voucher_instance, code_instances, has_multiple_codes)
         cls._save_m2m(info, voucher_instance, cleaned_input)
 
-        cls.post_save_action(info, voucher_instance, code_instances)
+        cls.post_save_action(info, voucher_instance, code_instances, cleaned_input)
         return cls.success_response(voucher_instance)

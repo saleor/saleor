@@ -1525,16 +1525,16 @@ class PluginsManager(PaymentInterface):
             "voucher_deleted", default_value, voucher, code, webhooks=webhooks
         )
 
-    def voucher_code_created(self, voucher_code: "VoucherCode", webhooks=None):
+    def voucher_codes_created(self, voucher_codes: list["VoucherCode"], webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "voucher_code_created", default_value, voucher_code, webhooks=webhooks
+            "voucher_codes_created", default_value, voucher_codes, webhooks=webhooks
         )
 
-    def voucher_code_deleted(self, voucher_code: "VoucherCode", webhooks=None):
+    def voucher_codes_deleted(self, voucher_codes: list["VoucherCode"], webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "voucher_code_deleted", default_value, voucher_code, webhooks=webhooks
+            "voucher_codes_deleted", default_value, voucher_codes, webhooks=webhooks
         )
 
     def voucher_metadata_updated(self, voucher: "Voucher"):

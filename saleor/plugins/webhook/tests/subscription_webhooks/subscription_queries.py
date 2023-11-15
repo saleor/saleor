@@ -555,18 +555,14 @@ VOUCHER_DELETED = (
 )
 
 
-VOUCHER_CODE_CREATED = (
+VOUCHER_CODES_CREATED = (
     fragments.VOUCHER_CODE_DETAILS
-    + fragments.VOUCHER_DETAILS
     + """
     subscription{
       event{
-        ...on VoucherCodeCreated{
-          voucherCode{
+        ...on VoucherCodesCreated{
+          voucherCodes{
             ...VoucherCodeDetails
-          }
-          voucher{
-            ...VoucherDetails
           }
         }
       }
@@ -575,18 +571,14 @@ VOUCHER_CODE_CREATED = (
 )
 
 
-VOUCHER_CODE_DELETED = (
+VOUCHER_CODES_DELETED = (
     fragments.VOUCHER_CODE_DETAILS
-    + fragments.VOUCHER_DETAILS
     + """
     subscription{
       event{
-        ...on VoucherCodeDeleted{
-          voucherCode{
+        ...on VoucherCodesDeleted{
+          voucherCodes{
             ...VoucherCodeDetails
-          }
-          voucher{
-            ...VoucherDetails
           }
         }
       }

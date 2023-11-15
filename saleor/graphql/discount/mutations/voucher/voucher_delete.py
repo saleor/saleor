@@ -4,7 +4,6 @@ from saleor.discount import models
 
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
-from .....webhook.utils import get_webhooks_for_event
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.mutations import ModelDeleteMutation
@@ -29,11 +28,7 @@ class VoucherDelete(ModelDeleteMutation):
             WebhookEventInfo(
                 type=WebhookEventAsyncType.VOUCHER_DELETED,
                 description="A voucher was deleted.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_CODE_DELETED,
-                description="A voucher code was deleted.",
-            ),
+            )
         ]
 
     @classmethod
@@ -43,16 +38,9 @@ class VoucherDelete(ModelDeleteMutation):
         return response
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, code_instances):
+    def post_save_action(cls, info: ResolveInfo, instance, code):
         manager = get_plugin_manager_promise(info.context).get()
-        code_delete_webhook = get_webhooks_for_event(
-            WebhookEventAsyncType.VOUCHER_CODE_DELETED
-        )
-        cls.call_event(manager.voucher_deleted, instance, code_instances[0].code)
-        for code in code_instances:
-            cls.call_event(
-                manager.voucher_code_deleted, code, webhooks=code_delete_webhook
-            )
+        cls.call_event(manager.voucher_deleted, instance, code)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -63,15 +51,12 @@ class VoucherDelete(ModelDeleteMutation):
 
         cls.clean_instance(info, instance)
         db_id = instance.id
-        code_instances = list(instance.codes.all())
-        code_instances_ids = [code_instance.id for code_instance in code_instances]
+        code = instance.codes.first().code
         instance.delete()
 
         # After the instance is deleted, set its ID to the original database's
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id
-        for id, code in zip(code_instances_ids, code_instances):
-            code.id = id
 
-        cls.post_save_action(info, instance, code_instances)
+        cls.post_save_action(info, instance, code)
         return cls.success_response(instance)

@@ -2269,8 +2269,8 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A voucher is deleted."""
   VOUCHER_DELETED
-  VOUCHER_CODE_CREATED
-  VOUCHER_CODE_DELETED
+  VOUCHER_CODES_CREATED
+  VOUCHER_CODES_DELETED
 
   """
   A voucher metadata is updated.
@@ -2995,8 +2995,8 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A voucher is deleted."""
   VOUCHER_DELETED
-  VOUCHER_CODE_CREATED
-  VOUCHER_CODE_DELETED
+  VOUCHER_CODES_CREATED
+  VOUCHER_CODES_DELETED
 
   """
   A voucher metadata is updated.
@@ -3708,8 +3708,8 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   VOUCHER_CREATED
   VOUCHER_UPDATED
   VOUCHER_DELETED
-  VOUCHER_CODE_CREATED
-  VOUCHER_CODE_DELETED
+  VOUCHER_CODES_CREATED
+  VOUCHER_CODES_DELETED
   VOUCHER_METADATA_UPDATED
   VOUCHER_CODE_EXPORT_COMPLETED
   OBSERVABILITY
@@ -18183,12 +18183,12 @@ type Mutation {
   
   Triggers the following webhook events:
   - VOUCHER_CREATED (async): A voucher was created.
-  - VOUCHER_CODE_CREATED (async): A voucher code was created.
+  - VOUCHER_CODES_CREATED (async): A voucher codes were created.
   """
   voucherCreate(
     """Fields required to create a voucher."""
     input: VoucherInput!
-  ): VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED, VOUCHER_CODE_CREATED], syncEvents: [])
+  ): VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED, VOUCHER_CODES_CREATED], syncEvents: [])
 
   """
   Deletes a voucher. 
@@ -18197,12 +18197,11 @@ type Mutation {
   
   Triggers the following webhook events:
   - VOUCHER_DELETED (async): A voucher was deleted.
-  - VOUCHER_CODE_DELETED (async): A voucher code was deleted.
   """
   voucherDelete(
     """ID of a voucher to delete."""
     id: ID!
-  ): VoucherDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED, VOUCHER_CODE_DELETED], syncEvents: [])
+  ): VoucherDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: [])
 
   """
   Deletes vouchers. 
@@ -18224,7 +18223,7 @@ type Mutation {
   
   Triggers the following webhook events:
   - VOUCHER_UPDATED (async): A voucher was updated.
-  - VOUCHER_CODE_CREATED (async): A voucher code was created.
+  - VOUCHER_CODES_CREATED (async): A voucher code was created.
   """
   voucherUpdate(
     """ID of a voucher to update."""
@@ -18232,7 +18231,7 @@ type Mutation {
 
     """Fields required to update a voucher."""
     input: VoucherInput!
-  ): VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_CODE_CREATED], syncEvents: [])
+  ): VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_CODES_CREATED], syncEvents: [])
 
   """
   Adds products, categories, collections to a voucher. 
@@ -18307,12 +18306,12 @@ type Mutation {
   
   Triggers the following webhook events:
   - VOUCHER_UPDATED (async): A voucher was updated.
-  - VOUCHER_CODE_DELETED (async): A voucher code was deleted.
+  - VOUCHER_CODES_DELETED (async): A voucher code was deleted.
   """
   voucherCodeBulkDelete(
     """List of voucher codes IDs to delete."""
     ids: [ID!]!
-  ): VoucherCodeBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_CODE_DELETED], syncEvents: [])
+  ): VoucherCodeBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_CODES_DELETED], syncEvents: [])
 
   """
   Export products to csv file. 
@@ -28038,9 +28037,9 @@ Requires one of the following permissions: MANAGE_DISCOUNTS.
 
 Triggers the following webhook events:
 - VOUCHER_CREATED (async): A voucher was created.
-- VOUCHER_CODE_CREATED (async): A voucher code was created.
+- VOUCHER_CODES_CREATED (async): A voucher codes were created.
 """
-type VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED, VOUCHER_CODE_CREATED], syncEvents: []) {
+type VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED, VOUCHER_CODES_CREATED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -28129,9 +28128,8 @@ Requires one of the following permissions: MANAGE_DISCOUNTS.
 
 Triggers the following webhook events:
 - VOUCHER_DELETED (async): A voucher was deleted.
-- VOUCHER_CODE_DELETED (async): A voucher code was deleted.
 """
-type VoucherDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED, VOUCHER_CODE_DELETED], syncEvents: []) {
+type VoucherDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -28159,9 +28157,9 @@ Requires one of the following permissions: MANAGE_DISCOUNTS.
 
 Triggers the following webhook events:
 - VOUCHER_UPDATED (async): A voucher was updated.
-- VOUCHER_CODE_CREATED (async): A voucher code was created.
+- VOUCHER_CODES_CREATED (async): A voucher code was created.
 """
-type VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_CODE_CREATED], syncEvents: []) {
+type VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_CODES_CREATED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -28251,9 +28249,9 @@ Requires one of the following permissions: MANAGE_DISCOUNTS.
 
 Triggers the following webhook events:
 - VOUCHER_UPDATED (async): A voucher was updated.
-- VOUCHER_CODE_DELETED (async): A voucher code was deleted.
+- VOUCHER_CODES_DELETED (async): A voucher code was deleted.
 """
-type VoucherCodeBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_CODE_DELETED], syncEvents: []) {
+type VoucherCodeBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_CODES_DELETED], syncEvents: []) {
   """Returns how many codes were deleted."""
   count: Int!
   errors: [VoucherCodeBulkDeleteError!]!
@@ -34862,11 +34860,11 @@ type VoucherDeleted implements Event @doc(category: "Discounts") {
 }
 
 """
-Event sent when new voucher code is created.
+Event sent when new voucher code were created.
 
 Added in Saleor 3.18.
 """
-type VoucherCodeCreated implements Event {
+type VoucherCodesCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -34879,22 +34877,16 @@ type VoucherCodeCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """The voucher code the event relates to."""
-  voucherCode: VoucherCode
-
-  """The voucher the code relates to."""
-  voucher(
-    """Slug of a channel for which the data should be returned."""
-    channel: String
-  ): Voucher
+  """The voucher codes the event relates to."""
+  voucherCodes: [VoucherCode!]
 }
 
 """
-Event sent when new voucher code is deleted.
+Event sent when voucher codes were deleted.
 
 Added in Saleor 3.18.
 """
-type VoucherCodeDeleted implements Event {
+type VoucherCodesDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -34907,14 +34899,8 @@ type VoucherCodeDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """The voucher code the event relates to."""
-  voucherCode: VoucherCode
-
-  """The voucher the code relates to."""
-  voucher(
-    """Slug of a channel for which the data should be returned."""
-    channel: String
-  ): Voucher
+  """The voucher codes the event relates to."""
+  voucherCodes: [VoucherCode!]
 }
 
 """

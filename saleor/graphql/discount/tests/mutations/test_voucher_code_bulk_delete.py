@@ -75,15 +75,11 @@ def test_delete_voucher_codes_as_app(
     assert voucher.codes.count() == 0
 
 
-@mock.patch(
-    "saleor.graphql.discount.mutations.voucher.voucher_code_bulk_delete.get_webhooks_for_event"
-)
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_delete_voucher_codes_trigger_voucher_update_webhook(
+def test_delete_voucher_codes_trigger_voucher_codes_deleted_webhook(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
-    mocked_get_webhooks_for_code_event,
     any_webhook,
     staff_api_client,
     voucher,
@@ -97,7 +93,6 @@ def test_delete_voucher_codes_trigger_voucher_update_webhook(
     assert len(codes) == 3
 
     mocked_get_webhooks_for_event.return_value = [any_webhook]
-    mocked_get_webhooks_for_code_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     variables = {
@@ -117,7 +112,7 @@ def test_delete_voucher_codes_trigger_voucher_update_webhook(
 
     # then
     assert content["data"]["voucherCodeBulkDelete"]["count"] == 3
-    assert mocked_webhook_trigger.call_count == 4
+    assert mocked_webhook_trigger.call_count == 1
 
 
 def test_delete_voucher_codes_return_error_when_invalid_id(

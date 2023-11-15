@@ -4,7 +4,6 @@ from .....core.tracing import traced_atomic_transaction
 from .....discount import models
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
-from .....webhook.utils import get_webhooks_for_event
 from ....core.descriptions import ADDED_IN_318
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.enums import VoucherCodeBulkDeleteErrorCode
@@ -39,7 +38,7 @@ class VoucherCodeBulkDelete(BaseMutation):
                 description="A voucher was updated.",
             ),
             WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_CODE_DELETED,
+                type=WebhookEventAsyncType.VOUCHER_CODES_DELETED,
                 description="A voucher code was deleted.",
             ),
         ]
@@ -70,19 +69,12 @@ class VoucherCodeBulkDelete(BaseMutation):
         return cleaned_ids
 
     @classmethod
-    def post_save_actions(cls, info, code_instances):
+    def post_save_actions(cls, info, codes_instances):
         manager = get_plugin_manager_promise(info.context).get()
-        code_delete_webhook = get_webhooks_for_event(
-            WebhookEventAsyncType.VOUCHER_CODE_DELETED
+        cls.call_event(
+            manager.voucher_codes_deleted,
+            codes_instances,
         )
-        vouchers_code_map = {code.voucher: code.code for code in code_instances}
-        for voucher, code in vouchers_code_map.items():
-            cls.call_event(manager.voucher_updated, voucher, code)
-
-        for code in code_instances:
-            cls.call_event(
-                manager.voucher_code_deleted, code, webhooks=code_delete_webhook
-            )
 
     @classmethod
     @traced_atomic_transaction()

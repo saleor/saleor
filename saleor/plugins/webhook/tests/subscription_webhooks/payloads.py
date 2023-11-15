@@ -412,22 +412,18 @@ def generate_voucher_payload(voucher, voucher_global_id):
     )
 
 
-def generate_voucher_code_payload(voucher_code, voucher_code_global_id):
-    voucher = voucher_code.voucher
+def generate_voucher_code_payload(voucher_codes):
     return json.dumps(
         {
-            "voucherCode": {
-                "id": voucher_code_global_id,
-                "code": voucher_code.code,
-                "used": voucher_code.used,
-                "isActive": voucher_code.is_active,
-            },
-            "voucher": {
-                "id": graphene.Node.to_global_id("Voucher", voucher.id),
-                "name": voucher.name,
-                "code": voucher.code,
-                "usageLimit": voucher.usage_limit,
-            },
+            "voucherCodes": [
+                {
+                    "id": graphene.Node.to_global_id("VoucherCode", code.id),
+                    "code": code.code,
+                    "used": code.used,
+                    "isActive": code.is_active,
+                }
+                for code in voucher_codes
+            ]
         }
     )
 

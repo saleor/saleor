@@ -178,15 +178,11 @@ def test_update_voucher_without_codes(
 
 
 @freeze_time("2022-05-12 12:00:00")
-@patch(
-    "saleor.graphql.discount.mutations.voucher.voucher_update.get_webhooks_for_event"
-)
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_update_voucher_trigger_webhook(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
-    mocked_get_webhooks_for_code_event,
     any_webhook,
     staff_api_client,
     voucher,
@@ -195,14 +191,13 @@ def test_update_voucher_trigger_webhook(
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
-    mocked_get_webhooks_for_code_event.return_value = [any_webhook]
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     new_code = "newCode"
-
+    new_name = "newName"
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
-        "input": {"addCodes": [new_code]},
+        "input": {"addCodes": [new_code], "name": new_name},
     }
 
     # when
@@ -216,7 +211,7 @@ def test_update_voucher_trigger_webhook(
         json.dumps(
             {
                 "id": variables["id"],
-                "name": voucher.name,
+                "name": new_name,
                 "code": new_code,
                 "meta": generate_meta(
                     requestor_data=generate_requestor(
@@ -235,17 +230,17 @@ def test_update_voucher_trigger_webhook(
 
     code_created = call(
         json.dumps(
-            {
-                "id": graphene.Node.to_global_id("VoucherCode", voucher_code.id),
-                "code": new_code,
-                "used": voucher_code.used,
-                "is_active": voucher_code.is_active,
-            },
+            [
+                {
+                    "id": graphene.Node.to_global_id("VoucherCode", voucher_code.id),
+                    "code": new_code,
+                }
+            ],
             cls=CustomJsonEncoder,
         ),
-        WebhookEventAsyncType.VOUCHER_CODE_CREATED,
+        WebhookEventAsyncType.VOUCHER_CODES_CREATED,
         [any_webhook],
-        voucher_code,
+        [voucher_code],
         SimpleLazyObject(lambda: staff_api_client.user),
     )
 
@@ -253,6 +248,57 @@ def test_update_voucher_trigger_webhook(
     assert content["data"]["voucherUpdate"]["voucher"]
     assert mocked_webhook_trigger.call_count == 2
     assert voucher_updated in mocked_webhook_trigger.call_args_list
+    assert code_created in mocked_webhook_trigger.call_args_list
+
+
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_update_voucher_doesnt_trigger_voucher_updated_when_only_codes_added(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    new_code = "newCode"
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {"addCodes": [new_code]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    voucher_code = voucher.codes.last()
+
+    code_created = call(
+        json.dumps(
+            [
+                {
+                    "id": graphene.Node.to_global_id("VoucherCode", voucher_code.id),
+                    "code": new_code,
+                }
+            ],
+            cls=CustomJsonEncoder,
+        ),
+        WebhookEventAsyncType.VOUCHER_CODES_CREATED,
+        [any_webhook],
+        [voucher_code],
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+    # then
+    assert content["data"]["voucherUpdate"]["voucher"]
+    assert mocked_webhook_trigger.call_count == 1
     assert code_created in mocked_webhook_trigger.call_args_list
 
 

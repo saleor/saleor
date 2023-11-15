@@ -126,7 +126,15 @@ class WebhookDryRun(BaseMutation):
         payload = None
         if all([event_type, object, query]):
             request = info.context
-            payload = generate_payload_from_subscription(
-                event_type, object, query, request
-            )
+            if event_type in [
+                WebhookEventAsyncType.VOUCHER_CODES_CREATED,
+                WebhookEventAsyncType.VOUCHER_CODES_DELETED,
+            ]:
+                payload = generate_payload_from_subscription(
+                    event_type, [object], query, request
+                )
+            else:
+                payload = generate_payload_from_subscription(
+                    event_type, object, query, request
+                )
         return WebhookDryRun(payload=payload)
