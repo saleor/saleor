@@ -36,6 +36,7 @@ ADDED_IN_315 = "\n\nAdded in Saleor 3.15."
 ADDED_IN_316 = "\n\nAdded in Saleor 3.16."
 ADDED_IN_317 = "\n\nAdded in Saleor 3.17."
 ADDED_IN_318 = "\n\nAdded in Saleor 3.18."
+ADDED_IN_319 = "\n\nAdded in Saleor 3.19."
 
 
 PREVIEW_FEATURE = (
