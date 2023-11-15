@@ -21,7 +21,11 @@ from ..tax.utils import (
     normalize_tax_rate_for_db,
 )
 from . import ORDER_EDITABLE_STATUS
-from .base_calculations import base_order_subtotal, base_order_total
+from .base_calculations import (
+    apply_order_discounts,
+    base_order_subtotal,
+    base_order_total,
+)
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
@@ -126,6 +130,7 @@ def fetch_order_prices_and_update_if_expired(
     charge_taxes = get_charge_taxes_for_order(order)
     should_charge_tax = charge_taxes and not order.tax_exemption
 
+    # TODO: check if manual discount need to create DiscountOrder objects too
     _update_order_discount_for_voucher(order)
 
     if lines is None:
@@ -134,6 +139,7 @@ def fetch_order_prices_and_update_if_expired(
         prefetch_related_objects(lines, "variant__product__product_type")
 
     order.should_refresh_prices = False
+    apply_order_discounts(order, lines, override_prices=True)
 
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
@@ -158,12 +164,6 @@ def fetch_order_prices_and_update_if_expired(
         else:
             # Calculate net prices without taxes.
             _get_order_base_prices(order, lines)
-
-    # subtotal_discount = undiscounted_subtotal - discounted_subtotal
-    # if subtotal_discount > zero_money(currency):
-    #     apply_subtotal_discount_to_order_lines(
-    #         lines, undiscounted_subtotal, subtotal_discount
-    #     )
 
     with transaction.atomic(savepoint=False):
         order.save(
@@ -255,7 +255,6 @@ def _apply_tax_data_from_plugins(
     Does not throw TaxError.
     """
     undiscounted_subtotal = zero_taxed_money(order.currency)
-
     _update_order_discounts_and_base_undiscounted_total(order, lines)
     for line in lines:
         variant = line.variant
@@ -275,12 +274,12 @@ def _apply_tax_data_from_plugins(
                 line.undiscounted_total_price = line_total.undiscounted_price
                 undiscounted_subtotal += line_total.undiscounted_price
                 line.total_price = line_total.price_with_discounts
-
                 line.tax_rate = manager.get_order_line_tax_rate(
                     order, product, variant, None, line_unit.undiscounted_price
                 )
             except TaxError:
                 pass
+
     try:
         order.shipping_price = manager.calculate_order_shipping(order)
         order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
@@ -288,6 +287,7 @@ def _apply_tax_data_from_plugins(
         )
     except TaxError:
         pass
+
     order.undiscounted_total = undiscounted_subtotal + TaxedMoney(
         net=order.base_shipping_price, gross=order.base_shipping_price
     )

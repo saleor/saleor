@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from prices import Money, TaxedMoney
 
+from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..discount import DiscountType, DiscountValueType, VoucherType
 from ..discount.models import OrderDiscount
@@ -20,39 +21,22 @@ def base_order_shipping(order: "Order") -> Money:
 
 
 def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
-    """Return base order subtotal.
-
-    The subtotal already includes line discounts.
-    """
+    """Return order subtotal, with all discounts included."""
     currency = order.currency
     subtotal = zero_money(currency)
     for line in lines:
         quantity = line.quantity
         base_line_total = line.base_unit_price * quantity
         subtotal += base_line_total
-    return subtotal
+    return quantize_price(subtotal, currency)
 
 
 def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
-    """Return order total, recalculate, and update order discounts.
-
-    This function returns the order total. All discounts are included in this price.
-    Shipping vouchers are included in the shipping price.
-    Specific product vouchers are included in line base prices.
-    Entire order vouchers are recalculated and updated in this function
-    (OrderDiscounts with type `order_discount.type == DiscountType.VOUCHER`).
-    Staff order discounts are recalculated and updated in this function
-    (OrderDiscounts with type `order_discount.type == DiscountType.MANUAL`).
-    """
+    """Return order total, with all discounts included."""
     currency = order.currency
-    undiscounted_subtotal = base_order_subtotal(order, lines)
-    shipping_price = order.base_shipping_price
-
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(
-        undiscounted_subtotal, shipping_price, order
-    )
-
-    return max(discounted_subtotal + discounted_shipping_price, zero_money(currency))
+    subtotal = base_order_subtotal(order, lines)
+    shipping_price = order.shipping_price_net_amount
+    return subtotal + Money(shipping_price, currency)
 
 
 def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
@@ -74,17 +58,26 @@ def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
 
 
 def apply_order_discounts(
-    subtotal: Money,
-    shipping_price: Money,
     order: "Order",
+    lines: Iterable["OrderLine"],
+    override_prices: bool = False,
 ):
     """Calculate order prices after applying discounts.
 
     Handles manual discounts and voucher discounts: ENTIRE_ORDER and SHIPPING.
+    Shipping vouchers are included in the shipping price.
+    Specific product vouchers are included in line base prices.
+    Entire order vouchers are recalculated and updated in this function
+    (OrderDiscounts with type `order_discount.type == DiscountType.VOUCHER`).
+    Staff order discounts are recalculated and updated in this function
+    (OrderDiscounts with type `order_discount.type == DiscountType.MANUAL`).
     """
+    undiscounted_subtotal = base_order_subtotal(order, lines)
+    shipping_price = order.base_shipping_price
     currency = order.currency
     order_discounts_to_update = []
     order_discounts = order.discounts.all()
+    subtotal = base_order_subtotal(order, lines)
     for order_discount in order_discounts:
         subtotal_before_discount = subtotal
         shipping_price_before_discount = shipping_price
@@ -145,6 +138,16 @@ def apply_order_discounts(
     if order_discounts_to_update:
         OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
 
+    if override_prices:
+        order.shipping_price_net_amount = shipping_price.amount
+        order.shipping_price_gross_amount = shipping_price.amount
+        order.total_net_amount = subtotal.amount + shipping_price.amount
+        order.total_gross_amount = subtotal.amount + shipping_price.amount
+        subtotal_discount = undiscounted_subtotal - subtotal
+        apply_subtotal_discount_to_order_lines(
+            lines, undiscounted_subtotal, subtotal_discount
+        )
+
     return subtotal, shipping_price
 
 
@@ -164,10 +167,13 @@ def apply_subtotal_discount_to_order_lines(
     # Handle order with multiple lines - propagate the order discount proportionally
     # to the lines.
     elif lines_count > 1:
+        currency = subtotal_discount.currency
         for idx, line in enumerate(lines):
             if idx < lines_count - 1:
                 share = line.total_price_net_amount / undiscounted_subtotal.amount
-                line_discount = round(share * subtotal_discount.amount, 5)
+                line_discount = quantize_price(
+                    share * subtotal_discount.amount, currency
+                )
                 apply_discount_to_order_line(line, line_discount)
 
         _ensure_order_lines_prices_sum_up_to_order_prices(
