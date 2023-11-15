@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, TypeVar, Union
 
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models, transaction
-from django.db.models import Exists, F, OrderBy, OuterRef, Q
+from django.db.models import Case, Exists, F, OrderBy, OuterRef, Q, Value, When
 
 from ...core.db.fields import SanitizedJSONField
 from ...core.models import ModelWithExternalReference, ModelWithMetadata, SortableModel
@@ -294,11 +294,17 @@ class AttributeValue(ModelWithExternalReference):
             ):
                 if self.attribute.max_sort_order is None:
                     value = self._calculate_sort_order_value()
-                    self.attribute.max_sort_order = value - 1
+                    self.attribute.max_sort_order = max(value - 1, 0)
                     self.attribute.save(update_fields=["max_sort_order"])
                 else:
                     Attribute.objects.filter(pk=self.attribute.pk).update(
-                        max_sort_order=F("max_sort_order") - 1
+                        max_sort_order=Case(
+                            When(
+                                Q(max_sort_order__gt=0),
+                                then=F("max_sort_order") - 1,
+                            ),
+                            default=Value(0),
+                        )
                     )
 
         super().delete(*args, **kwargs)
@@ -306,7 +312,7 @@ class AttributeValue(ModelWithExternalReference):
     def _calculate_sort_order_value(self):
         qs = self.get_ordering_queryset()
         existing_max = SortableModel.get_max_sort_order(qs)
-        return 0 if existing_max is None else existing_max
+        return -1 if existing_max is None else existing_max
 
     def _save_new_max_sort_order(self, value):
         self.sort_order = value
