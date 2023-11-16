@@ -6,6 +6,7 @@ from django.db import transaction
 from django.db.models import prefetch_related_objects
 from prices import Money, TaxedMoney
 
+from .models import Order, OrderLine
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
 from ..discount import DiscountType
@@ -15,14 +16,12 @@ from ..plugins.manager import PluginsManager
 from ..tax import TaxCalculationStrategy
 from ..tax.calculations.order import update_order_prices_with_flat_rates
 from ..tax.utils import (
-    calculate_tax_rate,
     get_charge_taxes_for_order,
     get_tax_calculation_strategy_for_order,
     normalize_tax_rate_for_db,
 )
 from . import ORDER_EDITABLE_STATUS
 from .interface import OrderTaxedPricesData
-from .models import Order, OrderLine
 
 
 # def _update_order_discounts_and_base_undiscounted_total(
@@ -163,7 +162,6 @@ def fetch_order_prices_and_update_if_expired(
                 "undiscounted_total_gross_amount",
                 "shipping_price_net_amount",
                 "shipping_price_gross_amount",
-                "base_shipping_price_amount",
                 "shipping_tax_rate",
                 "should_refresh_prices",
             ]
@@ -180,8 +178,6 @@ def fetch_order_prices_and_update_if_expired(
                 "undiscounted_total_price_net_amount",
                 "undiscounted_total_price_gross_amount",
                 "tax_rate",
-                "base_unit_price_amount",
-                "undiscounted_base_unit_price_amount",
                 "unit_discount_amount",
             ],
         )

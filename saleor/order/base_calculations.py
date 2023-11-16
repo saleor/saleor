@@ -40,8 +40,12 @@ def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
 
 
 def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
+    """Return order line total, with line discounts included.
+
+    The price doesn't include order level discounts.
+    """
     quantity = order_line.quantity
-    price_with_discounts = (
+    price_with_line_discounts = (
         TaxedMoney(order_line.base_unit_price, order_line.base_unit_price) * quantity
     )
     undiscounted_price = (
@@ -53,7 +57,7 @@ def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
     )
     return OrderTaxedPricesData(
         undiscounted_price=undiscounted_price,
-        price_with_discounts=price_with_discounts,
+        price_with_discounts=price_with_line_discounts,
     )
 
 
@@ -187,20 +191,23 @@ def apply_subtotal_discount_to_order_lines(
 
 
 def apply_discount_to_order_line(line: "OrderLine", line_discount: Decimal, currency):
-    """Calculate order line prices after applying order line disccount.
+    """Calculate order line prices after applying order level discount.
 
     Takes an order line and order line discount as an argument and updates
-    line total_price, unit_price, base_unit_price and unit_discount fields.
+    line total_price, unit_price and unit_discount fields.
     """
     quantity = line.quantity
+    # This price includes line level discounts, but not entire order ones.
+    discounted_base_line_total = base_order_line_total(
+        line
+    ).price_with_discounts.net.amount
     total_price = quantize_price(
-        max(line.total_price_net_amount - line_discount, Decimal("0")), currency
+        max(discounted_base_line_total - line_discount, Decimal("0")), currency
     )
     line.total_price_net_amount = total_price
     line.total_price_gross_amount = total_price
 
     unit_price = total_price / quantity
-    line.base_unit_price_amount = unit_price
     line.unit_price_net_amount = unit_price
     line.unit_price_gross_amount = unit_price
 
@@ -208,6 +215,7 @@ def apply_discount_to_order_line(line: "OrderLine", line_discount: Decimal, curr
         line.undiscounted_total_price_net_amount - line.total_price_net_amount
     )
     unit_discount = total_line_discount / quantity
+    # TODO: to check if should we update this field???
     line.unit_discount_amount = unit_discount
 
 
