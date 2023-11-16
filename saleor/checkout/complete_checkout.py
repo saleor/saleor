@@ -56,6 +56,7 @@ from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
+from ..tax.calculations import get_taxed_undiscounted_price
 from ..tax.utils import (
     get_shipping_tax_class_kwargs_for_order,
     get_tax_class_kwargs_for_order_line,
@@ -88,7 +89,6 @@ from .models import Checkout
 from .utils import (
     get_checkout_metadata,
     get_or_create_checkout_metadata,
-    get_taxed_undiscounted_price,
     get_voucher_for_checkout_info,
 )
 

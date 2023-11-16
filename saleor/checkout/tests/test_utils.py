@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 from prices import Money, TaxedMoney
 
-from ..utils import get_taxed_undiscounted_price
+from ...tax.calculations import get_taxed_undiscounted_price
 
 BASE = Money("35.00", "USD")
 
