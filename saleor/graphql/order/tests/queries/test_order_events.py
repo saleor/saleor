@@ -305,6 +305,9 @@ QUERY_GET_FIRST_EVENT = """
                             fulfilledItems {
                                 id
                             }
+                            app {
+                                name
+                            }
                         }
                     }
                 }
@@ -377,3 +380,21 @@ def test_retrieving_event_lines_with_missing_line_pk_in_data(
     assert len(data["lines"]) == 1
     assert received_line["quantity"] == line.quantity
     assert received_line["orderLine"] is None
+
+
+def test_related_order_events_query_with_removed_app(
+    staff_api_client, permission_group_manage_orders, order, payment_dummy, removed_app
+):
+    event = order_events.fulfillment_fulfilled_items_event(
+        order=order,
+        user=None,
+        app=removed_app,
+        fulfillment_lines=[],
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    response = staff_api_client.post_graphql(QUERY_GET_FIRST_EVENT)
+    content = get_graphql_content(response)
+
+    event = content["data"]["orders"]["edges"][0]["node"]["events"][0]
+    assert event["app"] is None
