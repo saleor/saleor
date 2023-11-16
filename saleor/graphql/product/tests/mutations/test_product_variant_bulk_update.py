@@ -5,6 +5,7 @@ import graphene
 from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import ProductChannelListing
 from .....tests.utils import flush_post_commit_hooks
+from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
 
 PRODUCT_VARIANT_BULK_UPDATE_MUTATION = """
@@ -239,7 +240,11 @@ def test_product_variant_bulk_update_create_already_existing_stock(
         }
     ]
 
-    variables = {"productId": product_id, "variants": variants}
+    variables = {
+        "productId": product_id,
+        "variants": variants,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
 
     # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
