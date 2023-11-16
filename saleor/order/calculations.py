@@ -127,7 +127,7 @@ def fetch_order_prices_and_update_if_expired(
         prefetch_related_objects(lines, "variant__product__product_type")
 
     order.should_refresh_prices = False
-    base_calculations.apply_order_discounts(order, lines, override_prices=True)
+    base_calculations.apply_order_discounts(order, lines)
 
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to

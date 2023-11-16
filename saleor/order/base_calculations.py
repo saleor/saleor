@@ -64,7 +64,6 @@ def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
 def apply_order_discounts(
     order: "Order",
     lines: Iterable["OrderLine"],
-    override_prices: bool = False,
 ):
     """Calculate order prices after applying discounts.
 
@@ -143,21 +142,20 @@ def apply_order_discounts(
     if order_discounts_to_update:
         OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
 
-    if override_prices:
-        order.shipping_price_net_amount = shipping_price.amount
-        order.shipping_price_gross_amount = shipping_price.amount
-        order.total_net_amount = subtotal.amount + shipping_price.amount
-        order.total_gross_amount = subtotal.amount + shipping_price.amount
-        order.undiscounted_total_net_amount = (
-            undiscounted_subtotal.amount + undiscounted_shipping_price.amount
-        )
-        order.undiscounted_total_gross_amount = (
-            undiscounted_subtotal.amount + undiscounted_shipping_price.amount
-        )
-        subtotal_discount = undiscounted_subtotal - subtotal
-        apply_subtotal_discount_to_order_lines(
-            lines, undiscounted_subtotal, subtotal_discount
-        )
+    order.shipping_price_net_amount = shipping_price.amount
+    order.shipping_price_gross_amount = shipping_price.amount
+    order.total_net_amount = subtotal.amount + shipping_price.amount
+    order.total_gross_amount = subtotal.amount + shipping_price.amount
+    order.undiscounted_total_net_amount = (
+        undiscounted_subtotal.amount + undiscounted_shipping_price.amount
+    )
+    order.undiscounted_total_gross_amount = (
+        undiscounted_subtotal.amount + undiscounted_shipping_price.amount
+    )
+    subtotal_discount = undiscounted_subtotal - subtotal
+    apply_subtotal_discount_to_order_lines(
+        lines, undiscounted_subtotal, subtotal_discount
+    )
 
     return subtotal, shipping_price
 
