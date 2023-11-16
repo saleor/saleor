@@ -64,7 +64,7 @@ class ExportEvent(ModelObjectType[models.ExportEvent]):
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AppPermission.MANAGE_APPS
         )
-        return root.app
+        return AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
 
     @staticmethod
     def resolve_message(root: models.ExportEvent, _info: ResolveInfo):
