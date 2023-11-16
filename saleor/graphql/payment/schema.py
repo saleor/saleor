@@ -65,9 +65,9 @@ class PaymentQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_payment(_root, _info: ResolveInfo, **data):
+    def resolve_payment(_root, info: ResolveInfo, **data):
         _, id = from_global_id_or_error(data["id"], Payment)
-        return resolve_payment_by_id(id)
+        return resolve_payment_by_id(info, id)
 
     @staticmethod
     def resolve_payments(_root, info: ResolveInfo, **kwargs):
@@ -80,7 +80,7 @@ class PaymentQueries(graphene.ObjectType):
         _, id = from_global_id_or_error(kwargs["id"], TransactionItem)
         if not id:
             return None
-        return resolve_transaction(id)
+        return resolve_transaction(info, id)
 
 
 class PaymentMutations(graphene.ObjectType):

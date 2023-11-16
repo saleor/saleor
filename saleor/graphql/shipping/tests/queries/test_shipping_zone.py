@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import graphene
 from django.contrib.sites.models import Site
 from measurement.measures import Weight
@@ -53,6 +55,8 @@ def test_shipping_zone_query(
     staff_api_client, shipping_zone, permission_manage_shipping, channel_USD
 ):
     # given
+    info_mock = Mock()
+    info_mock.side_effect = {"context": Mock()}
     shipping = shipping_zone
     method = shipping.shipping_methods.first()
     code = method.postal_code_rules.create(start="HB2", end="HB6")
@@ -74,7 +78,7 @@ def test_shipping_zone_query(
     assert shipping_data["shippingMethods"][0]["postalCodeRules"] == [
         {"start": code.start, "end": code.end}
     ]
-    price_range = resolve_price_range(channel_slug=channel_USD.slug)
+    price_range = resolve_price_range(info_mock, channel_slug=channel_USD.slug)
     data_price_range = shipping_data["priceRange"]
     assert data_price_range["start"]["amount"] == price_range.start.amount
     assert data_price_range["stop"]["amount"] == price_range.stop.amount
@@ -88,6 +92,8 @@ def test_shipping_zone_query_weights_returned_in_default_unit(
     channel_USD,
 ):
     # given
+    info_mock = Mock()
+    info_mock.side_effect = {"context": Mock()}
     shipping = shipping_zone
     shipping_method = shipping.shipping_methods.first()
     shipping_method.minimum_order_weight = Weight(kg=1)
@@ -114,7 +120,7 @@ def test_shipping_zone_query_weights_returned_in_default_unit(
     assert shipping_data["name"] == shipping.name
     num_of_shipping_methods = shipping_zone.shipping_methods.count()
     assert len(shipping_data["shippingMethods"]) == num_of_shipping_methods
-    price_range = resolve_price_range(channel_slug=channel_USD.slug)
+    price_range = resolve_price_range(info_mock, channel_slug=channel_USD.slug)
     data_price_range = shipping_data["priceRange"]
     assert data_price_range["start"]["amount"] == price_range.start.amount
     assert data_price_range["stop"]["amount"] == price_range.stop.amount

@@ -1,13 +1,20 @@
 from ...warehouse import models
+from ..core.context import get_database_connection_name
 
 
-def resolve_stock(id):
-    return models.Stock.objects.filter(id=id).first()
+def resolve_stock(info, id):
+    return (
+        models.Stock.objects.using(get_database_connection_name(info.context))
+        .filter(id=id)
+        .first()
+    )
 
 
-def resolve_stocks():
-    return models.Stock.objects.all()
+def resolve_stocks(info):
+    return models.Stock.objects.using(get_database_connection_name(info.context)).all()
 
 
-def resolve_warehouses():
-    return models.Warehouse.objects.all()
+def resolve_warehouses(info):
+    return models.Warehouse.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
