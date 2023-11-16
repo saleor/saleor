@@ -6,16 +6,23 @@ from ...core.jwt import (
     create_access_token_for_app,
     create_access_token_for_app_extension,
 )
+from ..core.context import get_database_connection_name
 from ..core.utils import from_global_id_or_error
 from .enums import AppTypeEnum
 
 
 def resolve_apps_installations(info):
-    return models.AppInstallation.objects.all()
+    return models.AppInstallation.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
 
 
 def resolve_apps(info):
-    return models.App.objects.filter(is_installed=True).all()
+    return (
+        models.App.objects.using(get_database_connection_name(info.context))
+        .filter(is_installed=True)
+        .all()
+    )
 
 
 def resolve_access_token_for_app(info, root):
@@ -32,7 +39,9 @@ def resolve_access_token_for_app_extension(info, root, app):
     user = info.context.user
     if not user:
         return None
-    extension_permissions = root.permissions.all()
+    extension_permissions = root.permissions.using(
+        get_database_connection_name(info.context)
+    ).all()
     user_permissions = user.effective_permissions
     if set(extension_permissions).issubset(user_permissions):
         return create_access_token_for_app_extension(
@@ -41,15 +50,21 @@ def resolve_access_token_for_app_extension(info, root, app):
     return None
 
 
-def resolve_app(_info, id):
+def resolve_app(info, id):
     if not id:
         return None
     _, id = from_global_id_or_error(id, "App")
-    return models.App.objects.filter(id=id, is_installed=True).first()
+    return (
+        models.App.objects.using(get_database_connection_name(info.context))
+        .filter(id=id, is_installed=True)
+        .first()
+    )
 
 
-def resolve_app_extensions(_info):
-    return models.AppExtension.objects.filter(app__is_active=True)
+def resolve_app_extensions(info):
+    return models.AppExtension.objects.using(
+        get_database_connection_name(info.context)
+    ).filter(app__is_active=True)
 
 
 def resolve_app_extension_url(root):
