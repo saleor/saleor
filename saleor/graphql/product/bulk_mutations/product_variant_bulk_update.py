@@ -297,6 +297,7 @@ class ProductVariantBulkUpdate(BaseMutation):
             used_warehouses[warehouse_global_id].append(stock.product_variant_id)
 
         if stocks_data := cleaned_input["stocks"].get("create"):
+            stocks_to_create = []
             variant = cleaned_input["id"]
             for stock_index, stock in enumerate(stocks_data):
                 if variant.id in used_warehouses.get(stock["warehouse"], {}):
@@ -309,11 +310,11 @@ class ProductVariantBulkUpdate(BaseMutation):
                             warehouses=[stock["warehouse"]],
                         )
                     )
-                    stocks_data.pop(stock_index)
                     continue
+                stocks_to_create.append(stock)
 
             cleaned_input["stocks"]["create"] = ProductVariantBulkCreate.clean_stocks(
-                stocks_data,
+                stocks_to_create,
                 warehouse_global_id_to_instance_map,
                 None,
                 variant_index,
