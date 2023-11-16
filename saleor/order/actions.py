@@ -421,7 +421,7 @@ def fulfillment_tracking_updated(
     events.fulfillment_tracking_updated_event(
         order=fulfillment.order,
         user=user,
-        app=app,
+        app=app if app and app.removed_at is not None else None,
         tracking_number=tracking_number,
         fulfillment=fulfillment,
     )

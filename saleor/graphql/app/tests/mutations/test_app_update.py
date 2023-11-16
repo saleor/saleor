@@ -420,3 +420,39 @@ def test_app_update_no_permission(app, staff_api_client, staff_user):
     }
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
+
+
+def test_app_update_mutation_removed_app(
+    removed_app,
+    permission_manage_apps,
+    permission_manage_products,
+    permission_manage_users,
+    staff_api_client,
+    staff_user,
+):
+    # given
+    query = APP_UPDATE_MUTATION
+    app = removed_app
+    staff_user.user_permissions.add(permission_manage_products, permission_manage_users)
+    id = graphene.Node.to_global_id("App", app.id)
+
+    variables = {
+        "id": id,
+        "permissions": [
+            PermissionEnum.MANAGE_PRODUCTS.name,
+            PermissionEnum.MANAGE_USERS.name,
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=(permission_manage_apps,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    app_data = content["data"]["appUpdate"]
+    assert app_data["app"] is None
+    assert app_data["errors"][0]["code"] == AppErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "id"

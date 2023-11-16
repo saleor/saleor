@@ -1,5 +1,7 @@
 import graphene
+from django.db.models import Exists, OuterRef
 
+from ....app.models import App
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
 from ....webhook import models
@@ -110,6 +112,10 @@ class WebhookUpdate(WebhookCreate, NotifyUserEventValidationMixin):
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
+        apps = App.objects.filter(removed_at__isnull=True)
         if app := get_app_promise(info.context).get():
-            data["qs"] = app.webhooks
+            apps = apps.filter(id=app.id)
+        data["qs"] = models.Webhook.objects.filter(
+            Exists(apps.filter(id=OuterRef("app_id")))
+        )
         return super(WebhookCreate, cls).get_instance(info, **data)
