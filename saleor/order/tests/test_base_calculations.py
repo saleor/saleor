@@ -1,12 +1,13 @@
 from decimal import ROUND_HALF_UP, Decimal
 
 import pytest
-from prices import Money
+from prices import Money, TaxedMoney
 
-from ....core.taxes import zero_money
-from ....discount import DiscountType, DiscountValueType
-from ... import base_calculations
-from ...base_calculations import apply_subtotal_discount_to_order_lines
+from ...core.taxes import zero_money
+from ...discount import DiscountType, DiscountValueType
+from ...order import base_calculations
+from ...order.base_calculations import apply_subtotal_discount_to_order_lines
+from ...order.interface import OrderTaxedPricesData
 
 
 def test_base_order_total(order_with_lines):
@@ -837,3 +838,27 @@ def test_apply_subtotal_discount_to_order_lines_order_with_single_line(
         <= max_diff
     )
     assert line_0_base_unit_price == line_0_unit_price_net
+
+
+def test_base_order_line_total(order_with_lines):
+    # given
+    line = order_with_lines.lines.all().first()
+
+    # when
+    order_total = base_calculations.base_order_line_total(line)
+
+    # then
+    base_line_unit_price = line.base_unit_price
+    quantity = line.quantity
+    expected_price_with_discount = (
+        TaxedMoney(base_line_unit_price, base_line_unit_price) * quantity
+    )
+    base_line_undiscounted_unit_price = line.undiscounted_base_unit_price
+    expected_undiscounted_price = (
+        TaxedMoney(base_line_undiscounted_unit_price, base_line_undiscounted_unit_price)
+        * quantity
+    )
+    assert order_total == OrderTaxedPricesData(
+        price_with_discounts=expected_price_with_discount,
+        undiscounted_price=expected_undiscounted_price,
+    )
