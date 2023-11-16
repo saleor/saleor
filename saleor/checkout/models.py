@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
 from django.conf import settings
+from django.contrib.postgres.indexes import BTreeIndex
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
@@ -41,6 +42,11 @@ class Checkout(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now=True, db_index=True)
+
+    # Denormalized modified_at for the latest modified transactionItem assigned to
+    # checkout
+    last_transaction_modified_at = models.DateTimeField(null=True, blank=True)
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
@@ -177,6 +183,12 @@ class Checkout(models.Model):
 
     class Meta:
         ordering = ("-last_change", "pk")
+        indexes = [
+            BTreeIndex(
+                fields=["last_transaction_modified_at"],
+                name="chckt_last_tr_modified_at_idx",
+            ),
+        ]
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
             (CheckoutPermissions.HANDLE_CHECKOUTS.codename, "Handle checkouts"),
