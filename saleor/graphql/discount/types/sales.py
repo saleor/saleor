@@ -14,6 +14,7 @@ from ...channel.types import (
 )
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection, create_connection_slice
+from ...core.context import get_database_connection_name
 from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_TYPE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
@@ -154,7 +155,9 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
     ):
         def _get_categories(predicates):
             if category_ids := predicates.get("categoryPredicate"):
-                qs = Category.objects.filter(id__in=category_ids)
+                qs = Category.objects.using(
+                    get_database_connection_name(info.context)
+                ).filter(id__in=category_ids)
                 return create_connection_slice(
                     qs, info, kwargs, CategoryCountableConnection
                 )
@@ -177,7 +180,9 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
     ):
         def _get_collections(predicates):
             if collection_ids := predicates.get("collectionPredicate"):
-                qs = Collection.objects.filter(id__in=collection_ids)
+                qs = Collection.objects.using(
+                    get_database_connection_name(info.context)
+                ).filter(id__in=collection_ids)
                 qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
                 return create_connection_slice(
                     qs, info, kwargs, CollectionCountableConnection
@@ -195,7 +200,9 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
     ):
         def _get_products(predicates):
             if product_ids := predicates.get("productPredicate"):
-                qs = Product.objects.filter(id__in=product_ids)
+                qs = Product.objects.using(
+                    get_database_connection_name(info.context)
+                ).filter(id__in=product_ids)
                 qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
                 return create_connection_slice(
                     qs, info, kwargs, ProductCountableConnection
@@ -213,7 +220,9 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
     ):
         def _get_variants(predicates):
             if variant_ids := predicates.get("variantPredicate"):
-                qs = ProductVariant.objects.filter(id__in=variant_ids)
+                qs = ProductVariant.objects.using(
+                    get_database_connection_name(info.context)
+                ).filter(id__in=variant_ids)
                 qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
                 return create_connection_slice(
                     qs, info, kwargs, ProductVariantCountableConnection

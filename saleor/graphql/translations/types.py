@@ -16,6 +16,7 @@ from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..attribute.dataloaders import AttributesByAttributeId
 from ..channel import ChannelContext
+from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_39,
     ADDED_IN_317,
@@ -388,8 +389,15 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
         )
 
     @staticmethod
-    def resolve_collection(root: product_models.Collection, _info):
-        collection = product_models.Collection.objects.all().filter(pk=root.id).first()
+    def resolve_collection(root: product_models.Collection, info):
+        collection = (
+            product_models.Collection.objects.using(
+                get_database_connection_name(info.context)
+            )
+            .all()
+            .filter(pk=root.id)
+            .first()
+        )
         return (
             ChannelContext(node=collection, channel_slug=None) if collection else None
         )
@@ -534,6 +542,7 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
     def resolve_page(root: page_models.Page, info):
         return (
             page_models.Page.objects.visible_to_user(info.context.user)
+            .using(get_database_connection_name(info.context))
             .filter(pk=root.id)
             .first()
         )
