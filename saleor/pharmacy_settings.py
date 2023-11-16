@@ -29,10 +29,9 @@ from sentry_sdk.integrations.logging import ignore_logger
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_sale_webhook_schedule
+from .pharmacy.google_secrets import GoogleSecretManager
 
 django_stubs_ext.monkeypatch()
-
-from wellstand_common.wes_secrets.google_secrets import GoogleSecretManager
 
 
 def get_list(text):
@@ -222,11 +221,11 @@ SECRET_KEY = jwt_secret_key
 # RSA_PRIVATE_PASSWORD = os.environ.get("RSA_PRIVATE_PASSWORD", None)
 try:
     rsa_config = google_secret_manager.get_secret("saleor_rsa")
-    if not rsa_config['key'] or not rsa_config['password']:
-        raise ValueError('RSA Key or Password not configured, check the secret')
+    if not rsa_config["key"] or not rsa_config["password"]:
+        raise ValueError("RSA Key or Password not configured, check the secret")
 
-    RSA_PRIVATE_KEY = rsa_config['key']
-    RSA_PRIVATE_PASSWORD = rsa_config['password']
+    RSA_PRIVATE_KEY = rsa_config["key"]
+    RSA_PRIVATE_PASSWORD = rsa_config["password"]
 except google.cloud.exceptions.NotFound:
     RSA_PRIVATE_KEY = None
     RSA_PRIVATE_PASSWORD = None

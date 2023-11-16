@@ -1,13 +1,11 @@
 import os
 import json
 
-from saleor.pharmacy.base_secrets import SecretManager
 from google.cloud import secretmanager_v1
 
 from cachetools import cached
+from saleor.pharmacy.base_secrets import SecretManager
 from saleor.pharmacy import cache
-
-import logging
 
 
 class GoogleSecretManager(SecretManager):
@@ -25,13 +23,11 @@ class GoogleSecretManager(SecretManager):
     def __init__(self):
         super().__init__()
         self.client = secretmanager_v1.SecretManagerServiceClient()
-        # self.project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+        self.project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
 
     @staticmethod
     @cached(cache)
     def get_secret(secret_key: str) -> dict:
-        logger = logging.getLogger(__name__)
-        logger.debug(f"Getting configuration for {secret_key}")
         env_name = os.environ["ENVIRONMENT_NAME"]
         google_project = os.environ["GOOGLE_PROJECT_NAME"]
 
@@ -46,8 +42,6 @@ class GoogleSecretManager(SecretManager):
     @staticmethod
     @cached(cache)
     def get_secret_single_value(secret_key: str) -> str:
-        logger = logging.getLogger(__name__)
-        logger.debug(f"Getting configuration for {secret_key}")
         env_name = os.environ["ENVIRONMENT_NAME"]
         google_project = os.environ["GOOGLE_PROJECT_NAME"]
 
