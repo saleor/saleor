@@ -1196,6 +1196,7 @@ def create_transaction_event_for_transaction_session(
                 "cancel_pending_value",
                 "psp_reference",
                 "available_actions",
+                "modified_at",
             ]
         )
         if transaction_item.order_id:
@@ -1267,6 +1268,7 @@ def create_transaction_event_from_request_and_webhook_response(
             "charge_pending_value",
             "refund_pending_value",
             "cancel_pending_value",
+            "modified_at",
         ]
     )
 

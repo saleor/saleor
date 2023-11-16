@@ -1627,3 +1627,85 @@ def test_create_transaction_event_for_transaction_session_failure_doesnt_set_act
     # then
     transaction.refresh_from_db()
     assert transaction.available_actions == ["charge"]
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_and_webhook_updates_modified_at(
+    transaction_item_generator,
+    checkout,
+    app,
+):
+    # given
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = 12.00
+    event_type = TransactionEventType.CHARGE_FAILURE
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+    event_cause = "No cause"
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
+        "actions": ["CHARGE", "CHARGE", "CANCEL"],
+    }
+
+    # when
+    with freeze_time("2023-03-18 12:00:00"):
+        calculation_time = datetime.now(pytz.UTC)
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
+
+    # then
+    transaction.refresh_from_db()
+    checkout.refresh_from_db()
+    assert transaction.modified_at == calculation_time
+    assert checkout.last_transaction_modified_at == calculation_time
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_updates_transaction_modified_at(
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+    plugins_manager,
+    checkout,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_session_response.copy()
+    response["amount"] = expected_amount
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction, include_in_calculations=False
+    )
+
+    # when
+    with freeze_time("2023-03-18 12:00:00"):
+        calculation_time = datetime.now(pytz.UTC)
+        create_transaction_event_for_transaction_session(
+            request_event,
+            webhook_app,
+            manager=plugins_manager,
+            transaction_webhook_response=response,
+        )
+
+    # then
+    transaction.refresh_from_db()
+    checkout.refresh_from_db()
+    assert transaction.modified_at == calculation_time
+    assert checkout.last_transaction_modified_at == calculation_time
