@@ -79,6 +79,7 @@ def apply_order_discounts(
     undiscounted_shipping_price = order.base_shipping_price
     subtotal = base_order_subtotal(order, lines)
     shipping_price = order.base_shipping_price
+    subtotal_share = subtotal / (subtotal + shipping_price)
     currency = order.currency
     order_discounts_to_update = []
     order_discounts = order.discounts.all()
@@ -125,9 +126,11 @@ def apply_order_discounts(
                         price_to_discount=temporary_undiscounted_total,
                     )
                     total_discount = temporary_undiscounted_total - temporary_total
-                    subtotal_discount = (
-                        subtotal / temporary_undiscounted_total
-                    ) * total_discount
+                    # TODO: should we propagate manual discounts based on initial share or on the fly?
+                    # subtotal_discount = (
+                    #     subtotal / temporary_undiscounted_total
+                    # ) * total_discount
+                    subtotal_discount = subtotal_share * total_discount
                     shipping_discount = total_discount - subtotal_discount
 
                     subtotal -= subtotal_discount
