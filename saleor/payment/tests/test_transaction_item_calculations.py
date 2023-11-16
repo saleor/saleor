@@ -1,7 +1,10 @@
+import datetime
 from datetime import timedelta
 from decimal import Decimal
 
+import pytz
 from django.utils import timezone
+from freezegun import freeze_time
 
 from .. import TransactionEventType
 from ..models import TransactionItem
@@ -1604,3 +1607,32 @@ def test_skips_event_that_should_not_be_taken_into_account(
     _assert_amounts(
         transaction, authorized_value=first_value, authorize_pending_value=second_value
     )
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_recalculate_transaction_amounts_updates_transaction_modified_at(
+    transaction_item_generator, transaction_events_generator
+):
+    # given
+    transaction = transaction_item_generator()
+    authorized_value = Decimal("11.00")
+    transaction_events_generator(
+        transaction=transaction,
+        psp_references=[
+            "1",
+        ],
+        types=[
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+        ],
+        amounts=[
+            authorized_value,
+        ],
+    )
+    # when
+    with freeze_time("2023-03-18 12:00:00"):
+        calculation_time = datetime.datetime.now(pytz.UTC)
+        recalculate_transaction_amounts(transaction)
+
+    # then
+    transaction.refresh_from_db()
+    assert transaction.modified_at == calculation_time

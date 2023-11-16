@@ -1,4 +1,8 @@
+import datetime
 from unittest.mock import patch
+
+import pytest
+from freezegun import freeze_time
 
 from ...tests.utils import flush_post_commit_hooks
 from .. import CheckoutAuthorizeStatus, CheckoutChargeStatus
@@ -60,3 +64,41 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
     assert checkout.charge_status == CheckoutChargeStatus.OVERCHARGED
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     assert not mocked_fully_paid.called
+
+
+@pytest.mark.parametrize(
+    "previous_modified_at", [None, datetime.datetime(2018, 5, 31, 12, 0, 0)]
+)
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@freeze_time("2023-05-31 12:00:01")
+def test_transaction_amounts_for_checkout_updated_updates_last_transaction_modified_at(
+    mocked_fully_paid,
+    previous_modified_at,
+    checkout_with_items,
+    transaction_item_generator,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_items
+    checkout.last_transaction_modified_at = previous_modified_at
+    checkout.save(update_fields=["last_transaction_modified_at"])
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info,
+        plugins_manager,
+        lines,
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=checkout_info.checkout.total.gross.amount
+    )
+
+    # when
+    transaction_amounts_for_checkout_updated(transaction, manager=plugins_manager)
+
+    # then
+    flush_post_commit_hooks()
+    checkout.refresh_from_db()
+    assert checkout.last_transaction_modified_at == transaction.modified_at
+    mocked_fully_paid.assert_called_with(checkout)

@@ -28,5 +28,13 @@ def transaction_amounts_for_checkout_updated(
         CheckoutChargeStatus.FULL,
         CheckoutChargeStatus.OVERCHARGED,
     ]
+
+    if (
+        not checkout.last_transaction_modified_at
+        or checkout.last_transaction_modified_at < transaction.modified_at
+    ):
+        checkout.last_transaction_modified_at = transaction.modified_at
+        checkout.save(update_fields=["last_transaction_modified_at"])
+
     if not previous_charge_status_is_fully_paid and current_status_is_fully_paid:
         call_event(manager.checkout_fully_paid, checkout_info.checkout)
