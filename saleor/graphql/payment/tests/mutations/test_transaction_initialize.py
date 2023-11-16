@@ -1,7 +1,9 @@
+import datetime
 from decimal import Decimal
 
 import mock
 import pytest
+from freezegun import freeze_time
 
 from .....channel import TransactionFlowStrategy
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
@@ -973,7 +975,6 @@ def test_app_with_action_field(
     webhook_app,
     transaction_session_response,
     transaction_item_generator,
-    permission_manage_payments,
 ):
     # given
     checkout = checkout_with_prices
@@ -1017,9 +1018,7 @@ def test_customer_with_action_field(
     app_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_session_response,
     transaction_item_generator,
-    permission_manage_payments,
 ):
     # given
     checkout = checkout_with_prices
@@ -1052,9 +1051,7 @@ def test_incorrect_source_object_id(
     user_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_session_response,
     transaction_item_generator,
-    permission_manage_payments,
     product,
 ):
     # given
@@ -1093,9 +1090,6 @@ def test_checkout_doesnt_exist(
     user_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_session_response,
-    transaction_item_generator,
-    permission_manage_payments,
 ):
     # given
     checkout = checkout_with_prices
@@ -1128,9 +1122,6 @@ def test_order_doesnt_exists(
     user_api_client,
     order_with_lines,
     webhook_app,
-    transaction_session_response,
-    transaction_item_generator,
-    permission_manage_payments,
 ):
     # given
     order = order_with_lines
@@ -1209,3 +1200,66 @@ def test_checkout_fully_paid(
     mocked_fully_paid.assert_called_once_with(checkout)
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+
+
+@freeze_time("2023-03-18 12:00:00")
+@pytest.mark.parametrize(
+    "previous_last_transaction_modified_at",
+    [None, datetime.datetime(2020, 1, 1)],
+)
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_updates_checkout_last_transaction_modified_at(
+    mocked_initialize,
+    mocked_fully_paid,
+    previous_last_transaction_modified_at,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout.last_transaction_modified_at = previous_last_transaction_modified_at
+    checkout.save()
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info,
+        plugins_manager,
+        lines,
+    )
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": None,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionInitialize"]["errors"]
+    checkout.refresh_from_db()
+    transaction = checkout.payment_transactions.first()
+    assert checkout.last_transaction_modified_at == transaction.modified_at
+    assert (
+        checkout.last_transaction_modified_at != previous_last_transaction_modified_at
+    )

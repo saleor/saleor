@@ -2,12 +2,12 @@ from django.apps import apps as registry
 from django.db import migrations
 from django.db.models.signals import post_migrate
 
-from .tasks.saleor3_13 import fix_statuses_for_empty_checkouts_task
+from .tasks.saleor3_13 import update_transaction_modified_at_in_checkouts
 
 
-def fix_charge_status_for_empty_checkouts(apps, _schema_editor):
+def add_transaction_modified_at_to_checkouts(apps, _schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
-        fix_statuses_for_empty_checkouts_task.delay()
+        update_transaction_modified_at_in_checkouts.delay()
 
     sender = registry.get_app_config("checkout")
     post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
@@ -15,12 +15,12 @@ def fix_charge_status_for_empty_checkouts(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("checkout", "0059_merge_0058"),
-        ("payment", "0049_auto_20230322_0634"),
+        ("checkout", "0062_add_index_checkout_last_transaction_modified_at"),
     ]
+
     operations = [
         migrations.RunPython(
-            fix_charge_status_for_empty_checkouts,
+            add_transaction_modified_at_to_checkouts,
             reverse_code=migrations.RunPython.noop,
         ),
     ]
