@@ -16,6 +16,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Unify how undiscounted prices are handled in orders and checkouts - #14780 by @jakubkuc
+
 # 3.18.0
 
 ### Highlights
