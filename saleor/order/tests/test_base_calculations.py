@@ -71,7 +71,7 @@ def test_apply_order_discounts_voucher_entire_order(order_with_lines, voucher):
     assert order_discount.amount_value == discount_amount
 
 
-def test_apply_order_discounts_voucher_entire_order_more_then_subtotal(
+def test_apply_order_discounts_voucher_entire_order_exceed_subtotal(
     order_with_lines, voucher
 ):
     # given
@@ -262,7 +262,7 @@ def test_apply_order_discounts_manual_discount_and_zero_order_total(order):
     assert discounted_subtotal + discounted_shipping_price == zero_money(currency)
 
 
-def test_apply_order_discounts_manual_discount_more_then_total(order_with_lines):
+def test_apply_order_discounts_manual_discount_exceed_total(order_with_lines):
     # given
     order = order_with_lines
     lines = order.lines.all()
@@ -340,7 +340,7 @@ def test_apply_order_discounts_manual_discount_percentage(order_with_lines):
     assert order_discount.amount_value == discount_amount
 
 
-def test_apply_order_discounts_voucher_entire_order_and_manual_discount(
+def test_apply_order_discounts_voucher_entire_order_and_manual_discount_fixed(
     order_with_lines, voucher
 ):
     # given
@@ -353,7 +353,7 @@ def test_apply_order_discounts_voucher_entire_order_and_manual_discount(
         subtotal += line.base_unit_price * line.quantity
     undiscounted_total = subtotal + shipping_price
     expected_subtotal = subtotal
-    expected_shippping = shipping_price
+    expected_shipping = shipping_price
     subtotal_share = subtotal / undiscounted_total
 
     voucher_discount_amount = 10
@@ -384,16 +384,16 @@ def test_apply_order_discounts_voucher_entire_order_and_manual_discount(
     subtotal_discount = subtotal_share * manual_discount_amount
     shipping_discount = manual_discount_amount - subtotal_discount
     expected_subtotal -= Money(subtotal_discount, currency)
-    expected_shippping -= Money(shipping_discount, currency)
+    expected_shipping -= Money(shipping_discount, currency)
 
     # when
     discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
 
     # then
-    assert discounted_shipping_price == expected_shippping
+    assert discounted_shipping_price == expected_shipping
     assert discounted_subtotal == expected_subtotal
-    assert order.total_net == expected_shippping + expected_subtotal
-    assert order.total_gross == expected_shippping + expected_subtotal
+    assert order.total_net == expected_shipping + expected_subtotal
+    assert order.total_gross == expected_shipping + expected_subtotal
     assert order.shipping_price_net == discounted_shipping_price
     assert order.shipping_price_gross == discounted_shipping_price
     assert order.undiscounted_total_net == undiscounted_total
@@ -404,7 +404,7 @@ def test_apply_order_discounts_voucher_entire_order_and_manual_discount(
     assert manual_order_discount.amount_value == manual_discount_amount
 
 
-def test_apply_order_discounts_manual_discount_and_voucher_entire_order(
+def test_apply_order_discounts_manual_discount_fixed_and_voucher_entire_order(
     order_with_lines, voucher
 ):
     # given
@@ -417,7 +417,7 @@ def test_apply_order_discounts_manual_discount_and_voucher_entire_order(
         subtotal += line.base_unit_price * line.quantity
     undiscounted_total = subtotal + shipping_price
     expected_subtotal = subtotal
-    expected_shippping = shipping_price
+    expected_shipping = shipping_price
     subtotal_share = subtotal / undiscounted_total
 
     manual_discount_amount = 8
@@ -434,7 +434,7 @@ def test_apply_order_discounts_manual_discount_and_voucher_entire_order(
     subtotal_discount = subtotal_share * manual_discount_amount
     shipping_discount = manual_discount_amount - subtotal_discount
     expected_subtotal -= Money(subtotal_discount, currency)
-    expected_shippping -= Money(shipping_discount, currency)
+    expected_shipping -= Money(shipping_discount, currency)
 
     voucher_discount_amount = 10
     voucher_order_discount = order.discounts.create(
@@ -454,10 +454,10 @@ def test_apply_order_discounts_manual_discount_and_voucher_entire_order(
     discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
 
     # then
-    assert discounted_shipping_price == expected_shippping
+    assert discounted_shipping_price == expected_shipping
     assert discounted_subtotal == expected_subtotal
-    assert order.total_net == expected_shippping + expected_subtotal
-    assert order.total_gross == expected_shippping + expected_subtotal
+    assert order.total_net == expected_shipping + expected_subtotal
+    assert order.total_gross == expected_shipping + expected_subtotal
     assert order.shipping_price_net == discounted_shipping_price
     assert order.shipping_price_gross == discounted_shipping_price
     assert order.undiscounted_total_net == undiscounted_total
@@ -466,6 +466,139 @@ def test_apply_order_discounts_manual_discount_and_voucher_entire_order(
     assert voucher_order_discount.amount_value == voucher_discount_amount
     manual_order_discount.refresh_from_db()
     assert manual_order_discount.amount_value == manual_discount_amount
+
+
+def test_apply_order_discounts_voucher_entire_order_and_manual_discount_percentage(
+    order_with_lines,
+    voucher_percentage,
+):
+    # given
+    order = order_with_lines
+    lines = order.lines.all()
+    shipping_price = order.shipping_price.net
+    currency = order.currency
+    subtotal = zero_money(currency)
+    for line in lines:
+        subtotal += line.base_unit_price * line.quantity
+    undiscounted_total = subtotal + shipping_price
+    expected_subtotal = subtotal
+    expected_shipping = shipping_price
+
+    voucher_value = 50
+    voucher_order_discount = order.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=DiscountValueType.PERCENTAGE,
+        value=voucher_value,
+        name="Voucher",
+        translated_name="VoucherPL",
+        currency=currency,
+        amount_value=0,
+        voucher=voucher_percentage,
+    )
+    # entire order voucher is applied to subtotal only
+    voucher_discount = Decimal(voucher_value / 100) * expected_subtotal
+    expected_subtotal -= voucher_discount
+
+    manual_discount_value = 50
+    manual_order_discount = order.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.PERCENTAGE,
+        value=manual_discount_value,
+        name="StaffDiscount",
+        translated_name="StaffDiscountPL",
+        currency=currency,
+        amount_value=0,
+    )
+    # manual discount is applied to both subtotal and shipping price
+    manual_discount_subtotal = Decimal(manual_discount_value / 100) * expected_subtotal
+    expected_subtotal -= manual_discount_subtotal
+    manual_discount_shipping = Decimal(manual_discount_value / 100) * expected_shipping
+    expected_shipping -= manual_discount_shipping
+    manual_discount = manual_discount_subtotal + manual_discount_shipping
+
+    # when
+    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+
+    # then
+    assert discounted_shipping_price == expected_shipping
+    assert discounted_subtotal == expected_subtotal
+    assert order.total_net == expected_shipping + expected_subtotal
+    assert order.total_gross == expected_shipping + expected_subtotal
+    assert order.shipping_price_net == discounted_shipping_price
+    assert order.shipping_price_gross == discounted_shipping_price
+    assert order.undiscounted_total_net == undiscounted_total
+    assert order.undiscounted_total_gross == undiscounted_total
+    voucher_order_discount.refresh_from_db()
+    assert voucher_order_discount.amount_value == voucher_discount.amount
+    manual_order_discount.refresh_from_db()
+    assert manual_order_discount.amount_value == manual_discount.amount
+
+
+def test_apply_order_discounts_manual_discount_percentage_and_voucher_entire_order(
+    order_with_lines,
+    voucher_percentage,
+):
+    # given
+    order = order_with_lines
+    lines = order.lines.all()
+    shipping_price = order.shipping_price.net
+    currency = order.currency
+    subtotal = zero_money(currency)
+    for line in lines:
+        subtotal += line.base_unit_price * line.quantity
+    undiscounted_total = subtotal + shipping_price
+    expected_subtotal = subtotal
+    expected_shipping = shipping_price
+
+    manual_discount_value = 50
+    manual_order_discount = order.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.PERCENTAGE,
+        value=manual_discount_value,
+        name="StaffDiscount",
+        translated_name="StaffDiscountPL",
+        currency=currency,
+        amount_value=0,
+    )
+    # manual discount is applied to both subtotal and shipping price
+    manual_discount_subtotal = Decimal(manual_discount_value / 100) * expected_subtotal
+    expected_subtotal -= manual_discount_subtotal
+    manual_discount_shipping = Decimal(manual_discount_value / 100) * expected_shipping
+    expected_shipping -= manual_discount_shipping
+    manual_discount = manual_discount_subtotal + manual_discount_shipping
+
+    voucher_value = 50
+    voucher_order_discount = order.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=DiscountValueType.PERCENTAGE,
+        value=voucher_value,
+        name="Voucher",
+        translated_name="VoucherPL",
+        currency=currency,
+        amount_value=0,
+        voucher=voucher_percentage,
+    )
+    # entire order voucher is applied to subtotal only
+    voucher_discount = Decimal(voucher_value / 100) * expected_subtotal
+    expected_subtotal -= voucher_discount
+
+    # when
+    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+
+    # then
+    assert discounted_shipping_price == expected_shipping
+    assert discounted_subtotal == expected_subtotal
+    assert order.total_net == expected_shipping + expected_subtotal
+    assert order.total_gross == expected_shipping + expected_subtotal
+    assert order.shipping_price_net == discounted_shipping_price
+    assert order.shipping_price_gross == discounted_shipping_price
+    assert order.undiscounted_total_net == undiscounted_total
+    assert order.undiscounted_total_gross == undiscounted_total
+    voucher_order_discount.refresh_from_db()
+    assert voucher_order_discount.amount_value == voucher_discount.amount
+    manual_order_discount.refresh_from_db()
+    assert manual_order_discount.amount_value == manual_discount.amount
+
 
 def test_base_order_total_with_percentage_voucher_and_fixed_manual_discount(
     order_with_lines, voucher
