@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.CreateModel(
             name="VoucherCode",
-            options={"ordering": ("code",)},
+            options={"ordering": ("-created_at", "code")},
             fields=[
                 (
                     "id",
@@ -27,6 +27,7 @@ class Migration(migrations.Migration):
                 ("code", models.CharField(db_index=True, max_length=255, unique=True)),
                 ("used", models.PositiveIntegerField(default=0)),
                 ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
                 (
                     "voucher",
                     models.ForeignKey(
