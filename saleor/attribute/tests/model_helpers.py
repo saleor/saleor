@@ -41,7 +41,7 @@ def get_product_attributes(product: Product):
     )
     return Attribute.objects.filter(
         Exists(product_attributes.filter(attribute_id=OuterRef("id")))
-    ).order_by("attributeproduct__sort_order")
+    ).order_by("storefront_search_position", "slug")
 
 
 def get_product_attribute_values(product: Product, attribute: Attribute):
