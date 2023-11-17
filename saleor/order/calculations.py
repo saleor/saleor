@@ -127,13 +127,7 @@ def fetch_order_prices_and_update_if_expired(
         prefetch_related_objects(lines, "variant__product__product_type")
 
     order.should_refresh_prices = False
-    # Base line price can contain propagated order level discounts (ie. entire order
-    # vouchers) and line level discounts (ie. specific product voucher). Taxes are
-    # calculated based on base line price with all discounts included. However in order
-    # to recalculate all prices we need base line price with line level discount only.
-    # TODO: keep base line prices
     base_calculations.apply_order_discounts(order, lines)
-
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
@@ -158,7 +152,6 @@ def fetch_order_prices_and_update_if_expired(
             _remove_tax(order, lines)
             # _get_order_base_prices(order, lines)
 
-    # TODO restore base line prices
     with transaction.atomic(savepoint=False):
         order.save(
             update_fields=[
@@ -184,6 +177,7 @@ def fetch_order_prices_and_update_if_expired(
                 "undiscounted_total_price_net_amount",
                 "undiscounted_total_price_gross_amount",
                 "tax_rate",
+                # TODO: should we update it?
                 "unit_discount_amount",
             ],
         )
@@ -192,7 +186,6 @@ def fetch_order_prices_and_update_if_expired(
 
 def _update_order_discount_for_voucher(order: Order):
     """Create or delete OrderDiscount instances."""
-
     if not order.voucher_id:
         order.discounts.filter(type=DiscountType.VOUCHER).delete()
 

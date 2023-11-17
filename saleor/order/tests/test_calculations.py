@@ -7,7 +7,7 @@ from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
-from ...discount import DiscountValueType
+from ...discount import DiscountType, DiscountValueType
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.order import update_order_prices_with_flat_rates
 from .. import OrderStatus, calculations
@@ -1092,18 +1092,90 @@ def test_order_subtotal(mocked_fetch_order_prices_and_update_if_expired):
     assert subtotal == expected_subtotal
 
 
-@patch("saleor.order.calculations.fetch_order_prices_and_update_if_expired")
-def test_order_undiscounted_total(mocked_fetch_order_prices_and_update_if_expired):
+def test_fetch_order_prices_update_order_and_order_line_prices(
+    fetch_kwargs,
+    order_with_lines,
+):
     # given
-    expected_undiscounted_total = Decimal("1234.0000")
+    order = order_with_lines
 
-    order = Mock(undiscounted_total=expected_undiscounted_total, currency="USD")
-    mocked_fetch_order_prices_and_update_if_expired.return_value = (order, Mock())
+    # disable tax calculation
+    tc = order.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.charge_taxes = False
+    tc.save(update_fields=["prices_entered_with_tax", "charge_taxes"])
+
+    discount_amount = Decimal("50")
+    order.discounts.create(
+        value=discount_amount,
+        amount_value=discount_amount,
+        currency=order.currency,
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.PERCENTAGE,
+        name="Manual discount",
+    )
+    undiscounted_subtotal = sum(
+        [line.base_unit_price_amount * line.quantity for line in order.lines.all()]
+    )
+    undiscounted_shipping = order.base_shipping_price_amount
+    undiscounted_total = undiscounted_shipping + undiscounted_subtotal
+    expected_subtotal = undiscounted_subtotal / 2
+    expected_shipping = undiscounted_shipping / 2
+    expected_total = undiscounted_total / 2
+    subtotal_discount = undiscounted_subtotal - expected_subtotal
 
     # when
-    undiscounted_total = calculations.order_undiscounted_total(order, Mock())
+    calculations.fetch_order_prices_and_update_if_expired(**fetch_kwargs)
 
     # then
-    assert undiscounted_total == quantize_price(
-        expected_undiscounted_total, order.currency
+    order.refresh_from_db()
+    assert order.total_net_amount == expected_total
+    assert order.total_gross_amount == expected_total
+    assert order.undiscounted_total_net_amount == undiscounted_total
+    assert order.undiscounted_total_gross_amount == undiscounted_total
+    assert order.base_shipping_price_amount == undiscounted_shipping
+    assert order.shipping_price_net_amount == expected_shipping
+    assert order.shipping_price_gross_amount == expected_shipping
+    assert order.shipping_tax_rate == Decimal("0")
+    assert order.should_refresh_prices is False
+
+    lines = order.lines.all()
+    discounted_subtotal_net = sum([line.total_price_net_amount for line in lines])
+    assert discounted_subtotal_net == expected_subtotal
+    discounted_subtotal_gross = sum([line.total_price_gross_amount for line in lines])
+    assert discounted_subtotal_gross == expected_subtotal
+    undiscounted_subtotal_net = sum(
+        [line.undiscounted_total_price_net_amount for line in lines]
     )
+    assert undiscounted_subtotal_net == undiscounted_subtotal
+    undiscounted_subtotal_gross = sum(
+        [line.undiscounted_total_price_gross_amount for line in lines]
+    )
+    assert undiscounted_subtotal_gross == undiscounted_subtotal
+
+    discounted_subtotal_net = sum(
+        [line.unit_price_net_amount * line.quantity for line in lines]
+    )
+    assert discounted_subtotal_net == expected_subtotal
+    discounted_subtotal_gross = sum(
+        [line.unit_price_gross_amount * line.quantity for line in lines]
+    )
+    assert discounted_subtotal_gross == expected_subtotal
+    undiscounted_subtotal_net = sum(
+        [line.undiscounted_unit_price_net_amount * line.quantity for line in lines]
+    )
+    assert undiscounted_subtotal_net == undiscounted_subtotal
+    undiscounted_subtotal_gross = sum(
+        [line.undiscounted_unit_price_gross_amount * line.quantity for line in lines]
+    )
+    assert undiscounted_subtotal_gross == undiscounted_subtotal
+    assert subtotal_discount == sum(
+        [line.unit_discount_amount * line.quantity for line in lines]
+    )
+
+    assert lines[0].tax_rate == Decimal("0")
+    assert lines[1].tax_rate == Decimal("0")
+
+    base_subtotal = sum([line.base_unit_price_amount * line.quantity for line in lines])
+    assert base_subtotal == undiscounted_subtotal
