@@ -979,10 +979,7 @@ class WebhookPlugin(BasePlugin):
                 None,
                 event_type,
                 webhooks,
-                {
-                    "notify_customer": notify_customer,
-                    "fulfillment": fulfillment,
-                },
+                fulfillment,
                 self.requestor,
                 legacy_data_generator=fulfillment_data_generator,
             )

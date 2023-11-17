@@ -4,6 +4,7 @@ import os
 import re
 from collections import defaultdict
 from datetime import timedelta
+from functools import partial
 from unittest.mock import ANY, MagicMock, Mock, call, patch
 from urllib.parse import urlencode
 
@@ -41,11 +42,7 @@ from ....permission.enums import AccountPermissions, OrderPermissions
 from ....product.tests.utils import create_image
 from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
-from ....webhook.payloads import (
-    generate_customer_payload,
-    generate_meta,
-    generate_requestor,
-)
+from ....webhook.payloads import generate_meta, generate_requestor
 from ...core.enums import ThumbnailFormatEnum
 from ...core.utils import str_to_enum, to_global_id_or_none
 from ...tests.utils import (
@@ -3098,11 +3095,15 @@ def test_customer_delete_trigger_webhook(
     assert data["errors"] == []
     assert data["user"]["id"] == customer_id
     mocked_webhook_trigger.assert_called_once_with(
-        generate_customer_payload(customer_user, staff_api_client.user),
+        None,
         WebhookEventAsyncType.CUSTOMER_DELETED,
         [any_webhook],
         customer_user,
         SimpleLazyObject(lambda: staff_api_client.user),
+        legacy_data_generator=ANY,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
 
 

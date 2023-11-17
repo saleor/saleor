@@ -43,6 +43,7 @@ from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....webhook.payloads import (
     generate_checkout_payload,
     generate_product_deleted_payload,
+    generate_transaction_action_request_payload,
 )
 from ....webhook.utils import get_webhooks_for_event
 from ...manager import get_plugins_manager
