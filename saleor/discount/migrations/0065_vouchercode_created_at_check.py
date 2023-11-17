@@ -12,7 +12,8 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             sql=(
                 """
-    ALTER TABLE discount_vouchercode ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NULL;
+       ALTER TABLE discount_vouchercode
+       ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
                 """
             ),
             reverse_sql=migrations.RunSQL.noop,

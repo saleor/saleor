@@ -57,7 +57,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change the Attribute - Product relation to decrease code complexity and make it easier to understand the relations - #13407 by @aniav
 - Change the Attribute - Page relation to decrease code complexity - #13621 by @michal-macioszczyk
 - Added validation for timestamp comparison - #14025 by @ritanjandawn
-- Fix issue with migrations on VoucherCode created_at field - #14786 by @michal-macioszczyk
 
 # 3.17.0
 
