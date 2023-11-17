@@ -6,6 +6,7 @@ from ....app.error_codes import AppErrorCode
 from ....permission.enums import AppPermission, get_permissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.utils import can_manage_app
+from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import AppError
 from ...core.utils import WebhookEventInfo
@@ -37,6 +38,12 @@ class AppUpdate(ModelMutation):
                 description="An app was updated.",
             ),
         ]
+
+    @classmethod
+    def get_instance(cls, info: ResolveInfo, **data):
+        data["qs"] = models.App.objects.filter(removed_at__isnull=True)
+        instance = super().get_instance(info, **data)
+        return instance
 
     @classmethod
     def clean_input(cls, info, instance, data, **kwargs):
