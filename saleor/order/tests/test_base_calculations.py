@@ -9,6 +9,7 @@ from ...discount import DiscountType, DiscountValueType
 from ...order.base_calculations import (
     apply_subtotal_discount_to_order_lines,
     base_order_total,
+    base_order_line_total,
     apply_order_discounts,
     apply_discount_to_order_line,
     apply_discount_to_value,
@@ -31,6 +32,30 @@ def test_base_order_total(order_with_lines):
 
     # then
     assert order_total == undiscounted_total
+
+
+def test_base_order_line_total(order_with_lines):
+    # given
+    line = order_with_lines.lines.all().first()
+
+    # when
+    order_total = base_order_line_total(line)
+
+    # then
+    base_line_unit_price = line.base_unit_price
+    quantity = line.quantity
+    expected_price_with_discount = (
+        TaxedMoney(base_line_unit_price, base_line_unit_price) * quantity
+    )
+    base_line_undiscounted_unit_price = line.undiscounted_base_unit_price
+    expected_undiscounted_price = (
+        TaxedMoney(base_line_undiscounted_unit_price, base_line_undiscounted_unit_price)
+        * quantity
+    )
+    assert order_total == OrderTaxedPricesData(
+        price_with_discounts=expected_price_with_discount,
+        undiscounted_price=expected_undiscounted_price,
+    )
 
 
 def test_apply_order_discounts_voucher_entire_order(order_with_lines, voucher):
@@ -1075,6 +1100,10 @@ def test_apply_subtotal_discount_to_order_lines(
     # given
     order = order_with_lines
     currency = order.currency
+
+    def _quantize(price):
+        return quantize_price(price, currency)
+
     lines = order.lines.all()
     subtotal = zero_money(currency)
     for line in lines:
@@ -1082,6 +1111,7 @@ def test_apply_subtotal_discount_to_order_lines(
     subtotal_discount = Money(Decimal(discount), currency)
     expected_subtotal = max(subtotal - subtotal_discount, zero_money(currency))
     line_0_share = lines[0].total_price_net_amount / subtotal.amount
+    line_0_undiscounted_total = lines[0].base_unit_price * lines[0].quantity
 
     # when
     apply_subtotal_discount_to_order_lines(lines, subtotal, subtotal_discount)
@@ -1089,108 +1119,78 @@ def test_apply_subtotal_discount_to_order_lines(
     # then
     discounted_subtotal = zero_money(currency)
     for line in lines:
-        discounted_subtotal += line.base_unit_price * line.quantity
+        discounted_subtotal += line.total_price_net
     assert discounted_subtotal == expected_subtotal
 
-    line_0_total_price_net = round(lines[0].total_price_net_amount, 5)
-    line_0_total_price_gross = round(lines[0].total_price_gross_amount, 5)
-    line_0_unit_price_net = round(lines[0].unit_price_net_amount, 5)
-    line_0_unit_price_gross = round(lines[0].unit_price_gross_amount, 5)
-    line_0_base_unit_price = round(lines[0].base_unit_price_amount, 5)
-    line_0_unit_discount = round(lines[0].unit_discount_amount, 5)
-    line_0_quantity = lines[0].quantity
-    line_0_total_discount = line_0_unit_discount * line_0_quantity
-
-    line_1_total_price_net = round(lines[1].total_price_net_amount, 5)
-    line_1_total_price_gross = round(lines[1].total_price_gross_amount, 5)
-
-    assert discounted_subtotal.amount == line_0_total_price_net + line_1_total_price_net
     assert (
         discounted_subtotal.amount
-        == line_0_total_price_gross + line_1_total_price_gross
-    )
-
-    max_diff = 0.00001
-    assert (
-        abs(round(line_0_share * subtotal_discount.amount, 5) - line_0_total_discount)
-        <= max_diff
+        == lines[0].total_price_net_amount + lines[1].total_price_net_amount
     )
     assert (
-        abs(line_0_total_price_net - (line_0_unit_price_net * line_0_quantity))
-        <= max_diff
+        discounted_subtotal.amount
+        == lines[0].total_price_gross_amount + lines[1].total_price_gross_amount
     )
-    assert (
-        abs(line_0_total_price_gross - (line_0_unit_price_gross * line_0_quantity))
-        <= max_diff
+
+    line_0_total_discount = _quantize(lines[0].unit_discount_amount * lines[0].quantity)
+    assert line_0_total_discount == min(
+        _quantize(line_0_share * subtotal_discount.amount),
+        line_0_undiscounted_total.amount,
     )
-    assert line_0_base_unit_price == line_0_unit_price_net
+    assert lines[0].total_price_net_amount == _quantize(
+        lines[0].unit_price_net_amount * lines[0].quantity
+    )
+    assert lines[0].total_price_gross_amount == _quantize(
+        lines[0].unit_price_gross_amount * lines[0].quantity
+    )
+    assert lines[0].base_unit_price_amount == lines[0].unit_price_net_amount
 
 
+@pytest.mark.parametrize("discount", ["10", "1", "17.3", "10000", "0"])
 def test_apply_subtotal_discount_to_order_lines_order_with_single_line(
+    discount,
     order_with_lines,
     voucher,
 ):
     # given
     order = order_with_lines
-    order.lines.last().delete()
     currency = order.currency
 
-    lines = order.lines.all()
-    assert lines.count() == 1
-    subtotal = lines[0].base_unit_price * lines[0].quantity
-    subtotal_discount = Money(Decimal("10"), currency)
-    discounted_subtotal = subtotal - subtotal_discount
+    def _quantize(price):
+        return quantize_price(price, currency)
+
+    order.lines.all()[1].delete()
+    line = order.lines.first()
+    subtotal = line.base_unit_price * line.quantity
+    subtotal_discount = Money(Decimal(discount), currency)
+    expected_subtotal = max(subtotal - subtotal_discount, zero_money(currency))
+    line_share = line.total_price_net_amount / subtotal.amount
+    line_undiscounted_total = line.base_unit_price * line.quantity
 
     # when
-    apply_subtotal_discount_to_order_lines(lines, subtotal, subtotal_discount)
+    apply_subtotal_discount_to_order_lines([line], subtotal, subtotal_discount)
 
     # then
-    assert lines[0].base_unit_price * lines[0].quantity == subtotal - subtotal_discount
+    discounted_subtotal = line.total_price_net
+    assert discounted_subtotal == expected_subtotal
+    assert discounted_subtotal.amount == line.total_price_net_amount
+    assert discounted_subtotal.amount == line.total_price_gross_amount
 
-    line_0_total_price_net = round(lines[0].total_price_net_amount, 5)
-    line_0_total_price_gross = round(lines[0].total_price_gross_amount, 5)
-    line_0_unit_price_net = round(lines[0].unit_price_net_amount, 5)
-    line_0_unit_price_gross = round(lines[0].unit_price_gross_amount, 5)
-    line_0_base_unit_price = round(lines[0].base_unit_price_amount, 5)
-    line_0_unit_discount = round(lines[0].unit_discount_amount, 5)
-    line_0_quantity = lines[0].quantity
-    line_0_total_discount = line_0_unit_discount * line_0_quantity
-
-    assert line_0_total_price_net == discounted_subtotal.amount
-    assert line_0_total_price_gross == discounted_subtotal.amount
-
-    max_diff = 0.00001
-    assert abs(line_0_total_discount - subtotal_discount.amount) <= max_diff
-    assert (
-        abs(line_0_unit_price_net - (line_0_total_price_net / line_0_quantity))
-        <= max_diff
+    line_total_discount = _quantize(line.unit_discount_amount * line.quantity)
+    assert line_total_discount == min(
+        _quantize(line_share * subtotal_discount.amount),
+        line_undiscounted_total.amount,
     )
-    assert (
-        abs(line_0_unit_price_gross - (line_0_total_price_gross / line_0_quantity))
-        <= max_diff
+    assert line.total_price_net_amount == _quantize(
+        line.unit_price_net_amount * line.quantity
     )
-    assert line_0_base_unit_price == line_0_unit_price_net
+    assert line.total_price_gross_amount == _quantize(
+        line.unit_price_gross_amount * line.quantity
+    )
+    assert line.base_unit_price_amount == line.unit_price_net_amount
 
 
-def test_base_order_line_total(order_with_lines):
-    # given
-    line = order_with_lines.lines.all().first()
+def test_ensure_order_lines_prices_sum_up_to_order_prices(order_with_lines):
+    # TODO: test da shit
+    pass
 
-    # when
-    order_total = base_calculations.base_order_line_total(line)
 
-    # then
-    base_line_unit_price = line.base_unit_price
-    quantity = line.quantity
-    expected_price_with_discount = (
-        TaxedMoney(base_line_unit_price, base_line_unit_price) * quantity
-    )
-    base_line_undiscounted_unit_price = line.undiscounted_base_unit_price
-    expected_undiscounted_price = (
-        TaxedMoney(base_line_undiscounted_unit_price, base_line_undiscounted_unit_price)
-        * quantity
-    )
-    assert order_total == OrderTaxedPricesData(
-        price_with_discounts=expected_price_with_discount,
-        undiscounted_price=expected_undiscounted_price,
-    )
