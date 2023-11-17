@@ -10,6 +10,7 @@ from ...shipping.models import ShippingMethod
 from ..attribute.resolvers import resolve_attributes
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
+from ..core.context import get_database_connection_name
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
 from ..menu.resolvers import resolve_menu_items
@@ -142,7 +143,7 @@ class TranslationQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, TranslatableItemConnection)
 
     @staticmethod
-    def resolve_translation(_root, _info: ResolveInfo, *, id, kind):
+    def resolve_translation(_root, info: ResolveInfo, *, id, kind):
         _type, kind_id = from_global_id_or_error(id)
         if not _type == kind:
             return None
@@ -161,5 +162,14 @@ class TranslationQueries(graphene.ObjectType):
             TranslatableKinds.PROMOTION_RULE.value: PromotionRule,  # type: ignore[attr-defined] # noqa: E501
         }
         if kind == TranslatableKinds.SALE.value:  # type: ignore[attr-defined]
-            return Promotion.objects.filter(old_sale_id=kind_id).first()
-        return models[kind]._default_manager.filter(pk=kind_id).first()
+            return (
+                Promotion.objects.using(get_database_connection_name(info.context))
+                .filter(old_sale_id=kind_id)
+                .first()
+            )
+        return (
+            models[kind]
+            .objects.using(get_database_connection_name(info.context))  # type: ignore[attr-defined]
+            .filter(pk=kind_id)
+            .first()
+        )

@@ -41,6 +41,7 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.enums import TransactionFlowStrategyEnum
 from ..core import ResolveInfo
+from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_32,
     ADDED_IN_34,
@@ -181,9 +182,11 @@ class AccountOperationBase(AbstractType):
         return data.get("redirect_url")
 
     @staticmethod
-    def resolve_channel(root, _info: ResolveInfo):
+    def resolve_channel(root, info: ResolveInfo):
         _, data = root
-        return Channel.objects.get(slug=data["channel_slug"])
+        return Channel.objects.using(get_database_connection_name(info.context)).get(
+            slug=data["channel_slug"]
+        )
 
     @staticmethod
     def resolve_token(root, _info: ResolveInfo):
