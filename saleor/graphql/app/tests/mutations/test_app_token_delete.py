@@ -158,3 +158,33 @@ def test_app_token_delete_for_app_out_of_scope_app(
     assert error["code"] == AppErrorCode.OUT_OF_SCOPE_APP.name
     assert error["field"] == "id"
     assert AppToken.objects.filter(id=token.id).exists()
+
+
+def test_app_token_delete_for_removed_app(
+    permission_manage_apps,
+    staff_api_client,
+    staff_user,
+    removed_app,
+    permission_manage_products,
+):
+    # given
+    query = APP_TOKEN_DELETE_MUTATION
+    app = removed_app
+    token, _ = app.tokens.create()
+    staff_user.user_permissions.add(permission_manage_products)
+    app.permissions.add(permission_manage_products)
+    id = graphene.Node.to_global_id("AppToken", token.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=(permission_manage_apps,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["appTokenDelete"]
+    assert app_data["appToken"] is None
+    assert app_data["errors"][0]["code"] == AppErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "id"
+    assert app_data["errors"][0]["message"] == f"Couldn't resolve to a node: {id}"

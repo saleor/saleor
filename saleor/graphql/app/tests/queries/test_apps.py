@@ -160,6 +160,26 @@ def test_apps_query_no_permission(
     assert_no_permission(response)
 
 
+def test_apps_query_marked_as_removed(
+    staff_api_client, permission_manage_apps, app, removed_app
+):
+    # given
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APPS_WITH_FILTER,
+        {},
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    apps_data = content["data"]["apps"]["edges"]
+    assert apps_data[0]["node"]["name"] == app.name
+    assert len(apps_data) == 1
+
+
 QUERY_APPS_WITH_SORT = """
     query ($sort_by: AppSortingInput!) {
         apps(first:5, sortBy: $sort_by) {
