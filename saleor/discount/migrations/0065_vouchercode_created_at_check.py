@@ -11,12 +11,9 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             sql=(
-                "DO $$ BEGIN IF NOT EXISTS ("
-                "SELECT FROM information_schema.columns WHERE "
-                "table_name = 'discount_vouchercode' AND "
-                "column_name = 'created_at') THEN ALTER TABLE "
-                "discount_vouchercode ADD COLUMN created_at TIMESTAMP "
-                "DEFAULT CURRENT_TIMESTAMP; END IF; END$$;"
+                """
+    ALTER TABLE discount_vouchercode ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NULL;
+                """
             ),
             reverse_sql=migrations.RunSQL.noop,
         ),
