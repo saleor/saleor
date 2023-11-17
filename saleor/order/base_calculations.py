@@ -79,7 +79,6 @@ def apply_order_discounts(
     undiscounted_shipping_price = order.base_shipping_price
     subtotal = base_order_subtotal(order, lines)
     shipping_price = order.base_shipping_price
-    subtotal_share = subtotal / (subtotal + shipping_price)
     currency = order.currency
     order_discounts_to_update = []
     order_discounts = order.discounts.all()
@@ -126,11 +125,9 @@ def apply_order_discounts(
                         price_to_discount=temporary_undiscounted_total,
                     )
                     total_discount = temporary_undiscounted_total - temporary_total
-                    # TODO: should we propagate manual discounts based on initial share or on the fly?
-                    # subtotal_discount = (
-                    #     subtotal / temporary_undiscounted_total
-                    # ) * total_discount
-                    subtotal_discount = subtotal_share * total_discount
+                    subtotal_discount = (
+                        subtotal / temporary_undiscounted_total
+                    ) * total_discount
                     shipping_discount = total_discount - subtotal_discount
 
                     subtotal -= subtotal_discount
@@ -169,6 +166,9 @@ def apply_subtotal_discount_to_order_lines(
     subtotal_discount: Money,
 ):
     """Calculate order line prices after applying discounts to entire order."""
+    if undiscounted_subtotal.amount <= 0 or subtotal_discount.amount <= 0:
+        return
+
     # Handle order with single line - propagate the whole discount to the single line.
     lines = list(lines)
     lines_count = len(lines)
