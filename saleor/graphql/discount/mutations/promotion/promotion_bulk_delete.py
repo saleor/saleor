@@ -6,6 +6,7 @@ from .....permission.enums import DiscountPermissions
 from .....product import models as product_models
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.utils import get_webhooks_for_event
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
@@ -42,10 +43,10 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
         product_ids = cls.get_product_ids(queryset)
         promotions = [promotion for promotion in queryset]
         queryset.delete()
-
         manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PROMOTION_DELETED)
         for promotion in promotions:
-            manager.promotion_deleted(promotion)
+            cls.call_event(manager.promotion_deleted, promotion, webhooks=webhooks)
 
         update_products_discounted_prices_for_promotion_task.delay(list(product_ids))
 

@@ -36,6 +36,7 @@ from .mutations import (
     SaleUpdate,
     VoucherAddCatalogues,
     VoucherChannelListingUpdate,
+    VoucherCodeBulkDelete,
     VoucherCreate,
     VoucherDelete,
     VoucherRemoveCatalogues,
@@ -82,7 +83,7 @@ class DiscountQueries(graphene.ObjectType):
         ),
         description="Look up a sale by ID.",
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} " "Use the `promotion` query instead."
+            f"{DEPRECATED_IN_3X_FIELD} Use the `promotion` query instead."
         ),
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
@@ -104,7 +105,7 @@ class DiscountQueries(graphene.ObjectType):
         ),
         description="List of the shop's sales.",
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} " "Use the `promotions` query instead."
+            f"{DEPRECATED_IN_3X_FIELD} Use the `promotions` query instead."
         ),
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
@@ -165,9 +166,9 @@ class DiscountQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_sale(_root, _info, *, id, channel=None):
+    def resolve_sale(_root, info, *, id, channel=None):
         _, id = from_global_id_or_error(id, Sale)
-        return resolve_sale(id, channel)
+        return resolve_sale(info, id, channel)
 
     @staticmethod
     def resolve_sales(_root, info: ResolveInfo, *, channel=None, **kwargs):
@@ -177,9 +178,9 @@ class DiscountQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, SaleCountableConnection)
 
     @staticmethod
-    def resolve_voucher(_root, _info: ResolveInfo, *, id, channel=None):
+    def resolve_voucher(_root, info: ResolveInfo, *, id, channel=None):
         _, id = from_global_id_or_error(id, Voucher)
-        return resolve_voucher(id, channel)
+        return resolve_voucher(info, id, channel)
 
     @staticmethod
     def resolve_vouchers(_root, info: ResolveInfo, *, channel=None, **kwargs):
@@ -189,13 +190,13 @@ class DiscountQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, VoucherCountableConnection)
 
     @staticmethod
-    def resolve_promotion(_root, _info, *, id, channel=None):
+    def resolve_promotion(_root, info, *, id, channel=None):
         _, id = from_global_id_or_error(id, Promotion)
-        return resolve_promotion(id)
+        return resolve_promotion(info, id)
 
     @staticmethod
     def resolve_promotions(_root, info: ResolveInfo, **kwargs):
-        qs = resolve_promotions()
+        qs = resolve_promotions(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, PromotionCountableConnection)
 
@@ -228,3 +229,4 @@ class DiscountMutations(graphene.ObjectType):
     voucher_catalogues_remove = VoucherRemoveCatalogues.Field()
     voucher_translate = VoucherTranslate.Field()
     voucher_channel_listing_update = VoucherChannelListingUpdate.Field()
+    voucher_code_bulk_delete = VoucherCodeBulkDelete.Field()

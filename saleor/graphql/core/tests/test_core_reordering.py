@@ -50,10 +50,6 @@ def sorted_entries_gaps(dummy_attribute):
 
 
 def test_reordering_sequential(sorted_entries_seq):
-    """
-    Ensures the reordering logic works as expected. This test simply provides
-    sequential sort order values and try to reorder them.
-    """
     qs = SortedModel.objects
     nodes = sorted_entries_seq
 
@@ -77,10 +73,6 @@ def test_reordering_sequential(sorted_entries_seq):
 
 
 def test_reordering_non_sequential(sorted_entries_gaps):
-    """
-    Ensures that reordering non-sequential sort order values is properly
-    handled. This case happens when an item gets deleted, creating gaps between values.
-    """
     qs = SortedModel.objects
     nodes = sorted_entries_gaps
 
@@ -104,13 +96,11 @@ def test_reordering_non_sequential(sorted_entries_gaps):
 
 
 @pytest.mark.parametrize(
-    "operation, expected_operations",
+    ("operation", "expected_operations"),
     [((0, +5), (+5, -1, -1, -1, -1, -1)), ((5, -5), (+1, +1, +1, +1, +1, -5))],
 )
 def test_inserting_at_the_edges(sorted_entries_seq, operation, expected_operations):
-    """
-    Ensures it is possible to move an item at the top and bottom of the list.
-    """
+    """Ensures it is possible to move an item at the top and bottom of the list."""
     qs = SortedModel.objects
     nodes = sorted_entries_seq
 
@@ -132,11 +122,6 @@ def test_inserting_at_the_edges(sorted_entries_seq, operation, expected_operatio
 
 
 def test_reordering_out_of_bound(sorted_entries_seq):
-    """
-    Ensures it is not possible to manually create gaps or for the users
-    to insert anywhere they want, e.g. -1000, which could create a mess
-    into the database.
-    """
     qs = SortedModel.objects
     nodes = sorted_entries_seq
 
@@ -160,9 +145,7 @@ def test_reordering_out_of_bound(sorted_entries_seq):
 
 
 def test_reordering_null_sort_orders(dummy_attribute):
-    """
-    Ensures null sort orders values are getting properly ordered (by ID sorting).
-    """
+    """Ensures null sort orders values are getting properly ordered (by ID sorting)."""
     attribute = dummy_attribute
     qs = SortedModel.objects
 
@@ -202,10 +185,6 @@ def test_reordering_null_sort_orders(dummy_attribute):
 
 
 def test_reordering_nothing(sorted_entries_seq, assert_num_queries):
-    """
-    Ensures giving operations that does nothing, are skipped. Thus only one query should
-    have been made: fetching the nodes.
-    """
     qs = SortedModel.objects
     pk = sorted_entries_seq[0].pk
     operations = {pk: 0}
@@ -226,13 +205,7 @@ def test_giving_no_operation_does_no_query(sorted_entries_seq, assert_num_querie
 
 
 def test_reordering_concurrently(dummy_attribute, assert_num_queries):
-    """
-    Ensures users cannot concurrently reorder, they need to wait for the other one
-    to achieve.
-
-    This must be the first thing done before doing anything. For that, we ensure
-    the first SQL query is acquiring the lock.
-    """
+    """Check that reordering properly locks the rows for update."""
 
     qs = SortedModel.objects
     attribute = dummy_attribute
@@ -270,12 +243,9 @@ def test_reordering_concurrently(dummy_attribute, assert_num_queries):
     )
 
 
-def test_reordering_deleted_node_from_concurrent(dummy_attribute, assert_num_queries):
-    """
-    Ensures if a node was deleted before locking, it just skip it instead of
-    raising an error.
-    """
-
+def test_reordering_deleted_node_from_concurrent_update(
+    dummy_attribute, assert_num_queries
+):
     qs = SortedModel.objects
     attribute = dummy_attribute
 

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 import graphene
 from graphene import relay
@@ -193,7 +193,7 @@ class Category(ModelObjectType[models.Category]):
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    def __resolve_references(roots: List["Category"], _info):
+    def __resolve_references(roots: list["Category"], _info):
         return resolve_federation_references(Category, roots, models.Category.objects)
 
 

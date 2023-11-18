@@ -1,7 +1,8 @@
 import hashlib
 import logging
 import traceback
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Union
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any, Union
 from uuid import UUID
 
 import graphene
@@ -92,7 +93,7 @@ def _resolve_graphene_type(schema, type_name):
     type_from_schema = schema.get_type(type_name)
     if type_from_schema:
         return type_from_schema.graphene_type
-    raise GraphQLError("Could not resolve the type {}".format(type_name))
+    raise GraphQLError(f"Could not resolve the type {type_name}")
 
 
 def get_nodes(
@@ -176,17 +177,16 @@ def _get_node_for_types_with_double_id(qs, pks, graphene_type):
 def format_permissions_for_display(permissions):
     """Transform permissions queryset into Permission list.
 
-    Keyword Arguments:
-        permissions - queryset with permissions
-
+    Arguments:
+        permissions: queryset with permissions
     """
     permissions_data = permissions.annotate(
-        formated_codename=Concat("content_type__app_label", Value("."), "codename")
-    ).values("name", "formated_codename")
+        formatted_codename=Concat("content_type__app_label", Value("."), "codename")
+    ).values("name", "formatted_codename")
 
     formatted_permissions = [
         Permission(
-            code=PermissionEnum.get(data["formated_codename"]), name=data["name"]
+            code=PermissionEnum.get(data["formatted_codename"]), name=data["name"]
         )
         for data in permissions_data
     ]
@@ -270,7 +270,7 @@ def query_fingerprint(document: GraphQLDocument) -> str:
 
 
 def format_error(error, handled_exceptions):
-    result: Dict[str, Any]
+    result: dict[str, Any]
     if isinstance(error, GraphQLError):
         result = format_graphql_error(error)
     else:

@@ -1,6 +1,7 @@
 import json
 import logging
-from typing import TYPE_CHECKING, Any, List, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from celery import group
@@ -42,7 +43,7 @@ task_logger = get_task_logger(__name__)
 
 def create_deliveries_for_subscriptions(
     event_type, subscribable_object, webhooks, requestor=None
-) -> List[EventDelivery]:
+) -> list[EventDelivery]:
     """Create a list of event deliveries with payloads based on subscription query.
 
     It uses a subscription query, defined for webhook to explicitly determine
@@ -105,7 +106,7 @@ def create_event_delivery_list_for_webhooks(
     webhooks: Sequence["Webhook"],
     event_payload: "EventPayload",
     event_type: str,
-) -> List[EventDelivery]:
+) -> list[EventDelivery]:
     event_deliveries = EventDelivery.objects.bulk_create(
         [
             EventDelivery(
@@ -202,7 +203,7 @@ def send_webhook_request_async(self, event_delivery_id):
 
         attempt_update(attempt, response)
         if response.status == EventDeliveryStatus.FAILED:
-            handle_webhook_retry(self, webhook, response.content, delivery, attempt)
+            handle_webhook_retry(self, webhook, response, delivery, attempt)
             delivery_status = EventDeliveryStatus.FAILED
         elif response.status == EventDeliveryStatus.SUCCESS:
             task_logger.info(
@@ -221,7 +222,7 @@ def send_webhook_request_async(self, event_delivery_id):
     clear_successful_delivery(delivery)
 
 
-def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
+def send_observability_events(webhooks: list[WebhookData], events: list[Any]):
     event_type = WebhookEventAsyncType.OBSERVABILITY
     for webhook in webhooks:
         scheme = urlparse(webhook.target_url).scheme.lower()

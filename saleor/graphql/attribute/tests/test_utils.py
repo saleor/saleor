@@ -2102,7 +2102,8 @@ def test_prepare_attribute_values_prefer_the_slug_match(color_attribute):
     """Ensure that the value with slug match is returned as the first choice.
 
     When the value with the matching slug is not found, the value with the matching
-    name is returned."""
+    name is returned.
+    """
     # given
     existing_value = color_attribute.values.first()
     second_val = color_attribute.values.create(
@@ -2133,7 +2134,8 @@ def test_prepare_attribute_values_that_gives_the_same_slug(color_attribute):
     """Ensure that the unique slug for all values is created.
 
     Ensure that when providing the two or more values that are giving the same slug
-    the integrity error is not raised."""
+    the integrity error is not raised.
+    """
     # given
     existing_value = color_attribute.values.first()
     attr_values_count = color_attribute.values.count()

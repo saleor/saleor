@@ -1,6 +1,5 @@
 from collections import defaultdict
 from copy import deepcopy
-from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -17,6 +16,7 @@ from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
 from ....permission.enums import AccountPermissions
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import CustomerBulkUpdateErrorCode, ErrorPolicyEnum
@@ -202,7 +202,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
     def clean_metadata(
         cls,
         field_name: str,
-        metadata_list: List[dict],
+        metadata_list: list[dict],
         errors_count: int,
         index: int,
         index_error_map: dict,
@@ -556,8 +556,16 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         app = get_app_promise(info.context).get()
         staff_user = info.context.user
         users_with_name_or_email_updated = []
+        webhooks_meta = get_webhooks_for_event(
+            WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED
+        )
+        webhooks_updated = get_webhooks_for_event(
+            WebhookEventAsyncType.CUSTOMER_UPDATED
+        )
         for updated_instance, old_instance in zip(instances, old_instances):
-            cls.call_event(manager.customer_updated, updated_instance)
+            cls.call_event(
+                manager.customer_updated, updated_instance, webhooks=webhooks_updated
+            )
             new_email = updated_instance.email
             new_fullname = updated_instance.get_full_name()
 
@@ -620,7 +628,11 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 )
 
             if metadata_update:
-                cls.call_event(manager.customer_metadata_updated, updated_instance)
+                cls.call_event(
+                    manager.customer_metadata_updated,
+                    updated_instance,
+                    webhooks=webhooks_meta,
+                )
 
         models.CustomerEvent.objects.bulk_create(customer_events)
         mark_gift_cards_search_index_as_dirty_by_users(users_with_name_or_email_updated)

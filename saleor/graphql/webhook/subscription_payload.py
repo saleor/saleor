@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -20,7 +20,7 @@ logger = get_task_logger(__name__)
 def initialize_request(
     requestor=None,
     sync_event=False,
-    allow_replica=True,
+    allow_replica=False,
     event_type: Optional[str] = None,
 ) -> SaleorContext:
     """Prepare a request object for webhook subscription.
@@ -63,7 +63,7 @@ def generate_payload_from_subscription(
     subscription_query: Optional[str],
     request: SaleorContext,
     app: Optional[App] = None,
-) -> Optional[Dict[str, Any]]:
+) -> Optional[dict[str, Any]]:
     """Generate webhook payload from subscription query.
 
     It uses a graphql's engine to build payload by using the same logic as response.
@@ -104,7 +104,7 @@ def generate_payload_from_subscription(
         )
         return None
 
-    payload: List[Any] = []
+    payload: list[Any] = []
     results.subscribe(payload.append)
 
     if not payload:

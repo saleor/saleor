@@ -8,7 +8,6 @@ from .....core.tracing import traced_atomic_transaction
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion
-from .....discount.tests.sale_converter import create_catalogue_predicate
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_of_promotion_task
 from .....webhook.event_types import WebhookEventAsyncType
@@ -24,7 +23,10 @@ from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import DiscountValueTypeEnum
 from ...types import Sale
-from ...utils import convert_migrated_sale_predicate_to_catalogue_info
+from ...utils import (
+    convert_migrated_sale_predicate_to_catalogue_info,
+    create_catalogue_predicate,
+)
 
 
 class SaleInput(BaseInputObjectType):
@@ -137,8 +139,8 @@ class SaleCreate(ModelMutation):
         cls.call_event(manager.sale_created, instance, catalogue_info)
         cls.send_sale_toggle_notification(manager, instance, catalogue_info)
 
-    @staticmethod
-    def send_sale_toggle_notification(manager, instance, catalogue):
+    @classmethod
+    def send_sale_toggle_notification(cls, manager, instance, catalogue):
         """Send a notification about starting or ending sale if it hasn't been sent yet.
 
         Send the notification when the start date is before the current date and the
@@ -150,6 +152,6 @@ class SaleCreate(ModelMutation):
         end_date = instance.end_date
 
         if (start_date and start_date <= now) and (not end_date or not end_date <= now):
-            manager.sale_toggle(instance, catalogue)
+            cls.call_event(manager.sale_toggle, instance, catalogue)
             instance.last_notification_scheduled_at = now
             instance.save(update_fields=["last_notification_scheduled_at"])

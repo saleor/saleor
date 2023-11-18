@@ -927,13 +927,14 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     assert checkout_with_item.shipping_address.country == address_other_country.country
 
     voucher = voucher_shipping_type
+    code = voucher.codes.first()
     assert voucher.countries[0].code == address_other_country.country
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
-    assert checkout_with_item.voucher_code == voucher.code
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher, code)
+    assert checkout_with_item.voucher_code == code.code
 
     new_address = graphql_address_data
     variables = {

@@ -13,6 +13,7 @@ from .sale.sale_remove_catalogues import SaleRemoveCatalogues
 from .sale.sale_update import SaleUpdate
 from .voucher.voucher_add_catalogues import VoucherAddCatalogues
 from .voucher.voucher_channel_listing_update import VoucherChannelListingUpdate
+from .voucher.voucher_code_bulk_delete import VoucherCodeBulkDelete
 from .voucher.voucher_create import VoucherCreate
 from .voucher.voucher_delete import VoucherDelete
 from .voucher.voucher_remove_catalogues import VoucherRemoveCatalogues
@@ -31,6 +32,7 @@ __all__ = [
     "VoucherDelete",
     "VoucherRemoveCatalogues",
     "VoucherUpdate",
+    "VoucherCodeBulkDelete",
     "PromotionCreate",
     "PromotionUpdate",
     "PromotionDelete",

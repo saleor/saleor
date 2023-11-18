@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import DefaultDict, Generic, Iterable, List, Optional, Tuple, TypeVar, Union
+from collections.abc import Iterable
+from typing import Generic, Optional, TypeVar, Union
 
 import opentracing
 import opentracing.tags
@@ -23,7 +24,7 @@ class DataLoader(BaseLoader, Generic[K, R]):
     def __new__(cls, context: SaleorContext):
         key = cls.context_key
         if key is None:
-            raise TypeError("Data loader %r does not define a context key" % (cls,))
+            raise TypeError(f"Data loader {cls} does not define a context key")
         if not hasattr(context, "dataloaders"):
             context.dataloaders = {}
         if key not in context.dataloaders:
@@ -40,7 +41,7 @@ class DataLoader(BaseLoader, Generic[K, R]):
 
     def batch_load_fn(  # pylint: disable=method-hidden
         self, keys: Iterable[K]
-    ) -> Promise[List[R]]:
+    ) -> Promise[list[R]]:
         with opentracing.global_tracer().start_active_span(
             self.__class__.__name__
         ) as scope:
@@ -51,24 +52,24 @@ class DataLoader(BaseLoader, Generic[K, R]):
                 return Promise.resolve(results)
             return results
 
-    def batch_load(self, keys: Iterable[K]) -> Union[Promise[List[R]], List[R]]:
+    def batch_load(self, keys: Iterable[K]) -> Union[Promise[list[R]], list[R]]:
         raise NotImplementedError()
 
 
 class BaseThumbnailBySizeAndFormatLoader(
-    DataLoader[Tuple[int, int, Optional[str]], Thumbnail]
+    DataLoader[tuple[int, int, Optional[str]], Thumbnail]
 ):
     model_name: str
 
-    def batch_load(self, keys: Iterable[Tuple[int, int, Optional[str]]]):
+    def batch_load(self, keys: Iterable[tuple[int, int, Optional[str]]]):
         model_name = self.model_name.lower()
         instance_ids = [id for id, _, _ in keys]
         lookup = {f"{model_name}_id__in": instance_ids}
         thumbnails = Thumbnail.objects.using(self.database_connection_name).filter(
             **lookup
         )
-        thumbnails_by_instance_id_size_and_format_map: DefaultDict[
-            Tuple[int, int, Optional[str]], Thumbnail
+        thumbnails_by_instance_id_size_and_format_map: defaultdict[
+            tuple[int, int, Optional[str]], Thumbnail
         ] = defaultdict()
         for thumbnail in thumbnails:
             format = get_thumbnail_format(thumbnail.format)

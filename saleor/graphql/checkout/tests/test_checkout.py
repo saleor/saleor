@@ -233,7 +233,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
     api_client,
     checkout_with_item,
     expected_dummy_gateway,
-    sample_gateway,
+    _sample_gateway,
 ):
     checkout_with_item.currency = "USD"
     checkout_with_item.save(update_fields=["currency"])
@@ -252,7 +252,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
 
 
 def test_checkout_available_payment_gateways_currency_specified_EUR(
-    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway
+    api_client, checkout_with_item, expected_dummy_gateway, _sample_gateway
 ):
     checkout_with_item.currency = "EUR"
     checkout_with_item.save(update_fields=["currency"])
@@ -582,8 +582,6 @@ def test_checkout_shipping_methods_with_price_based_shipping_method_and_discount
     address,
     shipping_method,
 ):
-    """Ensure that price based shipping method is not returned when
-    checkout with discounts subtotal is lower than minimal order price."""
     checkout_with_item.shipping_address = address
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
@@ -625,8 +623,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discou
     shipping_method,
     voucher_shipping_type,
 ):
-    """Ensure that price based shipping method is returned when checkout
-    has discount on shipping."""
+    """Test that shipping discounts properly qualify checkout for price-based shipping."""
     checkout_with_item.shipping_address = address
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
@@ -667,10 +664,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discou
 def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
     api_client, checkout_with_item, address, shipping_method, voucher, channel_USD
 ):
-    """Ensure that price based shipping method is returned when
-    checkout with discounts subtotal is lower than maximal order price with
-    specific product discount."""
-
+    """Test that product discounts properly qualify checkout for price-based shipping."""
     # given
     checkout_with_item.shipping_address = address
     manager = get_plugins_manager()
@@ -691,7 +685,9 @@ def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
     checkout_with_item.save(update_fields=["shipping_address"])
 
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
 
     subtotal = calculations.checkout_subtotal(
         manager=manager,
@@ -1625,9 +1621,7 @@ def test_checkout_prices_checkout_with_custom_prices(
     )
 
 
-def test_checkout_prices_with_sales(
-    user_api_client, checkout_with_item_on_sale, discount_info
-):
+def test_checkout_prices_with_sales(user_api_client, checkout_with_item_on_sale):
     # given
     query = QUERY_CHECKOUT_PRICES
     checkout = checkout_with_item_on_sale
@@ -2755,3 +2749,57 @@ def test_checkout_with_stored_payment_methods_requested_by_app(
 
     assert not mocked_list_stored_payment_methods.called
     assert content["data"]["checkout"]["storedPaymentMethods"] == []
+
+
+CHECKOUT_WITH_VOUCHER_QUERY = """
+query getCheckout($id: ID) {
+    checkout(id: $id) {
+        voucher {
+            id
+            code
+            name
+        }
+    }
+}
+"""
+
+
+def test_query_checkout_voucher(
+    staff_api_client,
+    checkout_with_voucher_free_shipping,
+    permission_manage_discounts,
+    voucher_free_shipping,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_discounts)
+    query = CHECKOUT_WITH_VOUCHER_QUERY
+    checkout = checkout_with_voucher_free_shipping
+    voucher = voucher_free_shipping
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    voucher_data = content["data"]["checkout"]["voucher"]
+    assert voucher_data["id"] == to_global_id_or_none(voucher)
+    assert voucher_data["code"] == voucher.code
+    assert voucher_data["name"] == voucher.name
+
+
+def test_query_checkout_voucher_by_customer_no_permission(
+    user_api_client,
+    checkout_with_voucher_free_shipping,
+    voucher_free_shipping,
+):
+    # given
+    query = CHECKOUT_WITH_VOUCHER_QUERY
+    checkout = checkout_with_voucher_free_shipping
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)

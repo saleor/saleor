@@ -190,6 +190,12 @@ fragment FulfillmentDetails on Fulfillment {
   fulfillmentOrder
   trackingNumber
   status
+  shippingRefundedAmount{
+    amount
+  }
+  totalRefundedAmount{
+    amount
+  }
   lines {
     id
     quantity
@@ -429,6 +435,18 @@ fragment VoucherDetails on Voucher{
   name
   code
   usageLimit
+}
+"""
+
+
+VOUCHER_CODE_EXPORT_DETAILS = """
+fragment VoucherCodeExportDetails on ExportFile {
+  id
+  createdAt
+  updatedAt
+  status
+  url
+  message
 }
 """
 

@@ -1,4 +1,4 @@
-from typing import List, TypeVar
+from typing import TypeVar
 
 import graphene
 from django.conf import settings
@@ -16,6 +16,7 @@ from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..attribute.dataloaders import AttributesByAttributeId
 from ..channel import ChannelContext
+from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_39,
     ADDED_IN_317,
@@ -36,12 +37,12 @@ from ..product.dataloaders import (
 from .fields import TranslationField
 
 
-def get_translatable_attribute_values(attributes: list) -> List[AttributeValue]:
+def get_translatable_attribute_values(attributes: list) -> list[AttributeValue]:
     """Filter the list of passed attributes.
 
     Return those which are translatable attributes.
     """
-    translatable_values: List[AttributeValue] = []
+    translatable_values: list[AttributeValue] = []
     for assignment in attributes:
         attr = assignment["attribute"]
         if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
@@ -388,8 +389,15 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
         )
 
     @staticmethod
-    def resolve_collection(root: product_models.Collection, _info):
-        collection = product_models.Collection.objects.all().filter(pk=root.id).first()
+    def resolve_collection(root: product_models.Collection, info):
+        collection = (
+            product_models.Collection.objects.using(
+                get_database_connection_name(info.context)
+            )
+            .all()
+            .filter(pk=root.id)
+            .first()
+        )
         return (
             ChannelContext(node=collection, channel_slug=None) if collection else None
         )
@@ -534,6 +542,7 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
     def resolve_page(root: page_models.Page, info):
         return (
             page_models.Page.objects.visible_to_user(info.context.user)
+            .using(get_database_connection_name(info.context))
             .filter(pk=root.id)
             .first()
         )
@@ -596,12 +605,12 @@ class VoucherTranslatableContent(ModelObjectType[discount_models.Voucher]):
         return ChannelContext(node=root, channel_slug=None)
 
 
-class SaleTranslation(BaseTranslationType[discount_models.SaleTranslation]):
+class SaleTranslation(BaseTranslationType[discount_models.PromotionTranslation]):
     id = graphene.GlobalID(required=True, description="The ID of the sale translation.")
     name = graphene.String(description="Translated name of sale.")
 
     class Meta:
-        model = discount_models.SaleTranslation
+        model = discount_models.PromotionTranslation
         interfaces = [graphene.relay.Node]
         description = (
             "Represents sale translations."
@@ -610,7 +619,7 @@ class SaleTranslation(BaseTranslationType[discount_models.SaleTranslation]):
         )
 
 
-class SaleTranslatableContent(ModelObjectType[discount_models.Sale]):
+class SaleTranslatableContent(ModelObjectType[discount_models.Promotion]):
     id = graphene.GlobalID(
         required=True, description="The ID of the sale translatable content."
     )
@@ -629,7 +638,7 @@ class SaleTranslatableContent(ModelObjectType[discount_models.Sale]):
     )
 
     class Meta:
-        model = discount_models.Sale
+        model = discount_models.Promotion
         interfaces = [graphene.relay.Node]
         description = (
             "Represents sale's original translatable fields and related translations."
@@ -638,7 +647,7 @@ class SaleTranslatableContent(ModelObjectType[discount_models.Sale]):
         )
 
     @staticmethod
-    def resolve_sale(root: discount_models.Sale, _info):
+    def resolve_sale(root: discount_models.Promotion, _info):
         return ChannelContext(node=root, channel_slug=None)
 
 

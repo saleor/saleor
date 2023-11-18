@@ -1,28 +1,25 @@
 import datetime
 from collections import defaultdict
+from collections.abc import Iterable, Iterator
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
 from typing import (
     TYPE_CHECKING,
     Callable,
-    DefaultDict,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
     Optional,
-    Set,
-    Tuple,
     Union,
     cast,
 )
 from uuid import UUID
 
+import graphene
 from django.db.models import Exists, F, OuterRef, QuerySet
+from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..core.taxes import zero_money
+from ..core.utils.promo_code import InvalidPromoCode
 from ..discount.models import VoucherCustomer
 from . import DiscountType, PromotionRuleInfo
 from .models import (
@@ -31,7 +28,8 @@ from .models import (
     NotApplicable,
     Promotion,
     PromotionRule,
-    Sale,
+    Voucher,
+    VoucherCode,
 )
 
 if TYPE_CHECKING:
@@ -45,47 +43,116 @@ if TYPE_CHECKING:
         ProductVariantChannelListing,
         VariantChannelListingPromotionRule,
     )
-    from .models import Voucher
 
-CatalogueInfo = DefaultDict[str, Set[Union[int, str]]]
+CatalogueInfo = defaultdict[str, set[Union[int, str]]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
-def increase_voucher_usage(voucher: "Voucher") -> None:
-    """Increase voucher uses by 1."""
-    voucher.used = F("used") + 1
-    voucher.save(update_fields=["used"])
+def increase_voucher_usage(
+    voucher: "Voucher",
+    code: "VoucherCode",
+    customer_email: str,
+    increase_voucher_customer_usage: bool = True,
+) -> None:
+    if voucher.usage_limit:
+        increase_voucher_code_usage_value(code)
+    if voucher.apply_once_per_customer and increase_voucher_customer_usage:
+        add_voucher_usage_by_customer(code, customer_email)
+    if voucher.single_use:
+        deactivate_voucher_code(code)
 
 
-def decrease_voucher_usage(voucher: "Voucher") -> None:
-    """Decrease voucher uses by 1."""
-    voucher.used = F("used") - 1
-    voucher.save(update_fields=["used"])
+def increase_voucher_code_usage_value(code: "VoucherCode") -> None:
+    """Increase voucher code uses by 1."""
+    code.used = F("used") + 1
+    code.save(update_fields=["used"])
 
 
-def add_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
+def decrease_voucher_code_usage_value(code: "VoucherCode") -> None:
+    """Decrease voucher code uses by 1."""
+    code.used = F("used") - 1
+    code.save(update_fields=["used"])
+
+
+def deactivate_voucher_code(code: "VoucherCode") -> None:
+    """Mark voucher code as used."""
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+
+def activate_voucher_code(code: "VoucherCode") -> None:
+    """Mark voucher code as unused."""
+    code.is_active = True
+    code.save(update_fields=["is_active"])
+
+
+def add_voucher_usage_by_customer(code: "VoucherCode", customer_email: str) -> None:
     _, created = VoucherCustomer.objects.get_or_create(
-        voucher=voucher, customer_email=customer_email
+        voucher_code=code, customer_email=customer_email
     )
     if not created:
         raise NotApplicable("This offer is only valid once per customer.")
 
 
-def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
+def remove_voucher_usage_by_customer(code: "VoucherCode", customer_email: str) -> None:
     voucher_customer = VoucherCustomer.objects.filter(
-        voucher=voucher, customer_email=customer_email
+        voucher_code=code, customer_email=customer_email
     )
     if voucher_customer:
         voucher_customer.delete()
 
 
-def release_voucher_usage(voucher: Optional["Voucher"], user_email: Optional[str]):
-    if not voucher:
+def release_voucher_code_usage(
+    code: Optional["VoucherCode"],
+    voucher: Optional["Voucher"],
+    user_email: Optional[str],
+):
+    if not code:
         return
-    if voucher.usage_limit:
-        decrease_voucher_usage(voucher)
+    if voucher and voucher.usage_limit:
+        decrease_voucher_code_usage_value(code)
+    if voucher and voucher.single_use:
+        activate_voucher_code(code)
     if user_email:
-        remove_voucher_usage_by_customer(voucher, user_email)
+        remove_voucher_usage_by_customer(code, user_email)
+
+
+def prepare_promotion_discount_reason(promotion: "Promotion", sale_id: str):
+    return f"{'Sale' if promotion.old_sale_id else 'Promotion'}: {sale_id}"
+
+
+def get_sale_id(promotion: "Promotion"):
+    return (
+        graphene.Node.to_global_id("Sale", promotion.old_sale_id)
+        if promotion.old_sale_id
+        else graphene.Node.to_global_id("Promotion", promotion.id)
+    )
+
+
+def get_voucher_code_instance(
+    voucher_code: str,
+    channel_slug: str,
+):
+    """Return a voucher code instance if it's valid or raise an error."""
+    if (
+        Voucher.objects.active_in_channel(
+            date=timezone.now(), channel_slug=channel_slug
+        )
+        .filter(
+            Exists(
+                VoucherCode.objects.filter(
+                    code=voucher_code,
+                    voucher_id=OuterRef("id"),
+                    is_active=True,
+                )
+            )
+        )
+        .exists()
+    ):
+        code_instance = VoucherCode.objects.get(code=voucher_code)
+    else:
+        raise InvalidPromoCode()
+    return code_instance
 
 
 def calculate_discounted_price_for_rules(
@@ -106,10 +173,10 @@ def calculate_discounted_price_for_rules(
 def calculate_discounted_price_for_promotions(
     *,
     price: Money,
-    rules_info_per_promotion_id: Dict[UUID, List[PromotionRuleInfo]],
+    rules_info_per_promotion_id: dict[UUID, list[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> List[Tuple[UUID, Money]]:
+) -> list[tuple[UUID, Money]]:
     """Return minimum product's price of all prices with promotions applied."""
     applied_discounts = []
     if rules_info_per_promotion_id:
@@ -121,10 +188,10 @@ def calculate_discounted_price_for_promotions(
 
 def get_best_promotion_discount(
     price: Money,
-    rules_info_per_promotion_id: Dict[UUID, List[PromotionRuleInfo]],
+    rules_info_per_promotion_id: dict[UUID, list[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> List[Tuple[UUID, Money]]:
+) -> list[tuple[UUID, Money]]:
     """Return the rules with the discount amounts for the best promotion.
 
     The data for the promotion that gives the best saving are returned in the following
@@ -158,10 +225,10 @@ def get_best_promotion_discount(
 
 def get_product_promotion_discounts(
     *,
-    rules_info: List[PromotionRuleInfo],
+    rules_info: list[PromotionRuleInfo],
     channel: "Channel",
     variant_id: Optional[int],
-) -> Iterator[Tuple[UUID, Callable]]:
+) -> Iterator[tuple[UUID, Callable]]:
     """Return promotion rule id, discount value for all rules applicable on product."""
     for rule_info in rules_info:
         try:
@@ -174,7 +241,7 @@ def get_product_discount_on_promotion(
     rule_info: PromotionRuleInfo,
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> Tuple[UUID, Callable]:
+) -> tuple[UUID, Callable]:
     """Return rule id, discount value if rule applied or raise NotApplicable."""
     if variant_id in rule_info.variant_ids and channel.id in rule_info.channel_ids:
         return rule_info.rule.id, rule_info.rule.get_discount(channel.currency_code)
@@ -209,16 +276,16 @@ def validate_voucher_for_checkout(
 
 
 def validate_voucher_in_order(order: "Order"):
-    subtotal = order.get_subtotal()
-    quantity = order.get_total_quantity()
-    customer_email = order.get_customer_email()
     if not order.voucher:
         return
 
+    subtotal = order.get_subtotal()
+    quantity = order.get_total_quantity()
+    customer_email = order.get_customer_email()
     tax_configuration = order.channel.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
-
     value = subtotal.gross if prices_entered_with_tax else subtotal.net
+
     validate_voucher(
         order.voucher, value, quantity, customer_email, order.channel, order.user
     )
@@ -251,16 +318,6 @@ def get_products_voucher_discount(
     return total_amount
 
 
-def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
-    catalogue_info: CatalogueInfo = defaultdict(set)
-    for sale_data in Sale.objects.filter(id=instance.id).values(*CATALOGUE_FIELDS):
-        for field in CATALOGUE_FIELDS:
-            if id := sale_data.get(field):
-                catalogue_info[field].add(id)
-
-    return catalogue_info
-
-
 def apply_discount_to_value(
     value: Decimal,
     value_type: str,
@@ -287,7 +344,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
     line_discounts_to_create = []
     line_discounts_to_update = []
     line_discount_ids_to_remove = []
-    updated_fields: List[str] = []
+    updated_fields: list[str] = []
 
     for line_info in lines_info:
         line = line_info.line
@@ -379,8 +436,8 @@ def _get_discount_amount(
 
 
 def _get_discounts_that_are_not_valid_anymore(
-    rules_info: List["VariantPromotionRuleInfo"],
-    rule_id_to_discount: Dict[int, "CheckoutLineDiscount"],
+    rules_info: list["VariantPromotionRuleInfo"],
+    rule_id_to_discount: dict[int, "CheckoutLineDiscount"],
     line_info: "CheckoutLineInfo",
 ):
     discount_ids = []
@@ -423,7 +480,7 @@ def _update_line_discount(
     rule_info: "VariantPromotionRuleInfo",
     rule_discount_amount: Decimal,
     discount_to_update: "CheckoutLineDiscount",
-    updated_fields: List[str],
+    updated_fields: list[str],
 ):
     if discount_to_update.value_type != rule.reward_value_type:
         discount_to_update.value_type = (
@@ -449,7 +506,7 @@ def _update_line_discount(
 def fetch_active_promotion_rules(
     variant_qs: "ProductVariantQueryset",
     date: Optional[datetime.date] = None,
-) -> Dict[UUID, List[PromotionRuleInfo]]:
+) -> dict[UUID, list[PromotionRuleInfo]]:
     from ..graphql.discount.utils import get_variants_for_predicate
 
     rules_info_per_promotion_id = defaultdict(list)
@@ -479,7 +536,7 @@ def _get_rule_to_channel_ids_map(rules: QuerySet):
         Exists(rules.filter(id=OuterRef("promotionrule_id")))
     )
     for promotion_rule_channel in promotion_rule_channels:
-        rule_id = promotion_rule_channel.promotionrule_id  # type: ignore[attr-defined]
-        channel_id = promotion_rule_channel.channel_id  # type: ignore[attr-defined]
+        rule_id = promotion_rule_channel.promotionrule_id
+        channel_id = promotion_rule_channel.channel_id
         rule_to_channel_ids_map[rule_id].append(channel_id)
     return rule_to_channel_ids_map

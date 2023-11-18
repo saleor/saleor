@@ -1,13 +1,13 @@
 from collections import defaultdict
-from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
 from ....warehouse.error_codes import StockErrorCode
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -50,7 +50,7 @@ class ProductVariantStocksCreate(BaseMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         manager = get_plugin_manager_promise(info.context).get()
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         stocks = data["stocks"]
         variant = cls.get_node_or_error(
             info, data["variant_id"], only_type=ProductVariant
@@ -61,9 +61,12 @@ class ProductVariantStocksCreate(BaseMutation):
                 raise ValidationError(errors)
             new_stocks = create_stocks(variant, stocks, warehouses)
 
+            webhooks = get_webhooks_for_event(
+                WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
+            )
             for stock in new_stocks:
-                transaction.on_commit(
-                    lambda: manager.product_variant_back_in_stock(stock)
+                cls.call_event(
+                    manager.product_variant_back_in_stock, stock, webhooks=webhooks
                 )
 
         StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
@@ -98,7 +101,7 @@ class ProductVariantStocksCreate(BaseMutation):
 
     @classmethod
     def check_for_duplicates(
-        cls, warehouse_ids, errors: defaultdict[str, List[ValidationError]]
+        cls, warehouse_ids, errors: defaultdict[str, list[ValidationError]]
     ):
         duplicates = {id for id in warehouse_ids if warehouse_ids.count(id) > 1}
         error_msg = "Duplicated warehouse ID."
@@ -113,7 +116,7 @@ class ProductVariantStocksCreate(BaseMutation):
 
     @classmethod
     def update_errors(
-        cls, errors: defaultdict[str, List[ValidationError]], msg, field, code, indexes
+        cls, errors: defaultdict[str, list[ValidationError]], msg, field, code, indexes
     ):
         for index in indexes:
             error = ValidationError(msg, code=code, params={"index": index})

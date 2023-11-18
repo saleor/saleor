@@ -12,7 +12,6 @@ from django.db.models import (
     Exists,
     ExpressionWrapper,
     F,
-    FilteredRelation,
     OuterRef,
     Q,
     Subquery,
@@ -132,7 +131,11 @@ class ProductsQueryset(models.QuerySet):
                              to sort by.
         :param descending: The sorting direction.
         """
-        from ..attribute.models import AttributeProduct, AttributeValue
+        from ..attribute.models import (
+            AssignedProductAttributeValue,
+            AttributeProduct,
+            AttributeValue,
+        )
 
         qs: models.QuerySet = self
         # If the passed attribute ID is valid, execute the sorting
@@ -144,69 +147,52 @@ class ProductsQueryset(models.QuerySet):
                 concatenated_values=Value(None, output_field=models.CharField()),
             )
 
-        # Retrieve all the products' attribute data IDs (assignments) and
-        # product types that have the given attribute associated to them
-        associated_values = tuple(
-            AttributeProduct.objects.filter(attribute_id=attribute_pk).values_list(
-                "pk", "product_type_id"
-            )
+        qs = qs.annotate(
+            # Implicit `GROUP BY` required for the `StringAgg` aggregation
+            grouped_ids=Count("id"),
+            # String aggregation of the attribute's values to efficiently sort them
+            concatenated_values=Case(
+                # If the product has no association data but has
+                # the given attribute associated to its product type,
+                # then consider the concatenated values as empty (non-null).
+                When(
+                    Exists(
+                        AttributeProduct.objects.filter(
+                            product_type_id=OuterRef("product_type_id"),
+                            attribute_id=attribute_pk,
+                        )
+                    )
+                    & ~Exists(
+                        AssignedProductAttributeValue.objects.filter(
+                            product_id=OuterRef("id"), value__attribute_id=attribute_pk
+                        )
+                    ),
+                    then=Value(""),
+                ),
+                default=StringAgg(
+                    F("attributevalues__value__name"),
+                    filter=Q(attributevalues__value__attribute_id=attribute_pk),
+                    delimiter=",",
+                    ordering=(
+                        [
+                            f"attributevalues__value__{field_name}"
+                            for field_name in AttributeValue._meta.ordering or []
+                        ]
+                    ),
+                ),
+                output_field=models.CharField(),
+            ),
+            concatenated_values_order=Case(
+                # Make the products having no such attribute be last in the sorting
+                When(concatenated_values=None, then=2),
+                # Put the products having an empty attribute value at the bottom of
+                # the other products.
+                When(concatenated_values="", then=1),
+                # Put the products having an attribute value to be always at the top
+                default=0,
+                output_field=models.IntegerField(),
+            ),
         )
-
-        if not associated_values:
-            qs = qs.annotate(
-                concatenated_values_order=Value(
-                    None, output_field=models.IntegerField()
-                ),
-                concatenated_values=Value(None, output_field=models.CharField()),
-            )
-
-        else:
-            attribute_associations, product_types_associated_to_attribute = zip(
-                *associated_values
-            )
-
-            qs = qs.annotate(
-                # Contains to retrieve the attribute data (singular) of each product
-                # Refer to `AttributeProduct`.
-                filtered_attribute=FilteredRelation(
-                    relation_name="attributes",
-                    condition=Q(attributes__assignment_id__in=attribute_associations),
-                ),
-                # Implicit `GROUP BY` required for the `StringAgg` aggregation
-                grouped_ids=Count("id"),
-                # String aggregation of the attribute's values to efficiently sort them
-                concatenated_values=Case(
-                    # If the product has no association data but has
-                    # the given attribute associated to its product type,
-                    # then consider the concatenated values as empty (non-null).
-                    When(
-                        Q(product_type_id__in=product_types_associated_to_attribute)
-                        & Q(filtered_attribute=None),
-                        then=models.Value(""),
-                    ),
-                    default=StringAgg(
-                        F("filtered_attribute__values__name"),
-                        delimiter=",",
-                        ordering=(
-                            [
-                                f"filtered_attribute__values__{field_name}"
-                                for field_name in AttributeValue._meta.ordering or []
-                            ]
-                        ),
-                    ),
-                    output_field=models.CharField(),
-                ),
-                concatenated_values_order=Case(
-                    # Make the products having no such attribute be last in the sorting
-                    When(concatenated_values=None, then=2),
-                    # Put the products having an empty attribute value at the bottom of
-                    # the other products.
-                    When(concatenated_values="", then=1),
-                    # Put the products having an attribute value to be always at the top
-                    default=0,
-                    output_field=models.IntegerField(),
-                ),
-            )
 
         # Sort by concatenated_values_order then
         # Sort each group of products (0, 1, 2, ...) per attribute values
@@ -221,8 +207,6 @@ class ProductsQueryset(models.QuerySet):
 
     def prefetched_for_webhook(self, single_object=True):
         common_fields = (
-            "attributes__values",
-            "attributes__assignment__attribute",
             "media",
             "variants__attributes__values",
             "variants__attributes__assignment__attribute",
@@ -230,6 +214,8 @@ class ProductsQueryset(models.QuerySet):
             "variants__stocks__allocations",
             "variants__channel_listings__channel",
             "channel_listings__channel",
+            "product_type__product_attributes__values",
+            "product_type__attributeproduct",
         )
         if single_object:
             return self.prefetch_related(*common_fields)

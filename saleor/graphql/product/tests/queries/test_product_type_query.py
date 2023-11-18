@@ -98,7 +98,10 @@ def test_product_type_query_invalid_id(
     response = staff_api_client.post_graphql(PRODUCT_TYPE_QUERY, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {product_type_id}."
+    assert (
+        content["errors"][0]["message"]
+        == f"Invalid ID: {product_type_id}. Expected: ProductType."
+    )
     assert content["data"]["productType"] is None
 
 
@@ -409,12 +412,10 @@ def test_product_type_get_unassigned_product_type_attributes(
         unassigned_attributes
     ), gql_unassigned_attributes
 
-    received_ids = sorted((attr["node"]["id"] for attr in gql_unassigned_attributes))
+    received_ids = sorted(attr["node"]["id"] for attr in gql_unassigned_attributes)
     expected_ids = sorted(
-        (
-            graphene.Node.to_global_id("Attribute", attr.pk)
-            for attr in unassigned_attributes
-        )
+        graphene.Node.to_global_id("Attribute", attr.pk)
+        for attr in unassigned_attributes
     )
 
     assert received_ids == expected_ids

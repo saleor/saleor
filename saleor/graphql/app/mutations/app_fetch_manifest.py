@@ -90,14 +90,14 @@ class AppFetchManifest(BaseMutation):
 
         manifest_data["permissions"] = [
             grapqhl_types.Permission(
-                code=PermissionEnum.get(p.formated_codename), name=p.name
+                code=PermissionEnum.get(p.formatted_codename), name=p.name
             )
             for p in manifest_data["permissions"]
         ]
         for extension in manifest_data.get("extensions", []):
             extension["permissions"] = [
                 grapqhl_types.Permission(
-                    code=PermissionEnum.get(p.formated_codename),
+                    code=PermissionEnum.get(p.formatted_codename),
                     name=p.name,
                 )
                 for p in extension["permissions"]

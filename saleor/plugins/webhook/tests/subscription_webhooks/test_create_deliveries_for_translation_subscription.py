@@ -222,13 +222,7 @@ def test_translation_created_promotion_rule(
         event_type, promotion_rule_translation_fr, webhooks
     )
 
-    expected_payload = json.dumps(
-        {
-            "translation": {
-                "id": translation_id,
-            }
-        }
-    )
+    expected_payload = json.dumps({"translation": {"id": translation_id}})
 
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)

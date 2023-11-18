@@ -1,5 +1,4 @@
 from collections import defaultdict, namedtuple
-from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -65,8 +64,8 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
     def validate_lines(
         cls, info: ResolveInfo, data, existing_lines_info, variants_data
     ):
-        grouped_lines_data: List[OrderLineData] = []
-        lines_data_map: Dict[str, OrderLineData] = defaultdict(OrderLineData)
+        grouped_lines_data: list[OrderLineData] = []
+        lines_data_map: dict[str, OrderLineData] = defaultdict(OrderLineData)
 
         variants_from_existing_lines = [
             line_info.line.variant_id for line_info in existing_lines_info
@@ -136,7 +135,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
 
     @staticmethod
     def add_lines_to_order(order, lines_data, user, app, manager):
-        added_lines: List[OrderLine] = []
+        added_lines: list[OrderLine] = []
         try:
             for line_data in lines_data:
                 line = add_variant_to_order(

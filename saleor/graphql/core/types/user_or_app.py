@@ -19,4 +19,4 @@ class UserOrApp(graphene.Union):
             return account_types.User
         if isinstance(instance, app_models.App):
             return account_types.App
-        return super(UserOrApp, cls).resolve_type(instance, info)
+        return super().resolve_type(instance, info)

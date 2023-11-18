@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import List, Tuple
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -11,7 +10,6 @@ from .....core.tracing import traced_atomic_transaction
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
-from .....product.search import update_product_search_vector
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.types import AttributeValueInput
@@ -36,7 +34,7 @@ from ...utils import (
 )
 from ..product.product_create import StockInput
 
-T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
+T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
 class PreorderSettingsInput(BaseInputObjectType):
@@ -331,7 +329,8 @@ class ProductVariantCreate(ModelMutation):
                 generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
             manager = get_plugin_manager_promise(info.context).get()
-            update_product_search_vector(instance.product)
+            instance.product.search_index_dirty = True
+            instance.product.save(update_fields=["search_index_dirty"])
             event_to_call = (
                 manager.product_variant_created
                 if new_variant

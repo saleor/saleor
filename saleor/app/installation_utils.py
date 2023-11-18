@@ -78,7 +78,7 @@ def fetch_icon_image(
     url: str,
     *,
     max_file_size=MAX_ICON_FILE_SIZE,
-    timeout=settings.COMMON_REQUESTS_TIMEOUT
+    timeout=settings.COMMON_REQUESTS_TIMEOUT,
 ) -> File:
     filename = get_filename_from_url(url)
     size_error_msg = f"File too big. Maximal icon image file size is {max_file_size}."
@@ -182,7 +182,7 @@ def fetch_brand_data_async(
     manifest_data: dict,
     *,
     app_installation: Optional[AppInstallation] = None,
-    app: Optional[App] = None
+    app: Optional[App] = None,
 ):
     if brand_data := manifest_data.get("brand"):
         app_id = app.pk if app else None
@@ -261,9 +261,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             )
     WebhookEvent.objects.bulk_create(webhook_events)
 
-    _, token = app.tokens.create(
-        name="Default token"
-    )  # type: ignore[call-arg] # calling create on a related manager # noqa: E501
+    _, token = app.tokens.create(name="Default token")  # type: ignore[call-arg] # calling create on a related manager # noqa: E501
 
     try:
         send_app_token(target_url=manifest_data.get("tokenTargetUrl"), token=token)

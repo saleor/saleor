@@ -6,6 +6,10 @@ import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....attribute.tests.model_helpers import (
+    get_product_attribute_values,
+    get_product_attributes,
+)
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
@@ -52,7 +56,8 @@ def test_delete_attribute_value_update_search_index_dirty_in_product(
     permission_manage_product_types_and_attributes,
 ):
     # given
-    value = product.attributes.all()[0].values.first()
+    first_attribute = get_product_attributes(product).first()
+    value = get_product_attribute_values(product, first_attribute).first()
     query = ATTRIBUTE_VALUE_DELETE_MUTATION
     node_id = graphene.Node.to_global_id("AttributeValue", value.id)
     variables = {"id": node_id}
@@ -64,8 +69,6 @@ def test_delete_attribute_value_update_search_index_dirty_in_product(
     product.refresh_from_db(fields=["search_index_dirty"])
 
     # then
-    with pytest.raises(value._meta.model.DoesNotExist):
-        value.refresh_from_db()
     assert product.search_index_dirty is True
 
 

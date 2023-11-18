@@ -26,7 +26,7 @@ def query_staff_users_with_filter():
 
 
 @pytest.mark.parametrize(
-    "staff_member_filter, count",
+    ("staff_member_filter", "count"),
     [({"status": "DEACTIVATED"}, 1), ({"status": "ACTIVE"}, 2)],
 )
 def test_query_staff_members_with_filter_status(
@@ -79,7 +79,7 @@ def test_query_staff_members_with_filter_by_ids(
 
 
 @pytest.mark.parametrize(
-    "staff_member_filter, count",
+    ("staff_member_filter", "count"),
     [
         ({"search": "mirumee.com"}, 2),
         ({"search": "alice"}, 1),
@@ -141,7 +141,7 @@ def test_query_staff_members_with_filter_search(
     assert len(users) == count
 
 
-@pytest.fixture()
+@pytest.fixture
 def staff_for_search(db, address):
     accounts = User.objects.bulk_create(
         [
@@ -216,7 +216,7 @@ QUERY_STAFF_WITH_PAGINATION = """
 
 
 @pytest.mark.parametrize(
-    "staff_member_filter, users_order",
+    ("staff_member_filter", "users_order"),
     [
         ({"search": "davis@example.com"}, ["Robert", "Xavier"]),  # email
         ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name

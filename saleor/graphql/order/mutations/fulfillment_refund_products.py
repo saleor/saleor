@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 import graphene
 
@@ -96,7 +96,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, order_id, input):
-        cleaned_input: Dict[str, Any] = {}
+        cleaned_input: dict[str, Any] = {}
         amount_to_refund = input.get("amount_to_refund")
         include_shipping_costs = input["include_shipping_costs"]
 

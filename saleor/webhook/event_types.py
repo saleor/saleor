@@ -190,6 +190,7 @@ class WebhookEventAsyncType:
     VOUCHER_UPDATED = "voucher_updated"
     VOUCHER_DELETED = "voucher_deleted"
     VOUCHER_METADATA_UPDATED = "voucher_metadata_updated"
+    VOUCHER_CODE_EXPORT_COMPLETED = "voucher_code_export_completed"
 
     OBSERVABILITY = "observability"
 
@@ -736,6 +737,10 @@ class WebhookEventAsyncType:
         },
         VOUCHER_METADATA_UPDATED: {
             "name": "Voucher metadata updated",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        VOUCHER_CODE_EXPORT_COMPLETED: {
+            "name": "Voucher code export completed",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
         },
         OBSERVABILITY: {

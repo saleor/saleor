@@ -24,7 +24,14 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
         gross {
           amount
         }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
       }
+      created
       isShippingRequired
       shippingMethods {
         id
@@ -68,6 +75,9 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
         }
         undiscountedUnitPrice {
           amount
+        }
+        variant {
+          id
         }
       }
     }

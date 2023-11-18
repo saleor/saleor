@@ -7,6 +7,7 @@ from ....giftcard.error_codes import GiftCardErrorCode
 from ....giftcard.utils import is_gift_card_expired
 from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
@@ -54,6 +55,9 @@ class GiftCardBulkActivate(BaseBulkMutation):
         events.gift_cards_activated_event(
             gift_card_ids, user=info.context.user, app=app
         )
+        webhooks = get_webhooks_for_event(
+            WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED
+        )
         manager = get_plugin_manager_promise(info.context).get()
         for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
-            manager.gift_card_status_changed(card)
+            cls.call_event(manager.gift_card_status_changed, card, webhooks=webhooks)

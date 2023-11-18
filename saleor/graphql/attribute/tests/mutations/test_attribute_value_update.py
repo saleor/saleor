@@ -8,6 +8,10 @@ from django.utils.text import slugify
 from freezegun import freeze_time
 
 from .....attribute.error_codes import AttributeErrorCode
+from .....attribute.tests.model_helpers import (
+    get_product_attribute_values,
+    get_product_attributes,
+)
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
@@ -93,7 +97,10 @@ def test_update_attribute_value_update_search_index_dirty_in_product(
 ):
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
-    value = product.attributes.all()[0].values.first()
+
+    first_attribute = get_product_attributes(product).first()
+    value = get_product_attribute_values(product, first_attribute).first()
+
     node_id = graphene.Node.to_global_id("AttributeValue", value.id)
     name = "Crimson name"
     variables = {"input": {"name": name}, "id": node_id}
@@ -217,8 +224,6 @@ def test_update_attribute_value_the_same_name_as_different_attribute_value(
     color_attribute,
     permission_manage_product_types_and_attributes,
 ):
-    """Ensure the attribute value with the same slug as value of different attribute
-    can be set."""
     # given
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
 
@@ -413,7 +418,7 @@ def test_update_swatch_attribute_value_clear_file_value(
 
 
 @pytest.mark.parametrize(
-    "field, input_value",
+    ("field", "input_value"),
     [
         ("fileUrl", "http://mirumee.com/test_media/test_file.jpeg"),
         ("contentType", "jpeg"),

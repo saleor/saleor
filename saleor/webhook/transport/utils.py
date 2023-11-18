@@ -6,11 +6,12 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from time import time
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
 from botocore.exceptions import ClientError
+from celery import Task
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -43,6 +44,7 @@ from ...webhook.utils import get_webhooks_for_event
 from .. import observability
 from ..const import APP_ID_PREFIX
 from ..event_types import WebhookEventSyncType
+from ..models import Webhook
 from . import signature_for_payload
 
 logger = logging.getLogger(__name__)
@@ -70,8 +72,8 @@ class PaymentAppData:
 @dataclass
 class WebhookResponse:
     content: str
-    request_headers: Optional[Dict] = None
-    response_headers: Optional[Dict] = None
+    request_headers: Optional[dict] = None
+    response_headers: Optional[dict] = None
     response_status_code: Optional[int] = None
     status: str = EventDeliveryStatus.SUCCESS
     duration: float = 0.0
@@ -101,7 +103,7 @@ def send_webhook_using_http(
     signature,
     event_type,
     timeout=settings.WEBHOOK_TIMEOUT,
-    custom_headers: Optional[Dict[str, str]] = None,
+    custom_headers: Optional[dict[str, str]] = None,
 ) -> WebhookResponse:
     """Send a webhook request using http / https protocol.
 
@@ -167,7 +169,9 @@ def send_webhook_using_http(
         response_status_code=response.status_code,
         duration=response.elapsed.total_seconds(),
         status=(
-            EventDeliveryStatus.SUCCESS if response.ok else EventDeliveryStatus.FAILED
+            EventDeliveryStatus.SUCCESS
+            if 200 <= response.status_code < 300
+            else EventDeliveryStatus.FAILED
         ),
     )
 
@@ -265,7 +269,7 @@ def send_webhook_using_scheme_method(
     parts = urlparse(target_url)
     message = data.encode("utf-8")
     signature = signature_for_payload(message, secret)
-    scheme_matrix: Dict[WebhookSchemes, Callable] = {
+    scheme_matrix: dict[WebhookSchemes, Callable] = {
         WebhookSchemes.HTTP: send_webhook_using_http,
         WebhookSchemes.HTTPS: send_webhook_using_http,
         WebhookSchemes.AWS_SQS: send_webhook_using_aws_sqs,
@@ -282,11 +286,15 @@ def send_webhook_using_scheme_method(
             event_type,
             custom_headers=custom_headers,
         )
-    raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
+    raise ValueError(f"Unknown webhook scheme: {parts.scheme!r}")
 
 
 def handle_webhook_retry(
-    celery_task, webhook, response_content, delivery, delivery_attempt
+    celery_task: Task,
+    webhook: Webhook,
+    response: WebhookResponse,
+    delivery: EventDelivery,
+    delivery_attempt: EventDeliveryAttempt,
 ) -> bool:
     """Handle celery retry for webhook requests.
 
@@ -299,10 +307,20 @@ def handle_webhook_retry(
         " Delivery attempt id: %r",
         webhook.id,
         webhook.target_url,
-        response_content,
+        response.content,
         delivery.event_type,
         delivery_attempt.id,
     )
+    if response.response_status_code and 300 <= response.response_status_code < 500:
+        # do not retry for 30x and 40x status codes
+        task_logger.info(
+            "[Webhook ID: %r] Failed request to %r: received HTTP %d. Delivery ID: %r",
+            webhook.id,
+            webhook.target_url,
+            response.response_status_code,
+            delivery.id,
+        )
+        return False
     try:
         countdown = celery_task.retry_backoff * (2**celery_task.request.retries)
         celery_task.retry(countdown=countdown, **celery_task.retry_kwargs)
@@ -313,8 +331,7 @@ def handle_webhook_retry(
     except MaxRetriesExceededError:
         is_success = False
         task_logger.info(
-            "[Webhook ID: %r] Failed request to %r: exceeded retry limit."
-            "Delivery id: %r",
+            "[Webhook ID: %r] Failed request to %r: exceeded retry limit. Delivery ID: %r",
             webhook.id,
             webhook.target_url,
             delivery.id,
@@ -599,8 +616,8 @@ def to_payment_app_id(app: "App", external_id: str) -> "str":
 
 def parse_list_payment_gateways_response(
     response_data: Any, app: "App"
-) -> List["PaymentGateway"]:
-    gateways: List[PaymentGateway] = []
+) -> list["PaymentGateway"]:
+    gateways: list[PaymentGateway] = []
     if not isinstance(response_data, list):
         return gateways
 

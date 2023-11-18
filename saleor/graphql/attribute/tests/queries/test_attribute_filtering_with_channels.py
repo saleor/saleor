@@ -193,7 +193,7 @@ def test_attributes_with_filtering_without_channel(
 
 
 @pytest.mark.parametrize(
-    "tested_field, attribute_count",
+    ("tested_field", "attribute_count"),
     [("inCategory", 5), ("inCollection", 5)],
 )
 def test_products_with_filtering_with_channel_as_staff_user(
@@ -260,7 +260,7 @@ def test_products_with_alternative_filtering_with_channel_as_staff_user(
 
 
 @pytest.mark.parametrize(
-    "tested_field, attribute_count",
+    ("tested_field", "attribute_count"),
     [("inCategory", 5), ("inCollection", 5)],
 )
 def test_products_with_filtering_as_anonymous_client(
@@ -293,7 +293,7 @@ def test_products_with_filtering_as_anonymous_client(
 
 
 @pytest.mark.parametrize(
-    "tested_field, attribute_count",
+    ("tested_field", "attribute_count"),
     [("inCategory", 5), ("inCollection", 5)],
 )
 def test_products_with_filtering_with_not_visible_in_listings_as_staff_user(
@@ -332,7 +332,7 @@ def test_products_with_filtering_with_not_visible_in_listings_as_staff_user(
 
 
 @pytest.mark.parametrize(
-    "tested_field, attribute_count",
+    ("tested_field", "attribute_count"),
     [
         ("inCategory", 0),
         # Products not visible in listings should be visible in collections
@@ -369,7 +369,7 @@ def test_products_with_filtering_with_not_visible_in_listings_as_anonymous_clien
 
 
 @pytest.mark.parametrize(
-    "tested_field, attribute_count",
+    ("tested_field", "attribute_count"),
     [("inCategory", 5), ("inCollection", 5)],
 )
 def test_products_with_filtering_with_not_published_as_staff_user(
@@ -408,7 +408,7 @@ def test_products_with_filtering_with_not_published_as_staff_user(
 
 
 @pytest.mark.parametrize(
-    "tested_field, attribute_count",
+    ("tested_field", "attribute_count"),
     [("inCategory", 0), ("inCollection", 0)],
 )
 def test_products_with_filtering_with_not_published_as_anonymous_client(

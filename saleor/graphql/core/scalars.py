@@ -5,7 +5,6 @@ from graphene.types.generic import GenericScalar
 from graphql.error import GraphQLError
 from graphql.language import ast
 from measurement.measures import Weight
-from six import string_types
 
 from ...core.weight import (
     convert_weight_to_default_weight_unit,
@@ -160,7 +159,7 @@ class Date(graphene.Date):
     def parse_value(value):
         # The parse_value method is overridden to handle the empty string.
         # The current graphene version returning unhandled `IndexError`.
-        if isinstance(value, string_types) and not value:
+        if isinstance(value, str) and not value:
             return None
         return super(Date, Date).parse_value(value)
 

@@ -15,7 +15,7 @@ from ....webhook.transport.utils import (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def payment_method_response():
     return {
         "id": "method-1",

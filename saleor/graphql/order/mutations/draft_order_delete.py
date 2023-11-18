@@ -2,6 +2,8 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
+from ....discount.models import VoucherCode
+from ....discount.utils import release_voucher_code_usage
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
@@ -58,3 +60,10 @@ class DraftOrderDelete(
     @classmethod
     def get_instance_channel_id(cls, instance):
         return instance.channel_id
+
+    @classmethod
+    def post_save_action(cls, info, instance, _):
+        if code := instance.voucher_code:
+            if voucher_code := VoucherCode.objects.filter(code=code).first():
+                voucher = voucher_code.voucher
+                release_voucher_code_usage(voucher_code, voucher, None)

@@ -186,7 +186,7 @@ def test_get_goods(
 
 
 @pytest.mark.parametrize(
-    "refund_amount, discount_goods",
+    ("refund_amount", "discount_goods"),
     [
         (Decimal("0.00"), []),
         (

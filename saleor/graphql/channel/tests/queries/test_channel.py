@@ -99,7 +99,7 @@ def test_query_channel_by_invalid_id(staff_api_client, channel_USD):
     response = staff_api_client.post_graphql(QUERY_CHANNEL, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: Channel."
     assert content["data"]["channel"] is None
 
 
@@ -291,9 +291,9 @@ QUERY_CHANNEL_ORDER_SETTINGS = """
                 automaticallyFulfillNonShippableGiftCard
                 expireOrdersAfter
                 markAsPaidStrategy
-                defaultTransactionFlowStrategy
                 deleteExpiredOrdersAfter
                 allowUnpaidOrders
+                includeDraftOrderInVoucherUsage
             }
         }
     }
@@ -339,16 +339,16 @@ def test_query_channel_order_settings_as_staff_user(
         == channel_USD.expire_orders_after
     )
     assert (
-        channel_data["orderSettings"]["defaultTransactionFlowStrategy"]
-        == channel_USD.default_transaction_flow_strategy.upper()
-    )
-    assert (
         channel_data["orderSettings"]["deleteExpiredOrdersAfter"]
         == channel_USD.delete_expired_orders_after.days
     )
     assert (
         channel_data["orderSettings"]["allowUnpaidOrders"]
         == channel_USD.allow_unpaid_orders
+    )
+    assert (
+        channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"]
+        == channel_USD.include_draft_order_in_voucher_usage
     )
 
 
@@ -393,8 +393,8 @@ def test_query_channel_order_settings_as_app(
         == channel_USD.expire_orders_after
     )
     assert (
-        channel_data["orderSettings"]["defaultTransactionFlowStrategy"]
-        == channel_USD.default_transaction_flow_strategy.upper()
+        channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"]
+        == channel_USD.include_draft_order_in_voucher_usage
     )
 
 

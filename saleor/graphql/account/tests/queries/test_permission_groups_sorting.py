@@ -17,8 +17,8 @@ query ($sort_by: PermissionGroupSortingInput!) {
 
 
 @pytest.mark.parametrize(
-    "permission_group_sort, result",
-    (
+    ("permission_group_sort", "result"),
+    [
         (
             {"field": "NAME", "direction": "ASC"},
             ["Add", "Manage user group.", "Remove"],
@@ -27,7 +27,7 @@ query ($sort_by: PermissionGroupSortingInput!) {
             {"field": "NAME", "direction": "DESC"},
             ["Remove", "Manage user group.", "Add"],
         ),
-    ),
+    ],
 )
 def test_permission_group_with_sort(
     permission_group_manage_users,

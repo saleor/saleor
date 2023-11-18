@@ -18,7 +18,7 @@ QUERY_CUSTOMERS_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "customer_sort, result_order",
+    ("customer_sort", "result_order"),
     [
         ({"field": "FIRST_NAME", "direction": "ASC"}, ["Joe", "John", "Leslie"]),
         ({"field": "FIRST_NAME", "direction": "DESC"}, ["Leslie", "John", "Joe"]),
@@ -136,7 +136,7 @@ def customers_for_pagination(db):
 
 
 @pytest.mark.parametrize(
-    "customer_sort, result_order",
+    ("customer_sort", "result_order"),
     [
         ({"field": "FIRST_NAME", "direction": "ASC"}, ["Joe", "John", "Leslie"]),
         ({"field": "FIRST_NAME", "direction": "DESC"}, ["Leslie", "John", "Joe"]),

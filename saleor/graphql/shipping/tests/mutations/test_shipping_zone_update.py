@@ -570,8 +570,7 @@ def test_update_shipping_zone_add_invalid_warehouses(
     channel_PLN,
     channel_JPY,
 ):
-    """Ensure an error is raised when the warehouse that has not a common
-    channel with shipping zone is added."""
+    """Test that a warehouse can't be added to a shipping zone with no shared channels."""
     # given
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     # warehouse with common USD channel
@@ -620,8 +619,7 @@ def test_update_shipping_zone_add_warehouse_without_any_channel(
     permission_manage_shipping,
     channel_PLN,
 ):
-    """Ensure an error is raised when the warehouse that has not a common
-    channel with shipping zone is added."""
+    """Test that warehouse cannot be added to a shipping zone that does not share any channels."""
     # given
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
 
@@ -659,8 +657,7 @@ def test_update_shipping_zone_add_warehouses_and_remove_common_channel(
     channel_USD,
     permission_manage_shipping,
 ):
-    """Ensure an error is raised when the warehouse is added and common channel
-    with the shipping zone is removed."""
+    """Test that a warehouse cannot be added to a shipping zone while removing all shared channels."""
     # given
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
@@ -696,8 +693,7 @@ def test_update_shipping_zone_remove_channels_remove_common_warehouse_channel(
     channel_PLN,
     permission_manage_shipping,
 ):
-    """Ensure the shipping zone to channel relation is deleted when common channel
-    is removed from shipping zone."""
+    """Test that the shipping zone to channel relation is deleted when the shipping zone is detached."""
     # given
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
@@ -736,13 +732,13 @@ def test_update_shipping_zone_remove_channels_remove_common_warehouse_channel(
 
 
 @pytest.mark.parametrize(
-    "input, expected_countries",
-    (
+    ("input", "expected_countries"),
+    [
         ({"default": True, "countries": ["PL"]}, [{"code": "PL"}]),
         ({"default": True, "countries": []}, []),
         ({"default": True, "countries": None}, []),
         ({"default": True}, []),
-    ),
+    ],
 )
 def test_shipping_method_update_countries(
     staff_api_client,

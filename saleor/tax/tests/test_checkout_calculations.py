@@ -26,7 +26,7 @@ def _enable_flat_rates(checkout, prices_entered_with_tax):
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("40.00", "49.20", "0.0", False),
         ("30.08", "37.00", "3.0", True),
@@ -73,7 +73,7 @@ def test_calculate_checkout_total(
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("20.33", "25.00", "0.0", True),
         ("20.00", "24.60", "5.0", False),
@@ -84,7 +84,6 @@ def test_calculate_checkout_total_with_sale(
     address,
     shipping_zone,
     voucher,
-    discount_info,
     expected_net,
     expected_gross,
     voucher_amount,
@@ -191,7 +190,7 @@ def test_calculate_checkout_total_default_tax_rate_for_country(
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("40.00", "49.20", "0.0", False),
         ("30.08", "37.00", "3.0", True),
@@ -240,7 +239,7 @@ def test_calculate_checkout_total_with_shipping_voucher(
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("20.33", "25.00", "0.0", True),
         ("20.00", "24.60", "5.0", False),
@@ -250,7 +249,6 @@ def test_calculate_checkout_total_with_shipping_voucher_and_sale(
     checkout_with_item_on_promotion,
     address,
     shipping_zone,
-    discount_info,
     voucher_shipping_type,
     expected_net,
     expected_gross,
@@ -294,7 +292,7 @@ def test_calculate_checkout_total_with_shipping_voucher_and_sale(
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("40.65", "50.00", True),
         ("50.00", "61.50", False),
@@ -773,7 +771,6 @@ def test_calculate_checkout_line_total_with_shipping_voucher(
 def test_calculate_checkout_shipping(
     checkout_with_item,
     shipping_zone,
-    discount_info,
     address,
 ):
     # given
@@ -806,7 +803,6 @@ def test_calculate_checkout_shipping(
 
 def test_calculate_checkout_shipping_no_shipping_price(
     checkout_with_item,
-    discount_info,
     address,
     warehouse_for_cc,
 ):
@@ -839,7 +835,6 @@ def test_calculate_checkout_shipping_no_shipping_price(
 def test_calculate_checkout_shipping_voucher_on_shipping(
     checkout_with_item,
     shipping_zone,
-    discount_info,
     address,
     voucher_shipping_type,
 ):
@@ -884,7 +879,6 @@ def test_calculate_checkout_shipping_voucher_on_shipping(
 def test_calculate_checkout_shipping_free_shipping_voucher(
     checkout_with_item,
     shipping_zone,
-    discount_info,
     address,
     voucher_shipping_type,
 ):
@@ -923,7 +917,6 @@ def test_calculate_checkout_shipping_free_shipping_voucher(
 def test_calculate_checkout_shipping_free_entire_order_voucher(
     checkout_with_item,
     shipping_zone,
-    discount_info,
     address,
     voucher,
 ):

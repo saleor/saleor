@@ -345,14 +345,14 @@ def test_update_default_sender_settings(staff_api_client, permission_manage_sett
 
 @pytest.mark.parametrize(
     "sender_name",
-    (
+    [
         "\nDummy Name",
         "\rDummy Name",
         "Dummy Name\r",
         "Dummy Name\n",
         "Dummy\rName",
         "Dummy\nName",
-    ),
+    ],
 )
 def test_update_default_sender_settings_invalid_name(
     staff_api_client, permission_manage_settings, sender_name
@@ -378,14 +378,14 @@ def test_update_default_sender_settings_invalid_name(
 
 @pytest.mark.parametrize(
     "sender_email",
-    (
+    [
         "\ndummy@example.com",
         "\rdummy@example.com",
         "dummy@example.com\r",
         "dummy@example.com\n",
         "dummy@example\r.com",
         "dummy@example\n.com",
-    ),
+    ],
 )
 def test_update_default_sender_settings_invalid_email(
     staff_api_client, permission_manage_settings, sender_email

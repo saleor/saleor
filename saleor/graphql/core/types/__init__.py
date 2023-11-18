@@ -66,6 +66,7 @@ from .common import (
     TranslationBulkError,
     TranslationError,
     UploadError,
+    VoucherCodeBulkDeleteError,
     WarehouseError,
     WebhookDryRunError,
     WebhookError,
@@ -179,4 +180,5 @@ __all__ = [
     "DateFilterInput",
     "DateTimeFilterInput",
     "IconThumbnailField",
+    "VoucherCodeBulkDeleteError",
 ]

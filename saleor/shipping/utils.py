@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from django_countries import countries
 
@@ -55,8 +55,8 @@ def convert_to_shipping_method_data(
 
 
 def initialize_shipping_method_active_status(
-    shipping_methods: List["ShippingMethodData"],
-    excluded_methods: List["ExcludedShippingMethod"],
+    shipping_methods: list["ShippingMethodData"],
+    excluded_methods: list["ExcludedShippingMethod"],
 ):
     reason_map = {str(method.id): method.reason for method in excluded_methods}
     for instance in shipping_methods:

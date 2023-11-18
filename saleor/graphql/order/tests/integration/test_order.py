@@ -10,7 +10,7 @@ from ..mutations.test_order_fulfill import ORDER_FULFILL_MUTATION
 
 
 @pytest.mark.integration
-def test_user_cannot_manage_order_after_loosing_the_channel_access(
+def test_user_cannot_manage_order_after_losing_access_to_channel(
     staff_api_client,
     superuser_api_client,
     permission_group_manage_orders,
@@ -19,8 +19,6 @@ def test_user_cannot_manage_order_after_loosing_the_channel_access(
     warehouse,
     channel_PLN,
 ):
-    """Ensure that staff user cannot cancel fulfillment after loosing the access
-    to order channel."""
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     permission_group_all_perms_all_channels.user_set.add(superuser_api_client.user)

@@ -1,6 +1,6 @@
 import copy
 import logging
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 from faker import Faker
 
@@ -43,7 +43,7 @@ def generate_fake_user() -> "User":
     return fake_user
 
 
-def generate_fake_metadata() -> Dict[str, str]:
+def generate_fake_metadata() -> dict[str, str]:
     """Generate a fake metadata/private metadata dictionary."""
     return fake.pydict(value_types=str)
 

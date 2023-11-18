@@ -75,7 +75,7 @@ def test_tax_classes_filter_by_ids(staff_api_client):
     assert edges[0]["node"]["id"] == id
 
 
-@pytest.mark.parametrize("country, count", [("PL", 1), ("US", 0)])
+@pytest.mark.parametrize(("country", "count"), [("PL", 1), ("US", 0)])
 def test_tax_classes_filter_by_countries(country, count, staff_api_client):
     # given
     filter = {"filter": {"countries": [country]}}

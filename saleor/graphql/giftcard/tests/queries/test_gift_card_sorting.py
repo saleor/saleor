@@ -25,7 +25,7 @@ QUERY_GIFT_CARDS = """
 
 @pytest.mark.parametrize(
     "direction",
-    ("ASC", "DESC"),
+    ["ASC", "DESC"],
 )
 def test_sorting_gift_cards_by_current_balance(
     direction,
@@ -95,7 +95,7 @@ def test_sorting_gift_cards_by_current_balance_no_currency_in_filter(
 
 @pytest.mark.parametrize(
     "direction",
-    ("ASC", "DESC"),
+    ["ASC", "DESC"],
 )
 def test_sorting_gift_cards_by_product(
     direction,
@@ -140,7 +140,7 @@ def test_sorting_gift_cards_by_product(
 
 @pytest.mark.parametrize(
     "direction",
-    ("ASC", "DESC"),
+    ["ASC", "DESC"],
 )
 def test_sorting_gift_cards_by_used_by(
     direction,
@@ -182,7 +182,7 @@ def test_sorting_gift_cards_by_used_by(
 
 @pytest.mark.parametrize(
     "direction",
-    ("ASC", "DESC"),
+    ["ASC", "DESC"],
 )
 def test_sorting_gift_cards_by_created_at(
     direction,

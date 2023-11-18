@@ -2,7 +2,7 @@ import hashlib
 import importlib
 import json
 from inspect import isclass
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 import opentracing
 import opentracing.tags
@@ -72,7 +72,7 @@ class GraphQLView(View):
         self,
         schema=None,
         executor=None,
-        middleware: Optional[List[str]] = None,
+        middleware: Optional[list[str]] = None,
         root_value=None,
         backend=None,
     ):
@@ -200,7 +200,7 @@ class GraphQLView(View):
 
     def get_response(
         self, request: HttpRequest, data: dict
-    ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
+    ) -> tuple[Optional[dict[str, list[Any]]], int]:
         with observability.report_gql_operation() as operation:
             execution_result = self.execute_graphql_request(request, data)
             status_code = 200
@@ -216,7 +216,7 @@ class GraphQLView(View):
                     response["data"] = execution_result.data
                 if execution_result.extensions:
                     response["extensions"] = execution_result.extensions
-                result: Optional[Dict[str, List[Any]]] = response
+                result: Optional[dict[str, list[Any]]] = response
             else:
                 result = None
             operation.result = result
@@ -228,7 +228,7 @@ class GraphQLView(View):
 
     def parse_query(
         self, query: Optional[str]
-    ) -> Tuple[Optional[GraphQLDocument], Optional[ExecutionResult]]:
+    ) -> tuple[Optional[GraphQLDocument], Optional[ExecutionResult]]:
         """Attempt to parse a query (mandatory) to a gql document object.
 
         If no query was given or query is not a string, it returns an error.
@@ -308,7 +308,7 @@ class GraphQLView(View):
                 result = ExecutionResult(errors=cost_errors, invalid=True)
                 return set_query_cost_on_result(result, query_cost)
 
-            extra_options: Dict[str, Optional[Any]] = {}
+            extra_options: dict[str, Optional[Any]] = {}
 
             if self.executor:
                 # We only include it optionally since

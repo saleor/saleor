@@ -67,7 +67,7 @@ def test_query_promotions_filter_by_ids_empty_values(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         ({"eq": "Promotion 2"}, [1]),
         ({"eq": "Non-existing"}, []),
@@ -100,7 +100,7 @@ def test_query_promotions_filter_by_name(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         (
             {
@@ -168,7 +168,7 @@ def test_query_promotions_filter_by_end_date(
 
 
 @pytest.mark.parametrize(
-    "where, indexes",
+    ("where", "indexes"),
     [
         (
             {
@@ -233,7 +233,7 @@ def test_query_promotions_filter_by_start_date(
     assert names == {promotion_list[index].name for index in indexes}
 
 
-@pytest.mark.parametrize("value, indexes", [(True, [0]), (False, [1, 2])])
+@pytest.mark.parametrize(("value", "indexes"), [(True, [0]), (False, [1, 2])])
 def test_query_promotions_filter_by_is_old_sale(
     value, indexes, promotion_list, staff_api_client, permission_manage_discounts
 ):

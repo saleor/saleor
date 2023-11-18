@@ -56,12 +56,16 @@ def resolve_draft_orders(info):
 
 @traced_resolver
 def resolve_orders_total(info, period, channel_slug):
+    database_connection_name = get_database_connection_name(info.context)
     if channel_slug is None:
         channel_slug = get_default_channel_slug_or_graphql_error()
-    channel = Channel.objects.filter(slug=str(channel_slug)).first()
+    channel = (
+        Channel.objects.using(database_connection_name)
+        .filter(slug=str(channel_slug))
+        .first()
+    )
     if not channel:
         return None
-    database_connection_name = get_database_connection_name(info.context)
 
     app = get_app_promise(info.context).get()
     if not app:
@@ -107,7 +111,9 @@ def resolve_homepage_events(info):
         # get order events from orders that user has access to
         accessible_channels = get_user_accessible_channels(info, info.context.user)
         channel_ids = [channel.id for channel in accessible_channels]
-        accessible_orders = models.Order.objects.filter(channel_id__in=channel_ids)
+        accessible_orders = models.Order.objects.using(database_connection_name).filter(
+            channel_id__in=channel_ids
+        )
         lookup &= Q(order_id__in=accessible_orders.values("id"))
     return models.OrderEvent.objects.using(database_connection_name).filter(lookup)
 

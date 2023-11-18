@@ -676,9 +676,6 @@ def test_get_not_manageable_permissions_after_group_deleting_some_cannot_be_mana
 def test_get_not_manageable_permissions_removing_users_from_group(
     staff_users, permission_group_manage_users, permission_manage_staff
 ):
-    """Ensure not returning permission when some of users stay in group and groups has
-    manage staff permission.
-    """
     group = permission_group_manage_users
     group.permissions.add(permission_manage_staff)
     group.user_set.add(*staff_users)
@@ -693,9 +690,6 @@ def test_get_not_manageable_permissions_removing_users_from_group(
 def test_get_not_manageable_perms_removing_users_from_group_user_from_group_can_manage(
     staff_users, permission_manage_users, permission_manage_staff
 ):
-    """Ensure not returning permission for group without manage staff permission when
-    some of remaining users from group has manage staff permission from other source.
-    """
     groups = Group.objects.bulk_create(
         [Group(name="manage users"), Group(name="manage staff")]
     )
@@ -718,9 +712,6 @@ def test_get_not_manageable_perms_removing_users_from_group_user_from_group_can_
 def test_get_notmanageable_perms_removing_users_from_group_user_out_of_group_can_manage(
     staff_users, permission_manage_users, permission_manage_staff
 ):
-    """Ensure not returning permission for group, when manageable of all permissions are
-    ensure by other groups.
-    """
     groups = Group.objects.bulk_create(
         [Group(name="manage users"), Group(name="manage staff and users")]
     )
@@ -746,9 +737,6 @@ def test_get_not_manageable_perms_removing_users_from_group_some_cannot_be_manag
     permission_manage_staff,
     permission_manage_orders,
 ):
-    """Ensure returning permission for group, when manageable of all permissions are not
-    ensure by other groups.
-    """
     groups = Group.objects.bulk_create(
         [
             Group(name="manage users"),
@@ -780,8 +768,6 @@ def test_get_not_manageable_permissions_when_deactivate_or_remove_user_no_permis
     permission_manage_staff,
     permission_manage_orders,
 ):
-    """Ensure user can be deactivated or removed when manageable of all permissions are
-    ensure by other users."""
     groups = Group.objects.bulk_create(
         [
             Group(name="manage users"),
@@ -813,8 +799,6 @@ def test_get_not_manageable_permissions_when_deactivate_or_remove_users_some_per
     permission_manage_staff,
     permission_manage_orders,
 ):
-    """Ensure user cannot be deactivated or removed when manageable of all permissions
-    are not ensure by other users."""
     groups = Group.objects.bulk_create(
         [
             Group(name="manage users"),
@@ -915,8 +899,6 @@ def test_get_not_manageable_permissions_after_removing_perms_from_group_some_can
     permission_manage_staff,
     permission_manage_orders,
 ):
-    """Ensure permissions are returned when not all perms will be manageable after
-    removing permissions from group."""
     groups = Group.objects.bulk_create(
         [
             Group(name="manage users and products"),

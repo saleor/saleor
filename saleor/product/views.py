@@ -24,14 +24,14 @@ def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotF
     digital_content.content_file.open()
     opened_file = digital_content.content_file.file
     filename = os.path.basename(digital_content.content_file.name)
-    file_expr = 'filename="{}"'.format(filename)
+    file_expr = f'filename="{filename}"'
 
     content_type = mimetypes.guess_type(str(filename))[0]
     response = FileResponse(opened_file)
     response["Content-Length"] = digital_content.content_file.size
 
     response["Content-Type"] = str(content_type)
-    response["Content-Disposition"] = "attachment; {}".format(file_expr)
+    response["Content-Disposition"] = f"attachment; {file_expr}"
 
     increment_download_count(content_url)
     return response

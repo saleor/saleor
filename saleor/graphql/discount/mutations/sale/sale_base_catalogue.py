@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import DefaultDict, Set, Union
+from typing import Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -18,7 +18,7 @@ from ...utils import (
 )
 from ..voucher.voucher_add_catalogues import CatalogueInput
 
-CatalogueInfo = DefaultDict[str, Set[Union[int, str]]]
+CatalogueInfo = defaultdict[str, set[Union[int, str]]]
 
 
 class SaleBaseCatalogueMutation(BaseMutation):

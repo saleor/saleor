@@ -140,11 +140,7 @@ class SiteSettingsTranslation(Translation):
 
     def __repr__(self):
         class_ = type(self)
-        return "%s(pk=%r, site_settings_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.site_settings_id,
-        )
+        return f"{class_.__name__}(pk={self.pk!r}, site_settings_pk={self.site_settings_id!r})"
 
     def get_translated_object_id(self):
         return "Shop", self.site_settings_id

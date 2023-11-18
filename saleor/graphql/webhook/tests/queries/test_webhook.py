@@ -159,7 +159,10 @@ def test_webhook_query_invalid_id(staff_api_client, webhook, permission_manage_a
     response = staff_api_client.post_graphql(QUERY_WEBHOOK, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {webhook_id}."
+    assert (
+        content["errors"][0]["message"]
+        == f"Invalid ID: {webhook_id}. Expected: Webhook."
+    )
     assert content["data"]["webhook"] is None
 
 

@@ -1,5 +1,5 @@
 import base64
-from typing import List, Optional, Type, Union
+from typing import Optional, Union
 
 import graphene
 
@@ -22,6 +22,7 @@ from ...thumbnail.utils import (
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection
+from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
@@ -326,7 +327,7 @@ class AppBrandLogo(BaseObjectType):
 
         if isinstance(root, models.App):
             object_type = "App"
-            dataloader: Type[DataLoader] = ThumbnailByAppIdSizeAndFormatLoader
+            dataloader: type[DataLoader] = ThumbnailByAppIdSizeAndFormatLoader
         elif isinstance(root, models.AppInstallation):
             object_type = "AppInstallation"
             dataloader = ThumbnailByAppInstallationIdSizeAndFormatLoader
@@ -477,7 +478,9 @@ class AppToken(BaseObjectType):
     @staticmethod
     def get_node(info: ResolveInfo, id):
         try:
-            return models.AppToken.objects.get(pk=id)
+            return models.AppToken.objects.using(
+                get_database_connection_name(info.context)
+            ).get(pk=id)
         except models.AppToken.DoesNotExist:
             return None
 
@@ -562,9 +565,11 @@ class App(ModelObjectType[models.App]):
         return root.created_at
 
     @staticmethod
-    def resolve_permissions(root: models.App, _info: ResolveInfo):
-        permissions = root.permissions.prefetch_related("content_type").order_by(
-            "codename"
+    def resolve_permissions(root: models.App, info: ResolveInfo):
+        permissions = (
+            root.permissions.using(get_database_connection_name(info.context))
+            .prefetch_related("content_type")
+            .order_by("codename")
         )
         return format_permissions_for_display(permissions)
 
@@ -587,7 +592,7 @@ class App(ModelObjectType[models.App]):
         return AppExtensionByAppIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def __resolve_references(roots: List["App"], info: ResolveInfo):
+    def __resolve_references(roots: list["App"], info: ResolveInfo):
         from .resolvers import resolve_apps
 
         requestor = get_user_or_app_from_context(info.context)

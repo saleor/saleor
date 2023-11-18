@@ -1,6 +1,6 @@
+from django.apps import apps as registry
 from django.db import migrations
 from django.db.models.signals import post_migrate
-from django.apps import apps as registry
 
 from ...core.search_tasks import set_order_search_document_values
 

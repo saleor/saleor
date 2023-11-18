@@ -1,7 +1,7 @@
 from decimal import Decimal
 from operator import attrgetter
 from re import match
-from typing import TYPE_CHECKING, List, Optional, cast
+from typing import TYPE_CHECKING, Optional, cast
 from uuid import uuid4
 
 from django.conf import settings
@@ -306,6 +306,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
     )
+
+    voucher_code = models.CharField(
+        max_length=255, null=True, blank=True, db_index=False
+    )
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="orders")
     display_gross_prices = models.BooleanField(default=True)
     customer_note = models.TextField(blank=True, default="")
@@ -348,6 +352,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
                 opclasses=["gin_trgm_ops"],
             ),
             models.Index(fields=["created_at"], name="idx_order_created_at"),
+            GinIndex(fields=["voucher_code"], name="order_voucher_code_idx"),
         ]
 
     def is_fully_paid(self):
@@ -363,16 +368,16 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return self.user_email
 
     def __repr__(self):
-        return "<Order #%r>" % (self.id,)
+        return f"<Order #{self.id!r}>"
 
     def __str__(self):
-        return "#%d" % (self.id,)
+        return f"#{self.id}"
 
     def get_last_payment(self) -> Optional[Payment]:
         # Skipping a partial payment is a temporary workaround for storing a basic data
         # about partial payment from Adyen plugin. This is something that will removed
         # in 3.1 by introducing a partial payments feature.
-        payments: List[Payment] = [
+        payments: list[Payment] = [
             payment for payment in self.payments.all() if not payment.partial
         ]
         return max(payments, default=None, key=attrgetter("pk"))

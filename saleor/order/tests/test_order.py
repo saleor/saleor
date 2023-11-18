@@ -14,6 +14,7 @@ from ...discount.models import (
     NotApplicable,
     Voucher,
     VoucherChannelListing,
+    VoucherCode,
     VoucherType,
 )
 from ...discount.utils import validate_voucher_in_order
@@ -28,7 +29,7 @@ from ...tests.fixtures import recalculate_order
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
-from .. import FulfillmentStatus, OrderEvents, OrderStatus
+from .. import FulfillmentStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from ..calculations import fetch_order_prices_if_expired
 from ..events import (
     OrderEventsEmails,
@@ -704,7 +705,13 @@ def test_validate_voucher_in_order_without_voucher(
 
 
 @pytest.mark.parametrize(
-    "subtotal, discount_value, discount_type, min_spent_amount, expected_value",
+    (
+        "subtotal",
+        "discount_value",
+        "discount_type",
+        "min_spent_amount",
+        "expected_value",
+    ),
     [
         ("100", 10, DiscountValueType.FIXED, None, 10),
         ("100.05", 10, DiscountValueType.PERCENTAGE, 100, Decimal("10.01")),
@@ -720,10 +727,10 @@ def test_value_voucher_order_discount(
     address_usa,
 ):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_type,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -744,7 +751,7 @@ def test_value_voucher_order_discount(
 
 
 @pytest.mark.parametrize(
-    "shipping_cost, discount_value, discount_type, expected_value",
+    ("shipping_cost", "discount_value", "discount_type", "expected_value"),
     [(10, 50, DiscountValueType.PERCENTAGE, 5), (10, 20, DiscountValueType.FIXED, 10)],
 )
 def test_shipping_voucher_order_discount(
@@ -756,10 +763,10 @@ def test_shipping_voucher_order_discount(
     address_usa,
 ):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -783,8 +790,13 @@ def test_shipping_voucher_order_discount(
 
 
 @pytest.mark.parametrize(
-    "total, total_quantity, min_spent_amount, min_checkout_items_quantity,"
-    "voucher_type",
+    (
+        "total",
+        "total_quantity",
+        "min_spent_amount",
+        "min_checkout_items_quantity",
+        "voucher_type",
+    ),
     [
         (99, 10, 100, 10, VoucherType.SHIPPING),
         (100, 9, 100, 10, VoucherType.SHIPPING),
@@ -807,11 +819,11 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
     address_usa,
 ):
     voucher = Voucher.objects.create(
-        code="unique",
         type=voucher_type,
         discount_value_type=DiscountValueType.FIXED,
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -834,7 +846,7 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
 
 
 @pytest.mark.parametrize(
-    "discount_value, discount_type, apply_once_per_order, discount_amount",
+    ("discount_value", "discount_type", "apply_once_per_order", "discount_amount"),
     [
         (5, DiscountValueType.FIXED, True, "5"),
         (5, DiscountValueType.FIXED, False, "25"),
@@ -853,11 +865,11 @@ def test_get_discount_for_order_specific_products_voucher(
     channel_USD,
 ):
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=discount_type,
         apply_once_per_order=apply_once_per_order,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -876,10 +888,10 @@ def test_product_voucher_checkout_discount_raises_not_applicable(
 ):
     discounted_product = product_with_images
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -901,10 +913,10 @@ def test_category_voucher_checkout_discount_raises_not_applicable(
         name="Discounted", slug="discount"
     )
     voucher = Voucher.objects.create(
-        code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
     )
+    VoucherCode.objects.create(code="unique", voucher=voucher)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -966,7 +978,7 @@ def test_change_order_line_quantity_changes_total_prices(
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @pytest.mark.parametrize(
-    "has_standard,has_digital", ((True, True), (True, False), (False, True))
+    ("has_standard", "has_digital"), [(True, True), (True, False), (False, True)]
 )
 def test_send_fulfillment_order_lines_mails_by_user(
     mocked_notify,
@@ -1010,7 +1022,7 @@ def test_send_fulfillment_order_lines_mails_by_user(
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @pytest.mark.parametrize(
-    "has_standard,has_digital", ((True, True), (True, False), (False, True))
+    ("has_standard", "has_digital"), [(True, True), (True, False), (False, True)]
 )
 def test_send_fulfillment_order_lines_mails_by_app(
     mocked_notify,
@@ -1053,7 +1065,7 @@ def test_send_fulfillment_order_lines_mails_by_app(
 
 
 @pytest.mark.parametrize(
-    "event_fun, expected_event_type",
+    ("event_fun", "expected_event_type"),
     [
         (event_order_confirmation_notification, OrderEventsEmails.ORDER_CONFIRMATION),
         (event_payment_confirmed_notification, OrderEventsEmails.PAYMENT),
@@ -1077,7 +1089,7 @@ def test_email_sent_event_with_user(order, event_fun, expected_event_type):
 
 
 @pytest.mark.parametrize(
-    "event_fun, expected_event_type",
+    ("event_fun", "expected_event_type"),
     [
         (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
         (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
@@ -1106,7 +1118,7 @@ def test_email_sent_event_with_user_without_app(order, event_fun, expected_event
 
 
 @pytest.mark.parametrize(
-    "event_fun, expected_event_type",
+    ("event_fun", "expected_event_type"),
     [
         (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
         (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
@@ -1134,7 +1146,7 @@ def test_email_sent_event_with_app(order, app, event_fun, expected_event_type):
 
 
 @pytest.mark.parametrize(
-    "event_fun, expected_event_type",
+    ("event_fun", "expected_event_type"),
     [
         (event_order_confirmation_notification, OrderEventsEmails.ORDER_CONFIRMATION),
         (event_payment_confirmed_notification, OrderEventsEmails.PAYMENT),
@@ -1157,7 +1169,7 @@ def test_email_sent_event_without_user_pk(order, event_fun, expected_event_type)
 
 
 @pytest.mark.parametrize(
-    "event_fun, expected_event_type",
+    ("event_fun", "expected_event_type"),
     [
         (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
         (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
@@ -1536,3 +1548,56 @@ def test_add_variant_to_order_adds_translations_in_order_language(
         == get_translation(variant.product, language_code).name
     )
     assert line.translated_variant_name == get_translation(variant, language_code).name
+
+
+@pytest.mark.parametrize(
+    ("granted_refund_amount", "charged_amount", "expected_charge_status"),
+    [
+        # granted refund contains part of the order's total, charge amount is 0
+        (Decimal("10.40"), Decimal("0"), OrderChargeStatus.NONE),
+        # granted refund covers the whole order's total, charge amount is 0
+        # status is FULL, as the order total - granted refund amount is 0.
+        # It means that a charge amount equal to 0 fully covers the order total (0)
+        (Decimal("98.40"), Decimal("0"), OrderChargeStatus.FULL),
+        (Decimal("0"), Decimal("0"), OrderChargeStatus.NONE),
+        (Decimal("0"), Decimal("11.00"), OrderChargeStatus.PARTIAL),
+        (Decimal("4"), Decimal("11.00"), OrderChargeStatus.PARTIAL),
+        # granted refund covers 88.40 of total, which is 98.40. Charge amount is 10.
+        # status is FULL, as the order total - granted refund amount is 10.
+        (Decimal("88.40"), Decimal("10.00"), OrderChargeStatus.FULL),
+        (Decimal("0"), Decimal("98.40"), OrderChargeStatus.FULL),
+        # granted refund covers 88.40 of total, which is 98.40. Charge amount is 98.40.
+        # status is OVERCHARGED as the charge amount is greater than the order
+        # total - granted refund amount
+        (Decimal("88.40"), Decimal("98.40"), OrderChargeStatus.OVERCHARGED),
+    ],
+)
+def test_order_update_charge_status_with_transaction_item_and_granted_refund(
+    granted_refund_amount,
+    charged_amount,
+    expected_charge_status,
+    order_with_lines,
+    staff_user,
+):
+    # given
+    assert order_with_lines.total.gross.amount == Decimal("98.40")
+    order_with_lines.payment_transactions.create(
+        charged_value=charged_amount,
+        authorized_value=Decimal(12),
+        currency=order_with_lines.currency,
+    )
+
+    order_with_lines.granted_refunds.create(
+        amount_value=granted_refund_amount,
+        currency="USD",
+        reason="Test reason",
+        user=staff_user,
+    )
+
+    # when
+    update_order_charge_data(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+
+    assert order_with_lines.charge_status == expected_charge_status

@@ -3,12 +3,19 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
+import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from .. import RewardValueType
-from ..models import Promotion, PromotionRule
-from ..tasks import fetch_promotion_variants_and_product_ids, handle_promotion_toggle
+from ...order.models import Order
+from .. import DiscountType, RewardValueType
+from ..models import OrderDiscount, OrderLineDiscount, Promotion, PromotionRule
+from ..tasks import (
+    decrease_voucher_codes_usage_task,
+    disconnect_voucher_codes_from_draft_orders_task,
+    fetch_promotion_variants_and_product_ids,
+    handle_promotion_toggle,
+)
 
 
 def test_fetch_promotion_variants_and_product_ids(
@@ -177,3 +184,76 @@ def test_handle_promotion_toggle(
         product_list[0].id,
         product_list[2].id,
     }
+
+
+def test_decrease_voucher_code_usage_task_multiple_use(
+    draft_order_list_with_multiple_use_voucher, voucher_multiple_use
+):
+    # given
+    order_list = draft_order_list_with_multiple_use_voucher
+    voucher = voucher_multiple_use
+    voucher_codes = voucher.codes.all()[: len(order_list)]
+    assert all([voucher_code.used == 1 for voucher_code in voucher_codes])
+    voucher_code_ids = [voucher_code.pk for voucher_code in voucher_codes]
+
+    # when
+    decrease_voucher_codes_usage_task(voucher_code_ids)
+
+    # then
+    voucher_codes = voucher.codes.all()[: len(order_list)]
+    assert all([voucher_code.used == 0 for voucher_code in voucher_codes])
+
+
+def test_decrease_voucher_code_usage_task_single_use(
+    draft_order_list_with_single_use_voucher, voucher_single_use
+):
+    # given
+    order_list = draft_order_list_with_single_use_voucher
+    voucher = voucher_single_use
+    voucher_codes = voucher.codes.all()[: len(order_list)]
+    assert all([voucher_code.is_active is False for voucher_code in voucher_codes])
+    voucher_code_ids = [voucher_code.pk for voucher_code in voucher_codes]
+
+    # when
+    decrease_voucher_codes_usage_task(voucher_code_ids)
+
+    # then
+    voucher_codes = voucher.codes.all()[: len(order_list)]
+    assert all([voucher_code.is_active is True for voucher_code in voucher_codes])
+
+
+def test_disconnect_voucher_codes_from_draft_orders(
+    draft_order_list_with_multiple_use_voucher, order_line
+):
+    # given
+    order_list = draft_order_list_with_multiple_use_voucher
+    order = order_list[0]
+    order.lines.add(order_line)
+
+    order_list_ids = [order.id for order in order_list]
+    assert all([order.voucher_code for order in order_list])
+    for order in order_list:
+        order.should_refresh_prices = False
+    Order.objects.bulk_update(order_list, ["should_refresh_prices"])
+    assert all([order.should_refresh_prices is False for order in order_list])
+
+    voucher_code = order.voucher_code
+    order_discount = OrderDiscount.objects.create(
+        order=order, voucher_code=voucher_code, type=DiscountType.VOUCHER
+    )
+    line_discount = OrderLineDiscount.objects.create(
+        line=order_line, type=DiscountType.VOUCHER
+    )
+
+    # when
+    disconnect_voucher_codes_from_draft_orders_task(order_list_ids)
+
+    # then
+    order_list = Order.objects.filter(id__in=order_list_ids).all()
+    assert all([order.voucher_code is None for order in order_list])
+    assert all([order.should_refresh_prices is True for order in order_list])
+
+    with pytest.raises(line_discount._meta.model.DoesNotExist):
+        line_discount.refresh_from_db()
+    with pytest.raises(order_discount._meta.model.DoesNotExist):
+        order_discount.refresh_from_db()

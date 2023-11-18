@@ -26,11 +26,14 @@ def handle_lines_with_quantity_already_refunded(
     all_granted_refund_lines = models.OrderGrantedRefundLine.objects.filter(
         granted_refund_id__in=all_granted_refund_ids
     )
+    lines_to_process = all_granted_refund_lines
     if granted_refund_lines_to_exclude:
-        all_granted_refund_lines.exclude(pk__in=granted_refund_lines_to_exclude)
+        lines_to_process = all_granted_refund_lines.exclude(
+            pk__in=granted_refund_lines_to_exclude
+        )
 
     lines_with_quantity_already_refunded: dict[uuid.UUID, int] = defaultdict(int)
-    for line in all_granted_refund_lines:
+    for line in lines_to_process:
         lines_with_quantity_already_refunded[line.order_line_id] += line.quantity
 
     for granted_refund_line in input_lines_data.values():

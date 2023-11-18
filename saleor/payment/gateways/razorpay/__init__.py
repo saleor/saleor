@@ -1,7 +1,6 @@
 import logging
 import uuid
 from decimal import Decimal
-from typing import Dict
 
 import opentracing
 import opentracing.tags
@@ -30,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 def _generate_response(
-    payment_information: PaymentData, kind: str, data: Dict
+    payment_information: PaymentData, kind: str, data: dict
 ) -> GatewayResponse:
     """Generate Saleor transaction information from the payload or from passed data."""
     return GatewayResponse(
@@ -63,7 +62,7 @@ def get_error_message_from_razorpay_error(exc: BaseException):
         return errors.SERVER_ERROR
 
 
-def clean_razorpay_response(response: Dict):
+def clean_razorpay_response(response: dict):
     """Convert the Razorpay response to our internal representation.
 
     As the Razorpay response payload contains the final amount

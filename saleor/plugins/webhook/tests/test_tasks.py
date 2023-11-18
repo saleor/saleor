@@ -819,3 +819,75 @@ def test_handle_transaction_request_task_with_available_actions(
         headers=mock.ANY,
         timeout=mock.ANY,
     )
+
+
+@freeze_time("2022-06-11 12:50")
+@mock.patch.object(HTTPSession, "request")
+def test_handle_transaction_request_task_request_event_included_in_calculations(
+    mocked_post_request,
+    transaction_item_generator,
+    permission_manage_payments,
+    staff_user,
+    mocked_webhook_response,
+    app,
+):
+    # given
+    transaction = transaction_item_generator(charged_value=Decimal("100"))
+    expected_psp_reference = "psp:ref:123"
+    mocked_webhook_response.text = json.dumps({"pspReference": expected_psp_reference})
+    mocked_webhook_response.content = json.dumps(
+        {"pspReference": expected_psp_reference}
+    )
+    mocked_post_request.return_value = mocked_webhook_response
+
+    target_url = "http://localhost:3000/"
+    action_value = Decimal("10.00")
+
+    event = transaction.events.create(
+        type=TransactionEventType.REFUND_REQUEST, amount_value=action_value
+    )
+    app.permissions.set([permission_manage_payments])
+
+    webhook = app.webhooks.create(
+        name="webhook",
+        is_active=True,
+        target_url=target_url,
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
+
+    transaction_data = TransactionActionData(
+        transaction=transaction,
+        action_type="refund",
+        action_value=action_value,
+        event=event,
+        transaction_app_owner=app,
+    )
+
+    payload = generate_transaction_action_request_payload(transaction_data, staff_user)
+    event_payload = EventPayload.objects.create(payload=payload)
+    delivery = EventDelivery.objects.create(
+        status=EventDeliveryStatus.PENDING,
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
+        payload=event_payload,
+        webhook=webhook,
+    )
+
+    # when
+    handle_transaction_request_task(delivery.id, transaction_data.event.id)
+
+    # then
+    assert TransactionEvent.objects.count() == 2
+    event.refresh_from_db()
+    transaction.refresh_from_db()
+    assert event.psp_reference == expected_psp_reference
+    assert event.include_in_calculations is True
+
+    assert transaction.amount_refund_pending.amount == action_value
+    mocked_post_request.assert_called_once_with(
+        "POST",
+        target_url,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+        allow_redirects=False,
+    )

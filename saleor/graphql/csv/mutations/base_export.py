@@ -1,4 +1,5 @@
-from typing import Dict, List, Mapping, Union
+from collections.abc import Mapping
+from typing import Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -30,7 +31,7 @@ class BaseExportMutation(BaseMutation):
         return {"all": ""}
 
     @classmethod
-    def clean_ids(cls, input, only_type) -> Dict[str, List[str]]:
+    def clean_ids(cls, input, only_type) -> dict[str, list[str]]:
         ids = input.get("ids", [])
         if not ids:
             raise ValidationError(
@@ -45,7 +46,7 @@ class BaseExportMutation(BaseMutation):
         return {"ids": pks}
 
     @staticmethod
-    def clean_filter(input) -> Dict[str, dict]:
+    def clean_filter(input) -> dict[str, dict]:
         filter = input.get("filter")
         if not filter:
             raise ValidationError(

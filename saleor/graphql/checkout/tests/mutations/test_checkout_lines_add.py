@@ -213,7 +213,6 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     expected_discount_per_single_item = Decimal(25)
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
-    print(data)
     assert not data["errors"]
     checkout.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout)
@@ -283,7 +282,7 @@ def test_checkout_lines_add_with_existing_variant_and_metadata(
     # then
     assert not data["errors"]
     assert line.quantity == 4
-    assert line.metadata == {**old_meta, **{metadata_key: metadata_value}}
+    assert line.metadata == {**old_meta, metadata_key: metadata_value}
 
 
 def test_checkout_lines_add_with_new_variant_and_metadata(
@@ -338,8 +337,7 @@ def test_checkout_lines_add_with_new_variant_and_metadata(
 def test_checkout_lines_add_only_stock_in_cc_warehouse(
     mocked_update_shipping_method, user_api_client, checkout_with_item, warehouse_for_cc
 ):
-    """Ensure the line can be added to the checkout when the only available quantity
-    is in a stock from the collection point warehouse without shipping zone assigned."""
+    """Test that click-and-collect quantities are available if no shipping method is set."""
     # given
     checkout = checkout_with_item
 
@@ -387,9 +385,8 @@ def test_checkout_lines_add_only_stock_in_cc_warehouse(
 def test_checkout_lines_add_only_stock_in_cc_warehouse_delivery_method_set(
     user_api_client, checkout_with_item, warehouse_for_cc, shipping_method
 ):
-    """Ensure the insufficient error is raised when the only available quantity is in
-    a stock from the collection point warehouse without shipping zone assigned
-    and the checkout has shipping method set."""
+    """Test that click-and-collect quantities are unavailable if a non-C&C shipping method is set."""
+
     # given
     checkout = checkout_with_item
 

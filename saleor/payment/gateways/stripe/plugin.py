@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
@@ -155,7 +155,7 @@ class StripeGatewayPlugin(BasePlugin):
 
     def _get_transaction_details_for_stripe_status(
         self, status: str
-    ) -> Tuple[str, bool]:
+    ) -> tuple[str, bool]:
         kind = TransactionKind.AUTH
         action_required = True
 
@@ -457,7 +457,7 @@ class StripeGatewayPlugin(BasePlugin):
 
     def list_payment_sources(
         self, customer_id: str, previous_value
-    ) -> List[CustomerSource]:
+    ) -> list[CustomerSource]:
         if not self.active:
             return previous_value
         payment_methods, error = list_customer_payment_methods(
@@ -528,7 +528,8 @@ class StripeGatewayPlugin(BasePlugin):
         webhook = None
         if not webhook_id and not webhook_secret_data.get("value"):
             webhook = subscribe_webhook(
-                api_key, plugin_configuration.channel.slug  # type: ignore
+                api_key,
+                plugin_configuration.channel.slug,  # type: ignore
             )
 
         if not webhook:

@@ -1,12 +1,17 @@
 import decimal
-from typing import List
 
 import django_filters
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef, Q, Sum
 from django.utils import timezone
 
 from ...discount import DiscountValueType
-from ...discount.models import PromotionRule, Sale, Voucher, VoucherQueryset
+from ...discount.models import (
+    Promotion,
+    PromotionRule,
+    Voucher,
+    VoucherCode,
+    VoucherQueryset,
+)
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.filters import (
     BooleanWhereFilter,
@@ -37,7 +42,7 @@ from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountTyp
 
 
 def filter_status(
-    qs: VoucherQueryset, _, value: List[DiscountStatusEnum]
+    qs: VoucherQueryset, _, value: list[DiscountStatusEnum]
 ) -> VoucherQueryset:
     if not value:
         return qs
@@ -53,11 +58,12 @@ def filter_status(
 
 
 def filter_times_used(qs, _, value):
+    qs = qs.annotate(used=Sum("codes__used"))
     return filter_range_field(qs, "used", value)
 
 
 def filter_discount_type(
-    qs: VoucherQueryset, _, values: List[VoucherDiscountType]
+    qs: VoucherQueryset, _, values: list[VoucherDiscountType]
 ) -> VoucherQueryset:
     if values:
         query = Q()
@@ -98,7 +104,14 @@ def filter_sale_search(qs, _, value):
 
 
 def filter_voucher_search(qs, _, value):
-    return qs.filter(Q(name__ilike=value) | Q(code__ilike=value))
+    return qs.filter(
+        Q(name__ilike=value)
+        | Q(
+            Exists(
+                VoucherCode.objects.filter(code__ilike=value, voucher_id=OuterRef("pk"))
+            )
+        )
+    )
 
 
 def filter_updated_at_range(qs, _, value):
@@ -133,7 +146,7 @@ class SaleFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method=filter_sale_search)
 
     class Meta:
-        model = Sale
+        model = Promotion
         fields = ["status", "sale_type", "started", "search"]
 
 

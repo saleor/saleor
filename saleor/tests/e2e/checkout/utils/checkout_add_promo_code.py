@@ -10,6 +10,17 @@ mutation AddCheckoutPromoCode($checkoutId: ID!, $promoCode: String!) {
           amount
         }
       }
+      subtotalPrice {
+        gross {
+          amount
+        }
+      }
+      shippingPrice {
+        gross {
+          amount
+        }
+      }
+      voucherCode
       discount {
         amount
       }

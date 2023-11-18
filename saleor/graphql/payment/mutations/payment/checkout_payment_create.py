@@ -1,5 +1,3 @@
-from typing import List
-
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -176,7 +174,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def validate_metadata_keys(cls, metadata_list: List[dict]):
+    def validate_metadata_keys(cls, metadata_list: list[dict]):
         if metadata_contains_empty_key(metadata_list):
             raise ValidationError(
                 {

@@ -18,7 +18,7 @@ QUERY_GIFT_CARD_TAGS = """
 
 
 @pytest.mark.parametrize(
-    "value, expected_tag_indexes",
+    ("value", "expected_tag_indexes"),
     [
         ("tag", [0, 1, 2, 3, 4]),
         ("test-tag", [0, 1, 2, 3, 4]),

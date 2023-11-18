@@ -380,8 +380,11 @@ def test_generate_order_payload_no_user_email_but_user_set(
     fulfilled_order,
     customer_user,
 ):
-    """Ensure that the assigned user's email is returned in `user_email` payload field
-    when the user_email order value is empty."""
+    """Test that user email is always set.
+
+    Ensure that the assigned user's email is returned in `user_email` payload field
+    when the user_email order value is empty.
+    """
     # given
     fulfillment_lines = '"fulfillment_lines"'
     mocked_fulfillment_lines.return_value = fulfillment_lines
@@ -609,7 +612,7 @@ def test_order_lines_have_all_required_fields(
 
 
 @pytest.mark.parametrize(
-    "charge_taxes, prices_entered_with_tax",
+    ("charge_taxes", "prices_entered_with_tax"),
     [(False, False), (False, True), (True, False), (True, True)],
 )
 def test_order_lines_for_tax_calculation_have_all_required_fields(
@@ -2122,7 +2125,7 @@ GROSS_AMOUNT = sentinel.GROSS_AMOUNT
 
 
 @pytest.mark.parametrize(
-    "action_type, action_value",
+    ("action_type", "action_value"),
     [
         (TransactionAction.CHARGE, Decimal("5.000")),
         (TransactionAction.REFUND, Decimal("9.000")),
@@ -2205,7 +2208,7 @@ def test_generate_transaction_action_request_payload_for_order(
 
 
 @pytest.mark.parametrize(
-    "action_type, request_type, action_value",
+    ("action_type", "request_type", "action_value"),
     [
         (
             TransactionAction.CHARGE,

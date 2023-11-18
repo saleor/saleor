@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from .....core.tracing import traced_atomic_transaction
 from .....discount.error_codes import DiscountErrorCode
@@ -88,7 +88,7 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
 
     @classmethod
     def add_items_to_catalogue(
-        cls, rules: List[PromotionRule], previous_catalogue_info: CatalogueInfo, input
+        cls, rules: list[PromotionRule], previous_catalogue_info: CatalogueInfo, input
     ) -> Optional[dict]:
         catalogue_info_to_add = cls.get_catalogue_info_from_input(input)
         if any(catalogue_info_to_add):

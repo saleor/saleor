@@ -5,6 +5,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
+import pytest
 from django.utils import timezone
 
 from ...discount import RewardValueType
@@ -145,3 +146,11 @@ def test_update_products_search_vector_task(product):
 
     # then
     assert product.search_index_dirty is False
+
+
+@pytest.mark.slow
+@pytest.mark.limit_memory("50 MB")
+def test_mem_usage_update_products_discounted_prices(lots_of_products_with_variants):
+    update_products_discounted_prices_for_promotion_task(
+        lots_of_products_with_variants.values_list("pk", flat=True)
+    )

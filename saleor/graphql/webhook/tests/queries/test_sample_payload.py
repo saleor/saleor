@@ -14,9 +14,8 @@ SAMPLE_PAYLOAD_QUERY = """
 
 @patch("saleor.graphql.webhook.resolvers.payloads.generate_sample_payload")
 @pytest.mark.parametrize(
-    "event_type, has_access",
+    ("event_type", "has_access"),
     [
-        (WebhookSampleEventTypeEnum.ORDER_CREATED, True),
         (WebhookSampleEventTypeEnum.ORDER_CREATED, True),
         (WebhookSampleEventTypeEnum.ORDER_FULLY_PAID, True),
         (WebhookSampleEventTypeEnum.ORDER_UPDATED, True),
@@ -57,9 +56,8 @@ def test_sample_payload_query_by_app(
 
 @patch("saleor.graphql.webhook.resolvers.payloads.generate_sample_payload")
 @pytest.mark.parametrize(
-    "event_type, has_access",
+    ("event_type", "has_access"),
     [
-        (WebhookSampleEventTypeEnum.ORDER_CREATED, False),
         (WebhookSampleEventTypeEnum.ORDER_CREATED, False),
         (WebhookSampleEventTypeEnum.ORDER_FULLY_PAID, False),
         (WebhookSampleEventTypeEnum.ORDER_UPDATED, False),

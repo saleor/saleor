@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import graphene
@@ -781,7 +782,7 @@ def test_gift_card_metadata_updated(
 
 
 def test_gift_card_export_completed(
-    user_export_file, tmpdir, subscription_gift_card_export_completed_webhook
+    user_export_file, subscription_gift_card_export_completed_webhook, media_root
 ):
     # given
     file_mock = MagicMock(spec=File)
@@ -1236,7 +1237,7 @@ def test_product_metadata_updated(
 
 
 def test_product_export_completed(
-    user_export_file, tmpdir, subscription_product_export_completed_webhook
+    user_export_file, subscription_product_export_completed_webhook, media_root
 ):
     # given
     file_mock = MagicMock(spec=File)
@@ -1867,6 +1868,42 @@ def test_fulfillment_created(fulfillment, subscription_fulfillment_created_webho
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_fulfillment_with_refund_amounts(
+    fulfillment, subscription_fulfillment_created_webhook
+):
+    # given
+    shipping_refund = Decimal("10")
+    total_refund = Decimal("15")
+    fulfillment.shipping_refund_amount = shipping_refund
+    fulfillment.total_refund_amount = total_refund
+    fulfillment.save()
+
+    webhooks = [subscription_fulfillment_created_webhook]
+    event_type = WebhookEventAsyncType.FULFILLMENT_CREATED
+    expected_payload = generate_fulfillment_payload(
+        fulfillment, add_notify_customer_field=True
+    )
+    expected_payload["fulfillment"]["shippingRefundedAmount"] = {
+        "amount": shipping_refund
+    }
+    expected_payload["fulfillment"]["totalRefundedAmount"] = {"amount": total_refund}
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "fulfillment": fulfillment,
+            "notify_customer": True,
+        },
+        webhooks,
+    )
+
+    # then
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_fulfillment_canceled(fulfillment, subscription_fulfillment_canceled_webhook):
     # given
     webhooks = [subscription_fulfillment_canceled_webhook]
@@ -1877,7 +1914,7 @@ def test_fulfillment_canceled(fulfillment, subscription_fulfillment_canceled_web
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
 
     # then
-    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -1918,7 +1955,7 @@ def test_fulfillment_metadata_updated(
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
 
     # then
-    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -1935,7 +1972,7 @@ def test_fulfillment_tracking_number_updated(
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
 
     # then
-    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -2448,6 +2485,32 @@ def test_voucher_metadata_updated(
 
     # then
     expected_payload = generate_voucher_payload(voucher, voucher_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_voucher_code_export_completed(
+    user_export_file, tmpdir, subscription_voucher_code_export_completed_webhook
+):
+    # given
+    file_mock = MagicMock(spec=File)
+    file_mock.name = "temp_file.csv"
+
+    user_export_file.content_file = file_mock
+    user_export_file.save()
+
+    webhooks = [subscription_voucher_code_export_completed_webhook]
+    event_type = WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED
+    export_file_id = graphene.Node.to_global_id("ExportFile", user_export_file.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, user_export_file, webhooks
+    )
+
+    # then
+    expected_payload = generate_export_payload(user_export_file, export_file_id)
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

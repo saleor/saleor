@@ -5,14 +5,10 @@ import graphene
 from django.utils import timezone
 from freezegun import freeze_time
 
-from .....discount import DiscountValueType
+from .....discount import RewardValueType
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.models import Promotion
-from .....discount.tests.sale_converter import convert_sales_to_promotions
-from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
 from ...enums import DiscountValueTypeEnum
-from ...mutations.utils import convert_catalogue_info_to_global_ids
 from ...utils import convert_migrated_sale_predicate_to_catalogue_info
 
 SALE_UPDATE_MUTATION = """
@@ -42,7 +38,8 @@ def test_update_sale(
     updated_webhook_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
     product_list,
 ):
@@ -50,11 +47,12 @@ def test_update_sale(
     query = SALE_UPDATE_MUTATION
 
     # Set discount value type to 'fixed' and change it in mutation
-    sale.type = DiscountValueType.FIXED
-    sale.save(update_fields=["type"])
+    promotion = promotion_converted_from_sale
+    rule = promotion.rules.first()
+    assert rule.reward_value_type == RewardValueType.FIXED
 
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
     new_product_pks = [product.id for product in product_list]
     new_product_ids = [
@@ -62,10 +60,8 @@ def test_update_sale(
         for product_id in new_product_pks
     ]
 
-    convert_sales_to_promotions()
-
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {
             "type": DiscountValueTypeEnum.PERCENTAGE.name,
             "products": new_product_ids,
@@ -81,10 +77,10 @@ def test_update_sale(
     content = get_graphql_content(response)
     assert not content["data"]["saleUpdate"]["errors"]
     data = content["data"]["saleUpdate"]["sale"]
-    assert data["type"] == DiscountValueType.PERCENTAGE.upper()
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    assert data["type"] == RewardValueType.PERCENTAGE.upper()
+    promotion.refresh_from_db()
     rule = promotion.rules.first()
-    assert rule.reward_value_type == DiscountValueType.PERCENTAGE
+    assert rule.reward_value_type == RewardValueType.PERCENTAGE
 
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
         rule.catalogue_predicate
@@ -103,20 +99,21 @@ def test_update_sale_name(
     updated_webhook_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
     product_list,
 ):
     # given
     query = SALE_UPDATE_MUTATION
-
+    promotion = promotion_converted_from_sale
     new_name = "New name"
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
-    convert_sales_to_promotions()
+
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {
             "name": new_name,
         },
@@ -132,7 +129,7 @@ def test_update_sale_name(
     assert not content["data"]["saleUpdate"]["errors"]
     data = content["data"]["saleUpdate"]["sale"]
     assert data["name"] == new_name
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     assert promotion.name == new_name
 
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
@@ -155,25 +152,23 @@ def test_update_sale_start_date_after_current_date_notification_not_sent(
     sale_toggle_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
-    """Ensure the notification is not sent when the start date is set after the current
-    date.
-    """
     # given
     query = SALE_UPDATE_MUTATION
 
-    sale.notification_sent_datetime = None
-    sale.save(update_fields=["notification_sent_datetime"])
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    promotion.last_notification_scheduled_at = None
+    promotion.save(update_fields=["last_notification_scheduled_at"])
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
     start_date = timezone.now() + timedelta(days=1)
-    convert_sales_to_promotions()
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {"startDate": start_date},
     }
 
@@ -187,7 +182,7 @@ def test_update_sale_start_date_after_current_date_notification_not_sent(
     assert not content["data"]["saleUpdate"]["errors"]
     data = content["data"]["saleUpdate"]["sale"]
     assert data["startDate"] == start_date.isoformat()
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     assert promotion.start_date.isoformat() == start_date.isoformat()
     assert promotion.last_notification_scheduled_at is None
 
@@ -212,29 +207,24 @@ def test_update_sale_start_date_before_current_date_notification_already_sent(
     sale_toggle_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
-    """Ensure the notification is not sent when the start date is set before
-    current date and notification was already sent.
-    """
     # given
     query = SALE_UPDATE_MUTATION
-    now = timezone.now()
 
-    # Set discount value type to 'fixed' and change it in mutation
-    sale.type = DiscountValueType.FIXED
-    notification_sent_datetime = now - timedelta(minutes=5)
-    sale.notification_sent_datetime = notification_sent_datetime
-    sale.save(update_fields=["type", "notification_sent_datetime"])
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    last_notification_scheduled_at = timezone.now() - timedelta(minutes=5)
+    promotion.last_notification_scheduled_at = last_notification_scheduled_at
+    promotion.save(update_fields=["last_notification_scheduled_at"])
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
     start_date = timezone.now() - timedelta(days=1)
-    convert_sales_to_promotions()
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {"startDate": start_date},
     }
 
@@ -248,11 +238,11 @@ def test_update_sale_start_date_before_current_date_notification_already_sent(
     assert not content["data"]["saleUpdate"]["errors"]
     data = content["data"]["saleUpdate"]["sale"]
     assert data["startDate"] == start_date.isoformat()
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     assert promotion.start_date.isoformat() == start_date.isoformat()
     assert (
         promotion.last_notification_scheduled_at.isoformat()
-        == notification_sent_datetime.isoformat()
+        == last_notification_scheduled_at.isoformat()
     )
 
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
@@ -276,28 +266,23 @@ def test_update_sale_start_date_before_current_date_notification_sent(
     sale_toggle_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
-    """Ensure the sale_toggle notification is sent and the notification date is set
-    when the start date is set before current date and the notification hasn't been sent
-    before.
-    """
     # given
     query = SALE_UPDATE_MUTATION
 
-    # Set discount value type to 'fixed' and change it in mutation
-    sale.type = DiscountValueType.FIXED
-    sale.notification_sent_datetime = None
-    sale.save(update_fields=["type", "notification_sent_datetime"])
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    promotion.last_notification_scheduled_at = None
+    promotion.save(update_fields=["last_notification_scheduled_at"])
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
     start_date = timezone.now() - timedelta(days=1)
-    convert_sales_to_promotions()
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {"startDate": start_date},
     }
 
@@ -311,7 +296,7 @@ def test_update_sale_start_date_before_current_date_notification_sent(
     assert not content["data"]["saleUpdate"]["errors"]
     data = content["data"]["saleUpdate"]["sale"]
     assert data["startDate"] == start_date.isoformat()
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     assert promotion.start_date.isoformat() == start_date.isoformat()
     assert promotion.last_notification_scheduled_at == timezone.now()
 
@@ -337,25 +322,23 @@ def test_update_sale_end_date_after_current_date_notification_not_sent(
     sale_toggle_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
-    """Ensure the notification is not sent when the end date is set after
-    the current date.
-    """
     # given
     query = SALE_UPDATE_MUTATION
 
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    promotion.start_date = timezone.now() - timedelta(days=1)
+    promotion.save(update_fields=["start_date"])
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
-    sale.start_date = timezone.now() - timedelta(days=1)
-    sale.save(update_fields=["start_date"])
     end_date = timezone.now() + timedelta(days=1)
-    convert_sales_to_promotions()
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {"endDate": end_date},
     }
 
@@ -370,7 +353,7 @@ def test_update_sale_end_date_after_current_date_notification_not_sent(
     data = content["data"]["saleUpdate"]["sale"]
 
     assert data["endDate"] == end_date.isoformat()
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     assert promotion.end_date.isoformat() == end_date.isoformat()
     assert promotion.last_notification_scheduled_at is None
 
@@ -395,31 +378,26 @@ def test_update_sale_end_date_before_current_date_notification_already_sent(
     sale_toggle_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
-    """Ensure the notification is sent when the end date is set before
-    current date, the notification was already sent but the end date was not set before.
-    It means we need to notify about ending the sale.
-    """
     # given
     query = SALE_UPDATE_MUTATION
     now = timezone.now()
 
-    # Set discount value type to 'fixed' and change it in mutation
-    sale.type = DiscountValueType.FIXED
-    notification_sent_datetime = now - timedelta(minutes=5)
-    sale.notification_sent_datetime = notification_sent_datetime
-    sale.start_date = now - timedelta(days=2)
-    sale.save(update_fields=["type", "notification_sent_datetime", "start_date"])
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    last_notification_scheduled_at = now - timedelta(minutes=5)
+    promotion.last_notification_scheduled_at = last_notification_scheduled_at
+    promotion.start_date = now - timedelta(days=2)
+    promotion.save(update_fields=["last_notification_scheduled_at", "start_date"])
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
     end_date = now - timedelta(days=1)
-    convert_sales_to_promotions()
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {"endDate": end_date},
     }
 
@@ -433,7 +411,7 @@ def test_update_sale_end_date_before_current_date_notification_already_sent(
     assert not content["data"]["saleUpdate"]["errors"]
     data = content["data"]["saleUpdate"]["sale"]
     assert data["endDate"] == end_date.isoformat()
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     assert promotion.end_date.isoformat() == end_date.isoformat()
     assert promotion.last_notification_scheduled_at == now
 
@@ -458,29 +436,24 @@ def test_update_sale_end_date_before_current_date_notification_sent(
     sale_toggle_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
-    """Ensure the sale_toggle notification is sent and the notification date is set
-    when the end date is set before current date and the notification hasn't been sent
-    before.
-    """
     # given
     query = SALE_UPDATE_MUTATION
 
-    # Set discount value type to 'fixed' and change it in mutation
-    sale.type = DiscountValueType.FIXED
-    sale.notification_sent_datetime = None
-    sale.start_date = timezone.now() - timedelta(days=2)
-    sale.save(update_fields=["type", "notification_sent_datetime", "start_date"])
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    promotion.last_notification_scheduled_at = None
+    promotion.start_date = timezone.now() - timedelta(days=2)
+    promotion.save(update_fields=["last_notification_scheduled_at", "start_date"])
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
     end_date = timezone.now() - timedelta(days=1)
-    convert_sales_to_promotions()
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {"endDate": end_date},
     }
 
@@ -494,7 +467,7 @@ def test_update_sale_end_date_before_current_date_notification_sent(
     assert not content["data"]["saleUpdate"]["errors"]
     data = content["data"]["saleUpdate"]["sale"]
     assert data["endDate"] == end_date.isoformat()
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     assert promotion.end_date.isoformat() == end_date.isoformat()
     assert promotion.last_notification_scheduled_at == timezone.now()
 
@@ -516,7 +489,8 @@ def test_update_sale_categories(
     updated_webhook_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
     product_list,
     non_default_category,
@@ -524,14 +498,14 @@ def test_update_sale_categories(
     # given
     query = SALE_UPDATE_MUTATION
 
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
-    convert_sales_to_promotions()
     new_category_id = graphene.Node.to_global_id("Category", non_default_category.id)
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {
             "categories": [new_category_id],
         },
@@ -545,7 +519,7 @@ def test_update_sale_categories(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["saleUpdate"]["errors"]
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     predicate = promotion.rules.first().catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
     assert current_catalogue["categories"] == {new_category_id}
@@ -564,7 +538,8 @@ def test_update_sale_collections(
     updated_webhook_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
     product_list,
     published_collection,
@@ -572,16 +547,16 @@ def test_update_sale_collections(
     # given
     query = SALE_UPDATE_MUTATION
 
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
     new_collection_id = graphene.Node.to_global_id(
         "Collection", published_collection.id
     )
-    convert_sales_to_promotions()
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {
             "collections": [new_collection_id],
         },
@@ -595,7 +570,7 @@ def test_update_sale_collections(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["saleUpdate"]["errors"]
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     predicate = promotion.rules.first().catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
     assert current_catalogue["collections"] == {new_collection_id}
@@ -614,7 +589,8 @@ def test_update_sale_variants(
     updated_webhook_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
     product_list,
     preorder_variant_global_threshold,
@@ -622,16 +598,16 @@ def test_update_sale_variants(
     # given
     query = SALE_UPDATE_MUTATION
 
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
-    convert_sales_to_promotions()
     new_variant_id = graphene.Node.to_global_id(
         "ProductVariant", preorder_variant_global_threshold.id
     )
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {
             "variants": [new_variant_id],
         },
@@ -645,7 +621,7 @@ def test_update_sale_variants(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["saleUpdate"]["errors"]
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     predicate = promotion.rules.first().catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
     assert current_catalogue["variants"] == {new_variant_id}
@@ -664,7 +640,8 @@ def test_update_sale_products(
     updated_webhook_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
     product_list,
     published_collection,
@@ -672,14 +649,14 @@ def test_update_sale_products(
     # given
     query = SALE_UPDATE_MUTATION
 
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
-    convert_sales_to_promotions()
     new_product_id = graphene.Node.to_global_id("Product", product_list[-1].id)
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {
             "products": [new_product_id],
         },
@@ -693,7 +670,7 @@ def test_update_sale_products(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["saleUpdate"]["errors"]
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     predicate = promotion.rules.first().catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
     assert current_catalogue["products"] == {new_product_id}
@@ -715,19 +692,19 @@ def test_update_sale_end_date_before_start_date(
     sale_toggle_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
     permission_manage_discounts,
 ):
     # given
     query = SALE_UPDATE_MUTATION
 
-    sale.start_date = timezone.now() + timedelta(days=1)
-    sale.save(update_fields=["start_date"])
+    promotion = promotion_converted_from_sale
+    promotion.start_date = timezone.now() + timedelta(days=1)
+    promotion.save(update_fields=["start_date"])
     end_date = timezone.now() - timedelta(days=1)
-    convert_sales_to_promotions()
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {"endDate": end_date},
     }
 
@@ -751,24 +728,23 @@ def test_update_sale_end_date_before_start_date(
 @freeze_time("2020-03-18 12:00:00")
 def test_update_sale_with_none_values(
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
     permission_manage_discounts,
 ):
     """Ensure that non-required fields can be nullified."""
 
     # given
     query = SALE_UPDATE_MUTATION
+    promotion = promotion_converted_from_sale
 
-    sale.name = "Sale name"
-    sale.type = DiscountValueType.FIXED
+    promotion.name = "Sale name"
     start_date = timezone.now() + timedelta(days=1)
-    sale.start_date = start_date
-    sale.end_date = timezone.now() + timedelta(days=5)
-    sale.save(update_fields=["name", "type", "start_date", "end_date"])
-    convert_sales_to_promotions()
+    promotion.start_date = start_date
+    promotion.end_date = timezone.now() + timedelta(days=5)
+    promotion.save(update_fields=["name", "start_date", "end_date"])
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {
             "name": None,
             "startDate": None,
@@ -790,18 +766,18 @@ def test_update_sale_with_none_values(
     content = get_graphql_content(response)
     assert not content["data"]["saleUpdate"]["errors"]
     data = content["data"]["saleUpdate"]["sale"]
-    assert data["type"] == DiscountValueType.FIXED.upper()
+    assert data["type"] == RewardValueType.FIXED.upper()
     assert data["name"] == "Sale name"
     assert data["startDate"] == start_date.isoformat()
     assert not data["endDate"]
 
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     assert promotion.start_date.isoformat() == start_date.isoformat()
     assert promotion.start_date == start_date
     assert not promotion.end_date
 
     rule = promotion.rules.first()
-    assert rule.reward_value_type == DiscountValueType.FIXED
+    assert rule.reward_value_type == RewardValueType.FIXED
     assert not rule.catalogue_predicate
 
 
@@ -815,14 +791,13 @@ def test_update_sale_with_promotion_id(
     sale_toggle_mock,
     update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
     permission_manage_discounts,
 ):
     # given
     query = SALE_UPDATE_MUTATION
+    promotion = promotion_converted_from_sale
     end_date = timezone.now() - timedelta(days=1)
-    convert_sales_to_promotions()
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
 
     variables = {
         "id": graphene.Node.to_global_id("Promotion", promotion.id),

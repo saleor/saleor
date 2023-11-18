@@ -29,13 +29,13 @@ from ..utils import (
 
 
 @pytest.mark.parametrize(
-    "status, previous_quantity, new_quantity, added_count, removed_count",
-    (
+    ("status", "previous_quantity", "new_quantity", "added_count", "removed_count"),
+    [
         (OrderStatus.DRAFT, 5, 2, 0, 3),
         (OrderStatus.UNCONFIRMED, 2, 5, 3, 0),
         (OrderStatus.UNCONFIRMED, 2, 0, 0, 2),
         (OrderStatus.DRAFT, 5, 5, 0, 0),
-    ),
+    ],
 )
 def test_change_quantity_generates_proper_event(
     status,
@@ -257,17 +257,17 @@ def test_add_variant_to_order(
     order,
     customer_user,
     variant,
-    sale,
+    promotion_with_single_rule,
 ):
     # given
     manager = get_plugins_manager()
     quantity = 4
 
-    sale_channel_listing = sale.channel_listings.get(channel=order.channel)
-
+    promotion = promotion_with_single_rule
+    discount_value = promotion.rules.first().reward_value
     channel_listing = variant.channel_listings.get(channel=order.channel)
     channel_listing.discounted_price_amount = (
-        channel_listing.price.amount - sale_channel_listing.discount_value
+        channel_listing.price.amount - discount_value
     )
     channel_listing.save(update_fields=["discounted_price_amount"])
 

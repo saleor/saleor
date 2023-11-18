@@ -412,7 +412,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(62):
+    with django_assert_num_queries(61):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -430,7 +430,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(62):
+    with django_assert_num_queries(61):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -681,7 +681,7 @@ def test_update_checkout_lines_with_reservations(
         reservation_length=5,
     )
 
-    with django_assert_num_queries(76):
+    with django_assert_num_queries(75):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "id": to_global_id_or_none(checkout),
@@ -695,7 +695,7 @@ def test_update_checkout_lines_with_reservations(
         assert not data["errors"]
 
     # Updating multiple lines in checkout has same query count as updating one
-    with django_assert_num_queries(76):
+    with django_assert_num_queries(75):
         variables = {
             "id": to_global_id_or_none(checkout),
             "lines": [],
@@ -940,7 +940,7 @@ def test_add_checkout_lines_with_reservations(
         new_lines.append({"quantity": 2, "variantId": variant_id})
 
     # Adding multiple lines to checkout has same query count as adding one
-    with django_assert_num_queries(75):
+    with django_assert_num_queries(74):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": [new_lines[0]],
@@ -953,7 +953,7 @@ def test_add_checkout_lines_with_reservations(
 
     checkout.lines.exclude(id=line.id).delete()
 
-    with django_assert_num_queries(75):
+    with django_assert_num_queries(74):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": new_lines,
@@ -1333,7 +1333,7 @@ def test_complete_checkout_with_digital_line(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_customer_complete_checkout(
-    api_client, checkout_with_charged_payment, count_queries, customer_user
+    api_client, checkout_with_charged_payment, customer_user, count_queries
 ):
     query = COMPLETE_CHECKOUT_MUTATION
     checkout = checkout_with_charged_payment
@@ -1350,7 +1350,7 @@ def test_customer_complete_checkout(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_customer_complete_checkout_for_cc(
-    api_client, checkout_with_charged_payment_for_cc, count_queries, customer_user
+    api_client, checkout_with_charged_payment_for_cc, customer_user, count_queries
 ):
     query = COMPLETE_CHECKOUT_MUTATION_FOR_CC
     checkout = checkout_with_charged_payment_for_cc
