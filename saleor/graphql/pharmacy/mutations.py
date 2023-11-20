@@ -1,8 +1,8 @@
 import graphene
+import time
 
 from .types import SiteSettingsType
 from .utils import build_file_uri
-from ..core.scalars import PositiveDecimal
 from ...permission.enums import SitePermissions
 from ...pharmacy import models
 
@@ -79,13 +79,16 @@ class SiteSettingsCreate(graphene.Mutation):
 
             from django.core.files.base import ContentFile
 
+            timestamp = time.time()
             if input.image:
                 file_content = base64.b64decode(input.image)
-                site_settings.image.save(slug + '.svg', ContentFile(file_content))
+                site_settings.image.save(slug + '_' + str(timestamp) + '.svg',
+                                         ContentFile(file_content))
 
             if input.css:
                 file_content = base64.b64decode(input.css)
-                site_settings.css.save(slug + '.css', ContentFile(file_content))
+                site_settings.css.save(slug + '_' + str(timestamp) + '.css',
+                                       ContentFile(file_content))
 
         site_settings.slug = slug
         site_settings.save()
@@ -143,13 +146,17 @@ class SiteSettingsUpdate(graphene.Mutation):
         import base64
         from django.core.files.base import ContentFile
 
+        timestamp = time.time()
         if input.image and str(site_settings.image) not in input.image:
             file_content = base64.b64decode(input.image)
-            site_settings.image.save(slug + '.svg', ContentFile(file_content))
+            site_settings.image.save(slug + '_' + str(timestamp) + '.svg',
+                                     ContentFile(file_content))
 
-        if input.css and (not site_settings.css or str(site_settings.css) not in input.css):
+        if input.css and (not site_settings.css or str(site_settings.css)
+                          not in input.css):
             file_content = base64.b64decode(input.css)
-            site_settings.css.save(slug + '.css', ContentFile(file_content))
+            site_settings.css.save(slug + '_' + str(timestamp) + '.css',
+                                   ContentFile(file_content))
         elif not input.css:
             site_settings.css = ''
 
