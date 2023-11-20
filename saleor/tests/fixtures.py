@@ -2207,6 +2207,26 @@ def product_type(color_attribute, size_attribute, default_tax_class):
 
 
 @pytest.fixture
+def product_type_with_value_required_attributes(
+    color_attribute, size_attribute, default_tax_class
+):
+    product_type = ProductType.objects.create(
+        name="Default Type",
+        slug="default-type",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+        tax_class=default_tax_class,
+    )
+    color_attribute.value_required = True
+    size_attribute.value_required = True
+    Attribute.objects.bulk_update([color_attribute, size_attribute], ["value_required"])
+    product_type.product_attributes.add(color_attribute)
+    product_type.product_attributes.add(size_attribute)
+    return product_type
+
+
+@pytest.fixture
 def product_type_list():
     product_type_1 = ProductType.objects.create(
         name="Type 1", slug="type-1", kind=ProductTypeKind.NORMAL
