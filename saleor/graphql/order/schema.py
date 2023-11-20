@@ -98,6 +98,7 @@ class OrderQueries(graphene.ObjectType):
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     order = BaseField(
         Order,
@@ -143,6 +144,7 @@ class OrderQueries(graphene.ObjectType):
             OrderPermissions.MANAGE_ORDERS,
         ],
         doc_category=DOC_CATEGORY_ORDERS,
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     order_by_token = BaseField(
         Order,

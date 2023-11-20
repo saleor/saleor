@@ -635,7 +635,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): ProductVariantCountableConnection @doc(category: "Products")
+  ): ProductVariantCountableConnection @doc(category: "Products") @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   Look up a payment by ID.
@@ -773,7 +773,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): OrderEventCountableConnection @doc(category: "Orders")
+  ): OrderEventCountableConnection @doc(category: "Orders") @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """Look up an order by ID or external reference."""
   order(
@@ -860,7 +860,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): TaxedMoney @doc(category: "Orders")
+  ): TaxedMoney @doc(category: "Orders") @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """Look up an order by token."""
   orderByToken(
