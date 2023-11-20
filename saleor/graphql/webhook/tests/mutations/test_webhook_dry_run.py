@@ -279,3 +279,107 @@ def test_webhook_dry_run_root_type_for_transaction_item_metadata_updated(
     assert not content["data"]["webhookDryRun"]["errors"]
     payload = content["data"]["webhookDryRun"]["payload"]
     assert json.loads(payload)["transaction"]["id"] == object_id
+
+
+def test_webhook_dry_run_app_installed_for_removed_app(
+    staff_api_client,
+    permission_manage_apps,
+    order,
+    subscription_app_installed_webhook_removed_app,
+    removed_app,
+):
+    # given
+    query = WEBHOOK_DRY_RUN_MUTATION
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    app_id = graphene.Node.to_global_id("App", removed_app.id)
+    webhook = subscription_app_installed_webhook_removed_app
+
+    variables = {"objectId": app_id, "query": webhook.subscription_query}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["webhookDryRun"]
+    assert app_data["payload"] is None
+    assert app_data["errors"][0]["code"] == WebhookDryRunErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "objectId"
+
+
+def test_webhook_dry_run_app_updated_for_removed_app(
+    staff_api_client,
+    permission_manage_apps,
+    order,
+    subscription_app_updated_webhook_removed_app,
+    removed_app,
+):
+    # given
+    query = WEBHOOK_DRY_RUN_MUTATION
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    app_id = graphene.Node.to_global_id("App", removed_app.id)
+    webhook = subscription_app_updated_webhook_removed_app
+
+    variables = {"objectId": app_id, "query": webhook.subscription_query}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["webhookDryRun"]
+    assert app_data["payload"] is None
+    assert app_data["errors"][0]["code"] == WebhookDryRunErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "objectId"
+
+
+def test_webhook_dry_run_app_deleted_for_removed_app(
+    staff_api_client,
+    permission_manage_apps,
+    order,
+    subscription_app_deleted_webhook_removed_app,
+    removed_app,
+):
+    # given
+    query = WEBHOOK_DRY_RUN_MUTATION
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    app_id = graphene.Node.to_global_id("App", removed_app.id)
+    webhook = subscription_app_deleted_webhook_removed_app
+
+    variables = {"objectId": app_id, "query": webhook.subscription_query}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["webhookDryRun"]
+    assert app_data["payload"] is None
+    assert app_data["errors"][0]["code"] == WebhookDryRunErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "objectId"
+
+
+def test_webhook_dry_run_app_status_changed_for_removed_app(
+    staff_api_client,
+    permission_manage_apps,
+    order,
+    subscription_app_status_changed_webhook_removed_app,
+    removed_app,
+):
+    # given
+    query = WEBHOOK_DRY_RUN_MUTATION
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    app_id = graphene.Node.to_global_id("App", removed_app.id)
+    webhook = subscription_app_status_changed_webhook_removed_app
+
+    variables = {"objectId": app_id, "query": webhook.subscription_query}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["webhookDryRun"]
+    assert app_data["payload"] is None
+    assert app_data["errors"][0]["code"] == WebhookDryRunErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "objectId"

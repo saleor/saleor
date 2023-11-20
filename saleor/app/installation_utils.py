@@ -154,7 +154,7 @@ def fetch_brand_data_task(
     self, brand_data: dict, *, app_installation_id=None, app_id=None
 ):
     """Task to fetch app's brand data. Last retry delayed 24H."""
-    app = App.objects.filter(id=app_id).first()
+    app = App.objects.filter(id=app_id, removed_at__isnull=True).first()
     app_inst = AppInstallation.objects.filter(id=app_installation_id).first()
     if not app_inst or (app_inst and app_inst.brand_logo_default):
         if not app or (app and app.brand_logo_default):

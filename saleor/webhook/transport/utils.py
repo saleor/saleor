@@ -595,6 +595,7 @@ def get_current_tax_app() -> Optional[App]:
     """Return currently used tax app or None, if there aren't any."""
     return (
         App.objects.order_by("pk")
+        .filter(removed_at__isnull=True)
         .for_event_type(WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
         .for_event_type(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
         .last()

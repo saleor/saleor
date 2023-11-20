@@ -498,6 +498,54 @@ def test_request_charge_action_by_app(
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
+def test_request_charge_action_by_removed_app(
+    mocked_transaction_request, mocked_is_active, order, removed_app
+):
+    transaction = TransactionItem.objects.create(
+        name="Credit card",
+        psp_reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+        app=removed_app,
+    )
+    action_value = Decimal("5.00")
+    requested_event = transaction.events.create(
+        amount_value=action_value,
+        currency=transaction.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+    mocked_is_active.side_effect = [True, True]
+
+    # when
+    request_charge_action(
+        transaction=transaction,
+        manager=get_plugins_manager(),
+        charge_value=action_value,
+        channel_slug=order.channel.slug,
+        user=None,
+        app=removed_app,
+        request_event=requested_event,
+    )
+
+    # then
+    assert mocked_is_active.called
+    mocked_transaction_request.assert_called_once_with(
+        TransactionActionData(
+            action_type=TransactionAction.CHARGE,
+            transaction=transaction,
+            event=requested_event,
+            transaction_app_owner=removed_app,
+            action_value=action_value,
+            granted_refund=None,
+        ),
+        order.channel.slug,
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
 def test_request_charge_action_on_checkout(
     mocked_transaction_request,
     mocked_is_active,
@@ -545,10 +593,10 @@ def test_request_charge_action_on_checkout(
     assert mocked_is_active.called
     mocked_transaction_request.assert_called_once_with(
         TransactionActionData(
-            transaction=transaction,
             action_type=TransactionAction.CHARGE,
-            action_value=action_value,
+            transaction=transaction,
             event=requested_event,
+            action_value=action_value,
             transaction_app_owner=app,
         ),
         checkout.channel.slug,

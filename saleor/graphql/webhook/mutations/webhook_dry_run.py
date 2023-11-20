@@ -1,6 +1,7 @@
 import graphene
 from graphene.utils.str_converters import to_camel_case
 
+from ....app.models import App
 from ....discount import models as discount_models
 from ....permission.auth_filters import AuthorizationFilters
 from ....webhook.error_codes import WebhookDryRunErrorCode
@@ -103,7 +104,6 @@ class WebhookDryRun(BaseMutation):
         event_type = cls.validate_query(query)
         cls.validate_event_type(event_type, object_id)
         cls.validate_permissions(info, event_type)
-
         object = cls.get_instance(info, object_id)
 
         return event_type, object, query
@@ -114,7 +114,11 @@ class WebhookDryRun(BaseMutation):
         if type == "Sale":
             object_id = cls.get_global_id_or_error(object_id, "Sale")
             return discount_models.Promotion.objects.get(old_sale_id=object_id)
-        return cls.get_node_or_error(info, object_id, field="objectId")
+        elif type == "App":
+            qs = App.objects.filter(removed_at__isnull=True)
+            return cls.get_node_or_error(info, object_id, field="objectId", qs=qs)
+        else:
+            return cls.get_node_or_error(info, object_id, field="objectId")
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

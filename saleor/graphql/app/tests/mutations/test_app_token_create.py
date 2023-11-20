@@ -189,3 +189,33 @@ def test_app_token_create_no_permissions(staff_api_client, staff_user):
 
     # then
     assert_no_permission(response)
+
+
+def test_app_token_create_for_removed_app(
+    permission_manage_apps,
+    staff_api_client,
+    staff_user,
+    permission_manage_orders,
+    removed_app,
+):
+    # given
+    app = removed_app
+    query = APP_TOKEN_CREATE_MUTATION
+    staff_user.user_permissions.add(permission_manage_orders)
+    app.permissions.add(permission_manage_orders)
+
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"name": "Default token", "app": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables={"input": variables}, permissions=(permission_manage_apps,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["appTokenCreate"]
+    assert app_data["appToken"] is None
+    assert app_data["errors"][0]["code"] == AppErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "app"
+    assert app_data["errors"][0]["message"] == f"Couldn't resolve to a node: {id}"

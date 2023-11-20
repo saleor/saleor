@@ -1,3 +1,6 @@
+from django.db.models import Exists, OuterRef, Q
+
+from ...app.models import App
 from ...checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
@@ -21,11 +24,14 @@ def resolve_webhook(info: ResolveInfo, id, app):
         return app.webhooks.filter(id=id).first()
     user = info.context.user
     if user and user.has_perm(AppPermission.MANAGE_APPS):
-        return (
-            models.Webhook.objects.using(get_database_connection_name(info.context))
-            .filter(pk=id)
-            .first()
+        apps = (
+            App.objects.using(get_database_connection_name(info.context))
+            .filter(removed_at__isnull=True)
+            .values("pk")
         )
+        return models.Webhook.objects.filter(
+            Q(pk=id), Exists(apps.filter(id=OuterRef("app_id")))
+        ).first()
     raise PermissionDenied(permissions=[AppPermission.MANAGE_APPS])
 
 
