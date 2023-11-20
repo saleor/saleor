@@ -4342,17 +4342,18 @@ files = [
 
 [[package]]
 name = "stripe"
-version = "3.5.0"
+version = "7.5.0"
 description = "Python bindings for the Stripe API"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = ">=3.6"
 files = [
-    {file = "stripe-3.5.0-py2.py3-none-any.whl", hash = "sha256:69d5bf4611624a503bcec84a61b1f2a2b874bfc828432e4fd75cd120bcc3efef"},
-    {file = "stripe-3.5.0.tar.gz", hash = "sha256:08f74cae6619d4a7d78f8162ff72bc3e9c913f53ec96ecd5ddc7d823c2e79ddd"},
+    {file = "stripe-7.5.0-py2.py3-none-any.whl", hash = "sha256:e54160e8eaa8d3947bd9178e7a7ded07f34263a301834baa1e43a8aee9a0facf"},
+    {file = "stripe-7.5.0.tar.gz", hash = "sha256:76e0df7071da5ef39134d929b8c7facf1319aa47c222bf1272b48ac55abf3d6f"},
 ]
 
 [package.dependencies]
 requests = {version = ">=2.20", markers = "python_version >= \"3.0\""}
+typing-extensions = {version = ">=4.5.0", markers = "python_version >= \"3.7\""}
 
 [[package]]
 name = "sympy"
@@ -5245,4 +5246,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "b28c74544ef1d71c608679cdf96f82873df9975c00ff3cfc74d44e2513ebe31b"
+content-hash = "61cf927128a1b479d16d032ec5a5e93b02182e27a8067115e3cd9735b93a8bc5"
