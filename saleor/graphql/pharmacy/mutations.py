@@ -1,5 +1,6 @@
-import graphene
 import time
+
+import graphene
 
 from .types import SiteSettingsType
 from .utils import build_file_uri
@@ -17,6 +18,7 @@ class SiteSettingsInput(graphene.InputObjectType):
                                    required=True)
     fax_number = graphene.String(description="Site Settings Fax Number", required=True)
     image = graphene.String(description="Site Settings Image")
+    image_type = graphene.String(description="Site Settings Image Type")
     cookies_src = graphene.String(description="Site Settings Cookies SRC")
     css = graphene.String(description="Site Settings CSS")
     is_active = graphene.Boolean(description="Active Site Settings")
@@ -82,7 +84,8 @@ class SiteSettingsCreate(graphene.Mutation):
             timestamp = time.time()
             if input.image:
                 file_content = base64.b64decode(input.image)
-                site_settings.image.save(slug + '_' + str(timestamp) + '.svg',
+                site_settings.image.save(slug + '_' + str(timestamp)
+                                         + f'.{str(input.image_type)}',
                                          ContentFile(file_content))
 
             if input.css:
@@ -149,7 +152,8 @@ class SiteSettingsUpdate(graphene.Mutation):
         timestamp = time.time()
         if input.image and str(site_settings.image) not in input.image:
             file_content = base64.b64decode(input.image)
-            site_settings.image.save(slug + '_' + str(timestamp) + '.svg',
+            site_settings.image.save(slug + '_' + str(timestamp)
+                                     + f'.{str(input.image_type)}',
                                      ContentFile(file_content))
 
         if input.css and (not site_settings.css or str(site_settings.css)
