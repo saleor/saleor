@@ -61,7 +61,7 @@
 
 ## What makes Saleor special?
 
-Saleor is a rapidly growing open-source e-commerce platform that serves high-volume companies. Designed from the ground up to be extensible, headless, and composable.
+Saleor is a rapidly-growing open-source e-commerce platform that serves high-volume companies. Designed from the ground up to be extensible, headless, and composable.
 
 Learn more about [architecture](https://docs.saleor.io/docs/3.x/overview/architecture).
 
@@ -129,7 +129,7 @@ The easiest way to run all components of Saleor (API, storefront, and dashboard)
 
 ## Storefront
 
-An Open Source storefront example built with Next.js App Router, React.js, TypeScript, GraphQL, and Tailwind CSS.
+An open-source storefront example built with Next.js App Router, React.js, TypeScript, GraphQL, and Tailwind CSS.
 
 [React Storefront Repository](https://github.com/saleor/storefront)
 
