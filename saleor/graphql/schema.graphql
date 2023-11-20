@@ -20475,7 +20475,10 @@ input SiteSettingsInput {
   faxNumber: String!
 
   """Site Settings Image"""
-  image: String
+  image: String!
+
+  """Site Settings Image Type"""
+  imageType: String!
 
   """Site Settings Cookies SRC"""
   cookiesSrc: String
