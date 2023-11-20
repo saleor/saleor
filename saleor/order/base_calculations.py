@@ -33,6 +33,7 @@ def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
 def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     """Return order total, with all discounts included."""
     currency = order.currency
+    # TODO: w base order subtotal nie ma entire order discount
     subtotal = base_order_subtotal(order, lines)
     shipping_price = order.shipping_price_net_amount
     return subtotal + Money(shipping_price, currency)
@@ -80,8 +81,7 @@ def apply_order_discounts(
     shipping_price = order.base_shipping_price
     currency = order.currency
     order_discounts_to_update = []
-    order_discounts = order.discounts.all()
-    for order_discount in order_discounts:
+    for order_discount in order.discounts.all():
         subtotal_before_discount = subtotal
         shipping_price_before_discount = shipping_price
         if order_discount.type == DiscountType.VOUCHER:
@@ -180,7 +180,11 @@ def apply_subtotal_discount_to_order_lines(
     elif lines_count > 1:
         for idx, line in enumerate(lines):
             if idx < lines_count - 1:
-                share = line.total_price_net_amount / undiscounted_subtotal.amount
+                share = (
+                    line.base_unit_price_amount
+                    * line.quantity
+                    / undiscounted_subtotal.amount
+                )
                 discount = min(share * subtotal_discount, undiscounted_subtotal)
                 apply_discount_to_order_line(line, discount)
 

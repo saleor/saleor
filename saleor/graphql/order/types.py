@@ -930,7 +930,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         def _resolve_unit_price(data):
             order, lines, manager = data
             return calculations.order_line_unit(
-                order, root, manager, lines
+                order, root, manager, lines, info=info
             ).price_with_discounts
 
         order = OrderByIdLoader(info.context).load(root.order_id)
@@ -949,7 +949,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         def _resolve_undiscounted_unit_price(data):
             order, lines, manager = data
             return calculations.order_line_unit(
-                order, root, manager, lines
+                order, root, manager, lines, info=info
             ).undiscounted_price
 
         order = OrderByIdLoader(info.context).load(root.order_id)
@@ -977,7 +977,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         def _resolve_tax_rate(data):
             order, lines, manager = data
             return calculations.order_line_tax_rate(
-                order, root, manager, lines
+                order, root, manager, lines, info=info
             ) or Decimal(0)
 
         order = OrderByIdLoader(info.context).load(root.order_id)
@@ -992,7 +992,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         def _resolve_total_price(data):
             order, lines, manager = data
             return calculations.order_line_total(
-                order, root, manager, lines
+                order, root, manager, lines, info=info
             ).price_with_discounts
 
         order = OrderByIdLoader(info.context).load(root.order_id)
@@ -1007,7 +1007,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         def _resolve_undiscounted_total_price(data):
             order, lines, manager = data
             return calculations.order_line_total(
-                order, root, manager, lines
+                order, root, manager, lines, info=info
             ).undiscounted_price
 
         order = OrderByIdLoader(info.context).load(root.order_id)
@@ -1609,7 +1609,7 @@ class Order(ModelObjectType[models.Order]):
     def resolve_shipping_price(root: models.Order, info):
         def _resolve_shipping_price(data):
             lines, manager = data
-            return calculations.order_shipping(root, manager, lines)
+            return calculations.order_shipping(root, manager, lines, info=info)
 
         lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
         manager = get_plugin_manager_promise(info.context)
@@ -1622,7 +1622,7 @@ class Order(ModelObjectType[models.Order]):
         def _resolve_shipping_tax_rate(data):
             lines, manager = data
             return calculations.order_shipping_tax_rate(
-                root, manager, lines
+                root, manager, lines, info=info
             ) or Decimal(0)
 
         lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
@@ -1653,7 +1653,7 @@ class Order(ModelObjectType[models.Order]):
     def resolve_subtotal(root: models.Order, info):
         def _resolve_subtotal(data):
             order_lines, manager = data
-            return calculations.order_subtotal(root, manager, order_lines)
+            return calculations.order_subtotal(root, manager, order_lines, info=info)
 
         order_lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
         manager = get_plugin_manager_promise(info.context)
@@ -1666,7 +1666,7 @@ class Order(ModelObjectType[models.Order]):
     @plugin_manager_promise_callback
     def resolve_total(root: models.Order, info, manager):
         def _resolve_total(lines):
-            return calculations.order_total(root, manager, lines)
+            return calculations.order_total(root, manager, lines, info=info)
 
         return (
             OrderLinesByOrderIdLoader(info.context).load(root.id).then(_resolve_total)
@@ -1678,7 +1678,9 @@ class Order(ModelObjectType[models.Order]):
     def resolve_undiscounted_total(root: models.Order, info):
         def _resolve_undiscounted_total(lines_and_manager):
             lines, manager = lines_and_manager
-            return calculations.order_undiscounted_total(root, manager, lines)
+            return calculations.order_undiscounted_total(
+                root, manager, lines, info=info
+            )
 
         lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
         manager = get_plugin_manager_promise(info.context)

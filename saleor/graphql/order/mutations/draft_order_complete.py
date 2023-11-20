@@ -99,7 +99,7 @@ class DraftOrderComplete(BaseMutation):
             qs=models.Order.objects.prefetch_related("lines__variant"),
         )
         cls.check_channel_permissions(info, [order.channel_id])
-        order, _ = fetch_order_prices_and_update_if_expired(order, manager)
+        order, _ = fetch_order_prices_and_update_if_expired(order, manager, info=info)
         cls.validate_order(order)
 
         country = get_order_country(order)
