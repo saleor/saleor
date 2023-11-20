@@ -187,6 +187,37 @@ def test_webhook_update_by_staff(staff_api_client, webhook, permission_manage_ap
     assert data["webhook"]["customHeaders"] == json.dumps(custom_headers)
 
 
+def test_webhook_update_by_staff_for_removed_app(
+    staff_api_client, webhook_removed_app, permission_manage_apps
+):
+    # given
+    query = WEBHOOK_UPDATE
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook_removed_app.pk)
+    custom_headers = {"x-key": "Value", "authorization-key": "Value"}
+    variables = {
+        "id": webhook_id,
+        "input": {
+            "asyncEvents": [
+                WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.name,
+                WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.name,
+            ],
+            "isActive": False,
+            "customHeaders": json.dumps(custom_headers),
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["webhookUpdate"]
+    assert app_data["webhook"] is None
+    assert app_data["errors"][0]["code"] == WebhookErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "id"
+
+
 def test_webhook_update_by_staff_without_permission(staff_api_client, app, webhook):
     # given
     query = WEBHOOK_UPDATE

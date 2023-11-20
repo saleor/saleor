@@ -939,6 +939,45 @@ def test_transaction_process_doesnt_accept_old_id(
     )
 
 
+def test_transaction_process_for_removed_app(
+    user_api_client,
+    checkout_with_prices,
+    removed_app,
+    transaction_item_generator,
+):
+    # given
+    expected_amount = Decimal("10.00")
+    expected_app_identifier = "webhook.app.identifier"
+    removed_app.identifier = expected_app_identifier
+    removed_app.save()
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=removed_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token)
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionProcess"]
+    assert (
+        data["errors"][0]["code"]
+        == TransactionProcessErrorCode.MISSING_PAYMENT_APP.name
+    )
+    assert data["errors"][0]["field"] == "id"
+
+
 def test_user_missing_permission_for_customer_ip_address(
     user_api_client,
     checkout_with_prices,
