@@ -13,7 +13,7 @@ class SiteSettings(models.Model):
     npi = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=25)
     fax_number = models.CharField(max_length=25)
-    image = models.FileField(upload_to='site/images')
+    image = models.FileField(upload_to='site/images', max_length=255)
     css = models.FileField(upload_to='site/css')
     cookies_src = models.CharField(max_length=255)
     is_active = models.BooleanField(default=False)
