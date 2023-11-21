@@ -370,6 +370,62 @@ def test_product_bulk_create_with_invalid_attributes(
     assert error["message"] == "Couldn't resolve id: invalidID."
 
 
+def test_product_bulk_create_without_value_required_attribute(
+    staff_api_client,
+    product_type_with_value_required_attributes,
+    category,
+    description_json,
+    permission_manage_products,
+):
+    # given
+    product_type = product_type_with_value_required_attributes
+    description_json_string = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    color_attr = product_type.product_attributes.get(name="Color")
+    color_attr_id = graphene.Node.to_global_id("Attribute", color_attr.id)
+
+    product_name_1 = "test name 1"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+            "attributes": [
+                {"id": color_attr_id, "values": ["Green"]},
+            ],
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    assert data["results"][0]["errors"]
+    error = data["results"][0]["errors"][0]
+    assert error["path"] == "attributes"
+    assert (
+        error["message"]
+        == "All attributes flagged as having a value required must be supplied."
+    )
+
+
 def test_product_bulk_create_with_media(
     staff_api_client,
     product_type,

@@ -295,14 +295,15 @@ class ProductBulkCreate(BaseMutation):
                         product_index, exc, index_error_map, "attributes"
                     )
                 else:
-                    index_error_map[product_index].append(
-                        ProductBulkCreateError(
-                            path="attributes",
-                            message=exc.message,
-                            code=exc.code,
+                    for error in exc.error_list:
+                        index_error_map[product_index].append(
+                            ProductBulkCreateError(
+                                path="attributes",
+                                message=error.message,
+                                code=error.code,
+                            )
                         )
-                    )
-                attributes_errors_count += 1
+                    attributes_errors_count += 1
         return attributes_errors_count
 
     @classmethod
