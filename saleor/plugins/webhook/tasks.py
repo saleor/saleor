@@ -181,20 +181,33 @@ def create_delivery_for_subscription_sync_event(
 
 
 def trigger_webhooks_async(
-    data, event_type, webhooks, subscribable_object=None, requestor=None
+    data,  # deprecated, legacy_data_generator should be used instead
+    event_type,
+    webhooks,
+    subscribable_object=None,
+    requestor=None,
+    legacy_data_generator=None,
 ):
     """Trigger async webhooks - both regular and subscription.
 
     :param data: used as payload in regular webhooks.
+        Note: this is a legacy parameter, thus it is optional; if it's not provided,
+        `legacy_data_generator` function is used to generate the payload when needed.
     :param event_type: used in both webhook types as event type.
     :param webhooks: used in both webhook types, queryset of async webhooks.
     :param subscribable_object: subscribable object used in subscription webhooks.
     :param requestor: used in subscription webhooks to generate meta data for payload.
+    :param legacy_data_generator: used to generate payload for regular webhooks.
     """
     regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
     deliveries = []
 
     if regular_webhooks:
+        if legacy_data_generator:
+            data = legacy_data_generator()
+        elif data is None:
+            raise NotImplementedError("No payload was provided for regular webhooks.")
+
         payload = EventPayload.objects.create(payload=data)
         deliveries.extend(
             create_event_delivery_list_for_webhooks(

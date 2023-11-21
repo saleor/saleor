@@ -1,6 +1,7 @@
 import json
 import logging
 from decimal import Decimal
+from functools import partial
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -161,11 +162,16 @@ class WebhookPlugin(BasePlugin):
 
     def _trigger_metadata_updated_event(self, event_type, instance, webhooks=None):
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            metadata_updated_data = generate_metadata_updated_payload(
-                instance, self.requestor
+            metadata_payload_generator = partial(
+                generate_metadata_updated_payload, instance, self.requestor
             )
             trigger_webhooks_async(
-                metadata_updated_data, event_type, webhooks, instance, self.requestor
+                None,
+                event_type,
+                webhooks,
+                instance,
+                self.requestor,
+                legacy_data_generator=metadata_payload_generator,
             )
 
     def _trigger_address_event(self, event_type, address):
@@ -488,9 +494,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def _trigger_menu_event(self, event_type, menu, webhooks=None):
@@ -565,9 +578,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_CONFIRMED
         if webhooks := get_webhooks_for_event(event_type):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
@@ -575,9 +595,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_FULLY_PAID
         if webhooks := get_webhooks_for_event(event_type):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def order_paid(self, order: "Order", previous_value: Any) -> Any:
@@ -585,9 +612,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_PAID
         if webhooks := get_webhooks_for_event(event_type):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def order_refunded(self, order: "Order", previous_value: Any) -> Any:
@@ -595,9 +629,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_REFUNDED
         if webhooks := get_webhooks_for_event(event_type):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def order_fully_refunded(self, order: "Order", previous_value: Any) -> Any:
@@ -605,9 +646,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_FULLY_REFUNDED
         if webhooks := get_webhooks_for_event(event_type):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def order_updated(self, order: "Order", previous_value: Any, webhooks=None) -> Any:
@@ -615,9 +663,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_UPDATED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def order_expired(self, order: "Order", previous_value: Any) -> Any:
@@ -625,9 +680,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_EXPIRED
         if webhooks := get_webhooks_for_event(event_type):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def sale_created(
@@ -640,14 +702,20 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.SALE_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            sale_data = generate_sale_payload(
+            sale_data_generator = partial(
+                generate_sale_payload,
                 sale,
                 previous_catalogue=None,
                 current_catalogue=current_catalogue,
                 requestor=self.requestor,
             )
             trigger_webhooks_async(
-                sale_data, event_type, webhooks, sale, self.requestor
+                None,
+                event_type,
+                webhooks,
+                sale,
+                self.requestor,
+                legacy_data_generator=sale_data_generator,
             )
 
     def sale_updated(
@@ -661,11 +729,20 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.SALE_UPDATED
         if webhooks := get_webhooks_for_event(event_type):
-            sale_data = generate_sale_payload(
-                sale, previous_catalogue, current_catalogue, self.requestor
+            sale_data_generator = partial(
+                generate_sale_payload,
+                sale,
+                previous_catalogue,
+                current_catalogue,
+                self.requestor,
             )
             trigger_webhooks_async(
-                sale_data, event_type, webhooks, sale, self.requestor
+                None,
+                event_type,
+                webhooks,
+                sale,
+                self.requestor,
+                legacy_data_generator=sale_data_generator,
             )
 
     def sale_deleted(
@@ -679,11 +756,19 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.SALE_DELETED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            sale_data = generate_sale_payload(
-                sale, previous_catalogue=previous_catalogue, requestor=self.requestor
+            sale_data_generator = partial(
+                generate_sale_payload,
+                sale,
+                previous_catalogue=previous_catalogue,
+                requestor=self.requestor,
             )
             trigger_webhooks_async(
-                sale_data, event_type, webhooks, sale, self.requestor
+                None,
+                event_type,
+                webhooks,
+                sale,
+                self.requestor,
+                legacy_data_generator=sale_data_generator,
             )
 
     def sale_toggle(
@@ -696,11 +781,19 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.SALE_TOGGLE
         if webhooks := get_webhooks_for_event(event_type):
-            sale_data = generate_sale_toggle_payload(
-                sale, catalogue=catalogue, requestor=self.requestor
+            sale_data_generator = partial(
+                generate_sale_toggle_payload,
+                sale,
+                catalogue=catalogue,
+                requestor=self.requestor,
             )
             trigger_webhooks_async(
-                sale_data, event_type, webhooks, sale, self.requestor
+                None,
+                event_type,
+                webhooks,
+                sale,
+                self.requestor,
+                legacy_data_generator=sale_data_generator,
             )
 
     def invoice_request(
@@ -714,9 +807,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.INVOICE_REQUESTED
         if webhooks := get_webhooks_for_event(event_type):
-            invoice_data = generate_invoice_payload(invoice, self.requestor)
+            invoice_data_generator = partial(
+                generate_invoice_payload, invoice, self.requestor
+            )
             trigger_webhooks_async(
-                invoice_data, event_type, webhooks, invoice, self.requestor
+                None,
+                event_type,
+                webhooks,
+                invoice,
+                self.requestor,
+                legacy_data_generator=invoice_data_generator,
             )
 
     def invoice_delete(self, invoice: "Invoice", previous_value: Any):
@@ -724,9 +824,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.INVOICE_DELETED
         if webhooks := get_webhooks_for_event(event_type):
-            invoice_data = generate_invoice_payload(invoice, self.requestor)
+            invoice_data_generator = partial(
+                generate_invoice_payload, invoice, self.requestor
+            )
             trigger_webhooks_async(
-                invoice_data, event_type, webhooks, invoice, self.requestor
+                None,
+                event_type,
+                webhooks,
+                invoice,
+                self.requestor,
+                legacy_data_generator=invoice_data_generator,
             )
 
     def invoice_sent(self, invoice: "Invoice", email: str, previous_value: Any) -> Any:
@@ -734,9 +841,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.INVOICE_SENT
         if webhooks := get_webhooks_for_event(event_type):
-            invoice_data = generate_invoice_payload(invoice, self.requestor)
+            invoice_data_generator = partial(
+                generate_invoice_payload, invoice, self.requestor
+            )
             trigger_webhooks_async(
-                invoice_data, event_type, webhooks, invoice, self.requestor
+                None,
+                event_type,
+                webhooks,
+                invoice,
+                self.requestor,
+                legacy_data_generator=invoice_data_generator,
             )
 
     def order_cancelled(
@@ -746,9 +860,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_CANCELLED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
@@ -756,9 +877,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_FULFILLED
         if webhooks := get_webhooks_for_event(event_type):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def order_metadata_updated(self, order: "Order", previous_value: Any) -> Any:
@@ -773,11 +901,19 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_BULK_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            order_data = [
-                generate_order_payload(order, self.requestor) for order in orders
-            ]
+
+            def generate_bulk_order_payload():
+                return [
+                    generate_order_payload(order, self.requestor) for order in orders
+                ]
+
             trigger_webhooks_async(
-                order_data, event_type, webhooks, orders, self.requestor
+                None,
+                event_type,
+                webhooks,
+                orders,
+                self.requestor,
+                legacy_data_generator=generate_bulk_order_payload,
             )
 
     def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
@@ -785,9 +921,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.DRAFT_ORDER_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def draft_order_updated(self, order: "Order", previous_value: Any) -> Any:
@@ -795,9 +938,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.DRAFT_ORDER_UPDATED
         if webhooks := get_webhooks_for_event(event_type):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def draft_order_deleted(self, order: "Order", previous_value: Any) -> Any:
@@ -805,9 +955,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.DRAFT_ORDER_DELETED
         if webhooks := get_webhooks_for_event(event_type):
-            order_data = generate_order_payload(order, self.requestor)
+            order_data_generator = partial(
+                generate_order_payload, order, self.requestor
+            )
             trigger_webhooks_async(
-                order_data, event_type, webhooks, order, self.requestor
+                None,
+                event_type,
+                webhooks,
+                order,
+                self.requestor,
+                legacy_data_generator=order_data_generator,
             )
 
     def fulfillment_created(self, fulfillment: "Fulfillment", previous_value):
@@ -815,9 +972,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.FULFILLMENT_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            fulfillment_data = generate_fulfillment_payload(fulfillment, self.requestor)
+            fulfillment_data_generator = partial(
+                generate_fulfillment_payload, fulfillment, self.requestor
+            )
             trigger_webhooks_async(
-                fulfillment_data, event_type, webhooks, fulfillment, self.requestor
+                None,
+                event_type,
+                webhooks,
+                fulfillment,
+                self.requestor,
+                legacy_data_generator=fulfillment_data_generator,
             )
 
     def fulfillment_canceled(self, fulfillment: "Fulfillment", previous_value):
@@ -825,9 +989,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.FULFILLMENT_CANCELED
         if webhooks := get_webhooks_for_event(event_type):
-            fulfillment_data = generate_fulfillment_payload(fulfillment, self.requestor)
+            fulfillment_data_generator = partial(
+                generate_fulfillment_payload, fulfillment, self.requestor
+            )
             trigger_webhooks_async(
-                fulfillment_data, event_type, webhooks, fulfillment, self.requestor
+                None,
+                event_type,
+                webhooks,
+                fulfillment,
+                self.requestor,
+                legacy_data_generator=fulfillment_data_generator,
             )
 
     def fulfillment_approved(self, fulfillment: "Fulfillment", previous_value):
@@ -835,9 +1006,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.FULFILLMENT_APPROVED
         if webhooks := get_webhooks_for_event(event_type):
-            fulfillment_data = generate_fulfillment_payload(fulfillment, self.requestor)
+            fulfillment_data_generator = partial(
+                generate_fulfillment_payload, fulfillment, self.requestor
+            )
             trigger_webhooks_async(
-                fulfillment_data, event_type, webhooks, fulfillment, self.requestor
+                None,
+                event_type,
+                webhooks,
+                fulfillment,
+                self.requestor,
+                legacy_data_generator=fulfillment_data_generator,
             )
 
     def fulfillment_metadata_updated(self, fulfillment: "Fulfillment", previous_value):
@@ -852,9 +1030,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.CUSTOMER_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            customer_data = generate_customer_payload(customer, self.requestor)
+            customer_data_generator = partial(
+                generate_customer_payload, customer, self.requestor
+            )
             trigger_webhooks_async(
-                customer_data, event_type, webhooks, customer, self.requestor
+                None,
+                event_type,
+                webhooks,
+                customer,
+                self.requestor,
+                legacy_data_generator=customer_data_generator,
             )
 
     def customer_updated(
@@ -864,9 +1049,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.CUSTOMER_UPDATED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            customer_data = generate_customer_payload(customer, self.requestor)
+            customer_data_generator = partial(
+                generate_customer_payload, customer, self.requestor
+            )
             trigger_webhooks_async(
-                customer_data, event_type, webhooks, customer, self.requestor
+                None,
+                event_type,
+                webhooks,
+                customer,
+                self.requestor,
+                legacy_data_generator=customer_data_generator,
             )
 
     def customer_deleted(
@@ -876,9 +1068,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.CUSTOMER_DELETED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            customer_data = generate_customer_payload(customer, self.requestor)
+            customer_data_generator = partial(
+                generate_customer_payload, customer, self.requestor
+            )
             trigger_webhooks_async(
-                customer_data, event_type, webhooks, customer, self.requestor
+                None,
+                event_type,
+                webhooks,
+                customer,
+                self.requestor,
+                legacy_data_generator=customer_data_generator,
             )
 
     def customer_metadata_updated(
@@ -895,9 +1094,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.COLLECTION_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            collection_data = generate_collection_payload(collection, self.requestor)
+            collection_data_generator = partial(
+                generate_collection_payload, collection, self.requestor
+            )
             trigger_webhooks_async(
-                collection_data, event_type, webhooks, collection, self.requestor
+                None,
+                event_type,
+                webhooks,
+                collection,
+                self.requestor,
+                legacy_data_generator=collection_data_generator,
             )
 
     def collection_updated(self, collection: "Collection", previous_value: Any) -> Any:
@@ -905,9 +1111,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.COLLECTION_UPDATED
         if webhooks := get_webhooks_for_event(event_type):
-            collection_data = generate_collection_payload(collection, self.requestor)
+            collection_data_generator = partial(
+                generate_collection_payload, collection, self.requestor
+            )
             trigger_webhooks_async(
-                collection_data, event_type, webhooks, collection, self.requestor
+                None,
+                event_type,
+                webhooks,
+                collection,
+                self.requestor,
+                legacy_data_generator=collection_data_generator,
             )
 
     def collection_deleted(
@@ -917,9 +1130,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.COLLECTION_DELETED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            collection_data = generate_collection_payload(collection, self.requestor)
+            collection_data_generator = partial(
+                generate_collection_payload, collection, self.requestor
+            )
             trigger_webhooks_async(
-                collection_data, event_type, webhooks, collection, self.requestor
+                None,
+                event_type,
+                webhooks,
+                collection,
+                self.requestor,
+                legacy_data_generator=collection_data_generator,
             )
 
     def collection_metadata_updated(
@@ -938,9 +1158,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_CREATED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_data = generate_product_payload(product, self.requestor)
+            product_data_generator = partial(
+                generate_product_payload, product, self.requestor
+            )
             trigger_webhooks_async(
-                product_data, event_type, webhooks, product, self.requestor
+                None,
+                event_type,
+                webhooks,
+                product,
+                self.requestor,
+                legacy_data_generator=product_data_generator,
             )
 
     def product_updated(
@@ -950,9 +1177,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_UPDATED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_data = generate_product_payload(product, self.requestor)
+            product_data_generator = partial(
+                generate_product_payload, product, self.requestor
+            )
             trigger_webhooks_async(
-                product_data, event_type, webhooks, product, self.requestor
+                None,
+                event_type,
+                webhooks,
+                product,
+                self.requestor,
+                legacy_data_generator=product_data_generator,
             )
 
     def product_metadata_updated(self, product: "Product", previous_value: Any) -> Any:
@@ -973,15 +1207,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_DELETED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_data = generate_product_deleted_payload(
-                product, variants, self.requestor
+            product_data_generator = partial(
+                generate_product_deleted_payload, product, variants, self.requestor
             )
             trigger_webhooks_async(
-                product_data,
+                None,
                 event_type,
                 webhooks,
                 product,
                 self.requestor,
+                legacy_data_generator=product_data_generator,
             )
 
     def product_media_created(self, media: "ProductMedia", previous_value: Any) -> Any:
@@ -989,13 +1224,14 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_MEDIA_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            media_data = generate_product_media_payload(media)
+            media_data_generator = partial(generate_product_media_payload, media)
             trigger_webhooks_async(
-                media_data,
+                None,
                 event_type,
                 webhooks,
                 media,
                 self.requestor,
+                legacy_data_generator=media_data_generator,
             )
 
     def product_media_updated(self, media: "ProductMedia", previous_value: Any) -> Any:
@@ -1003,13 +1239,14 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED
         if webhooks := get_webhooks_for_event(event_type):
-            media_data = generate_product_media_payload(media)
+            media_data_generator = partial(generate_product_media_payload, media)
             trigger_webhooks_async(
-                media_data,
+                None,
                 event_type,
                 webhooks,
                 media,
                 self.requestor,
+                legacy_data_generator=media_data_generator,
             )
 
     def product_media_deleted(self, media: "ProductMedia", previous_value: Any) -> Any:
@@ -1017,13 +1254,14 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_MEDIA_DELETED
         if webhooks := get_webhooks_for_event(event_type):
-            media_data = generate_product_media_payload(media)
+            media_data_generator = partial(generate_product_media_payload, media)
             trigger_webhooks_async(
-                media_data,
+                None,
                 event_type,
                 webhooks,
                 media,
                 self.requestor,
+                legacy_data_generator=media_data_generator,
             )
 
     def product_variant_created(
@@ -1033,15 +1271,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_CREATED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_variant_data = generate_product_variant_payload(
-                [product_variant], self.requestor
+            product_variant_data_generator = partial(
+                generate_product_variant_payload, [product_variant], self.requestor
             )
             trigger_webhooks_async(
-                product_variant_data,
+                None,
                 event_type,
                 webhooks,
                 product_variant,
                 self.requestor,
+                legacy_data_generator=product_variant_data_generator,
             )
 
     def product_variant_updated(
@@ -1051,15 +1290,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_variant_data = generate_product_variant_payload(
-                [product_variant], self.requestor
+            product_variant_data_generator = partial(
+                generate_product_variant_payload, [product_variant], self.requestor
             )
             trigger_webhooks_async(
-                product_variant_data,
+                None,
                 event_type,
                 webhooks,
                 product_variant,
                 self.requestor,
+                legacy_data_generator=product_variant_data_generator,
             )
 
     def product_variant_deleted(
@@ -1069,15 +1309,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_DELETED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_variant_data = generate_product_variant_payload(
-                [product_variant], self.requestor
+            product_variant_data_generator = partial(
+                generate_product_variant_payload, [product_variant], self.requestor
             )
             trigger_webhooks_async(
-                product_variant_data,
+                None,
                 event_type,
                 webhooks,
                 product_variant,
                 self.requestor,
+                legacy_data_generator=product_variant_data_generator,
             )
 
     def product_variant_metadata_updated(
@@ -1096,9 +1337,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_variant_data = generate_product_variant_with_stock_payload([stock])
+            product_variant_data_generator = partial(
+                generate_product_variant_with_stock_payload, [stock]
+            )
             trigger_webhooks_async(
-                product_variant_data, event_type, webhooks, stock, self.requestor
+                None,
+                event_type,
+                webhooks,
+                stock,
+                self.requestor,
+                legacy_data_generator=product_variant_data_generator,
             )
 
     def product_variant_back_in_stock(
@@ -1108,11 +1356,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_variant_data = generate_product_variant_with_stock_payload(
-                [stock], self.requestor
+            product_variant_data_generator = partial(
+                generate_product_variant_with_stock_payload, [stock], self.requestor
             )
             trigger_webhooks_async(
-                product_variant_data, event_type, webhooks, stock, self.requestor
+                None,
+                event_type,
+                webhooks,
+                stock,
+                self.requestor,
+                legacy_data_generator=product_variant_data_generator,
             )
 
     def product_variant_stock_updated(
@@ -1122,11 +1375,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_variant_data = generate_product_variant_with_stock_payload(
-                [stock], self.requestor
+            product_variant_data_generator = (
+                generate_product_variant_with_stock_payload([stock], self.requestor)
             )
             trigger_webhooks_async(
-                product_variant_data, event_type, webhooks, stock, self.requestor
+                None,
+                event_type,
+                webhooks,
+                stock,
+                self.requestor,
+                legacy_data_generator=product_variant_data_generator,
             )
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
@@ -1134,9 +1392,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.CHECKOUT_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            checkout_data = generate_checkout_payload(checkout, self.requestor)
+            checkout_data_generator = partial(
+                generate_checkout_payload, checkout, self.requestor
+            )
             trigger_webhooks_async(
-                checkout_data, event_type, webhooks, checkout, self.requestor
+                None,
+                event_type,
+                webhooks,
+                checkout,
+                self.requestor,
+                legacy_data_generator=checkout_data_generator,
             )
 
     def checkout_updated(self, checkout: "Checkout", previous_value: Any) -> Any:
@@ -1144,9 +1409,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
         if webhooks := get_webhooks_for_event(event_type):
-            checkout_data = generate_checkout_payload(checkout, self.requestor)
+            checkout_data_generator = partial(
+                generate_checkout_payload, checkout, self.requestor
+            )
             trigger_webhooks_async(
-                checkout_data, event_type, webhooks, checkout, self.requestor
+                None,
+                event_type,
+                webhooks,
+                checkout,
+                self.requestor,
+                legacy_data_generator=checkout_data_generator,
             )
 
     def checkout_fully_paid(self, checkout: "Checkout", previous_value: Any) -> Any:
@@ -1154,9 +1426,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
         if webhooks := get_webhooks_for_event(event_type):
-            checkout_data = generate_checkout_payload(checkout, self.requestor)
+            checkout_data_generator = partial(
+                generate_checkout_payload, checkout, self.requestor
+            )
             trigger_webhooks_async(
-                checkout_data, event_type, webhooks, checkout, self.requestor
+                None,
+                event_type,
+                webhooks,
+                checkout,
+                self.requestor,
+                legacy_data_generator=checkout_data_generator,
             )
 
     def checkout_metadata_updated(
@@ -1193,9 +1472,14 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PAGE_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            page_data = generate_page_payload(page, self.requestor)
+            page_data_generator = partial(generate_page_payload, page, self.requestor)
             trigger_webhooks_async(
-                page_data, event_type, webhooks, page, self.requestor
+                None,
+                event_type,
+                webhooks,
+                page,
+                self.requestor,
+                legacy_data_generator=page_data_generator,
             )
 
     def page_updated(self, page: "Page", previous_value: Any) -> Any:
@@ -1203,9 +1487,14 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PAGE_UPDATED
         if webhooks := get_webhooks_for_event(event_type):
-            page_data = generate_page_payload(page, self.requestor)
+            page_data_generator = partial(generate_page_payload, page, self.requestor)
             trigger_webhooks_async(
-                page_data, event_type, webhooks, page, self.requestor
+                None,
+                event_type,
+                webhooks,
+                page,
+                self.requestor,
+                legacy_data_generator=page_data_generator,
             )
 
     def page_deleted(self, page: "Page", previous_value: Any) -> Any:
@@ -1213,9 +1502,14 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PAGE_DELETED
         if webhooks := get_webhooks_for_event(event_type):
-            page_data = generate_page_payload(page, self.requestor)
+            page_data_generator = partial(generate_page_payload, page, self.requestor)
             trigger_webhooks_async(
-                page_data, event_type, webhooks, page, self.requestor
+                None,
+                event_type,
+                webhooks,
+                page,
+                self.requestor,
+                legacy_data_generator=page_data_generator,
             )
 
     def _trigger_page_type_event(self, event_type, page_type):
@@ -1419,12 +1713,13 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.THUMBNAIL_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            thumbnail_data = generate_thumbnail_payload(thumbnail)
+            thumbnail_data_generator = partial(generate_thumbnail_payload, thumbnail)
             trigger_webhooks_async(
-                data=thumbnail_data,
+                data=None,
                 event_type=event_type,
                 webhooks=webhooks,
                 subscribable_object=thumbnail,
+                legacy_data_generator=thumbnail_data_generator,
             )
 
     def translation_created(self, translation: "Translation", previous_value: Any):
@@ -1432,9 +1727,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.TRANSLATION_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            translation_data = generate_translation_payload(translation, self.requestor)
+            translation_data_generator = partial(
+                generate_translation_payload, translation, self.requestor
+            )
             trigger_webhooks_async(
-                translation_data, event_type, webhooks, translation, self.requestor
+                None,
+                event_type,
+                webhooks,
+                translation,
+                self.requestor,
+                legacy_data_generator=translation_data_generator,
             )
 
     def translation_updated(self, translation: "Translation", previous_value: Any):
@@ -1442,9 +1744,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.TRANSLATION_UPDATED
         if webhooks := get_webhooks_for_event(event_type):
-            translation_data = generate_translation_payload(translation, self.requestor)
+            translation_data_generator = partial(
+                generate_translation_payload, translation, self.requestor
+            )
             trigger_webhooks_async(
-                translation_data, event_type, webhooks, translation, self.requestor
+                None,
+                event_type,
+                webhooks,
+                translation,
+                self.requestor,
+                legacy_data_generator=translation_data_generator,
             )
 
     def _trigger_warehouse_event(self, event_type, warehouse):
