@@ -11,7 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Add taxes to undiscounted prices - #14095 by @jakubkuc
-- Mark as deprecate ordersTotal, reportProductSales and homepageEvents - #14806 by @8r2y5
+- Mark as deprecated: `ordersTotal`, `reportProductSales` and `homepageEvents` - #14806 by @8r2y5
 
 ### Saleor Apps
 
