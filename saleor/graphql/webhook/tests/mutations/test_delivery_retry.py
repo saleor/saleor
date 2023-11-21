@@ -3,12 +3,14 @@ from unittest.mock import patch
 import graphene
 
 from .....graphql.tests.utils import assert_no_permission, get_graphql_content
+from .....webhook.error_codes import WebhookErrorCode
 
 WEBHOOK_DELIVERY_RETRY_MUTATION = """
     mutation eventDeliveryRetry($id: ID!){
       eventDeliveryRetry(id: $id){
         errors{
           field
+          code
           message
         }
         delivery{
@@ -102,3 +104,26 @@ def test_delivery_retry_mutation_wrong_id(
     assert len(errors) == 1
     assert errors[0]["field"] == "id"
     assert errors[0]["message"] == expected_message
+
+
+def test_delivery_retry_mutation_for_removed_app(
+    app_api_client, permission_manage_apps, event_delivery_removed_app
+):
+    # given
+    query = WEBHOOK_DELIVERY_RETRY_MUTATION
+    delivery_id = graphene.Node.to_global_id(
+        "EventDelivery", event_delivery_removed_app.pk
+    )
+    variables = {"id": delivery_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_apps]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["eventDeliveryRetry"]
+    assert app_data["delivery"] is None
+    assert app_data["errors"][0]["code"] == WebhookErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "id"

@@ -1,3 +1,5 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -10,6 +12,7 @@ from ...core.mutations import ModelDeleteMutation
 from ...core.types import AppError
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from ..types import AppToken
+from ..utils import validate_app_is_not_removed
 
 
 class AppTokenDelete(ModelDeleteMutation):
@@ -23,6 +26,15 @@ class AppTokenDelete(ModelDeleteMutation):
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
+
+    @classmethod
+    def get_instance(cls, info: ResolveInfo, **data):
+        token_id = data.get("id")
+        # ID is required. The type could be cast to str.
+        token_id = cast(str, token_id)
+        instance = super(ModelDeleteMutation, cls).get_instance(info, id=token_id)
+        validate_app_is_not_removed(instance.app, token_id, "id")
+        return instance
 
     @classmethod
     def clean_instance(cls, info: ResolveInfo, instance):

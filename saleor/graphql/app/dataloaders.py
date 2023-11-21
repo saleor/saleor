@@ -17,7 +17,11 @@ class AppByIdLoader(DataLoader):
     context_key = "app_by_id"
 
     def batch_load(self, keys):
-        apps = App.objects.using(self.database_connection_name).in_bulk(keys)
+        apps = (
+            App.objects.using(self.database_connection_name)
+            .filter(removed_at__isnull=True)
+            .in_bulk(keys)
+        )
         return [apps.get(key) for key in keys]
 
 
@@ -51,7 +55,7 @@ class AppsByAppIdentifierLoader(DataLoader):
 
     def batch_load(self, keys):
         apps = App.objects.using(self.database_connection_name).filter(
-            identifier__in=keys
+            identifier__in=keys, removed_at__isnull=True
         )
         apps_map = defaultdict(list)
         for app in apps:
@@ -64,7 +68,7 @@ class AppTokensByAppIdLoader(DataLoader):
 
     def batch_load(self, keys):
         tokens = AppToken.objects.using(self.database_connection_name).filter(
-            app_id__in=keys
+            app_id__in=keys, app__removed_at__isnull=True
         )
         tokens_by_app_map = defaultdict(list)
         for token in tokens:
@@ -93,7 +97,9 @@ class AppByTokenLoader(DataLoader):
 
         apps = (
             App.objects.using(self.database_connection_name)
-            .filter(id__in=authed_apps.values(), is_active=True)
+            .filter(
+                id__in=authed_apps.values(), is_active=True, removed_at__isnull=True
+            )
             .in_bulk()
         )
 
