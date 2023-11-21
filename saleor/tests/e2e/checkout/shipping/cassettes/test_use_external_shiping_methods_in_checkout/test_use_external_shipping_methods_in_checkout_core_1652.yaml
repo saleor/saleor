@@ -1,0 +1,100 @@
+interactions:
+- request:
+    body: '{"__typename": "ShippingListMethodsForCheckout", "checkout": {"shippingAddress":
+      {"country": {"code": "US"}}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Saleor-Api-Url:
+      - http://mirumee.com/graphql/
+      Saleor-Domain:
+      - mirumee.com
+      Saleor-Event:
+      - shipping_list_methods_for_checkout
+      Saleor-Signature:
+      - ''
+      User-Agent:
+      - Saleor/3.19
+      X-Saleor-Domain:
+      - mirumee.com
+      X-Saleor-Event:
+      - shipping_list_methods_for_checkout
+      X-Saleor-Signature:
+      - ''
+    method: POST
+    uri: http://localhost:8080/
+  response:
+    body:
+      string: '[{"id": "Provider", "name": "Provider - Economy", "amount": "100",
+        "currency": "USD", "maximum_delivery_days": "7"}, {"id": 1, "name": "Pocztex",
+        "amount": "21.37", "currency": "USD", "maximum_delivery_days": 7}]'
+    headers:
+      Content-Length:
+      - '212'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Nov 2023 16:14:43 GMT
+      Server:
+      - TwistedWeb/21.7.0
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"__typename": "ShippingListMethodsForCheckout", "checkout": {"shippingAddress":
+      {"country": {"code": "US"}}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Saleor-Api-Url:
+      - http://mirumee.com/graphql/
+      Saleor-Domain:
+      - mirumee.com
+      Saleor-Event:
+      - shipping_list_methods_for_checkout
+      Saleor-Signature:
+      - ''
+      User-Agent:
+      - Saleor/3.19
+      X-Saleor-Domain:
+      - mirumee.com
+      X-Saleor-Event:
+      - shipping_list_methods_for_checkout
+      X-Saleor-Signature:
+      - ''
+    method: POST
+    uri: http://localhost:8080/
+  response:
+    body:
+      string: '[{"id": "Provider", "name": "Provider - Economy", "amount": "100",
+        "currency": "USD", "maximum_delivery_days": "7"}, {"id": 1, "name": "Pocztex",
+        "amount": "21.37", "currency": "USD", "maximum_delivery_days": 7}]'
+    headers:
+      Content-Length:
+      - '212'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Nov 2023 16:14:44 GMT
+      Server:
+      - TwistedWeb/21.7.0
+    status:
+      code: 200
+      message: OK
+version: 1
