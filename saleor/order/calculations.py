@@ -103,10 +103,9 @@ def fetch_order_prices_and_update_if_expired(
 ) -> tuple[Order, Optional[Iterable[OrderLine]]]:
     """Fetch order prices with taxes.
 
-    First calculate and apply all order prices with taxes separately,
-    then apply tax data as well if we receive one.
+    First apply order level discounts and recalculate prices. Next calculates taxes.
 
-    Prices will be updated if force_update is True,
+    Prices will be updated if force_update is True
     or if order.should_refresh_prices is True.
     """
     if order.status not in ORDER_EDITABLE_STATUS:
@@ -124,7 +123,7 @@ def fetch_order_prices_and_update_if_expired(
     # TODO: zedzior check if manual discount need to create DiscountOrder objects too
     _update_order_discount_for_voucher(order)
     base_calculations.apply_order_discounts(order, lines)
-    calculate_taxes(order, manager, lines)
+    _calculate_taxes(order, manager, lines)
 
     with transaction.atomic(savepoint=False):
         order.save(
@@ -164,11 +163,16 @@ def fetch_order_prices_and_update_if_expired(
         return order, lines
 
 
-def calculate_taxes(
+def _calculate_taxes(
     order: Order,
     manager: PluginsManager,
     lines: Iterable[OrderLine],
 ):
+    """Calculate taxes.
+
+    At this stage, prices already include all the discounts. This should be the only
+    place where base_unit_price_amount can contain propagated, entore order discount.
+    """
     tax_configuration = order.channel.tax_configuration
     tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
@@ -193,6 +197,7 @@ def calculate_taxes(
             _calculate_and_add_tax(
                 tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
             )
+        # TODO: zedzior check if second if is redundant
         else:
             # Calculate net prices without taxes.
             _remove_tax(order, lines)
