@@ -581,11 +581,11 @@ mutation OrderLineDiscountUpdate($input: OrderDiscountCommonInput!, $orderLineId
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_order_line_discount_old_id(
     status,
-    draft_order_with_fixed_discount_order,
+    draft_order,
     staff_api_client,
     permission_group_manage_orders,
 ):
-    order = draft_order_with_fixed_discount_order
+    order = draft_order
     order.status = status
     order.save(update_fields=["status"])
     line_to_discount = order.lines.first()

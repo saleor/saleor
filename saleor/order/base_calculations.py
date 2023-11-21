@@ -33,7 +33,7 @@ def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
 def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     """Return order total, with all discounts included."""
     currency = order.currency
-    # TODO: w base order subtotal nie ma entire order discount
+    # TODO: zedzior w base order subtotal nie ma entire order discount
     subtotal = base_order_subtotal(order, lines)
     shipping_price = order.shipping_price_net_amount
     return subtotal + Money(shipping_price, currency)
@@ -215,7 +215,7 @@ def apply_discount_to_order_line(line: "OrderLine", discount: Money):
             line.undiscounted_total_price_net_amount - line.total_price_net_amount
         )
         unit_discount = total_line_discount_amount / quantity
-        # TODO: to check if should we update this field???
+        # TODO: zedzior to check if should we update this field???
         line.unit_discount_amount = unit_discount
 
 

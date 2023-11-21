@@ -62,6 +62,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         order_line_before_update = copy.deepcopy(order_line)
         app = get_app_promise(info.context).get()
         with traced_atomic_transaction():
+            # TODO: zedzior fixed discount aplikuje sie na unit price a nie total ???
             update_discount_for_order_line(
                 order_line,
                 order=order,

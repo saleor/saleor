@@ -1190,7 +1190,5 @@ def test_apply_subtotal_discount_to_order_lines_order_with_single_line(
 
 
 def test_ensure_order_lines_prices_sum_up_to_order_prices(order_with_lines):
-    # TODO: test da shit
+    # TODO: zedzior test da shit
     pass
-
-

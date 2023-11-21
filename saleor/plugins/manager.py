@@ -346,7 +346,7 @@ class PluginsManager(PaymentInterface):
         )
 
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
-        shipping_price = order.base_shipping_price
+        shipping_price = order.shipping_price_net
         default_value = quantize_price(
             TaxedMoney(net=shipping_price, gross=shipping_price),
             shipping_price.currency,

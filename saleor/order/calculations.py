@@ -121,7 +121,7 @@ def fetch_order_prices_and_update_if_expired(
     charge_taxes = get_charge_taxes_for_order(order)
     should_charge_tax = charge_taxes and not order.tax_exemption
 
-    # TODO: check if manual discount need to create DiscountOrder objects too
+    # TODO: zedzior check if manual discount need to create DiscountOrder objects too
     _update_order_discount_for_voucher(order)
 
     if lines is None:
@@ -180,11 +180,11 @@ def fetch_order_prices_and_update_if_expired(
                 "undiscounted_total_price_net_amount",
                 "undiscounted_total_price_gross_amount",
                 "tax_rate",
-                # TODO: should we update it?
+                # TODO: zedzior should we update it?
                 "unit_discount_amount",
             ],
         )
-        # TODO: potential issue: lines and order.lines.all() have diff base unit price
+        # TODO: zedzior potential issue: lines and order.lines.all() have diff base unit price
         # lines = order.lines.all()
         if info:
             OrderLinesByOrderIdLoader(info.context).clear(order.id)
