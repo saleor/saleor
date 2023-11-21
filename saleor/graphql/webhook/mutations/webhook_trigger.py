@@ -1,12 +1,15 @@
 import graphene
 from celery.exceptions import Retry
+from django.db.models import Exists, OuterRef
 from graphene.utils.str_converters import to_camel_case
 
+from ....app.models import App
 from ....core import EventDeliveryStatus
 from ....discount import models as discount_models
 from ....permission.auth_filters import AuthorizationFilters
 from ....webhook.error_codes import WebhookTriggerErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.models import Webhook
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
@@ -102,7 +105,12 @@ class WebhookTrigger(BaseMutation):
     def validate_input(cls, info, **data):
         object_id = data.get("object_id")
         webhook_id = data.get("webhook_id")
-        webhook = cls.get_node_or_error(info, webhook_id, field="webhookId")
+
+        apps = App.objects.filter(removed_at__isnull=True)
+        webhooks = Webhook.objects.filter(Exists(apps.filter(id=OuterRef("app_id"))))
+        webhook = cls.get_node_or_error(
+            info, webhook_id, field="webhookId", qs=webhooks
+        )
 
         event_type = cls.validate_subscription_query(webhook)
         cls.validate_event_type(event_type, object_id)
