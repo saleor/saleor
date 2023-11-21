@@ -115,45 +115,16 @@ def fetch_order_prices_and_update_if_expired(
     if not force_update and not order.should_refresh_prices:
         return order, lines
 
-    tax_configuration = order.channel.tax_configuration
-    tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
-    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
-    charge_taxes = get_charge_taxes_for_order(order)
-    should_charge_tax = charge_taxes and not order.tax_exemption
-
-    # TODO: zedzior check if manual discount need to create DiscountOrder objects too
-    _update_order_discount_for_voucher(order)
-
     if lines is None:
         lines = list(order.lines.select_related("variant__product__product_type"))
     else:
         prefetch_related_objects(lines, "variant__product__product_type")
 
     order.should_refresh_prices = False
+    # TODO: zedzior check if manual discount need to create DiscountOrder objects too
+    _update_order_discount_for_voucher(order)
     base_calculations.apply_order_discounts(order, lines)
-    if prices_entered_with_tax:
-        # If prices are entered with tax, we need to always calculate it anyway, to
-        # display the tax rate to the user.
-        _calculate_and_add_tax(
-            tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
-        )
-        if not should_charge_tax:
-            # If charge_taxes is disabled or order is exempt from taxes, remove the
-            # tax from the original gross prices.
-            _remove_tax(order, lines)
-
-    else:
-        # Prices are entered without taxes.
-        if should_charge_tax:
-            # Calculate taxes if charge_taxes is enabled and order is not exempt
-            # from taxes.
-            _calculate_and_add_tax(
-                tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
-            )
-        else:
-            # Calculate net prices without taxes.
-            _remove_tax(order, lines)
-            # _get_order_base_prices(order, lines)
+    calculate_taxes(order, manager, lines)
 
     with transaction.atomic(savepoint=False):
         order.save(
@@ -184,12 +155,66 @@ def fetch_order_prices_and_update_if_expired(
                 "unit_discount_amount",
             ],
         )
-        # TODO: zedzior potential issue: lines and order.lines.all() have diff base unit price
+        # TODO: zedzior potential issue: lines and order.lines.all() have different
+        #  base unit price
         # lines = order.lines.all()
         if info:
             OrderLinesByOrderIdLoader(info.context).clear(order.id)
 
         return order, lines
+
+
+def calculate_taxes(
+    order: Order,
+    manager: PluginsManager,
+    lines: Iterable[OrderLine],
+):
+    tax_configuration = order.channel.tax_configuration
+    tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
+    charge_taxes = get_charge_taxes_for_order(order)
+    should_charge_tax = charge_taxes and not order.tax_exemption
+    if prices_entered_with_tax:
+        # If prices are entered with tax, we need to always calculate it anyway, to
+        # display the tax rate to the user.
+        _calculate_and_add_tax(
+            tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
+        )
+        if not should_charge_tax:
+            # If charge_taxes is disabled or order is exempt from taxes, remove the
+            # tax from the original gross prices.
+            _remove_tax(order, lines)
+
+    else:
+        # Prices are entered without taxes.
+        if should_charge_tax:
+            # Calculate taxes if charge_taxes is enabled and order is not exempt
+            # from taxes.
+            _calculate_and_add_tax(
+                tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
+            )
+        else:
+            # Calculate net prices without taxes.
+            _remove_tax(order, lines)
+            # _get_order_base_prices(order, lines)
+
+
+def _calculate_and_add_tax(
+    tax_calculation_strategy: str,
+    order: "Order",
+    lines: Iterable["OrderLine"],
+    manager: "PluginsManager",
+    prices_entered_with_tax: bool,
+):
+    if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
+        # Get the taxes calculated with plugins.
+        _apply_tax_data_from_plugins(manager, order, lines)
+        # Get the taxes calculated with apps and apply to order.
+        tax_data = manager.get_taxes_for_order(order)
+        _apply_tax_data(order, lines, tax_data)
+    else:
+        # Get taxes calculated with flat rates and apply to order.
+        update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
 
 
 def _update_order_discount_for_voucher(order: Order):
@@ -223,24 +248,6 @@ def _update_order_discount_for_voucher(order: Order):
         del order._prefetched_objects_cache["discounts"]
 
     prefetch_related_objects([order], "discounts")
-
-
-def _calculate_and_add_tax(
-    tax_calculation_strategy: str,
-    order: "Order",
-    lines: Iterable["OrderLine"],
-    manager: "PluginsManager",
-    prices_entered_with_tax: bool,
-):
-    if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
-        # Get the taxes calculated with plugins.
-        _apply_tax_data_from_plugins(manager, order, lines)
-        # Get the taxes calculated with apps and apply to order.
-        tax_data = manager.get_taxes_for_order(order)
-        _apply_tax_data(order, lines, tax_data)
-    else:
-        # Get taxes calculated with flat rates and apply to order.
-        update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
 
 
 def _apply_tax_data_from_plugins(
