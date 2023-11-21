@@ -5,6 +5,7 @@ import graphene
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....app.error_codes import AppErrorCode
 from .....app.models import App
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
@@ -226,3 +227,28 @@ def test_app_has_more_permission_than_app_requestor(
     assert not app_errors
     assert app_data["isActive"] is True
     assert app.is_active
+
+
+def test_app_activate_mutation_removed_app(
+    removed_app,
+    permission_manage_apps,
+    staff_api_client,
+):
+    # given
+    query = APP_ACTIVATE_MUTATION
+    id = graphene.Node.to_global_id("App", removed_app.id)
+    variables = {
+        "id": id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=(permission_manage_apps,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["appActivate"]
+    assert app_data["app"] is None
+    assert app_data["errors"][0]["code"] == AppErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "id"
