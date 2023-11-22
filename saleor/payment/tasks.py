@@ -11,13 +11,10 @@ from ..checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ..checkout.models import Checkout
 from ..payment.models import TransactionEvent, TransactionItem
 from ..plugins.manager import get_plugins_manager
-from . import PaymentError, TransactionEventType
+from . import PaymentError, TransactionAction, TransactionEventType
 from .gateway import request_cancelation_action, request_refund_action
 
 logger = logging.getLogger(__name__)
-
-CHECKOUT_BATCH_SIZE = 30
-TRANSACTION_BATCH_SIZE = 60
 
 
 def checkouts_with_funds_to_release():
@@ -41,6 +38,9 @@ def checkouts_with_funds_to_release():
 
 @app.task
 def transaction_release_funds_for_checkout_task():
+    CHECKOUT_BATCH_SIZE = int(settings.CHECKOUT_BATCH_FOR_RELEASING_FUNDS)
+    TRANSACTION_BATCH_SIZE = int(settings.TRANSACTION_BATCH_FOR_RELEASING_FUNDS)
+
     checkouts = checkouts_with_funds_to_release().order_by("last_change")
     checkout_pks = checkouts.values_list("pk", flat=True)[:CHECKOUT_BATCH_SIZE]
     if checkout_pks:
@@ -113,6 +113,7 @@ def transaction_release_funds_for_checkout_task():
                         **action_kwargs,
                         request_event=event,
                         cancel_value=event.amount_value,
+                        action=TransactionAction.CANCEL,
                     )
                 except PaymentError as e:
                     logger.warning(
