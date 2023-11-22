@@ -4,6 +4,7 @@ import graphene
 from django.db import IntegrityError
 
 from .....app.models import App
+from .....webhook.error_codes import WebhookErrorCode
 from .....webhook.models import Webhook
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -15,6 +16,9 @@ WEBHOOK_DELETE_BY_APP = """
           message
           code
         }
+        webhook {
+          id
+        }
       }
     }
 """
@@ -25,6 +29,24 @@ def test_webhook_delete_by_app(app_api_client, webhook):
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
     variables = {"id": webhook_id}
     response = app_api_client.post_graphql(query, variables=variables)
+    get_graphql_content(response)
+    assert Webhook.objects.count() == 0
+
+
+def test_webhook_delete_by_staff(staff_api_client, webhook, permission_manage_apps):
+    # given
+    query = WEBHOOK_DELETE_BY_APP
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_apps],
+    )
+
+    # then
     get_graphql_content(response)
     assert Webhook.objects.count() == 0
 
@@ -120,3 +142,26 @@ def test_webhook_delete_when_app_doesnt_exist(app_api_client, app):
     variables = {"id": webhook_id}
     response = app_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
+
+
+def test_webhook_delete_by_staff_for_removed_app(
+    staff_api_client, webhook_removed_app, permission_manage_apps
+):
+    # given
+    query = WEBHOOK_DELETE_BY_APP
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook_removed_app.pk)
+    variables = {"id": webhook_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["webhookDelete"]
+    assert app_data["webhook"] is None
+    assert app_data["errors"][0]["code"] == WebhookErrorCode.NOT_FOUND.name
+    assert app_data["errors"][0]["field"] == "id"

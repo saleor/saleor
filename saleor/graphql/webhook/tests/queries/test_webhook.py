@@ -73,6 +73,24 @@ def test_query_webhook_by_staff_without_permission(staff_api_client, webhook):
     assert_no_permission(response)
 
 
+def test_query_webhook_removed_app(
+    staff_api_client, webhook_removed_app, permission_manage_apps
+):
+    # given
+    query = QUERY_WEBHOOK
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook_removed_app.pk)
+    variables = {"id": webhook_id}
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    webhook_response = content["data"]["webhook"]
+    assert webhook_response is None
+
+
 def test_query_webhook_by_app(app_api_client, webhook):
     query = QUERY_WEBHOOK
 

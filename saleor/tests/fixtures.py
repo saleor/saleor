@@ -2518,6 +2518,26 @@ def product_type(product_type_generator):
 
 
 @pytest.fixture
+def product_type_with_value_required_attributes(
+    color_attribute, size_attribute, default_tax_class
+):
+    product_type = ProductType.objects.create(
+        name="Default Type",
+        slug="default-type",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+        tax_class=default_tax_class,
+    )
+    color_attribute.value_required = True
+    size_attribute.value_required = True
+    Attribute.objects.bulk_update([color_attribute, size_attribute], ["value_required"])
+    product_type.product_attributes.add(color_attribute)
+    product_type.product_attributes.add(size_attribute)
+    return product_type
+
+
+@pytest.fixture
 def product_type_list():
     product_type_1 = ProductType.objects.create(
         name="Type 1", slug="type-1", kind=ProductTypeKind.NORMAL
@@ -6831,6 +6851,16 @@ def app_with_token(db):
 
 
 @pytest.fixture
+def removed_app(db):
+    app = App.objects.create(
+        name="Deleted app ",
+        is_active=True,
+        removed_at=(timezone.now() - datetime.timedelta(days=1, hours=1)),
+    )
+    return app
+
+
+@pytest.fixture
 def app_with_extensions(app_with_token, permission_manage_products):
     first_app_extension = AppExtension(
         app=app_with_token,
@@ -6851,6 +6881,29 @@ def app_with_extensions(app_with_token, permission_manage_products):
     )
     first_app_extension.permissions.add(permission_manage_products)
     return app_with_token, extensions
+
+
+@pytest.fixture
+def removed_app_with_extensions(removed_app, permission_manage_products):
+    first_app_extension = AppExtension(
+        app=removed_app,
+        label="Create product with App",
+        url="www.example.com/app-product",
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+    )
+    extensions = AppExtension.objects.bulk_create(
+        [
+            first_app_extension,
+            AppExtension(
+                app=removed_app,
+                label="Update product with App",
+                url="www.example.com/app-product-update",
+                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
+            ),
+        ]
+    )
+    first_app_extension.permissions.add(permission_manage_products)
+    return removed_app, extensions
 
 
 @pytest.fixture
@@ -7104,6 +7157,17 @@ def webhook(app):
 @pytest.fixture
 def webhook_without_name(app):
     webhook = Webhook.objects.create(app=app, target_url="http://www.example.com/test")
+    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
+    return webhook
+
+
+@pytest.fixture
+def webhook_removed_app(removed_app):
+    webhook = Webhook.objects.create(
+        name="Removed app webhook",
+        app=removed_app,
+        target_url="http://www.example.com/test",
+    )
     webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
     return webhook
 
@@ -7614,6 +7678,12 @@ def app_export_file(app):
 
 
 @pytest.fixture
+def removed_app_export_file(removed_app):
+    job = ExportFile.objects.create(app=removed_app)
+    return job
+
+
+@pytest.fixture
 def export_file_list(staff_user):
     export_file_list = list(
         ExportFile.objects.bulk_create(
@@ -7680,6 +7750,16 @@ def app_export_event(app_export_file):
         type=ExportEvents.EXPORT_FAILED,
         export_file=app_export_file,
         app=app_export_file.app,
+        parameters={"message": "Example error message"},
+    )
+
+
+@pytest.fixture
+def removed_app_export_event(removed_app_export_file):
+    return ExportEvent.objects.create(
+        type=ExportEvents.EXPORT_FAILED,
+        export_file=removed_app_export_file,
+        app=removed_app_export_file.app,
         parameters={"message": "Example error message"},
     )
 
@@ -7759,6 +7839,15 @@ def event_delivery(event_payload, webhook, app):
 
 
 @pytest.fixture
+def event_delivery_removed_app(event_payload, webhook_removed_app):
+    return EventDelivery.objects.create(
+        event_type=WebhookEventAsyncType.ANY,
+        payload=event_payload,
+        webhook=webhook_removed_app,
+    )
+
+
+@pytest.fixture
 def event_attempt(event_delivery):
     """Return event delivery attempt object"""
     return EventDeliveryAttempt.objects.create(
@@ -7791,6 +7880,19 @@ def webhook_list_stored_payment_methods_response():
             }
         ]
     }
+
+
+@pytest.fixture
+def event_attempt_removed_app(event_delivery_removed_app):
+    """Return event delivery attempt object"""
+    return EventDeliveryAttempt.objects.create(
+        delivery=event_delivery_removed_app,
+        task_id="example_task_id",
+        duration=None,
+        response="example_response",
+        response_headers=None,
+        request_headers=None,
+    )
 
 
 @pytest.fixture

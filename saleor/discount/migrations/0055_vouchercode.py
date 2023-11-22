@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.CreateModel(
             name="VoucherCode",
-            options={"ordering": ("code",)},
+            options={"ordering": ("-created_at", "code")},
             fields=[
                 (
                     "id",
@@ -27,6 +27,7 @@ class Migration(migrations.Migration):
                 ("code", models.CharField(db_index=True, max_length=255, unique=True)),
                 ("used", models.PositiveIntegerField(default=0)),
                 ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
                 (
                     "voucher",
                     models.ForeignKey(
@@ -43,6 +44,14 @@ class Migration(migrations.Migration):
                 ALTER TABLE discount_vouchercode
                 ALTER COLUMN is_active
                 SET DEFAULT true;
+            """,
+            reverse_sql=migrations.RunSQL.noop,
+        ),
+        migrations.RunSQL(
+            sql="""
+                ALTER TABLE discount_vouchercode
+                ALTER COLUMN created_at
+                SET DEFAULT CURRENT_TIMESTAMP;
             """,
             reverse_sql=migrations.RunSQL.noop,
         ),
