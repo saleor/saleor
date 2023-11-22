@@ -26,10 +26,7 @@ from sentry_sdk.integrations.logging import ignore_logger
 
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
-from .core.schedules import (
-    initiated_sale_webhook_schedule,
-    initiated_transaction_release_funds_for_checkout_schedule,
-)
+from .core.schedules import initiated_sale_webhook_schedule
 
 django_stubs_ext.monkeypatch()
 
@@ -620,7 +617,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "release-funds-for-abandoned-checkouts": {
         "task": "saleor.payment.tasks.transaction_release_funds_for_checkout_task",
-        "schedule": initiated_transaction_release_funds_for_checkout_schedule,
+        "schedule": timedelta(minutes=10),
     },
 }
 
@@ -827,6 +824,13 @@ CHECKOUT_PRICES_TTL = timedelta(
 CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = timedelta(
     seconds=parse(os.environ.get("CHECKOUT_TTL_BEFORE_RELEASING_FUNDS", "6 hours"))
 )
+CHECKOUT_BATCH_FOR_RELEASING_FUNDS = os.environ.get(
+    "CHECKOUT_BATCH_FOR_RELEASING_FUNDS", 30
+)
+TRANSACTION_BATCH_FOR_RELEASING_FUNDS = os.environ.get(
+    "TRANSACTION_BATCH_FOR_RELEASING_FUNDS", 60
+)
+
 
 # The maximum SearchVector expression count allowed per index SQL statement
 # If the count is exceeded, the expression list will be truncated
