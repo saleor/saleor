@@ -665,6 +665,43 @@ def test_request_refund_action_missing_active_event(
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_request_refund_action_updates_refundable_for_checkout(
+    mocked_is_active, staff_user, checkout, transaction_item_generator
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save()
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=Decimal(100)
+    )
+    action_value = Decimal("5.00")
+    requested_event = transaction.events.create(
+        amount_value=action_value,
+        currency=transaction.currency,
+        type=TransactionEventType.REFUND_REQUEST,
+    )
+    mocked_is_active.side_effect = [False, False]
+
+    # when
+    with pytest.raises(PaymentError):
+        request_refund_action(
+            transaction=transaction,
+            manager=get_plugins_manager(),
+            refund_value=action_value,
+            channel_slug=checkout.channel.slug,
+            user=staff_user,
+            app=None,
+            request_event=requested_event,
+        )
+
+    # then
+    transaction.refresh_from_db()
+    checkout.refresh_from_db()
+    assert checkout.automatically_refundable is False
+    assert transaction.last_refund_success is False
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_refund_action_with_transaction_action_request(
     mocked_transaction_request, mocked_is_active, order, staff_user
@@ -908,6 +945,44 @@ def test_request_cancelation_action_missing_active_event(
             request_event=requested_event,
             action=TransactionAction.CANCEL,
         )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_request_cancel_action_updates_refundable_for_checkout(
+    mocked_is_active, checkout, staff_user, transaction_item_generator
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save()
+
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk, authorized_value=Decimal(100)
+    )
+    requested_event = transaction.events.create(
+        currency=transaction.currency,
+        type=TransactionEventType.CANCEL_REQUEST,
+    )
+
+    mocked_is_active.return_value = False
+
+    # when
+    with pytest.raises(PaymentError):
+        request_cancelation_action(
+            transaction=transaction,
+            manager=get_plugins_manager(),
+            cancel_value=None,
+            channel_slug=checkout.channel.slug,
+            user=staff_user,
+            app=None,
+            request_event=requested_event,
+            action=TransactionAction.CANCEL,
+        )
+
+    # then
+    transaction.refresh_from_db()
+    checkout.refresh_from_db()
+    assert checkout.automatically_refundable is False
+    assert transaction.last_refund_success is False
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")

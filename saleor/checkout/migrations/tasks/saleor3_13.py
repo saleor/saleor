@@ -134,26 +134,3 @@ def fix_statuses_for_empty_checkouts_task():
             checkouts_to_update, ["authorize_status", "charge_status"]
         )
         fix_statuses_for_empty_checkouts_task.delay()
-
-
-@app.task
-def update_transaction_modified_at_in_checkouts():
-    checkouts_without_modified_at = Checkout.objects.filter(
-        Exists(TransactionItem.objects.filter(checkout_id=OuterRef("pk"))),
-        last_transaction_modified_at__isnull=True,
-    ).values_list("pk", flat=True)[:BATCH_SIZE]
-
-    if checkouts_without_modified_at:
-        checkouts = Checkout.objects.filter(
-            pk__in=checkouts_without_modified_at
-        ).prefetch_related("payment_transactions")
-        checkouts_to_update = []
-        for checkout in checkouts:
-            transactions = list(checkout.payment_transactions.all())
-            last_transaction = sorted(transactions, key=lambda t: t.modified_at)[-1]
-            checkout.last_transaction_modified_at = last_transaction.modified_at
-            checkouts_to_update.append(checkout)
-        Checkout.objects.bulk_update(
-            checkouts_to_update, ["last_transaction_modified_at"]
-        )
-        update_transaction_modified_at_in_checkouts.delay()
