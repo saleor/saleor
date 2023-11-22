@@ -6,7 +6,6 @@ from django.db import transaction
 from django.db.models import prefetch_related_objects
 from prices import Money, TaxedMoney
 
-from .models import Order, OrderLine
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
 from ..discount import DiscountType
@@ -24,6 +23,7 @@ from ..tax.utils import (
 )
 from . import ORDER_EDITABLE_STATUS
 from .interface import OrderTaxedPricesData
+from .models import Order, OrderLine
 
 
 def fetch_order_prices_and_update_if_expired(

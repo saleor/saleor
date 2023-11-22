@@ -1,7 +1,7 @@
 from decimal import Decimal
-from prices import Money, TaxedMoney
 
 import pytest
+from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
