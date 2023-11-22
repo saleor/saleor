@@ -47,6 +47,8 @@ class Checkout(models.Model):
     # checkout
     last_transaction_modified_at = models.DateTimeField(null=True, blank=True)
 
+    automatically_refundable = models.BooleanField(default=False)
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
@@ -185,8 +187,12 @@ class Checkout(models.Model):
         ordering = ("-last_change", "pk")
         indexes = [
             BTreeIndex(
-                fields=["last_transaction_modified_at"],
-                name="chckt_last_tr_modified_at_idx",
+                fields=[
+                    "last_transaction_modified_at",
+                    "automatically_refundable",
+                    "last_change",
+                ],
+                name="chckt_refundable_group_idx",
             ),
         ]
         permissions = (

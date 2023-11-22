@@ -28,7 +28,10 @@ from sentry_sdk.integrations.logging import ignore_logger
 
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
-from .core.schedules import initiated_promotion_webhook_schedule
+from .core.schedules import (
+    initiated_promotion_webhook_schedule,
+    initiated_transaction_release_funds_for_checkout_schedule,
+)
 
 django_stubs_ext.monkeypatch()
 
@@ -619,6 +622,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.order.tasks.expire_orders_task",
         "schedule": BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA,
     },
+    "release-funds-for-abandoned-checkouts": {
+        "task": "saleor.payment.tasks.transaction_release_funds_for_checkout_task",
+        "schedule": initiated_transaction_release_funds_for_checkout_schedule,
+    },
 }
 
 # The maximum wait time between each is_due() call on schedulers
@@ -813,6 +820,10 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
 
 CHECKOUT_PRICES_TTL = timedelta(
     seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "1 hour"))
+)
+
+CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = timedelta(
+    seconds=parse(os.environ.get("CHECKOUT_TTL_BEFORE_RELEASING_FUNDS", "6 hours"))
 )
 
 # The maximum SearchVector expression count allowed per index SQL statement

@@ -4,6 +4,7 @@ from decimal import Decimal
 import graphene
 import mock
 import pytest
+import pytz
 from freezegun import freeze_time
 
 from .....channel import TransactionFlowStrategy
@@ -1256,7 +1257,7 @@ def test_customer_ip_address_ipv6(
 @freeze_time("2023-03-18 12:00:00")
 @pytest.mark.parametrize(
     "previous_last_transaction_modified_at",
-    [None, datetime.datetime(2020, 1, 1)],
+    [None, datetime.datetime(2020, 1, 1, tzinfo=pytz.UTC)],
 )
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
@@ -1303,8 +1304,8 @@ def test_updates_checkout_last_transaction_modified_at(
     expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
