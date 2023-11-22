@@ -165,9 +165,6 @@ def apply_subtotal_discount_to_order_lines(
     subtotal_discount: Money,
 ):
     """Calculate order line prices after applying discounts to entire order."""
-    if subtotal_discount.amount <= 0:
-        return
-
     # Handle order with single line - propagate the whole discount to the single line.
     lines = list(lines)
     lines_count = len(lines)
@@ -178,6 +175,7 @@ def apply_subtotal_discount_to_order_lines(
     # Handle order with multiple lines - propagate the order discount proportionally
     # to the lines.
     elif lines_count > 1:
+        remaining_discount = subtotal_discount
         for idx, line in enumerate(lines):
             if idx < lines_count - 1:
                 share = (
@@ -185,10 +183,13 @@ def apply_subtotal_discount_to_order_lines(
                     * line.quantity
                     / undiscounted_subtotal.amount
                 )
-                discount = min(share * subtotal_discount, undiscounted_subtotal)
+                discount = min(share * remaining_discount, undiscounted_subtotal)
                 apply_discount_to_order_line(line, discount)
+                remaining_discount -= discount
+            else:
+                apply_discount_to_order_line(line, remaining_discount)
 
-        _ensure_order_lines_prices_sum_up_to_order_prices(lines, subtotal_discount)
+        # _ensure_order_lines_prices_sum_up_to_order_prices(lines, subtotal_discount)
 
 
 def apply_discount_to_order_line(line: "OrderLine", discount: Money):
@@ -219,17 +220,20 @@ def apply_discount_to_order_line(line: "OrderLine", discount: Money):
         line.unit_discount_amount = unit_discount
 
 
-def _ensure_order_lines_prices_sum_up_to_order_prices(
-    lines: list["OrderLine"],
-    subtotal_discount: Money,
-):
-    other_lines_discount_amount = sum(
-        [
-            line.undiscounted_total_price_net_amount - line.total_price_net_amount
-            for line in lines[:-1]
-        ]
-    )
-    currency = subtotal_discount.currency
-    other_lines_discount = Money(other_lines_discount_amount, currency)
-    last_line_discount = subtotal_discount - other_lines_discount
-    apply_discount_to_order_line(lines[-1], last_line_discount)
+#
+#
+# def _ensure_order_lines_prices_sum_up_to_order_prices(
+#     lines: list["OrderLine"],
+#     subtotal_discount: Money,
+# ):
+#     breakpoint()
+#     other_lines_discount_amount = sum(
+#         [
+#             line.undiscounted_total_price_net_amount - line.total_price_net_amount
+#             for line in lines[:-1]
+#         ]
+#     )
+#     currency = subtotal_discount.currency
+#     other_lines_discount = Money(other_lines_discount_amount, currency)
+#     last_line_discount = subtotal_discount - other_lines_discount
+#     apply_discount_to_order_line(lines[-1], last_line_discount)
