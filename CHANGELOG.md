@@ -398,7 +398,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add missing descriptions to payment module - #13546 by @devilsautumn
 - Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
 - Add Index for 'Created' field of the Order Model - #13682 by @ritanjandawn
-- Add missing descriptions to giftcard module - #14846 by @devilsautumn
+- Add missing descriptions to giftcard module - #14847 by @devilsautumn
 
 # 3.14.0
 
