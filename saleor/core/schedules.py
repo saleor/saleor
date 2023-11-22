@@ -112,4 +112,62 @@ class promotion_webhook_schedule(CustomSchedule):
         return schedstate(is_due, self.next_run.total_seconds())
 
 
+class transaction_release_funds_for_checkout_schedule(CustomSchedule):
+    """Schedule for releasing the funds for unfinished checkouts periodic task.
+
+    The lowercase with an underscore is used for the name as all celery schedules
+    are written this way. According to PEP it's allowed behavior:
+    https://peps.python.org/pep-0008/#class-names.
+
+    Arguments:
+        initial_timedelta (float, ~datetime.timedelta):
+            Initial time interval in seconds.
+        nowfun (Callable): Function returning the current date and time
+            (:class:`~datetime.datetime`).
+        app (Celery): Celery app instance.
+
+    """
+
+    def __init__(self, initial_timedelta=1200, nowfun=None, app=None):
+        self.initial_timedelta: timedelta = cast(
+            timedelta, maybe_timedelta(initial_timedelta)
+        )
+        self.next_run: timedelta = self.initial_timedelta
+        super().__init__(
+            schedule=self,
+            nowfun=nowfun,
+            app=app,
+            import_path=(
+                "saleor.core.schedules."
+                "initiated_transaction_release_funds_for_checkout_schedule"
+            ),
+        )
+
+    def remaining_estimate(self, last_run_at):
+        """Estimate of next run time.
+
+        Returns when the periodic task should run next as a timedelta.
+        """
+        return remaining(
+            self.maybe_make_aware(last_run_at),
+            self.next_run,
+            self.maybe_make_aware(self.now()),
+        )
+
+    def is_due(self, last_run_at):
+        """Return tuple of ``(is_due, next_time_to_run)``.
+
+        Note:
+            Next time to run is in seconds.
+
+        """
+        from ..payment.tasks import checkouts_with_funds_to_release
+
+        is_due = checkouts_with_funds_to_release().exists()
+        return schedstate(is_due, self.next_run.total_seconds())
+
+
+initiated_transaction_release_funds_for_checkout_schedule = (
+    transaction_release_funds_for_checkout_schedule()
+)
 initiated_promotion_webhook_schedule = promotion_webhook_schedule()

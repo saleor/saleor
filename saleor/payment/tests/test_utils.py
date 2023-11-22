@@ -28,6 +28,7 @@ from ..utils import (
     get_channel_slug_from_payment,
     get_correct_event_types_based_on_request_type,
     parse_transaction_action_data,
+    recalculate_refundable_for_checkout,
     try_void_or_refund_inactive_payment,
 )
 
@@ -1092,6 +1093,216 @@ def test_create_transaction_event_from_request_and_webhook_response_different_am
     assert failed_event.type == TransactionEventType.AUTHORIZATION_FAILURE
 
 
+@freeze_time("2018-05-31 12:00:01")
+def test_create_event_from_request_and_webhook_missing_response_calculate_refundable(
+    transaction_item_generator,
+    checkout,
+    app,
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save()
+
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=Decimal(100)
+    )
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    response_data = None
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    checkout.refresh_from_db()
+    transaction.refresh_from_db()
+    assert transaction.last_refund_success is False
+    assert checkout.automatically_refundable is False
+
+
+def test_create_event_from_request_and_webhook_error_response_calculate_refundable(
+    transaction_item_generator,
+    checkout,
+    app,
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save()
+
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=Decimal(100)
+    )
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = 12.00
+    event_type = TransactionEventType.CHARGE_FAILURE
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+    event_cause = "No cause"
+
+    response_data = {
+        # missing pspReference
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
+        "actions": ["CHARGE", "CHARGE", "CANCEL"],
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    checkout.refresh_from_db()
+    transaction.refresh_from_db()
+    assert transaction.last_refund_success is False
+    assert checkout.automatically_refundable is False
+
+
+def test_create_event_from_request_and_webhook_failure_event_calculate_refundable(
+    transaction_item_generator,
+    checkout,
+    app,
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save()
+
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=Decimal(100)
+    )
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = 11.00
+    event_type = TransactionEventType.REFUND_FAILURE
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+    event_cause = "No cause"
+
+    response_data = {
+        "pspReference": "123",
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
+        "actions": ["CHARGE", "CHARGE", "CANCEL"],
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    checkout.refresh_from_db()
+    transaction.refresh_from_db()
+    assert transaction.last_refund_success is False
+    assert checkout.automatically_refundable is False
+
+
+def test_create_event_from_request_and_webhook_success_event_calculate_refundable(
+    transaction_item_generator,
+    checkout,
+    app,
+):
+    # given
+    checkout.automatically_refundable = False
+    checkout.save()
+
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=Decimal(100)
+    )
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = 12.00
+    event_type = TransactionEventType.REFUND_SUCCESS
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+    event_cause = "No cause"
+
+    response_data = {
+        "pspReference": "123",
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
+        "actions": ["CHARGE", "CHARGE", "CANCEL"],
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    checkout.refresh_from_db()
+    transaction.refresh_from_db()
+    assert transaction.last_refund_success is True
+    assert checkout.automatically_refundable is True
+
+
+def test_create_event_from_request_and_webhook_pending_event_calculate_refundable(
+    transaction_item_generator,
+    checkout,
+    app,
+):
+    # given
+    checkout.automatically_refundable = False
+    checkout.save()
+
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=Decimal(100)
+    )
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    response_data = {
+        "pspReference": "123",
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    checkout.refresh_from_db()
+    transaction.refresh_from_db()
+    assert transaction.last_refund_success is True
+    assert checkout.automatically_refundable is True
+
+
 @pytest.mark.parametrize(
     ("db_field_name", "value", "event_type"),
     [
@@ -1714,3 +1925,331 @@ def test_create_transaction_event_updates_transaction_modified_at(
     checkout.refresh_from_db()
     assert transaction.modified_at == calculation_time
     assert checkout.last_transaction_modified_at == calculation_time
+
+
+def test_recalculate_refundable_for_checkout_with_request_refund(
+    transaction_item_generator, checkout
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save(update_fields=["automatically_refundable"])
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, last_refund_success=True, charged_value=Decimal(10)
+    )
+    request_event = transaction_item.events.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=Decimal(10),
+        include_in_calculations=False,
+    )
+
+    # when
+    recalculate_refundable_for_checkout(transaction_item, request_event)
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is False
+    assert checkout.automatically_refundable is False
+
+
+def test_recalculate_refundable_for_checkout_with_request_cancel(
+    transaction_item_generator, checkout
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save(update_fields=["automatically_refundable"])
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, last_refund_success=True, charged_value=Decimal(10)
+    )
+    request_event = transaction_item.events.create(
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=Decimal(10),
+        include_in_calculations=False,
+    )
+
+    # when
+    recalculate_refundable_for_checkout(transaction_item, request_event)
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is False
+    assert checkout.automatically_refundable is False
+
+
+@pytest.mark.parametrize(
+    "event_type",
+    [
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.CHARGE_REQUEST,
+    ],
+)
+def test_recalculate_refundable_for_checkout_with_non_related_request_event(
+    event_type, transaction_item_generator, checkout
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save(update_fields=["automatically_refundable"])
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, last_refund_success=True, charged_value=Decimal(10)
+    )
+    request_event = transaction_item.events.create(
+        type=event_type,
+        amount_value=Decimal(10),
+        include_in_calculations=False,
+    )
+
+    # when
+    recalculate_refundable_for_checkout(transaction_item, request_event)
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is True
+    assert checkout.automatically_refundable is True
+
+
+@pytest.mark.parametrize(
+    "event_type",
+    [
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.AUTHORIZATION_FAILURE,
+        TransactionEventType.CHARGE_SUCCESS,
+        TransactionEventType.CHARGE_FAILURE,
+    ],
+)
+def test_recalculate_refundable_for_checkout_with_non_related_events(
+    event_type, transaction_item_generator, checkout
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save(update_fields=["automatically_refundable"])
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, last_refund_success=True, charged_value=Decimal(10)
+    )
+    request_event = transaction_item.events.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=Decimal(10),
+        include_in_calculations=False,
+        psp_reference="123",
+    )
+    response_event = transaction_item.events.create(
+        type=event_type, amount_value=Decimal(10), psp_reference="123"
+    )
+
+    # when
+    recalculate_refundable_for_checkout(transaction_item, request_event, response_event)
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is True
+    assert checkout.automatically_refundable is True
+
+
+def test_recalculate_refundable_for_checkout_with_response_refund_success(
+    transaction_item_generator, checkout
+):
+    # given
+    checkout.automatically_refundable = False
+    checkout.save(update_fields=["automatically_refundable"])
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, last_refund_success=False, charged_value=Decimal(10)
+    )
+    request_event = transaction_item.events.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=Decimal(10),
+        include_in_calculations=False,
+        psp_reference="123",
+    )
+    response_event = transaction_item.events.create(
+        type=TransactionEventType.REFUND_SUCCESS,
+        amount_value=Decimal(10),
+        psp_reference="123",
+    )
+
+    # when
+    recalculate_refundable_for_checkout(transaction_item, request_event, response_event)
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is True
+    assert checkout.automatically_refundable is True
+
+
+def test_recalculate_refundable_for_checkout_with_response_refund_failure(
+    transaction_item_generator, checkout
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save(update_fields=["automatically_refundable"])
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, last_refund_success=True, charged_value=Decimal(10)
+    )
+    request_event = transaction_item.events.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=Decimal(10),
+        include_in_calculations=False,
+        psp_reference="123",
+    )
+    response_event = transaction_item.events.create(
+        type=TransactionEventType.REFUND_FAILURE,
+        amount_value=Decimal(10),
+        psp_reference="123",
+    )
+
+    # when
+    recalculate_refundable_for_checkout(transaction_item, request_event, response_event)
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is False
+    assert checkout.automatically_refundable is False
+
+
+def test_recalculate_refundable_for_checkout_with_response_refund_pending(
+    transaction_item_generator, checkout
+):
+    # given
+    checkout.automatically_refundable = False
+    checkout.save(update_fields=["automatically_refundable"])
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, last_refund_success=False, charged_value=Decimal(10)
+    )
+    request_event = transaction_item.events.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=Decimal(10),
+        include_in_calculations=True,
+        psp_reference="123",
+    )
+
+    # when
+    recalculate_refundable_for_checkout(transaction_item, request_event)
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is True
+    assert checkout.automatically_refundable is True
+
+
+def test_recalculate_refundable_for_checkout_with_response_cancel_failure(
+    transaction_item_generator, checkout
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save(update_fields=["automatically_refundable"])
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, last_refund_success=True, charged_value=Decimal(10)
+    )
+    request_event = transaction_item.events.create(
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=Decimal(10),
+        include_in_calculations=False,
+        psp_reference="123",
+    )
+    response_event = transaction_item.events.create(
+        type=TransactionEventType.CANCEL_FAILURE,
+        amount_value=Decimal(10),
+        psp_reference="123",
+    )
+
+    # when
+    recalculate_refundable_for_checkout(transaction_item, request_event, response_event)
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is False
+    assert checkout.automatically_refundable is False
+
+
+def test_recalculate_refundable_for_checkout_with_response_cancel_success(
+    transaction_item_generator, checkout
+):
+    # given
+    checkout.automatically_refundable = False
+    checkout.save(update_fields=["automatically_refundable"])
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, last_refund_success=False, charged_value=Decimal(10)
+    )
+    request_event = transaction_item.events.create(
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=Decimal(10),
+        include_in_calculations=False,
+        psp_reference="123",
+    )
+    response_event = transaction_item.events.create(
+        type=TransactionEventType.CANCEL_SUCCESS,
+        amount_value=Decimal(10),
+        psp_reference="123",
+    )
+
+    # when
+    recalculate_refundable_for_checkout(transaction_item, request_event, response_event)
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is True
+    assert checkout.automatically_refundable is True
+
+
+def test_recalculate_refundable_for_checkout_with_response_cancel_pending(
+    transaction_item_generator, checkout
+):
+    # given
+    checkout.automatically_refundable = False
+    checkout.save(update_fields=["automatically_refundable"])
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, last_refund_success=False, charged_value=Decimal(10)
+    )
+    request_event = transaction_item.events.create(
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=Decimal(10),
+        include_in_calculations=True,
+        psp_reference="123",
+    )
+
+    # when
+    recalculate_refundable_for_checkout(transaction_item, request_event)
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is True
+    assert checkout.automatically_refundable is True
+
+
+def test_recalculate_refundable_for_checkout_update_missing_checkout(
+    transaction_item_generator,
+):
+    # given
+    transaction_item = transaction_item_generator(
+        last_refund_success=True, charged_value=Decimal(10)
+    )
+    request_event = transaction_item.events.create(
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=Decimal(10),
+        include_in_calculations=False,
+        psp_reference="123",
+    )
+
+    # when
+    recalculate_refundable_for_checkout(transaction_item, request_event)
+
+    # then
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is False
