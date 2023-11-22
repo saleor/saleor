@@ -127,6 +127,7 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     assert discount["value"] == manual_discount_value
 
     # Step 4 - Add a shipping method to the order
+    base_shipping_price = 10
     input = {"shippingMethod": result_shipping_method_id}
     draft_update = draft_order_update(e2e_staff_api_client, order_id, input)
     order_shipping_id = draft_update["order"]["deliveryMethod"]["id"]
@@ -142,9 +143,8 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     order_line = order["order"]["lines"][0]
     assert order_line["productVariantId"] == product_variant_id
     product_price = order_line["undiscountedUnitPrice"]["gross"]["amount"]
-    # base_shipping_price
     manual_discount_subtotal_share = (
-        subtotal / (shipping_price + subtotal) * manual_discount_value
+        subtotal / (base_shipping_price + subtotal) * manual_discount_value
     )
     manual_discount_shipping_share = (
         manual_discount_value - manual_discount_subtotal_share
@@ -159,8 +159,13 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     assert order_line["unitDiscountReason"] == promotion_reason
     product_discounted_price = product_price - promotion_value
     shipping_amount = order["order"]["shippingPrice"]["gross"]["amount"]
-    assert shipping_amount == shipping_price - manual_discount_shipping_share
-    subtotal = quantity * product_discounted_price - manual_discount_subtotal_share
+    assert shipping_amount == round(
+        base_shipping_price - manual_discount_shipping_share, 2
+    )
+    assert shipping_amount == shipping_price
+    subtotal = round(
+        quantity * product_discounted_price - manual_discount_subtotal_share, 2
+    )
     assert subtotal == order["order"]["subtotal"]["gross"]["amount"]
     assert subtotal == subtotal_gross_amount
     total = shipping_amount + subtotal
