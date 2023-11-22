@@ -165,7 +165,7 @@ def apply_subtotal_discount_to_order_lines(
     subtotal_discount: Money,
 ):
     """Calculate order line prices after applying discounts to entire order."""
-    if undiscounted_subtotal.amount <= 0:
+    if subtotal_discount.amount <= 0:
         return
 
     # Handle order with single line - propagate the whole discount to the single line.
