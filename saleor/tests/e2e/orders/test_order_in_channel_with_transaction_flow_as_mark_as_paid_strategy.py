@@ -18,38 +18,35 @@ from .utils import (
 def test_order_in_channel_with_transaction_flow_as_mark_as_paid_strategy_CORE_0209(
     e2e_staff_api_client,
     e2e_app_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_orders,
     permission_manage_payments,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
         permission_manage_payments,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
     app_permissions = [permission_manage_payments]
     assign_permissions(e2e_app_api_client, app_permissions)
 
+    shop_settings = {
+        "fulfillmentAutoApprove": True,
+    }
+    channel_config = [{"order_settings": {"markAsPaidStrategy": "TRANSACTION_FLOW"}}]
+
     shop_data = prepare_shop(
         e2e_staff_api_client,
-        fulfillment_auto_approve=True,
-        mark_as_paid_strategy="TRANSACTION_FLOW",
+        channels_settings=channel_config,
+        shop_settings_update=shop_settings,
     )
-    channel_id = shop_data["channel_id"]
-    warehouse_id = shop_data["warehouse_id"]
-    shipping_method_id = shop_data["shipping_method_id"]
+    channel_id = shop_data["channels"][0]["id"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
 
     price = 2
     (

@@ -16,11 +16,10 @@ from .utils import promotions_query, translate_promotion
 def prepare_sale(e2e_staff_api_client):
     price = 10
 
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channel_id"]
-    warehouse_id = shop_data["warehouse_id"]
+    shop_data = prepare_shop(e2e_staff_api_client)
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
 
     (
         product_id,
@@ -61,6 +60,7 @@ def prepare_sale(e2e_staff_api_client):
 
     return (
         channel_id,
+        channel_slug,
         sale_name,
         sale_id,
     )
@@ -69,30 +69,23 @@ def prepare_sale(e2e_staff_api_client):
 @pytest.mark.e2e
 def test_unable_to_query_nor_mutate_sale_updated_by_promotion_translations_CORE_2120(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_discounts,
     permission_manage_translations,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
         permission_manage_translations,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
     (
         channel_id,
+        channel_slug,
         sale_name,
         sale_id,
     ) = prepare_sale(e2e_staff_api_client)

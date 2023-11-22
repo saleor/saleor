@@ -1,3 +1,5 @@
+import uuid
+
 from ... import DEFAULT_ADDRESS
 from ...utils import get_graphql_content
 
@@ -13,6 +15,18 @@ mutation createWarehouse($input: WarehouseCreateInput!) {
       id
       name
       slug
+      isPrivate
+      shippingZones(first: 10) {
+        edges {
+          node {
+            id
+            countries {
+              code
+            }
+          }
+        }
+      }
+      clickAndCollectOption
     }
   }
 }
@@ -22,7 +36,7 @@ mutation createWarehouse($input: WarehouseCreateInput!) {
 def create_warehouse(
     staff_api_client,
     name="Test warehouse",
-    slug="test-slug",
+    slug=f"warehouse_slug_{uuid.uuid4()}",
     address=DEFAULT_ADDRESS,
 ):
     variables = {

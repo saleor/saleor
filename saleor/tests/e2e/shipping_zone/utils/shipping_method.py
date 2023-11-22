@@ -13,6 +13,20 @@ mutation CreateShippingRate($input: ShippingPriceInput!) {
     }
     shippingMethod {
       id
+      channelListings {
+        maximumOrderPrice {
+          amount
+        }
+        minimumOrderPrice {
+          amount
+        }
+        price {
+          amount
+        }
+        channel {
+          id
+        }
+      }
     }
   }
 }

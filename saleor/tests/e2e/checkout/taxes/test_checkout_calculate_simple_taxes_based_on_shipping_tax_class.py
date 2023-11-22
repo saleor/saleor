@@ -17,48 +17,63 @@ from ..utils import (
 def test_checkout_calculate_simple_tax_based_on_shipping_tax_class_CORE_2009(
     e2e_staff_api_client,
     e2e_not_logged_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
+    tax_settings = {
+        "charge_taxes": True,
+        "tax_calculation_strategy": "FLAT_RATES",
+        "display_gross_prices": False,
+        "prices_entered_with_tax": False,
+        "tax_rates": [
+            {
+                "type": "billing_country",
+                "name": "Billing Country Tax Rate",
+                "country_code": "US",
+                "rate": 10,
+            },
+            {
+                "type": "shipping_country",
+                "name": "Shipping Country Tax Rate",
+                "country_code": "US",
+                "rate": 8,
+            },
+        ],
+    }
 
     shop_data = prepare_shop(
         e2e_staff_api_client,
-        shipping_country_tax_rate=8,
-        billing_country_tax_rate=10,
-        prices_entered_with_tax=False,
+        tax_settings=tax_settings,
     )
-    warehouse_id = shop_data["warehouse_id"]
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    shipping_method_id = shop_data["shipping_method_id"]
-    shipping_country_tax_rate = shop_data["shipping_country_tax_rate"]
-    shipping_country_code = shop_data["shipping_country_code"]
-    shipping_tax_class_id = shop_data["shipping_tax_class_id"]
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    shipping_price = shop_data["shipping_methods"][0]["price"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_tax_class_id = shop_data["tax_classes"].get(
+        "shipping_country_tax_class_id"
+    )
+    shipping_class_tax_rate = shop_data["tax_rates"].get("shipping_country").get("rate")
+    country = shop_data["tax_rates"].get("shipping_country").get("country_code")
+
     update_country_tax_rates(
         e2e_staff_api_client,
-        shipping_country_code,
-        [{"rate": shipping_country_tax_rate}],
+        country,
+        [{"rate": shipping_class_tax_rate}],
     )
-
+    input_data = {"taxClass": shipping_tax_class_id}
     update_shipping_price(
         e2e_staff_api_client,
         shipping_method_id,
-        {"taxClass": shipping_tax_class_id},
+        input_data,
     )
+
     variant_price = "17.87"
     (
         _product_id,
@@ -89,10 +104,9 @@ def test_checkout_calculate_simple_tax_based_on_shipping_tax_class_CORE_2009(
     )
     product_variant_price = float(product_variant_price)
     checkout_id = checkout_data["id"]
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     subtotal_net = round((product_variant_price * 2), 2)
-    subtotal_tax = round(subtotal_net * (shipping_country_tax_rate / 100), 2)
+    subtotal_tax = round(subtotal_net * (shipping_class_tax_rate / 100), 2)
     subtotal_gross = subtotal_net + subtotal_tax
 
     assert checkout_data["isShippingRequired"] is True
@@ -106,10 +120,9 @@ def test_checkout_calculate_simple_tax_based_on_shipping_tax_class_CORE_2009(
         checkout_id,
         shipping_method_id,
     )
-    shipping_net_price = checkout_data["deliveryMethod"]["price"]["amount"]
-
+    shipping_net_price = shipping_price
     shipping_net = shipping_net_price
-    shipping_tax = round(shipping_net * (shipping_country_tax_rate / 100), 2)
+    shipping_tax = round(shipping_net * (shipping_class_tax_rate / 100), 2)
     shipping_gross = shipping_net + shipping_tax
 
     assert checkout_data["deliveryMethod"]["id"] == shipping_method_id

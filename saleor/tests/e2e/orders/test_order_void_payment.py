@@ -16,46 +16,34 @@ from .utils import order_void
 def test_checkout_void_payment_CORE_0217(
     e2e_staff_api_client,
     e2e_app_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_orders,
     permission_manage_payments,
     permission_handle_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
     app_permissions = [
         permission_manage_payments,
         permission_handle_checkouts,
         permission_manage_orders,
-        permission_manage_channels,
-        permission_manage_taxes,
-        permission_manage_settings,
+        *shop_permissions,
     ]
     assign_permissions(e2e_app_api_client, app_permissions)
 
     price = 10
 
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    warehouse_id = shop_data["warehouse_id"]
-    shipping_method_id = shop_data["shipping_method_id"]
+    shop_data = prepare_shop(e2e_staff_api_client)
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
 
     (
         _product_id,
@@ -88,7 +76,6 @@ def test_checkout_void_payment_CORE_0217(
     assert checkout_id is not None
     assert checkout_data["isShippingRequired"] is True
     assert len(checkout_data["shippingMethods"]) == 1
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     # Step 2 - Assign shipping method
     checkout_data = checkout_delivery_method_update(

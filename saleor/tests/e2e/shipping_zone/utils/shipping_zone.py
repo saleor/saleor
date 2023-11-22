@@ -14,9 +14,24 @@ mutation createShipping($input: ShippingZoneCreateInput!) {
       description
       warehouses {
         name
+        id
+        shippingZones(first: 10) {
+          edges {
+            node {
+              id
+              countries {
+                code
+              }
+            }
+          }
+        }
+        slug
       }
       channels {
         id
+        countries {
+          code
+        }
       }
       countries {
         code
@@ -34,10 +49,13 @@ mutation createShipping($input: ShippingZoneCreateInput!) {
 def create_shipping_zone(
     staff_api_client,
     name="Test shipping zone",
-    countries=["US"],
+    countries=None,
     warehouse_ids=None,
     channel_ids=None,
 ):
+    if countries is None:
+        countries = ["US"]
+
     if not warehouse_ids:
         warehouse_ids = []
     if not channel_ids:

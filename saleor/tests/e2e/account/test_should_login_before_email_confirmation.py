@@ -9,30 +9,24 @@ from .utils import account_register, token_create
 def test_should_login_before_email_confirmation_core_1510(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
-    permission_manage_taxes,
-    permission_manage_settings,
+    shop_permissions,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
         permission_manage_product_types_and_attributes,
-        permission_manage_shipping,
-        permission_manage_taxes,
-        permission_manage_settings,
+        *shop_permissions,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
-
+    shop_settings = {
+        "enableAccountConfirmationByEmail": True,
+        "allowLoginWithoutConfirmation": True,
+    }
     shop_data = prepare_shop(
         e2e_staff_api_client,
-        enable_account_confirmation_by_email=True,
-        allow_login_without_confirmation=True,
+        shop_settings_update=shop_settings,
     )
-    channel_slug = shop_data["channel_slug"]
+    channel_slug = shop_data["channels"][0]["slug"]
 
     test_email = "user@saleor.io"
     test_password = "Password!"

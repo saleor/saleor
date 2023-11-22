@@ -10,32 +10,20 @@ from .utils import checkout_create, raw_checkout_dummy_payment_create
 def test_unlogged_customer_unable_to_buy_product_without_shipping_option_CORE_0106(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
-    permission_manage_taxes,
-    permission_manage_settings,
+    shop_permissions,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
         permission_manage_product_types_and_attributes,
-        permission_manage_shipping,
-        permission_manage_taxes,
-        permission_manage_settings,
+        *shop_permissions,
     ]
 
     assign_permissions(e2e_staff_api_client, permissions)
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-        shipping_zones_structure=[{"countries": ["US"], "num_shipping_methods": 0}],
-    )
-
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    warehouse_id = shop_data["warehouse_id"]
+    shop_data = prepare_shop(e2e_staff_api_client, shipping_methods=[])
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
 
     variant_price = 10
 

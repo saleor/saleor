@@ -1,5 +1,3 @@
-import base64
-
 import pytest
 
 from ..product.utils import (
@@ -12,47 +10,34 @@ from ..utils import assign_permissions
 from .utils import checkout_create, checkout_delivery_method_update
 
 
-#  Please note: decoding won't be necessary once
-# https://github.com/saleor/saleor/issues/13675 is fixed
-def decode_base64_and_get_last_3_chars(encoded_string):
-    base64_bytes = encoded_string.encode("ascii")
-    decoded_bytes = base64.b64decode(base64_bytes)
-    decoded_string = decoded_bytes.decode("ascii")
-    return decoded_string[-2:]
-
-
 @pytest.mark.e2e
 def test_checkout_with_shipping_method_with_min_order_value_CORE_0501(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
-        permission_manage_shipping,
         permission_manage_checkouts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
-
     assign_permissions(e2e_staff_api_client, permissions)
+
+    shipping_method_channel_listing_settings = {
+        "minimumOrderPrice": 20.0,
+    }
+
     shop_data = prepare_shop(
         e2e_staff_api_client,
-        minimum_order_price=20.0,
+        shipping_method_channel_listing_settings=shipping_method_channel_listing_settings,
     )
-    warehouse_id = shop_data["warehouse_id"]
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    shipping_method_id = shop_data["shipping_method_id"]
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
 
     first_variant_price = 25
 
@@ -106,11 +91,7 @@ def test_checkout_with_shipping_method_with_min_order_value_CORE_0501(
 
     assert checkout_data["isShippingRequired"] is True
     checkout_shipping_method = checkout_data["shippingMethods"][0]["id"]
-    decoded_checkout_shipping_method = decode_base64_and_get_last_3_chars(
-        checkout_shipping_method
-    )
-    decoded_shipping_method = decode_base64_and_get_last_3_chars(shipping_method_id)
-    assert decoded_checkout_shipping_method == decoded_shipping_method
+    assert checkout_shipping_method == shipping_method_id
 
     # Step 2 - Set DeliveryMethod for the checkout with the first product variant
     checkout_data = checkout_delivery_method_update(

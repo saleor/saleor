@@ -1,7 +1,6 @@
 import pytest
 
 from ...product.utils.preparing_product import prepare_product
-from ...shipping_zone.utils import update_shipping_price
 from ...shop.utils import prepare_shop
 from ...taxes.utils import update_country_tax_rates
 from ...utils import assign_permissions
@@ -16,63 +15,77 @@ from ..utils import (
 @pytest.mark.e2e
 def test_order_calculate_simple_tax_based_on_shipping_address_tax_class_CORE_2002(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
-    permission_manage_taxes,
     permission_manage_orders,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
-        permission_manage_taxes,
         permission_manage_orders,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
-
+    tax_settings = {
+        "charge_taxes": True,
+        "tax_calculation_strategy": "FLAT_RATES",
+        "display_gross_prices": False,
+        "prices_entered_with_tax": False,
+        "tax_rates": [
+            {
+                "type": "shipping_country",
+                "name": "Shipping Country Tax Class",
+                "country_code": "DE",
+                "rate": 19,
+            },
+            {
+                "type": "billing_country",
+                "name": "Billing Country Tax Class",
+                "country_code": "CZ",
+                "rate": 21,
+            },
+        ],
+    }
+    shipping_method_channel_listing_settings = {
+        "price": "6.66",
+    }
     shop_data = prepare_shop(
         e2e_staff_api_client,
-        shipping_zones_structure=[
-            {"countries": ["CZ", "DE", "US"], "num_shipping_methods": 1}
-        ],
-        shipping_country_code="DE",
-        shipping_country_tax_rate=19,
-        billing_country_code="CZ",
-        billing_country_tax_rate=21,
-        prices_entered_with_tax=False,
-        shipping_price=6.66,
+        shipping_zones=[{"countries": ["CZ", "US", "DE"]}],
+        tax_settings=tax_settings,
+        shipping_method_channel_listing_settings=shipping_method_channel_listing_settings,
     )
-    channel_id = shop_data["channel_id"]
-    warehouse_id = shop_data["warehouse_id"]
-    shipping_price = shop_data["shipping_price"]
-    shipping_method_id = shop_data["shipping_method_id"]
-    shipping_country_tax_rate = shop_data["shipping_country_tax_rate"]
-    shipping_country_code = shop_data["shipping_country_code"]
-    shipping_tax_class_id = shop_data["shipping_tax_class_id"]
-    billing_country_code = shop_data["billing_country_code"]
-    billing_country_tax_rate = shop_data["billing_country_tax_rate"]
+    channel_id = shop_data["channels"][0]["id"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    shipping_price = shop_data["shipping_methods"][0]["price"]
+
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_tax_class_id = shop_data["tax_classes"].get(
+        "shipping_country_tax_class_id"
+    )
+    shipping_country_tax_rate = (
+        shop_data["tax_rates"].get("shipping_country").get("rate")
+    )
+    shipping_country_code = (
+        shop_data["tax_rates"].get("shipping_country").get("country_code")
+    )
+    billing_country_tax_rate = shop_data["tax_rates"].get("billing_country").get("rate")
+    billing_country_code = (
+        shop_data["tax_rates"].get("billing_country").get("country_code")
+    )
+    input_data = {"taxClass": shipping_tax_class_id}
+
     update_country_tax_rates(
         e2e_staff_api_client,
         shipping_country_code,
         [{"rate": shipping_country_tax_rate}],
-    )
-
-    update_shipping_price(
-        e2e_staff_api_client,
-        shipping_method_id,
-        {"taxClass": shipping_tax_class_id},
     )
     update_country_tax_rates(
         e2e_staff_api_client,
         billing_country_code,
         [{"rate": billing_country_tax_rate}],
     )
+
     variant_price = "155.88"
     (_product_id, product_variant_id, product_variant_price) = prepare_product(
         e2e_staff_api_client,

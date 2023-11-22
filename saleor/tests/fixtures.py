@@ -6050,6 +6050,23 @@ def permission_group_all_perms_without_any_channel(
 
 
 @pytest.fixture
+def shop_permissions(
+    permission_manage_products,
+    permission_manage_channels,
+    permission_manage_shipping,
+    permission_manage_taxes,
+    permission_manage_settings,
+):
+    return [
+        permission_manage_products,
+        permission_manage_channels,
+        permission_manage_shipping,
+        permission_manage_taxes,
+        permission_manage_settings,
+    ]
+
+
+@pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
         name="Collection",

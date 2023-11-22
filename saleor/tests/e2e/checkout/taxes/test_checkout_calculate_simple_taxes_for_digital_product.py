@@ -17,49 +17,54 @@ from ..utils import (
 def test_digital_checkout_calculate_simple_tax_based_on_billing_country_CORE_2007(
     e2e_staff_api_client,
     e2e_not_logged_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
+    tax_settings = {
+        "charge_taxes": True,
+        "tax_calculation_strategy": "FLAT_RATES",
+        "display_gross_prices": False,
+        "prices_entered_with_tax": False,
+        "tax_rates": [
+            {
+                "type": "shipping_country",
+                "name": "Shipping Country Tax Rate",
+                "country_code": "US",
+                "rate": 9,
+            },
+            {
+                "type": "billing_country",
+                "name": "Billing Country Tax Rate",
+                "country_code": "CZ",
+                "rate": 21,
+            },
+        ],
+    }
 
     shop_data = prepare_shop(
         e2e_staff_api_client,
-        currency="CZK",
-        country="CZ",
-        countries=["CZ", "US"],
-        shipping_country_code="US",
-        shipping_country_tax_rate=9,
-        billing_country_code="CZ",
-        billing_country_tax_rate=21,
-        prices_entered_with_tax=False,
-        shipping_price=15.0,
-        shipping_zones_structure=[
-            {"countries": ["CZ", "US"], "num_shipping_methods": 1}
-        ],
+        shipping_zones=[{"countries": ["CZ", "US"]}],
+        tax_settings=tax_settings,
     )
-    warehouse_id = shop_data["warehouse_id"]
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    billing_country_tax_rate = shop_data["billing_country_tax_rate"]
-    billing_country_code = shop_data["billing_country_code"]
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    billing_country_tax_rate = shop_data["tax_rates"].get("billing_country").get("rate")
+    billing_country_code = (
+        shop_data["tax_rates"].get("billing_country").get("country_code")
+    )
     update_country_tax_rates(
         e2e_staff_api_client,
         billing_country_code,
         [{"rate": billing_country_tax_rate}],
     )
+
     variant_price = 88.89
     _product_id, product_variant_id, product_variant_price = prepare_digital_product(
         e2e_staff_api_client, channel_id, warehouse_id, variant_price

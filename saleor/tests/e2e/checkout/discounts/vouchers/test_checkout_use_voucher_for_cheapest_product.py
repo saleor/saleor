@@ -63,13 +63,9 @@ def prepare_voucher_for_cheapest_product(
 def test_checkout_use_voucher_for_cheapest_product_0907(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
-    permission_manage_taxes,
-    permission_manage_settings,
     first_variant_price,
     second_variant_price,
     voucher_discount_type,
@@ -78,22 +74,17 @@ def test_checkout_use_voucher_for_cheapest_product_0907(
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    warehouse_id = shop_data["warehouse_id"]
+    shop_data = prepare_shop(e2e_staff_api_client)
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
 
     (
         product_id,
@@ -151,7 +142,6 @@ def test_checkout_use_voucher_for_cheapest_product_0907(
     )
     checkout_id = checkout_data["id"]
     checkout_lines = checkout_data["lines"]
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     assert checkout_data["isShippingRequired"] is True
     first_line = checkout_lines[0]

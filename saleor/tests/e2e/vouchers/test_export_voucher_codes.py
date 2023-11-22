@@ -58,33 +58,25 @@ def create_vouchers_with_multiple_codes(e2e_staff_api_client, channel_id):
 )
 def test_export_valid_voucher_ids_CORE_0925(
     e2e_staff_api_client,
-    permission_manage_channels,
-    permission_manage_shipping,
-    permission_manage_products,
+    shop_permissions,
     permission_manage_discounts,
     permission_manage_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
     file_type,
     voucher_id_array_index,
     media_root,
 ):
     # Before
     permissions = [
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_products,
+        *shop_permissions,
         permission_manage_discounts,
         permission_manage_checkouts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
     shop_data = prepare_shop(
         e2e_staff_api_client,
     )
-    channel_id = shop_data["channel_id"]
+    channel_id = shop_data["channels"][0]["id"]
 
     voucher_ids, _voucher_code_ids = create_vouchers_with_multiple_codes(
         e2e_staff_api_client, channel_id
@@ -124,33 +116,23 @@ def test_export_valid_voucher_ids_CORE_0925(
 )
 def test_export_voucher_ids_and_codes_CORE_0925(
     e2e_staff_api_client,
-    permission_manage_channels,
-    permission_manage_shipping,
-    permission_manage_products,
+    shop_permissions,
     permission_manage_discounts,
     permission_manage_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
     file_type,
     voucher_code_id_indexes,
     voucher_id_array_index,
 ):
     # Before
     permissions = [
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_products,
+        *shop_permissions,
         permission_manage_discounts,
         permission_manage_checkouts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channel_id"]
+    shop_data = prepare_shop(e2e_staff_api_client)
+    channel_id = shop_data["channels"][0]["id"]
 
     voucher_ids, voucher_code_ids = create_vouchers_with_multiple_codes(
         e2e_staff_api_client, channel_id
@@ -184,33 +166,24 @@ def test_export_voucher_ids_and_codes_CORE_0925(
 )
 def test_export_valid_voucher_code_ids_CORE_0925(
     e2e_staff_api_client,
-    permission_manage_channels,
-    permission_manage_shipping,
-    permission_manage_products,
+    shop_permissions,
     permission_manage_discounts,
     permission_manage_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
     file_type,
     voucher_code_id_indexes,
     media_root,
 ):
     # Before
     permissions = [
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_products,
+        *shop_permissions,
         permission_manage_discounts,
         permission_manage_checkouts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
+
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channel_id"]
+    shop_data = prepare_shop(e2e_staff_api_client)
+    channel_id = shop_data["channels"][0]["id"]
 
     _voucher_ids, voucher_code_ids = create_vouchers_with_multiple_codes(
         e2e_staff_api_client, channel_id
@@ -240,24 +213,16 @@ def test_export_valid_voucher_code_ids_CORE_0925(
 )
 def test_export_voucher_codes_with_invalid_voucher_id_CORE_0925(
     e2e_staff_api_client,
-    permission_manage_channels,
-    permission_manage_shipping,
-    permission_manage_products,
+    shop_permissions,
     permission_manage_discounts,
     permission_manage_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
     file_type,
 ):
     # Before
     permissions = [
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_products,
+        *shop_permissions,
         permission_manage_discounts,
         permission_manage_checkouts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
@@ -284,24 +249,16 @@ def test_export_voucher_codes_with_invalid_voucher_id_CORE_0925(
 )
 def test_export_voucher_codes_with_invalid_voucher_codes_CORE_0925(
     e2e_staff_api_client,
-    permission_manage_channels,
-    permission_manage_shipping,
-    permission_manage_products,
+    shop_permissions,
     permission_manage_discounts,
     permission_manage_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
     file_type,
 ):
     # Before
     permissions = [
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_products,
+        *shop_permissions,
         permission_manage_discounts,
         permission_manage_checkouts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
@@ -327,24 +284,16 @@ def test_export_voucher_codes_with_invalid_voucher_codes_CORE_0925(
 )
 def test_export_voucher_codes_without_voucher_id_nor_codes_CORE_0925(
     e2e_staff_api_client,
-    permission_manage_channels,
-    permission_manage_shipping,
-    permission_manage_products,
+    shop_permissions,
     permission_manage_discounts,
     permission_manage_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
     file_type,
 ):
     # Before
     permissions = [
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_products,
+        *shop_permissions,
         permission_manage_discounts,
         permission_manage_checkouts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
@@ -377,32 +326,22 @@ def test_export_voucher_codes_without_voucher_id_nor_codes_CORE_0925(
 )
 def test_export_voucher_codes_with_invalid_file_type_CORE_0925(
     e2e_staff_api_client,
-    permission_manage_channels,
-    permission_manage_shipping,
-    permission_manage_products,
+    shop_permissions,
     permission_manage_discounts,
     permission_manage_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
     file_type,
     voucher_id,
 ):
     # Before
     permissions = [
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_products,
+        *shop_permissions,
         permission_manage_discounts,
         permission_manage_checkouts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channel_id"]
+    shop_data = prepare_shop(e2e_staff_api_client)
+    channel_id = shop_data["channels"][0]["id"]
 
     voucher_ids, _voucher_code_ids = create_vouchers_with_multiple_codes(
         e2e_staff_api_client, channel_id

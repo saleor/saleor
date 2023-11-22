@@ -83,34 +83,25 @@ def prepare_fixed_voucher(
 def test_checkout_use_fixed_voucher_core_0901(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
     permission_manage_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
         permission_manage_checkouts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    warehouse_id = shop_data["warehouse_id"]
+    shop_data = prepare_shop(e2e_staff_api_client)
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
 
     (
         _product_id,
@@ -170,7 +161,6 @@ def test_checkout_use_fixed_voucher_core_0901(
         e2e_not_logged_api_client, checkout_id
     )
     assert len(checkout_data["shippingMethods"]) == 1
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     checkout_data = checkout_delivery_method_update(
         e2e_not_logged_api_client,

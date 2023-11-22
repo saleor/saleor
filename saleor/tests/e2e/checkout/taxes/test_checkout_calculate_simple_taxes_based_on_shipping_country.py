@@ -1,7 +1,6 @@
 import pytest
 
 from ...product.utils.preparing_product import prepare_product
-from ...shipping_zone.utils import update_shipping_price
 from ...shop.utils import prepare_shop
 from ...taxes.utils import update_country_tax_rates
 from ...utils import assign_permissions
@@ -20,62 +19,69 @@ from ..utils import (
 def test_checkout_calculate_simple_tax_based_on_shipping_country_CORE_2001(
     e2e_staff_api_client,
     e2e_not_logged_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
-
+    tax_settings = {
+        "charge_taxes": True,
+        "tax_calculation_strategy": "FLAT_RATES",
+        "display_gross_prices": False,
+        "prices_entered_with_tax": True,
+        "tax_rates": [
+            {
+                "type": "shipping_country",
+                "name": "Shipping Country Tax Class",
+                "country_code": "CZ",
+                "rate": 21,
+            },
+            {
+                "type": "billing_country",
+                "name": "Billing Country Tax Class",
+                "country_code": "DE",
+                "rate": 19,
+            },
+        ],
+    }
+    shipping_method_channel_listing_settings = {
+        "price": "6.66",
+    }
     shop_data = prepare_shop(
         e2e_staff_api_client,
-        shipping_price="6.66",
-        shipping_country_code="CZ",
-        shipping_country_tax_rate=21,
-        billing_country_code="DE",
-        billing_country_tax_rate=19,
-        prices_entered_with_tax=True,
-        shipping_zones_structure=[
-            {"countries": ["CZ", "DE", "US"], "num_shipping_methods": 1}
-        ],
+        shipping_zones=[{"countries": ["CZ", "US", "DE"]}],
+        tax_settings=tax_settings,
+        shipping_method_channel_listing_settings=shipping_method_channel_listing_settings,
     )
-    warehouse_id = shop_data["warehouse_id"]
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    shipping_country_code = shop_data["shipping_country_code"]
-    billing_country_code = shop_data["billing_country_code"]
-    billing_country_tax_rate = shop_data["billing_country_tax_rate"]
-    shipping_country_tax_rate = shop_data["shipping_country_tax_rate"]
-    shipping_price = shop_data["shipping_price"]
-    shipping_method_id = shop_data["shipping_method_id"]
-    shipping_tax_class_id = shop_data["shipping_tax_class_id"]
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    shipping_price = shop_data["shipping_methods"][0]["price"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_class_tax_rate = shop_data["tax_rates"].get("shipping_country").get("rate")
+    shipping_country_code = (
+        shop_data["tax_rates"].get("shipping_country").get("country_code")
+    )
+    billing_class_tax_rate = shop_data["tax_rates"].get("billing_country").get("rate")
+    billing_country_code = (
+        shop_data["tax_rates"].get("billing_country").get("country_code")
+    )
 
     update_country_tax_rates(
         e2e_staff_api_client,
         shipping_country_code,
-        [{"rate": shipping_country_tax_rate}],
+        [{"rate": shipping_class_tax_rate}],
     )
     update_country_tax_rates(
         e2e_staff_api_client,
         billing_country_code,
-        [{"rate": billing_country_tax_rate}],
+        [{"rate": billing_class_tax_rate}],
     )
-    update_shipping_price(
-        e2e_staff_api_client,
-        shipping_method_id,
-        {"taxClass": shipping_tax_class_id},
-    )
+
     variant_price = "17.77"
     (
         _product_id,
@@ -125,7 +131,6 @@ def test_checkout_calculate_simple_tax_based_on_shipping_country_CORE_2001(
         shipping_address,
     )
     assert len(checkout_data["shippingMethods"]) == 1
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     # Step 3 - Set billing address for checkout
     billing_address = {
@@ -146,8 +151,8 @@ def test_checkout_calculate_simple_tax_based_on_shipping_country_CORE_2001(
     checkout_data = get_checkout(e2e_not_logged_api_client, checkout_id)
     assert checkout_data["totalPrice"]["gross"]["amount"] == float(variant_price)
     calculated_tax = round(
-        (float(variant_price) * shipping_country_tax_rate)
-        / (100 + shipping_country_tax_rate),
+        (float(variant_price) * shipping_class_tax_rate)
+        / (100 + shipping_class_tax_rate),
         2,
     )
     assert checkout_data["totalPrice"]["tax"]["amount"] == calculated_tax
@@ -166,8 +171,8 @@ def test_checkout_calculate_simple_tax_based_on_shipping_country_CORE_2001(
 
     assert checkout_data["shippingPrice"]["gross"]["amount"] == float(shipping_price)
     shipping_tax = round(
-        (float(shipping_price) * shipping_country_tax_rate)
-        / (100 + shipping_country_tax_rate),
+        (float(shipping_price) * shipping_class_tax_rate)
+        / (100 + shipping_class_tax_rate),
         2,
     )
     assert checkout_data["shippingPrice"]["tax"]["amount"] == shipping_tax

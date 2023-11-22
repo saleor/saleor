@@ -12,19 +12,14 @@ from ..utils import assign_permissions
 from .utils import order_query, order_void, raw_order_void
 
 
-def prepare_checkout_with_voided_payment(
-    e2e_staff_api_client,
-    e2e_app_api_client,
-):
+def prepare_checkout_with_voided_payment(e2e_staff_api_client):
     price = 10
 
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    warehouse_id = shop_data["warehouse_id"]
-    shipping_method_id = shop_data["shipping_method_id"]
+    shop_data = prepare_shop(e2e_staff_api_client)
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
 
     (
         _product_id,
@@ -52,7 +47,6 @@ def prepare_checkout_with_voided_payment(
         set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     checkout_data = checkout_delivery_method_update(
         e2e_staff_api_client,
@@ -86,25 +80,18 @@ def prepare_checkout_with_voided_payment(
 def test_checkout_void_once_voided_payment_CORE_0218(
     e2e_staff_api_client,
     e2e_app_api_client,
-    permission_manage_products,
+    shop_permissions,
     permission_manage_channels,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_orders,
     permission_manage_payments,
     permission_handle_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
     app_permissions = [
@@ -117,7 +104,6 @@ def test_checkout_void_once_voided_payment_CORE_0218(
 
     order_id = prepare_checkout_with_voided_payment(
         e2e_staff_api_client,
-        e2e_app_api_client,
     )
 
     # Step 1 - Check the order's payment is voided

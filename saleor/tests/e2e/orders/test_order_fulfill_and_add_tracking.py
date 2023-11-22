@@ -18,13 +18,17 @@ from .utils import (
 
 def prepare_order(e2e_staff_api_client):
     price = 10
+    shop_settings = {
+        "fulfillmentAutoApprove": True,
+        "fulfillmentAllowUnpaid": False,
+    }
     shop_data = prepare_shop(
         e2e_staff_api_client,
-        fulfillment_auto_approve=True,
+        shop_settings_update=shop_settings,
     )
-    channel_id = shop_data["channel_id"]
-    warehouse_id = shop_data["warehouse_id"]
-    shipping_method_id = shop_data["shipping_method_id"]
+    channel_id = shop_data["channels"][0]["id"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
 
     _product_id, product_variant_id, _product_variant_price = prepare_product(
         e2e_staff_api_client,
@@ -76,23 +80,15 @@ def prepare_order(e2e_staff_api_client):
 @pytest.mark.e2e
 def test_order_fulfill_and_add_tracking_CORE_0219(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_orders,
-    permission_manage_settings,
-    permission_manage_taxes,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 

@@ -1,3 +1,5 @@
+import uuid
+
 from ...utils import get_graphql_content
 
 CHANNEL_CREATE_MUTATION = """
@@ -16,9 +18,28 @@ mutation ChannelCreate($input: ChannelCreateInput!) {
       defaultCountry {
         code
       }
+      warehouses {
+        id
+        slug
+        shippingZones(first: 10) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+      stockSettings {
+        allocationStrategy
+      }
       isActive
       orderSettings {
+        markAsPaidStrategy
         automaticallyConfirmAllNewOrders
+        allowUnpaidOrders
+        automaticallyConfirmAllNewOrders
+        expireOrdersAfter
+        deleteExpiredOrdersAfter
       }
     }
   }
@@ -30,14 +51,18 @@ def create_channel(
     staff_api_client,
     warehouse_ids=None,
     channel_name="Test channel",
-    slug="test-slug",
+    slug=f"channel_slug_{uuid.uuid4()}",
     currency="USD",
     country="US",
     is_active=True,
-    automatically_fulfill_non_shippable_giftcard=False,
-    allow_unpaid_orders=False,
-    automatically_confirm_all_new_orders=True,
-    mark_as_paid_strategy="PAYMENT_FLOW",
+    order_settings={
+        "markAsPaidStrategy": "PAYMENT_FLOW",
+        "automaticallyFulfillNonShippableGiftCard": False,
+        "allowUnpaidOrders": False,
+        "automaticallyConfirmAllNewOrders": True,
+        "expireOrdersAfter": 60,
+        "deleteExpiredOrdersAfter": 1,
+    },
 ):
     if not warehouse_ids:
         warehouse_ids = []
@@ -50,16 +75,7 @@ def create_channel(
             "defaultCountry": country,
             "isActive": is_active,
             "addWarehouses": warehouse_ids,
-            "orderSettings": {
-                "markAsPaidStrategy": mark_as_paid_strategy,
-                "automaticallyFulfillNonShippableGiftCard": (
-                    automatically_fulfill_non_shippable_giftcard
-                ),
-                "allowUnpaidOrders": allow_unpaid_orders,
-                "automaticallyConfirmAllNewOrders": (
-                    automatically_confirm_all_new_orders
-                ),
-            },
+            "orderSettings": order_settings,
         }
     }
 

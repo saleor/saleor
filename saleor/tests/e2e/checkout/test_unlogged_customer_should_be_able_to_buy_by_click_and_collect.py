@@ -3,6 +3,7 @@ import pytest
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils import prepare_shop
 from ..utils import assign_permissions
+from ..warehouse.utils import update_warehouse
 from .utils import (
     checkout_complete,
     checkout_create,
@@ -15,32 +16,28 @@ from .utils import (
 def test_unlogged_customer_buy_by_click_and_collect_CORE_0105(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
-    permission_manage_taxes,
-    permission_manage_settings,
+    shop_permissions,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
         permission_manage_product_types_and_attributes,
-        permission_manage_shipping,
-        permission_manage_taxes,
-        permission_manage_settings,
+        *shop_permissions,
     ]
 
     assign_permissions(e2e_staff_api_client, permissions)
     shop_data = prepare_shop(
         e2e_staff_api_client,
+    )
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    update_warehouse(
+        e2e_staff_api_client,
+        warehouse_id,
+        is_private=False,
         click_and_collect_option="LOCAL",
     )
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    warehouse_id = shop_data["warehouse_id"]
-
     variant_price = 10
 
     (

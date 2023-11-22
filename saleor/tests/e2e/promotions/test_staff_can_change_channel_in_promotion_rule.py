@@ -43,15 +43,29 @@ def prepare_promotion(
 
 
 def prepare_channels_with_product(e2e_staff_api_client):
+    channels = [
+        {
+            "channel_name": "First Channel",
+            "slug": "first-channel",
+            "currency": "USD",
+            "country": "US",
+        },
+        {
+            "channel_name": "Second Channel",
+            "slug": "second-channel",
+            "currency": "PLN",
+            "country": "PL",
+        },
+    ]
     shop_data = prepare_shop(
         e2e_staff_api_client,
-        num_channels=2,
+        channels_settings=channels,
     )
-    warehouse_id = shop_data["warehouse_id"]
-    first_channel_id = shop_data["created_channels"][0]["id"]
-    first_channel_slug = shop_data["created_channels"][0]["slug"]
-    second_channel_id = shop_data["created_channels"][1]["id"]
-    second_channel_slug = shop_data["created_channels"][1]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    first_channel_id = shop_data["channels"][0]["id"]
+    first_channel_slug = shop_data["channels"][0]["slug"]
+    second_channel_id = shop_data["channels"][1]["id"]
+    second_channel_slug = shop_data["channels"][1]["slug"]
 
     product_id, product_variant_id, _ = prepare_product(
         e2e_staff_api_client, warehouse_id, first_channel_id, "7.99"
@@ -89,23 +103,15 @@ def prepare_channels_with_product(e2e_staff_api_client):
 @pytest.mark.e2e
 def test_staff_can_change_promotion_rule_channel_core_2113(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
-    permission_manage_shipping,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
-        permission_manage_shipping,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 

@@ -47,34 +47,25 @@ def create_voucher_with_multiple_codes(e2e_staff_api_client, channel_id):
 def test_checkout_unable_to_use_deleted_voucher_code_CORE_0914(
     e2e_staff_api_client,
     e2e_logged_api_client,
-    permission_manage_channels,
-    permission_manage_shipping,
-    permission_manage_products,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
     permission_manage_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_products,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
         permission_manage_checkouts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    warehouse_id = shop_data["warehouse_id"]
+    shop_data = prepare_shop(e2e_staff_api_client)
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+
     (
         _product_id,
         product_variant_id,

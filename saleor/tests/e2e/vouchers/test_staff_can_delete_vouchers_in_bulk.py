@@ -42,30 +42,22 @@ def create_multiple_vouchers(e2e_staff_api_client, channel_id):
 @pytest.mark.e2e
 def test_staff_can_delete_vouchers_in_bulk_CORE_0924(
     e2e_staff_api_client,
-    permission_manage_channels,
-    permission_manage_shipping,
-    permission_manage_products,
+    shop_permissions,
     permission_manage_discounts,
     permission_manage_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_products,
+        *shop_permissions,
         permission_manage_discounts,
         permission_manage_checkouts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
     shop_data = prepare_shop(
         e2e_staff_api_client,
     )
-    channel_id = shop_data["channel_id"]
+    channel_id = shop_data["channels"][0]["id"]
 
     voucher_ids = create_multiple_vouchers(e2e_staff_api_client, channel_id)
 

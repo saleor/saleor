@@ -17,45 +17,53 @@ from ..utils import (
 def test_checkout_calculate_simple_tax_based_on_product_tax_class_CORE_2005(
     e2e_staff_api_client,
     e2e_not_logged_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
-    permission_manage_taxes,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
-
+    tax_settings = {
+        "charge_taxes": True,
+        "tax_calculation_strategy": "FLAT_RATES",
+        "display_gross_prices": False,
+        "prices_entered_with_tax": True,
+        "tax_rates": [
+            {
+                "type": "country",
+                "name": "Country Tax Rate",
+                "country_code": "US",
+                "rate": 23,
+            },
+            {
+                "type": "product",
+                "name": "Product Tax Rate",
+                "country_code": "US",
+                "rate": 5,
+            },
+        ],
+    }
     shop_data = prepare_shop(
         e2e_staff_api_client,
-        country="US",
-        country_tax_rate=23,
-        product_tax_rate=5,
-        prices_entered_with_tax=True,
+        tax_settings=tax_settings,
     )
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    warehouse_id = shop_data["warehouse_id"]
-    product_tax_class_id = shop_data["product_tax_class_id"]
-    product_tax_rate = shop_data["product_tax_rate"]
-    country_tax_rate = shop_data["country_tax_rate"]
-    shipping_method_id = shop_data["shipping_method_id"]
-    country = shop_data["country"]
-
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    product_tax_class_id = shop_data["tax_classes"].get("product_tax_class_id")
+    product_tax_rate = shop_data["tax_rates"].get("product").get("rate")
+    country_tax_rate = shop_data["tax_rates"].get("country").get("rate")
+    country = shop_data["tax_rates"].get("country").get("country_code")
     update_country_tax_rates(
         e2e_staff_api_client,
         country,
         [{"rate": country_tax_rate}],
     )
+
     variant_price = float("25.55")
     (product_id, product_variant_id, product_variant_price) = prepare_product(
         e2e_staff_api_client,
@@ -90,11 +98,11 @@ def test_checkout_calculate_simple_tax_based_on_product_tax_class_CORE_2005(
         (product_variant_price * product_tax_rate) / (100 + product_tax_rate),
         2,
     )
+    assert checkout_data["totalPrice"]["tax"]["amount"] == calculated_tax
 
     assert checkout_data["totalPrice"]["net"]["amount"] == round(
         product_variant_price - calculated_tax, 2
     )
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     # Step 2 - Set DeliveryMethod for checkout and check prices
     checkout_data = checkout_delivery_method_update(

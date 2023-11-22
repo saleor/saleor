@@ -10,45 +10,53 @@ from ..utils import draft_order_complete, draft_order_create, order_lines_create
 @pytest.mark.e2e
 def test_digital_order_calculate_simple_tax_based_on_billing_country_CORE_2008(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
-    permission_manage_taxes,
     permission_manage_orders,
-    permission_manage_settings,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
-        permission_manage_taxes,
         permission_manage_orders,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
+    tax_settings = {
+        "charge_taxes": True,
+        "tax_calculation_strategy": "FLAT_RATES",
+        "display_gross_prices": False,
+        "prices_entered_with_tax": True,
+        "tax_rates": [
+            {
+                "type": "shipping_country",
+                "name": "Shipping Country Tax Rate",
+                "country_code": "US",
+                "rate": 5,
+            },
+            {
+                "type": "billing_country",
+                "name": "Billing Country Tax Rate",
+                "country_code": "DE",
+                "rate": 19,
+            },
+        ],
+    }
 
     shop_data = prepare_shop(
         e2e_staff_api_client,
-        shipping_country_code="US",
-        shipping_country_tax_rate=5,
-        billing_country_code="DE",
-        billing_country_tax_rate=19,
-        prices_entered_with_tax=True,
-        shipping_zones_structure=[
-            {"countries": ["US", "DE"], "num_shipping_methods": 1}
-        ],
+        shipping_zones=[{"countries": ["US", "DE"]}],
+        tax_settings=tax_settings,
     )
-    warehouse_id = shop_data["warehouse_id"]
-    channel_id = shop_data["channel_id"]
-    billing_country_tax_rate = shop_data["billing_country_tax_rate"]
-    billing_country_code = shop_data["billing_country_code"]
+    channel_id = shop_data["channels"][0]["id"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    billing_class_tax_rate = shop_data["tax_rates"].get("billing_country").get("rate")
+    billing_country_code = (
+        shop_data["tax_rates"].get("billing_country").get("country_code")
+    )
     update_country_tax_rates(
         e2e_staff_api_client,
         billing_country_code,
-        [{"rate": billing_country_tax_rate}],
+        [{"rate": billing_class_tax_rate}],
     )
 
     variant_price = 100
@@ -92,8 +100,8 @@ def test_digital_order_calculate_simple_tax_based_on_billing_country_CORE_2008(
     product_variant_price = float(product_variant_price)
     assert order_data["total"]["gross"]["amount"] == product_variant_price
     calculated_tax = round(
-        (product_variant_price * billing_country_tax_rate)
-        / (100 + billing_country_tax_rate),
+        (product_variant_price * billing_class_tax_rate)
+        / (100 + billing_class_tax_rate),
         2,
     )
     assert order_data["total"]["tax"]["amount"] == calculated_tax

@@ -17,40 +17,50 @@ from ..utils import (
 @pytest.mark.e2e
 def test_order_calculate_simple_tax_based_on_product_tax_class_CORE_2006(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
-    permission_manage_taxes,
-    permission_manage_settings,
     permission_manage_orders,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
-        permission_manage_taxes,
-        permission_manage_settings,
         permission_manage_orders,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
+    tax_settings = {
+        "charge_taxes": True,
+        "tax_calculation_strategy": "FLAT_RATES",
+        "display_gross_prices": False,
+        "prices_entered_with_tax": False,
+        "tax_rates": [
+            {
+                "type": "country",
+                "name": "Country Tax Rate",
+                "country_code": "US",
+                "rate": 20,
+            },
+            {
+                "type": "product",
+                "name": "Product Tax Rate",
+                "country_code": "US",
+                "rate": 13,
+            },
+        ],
+    }
 
     shop_data = prepare_shop(
         e2e_staff_api_client,
-        country_code="US",
-        country_tax_rate=20,
-        product_tax_rate=13,
-        prices_entered_with_tax=False,
+        tax_settings=tax_settings,
     )
-    channel_id = shop_data["channel_id"]
-    warehouse_id = shop_data["warehouse_id"]
-    shipping_method_id = shop_data["shipping_method_id"]
-    product_tax_rate = shop_data["product_tax_rate"]
-    country_tax_rate = shop_data["country_tax_rate"]
-    product_tax_class_id = shop_data["product_tax_class_id"]
-    country = shop_data["country"]
+
+    channel_id = shop_data["channels"][0]["id"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    product_tax_class_id = shop_data["tax_classes"].get("product_tax_class_id")
+    product_tax_rate = shop_data["tax_rates"].get("product").get("rate")
+    country_tax_rate = shop_data["tax_rates"].get("country").get("rate")
+    country = shop_data["tax_rates"].get("country").get("country_code")
     update_country_tax_rates(
         e2e_staff_api_client,
         country,
@@ -98,7 +108,6 @@ def test_order_calculate_simple_tax_based_on_product_tax_class_CORE_2006(
     assert order_data["total"]["gross"]["amount"] == round(
         product_variant_price + calculated_tax, 2
     )
-    shipping_method_id = order_data["shippingMethods"][0]["id"]
     shipping_price = order_data["shippingMethods"][0]["price"]["amount"]
 
     # Step 3 - Add a shipping method to the order and check prices

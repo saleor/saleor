@@ -18,8 +18,16 @@ mutation ShopSettingsUpdate($input: ShopSettingsInput!) {
 """
 
 
-def update_shop_settings(staff_api_client, input):
-    variables = {"input": input}
+def update_shop_settings(
+    staff_api_client,
+    input_data={
+        "enableAccountConfirmationByEmail": True,
+        "allowLoginWithoutConfirmation": False,
+        "fulfillmentAutoApprove": False,
+        "fulfillmentAllowUnpaid": False,
+    },
+):
+    variables = {"input": input_data}
 
     response = staff_api_client.post_graphql(SHOP_SETTING_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)

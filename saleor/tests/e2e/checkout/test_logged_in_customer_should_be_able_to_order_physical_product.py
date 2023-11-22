@@ -15,34 +15,25 @@ from .utils import (
 def test_process_checkout_with_physical_product_CORE_0103(
     e2e_staff_api_client,
     e2e_logged_api_client,
-    permission_manage_products,
-    permission_manage_channels,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_orders,
     permission_manage_checkouts,
-    permission_manage_taxes,
-    permission_manage_settings,
+    shop_permissions,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
         permission_manage_checkouts,
-        permission_manage_taxes,
-        permission_manage_settings,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channel_id"]
-    channel_slug = shop_data["channel_slug"]
-    warehouse_id = shop_data["warehouse_id"]
+    shop_data = prepare_shop(e2e_staff_api_client)
+    channel_id = shop_data["channels"][0]["id"]
+    channel_slug = shop_data["channels"][0]["slug"]
+    warehouse_id = shop_data["warehouses"][0]["id"]
+    shipping_method_id = shop_data["shipping_methods"][0]["id"]
 
     variant_price = 10
 
@@ -76,7 +67,6 @@ def test_process_checkout_with_physical_product_CORE_0103(
     assert checkout_data["user"]["email"] == expected_email
     assert checkout_data["isShippingRequired"] is True
     assert checkout_data["shippingMethods"] != []
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     # Step 3 - Set DeliveryMethod for checkout.
     checkout_data = checkout_delivery_method_update(
