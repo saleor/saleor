@@ -7,7 +7,7 @@ from freezegun import freeze_time
 
 from ...checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ...checkout.actions import transaction_amounts_for_checkout_updated
-from .. import TransactionEventType
+from .. import TransactionAction, TransactionEventType
 from ..tasks import transaction_release_funds_for_checkout_task
 
 
@@ -336,6 +336,7 @@ def test_transaction_release_funds_for_checkout_task_transaction_with_authorizat
         manager=mock.ANY,
         request_event=request_event,
         cancel_value=transaction_item.authorized_value,
+        action=TransactionAction.CANCEL,
     )
 
 
