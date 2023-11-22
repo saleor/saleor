@@ -18,11 +18,15 @@ if TYPE_CHECKING:
     from ..product.models import ProductVariant
 
 
-def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
+def serialize_checkout_lines(
+    checkout: "Checkout", allow_replica: bool = False
+) -> List[dict]:
     data = []
     channel = checkout.channel
     currency = channel.currency_code
-    lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
+    lines, _ = fetch_checkout_lines(
+        checkout, prefetch_variant_attributes=True, allow_replica=allow_replica
+    )
     for line_info in lines:
         variant = line_info.variant
         channel_listing = line_info.channel_listing

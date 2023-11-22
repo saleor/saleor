@@ -16,6 +16,7 @@ from typing import (
 )
 
 import graphene
+from django.conf import settings
 from django.db.models import F, QuerySet, Sum
 from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
@@ -306,10 +307,12 @@ def generate_order_payload(
     )
     discount_price_fields = ("amount_value",)
 
-    lines = order.lines.all()
-    fulfillments = order.fulfillments.all()
-    payments = order.payments.all()
-    discounts = order.discounts.all()
+    lines = order.lines.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()
+    fulfillments = order.fulfillments.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).all()
+    payments = order.payments.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()
+    discounts = order.discounts.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()
 
     quantize_price_fields(order, ORDER_PRICE_FIELDS, order.currency)
 
@@ -550,14 +553,18 @@ def generate_checkout_payload(
     quantize_price_fields(checkout, checkout_price_fields, checkout.currency)
     user_fields = ("email", "first_name", "last_name")
 
-    lines_dict_data = serialize_checkout_lines(checkout)
+    lines_dict_data = serialize_checkout_lines(checkout, allow_replica=True)
 
     # todo use the most appropriate warehouse
     warehouse = None
     if checkout.shipping_address:
-        warehouse = Warehouse.objects.for_country_and_channel(
-            checkout.shipping_address.country.code, checkout.channel_id
-        ).first()
+        warehouse = (
+            Warehouse.objects.for_country_and_channel(
+                checkout.shipping_address.country.code, checkout.channel_id
+            )
+            .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .first()
+        )
 
     checkout_data = serializer.serialize(
         [checkout],
@@ -706,7 +713,8 @@ def _get_charge_taxes_for_product(product: "Product") -> bool:
     tax_class_id = product.tax_class_id or product.product_type.tax_class_id
     if tax_class_id:
         charge_taxes = (
-            TaxClassCountryRate.objects.filter(tax_class_id=tax_class_id)
+            TaxClassCountryRate.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(tax_class_id=tax_class_id)
             .exclude(rate=Decimal("0"))
             .exists()
         )
@@ -875,9 +883,11 @@ def generate_product_variant_stocks_payload(product_variant: "ProductVariant"):
 @traced_payload_generator
 def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
     serializer = PayloadSerializer()
-    lines = FulfillmentLine.objects.prefetch_related(
-        "order_line__variant__product__product_type", "stock"
-    ).filter(fulfillment=fulfillment)
+    lines = (
+        FulfillmentLine.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .prefetch_related("order_line__variant__product__product_type", "stock")
+        .filter(fulfillment=fulfillment)
+    )
     line_fields = ("quantity",)
     return serializer.serialize(
         lines,
@@ -965,13 +975,17 @@ def generate_fulfillment_payload(
     quantize_price_fields(
         fulfillment, fulfillment_price_fields, fulfillment.order.currency
     )
-    fulfillment_line = fulfillment.lines.first()
+    fulfillment_line = fulfillment.lines.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).first()
     if fulfillment_line and fulfillment_line.stock:
         warehouse = fulfillment_line.stock.warehouse
     else:
-        warehouse = Warehouse.objects.for_country_and_channel(
-            order_country, order.channel_id
-        ).first()
+        warehouse = (
+            Warehouse.objects.for_country_and_channel(order_country, order.channel_id)
+            .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .first()
+        )
     fulfillment_data = serializer.serialize(
         [fulfillment],
         fields=fulfillment_fields,
@@ -1082,7 +1096,9 @@ def _remove_token_from_checkout(checkout):
 
 
 def _generate_sample_order_payload(event_name):
-    order_qs = Order.objects.prefetch_related(
+    order_qs = Order.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).prefetch_related(
         "payments",
         "lines",
         "shipping_method",
@@ -1133,24 +1149,32 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         payload = generate_customer_payload(user)
     elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
         product = _get_sample_object(
-            Product.objects.prefetch_related("category", "collections", "variants")
+            Product.objects.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            ).prefetch_related("category", "collections", "variants")
         )
         payload = generate_product_payload(product) if product else None
     elif event_name in checkout_events:
         checkout = _get_sample_object(
-            Checkout.objects.prefetch_related("lines__variant__product")
+            Checkout.objects.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            ).prefetch_related("lines__variant__product")
         )
         if checkout:
             anonymized_checkout = anonymize_checkout(checkout)
             checkout_payload = generate_checkout_payload(anonymized_checkout)
             payload = _remove_token_from_checkout(checkout_payload)
     elif event_name in pages_events:
-        page = _get_sample_object(Page.objects.all())
+        page = _get_sample_object(
+            Page.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()
+        )
         if page:
             payload = generate_page_payload(page)
     elif event_name == WebhookEventAsyncType.FULFILLMENT_CREATED:
         fulfillment = _get_sample_object(
-            Fulfillment.objects.prefetch_related("lines__order_line__variant")
+            Fulfillment.objects.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            ).prefetch_related("lines__order_line__variant")
         )
         fulfillment.order = anonymize_order(fulfillment.order)
         payload = generate_fulfillment_payload(fulfillment)

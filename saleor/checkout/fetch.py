@@ -14,6 +14,7 @@ from typing import (
 )
 from uuid import UUID
 
+from django.conf import settings
 from prices import Money
 
 from ..core.utils.lazyobjects import lazy_no_retry
@@ -229,6 +230,7 @@ def fetch_checkout_lines(
     skip_lines_with_unavailable_variants: bool = True,
     skip_recalculation: bool = False,
     voucher: Optional["Voucher"] = None,
+    allow_replica: bool = False,
 ) -> Tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
@@ -249,9 +251,14 @@ def fetch_checkout_lines(
                 "variant__attributes__values",
             ]
         )
-    lines = checkout.lines.select_related(*select_related_fields).prefetch_related(
-        *prefetch_related_fields
+    qs = (
+        checkout.lines.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        if allow_replica
+        else checkout.lines
     )
+    lines = qs.select_related(  # type: ignore[attr-defined]
+        *select_related_fields
+    ).prefetch_related(*prefetch_related_fields)
     lines_info = []
     unavailable_variant_pks = []
     product_channel_listing_mapping: Dict[int, Optional["ProductChannelListing"]] = {}
