@@ -6,6 +6,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Highlights
 
+- Drop demo - #14835 by @fowczarek
+
 ### Breaking changes
 
 ### GraphQL API
