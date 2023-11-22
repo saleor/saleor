@@ -11353,6 +11353,7 @@ enum TransactionActionEnum @doc(category: "Payments") {
 
 """Represents an order in the shop."""
 type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
+  """ID of the order."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -11392,8 +11393,14 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Date and time when the order was created."""
   created: DateTime!
+
+  """Date and time when the order was created."""
   updatedAt: DateTime!
+
+  """Status of the order."""
   status: OrderStatus!
 
   """
@@ -11415,8 +11422,16 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Shipping address. The full data can be access for orders created in Saleor 3.2 and later, for other orders requires one of the following permissions: MANAGE_ORDERS, OWNER.
   """
   shippingAddress: Address
+
+  """Method used for shipping."""
   shippingMethodName: String
+
+  """
+  Name of the collection point where the order should be picked up by the customer.
+  """
   collectionPointName: String
+
+  """Channel through which the order was placed."""
   channel: Channel!
 
   """List of shipments for the order."""
@@ -11542,6 +11557,8 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """
   shippingTaxClassPrivateMetadata: [MetadataItem!]!
   token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
+
+  """Voucher linked to the order."""
   voucher: Voucher
 
   """
@@ -11553,8 +11570,14 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """List of user gift cards."""
   giftCards: [GiftCard!]!
+
+  """Additional information provided by the customer about the order."""
   customerNote: String!
+
+  """Weight of the order."""
   weight: Weight!
+
+  """URL to which user should be redirected after order is placed."""
   redirectUrl: String
 
   """The sum of line prices not including shipping."""
@@ -11755,6 +11778,7 @@ enum OrderStatus @doc(category: "Orders") {
 
 """Represents order fulfillment."""
 type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
+  """ID of the fulfillment."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -11794,9 +11818,17 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Sequence in which the fulfillments were created for an order."""
   fulfillmentOrder: Int!
+
+  """Status of fulfillment."""
   status: FulfillmentStatus!
+
+  """Fulfillment tracking number."""
   trackingNumber: String!
+
+  """Date and time when fulfillment was created."""
   created: DateTime!
 
   """List of lines for the fulfillment."""
@@ -11836,13 +11868,19 @@ enum FulfillmentStatus @doc(category: "Orders") {
 
 """Represents line of the fulfillment."""
 type FulfillmentLine implements Node @doc(category: "Orders") {
+  """ID of the fulfillment line."""
   id: ID!
+
+  """The number of items included in the fulfillment line."""
   quantity: Int!
+
+  """The order line to which the fulfillment line is related."""
   orderLine: OrderLine
 }
 
 """Represents order line of particular order."""
 type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
+  """ID of the order line."""
   id: ID!
 
   """
@@ -11890,14 +11928,32 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Added in Saleor 3.5.
   """
   metafields(keys: [String!]): Metadata
+
+  """Name of the product in order line."""
   productName: String!
+
+  """Name of the variant of product in order line."""
   variantName: String!
+
+  """SKU of the product variant."""
   productSku: String
+
+  """The ID of the product variant."""
   productVariantId: String
+
+  """Whether the product variant requires shipping."""
   isShippingRequired: Boolean!
+
+  """Number of variant items ordered."""
   quantity: Int!
+
+  """Number of variant items fulfilled."""
   quantityFulfilled: Int!
+
+  """Reason for any discounts applied on a product in the order."""
   unitDiscountReason: String
+
+  """Rate of tax applied on product variant."""
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
   thumbnail(
@@ -12405,6 +12461,7 @@ type CreditCard @doc(category: "Payments") {
 
 """History log of the order."""
 type OrderEvent implements Node @doc(category: "Orders") {
+  """ID of the event associated with an order."""
   id: ID!
 
   """Date when event happened at in ISO 8601 format."""
