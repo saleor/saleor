@@ -1208,8 +1208,8 @@ def test_updates_checkout_last_transaction_modified_at(
     expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
-    mocked_initialize.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {
