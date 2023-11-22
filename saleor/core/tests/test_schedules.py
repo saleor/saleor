@@ -1,10 +1,16 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
+from decimal import Decimal
 
+import pytz
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ...checkout.actions import transaction_amounts_for_checkout_updated
 from ...discount.models import Sale
-from ..schedules import sale_webhook_schedule
+from ..schedules import (
+    sale_webhook_schedule,
+    transaction_release_funds_for_checkout_schedule,
+)
 
 
 @freeze_time("2020-10-10 12:00:00")
@@ -190,4 +196,173 @@ def test_is_due_no_sale_to_notify_about_and_upcoming_sale_exists_initial_time_re
 
     # then
     assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@freeze_time("2020-10-10 12:00:00")
+def test_transaction_release_funds_for_checkout_remaining_estimate_initial_state():
+    # given
+    schedule = transaction_release_funds_for_checkout_schedule()
+
+    # when
+    remaining = schedule.remaining_estimate(last_run_at=timezone.now())
+
+    # then
+    assert remaining == schedule.initial_timedelta
+
+
+@freeze_time("2020-10-10 12:00:00")
+def test_transaction_release_funds_for_checkout_remaining_estimate():
+    # given
+    schedule = transaction_release_funds_for_checkout_schedule()
+    time_delta = timedelta(seconds=30)
+
+    # when
+    remaining = schedule.remaining_estimate(last_run_at=timezone.now() - time_delta)
+
+    # then
+    assert remaining == schedule.initial_timedelta - time_delta
+
+
+@freeze_time("2020-10-10 12:00:00")
+def test_transaction_release_funds_for_checkout_not_refundable(
+    checkout, transaction_item_generator, plugins_manager
+):
+    # given
+    schedule = transaction_release_funds_for_checkout_schedule()
+    with freeze_time("2020-10-10 04:00:00"):
+        now = datetime.now(pytz.UTC)
+        transaction_item = transaction_item_generator(
+            checkout_id=checkout.pk, charged_value=Decimal(100)
+        )
+        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        checkout.automatically_refundable = False
+        checkout.last_change = now
+        checkout.save(update_fields=["last_change", "automatically_refundable"])
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - timedelta(minutes=1))
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@freeze_time("2020-10-10 12:00:00")
+def test_transaction_release_funds_for_checkout_with_new_last_change(
+    checkout, transaction_item_generator, plugins_manager
+):
+    # given
+    schedule = transaction_release_funds_for_checkout_schedule()
+    with freeze_time("2020-10-10 04:00:00"):
+        transaction_item = transaction_item_generator(
+            checkout_id=checkout.pk, charged_value=Decimal(100)
+        )
+        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        checkout.automatically_refundable = True
+    checkout.last_change = datetime.now(pytz.UTC)
+    checkout.save(update_fields=["last_change", "automatically_refundable"])
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - timedelta(minutes=1))
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@freeze_time("2020-10-10 12:00:00")
+def test_transaction_release_funds_for_checkout_with_new_transaction(
+    checkout, transaction_item_generator, plugins_manager
+):
+    # given
+    schedule = transaction_release_funds_for_checkout_schedule()
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=Decimal(100)
+    )
+    with freeze_time("2020-10-10 04:00:00"):
+        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        checkout.automatically_refundable = True
+        checkout.last_change = datetime.now(pytz.UTC)
+        checkout.save(update_fields=["last_change", "automatically_refundable"])
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - timedelta(minutes=1))
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@freeze_time("2020-10-10 12:00:00")
+def test_transaction_release_funds_for_checkout_transaction_without_funds(
+    checkout, transaction_item_generator, plugins_manager
+):
+    # given
+    schedule = transaction_release_funds_for_checkout_schedule()
+    with freeze_time("2020-10-10 04:00:00"):
+        now = datetime.now(pytz.UTC)
+        transaction_item = transaction_item_generator(
+            checkout_id=checkout.pk,
+        )
+        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        checkout.automatically_refundable = True
+        checkout.last_change = now
+        checkout.save(update_fields=["last_change", "automatically_refundable"])
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - timedelta(minutes=1))
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@freeze_time("2020-10-10 12:00:00")
+def test_transaction_release_funds_for_checkout_transaction_with_authorized_funds(
+    checkout, transaction_item_generator, plugins_manager
+):
+    # given
+    schedule = transaction_release_funds_for_checkout_schedule()
+    with freeze_time("2020-10-10 04:00:00"):
+        now = datetime.now(pytz.UTC)
+        transaction_item = transaction_item_generator(
+            checkout_id=checkout.pk,
+            authorized_value=Decimal(100),
+        )
+        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        checkout.automatically_refundable = True
+        checkout.last_change = now
+        checkout.save(update_fields=["last_change", "automatically_refundable"])
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - timedelta(minutes=1))
+
+    # then
+    assert is_due is True
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@freeze_time("2020-10-10 12:00:00")
+def test_transaction_release_funds_for_checkout_transaction_with_charged_funds(
+    checkout, transaction_item_generator, plugins_manager
+):
+    # given
+    schedule = transaction_release_funds_for_checkout_schedule()
+    with freeze_time("2020-10-10 04:00:00"):
+        now = datetime.now(pytz.UTC)
+        transaction_item = transaction_item_generator(
+            checkout_id=checkout.pk,
+            charged_value=Decimal(100),
+        )
+        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        checkout.automatically_refundable = True
+        checkout.last_change = now
+        checkout.save(update_fields=["last_change", "automatically_refundable"])
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - timedelta(minutes=1))
+
+    # then
+    assert is_due is True
     assert next_run == schedule.initial_timedelta.total_seconds()
