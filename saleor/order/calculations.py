@@ -52,6 +52,7 @@ def fetch_order_prices_and_update_if_expired(
         prefetch_related_objects(lines, "variant__product__product_type")
 
     order.should_refresh_prices = False
+
     _update_order_discount_for_voucher(order)
     base_calculations.apply_order_discounts(order, lines)
     _calculate_taxes(order, manager, lines)
@@ -81,7 +82,6 @@ def fetch_order_prices_and_update_if_expired(
                 "undiscounted_total_price_net_amount",
                 "undiscounted_total_price_gross_amount",
                 "tax_rate",
-                # TODO: zedzior should we update it?
                 "unit_discount_amount",
             ],
         )

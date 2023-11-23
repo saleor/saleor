@@ -60,7 +60,7 @@ def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
 def apply_order_discounts(
     order: "Order",
     lines: Iterable["OrderLine"],
-):
+) -> tuple[Money, Money]:
     """Calculate order prices after applying discounts.
 
     Handles manual discounts and voucher discounts: ENTIRE_ORDER and SHIPPING.
@@ -73,8 +73,8 @@ def apply_order_discounts(
     """
     undiscounted_subtotal = base_order_subtotal(order, lines)
     undiscounted_shipping_price = order.base_shipping_price
-    subtotal = base_order_subtotal(order, lines)
-    shipping_price = order.base_shipping_price
+    subtotal = undiscounted_subtotal
+    shipping_price = undiscounted_shipping_price
     currency = order.currency
     order_discounts_to_update = []
     for order_discount in order.discounts.all():
@@ -137,21 +137,17 @@ def apply_order_discounts(
     if order_discounts_to_update:
         OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
 
-    order.shipping_price_net_amount = shipping_price.amount
-    order.shipping_price_gross_amount = shipping_price.amount
-    order.total_net_amount = subtotal.amount + shipping_price.amount
-    order.total_gross_amount = subtotal.amount + shipping_price.amount
-    order.undiscounted_total_net_amount = (
-        undiscounted_subtotal.amount + undiscounted_shipping_price.amount
-    )
-    order.undiscounted_total_gross_amount = (
-        undiscounted_subtotal.amount + undiscounted_shipping_price.amount
+    update_order_prices(
+        order,
+        subtotal,
+        undiscounted_subtotal,
+        shipping_price,
+        undiscounted_shipping_price,
     )
     subtotal_discount = undiscounted_subtotal - subtotal
     apply_subtotal_discount_to_order_lines(
         lines, undiscounted_subtotal, subtotal_discount
     )
-
     return subtotal, shipping_price
 
 
@@ -160,7 +156,7 @@ def apply_subtotal_discount_to_order_lines(
     undiscounted_subtotal: Money,
     subtotal_discount: Money,
 ):
-    """Calculate order line prices after applying discounts to entire order."""
+    """Calculate order lines prices after applying discounts to entire subtotal."""
     # Handle order with single line - propagate the whole discount to the single line.
     lines = list(lines)
     lines_count = len(lines)
@@ -187,18 +183,22 @@ def apply_subtotal_discount_to_order_lines(
 
 
 def apply_discount_to_order_line(line: "OrderLine", discount: Money):
-    """Calculate order line prices after applying order level discount.
-
-    Takes an order line and discount as an argument and updates
-    line total_price, unit_price and unit_discount fields.
-    """
-    # This price includes line level discounts, but not entire order ones.
+    """Calculate order line prices after applying order level discount."""
     currency = discount.currency
+    # This price includes line level discounts, but not entire order ones.
     discounted_base_line_total = base_order_line_total(line).price_with_discounts.net
     total_price = max(discounted_base_line_total - discount, zero_money(currency))
+    update_order_line_prices(line, total_price)
 
+
+def update_order_line_prices(line: "OrderLine", total_price: Money):
+    currency = total_price.currency
     line.total_price_net = quantize_price(total_price, currency)
     line.total_price_gross = quantize_price(total_price, currency)
+    line.undiscounted_total_price_gross_amount = (
+        line.undiscounted_total_price_net_amount
+    )
+    line.tax_rate = 0
 
     quantity = line.quantity
     if quantity > 0:
@@ -206,9 +206,33 @@ def apply_discount_to_order_line(line: "OrderLine", discount: Money):
         line.unit_price_net = unit_price
         line.unit_price_gross = unit_price
         line.base_unit_price = unit_price
+
+        undiscounted_unit_price = line.undiscounted_total_price_net_amount / quantity
+        line.undiscounted_unit_price_net_amount = undiscounted_unit_price
+        line.undiscounted_unit_price_gross_amount = undiscounted_unit_price
+
         total_line_discount_amount = (
             line.undiscounted_total_price_net_amount - line.total_price_net_amount
         )
         unit_discount = total_line_discount_amount / quantity
-        # TODO: zedzior to check if should we update this field???
         line.unit_discount_amount = unit_discount
+
+
+def update_order_prices(
+    order: "Order",
+    subtotal: Money,
+    undiscounted_subtotal: Money,
+    shipping_price: Money,
+    undiscounted_shipping_price: Money,
+):
+    order.shipping_price_net_amount = shipping_price.amount
+    order.shipping_price_gross_amount = shipping_price.amount
+    order.shipping_tax_rate = 0
+    order.total_net_amount = subtotal.amount + shipping_price.amount
+    order.total_gross_amount = subtotal.amount + shipping_price.amount
+    order.undiscounted_total_net_amount = (
+        undiscounted_subtotal.amount + undiscounted_shipping_price.amount
+    )
+    order.undiscounted_total_gross_amount = (
+        undiscounted_subtotal.amount + undiscounted_shipping_price.amount
+    )

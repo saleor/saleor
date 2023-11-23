@@ -165,9 +165,8 @@ def test_calculations_calculate_order_total_voucher(order_with_lines, voucher):
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
 
     # then
-    # TODO: zedzior check rounding (gross was 70.01)
     assert order.total == TaxedMoney(
-        net=Money("56.92", "USD"), gross=Money("70.00", "USD")
+        net=Money("56.91", "USD"), gross=Money("70.00", "USD")
     )
 
 
