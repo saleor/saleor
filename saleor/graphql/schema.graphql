@@ -27599,7 +27599,7 @@ input PromotionRuleUpdateInput {
   """
   rewardValue: PositiveDecimal
 
-  """List of channel ids to remove."""
+  """List of channel ids to add."""
   addChannels: [ID!]
 
   """List of channel ids to remove."""

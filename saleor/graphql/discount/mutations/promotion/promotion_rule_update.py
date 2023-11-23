@@ -39,7 +39,7 @@ class PromotionRuleUpdateError(Error):
 class PromotionRuleUpdateInput(PromotionRuleBaseInput):
     add_channels = NonNullList(
         graphene.ID,
-        description="List of channel ids to remove.",
+        description="List of channel ids to add.",
     )
     remove_channels = NonNullList(
         graphene.ID,
