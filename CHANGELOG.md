@@ -16,6 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 ### Other changes
+- Add missing descriptions to order module - #14845 by @DevilsAutumn
 
 # 3.18.0
 
@@ -398,7 +399,6 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add missing descriptions to payment module - #13546 by @devilsautumn
 - Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
 - Add Index for 'Created' field of the Order Model - #13682 by @ritanjandawn
-- Add missing descriptions to order module - #14845 by @DevilsAutumn
 
 # 3.14.0
 

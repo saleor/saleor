@@ -1277,10 +1277,6 @@ class Order(ModelObjectType[models.Order]):
     gift_cards = NonNullList(
         GiftCard, description="List of user gift cards.", required=True
     )
-    customerNote = graphene.Boolean(
-        required=True,
-        description="Indicate whether or not a customer has added a note to their order.",
-    )
     customer_note = graphene.String(
         required=True,
         description="Additional information provided by the customer about the order.",
