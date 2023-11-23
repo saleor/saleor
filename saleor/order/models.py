@@ -348,6 +348,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
                 opclasses=["gin_trgm_ops"],
             ),
             models.Index(fields=["created_at"], name="idx_order_created_at"),
+            GinIndex(
+                fields=["user_email", "user_id"],
+                name="order_user_email_user_id_idx",
+            ),
         ]
 
     def is_fully_paid(self):
