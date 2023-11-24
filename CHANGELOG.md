@@ -16,6 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 ### Other changes
+- Add missing descriptions to order module - #14845 by @DevilsAutumn
 
 # 3.18.0
 
