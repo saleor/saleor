@@ -2491,7 +2491,9 @@ def test_voucher_metadata_updated(
 
 
 def test_voucher_code_export_completed(
-    user_export_file, tmpdir, subscription_voucher_code_export_completed_webhook
+    user_export_file,
+    media_root,
+    subscription_voucher_code_export_completed_webhook,
 ):
     # given
     file_mock = MagicMock(spec=File)
