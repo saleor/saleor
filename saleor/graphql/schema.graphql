@@ -10809,6 +10809,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
 A gift card is a prepaid electronic payment card accepted in stores. They can be used during checkout by providing a valid gift card codes.
 """
 type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") {
+  """ID of the gift card."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -10861,6 +10862,8 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   Requires one of the following permissions: MANAGE_GIFT_CARD, OWNER.
   """
   code: String!
+
+  """Date and time when gift card was created."""
   created: DateTime!
 
   """
@@ -10892,7 +10895,11 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   Added in Saleor 3.1.
   """
   usedByEmail: String @deprecated(reason: "This field will be removed in Saleor 4.0.")
+
+  """Date and time when gift card was last used."""
   lastUsedOn: DateTime
+
+  """Expiry date of the gift card."""
   expiryDate: Date
 
   """
@@ -10958,6 +10965,7 @@ History log of the gift card.
 Added in Saleor 3.1.
 """
 type GiftCardEvent implements Node @doc(category: "Gift cards") {
+  """ID of the event associated with a gift card."""
   id: ID!
 
   """Date when event happened at in ISO 8601 format."""
@@ -11045,7 +11053,10 @@ The gift card tag.
 Added in Saleor 3.1.
 """
 type GiftCardTag implements Node @doc(category: "Gift cards") {
+  """ID of the tag associated with a gift card."""
   id: ID!
+
+  """Name of the tag associated with a gift card."""
   name: String!
 }
 
