@@ -20,7 +20,7 @@ from jwt.exceptions import PyJWTError
 from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
-from ..core.exceptions import PermissionDenied, ReadOnlyException
+from ..core.exceptions import PermissionDenied
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
@@ -63,7 +63,6 @@ class GraphQLView(View):
     HANDLED_EXCEPTIONS = (
         GraphQLError,
         PyJWTError,
-        ReadOnlyException,
         PermissionDenied,
         InvalidIPAddress,
     )

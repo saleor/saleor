@@ -6,8 +6,6 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Highlights
 
-- Drop demo - #14835 by @fowczarek
-
 ### Breaking changes
 
 ### GraphQL API
@@ -19,8 +17,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Add missing descriptions to order module - #14845 by @DevilsAutumn
-
 - Unify how undiscounted prices are handled in orders and checkouts - #14780 by @jakubkuc
+- Drop demo - #14835 by @fowczarek
 
 # 3.18.0
 
