@@ -324,7 +324,7 @@ class Promotion(ModelWithMetadata):
         permissions = (
             (
                 DiscountPermissions.MANAGE_DISCOUNTS.codename,
-                "Manage sales and vouchers.",
+                "Manage promotions and vouchers.",
             ),
         )
 
