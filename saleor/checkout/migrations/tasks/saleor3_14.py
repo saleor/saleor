@@ -56,6 +56,8 @@ def update_checkout_refundable():
             # multiple celery migration tasks called for the same model can cause
             # deadlock. Before updating the objects we need to lock them.
             _checkout_lock = list(checkout_to_update.select_for_update(of=(["self"])))
-            checkout_to_update.update(automatically_refundable=True)
+            Checkout.objects.filter(pk__in=checkout_to_update).update(
+                automatically_refundable=True
+            )
 
         update_checkout_refundable.delay()
