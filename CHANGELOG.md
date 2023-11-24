@@ -20,6 +20,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unify how undiscounted prices are handled in orders and checkouts - #14780 by @jakubkuc
 - Drop demo - #14835 by @fowczarek
 
+- Added caching of GraphQL documents for common queries to improve performance - #14843 by @patrys
+
 # 3.18.0
 
 ### Highlights
