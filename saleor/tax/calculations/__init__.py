@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from prices import Money, TaxedMoney
 
-from saleor.core.prices import quantize_price
+from ..core.prices import quantize_price
 
 
 def calculate_flat_rate_tax(
