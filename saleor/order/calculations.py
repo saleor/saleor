@@ -13,7 +13,7 @@ from ..order import base_calculations
 from ..payment.model_helpers import get_subtotal
 from ..plugins.manager import PluginsManager
 from ..tax import TaxCalculationStrategy
-from ..tax.calculations import calculate_flat_rate_tax
+from ..tax.calculations import get_taxed_undiscounted_price
 from ..tax.calculations.order import update_order_prices_with_flat_rates
 from ..tax.utils import (
     calculate_tax_rate,
@@ -22,7 +22,11 @@ from ..tax.utils import (
     normalize_tax_rate_for_db,
 )
 from . import ORDER_EDITABLE_STATUS
-from .base_calculations import base_order_subtotal, base_order_total
+from .base_calculations import (
+    base_order_line_total,
+    base_order_subtotal,
+    base_order_total,
+)
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
@@ -62,10 +66,18 @@ def _recalculate_order_prices(
                     order, product, variant, None, line_unit.undiscounted_price
                 )
                 line.undiscounted_unit_price = get_undiscounted_price(
-                    line_unit, line.tax_rate, prices_entered_with_tax, line.currency
+                    line_unit,
+                    line.undiscounted_base_unit_price,
+                    line.tax_rate,
+                    prices_entered_with_tax,
                 )
+
                 line.undiscounted_total_price = get_undiscounted_price(
-                    line_total, line.tax_rate, prices_entered_with_tax, line.currency
+                    line_total,
+                    # base_order_line_total returns equal gross and net
+                    base_order_line_total(line).undiscounted_price.net,
+                    line.tax_rate,
+                    prices_entered_with_tax,
                 )
             except TaxError:
                 pass
@@ -84,23 +96,22 @@ def _recalculate_order_prices(
 
 
 def get_undiscounted_price(
-    line_price: OrderTaxedPricesData, tax_rate, prices_entered_with_tax, currency
+    line_price: OrderTaxedPricesData,
+    line_base_price: Money,
+    tax_rate,
+    prices_entered_with_tax,
 ):
     if (
         tax_rate > 0
         and line_price.undiscounted_price.net == line_price.undiscounted_price.gross
     ):
-        return quantize_price(
-            calculate_flat_rate_tax(
-                # It is calculated when net and gross are equal
-                money=line_price.undiscounted_price.net,
-                tax_rate=tax_rate,
-                prices_entered_with_tax=prices_entered_with_tax,
-            ),
-            currency,
+        get_taxed_undiscounted_price(
+            line_base_price,
+            line_price.undiscounted_price,
+            tax_rate,
+            prices_entered_with_tax,
         )
-    else:
-        return line_price.undiscounted_price
+    return line_price.undiscounted_price
 
 
 def _update_order_discounts_and_base_undiscounted_total(

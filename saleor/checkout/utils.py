@@ -7,11 +7,10 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import prefetch_related_objects
 from django.utils import timezone
-from prices import Money, TaxedMoney
+from prices import Money
 
 from ..account.models import User
 from ..core.exceptions import ProductNotPublished
-from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
@@ -37,7 +36,6 @@ from ..product import models as product_models
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
-from ..tax.calculations import calculate_flat_rate_tax
 from ..warehouse.availability import check_stock_and_preorder_quantity
 from ..warehouse.models import Warehouse
 from ..warehouse.reservations import reserve_stocks_and_preorders
@@ -962,27 +960,3 @@ def get_checkout_metadata(checkout: "Checkout"):
         return checkout.metadata_storage
     else:
         return CheckoutMetadata(checkout=checkout)
-
-
-def get_taxed_undiscounted_price(
-    undiscounted_base_price: "Money",
-    price: "TaxedMoney",
-    tax_rate: "Decimal",
-    prices_entered_with_tax: bool,
-):
-    """Apply taxes to undiscounted base price.
-
-    This function also prevents rounding difference between prices from tax-app and
-    local calculations based on tax_rate that might occur in orders without discounts.
-    """
-    price_to_compare = price.gross if prices_entered_with_tax else price.net
-    if undiscounted_base_price == price_to_compare:
-        return price
-    return quantize_price(
-        calculate_flat_rate_tax(
-            money=undiscounted_base_price,
-            tax_rate=tax_rate * 100,
-            prices_entered_with_tax=prices_entered_with_tax,
-        ),
-        undiscounted_base_price.currency,
-    )
