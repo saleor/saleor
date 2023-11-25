@@ -32,10 +32,8 @@ def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
 
 def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     """Return order total."""
-    currency = order.currency
-    subtotal = base_order_subtotal(order, lines)
-    shipping_price = order.shipping_price_net_amount
-    return subtotal + Money(shipping_price, currency)
+    subtotal, shipping_price = apply_order_discounts(order, lines, update_prices=False)
+    return subtotal + shipping_price
 
 
 def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
@@ -60,6 +58,7 @@ def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
 def apply_order_discounts(
     order: "Order",
     lines: Iterable["OrderLine"],
+    update_prices=False,
 ) -> tuple[Money, Money]:
     """Calculate order prices after applying discounts.
 
@@ -137,17 +136,19 @@ def apply_order_discounts(
     if order_discounts_to_update:
         OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
 
-    update_order_prices(
-        order,
-        subtotal,
-        undiscounted_subtotal,
-        shipping_price,
-        undiscounted_shipping_price,
-    )
-    subtotal_discount = undiscounted_subtotal - subtotal
-    apply_subtotal_discount_to_order_lines(
-        lines, undiscounted_subtotal, subtotal_discount
-    )
+    if update_prices:
+        update_order_prices(
+            order,
+            subtotal,
+            undiscounted_subtotal,
+            shipping_price,
+            undiscounted_shipping_price,
+        )
+        subtotal_discount = undiscounted_subtotal - subtotal
+        apply_subtotal_discount_to_order_lines(
+            lines, undiscounted_subtotal, subtotal_discount
+        )
+
     return subtotal, shipping_price
 
 
@@ -205,7 +206,6 @@ def update_order_line_prices(line: "OrderLine", total_price: Money):
         unit_price = total_price / quantity
         line.unit_price_net = unit_price
         line.unit_price_gross = unit_price
-        line.base_unit_price = unit_price
 
         undiscounted_unit_price = line.undiscounted_total_price_net_amount / quantity
         line.undiscounted_unit_price_net_amount = undiscounted_unit_price

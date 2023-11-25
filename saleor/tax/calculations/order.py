@@ -7,6 +7,7 @@ from prices import TaxedMoney
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
 from ...order import base_calculations
+from ...order.base_calculations import apply_order_discounts
 from ...order.utils import get_order_country
 from ..models import TaxClassCountryRate
 from ..utils import (
@@ -38,12 +39,15 @@ def update_order_prices_with_flat_rates(
         default_country_rate_obj.rate if default_country_rate_obj else Decimal(0)
     )
 
-    # Calculate order line totals.
+    # Apply order level discounts
+    apply_order_discounts(order, lines, update_prices=True)
+
+    # Calculate order line taxes.
     _, undiscounted_subtotal = update_taxes_for_order_lines(
         order, lines, country_code, default_tax_rate, prices_entered_with_tax
     )
 
-    # Calculate order shipping.
+    # Calculate shipping taxes.
     shipping_method = order.shipping_method
     shipping_tax_class = getattr(shipping_method, "tax_class", None)
     if shipping_tax_class:
@@ -70,6 +74,7 @@ def update_order_prices_with_flat_rates(
     order.shipping_tax_rate = normalize_tax_rate_for_db(shipping_tax_rate)
 
     # Calculate order total.
+    # TODO: base shipping price moze zawierac voucher shipping !?!?!
     order.undiscounted_total = undiscounted_subtotal + order.base_shipping_price
     order.total = _calculate_order_total(order, lines)
 
@@ -140,7 +145,7 @@ def update_taxes_for_order_lines(
             tax_rate = default_tax_rate
 
         undiscounted_subtotal += line.undiscounted_base_unit_price * line.quantity
-        price_with_discounts = line.base_unit_price
+        price_with_discounts = line.unit_price.net
         unit_price = calculate_flat_rate_tax(
             price_with_discounts, tax_rate, prices_entered_with_tax
         )
