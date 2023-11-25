@@ -74,7 +74,6 @@ def update_order_prices_with_flat_rates(
     order.shipping_tax_rate = normalize_tax_rate_for_db(shipping_tax_rate)
 
     # Calculate order total.
-    # TODO: base shipping price moze zawierac voucher shipping !?!?!
     order.undiscounted_total = undiscounted_subtotal + order.base_shipping_price
     order.total = _calculate_order_total(order, lines)
 

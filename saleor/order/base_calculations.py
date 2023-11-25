@@ -88,13 +88,6 @@ def apply_order_discounts(
                     currency=currency,
                     price_to_discount=subtotal,
                 )
-            if voucher and voucher.type == VoucherType.SHIPPING:
-                shipping_price = apply_discount_to_value(
-                    value=order_discount.value,
-                    value_type=order_discount.value_type,
-                    currency=currency,
-                    price_to_discount=shipping_price,
-                )
         elif order_discount.type == DiscountType.MANUAL:
             if order_discount.value_type == DiscountValueType.PERCENTAGE:
                 subtotal = apply_discount_to_value(
@@ -199,7 +192,6 @@ def update_order_line_prices(line: "OrderLine", total_price: Money):
     line.undiscounted_total_price_gross_amount = (
         line.undiscounted_total_price_net_amount
     )
-    line.tax_rate = 0
 
     quantity = line.quantity
     if quantity > 0:
@@ -227,7 +219,6 @@ def update_order_prices(
 ):
     order.shipping_price_net_amount = shipping_price.amount
     order.shipping_price_gross_amount = shipping_price.amount
-    order.shipping_tax_rate = 0
     order.total_net_amount = subtotal.amount + shipping_price.amount
     order.total_gross_amount = subtotal.amount + shipping_price.amount
     order.undiscounted_total_net_amount = (
