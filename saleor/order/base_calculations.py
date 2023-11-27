@@ -58,7 +58,7 @@ def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
 def apply_order_discounts(
     order: "Order",
     lines: Iterable["OrderLine"],
-    update_prices=False,
+    update_prices=True,
 ) -> tuple[Money, Money]:
     """Calculate order prices after applying discounts.
 
@@ -156,7 +156,7 @@ def apply_subtotal_discount_to_order_lines(
     lines_count = len(lines)
     if lines_count == 1:
         line = lines[0]
-        apply_discount_to_order_line(line, subtotal_discount)
+        apply_order_discount_to_order_line(line, subtotal_discount)
 
     # Handle order with multiple lines - propagate the order discount proportionally
     # to the lines.
@@ -170,13 +170,13 @@ def apply_subtotal_discount_to_order_lines(
                     / undiscounted_subtotal.amount
                 )
                 discount = min(share * remaining_discount, undiscounted_subtotal)
-                apply_discount_to_order_line(line, discount)
+                apply_order_discount_to_order_line(line, discount)
                 remaining_discount -= discount
             else:
-                apply_discount_to_order_line(line, remaining_discount)
+                apply_order_discount_to_order_line(line, remaining_discount)
 
 
-def apply_discount_to_order_line(line: "OrderLine", discount: Money):
+def apply_order_discount_to_order_line(line: "OrderLine", discount: Money):
     """Calculate order line prices after applying order level discount."""
     currency = discount.currency
     # This price includes line level discounts, but not entire order ones.
@@ -202,12 +202,6 @@ def update_order_line_prices(line: "OrderLine", total_price: Money):
         undiscounted_unit_price = line.undiscounted_total_price_net_amount / quantity
         line.undiscounted_unit_price_net_amount = undiscounted_unit_price
         line.undiscounted_unit_price_gross_amount = undiscounted_unit_price
-
-        total_line_discount_amount = (
-            line.undiscounted_total_price_net_amount - line.total_price_net_amount
-        )
-        unit_discount = total_line_discount_amount / quantity
-        line.unit_discount_amount = unit_discount
 
 
 def update_order_prices(

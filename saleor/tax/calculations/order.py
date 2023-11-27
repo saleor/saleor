@@ -39,7 +39,7 @@ def update_order_prices_with_flat_rates(
     )
 
     # Apply order level discounts
-    base_calculations.apply_order_discounts(order, lines, update_prices=True)
+    base_calculations.apply_order_discounts(order, lines)
 
     # Calculate order line taxes.
     _, undiscounted_subtotal = update_taxes_for_order_lines(

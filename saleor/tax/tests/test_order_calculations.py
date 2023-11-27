@@ -503,7 +503,7 @@ def test_update_taxes_for_order_lines_voucher_on_entire_order(
     )
 
     # when
-    apply_order_discounts(order, lines, update_prices=True)
+    apply_order_discounts(order, lines)
     lines, _ = update_taxes_for_order_lines(
         order, lines, country_code, Decimal(23), prices_entered_with_tax
     )
@@ -514,7 +514,9 @@ def test_update_taxes_for_order_lines_voucher_on_entire_order(
         discount_amount = quantize_price(
             total_line_price.amount / total_amount * order_discount_amount, currency
         )
-        unit_gross = (total_line_price - Money(discount_amount, currency)) / line.quantity
+        unit_gross = (
+            total_line_price - Money(discount_amount, currency)
+        ) / line.quantity
         assert line.unit_price == TaxedMoney(
             net=quantize_price(unit_gross / Decimal("1.23"), currency),
             gross=quantize_price(unit_gross, currency),

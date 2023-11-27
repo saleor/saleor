@@ -128,7 +128,7 @@ def _calculate_taxes(
                 tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
             )
         else:
-            base_calculations.apply_order_discounts(order, lines, update_prices=True)
+            base_calculations.apply_order_discounts(order, lines)
 
 
 def _calculate_and_add_tax(
