@@ -13,8 +13,11 @@ from .....menu.models import Menu, MenuItem
 from .....product.models import Category
 from .....shipping.models import ShippingMethod, ShippingZone
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ...tasks import create_deliveries_for_subscriptions, logger, \
-    create_delivery_for_subscription_sync_event
+from ...tasks import (
+    create_deliveries_for_subscriptions,
+    create_delivery_for_subscription_sync_event,
+    logger,
+)
 from . import subscription_queries
 from .payloads import (
     generate_address_payload,

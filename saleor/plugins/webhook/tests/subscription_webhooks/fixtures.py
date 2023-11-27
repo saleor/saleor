@@ -1045,7 +1045,7 @@ def subscription_app_status_changed_webhook_removed_app(
 
 @pytest.fixture
 def subscription_checkout_shipping_filter_and_list_missing_one_in_definition(
-    subscription_webhook
+    subscription_webhook,
 ):
     return subscription_webhook(
         queries.THUMBNAIL_CREATED,
