@@ -92,4 +92,17 @@ class Migration(migrations.Migration):
             """,
             reverse_sql=migrations.RunSQL.noop,
         ),
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AlterModelOptions(
+                    name="promotion",
+                    options={
+                        "ordering": ("name", "pk"),
+                        "permissions": (
+                            ("manage_discounts", "Manage sales and vouchers."),
+                        ),
+                    },
+                ),
+            ],
+        ),
     ]
