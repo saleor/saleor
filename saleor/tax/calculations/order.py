@@ -7,7 +7,6 @@ from prices import TaxedMoney
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
 from ...order import base_calculations
-from ...order.base_calculations import apply_order_discounts
 from ...order.utils import get_order_country
 from ..models import TaxClassCountryRate
 from ..utils import (
@@ -40,7 +39,7 @@ def update_order_prices_with_flat_rates(
     )
 
     # Apply order level discounts
-    apply_order_discounts(order, lines, update_prices=True)
+    base_calculations.apply_order_discounts(order, lines, update_prices=True)
 
     # Calculate order line taxes.
     _, undiscounted_subtotal = update_taxes_for_order_lines(

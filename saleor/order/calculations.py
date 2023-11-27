@@ -54,7 +54,6 @@ def fetch_order_prices_and_update_if_expired(
     order.should_refresh_prices = False
 
     _update_order_discount_for_voucher(order)
-    base_calculations.apply_order_discounts(order, lines)
     _calculate_taxes(order, manager, lines)
 
     with transaction.atomic(savepoint=False):
@@ -128,6 +127,8 @@ def _calculate_taxes(
             _calculate_and_add_tax(
                 tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
             )
+        else:
+            base_calculations.apply_order_discounts(order, lines, update_prices=True)
 
 
 def _calculate_and_add_tax(
