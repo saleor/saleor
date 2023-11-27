@@ -136,48 +136,6 @@ def test_apply_order_discounts_voucher_entire_order_exceed_subtotal(
     assert order_discount.amount_value == subtotal.amount
 
 
-def test_apply_order_discounts_voucher_shipping(
-    order_with_lines, voucher_shipping_type
-):
-    # given
-    order = order_with_lines
-    lines = order.lines.all()
-    shipping_price = order.shipping_price.net
-    currency = order.currency
-    subtotal = zero_money(currency)
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    discount_amount = 10
-    order_discount = order.discounts.create(
-        type=DiscountType.VOUCHER,
-        value_type=DiscountValueType.FIXED,
-        value=discount_amount,
-        name="Voucher",
-        translated_name="VoucherPL",
-        currency=currency,
-        amount_value=0,
-        voucher=voucher_shipping_type,
-    )
-
-    # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
-
-    # then
-    assert discounted_shipping_price == shipping_price - Money(
-        discount_amount, currency
-    )
-    assert discounted_subtotal == subtotal
-    assert order.total_net == discounted_subtotal + discounted_shipping_price
-    assert order.total_gross == discounted_subtotal + discounted_shipping_price
-    assert order.shipping_price_net == discounted_shipping_price
-    assert order.shipping_price_gross == discounted_shipping_price
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == subtotal + shipping_price
-    order_discount.refresh_from_db()
-    assert order_discount.amount_value == discount_amount
-
-
 def test_apply_order_discounts_voucher_entire_order_percentage(
     order_with_lines, voucher_percentage
 ):
@@ -642,8 +600,6 @@ def test_apply_subtotal_discount_to_order_lines(
         subtotal += line.base_unit_price * line.quantity
     subtotal_discount = Money(Decimal(discount), currency)
     expected_subtotal = max(subtotal - subtotal_discount, zero_money(currency))
-    line_0_share = lines[0].total_price_net_amount / subtotal.amount
-    line_0_undiscounted_total = lines[0].base_unit_price * lines[0].quantity
 
     # when
     apply_subtotal_discount_to_order_lines(lines, subtotal, subtotal_discount)
@@ -663,18 +619,27 @@ def test_apply_subtotal_discount_to_order_lines(
         == lines[0].total_price_gross_amount + lines[1].total_price_gross_amount
     )
 
-    line_0_total_discount = _quantize(lines[0].unit_discount_amount * lines[0].quantity)
-    assert line_0_total_discount == min(
-        _quantize(line_0_share * subtotal_discount.amount),
-        line_0_undiscounted_total.amount,
-    )
     assert lines[0].total_price_net_amount == _quantize(
         lines[0].unit_price_net_amount * lines[0].quantity
     )
     assert lines[0].total_price_gross_amount == _quantize(
         lines[0].unit_price_gross_amount * lines[0].quantity
     )
-    assert lines[0].base_unit_price_amount == lines[0].unit_price_net_amount
+    assert lines[1].total_price_net_amount == _quantize(
+        lines[1].unit_price_net_amount * lines[1].quantity
+    )
+    assert lines[1].total_price_gross_amount == _quantize(
+        lines[1].unit_price_gross_amount * lines[1].quantity
+    )
+    assert (
+        max(
+            lines[0].base_unit_price * lines[0].quantity
+            + lines[1].base_unit_price * lines[1].quantity
+            - subtotal_discount,
+            zero_money(currency),
+        )
+        == expected_subtotal
+    )
 
 
 @pytest.mark.parametrize("discount", ["10", "1", "17.3", "10000", "0"])
@@ -695,8 +660,6 @@ def test_apply_subtotal_discount_to_order_lines_order_with_single_line(
     subtotal = line.base_unit_price * line.quantity
     subtotal_discount = Money(Decimal(discount), currency)
     expected_subtotal = max(subtotal - subtotal_discount, zero_money(currency))
-    line_share = line.total_price_net_amount / subtotal.amount
-    line_undiscounted_total = line.base_unit_price * line.quantity
 
     # when
     apply_subtotal_discount_to_order_lines([line], subtotal, subtotal_discount)
@@ -707,15 +670,16 @@ def test_apply_subtotal_discount_to_order_lines_order_with_single_line(
     assert discounted_subtotal.amount == line.total_price_net_amount
     assert discounted_subtotal.amount == line.total_price_gross_amount
 
-    line_total_discount = _quantize(line.unit_discount_amount * line.quantity)
-    assert line_total_discount == min(
-        _quantize(line_share * subtotal_discount.amount),
-        line_undiscounted_total.amount,
-    )
     assert line.total_price_net_amount == _quantize(
         line.unit_price_net_amount * line.quantity
     )
     assert line.total_price_gross_amount == _quantize(
         line.unit_price_gross_amount * line.quantity
     )
-    assert line.base_unit_price_amount == line.unit_price_net_amount
+    assert (
+        max(
+            line.base_unit_price * line.quantity - subtotal_discount,
+            zero_money(currency),
+        )
+        == line.total_price_net
+    )

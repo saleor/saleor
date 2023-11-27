@@ -156,7 +156,7 @@ def apply_subtotal_discount_to_order_lines(
     lines_count = len(lines)
     if lines_count == 1:
         line = lines[0]
-        apply_order_discount_to_order_line(line, subtotal_discount)
+        apply_subtotal_discount_to_order_line(line, subtotal_discount)
 
     # Handle order with multiple lines - propagate the order discount proportionally
     # to the lines.
@@ -170,13 +170,13 @@ def apply_subtotal_discount_to_order_lines(
                     / undiscounted_subtotal.amount
                 )
                 discount = min(share * remaining_discount, undiscounted_subtotal)
-                apply_order_discount_to_order_line(line, discount)
+                apply_subtotal_discount_to_order_line(line, discount)
                 remaining_discount -= discount
             else:
-                apply_order_discount_to_order_line(line, remaining_discount)
+                apply_subtotal_discount_to_order_line(line, remaining_discount)
 
 
-def apply_order_discount_to_order_line(line: "OrderLine", discount: Money):
+def apply_subtotal_discount_to_order_line(line: "OrderLine", discount: Money):
     """Calculate order line prices after applying order level discount."""
     currency = discount.currency
     # This price includes line level discounts, but not entire order ones.
