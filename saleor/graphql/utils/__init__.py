@@ -20,7 +20,6 @@ from ...app.models import App
 from ...core.exceptions import (
     CircularSubscriptionSyncEvent,
     PermissionDenied,
-    ReadOnlyException,
 )
 from ..core.enums import PermissionEnum
 from ..core.types import TYPES_WITH_DOUBLE_ID_AVAILABLE, Permission
@@ -48,7 +47,6 @@ ALLOWED_ERRORS = [
     GraphQLError,
     InvalidTokenError,
     PermissionDenied,
-    ReadOnlyException,
     ValidationError,
     QueryCostError,
 ]
