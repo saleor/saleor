@@ -6750,6 +6750,7 @@ def warehouse_no_shipping_zone(address, channel_USD):
         name="Warehouse without shipping zone",
         slug="warehouse-no-shipping-zone",
         email="test2@example.com",
+        external_reference="warehouse-no-shipping-zone",
     )
     warehouse.channels.add(channel_USD)
     return warehouse
