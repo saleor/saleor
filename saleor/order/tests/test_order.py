@@ -30,7 +30,7 @@ from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import FulfillmentStatus, OrderChargeStatus, OrderEvents, OrderStatus
-from ..calculations import fetch_order_prices_and_update_if_expired
+from ..calculations import fetch_order_prices_if_expired
 from ..events import (
     OrderEventsEmails,
     event_fulfillment_confirmed_notification,
@@ -77,7 +77,7 @@ def test_order_get_subtotal(order_with_lines):
         name="Test discount",
     )
 
-    fetch_order_prices_and_update_if_expired(
+    fetch_order_prices_if_expired(
         order_with_lines, get_plugins_manager(), force_update=True
     )
 

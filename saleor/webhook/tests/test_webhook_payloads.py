@@ -2019,7 +2019,7 @@ def test_generate_checkout_payload(
     }
 
 
-@patch("saleor.order.calculations.fetch_order_prices_and_update_if_expired")
+@patch("saleor.order.calculations.fetch_order_prices_if_expired")
 def test_generate_excluded_shipping_methods_for_order(mocked_fetch, order):
     shipping_method = ShippingMethodData(
         id="123",

@@ -147,11 +147,11 @@ def test_checkout_complete_with_inactive_channel(
 
 
 @pytest.mark.integration
-@patch("saleor.order.calculations._apply_tax_data_from_plugins")
+@patch("saleor.order.calculations._recalculate_with_plugins")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete(
     order_confirmed_mock,
-    apply_tax_data_from_plugins_mock,
+    recalculate_with_plugins_mock,
     user_api_client,
     checkout_with_gift_card,
     gift_card,
@@ -256,7 +256,7 @@ def test_checkout_complete(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
     order_confirmed_mock.assert_called_once_with(order)
-    apply_tax_data_from_plugins_mock.assert_not_called()
+    recalculate_with_plugins_mock.assert_not_called()
 
     assert not len(Reservation.objects.all())
 
@@ -775,11 +775,11 @@ def test_checkout_complete_with_variant_without_price(
     assert errors[0]["variants"] == [variant_id]
 
 
-@patch("saleor.order.calculations._apply_tax_data_from_plugins")
+@patch("saleor.order.calculations._recalculate_with_plugins")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete_requires_confirmation(
     order_confirmed_mock,
-    apply_tax_data_from_plugins_mock,
+    recalculate_with_plugins_mock,
     user_api_client,
     site_settings,
     payment_dummy,
@@ -806,7 +806,7 @@ def test_checkout_complete_requires_confirmation(
     order = Order.objects.get(pk=order_id)
     assert order.is_unconfirmed()
     order_confirmed_mock.assert_not_called()
-    apply_tax_data_from_plugins_mock.assert_not_called()
+    recalculate_with_plugins_mock.assert_not_called()
 
 
 @pytest.mark.integration

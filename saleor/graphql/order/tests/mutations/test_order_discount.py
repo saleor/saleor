@@ -368,14 +368,17 @@ def test_update_percentage_order_discount_to_order(
     assert discount_data["amount_value"] == str(discount_amount.amount)
 
 
+@patch("saleor.order.calculations.PluginsManager.calculate_order_shipping")
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_fixed_order_discount_to_order(
+    mocked_function,
     status,
     draft_order_with_fixed_discount_order,
     staff_api_client,
     permission_group_manage_orders,
 ):
     order = draft_order_with_fixed_discount_order
+    mocked_function.return_value = order.shipping_price
     order.status = status
     order.save(update_fields=["status"])
     order_discount = draft_order_with_fixed_discount_order.discounts.get()
@@ -776,12 +779,12 @@ mutation OrderLineDiscountUpdate($input: OrderDiscountCommonInput!, $orderLineId
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_order_line_discount(
     status,
-    draft_order,
+    draft_order_with_fixed_discount_order,
     staff_api_client,
     permission_group_manage_orders,
 ):
     # given
-    order = draft_order
+    order = draft_order_with_fixed_discount_order
     order.status = status
     order.save(update_fields=["status"])
     line_to_discount = order.lines.first()
@@ -879,13 +882,13 @@ def test_update_order_line_discount_by_user_no_channel_access(
 
 
 def test_update_order_line_discount_by_app(
-    draft_order,
+    draft_order_with_fixed_discount_order,
     app_api_client,
     permission_manage_orders,
     channel_PLN,
 ):
     # given
-    order = draft_order
+    order = draft_order_with_fixed_discount_order
     order.channel = channel_PLN
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status", "channel"])
@@ -936,12 +939,12 @@ def test_update_order_line_discount_by_app(
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_order_line_discount_line_with_discount(
     status,
-    draft_order,
+    draft_order_with_fixed_discount_order,
     staff_api_client,
     permission_group_manage_orders,
 ):
     # given
-    order = draft_order
+    order = draft_order_with_fixed_discount_order
     order.status = status
     order.save(update_fields=["status"])
     line_to_discount = order.lines.first()
@@ -1032,14 +1035,14 @@ def test_update_order_line_discount_line_with_discount(
 
 
 def test_update_order_line_discount_order_is_not_draft(
-    draft_order,
+    draft_order_with_fixed_discount_order,
     staff_api_client,
     permission_group_manage_orders,
 ):
-    draft_order.status = OrderStatus.UNFULFILLED
-    draft_order.save()
+    draft_order_with_fixed_discount_order.status = OrderStatus.UNFULFILLED
+    draft_order_with_fixed_discount_order.save()
 
-    line_to_discount = draft_order.lines.first()
+    line_to_discount = draft_order_with_fixed_discount_order.lines.first()
 
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line_to_discount.pk),

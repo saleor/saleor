@@ -13,7 +13,7 @@ from ....discount.models import VoucherCode
 from ....discount.utils import add_voucher_usage_by_customer
 from ....order import OrderStatus, models
 from ....order.actions import order_created
-from ....order.calculations import fetch_order_prices_and_update_if_expired
+from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderInfo, OrderLineInfo
 from ....order.search import prepare_order_search_vector_value
@@ -99,7 +99,7 @@ class DraftOrderComplete(BaseMutation):
             qs=models.Order.objects.prefetch_related("lines__variant"),
         )
         cls.check_channel_permissions(info, [order.channel_id])
-        order, _ = fetch_order_prices_and_update_if_expired(order, manager, info=info)
+        order, _ = fetch_order_prices_if_expired(order, manager, info=info)
         cls.validate_order(order)
 
         country = get_order_country(order)

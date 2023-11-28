@@ -2,9 +2,9 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from prices import Money
 
-from saleor.core.taxes import zero_money
-from saleor.discount import DiscountType, DiscountValueType
-from saleor.order import base_calculations
+from ...core.taxes import zero_money
+from ...discount import DiscountType, DiscountValueType
+from .. import base_calculations
 
 
 def test_base_order_total(order_with_lines):

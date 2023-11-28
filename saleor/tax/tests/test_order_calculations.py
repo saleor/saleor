@@ -9,7 +9,7 @@ from ...core.taxes import zero_money, zero_taxed_money
 from ...discount import DiscountType, DiscountValueType
 from ...order import OrderStatus
 from ...order.base_calculations import apply_order_discounts
-from ...order.calculations import fetch_order_prices_and_update_if_expired
+from ...order.calculations import fetch_order_prices_if_expired
 from ...order.utils import get_order_country
 from ...plugins.manager import get_plugins_manager
 from .. import TaxCalculationStrategy
@@ -655,6 +655,7 @@ def test_use_original_tax_rate_when_tax_class_is_removed_from_order_line(
     prices_entered_with_tax = True
     _enable_flat_rates(order, prices_entered_with_tax)
     lines = order.lines.all()
+    update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
 
     # when
     for line in lines:
@@ -721,7 +722,7 @@ def test_use_default_country_rate_when_no_tax_class_was_set_before(
     order.refresh_from_db()
 
     # when
-    fetch_order_prices_and_update_if_expired(order, manager, force_update=True)
+    fetch_order_prices_if_expired(order, manager, force_update=True)
     order.refresh_from_db()
 
     # then

@@ -23,7 +23,7 @@ def mocked_fetch_order():
         return order, lines
 
     with patch(
-        "saleor.order.calculations.fetch_order_prices_and_update_if_expired",
+        "saleor.order.calculations.fetch_order_prices_if_expired",
         new=Mock(side_effect=mocked_fetch_side_effect),
     ) as mocked_fetch:
         yield mocked_fetch

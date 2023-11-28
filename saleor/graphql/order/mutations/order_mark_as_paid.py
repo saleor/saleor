@@ -11,7 +11,7 @@ from ....order.actions import (
     mark_order_as_paid_with_payment,
     mark_order_as_paid_with_transaction,
 )
-from ....order.calculations import fetch_order_prices_and_update_if_expired
+from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.events import transaction_mark_order_as_paid_failed_event
 from ....order.search import update_order_search_vector
@@ -113,7 +113,7 @@ class OrderMarkAsPaid(BaseMutation):
         order = cls.get_node_or_error(info, id, only_type=Order)
         cls.check_channel_permissions(info, [order.channel_id])
         manager = get_plugin_manager_promise(info.context).get()
-        order, _ = fetch_order_prices_and_update_if_expired(order, manager)
+        order, _ = fetch_order_prices_if_expired(order, manager)
         cls.clean_billing_address(order)
         user = info.context.user
         user = cast(User, user)

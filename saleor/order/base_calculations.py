@@ -20,7 +20,10 @@ def base_order_shipping(order: "Order") -> Money:
 
 
 def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
-    """Return order subtotal."""
+    """Return order subtotal.
+
+    Does not include order level discounts.
+    """
     currency = order.currency
     subtotal = zero_money(currency)
     for line in lines:
@@ -31,13 +34,19 @@ def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
 
 
 def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
-    """Return order total."""
+    """Return order total, recalculate, and update order discounts.
+
+    All discounts are included in this price.
+    """
     subtotal, shipping_price = apply_order_discounts(order, lines, update_prices=False)
     return subtotal + shipping_price
 
 
 def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
-    """Return order line total."""
+    """Return order line base total.
+
+    Does not include order level discounts.
+    """
     quantity = order_line.quantity
     price_with_line_discounts = (
         TaxedMoney(order_line.base_unit_price, order_line.base_unit_price) * quantity
@@ -60,10 +69,10 @@ def apply_order_discounts(
     lines: Iterable["OrderLine"],
     update_prices=True,
 ) -> tuple[Money, Money]:
-    """Calculate order prices after applying discounts.
+    """Calculate prices after applying order level discounts.
 
-    Handles manual discounts and voucher discounts: ENTIRE_ORDER and SHIPPING.
-    Shipping vouchers are included in the shipping price.
+    Handles manual discounts and ENTIRE_ORDER vouchers.
+    Shipping vouchers are included in the base shipping price.
     Specific product vouchers are included in line base prices.
     Entire order vouchers are recalculated and updated in this function
     (OrderDiscounts with type `order_discount.type == DiscountType.VOUCHER`).
@@ -188,7 +197,7 @@ def apply_subtotal_discount_to_order_line(line: "OrderLine", discount: Money):
 def update_order_line_prices(line: "OrderLine", total_price: Money):
     currency = total_price.currency
     line.total_price_net = quantize_price(total_price, currency)
-    line.total_price_gross = quantize_price(total_price, currency)
+    line.total_price_gross = line.total_price_net
     line.undiscounted_total_price_gross_amount = (
         line.undiscounted_total_price_net_amount
     )

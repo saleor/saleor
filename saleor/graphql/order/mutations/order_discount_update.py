@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
 from ....order import events, models
-from ....order.calculations import fetch_order_prices_and_update_if_expired
+from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
@@ -85,9 +85,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
                 # discount.
                 # Calling refreshing prices because it's set proper discount amount
                 # on OrderDiscount.
-                fetch_order_prices_and_update_if_expired(
-                    order, manager, force_update=True
-                )
+                fetch_order_prices_if_expired(order, manager, force_update=True)
                 order_discount.refresh_from_db()
                 app = get_app_promise(info.context).get()
                 events.order_discount_updated_event(

@@ -40,7 +40,7 @@ def test_get_taxes_for_checkout_no_permission(
 
 
 @freeze_time()
-@mock.patch("saleor.order.calculations.fetch_order_prices_and_update_if_expired")
+@mock.patch("saleor.order.calculations.fetch_order_prices_if_expired")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_taxes_for_order(
     mock_request,
@@ -151,7 +151,7 @@ def test_get_tax_code_from_object_meta_default_code(
 
 
 @freeze_time()
-@mock.patch("saleor.order.calculations.fetch_order_prices_and_update_if_expired")
+@mock.patch("saleor.order.calculations.fetch_order_prices_if_expired")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_taxes_for_order_with_sync_subscription(
     mock_request,

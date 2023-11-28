@@ -2059,9 +2059,9 @@ def test_draft_order_create_invalid_shipping_address(
     assert errors[0]["addressType"] == AddressType.SHIPPING.upper()
 
 
-@patch("saleor.order.calculations.fetch_order_prices_and_update_if_expired")
+@patch("saleor.order.calculations.fetch_order_prices_if_expired")
 def test_draft_order_create_price_recalculation(
-    mock_fetch_order_prices_and_update_if_expired,
+    mock_fetch_order_prices_if_expired,
     staff_api_client,
     permission_group_manage_orders,
     customer_user,
@@ -2078,7 +2078,7 @@ def test_draft_order_create_price_recalculation(
     fake_order.undiscounted_total = zero_taxed_money(channel_PLN.currency_code)
     fake_order.shipping_price = zero_taxed_money(channel_PLN.currency_code)
     fetch_prices_response = Mock(return_value=(fake_order, None))
-    mock_fetch_order_prices_and_update_if_expired.side_effect = fetch_prices_response
+    mock_fetch_order_prices_if_expired.side_effect = fetch_prices_response
     query = DRAFT_ORDER_CREATE_MUTATION
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     discount = "10"
@@ -2122,7 +2122,7 @@ def test_draft_order_create_price_recalculation(
     assert Order.objects.count() == 1
     order = Order.objects.first()
     lines = list(order.lines.all())
-    mock_fetch_order_prices_and_update_if_expired.assert_called()
+    mock_fetch_order_prices_if_expired.assert_called()
 
 
 def test_draft_order_create_update_display_gross_prices(

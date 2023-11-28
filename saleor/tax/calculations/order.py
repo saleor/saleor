@@ -25,11 +25,6 @@ def update_order_prices_with_flat_rates(
     lines: Iterable["OrderLine"],
     prices_entered_with_tax: bool,
 ):
-    """Calculate taxes based on flat rates strategy.
-
-    Both order and order line discounts should be fully reflected in order and lines
-    prices. At this stage base_unit_price should be equal to unit_price.
-    """
     country_code = get_order_country(order)
     default_country_rate_obj = TaxClassCountryRate.objects.filter(
         country=country_code, tax_class=None
@@ -46,7 +41,7 @@ def update_order_prices_with_flat_rates(
         order, lines, country_code, default_tax_rate, prices_entered_with_tax
     )
 
-    # Calculate shipping taxes.
+    # Calculate order shipping.
     shipping_method = order.shipping_method
     shipping_tax_class = getattr(shipping_method, "tax_class", None)
     if shipping_tax_class:

@@ -1063,7 +1063,6 @@ def test_calculate_order_shipping_order_not_valid(
     )
     order.shipping_address = None
     order.base_shipping_price = Money("10.00", "USD")
-    order.shipping_price = expected_shipping_price
     order_set_shipping_method(order, shipping_method)
     order.save()
 
