@@ -31,7 +31,7 @@ app.autodiscover_tasks(
     packages=[
         "saleor.order.migrations.tasks",
     ],
-    related_name="saleor3_18",
+    related_name="saleor3_19",
 )
 app.autodiscover_tasks(lambda: discover_plugins_modules(settings.PLUGINS))  # type: ignore[misc] # circular import # noqa: E501
 app.autodiscover_tasks(related_name="search_tasks")
