@@ -26,7 +26,6 @@ from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment
 from ..permission.enums import OrderPermissions
 from ..shipping.models import ShippingMethod
@@ -426,7 +425,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return any(line.is_shipping_required for line in self.lines.all())
 
     def get_subtotal(self):
-        return get_subtotal(self.lines.all(), self.currency)
+        return self.subtotal
 
     def get_total_quantity(self):
         return sum([line.quantity for line in self.lines.all()])

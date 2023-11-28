@@ -53,6 +53,7 @@ from ..order.utils import (
     update_order_display_gross_prices,
 )
 from ..payment import PaymentError, TransactionKind, gateway
+from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
@@ -481,11 +482,17 @@ def _prepare_order_data(
         + shipping_total
     )
 
+    subtotal = get_subtotal(
+        [order_line_info.line for order_line_info in order_data["lines"]],
+        taxed_total.currency,
+    )
+
     order_data.update(
         {
             "language_code": checkout.language_code,
             "tracking_client_id": checkout.tracking_code or "",
             "total": taxed_total,
+            "subtotal": subtotal,
             "undiscounted_total": undiscounted_total,
             "shipping_tax_rate": shipping_tax_rate,
         }
@@ -1221,7 +1228,6 @@ def _create_order_from_checkout(
             "undiscounted_total_gross_amount",
         ]
     )
-
     # allocations
     _handle_allocations_of_order_lines(
         checkout_info=checkout_info,
@@ -1234,8 +1240,17 @@ def _create_order_from_checkout(
     # giftcards
     currency = checkout_info.checkout.currency
     subtotal_list = [line.line.total_price for line in order_lines_info]
-    subtotal = sum(subtotal_list, zero_taxed_money(currency))
-    total_without_giftcard = subtotal + shipping_total - checkout_info.checkout.discount
+    order.subtotal = sum(subtotal_list, zero_taxed_money(currency))
+    order.save(
+        update_fields=[
+            "subtotal_net_amount",
+            "subtotal_gross_amount",
+        ]
+    )
+
+    total_without_giftcard = (
+        order.subtotal + shipping_total - checkout_info.checkout.discount
+    )
     add_gift_cards_to_order(
         checkout_info, order, total_without_giftcard.gross, user, app
     )

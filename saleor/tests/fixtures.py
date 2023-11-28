@@ -98,6 +98,7 @@ from ..order.utils import (
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
+from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment, TransactionEvent, TransactionItem
 from ..payment.transaction_item_calculations import recalculate_transaction_amounts
 from ..payment.utils import create_manual_adjustment_events
@@ -4587,6 +4588,7 @@ def recalculate_order(order):
     total -= discount
 
     order.total = total
+    order.subtotal = get_subtotal(order.lines.all(), order.currency)
     order.undiscounted_total = undiscounted_total
 
     if discount:

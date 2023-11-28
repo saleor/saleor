@@ -11,6 +11,7 @@ from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
+from .....payment.model_helpers import get_subtotal
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....product.models import ProductVariant
 from .....warehouse.models import Allocation, PreorderAllocation, Stock
@@ -36,6 +37,11 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
                 }
                 voucherCode
                 total {
+                    net {
+                        amount
+                    }
+                }
+                subtotal {
                     net {
                         amount
                     }
@@ -203,6 +209,8 @@ def test_draft_order_complete_with_voucher(
     assert (
         data["total"]["net"]["amount"] == order_total - voucher_listing.discount_value
     )
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["net"]["amount"] == subtotal.gross.amount
     assert order.search_vector
 
     for line in order.lines.all():

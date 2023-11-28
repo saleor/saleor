@@ -1122,7 +1122,12 @@ def test_order_subtotal(mocked_fetch_order_prices_if_expired):
         TaxedMoney(Money(Decimal("2.00"), currency), Money(Decimal("2.00"), currency)),
         TaxedMoney(Money(Decimal("4.00"), currency), Money(Decimal("4.00"), currency)),
     ]
-    order = Mock(currency=currency)
+    order = Mock(
+        currency=currency,
+        subtotal=TaxedMoney(
+            Money(Decimal("7.00"), currency), Money(Decimal("7.00"), currency)
+        ),
+    )
     lines = []
     for expected_line_total in expected_line_totals:
         line = Mock(total_price=expected_line_total, currency=currency)

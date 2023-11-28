@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import Optional, cast
+from typing import Optional
 
 from django.db import transaction
 from django.db.models import prefetch_related_objects
@@ -276,9 +276,12 @@ def fetch_order_prices_if_expired(
             # Calculate net prices without taxes.
             _get_order_base_prices(order, lines)
 
+    order.subtotal = get_subtotal(lines, order.currency)
     with transaction.atomic(savepoint=False):
         order.save(
             update_fields=[
+                "subtotal_net_amount",
+                "subtotal_gross_amount",
                 "total_net_amount",
                 "total_gross_amount",
                 "undiscounted_total_net_amount",
@@ -499,8 +502,7 @@ def order_subtotal(
     order, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
     # Lines aren't returned only if
     # we don't pass them to `fetch_order_prices_if_expired`.
-    lines = cast(Iterable[OrderLine], lines)
-    return quantize_price(get_subtotal(lines, currency), currency)
+    return quantize_price(order.subtotal, currency)
 
 
 def order_total(

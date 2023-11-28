@@ -7,6 +7,7 @@ from .....discount import DiscountType, DiscountValueType
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
+from .....payment.model_helpers import get_subtotal
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_ORDER_UPDATE_MUTATION = """
@@ -62,6 +63,11 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                         }
                     }
                     total {
+                        gross {
+                            amount
+                        }
+                    }
+                    subtotal {
                         gross {
                             amount
                         }
@@ -195,6 +201,8 @@ def test_draft_order_update_with_voucher(
         == external_reference
         == order.external_reference
     )
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["order"]["subtotal"]["gross"]["amount"] == subtotal.gross.amount
 
     # Ensure order discount object was properly created
     assert order.discounts.count() == 1
@@ -400,6 +408,8 @@ def test_draft_order_update_with_voucher_including_drafts_in_voucher_usage(
 
     assert not data["errors"]
     order.refresh_from_db()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["order"]["subtotal"]["gross"]["amount"] == subtotal.gross.amount
     assert order.voucher_code == voucher.code
     assert order.search_vector
 
@@ -465,6 +475,8 @@ def test_draft_order_update_with_voucher_code_including_drafts_in_voucher_usage(
 
     assert not data["errors"]
     order.refresh_from_db()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["order"]["subtotal"]["gross"]["amount"] == subtotal.gross.amount
     assert order.voucher_code == voucher.code
     assert order.search_vector
 

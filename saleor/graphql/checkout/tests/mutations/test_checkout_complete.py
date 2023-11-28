@@ -8,6 +8,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....order import OrderStatus
 from .....order.models import Order
+from .....payment.model_helpers import get_subtotal
 from .....plugins.manager import get_plugins_manager
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -37,6 +38,15 @@ MUTATION_CHECKOUT_COMPLETE = """
                     }
                 }
                 total {
+                    currency
+                    net {
+                        amount
+                    }
+                    gross {
+                        amount
+                    }
+                }
+                subtotal {
                     currency
                     net {
                         amount
@@ -123,6 +133,11 @@ def test_checkout_complete_order_already_exists(
     assert str(order_with_lines.id) == order_data["token"]
     assert order_data["origin"] == order_with_lines.origin.upper()
     assert not order_data["original"]
+
+    order = Order.objects.get()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert order.subtotal == subtotal
+    assert data["order"]["subtotal"]["net"]["amount"] == subtotal.net.amount
 
 
 def test_checkout_complete_with_inactive_channel_order_already_exists(
@@ -213,6 +228,9 @@ def test_checkout_complete_0_total_value_no_payment(
     assert str(order.id) == order_token
     assert order_id == graphene.Node.to_global_id("Order", order.id)
     assert order.total.gross == total.gross
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert order.subtotal == subtotal
+    assert data["order"]["subtotal"]["net"]["amount"] == subtotal.net.amount
     assert order.metadata == checkout.metadata_storage.metadata
     assert order.private_metadata == checkout.metadata_storage.private_metadata
 
@@ -277,6 +295,9 @@ def test_checkout_complete_0_total_value_from_voucher(
     assert str(order.id) == order_token
     assert order_id == graphene.Node.to_global_id("Order", order.id)
     assert order.total.gross == total.gross
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert order.subtotal == subtotal
+    assert data["order"]["subtotal"]["net"]["amount"] == subtotal.net.amount
     assert order.metadata == checkout.metadata_storage.metadata
     assert order.private_metadata == checkout.metadata_storage.private_metadata
 
@@ -337,6 +358,9 @@ def test_checkout_complete_0_total_value_from_giftcard(
     assert str(order.id) == order_token
     assert order_id == graphene.Node.to_global_id("Order", order.id)
     assert order.total.gross == total.gross
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert order.subtotal == subtotal
+    assert data["order"]["subtotal"]["net"]["amount"] == subtotal.net.amount
     assert order.metadata == checkout.metadata_storage.metadata
     assert order.private_metadata == checkout.metadata_storage.private_metadata
 

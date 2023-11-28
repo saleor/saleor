@@ -80,7 +80,6 @@ def test_order_get_subtotal(order_with_lines):
     fetch_order_prices_if_expired(
         order_with_lines, get_plugins_manager(), force_update=True
     )
-
     target_subtotal = order_with_lines.total - order_with_lines.shipping_price
     assert order_with_lines.get_subtotal() == target_subtotal
 
