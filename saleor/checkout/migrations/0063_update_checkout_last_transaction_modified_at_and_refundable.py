@@ -1,27 +1,51 @@
-from django.apps import apps as registry
 from django.db import migrations
-from django.db.models.signals import post_migrate
+from django.db.models import Exists, OuterRef, Q, Subquery
 
-from .tasks.saleor3_14 import (
-    update_checkout_refundable,
-    update_transaction_modified_at_in_checkouts,
-)
+# It takes less that a second to process the batch.
+# The memory usage peak on celery worker was around 40MB.
+BATCH_SIZE = 2000
 
 
 def add_transaction_modified_at_to_checkouts(apps, _schema_editor):
-    def on_migrations_complete(sender=None, **kwargs):
-        update_transaction_modified_at_in_checkouts.delay()
+    Checkout = apps.get_model("checkout", "Checkout")
+    TransactionItem = apps.get_model("payment", "TransactionItem")
 
-    sender = registry.get_app_config("checkout")
-    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
+    while True:
+        checkouts_without_modified_at = Checkout.objects.filter(
+            Exists(TransactionItem.objects.filter(checkout_id=OuterRef("pk"))),
+            last_transaction_modified_at__isnull=True,
+        ).values_list("pk", flat=True)[:BATCH_SIZE]
+        if not checkouts_without_modified_at:
+            break
+        transaction_subquery = TransactionItem.objects.filter(
+            checkout_id=OuterRef("pk")
+        ).order_by("-modified_at")
+        Checkout.objects.filter(pk__in=checkouts_without_modified_at).update(
+            last_transaction_modified_at=Subquery(
+                transaction_subquery.values("modified_at")[:1]
+            )
+        )
 
 
 def calculate_checkout_refundable(apps, _schema_editor):
-    def on_migrations_complete(sender=None, **kwargs):
-        update_checkout_refundable.delay()
+    Checkout = apps.get_model("checkout", "Checkout")
+    TransactionItem = apps.get_model("payment", "TransactionItem")
 
-    sender = registry.get_app_config("checkout")
-    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
+    with_transactions = TransactionItem.objects.filter(
+        Q(checkout_id=OuterRef("pk"))
+        & (Q(authorized_value__gt=0) | Q(charged_value__gt=0))
+    )
+
+    while True:
+        checkout_to_update = Checkout.objects.filter(
+            Exists(with_transactions), automatically_refundable=False
+        ).values_list("pk", flat=True)[:BATCH_SIZE]
+        if not checkout_to_update:
+            break
+
+        Checkout.objects.filter(pk__in=checkout_to_update).update(
+            automatically_refundable=True
+        )
 
 
 class Migration(migrations.Migration):
