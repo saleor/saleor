@@ -19,6 +19,7 @@ from ...graphql.core.utils import to_global_id_or_none
 from ...graphql.order.utils import OrderLineData
 from ...order import notifications
 from ...order.fetch import fetch_order_info
+from ...payment.model_helpers import get_subtotal
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContentUrl
 from ...thumbnail import THUMBNAIL_SIZES
@@ -214,6 +215,7 @@ def test_get_address_payload(address):
 def test_get_default_order_payload(order_line):
     order_line.refresh_from_db()
     order = order_line.order
+    order.subtotal = get_subtotal(order.lines.all(), order.currency)
     order_line_payload = get_order_line_payload(order_line)
     redirect_url = "http://redirect.com/path"
     subtotal = order.get_subtotal()

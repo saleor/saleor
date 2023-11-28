@@ -11,6 +11,7 @@ from ...order import OrderStatus
 from ...order.base_calculations import apply_order_discounts
 from ...order.calculations import fetch_order_prices_if_expired
 from ...order.utils import get_order_country
+from ...payment.model_helpers import get_subtotal
 from ...plugins.manager import get_plugins_manager
 from .. import TaxCalculationStrategy
 from ..calculations.order import (
@@ -734,3 +735,5 @@ def test_use_default_country_rate_when_no_tax_class_was_set_before(
     assert order.shipping_tax_rate == Decimal("0.20")
     assert not order.shipping_tax_class
     assert not order.shipping_tax_class_name
+
+    assert order.subtotal == get_subtotal(order.lines.all(), order.currency)
