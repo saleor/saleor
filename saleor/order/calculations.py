@@ -11,7 +11,11 @@ from ..core.taxes import TaxData, TaxError, zero_taxed_money
 from ..discount import DiscountType
 from ..graphql.core import ResolveInfo
 from ..graphql.order.dataloaders import OrderLinesByOrderIdLoader
-from ..order import base_calculations
+from ..order.base_calculations import (
+    apply_order_discounts,
+    base_order_subtotal,
+    update_order_discount_amounts,
+)
 from ..payment.model_helpers import get_subtotal
 from ..plugins.manager import PluginsManager
 from ..tax import TaxCalculationStrategy
@@ -128,7 +132,8 @@ def _calculate_taxes(
                 tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
             )
         else:
-            base_calculations.apply_order_discounts(order, lines)
+            apply_order_discounts(order, lines)
+            _remove_tax(order, lines)
 
 
 def _calculate_and_add_tax(
@@ -182,6 +187,21 @@ def _update_order_discount_for_voucher(order: Order):
     prefetch_related_objects([order], "discounts")
 
 
+def _update_order_discounts_and_base_undiscounted_total(
+    order: Order, lines: Iterable[OrderLine]
+):
+    """Update order discounts and order undiscounted_total price.
+
+    Entire order vouchers and staff order discounts are recalculated and updated.
+    """
+    update_order_discount_amounts(order, lines)
+    subtotal = base_order_subtotal(order, lines)
+    undiscounted_total = subtotal + order.base_shipping_price
+    order.undiscounted_total = TaxedMoney(
+        net=undiscounted_total, gross=undiscounted_total
+    )
+
+
 def _apply_tax_data_from_plugins(
     manager: PluginsManager, order: Order, lines: Iterable[OrderLine]
 ) -> None:
@@ -189,6 +209,7 @@ def _apply_tax_data_from_plugins(
 
     Does not throw TaxError.
     """
+    _update_order_discounts_and_base_undiscounted_total(order, lines)
     undiscounted_subtotal = zero_taxed_money(order.currency)
     for line in lines:
         variant = line.variant

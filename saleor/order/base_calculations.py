@@ -221,3 +221,8 @@ def update_order_prices(
     order.undiscounted_total_gross_amount = (
         undiscounted_subtotal.amount + undiscounted_shipping_price.amount
     )
+
+
+def update_order_discount_amounts(order, lines):
+    """Update order level discount amount."""
+    apply_order_discounts(order, lines, update_prices=False)
