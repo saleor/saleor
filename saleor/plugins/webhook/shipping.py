@@ -58,20 +58,23 @@ def parse_list_shipping_methods_response(
 ) -> List["ShippingMethodData"]:
     shipping_methods = []
     for shipping_method_data in response_data:
-        method_id = shipping_method_data.get("id")
-        method_name = shipping_method_data.get("name")
-        method_amount = shipping_method_data.get("amount")
-        method_currency = shipping_method_data.get("currency")
-        method_maximum_delivery_days = shipping_method_data.get("maximum_delivery_days")
-
-        shipping_methods.append(
-            ShippingMethodData(
-                id=to_shipping_app_id(app, method_id),
-                name=method_name,
-                price=Money(method_amount, method_currency),
-                maximum_delivery_days=method_maximum_delivery_days,
+        if type(shipping_method_data) is dict:
+            method_id = shipping_method_data.get("id")
+            method_name = shipping_method_data.get("name")
+            method_amount = shipping_method_data.get("amount")
+            method_currency = shipping_method_data.get("currency")
+            method_maximum_delivery_days = shipping_method_data.get(
+                "maximum_delivery_days"
             )
-        )
+
+            shipping_methods.append(
+                ShippingMethodData(
+                    id=to_shipping_app_id(app, method_id),
+                    name=method_name,
+                    price=Money(method_amount, method_currency),
+                    maximum_delivery_days=method_maximum_delivery_days,
+                )
+            )
     return shipping_methods
 
 
@@ -120,7 +123,7 @@ def get_excluded_shipping_methods_or_fetch(
             subscribable_object=subscribable_object,
             timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
         )
-        if response_data:
+        if response_data and type(response_data) is dict:
             excluded_methods.extend(
                 get_excluded_shipping_methods_from_response(response_data)
             )
