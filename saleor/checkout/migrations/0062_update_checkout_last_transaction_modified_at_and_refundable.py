@@ -26,7 +26,7 @@ def calculate_checkout_refundable(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("checkout", "0062_add_refundable_index_to_checkout"),
+        ("checkout", "0061_checkout_last_transaction_modified_at_and_refundable"),
     ]
 
     operations = [
