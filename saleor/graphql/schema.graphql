@@ -3069,6 +3069,13 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """
   metafields(keys: [String!]): Metadata
 
+  """
+  Canonical app ID from the manifest
+  
+  Added in Saleor 3.19.
+  """
+  identifier: String
+
   """List of the app's permissions."""
   permissions: [Permission!]
 

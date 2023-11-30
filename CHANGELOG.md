@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add taxes to undiscounted prices - #14095 by @jakubkuc
 - Mark as deprecated: `ordersTotal`, `reportProductSales` and `homepageEvents` - #14806 by @8r2y5
+- Add `identifier` field to App graphql object. Identifier field is the same as Manifest.id field (explicit ID set by the app).
 
 ### Saleor Apps
 
