@@ -1,13 +1,8 @@
+import logging
 from collections.abc import Iterable
 from datetime import timedelta
 from decimal import Decimal
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Optional,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from uuid import UUID
 
 from django.conf import settings
@@ -96,6 +91,8 @@ if TYPE_CHECKING:
     from ..discount.models import Voucher, VoucherCode
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
+
+logger = logging.getLogger(__name__)
 
 
 def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
@@ -1497,28 +1494,34 @@ def complete_checkout_with_payment(
     voucher = checkout_info.voucher
     voucher_code = checkout_info.voucher_code
     if payment:
-        txn = _process_payment(
-            payment=payment,
-            customer_id=customer_id,
-            store_source=store_source,
-            payment_data=payment_data,
-            order_data=order_data,
-            manager=manager,
-            channel_slug=channel_slug,
-            voucher_code=checkout_info.voucher_code,
-            voucher=checkout_info.voucher,
-        )
-
-        # As payment processing might take a while, we need to check if the payment
-        # doesn't become inactive in the meantime. If it's inactive we need to refund
-        # the payment.
-        payment.refresh_from_db()
-        if not payment.is_active:
-            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
-            raise ValidationError(
-                f"The payment with pspReference: {payment.psp_reference} is inactive.",
-                code=CheckoutErrorCode.INACTIVE_PAYMENT.value,
+        with transaction_with_commit_on_errors():
+            Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+            payment = Payment.objects.select_for_update().get(id=payment.id)
+            txn = _process_payment(
+                payment=payment,
+                customer_id=customer_id,
+                store_source=store_source,
+                payment_data=payment_data,
+                order_data=order_data,
+                manager=manager,
+                channel_slug=channel_slug,
+                voucher_code=checkout_info.voucher_code,
+                voucher=checkout_info.voucher,
             )
+
+            # As payment processing might take a while, we need to check if the payment
+            # doesn't become inactive in the meantime. If it's inactive we need to
+            # refund the payment.
+            payment.refresh_from_db()
+            if not payment.is_active:
+                gateway.payment_refund_or_void(
+                    payment, manager, channel_slug=channel_slug
+                )
+                raise ValidationError(
+                    f"The payment with pspReference: {payment.psp_reference} is "
+                    "inactive.",
+                    code=CheckoutErrorCode.INACTIVE_PAYMENT.value,
+                )
 
     with transaction_with_commit_on_errors():
         checkout = (
