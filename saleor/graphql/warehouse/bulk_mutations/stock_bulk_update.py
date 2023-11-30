@@ -225,8 +225,8 @@ class StockBulkUpdate(BaseMutation):
         if return_error:
             message = (
                 "All inputs should use the same selector for "
-                "variant('variantId' or 'variantExternalReference') and "
-                "warehouse('warehouseId' or 'warehouseExternalReference')."
+                "variant (`variantId` or `variantExternalReference`) and "
+                "warehouse (`warehouseId` or `warehouseExternalReference`)."
             )
             raise ValidationError(
                 message=message,
