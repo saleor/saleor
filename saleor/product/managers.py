@@ -30,18 +30,22 @@ from ..permission.utils import has_one_of_permissions
 
 class ProductsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
-        from .models import ProductChannelListing
-
         today = datetime.datetime.now(pytz.UTC)
-        channels = Channel.objects.filter(
-            slug=str(channel_slug), is_active=True
-        ).values("id")
-        channel_listings = ProductChannelListing.objects.filter(
-            Q(published_at__lte=today) | Q(published_at__isnull=True),
-            Exists(channels.filter(pk=OuterRef("channel_id"))),
-            is_published=True,
-        ).values("id")
-        return self.filter(Exists(channel_listings.filter(product_id=OuterRef("pk"))))
+        if channel := (
+            Channel.objects.filter(slug=str(channel_slug), is_active=True).first()
+        ):
+            from .models import ProductChannelListing
+
+            channel_id = channel.id
+            channel_listings = ProductChannelListing.objects.filter(
+                Q(published_at__lte=today) | Q(published_at__isnull=True),
+                channel_id=channel_id,
+                is_published=True,
+            ).values("id")
+            return self.filter(
+                Exists(channel_listings.filter(product_id=OuterRef("pk")))
+            )
+        return self.none()
 
     def not_published(self, channel_slug: str):
         today = datetime.datetime.now(pytz.UTC)
@@ -52,33 +56,40 @@ class ProductsQueryset(models.QuerySet):
         )
 
     def published_with_variants(self, channel_slug: str):
-        from .models import ProductVariant, ProductVariantChannelListing
-
         published = self.published(channel_slug)
-        channels = Channel.objects.filter(
-            slug=str(channel_slug), is_active=True
-        ).values("id")
-        variant_channel_listings = ProductVariantChannelListing.objects.filter(
-            Exists(channels.filter(pk=OuterRef("channel_id"))),
-            price_amount__isnull=False,
-        ).values("id")
-        variants = ProductVariant.objects.filter(
-            Exists(variant_channel_listings.filter(variant_id=OuterRef("pk")))
-        )
-        return published.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
+        if channel := (
+            Channel.objects.filter(slug=str(channel_slug), is_active=True).first()
+        ):
+            from .models import ProductVariant, ProductVariantChannelListing
+
+            channel_id = channel.id
+            variant_channel_listings = ProductVariantChannelListing.objects.filter(
+                channel_id=channel_id,
+                price_amount__isnull=False,
+            ).values("id")
+            variants = ProductVariant.objects.filter(
+                Exists(variant_channel_listings.filter(variant_id=OuterRef("pk")))
+            )
+            return published.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
+        return published
 
     def visible_to_user(self, requestor: Union["User", "App", None], channel_slug: str):
-        from .models import ALL_PRODUCTS_PERMISSIONS, ProductChannelListing
+        from .models import ALL_PRODUCTS_PERMISSIONS
 
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
-                channels = Channel.objects.filter(slug=str(channel_slug)).values("id")
-                channel_listings = ProductChannelListing.objects.filter(
-                    Exists(channels.filter(pk=OuterRef("channel_id")))
-                ).values("id")
-                return self.filter(
-                    Exists(channel_listings.filter(product_id=OuterRef("pk")))
-                )
+                channel = Channel.objects.filter(slug=str(channel_slug)).first()
+                if channel:
+                    from .models import ProductChannelListing
+
+                    channel_id = channel.id
+                    channel_listings = ProductChannelListing.objects.filter(
+                        channel_id=channel_id
+                    ).values("id")
+                    return self.filter(
+                        Exists(channel_listings.filter(product_id=OuterRef("pk")))
+                    )
+                return self.none()
             return self.all()
         return self.published_with_variants(channel_slug)
 
