@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Optional, Union
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.postgres.indexes import BTreeIndex
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
@@ -186,16 +185,6 @@ class Checkout(models.Model):
 
     class Meta:
         ordering = ("-last_change", "pk")
-        indexes = [
-            BTreeIndex(
-                fields=[
-                    "last_transaction_modified_at",
-                    "automatically_refundable",
-                    "last_change",
-                ],
-                name="chckt_refundable_group_idx",
-            ),
-        ]
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
             (CheckoutPermissions.HANDLE_CHECKOUTS.codename, "Handle checkouts"),
