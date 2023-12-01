@@ -47,7 +47,6 @@ class Checkout(models.Model):
     # Denormalized modified_at for the latest modified transactionItem assigned to
     # checkout
     last_transaction_modified_at = models.DateTimeField(null=True, blank=True)
-
     automatically_refundable = models.BooleanField(default=False)
 
     user = models.ForeignKey(
