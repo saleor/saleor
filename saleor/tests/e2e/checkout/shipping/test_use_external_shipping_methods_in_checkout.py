@@ -25,6 +25,7 @@ def test_use_external_shipping_methods_in_checkout_core_1652(
     permission_manage_product_types_and_attributes,
     permission_manage_apps,
     settings,
+    vcr_cassette_dir,
 ):
     # Before
     settings.PLUGINS = [
@@ -86,7 +87,7 @@ def test_use_external_shipping_methods_in_checkout_core_1652(
     my_vcr = vcr.VCR()
     my_vcr.register_matcher("shipping_cassette", request_matcher)
     with my_vcr.use_cassette(
-        "saleor/tests/e2e/checkout/shipping/cassettes/test_use_external_shipping_methods_in_checkout/test_use_external_shipping_methods_in_checkout_core_1652.yaml",
+        f"{vcr_cassette_dir}/test_use_external_shipping_methods_in_checkout_core_1652.yaml",
         match_on=["shipping_cassette"],
     ):
         checkout_data = checkout_create(

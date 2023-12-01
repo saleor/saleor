@@ -27,10 +27,11 @@ def request_matcher(r1, r2):
     body2 = json.loads(r2.body.decode("utf-8"))
 
     # Check if all key-value pairs in body1 are present in body2
+    if set(body1.keys()) != set(body2.keys()):
+        return False
+
     for key, value in body1.items():
-        if key in body2 and body2[key] == value:
-            continue
-        else:
+        if key not in body2 or body2[key] != value:
             return False
 
     # Check if there are any extra key-value pairs in body2
