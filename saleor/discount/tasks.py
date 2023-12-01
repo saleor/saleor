@@ -160,7 +160,9 @@ def fetch_promotion_variants_and_product_ids(promotions: "QuerySet[Promotion]"):
         promotion_id_to_variants[rule.promotion_id] |= rule_variants
 
     product_ids: set[int] = set()
-    for variant_ids in queryset_in_batches(variants, 2000):
+    # Batch size of 10000 doesn't change execution time of query significantly comparing
+    # to single select call, but prevent breaking the query
+    for variant_ids in queryset_in_batches(variants, 10000):
         variants_batch = ProductVariant.objects.filter(id__in=variant_ids).all()
         product_ids.update(
             Product.objects.filter(
