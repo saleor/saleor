@@ -67,16 +67,28 @@ PRODUCT_VARIANT_BULK_UPDATE_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_update.get_webhooks_for_event"
+)
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_product_variant_bulk_update(
     product_variant_created_webhook_mock,
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     product_with_single_variant,
     size_attribute,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     # given
     variant = product_with_single_variant.variants.last()
     product_id = graphene.Node.to_global_id("Product", product_with_single_variant.pk)
@@ -104,8 +116,10 @@ def test_product_variant_bulk_update(
     content = get_graphql_content(response)
     flush_post_commit_hooks()
     data = content["data"]["productVariantBulkUpdate"]
+    product_with_single_variant.refresh_from_db(fields=["search_index_dirty"])
 
     # then
+    assert product_with_single_variant.search_index_dirty is True
     assert not data["results"][0]["errors"]
     assert data["count"] == 1
     variant_data = data["results"][0]["productVariant"]
@@ -115,20 +129,31 @@ def test_product_variant_bulk_update(
     assert product_with_single_variant.variants.count() == 1
     assert old_name != new_name
     assert product_variant_created_webhook_mock.call_count == data["count"]
-    update_product_discounted_price_task_mock.assert_called_once_with(
-        product_with_single_variant.id
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product_with_single_variant.id]
     )
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_update.get_webhooks_for_event"
+)
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_product_variant_bulk_update_stocks(
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
+    mocked_get_webhooks_for_event,
     staff_api_client,
     variant_with_many_stocks,
     warehouse,
-    size_attribute,
     permission_manage_products,
+    any_webhook,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     # given
     variant = variant_with_many_stocks
     product_id = graphene.Node.to_global_id("Product", variant.product_id)
@@ -182,9 +207,56 @@ def test_product_variant_bulk_update_stocks(
     assert stock_to_update.quantity == new_quantity
     assert variant.stocks.count() == 3
     assert variant.stocks.last().quantity == new_stock_quantity
-    update_product_discounted_price_task_mock.assert_called_once_with(
-        variant.product_id
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [variant.product_id]
     )
+
+
+def test_product_variant_bulk_update_create_already_existing_stock(
+    staff_api_client,
+    variant_with_many_stocks,
+    permission_manage_products,
+):
+    # given
+    variant = variant_with_many_stocks
+    product_id = graphene.Node.to_global_id("Product", variant.product_id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    stocks = variant.stocks.all()
+    assert len(stocks) == 2
+    stock_to_update = stocks[0]
+
+    warehouse_global_id = graphene.Node.to_global_id(
+        "Warehouse", stock_to_update.warehouse_id
+    )
+    variants = [
+        {
+            "id": variant_id,
+            "stocks": {
+                "create": [
+                    {"quantity": 999, "warehouse": warehouse_global_id},
+                ]
+            },
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantBulkUpdate"]
+
+    # then
+    errors = data["results"][0]["errors"]
+    assert errors
+    assert errors[0]["field"] == "warehouse"
+    assert errors[0]["path"] == "stocks.create.0.warehouse"
+    assert errors[0]["code"] == ProductVariantBulkErrorCode.STOCK_ALREADY_EXISTS.name
+    assert errors[0]["warehouses"] == [warehouse_global_id]
 
 
 def test_product_variant_bulk_update_and_remove_stock(
@@ -228,9 +300,11 @@ def test_product_variant_bulk_update_and_remove_stock(
     assert variant.stocks.count() == 1
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_product_variant_bulk_update_and_remove_stock_when_stock_not_exists(
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     variant_with_many_stocks,
     warehouse,
@@ -268,7 +342,7 @@ def test_product_variant_bulk_update_and_remove_stock_when_stock_not_exists(
     assert variant.stocks.count() == 2
     error = data["results"][0]["errors"][0]
     assert error["code"] == ProductVariantBulkErrorCode.NOT_FOUND.name
-    update_product_discounted_price_task_mock.assert_not_called()
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
 def test_product_variant_bulk_update_stocks_with_invalid_warehouse(

@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import DefaultDict, Iterable, List, Optional, Set, Tuple, cast
+from collections.abc import Iterable
+from typing import Optional, cast
 
 from ...account.models import Address, CustomerEvent, Group, User
 from ...channel.models import Channel
@@ -39,17 +40,17 @@ class CustomerEventsByUserLoader(DataLoader):
 
 
 class ThumbnailByUserIdSizeAndFormatLoader(
-    DataLoader[Tuple[int, int, Optional[str]], Thumbnail]
+    DataLoader[tuple[int, int, Optional[str]], Thumbnail]
 ):
     context_key = "thumbnail_by_user_size_and_format"
 
-    def batch_load(self, keys: Iterable[Tuple[int, int, Optional[str]]]):
+    def batch_load(self, keys: Iterable[tuple[int, int, Optional[str]]]):
         user_ids = [user_id for user_id, _, _ in keys]
         thumbnails = Thumbnail.objects.using(self.database_connection_name).filter(
             user_id__in=user_ids
         )
-        thumbnails_by_user_size_and_format_map: DefaultDict[
-            Tuple[int, int, Optional[str]], Optional[Thumbnail]
+        thumbnails_by_user_size_and_format_map: defaultdict[
+            tuple[int, int, Optional[str]], Optional[Thumbnail]
         ] = defaultdict()
         for thumbnail in thumbnails:
             format = get_thumbnail_format(thumbnail.format)
@@ -92,7 +93,7 @@ class BaseAccessibleChannels(DataLoader):
             self.database_connection_name
         ).filter(id__in=group_ids, restricted_access_to_channels=True)
 
-        group_to_channels: DefaultDict[int, List["Channel"]] = defaultdict(list)
+        group_to_channels: defaultdict[int, list["Channel"]] = defaultdict(list)
         if groups_with_channel_restriction:
             group_to_channels = self.get_group_channels(
                 groups_with_channel_restriction.values("id"),
@@ -138,9 +139,9 @@ class AccessibleChannelsByUserIdLoader(BaseAccessibleChannels):
 
     def batch_load(self, keys):
         UserGroup = User.groups.through
-        user_groups = UserGroup.objects.using(self.database_connection_name).filter(
-            user_id__in=keys
-        )
+        user_groups = UserGroup._default_manager.using(
+            self.database_connection_name
+        ).filter(user_id__in=keys)
         groups = Group.objects.using(self.database_connection_name).filter(
             id__in=user_groups.values("group_id")
         )
@@ -149,7 +150,7 @@ class AccessibleChannelsByUserIdLoader(BaseAccessibleChannels):
             groups.values_list("id", flat=True)
         )
 
-        user_to_channels: DefaultDict[int, Set["Channel"]] = defaultdict(set)
+        user_to_channels: defaultdict[int, set["Channel"]] = defaultdict(set)
         for user_id, group_id in user_groups.values_list("user_id", "group_id"):
             user_to_channels[user_id].update(group_to_channels[group_id])
 
@@ -161,9 +162,9 @@ class RestrictedChannelAccessByUserIdLoader(DataLoader):
 
     def batch_load(self, keys):
         UserGroup = User.groups.through
-        user_groups = UserGroup.objects.using(self.database_connection_name).filter(
-            user_id__in=keys
-        )
+        user_groups = UserGroup._default_manager.using(
+            self.database_connection_name
+        ).filter(user_id__in=keys)
         groups = Group.objects.using(self.database_connection_name).filter(
             id__in=user_groups.values("group_id")
         )
@@ -175,7 +176,7 @@ class RestrictedChannelAccessByUserIdLoader(DataLoader):
             )
         }
 
-        user_to_restricted_access: DefaultDict[int, bool] = defaultdict(lambda: True)
+        user_to_restricted_access: defaultdict[int, bool] = defaultdict(lambda: True)
         for user_id, group_id in user_groups.values_list("user_id", "group_id"):
             user_to_restricted_access[user_id] &= group_id_to_restricted_access[
                 group_id

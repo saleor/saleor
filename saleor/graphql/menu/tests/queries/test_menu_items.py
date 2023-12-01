@@ -48,7 +48,7 @@ QUERY_MENU_ITEMS_PAGINATION = """
 
 
 @pytest.mark.parametrize(
-    "sort_by, menu_items_order",
+    ("sort_by", "menu_items_order"),
     [
         ({"field": "NAME", "direction": "ASC"}, ["Item1", "Item2", "Item3"]),
         ({"field": "NAME", "direction": "DESC"}, ["ItemItem2", "ItemItem1", "Item3"]),
@@ -81,7 +81,7 @@ def test_menu_items_pagination_with_sorting(
 
 
 @pytest.mark.parametrize(
-    "filter_by, menu_items_order",
+    ("filter_by", "menu_items_order"),
     [
         ({"search": "ItemItem"}, ["ItemItem1", "ItemItem2"]),
         ({"search": "Item1"}, ["Item1", "ItemItem1"]),

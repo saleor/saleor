@@ -11,7 +11,9 @@ from .....payment.interface import (
 )
 from .....webhook.event_types import WebhookEventSyncType
 from .....webhook.models import Webhook
-from ...tasks import create_deliveries_for_subscriptions
+from .....webhook.transport.asynchronous.transport import (
+    create_deliveries_for_subscriptions,
+)
 
 TRANSACTION_PROCESS_SESSION = """
 subscription {

@@ -55,7 +55,7 @@ class TaxSourceLine(graphene.Union):
             return checkout_types.CheckoutLine
         if isinstance(instance, OrderLine):
             return order_types.OrderLine
-        return super(TaxSourceLine, cls).resolve_type(instance, info)
+        return super().resolve_type(instance, info)
 
 
 class TaxableObjectLine(BaseObjectType):

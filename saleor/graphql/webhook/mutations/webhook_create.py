@@ -13,6 +13,7 @@ from ....webhook.validators import (
     custom_headers_validator,
 )
 from ...app.dataloaders import get_app_promise
+from ...app.utils import validate_app_is_not_removed
 from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_32,
@@ -108,7 +109,8 @@ class WebhookCreate(ModelMutation, NotifyUserEventValidationMixin):
         # context has assigned app instance
         if not instance.app_id and not app:
             raise ValidationError(
-                "Missing token or app", code=WebhookErrorCode.INVALID.value
+                "Missing app id. Fill in the app field or run the mutation by the app",
+                code=WebhookErrorCode.INVALID.value,
             )
 
         if instance.app_id:
@@ -117,6 +119,7 @@ class WebhookCreate(ModelMutation, NotifyUserEventValidationMixin):
             app = instance.app
             cleaned_data.pop("app", None)
 
+        validate_app_is_not_removed(app, data.get("input", {}).get("app"), "app")
         if not app or not app.is_active:
             raise ValidationError(
                 "App doesn't exist or is disabled",

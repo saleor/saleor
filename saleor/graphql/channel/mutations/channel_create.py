@@ -17,8 +17,8 @@ from ...core.descriptions import (
     ADDED_IN_314,
     ADDED_IN_315,
     ADDED_IN_316,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_INPUT,
-    DEPRECATED_PREVIEW_IN_316_INPUT,
     PREVIEW_FEATURE,
 )
 from ...core.doc_category import (
@@ -120,23 +120,22 @@ class OrderSettingsInput(BaseInputObjectType):
             + PREVIEW_FEATURE
         ),
     )
-    default_transaction_flow_strategy = TransactionFlowStrategyEnum(
-        required=False,
-        description=(
-            "Determine the transaction flow strategy to be used. "
-            "Include the selected option in the payload sent to the payment app, as a "
-            "requested action for the transaction."
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
-            + DEPRECATED_PREVIEW_IN_316_INPUT
-            + " Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead."
-        ),
-    )
     allow_unpaid_orders = graphene.Boolean(
         required=False,
         description=(
             "Determine if it is possible to place unpaid order by calling "
             "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
+        ),
+    )
+    include_draft_order_in_voucher_usage = graphene.Boolean(
+        required=False,
+        description=(
+            "Specify whether a coupon applied to draft orders will count toward "
+            "voucher usage."
+            "\n\nWarning:  when switching this setting from `false` to `true`, "
+            "the vouchers will be disconnected from all draft orders."
+            + ADDED_IN_318
+            + PREVIEW_FEATURE
         ),
     )
 
@@ -262,7 +261,7 @@ class ChannelCreate(ModelMutation):
         if stock_settings := cleaned_input.get("stock_settings"):
             cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
         if order_settings := cleaned_input.get("order_settings"):
-            clean_input_order_settings(order_settings, cleaned_input)
+            clean_input_order_settings(order_settings, cleaned_input, instance)
 
         if checkout_settings := cleaned_input.get("checkout_settings"):
             clean_input_checkout_settings(checkout_settings, cleaned_input)

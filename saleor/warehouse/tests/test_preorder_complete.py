@@ -66,8 +66,7 @@ def test_deactivate_preorder_for_variant_order_without_shipping_method(
     preorder_variant_global_and_channel_threshold,
     preorder_allocation,
 ):
-    """When order has no shiping method set,
-    use warehouse based on country from address."""
+    """When order has no shiping method set, use warehouse based on country from address."""
     variant = preorder_variant_global_and_channel_threshold
     order = preorder_allocation.order_line.order
     assert order.shipping_method is None

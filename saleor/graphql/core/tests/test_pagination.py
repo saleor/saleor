@@ -242,7 +242,6 @@ def test_pagination_invalid_cursor(books):
 
 
 def test_pagination_invalid_cursor_and_valid_base64(books):
-    """This cursor should have int value, in this test we pass string value."""
     cursor = base64.b64encode(str.encode(f"{['Test']}")).decode("utf-8")
     variables = {"first": 5, "after": cursor}
 

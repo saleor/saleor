@@ -412,7 +412,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(62):
+    with django_assert_num_queries(61):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -430,7 +430,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(62):
+    with django_assert_num_queries(61):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -736,7 +736,7 @@ MUTATION_CHECKOUT_LINES_ADD = (
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_add_checkout_lines(
     mock_send_request,
     api_client,
@@ -809,7 +809,7 @@ def test_add_checkout_lines(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_add_checkout_lines_with_external_shipping(
     mock_send_request,
     api_client,
@@ -1333,7 +1333,7 @@ def test_complete_checkout_with_digital_line(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_customer_complete_checkout(
-    api_client, checkout_with_charged_payment, count_queries, customer_user
+    api_client, checkout_with_charged_payment, customer_user, count_queries
 ):
     query = COMPLETE_CHECKOUT_MUTATION
     checkout = checkout_with_charged_payment
@@ -1350,7 +1350,7 @@ def test_customer_complete_checkout(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_customer_complete_checkout_for_cc(
-    api_client, checkout_with_charged_payment_for_cc, count_queries, customer_user
+    api_client, checkout_with_charged_payment_for_cc, customer_user, count_queries
 ):
     query = COMPLETE_CHECKOUT_MUTATION_FOR_CC
     checkout = checkout_with_charged_payment_for_cc

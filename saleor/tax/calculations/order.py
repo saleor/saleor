@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, Tuple
+from typing import TYPE_CHECKING
 
 from prices import Money, TaxedMoney
 
@@ -113,7 +114,7 @@ def update_taxes_for_order_lines(
     country_code: str,
     default_tax_rate: Decimal,
     prices_entered_with_tax: bool,
-) -> Tuple[Iterable["OrderLine"], TaxedMoney]:
+) -> tuple[Iterable["OrderLine"], TaxedMoney]:
     currency = order.currency
     lines = list(lines)
 
@@ -148,7 +149,7 @@ def update_taxes_for_order_lines(
             tax_rate = default_tax_rate
 
         line_total_price = line.base_unit_price * line.quantity
-        undiscounted_subtotal += line_total_price
+        undiscounted_subtotal += line.undiscounted_base_unit_price * line.quantity
 
         price_with_discounts = line.base_unit_price
         if total_discount_amount:

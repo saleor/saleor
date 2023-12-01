@@ -2,6 +2,7 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models.expressions import Exists, OuterRef
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
@@ -11,6 +12,8 @@ from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....permission.enums import ProductPermissions
 from ....product import models
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import ModelBulkDeleteMutation
@@ -78,9 +81,16 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pks):
+        assigned_values = attribute_models.AssignedProductAttributeValue.objects.filter(
+            product_id__in=instance_pks
+        )
+        attributes = attribute_models.Attribute.objects.filter(
+            input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES
+        )
+
         attribute_models.AttributeValue.objects.filter(
-            productassignments__product_id__in=instance_pks,
-            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+            Exists(assigned_values.filter(value_id=OuterRef("id"))),
+            Exists(attributes.filter(id=OuterRef("attribute_id"))),
         ).delete()
 
     @classmethod
@@ -93,7 +103,10 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
 
         products = [product for product in queryset]
         queryset.delete()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
         for product in products:
             variants = product_variant_map.get(product.id, [])
-            manager.product_deleted(product, variants)
+            cls.call_event(
+                manager.product_deleted, product, variants, webhooks=webhooks
+            )

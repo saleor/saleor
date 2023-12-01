@@ -69,7 +69,7 @@ PLUGIN_UPDATE_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "active, updated_configuration_item",
+    ("active", "updated_configuration_item"),
     [
         (True, {"name": "Username", "value": "user"}),
         (False, {"name": "Username", "value": "admin@example.com"}),
@@ -319,10 +319,9 @@ def test_plugin_configuration_update_as_customer_user(user_api_client, settings)
     assert_no_permission(response)
 
 
-def test_cannot_update_configuration_hidden_plugin(
+def test_cannot_update_configuration_of_hidden_plugin(
     settings, staff_api_client_can_manage_plugins
 ):
-    """Ensure one cannot edit the configuration of hidden plugins"""
     client = staff_api_client_can_manage_plugins
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
 
@@ -360,12 +359,11 @@ def test_cannot_update_configuration_hidden_plugin(
     assert plugin.configuration != original_config
 
 
-def test_cannot_update_configuration_hidden_multi_channel_plugin(
+def test_cannot_update_configuration_of_hidden_multichannel_plugin(
     settings,
     staff_api_client_can_manage_plugins,
     channel_USD,
 ):
-    """Ensure one cannot edit the configuration of hidden multi channel plugins"""
     client = staff_api_client_can_manage_plugins
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
 

@@ -100,6 +100,16 @@ class WebhookEventAsyncType:
     SALE_DELETED = "sale_deleted"
     SALE_TOGGLE = "sale_toggle"
 
+    PROMOTION_CREATED = "promotion_created"
+    PROMOTION_UPDATED = "promotion_updated"
+    PROMOTION_DELETED = "promotion_deleted"
+    PROMOTION_STARTED = "promotion_started"
+    PROMOTION_ENDED = "promotion_ended"
+
+    PROMOTION_RULE_CREATED = "promotion_rule_created"
+    PROMOTION_RULE_UPDATED = "promotion_rule_updated"
+    PROMOTION_RULE_DELETED = "promotion_rule_deleted"
+
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_DELETED = "invoice_deleted"
     INVOICE_SENT = "invoice_sent"
@@ -180,6 +190,7 @@ class WebhookEventAsyncType:
     VOUCHER_UPDATED = "voucher_updated"
     VOUCHER_DELETED = "voucher_deleted"
     VOUCHER_METADATA_UPDATED = "voucher_metadata_updated"
+    VOUCHER_CODE_EXPORT_COMPLETED = "voucher_code_export_completed"
 
     OBSERVABILITY = "observability"
 
@@ -448,6 +459,38 @@ class WebhookEventAsyncType:
             "name": "Sale toggle",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
         },
+        PROMOTION_CREATED: {
+            "name": "Promotion created",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_UPDATED: {
+            "name": "Promotion updated",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_DELETED: {
+            "name": "Promotion deleted",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_STARTED: {
+            "name": "Promotion started",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_ENDED: {
+            "name": "Promotion ended",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_RULE_CREATED: {
+            "name": "Promotion rule created",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_RULE_UPDATED: {
+            "name": "Promotion rule updated",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_RULE_DELETED: {
+            "name": "Promotion rule deleted",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
         INVOICE_REQUESTED: {
             "name": "Invoice requested",
             "permission": OrderPermissions.MANAGE_ORDERS,
@@ -694,6 +737,10 @@ class WebhookEventAsyncType:
         },
         VOUCHER_METADATA_UPDATED: {
             "name": "Voucher metadata updated",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        VOUCHER_CODE_EXPORT_COMPLETED: {
+            "name": "Voucher code export completed",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
         },
         OBSERVABILITY: {

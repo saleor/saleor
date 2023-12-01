@@ -423,7 +423,7 @@ def test_customers_bulk_update_when_no_id_or_external_ref_provided(
     assert data["results"][0]["errors"]
     error = data["results"][0]["errors"][0]
     assert error["message"] == (
-        "At least one of arguments is required: 'id', " "'externalReference'."
+        "At least one of arguments is required: 'id', 'externalReference'."
     )
 
 

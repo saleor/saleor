@@ -20,10 +20,15 @@ def test_should_create_account_without_email_confirmation_core_1502(
     chanel_data = create_channel(e2e_staff_api_client)
     channel_slug = chanel_data["slug"]
 
-    update_shop_settings(e2e_staff_api_client, enableAccountConfirmationByEmail=False)
+    input = {
+        "enableAccountConfirmationByEmail": False,
+    }
+
+    update_shop_settings(e2e_staff_api_client, input)
 
     test_email = "new-user@saleor.io"
     test_password = "password!"
+    redirect_url = ""
 
     # Step 1 - Create account for the new customer
     user_account = account_register(
@@ -31,13 +36,14 @@ def test_should_create_account_without_email_confirmation_core_1502(
         test_email,
         test_password,
         channel_slug,
+        redirect_url,
     )
-    user_id = user_account["id"]
-    assert user_account["isActive"] is True
+    user_id = user_account["user"]["id"]
+    assert user_account["user"]["isActive"] is True
 
     # Step 2 - Authenticate as new created user
 
     login_data = token_create(e2e_not_logged_api_client, test_email, test_password)
 
-    assert login_data["id"] == user_id
-    assert login_data["email"] == test_email
+    assert login_data["user"]["id"] == user_id
+    assert login_data["user"]["email"] == test_email

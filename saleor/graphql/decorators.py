@@ -1,6 +1,7 @@
+from collections.abc import Iterable
 from enum import Enum
 from functools import wraps
-from typing import Iterable, List, Union
+from typing import Union
 
 from graphene import ResolveInfo
 
@@ -65,7 +66,7 @@ def account_passes_test_for_attribute(test_func):
     return decorator
 
 
-def permission_required(perm: Union[BasePermissionEnum, List[BasePermissionEnum]]):
+def permission_required(perm: Union[BasePermissionEnum, list[BasePermissionEnum]]):
     def check_perms(context):
         if isinstance(perm, Enum):
             perms = [perm]
@@ -121,7 +122,7 @@ def check_attribute_required_permissions():
 
     def check_perms(context, attribute):
         requestor = get_user_or_app_from_context(context)
-        permissions: List[BasePermissionEnum]
+        permissions: list[BasePermissionEnum]
         if attribute.type == AttributeType.PAGE_TYPE:
             permissions = [
                 PagePermissions.MANAGE_PAGES,

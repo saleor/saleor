@@ -2,7 +2,7 @@ import graphene
 
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.tasks import update_products_discounted_prices_task
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.mutations import ModelDeleteMutation
@@ -33,7 +33,6 @@ class CollectionDelete(ModelDeleteMutation):
                 single_object=False
             )
         )
-        collection_on_sale = instance.sale_set.exists()
 
         result = super().perform_mutation(_root, info, id=id)
         manager = get_plugin_manager_promise(info.context).get()
@@ -41,10 +40,9 @@ class CollectionDelete(ModelDeleteMutation):
         for product in products:
             cls.call_event(manager.product_updated, product)
 
-        if collection_on_sale:
-            update_products_discounted_prices_task.delay(
-                [product.id for product in products]
-            )
+        update_products_discounted_prices_for_promotion_task.delay(
+            [product.id for product in products]
+        )
 
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)

@@ -267,8 +267,7 @@ def test_checkout_lines_update_block_when_variant_id_and_line_id_provided(
 def test_checkout_lines_update_only_stock_in_cc_warehouse(
     mocked_update_shipping_method, user_api_client, checkout_with_item, warehouse_for_cc
 ):
-    """Ensure the insufficient error is not raised when the only available quantity
-    is in a stock from the collection point warehouse without shipping zone assigned."""
+    """Test that click-and-collect quantities are available if no shipping method is set."""
     # given
     checkout = checkout_with_item
     lines, _ = fetch_checkout_lines(checkout)
@@ -317,11 +316,8 @@ def test_checkout_lines_update_only_stock_in_cc_warehouse(
 
 def test_checkout_lines_update_only_stock_in_cc_warehouse_delivery_method_set(
     user_api_client, checkout_with_item, warehouse_for_cc, shipping_method
-):
-    """Ensure the insufficient error is raised when the only available quantity is in
-    a stock from the collection point warehouse without shipping zone assigned
-    and the checkout has shipping method set."""
-    # given
+):  # given
+    """Test that click-and-collect quantities are unavailable if a non-C&C shipping method is set."""
     checkout = checkout_with_item
     line = checkout.lines.first()
     variant = line.variant
@@ -357,17 +353,13 @@ def test_checkout_lines_update_only_stock_in_cc_warehouse_delivery_method_set(
 def test_checkout_lines_update_checkout_with_voucher(
     user_api_client, checkout_with_item, voucher_percentage
 ):
-    """Ensure that discount is correct calculated when updating the checkout with
-    already applied discount."""
     # given
     channel = checkout_with_item.channel
     line = checkout_with_item.lines.first()
     variant = line.variant
 
     channel_listing = variant.channel_listings.get(channel=channel)
-    unit_price = variant.get_price(
-        variant.product, [], checkout_with_item.channel, channel_listing
-    )
+    unit_price = variant.get_price(channel_listing)
 
     voucher_channel_listing = voucher_percentage.channel_listings.get(channel=channel)
     voucher_channel_listing.discount_value = 100
@@ -707,9 +699,6 @@ def test_checkout_lines_update_clear_custom_price(
 def test_checkout_lines_update_set_quantity_to_0_then_update_customer_price(
     app_api_client, checkout_with_item, permission_handle_checkouts
 ):
-    """Ensure an error is not raised and the line is deleted when the line quantity
-    is set to 0 firstly and then the custom price is changed."""
-
     checkout = checkout_with_item
     lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1

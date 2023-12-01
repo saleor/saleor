@@ -1,13 +1,10 @@
-from typing import List, Tuple
-
 import graphene
 
 from .....attribute import models as attribute_models
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.search import update_product_search_vector
-from .....product.tasks import update_product_discounted_price_task
-from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_310
 from ....core.mutations import ModelWithExtRefMutation
@@ -16,7 +13,7 @@ from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
 from .product_create import ProductCreate, ProductInput
 
-T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
+T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
 class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
@@ -45,7 +42,7 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
         attributes_qs = product_type.product_attributes.all()
-        attributes = AttributeAssignmentMixin.clean_input(
+        attributes = ProductAttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False
         )
         return attributes
@@ -53,9 +50,8 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
-        update_product_search_vector(instance)
         if "category" in cleaned_input or "collections" in cleaned_input:
-            update_product_discounted_price_task.delay(instance.id)
+            update_products_discounted_prices_for_promotion_task.delay([instance.id])
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
 
@@ -66,7 +62,7 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
         # prefetch them.
         object_id = cls.get_object_id(**data)
         if object_id and data.get("attributes"):
-            # Prefetches needed by AttributeAssignmentMixin and
+            # Prefetches needed by ProductAttributeAssignmentMixin and
             # associate_attribute_values_to_instance
             qs = cls.Meta.model.objects.prefetch_related(
                 "product_type__product_attributes__values",

@@ -13,15 +13,15 @@ from ..utils import default_shipping_zone_exists, get_countries_without_shipping
 
 
 @pytest.mark.parametrize(
-    "price, min_price, max_price, shipping_included",
-    (
+    ("price", "min_price", "max_price", "shipping_included"),
+    [
         (10, 10, 20, True),  # price equal min price
         (10, 1, 10, True),  # price equal max price
         (9, 10, 15, False),  # price just below min price
         (10, 1, 9, False),  # price just above max price
         (10000000, 1, None, True),  # no max price limit
         (10, 5, 15, True),
-    ),
+    ],
 )  # regular case
 def test_applicable_shipping_methods_price(
     shipping_zone,
@@ -62,15 +62,15 @@ def test_applicable_shipping_methods_price(
 
 
 @pytest.mark.parametrize(
-    "weight, min_weight, max_weight, shipping_included",
-    (
+    ("weight", "min_weight", "max_weight", "shipping_included"),
+    [
         (Weight(kg=1), Weight(kg=1), Weight(kg=2), True),  # equal min weight
         (Weight(kg=10), Weight(kg=1), Weight(kg=10), True),  # equal max weight
         (Weight(kg=5), Weight(kg=8), Weight(kg=15), False),  # below min weight
         (Weight(kg=10), Weight(kg=1), Weight(kg=9), False),  # above max weight
         (Weight(kg=10000000), Weight(kg=1), None, True),  # no max weight limit
         (Weight(kg=10), Weight(kg=5), Weight(kg=15), True),
-    ),
+    ],
 )  # regular case
 def test_applicable_shipping_methods_weight(
     weight, min_weight, max_weight, shipping_included, shipping_zone, channel_USD
@@ -118,12 +118,10 @@ def test_applicable_shipping_methods_country_code_outside_shipping_zone(
     assert method not in result
 
 
-def test_applicable_shipping_methods_inproper_shipping_method_type(
+def test_applicable_shipping_methods_improper_shipping_method_type(
     shipping_zone, channel_USD
 ):
-    """Case when shipping suits the price requirements of the weight type
-    shipping method and the other way around.
-    """
+    """Test price-based and weight-based shipping method qualification."""
     price_method = shipping_zone.shipping_methods.create(
         minimum_order_weight=Weight(kg=100),
         type=ShippingMethodType.WEIGHT_BASED,
@@ -246,7 +244,7 @@ def test_applicable_shipping_methods_not_in_channel(shipping_zone, channel_USD):
         shipping_method=weight_method,
         channel=channel_USD,
         currency=channel_USD.currency_code,
-    ),
+    )
     result = ShippingMethod.objects.applicable_shipping_methods(
         price=Money("5.0", "USD"),
         weight=Weight(kg=5),

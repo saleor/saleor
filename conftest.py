@@ -24,10 +24,37 @@ pytest_plugins = [
     "saleor.tax.tests.fixtures",
 ]
 
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--run-slow",
+        action="store_true",
+        default=False,
+        help="Run tests marked as slow.",
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "slow: mark test as slow")
+
+
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--run-slow"):
+        return
+
+    skip_slow = pytest.mark.skip(
+        reason="test is marked as slow and --run-slow is not passed"
+    )
+
+    for item in items:
+        if "slow" in item.keywords:
+            item.add_marker(skip_slow)
+
+
 if os.environ.get("PYTEST_DB_URL"):
 
     @pytest.fixture(scope="session")
-    def django_db_setup():
+    def django_db_setup():  # noqa: PT004
         settings.DATABASES = {
             settings.DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
                 env="PYTEST_DB_URL", conn_max_age=600

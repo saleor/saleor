@@ -3,7 +3,7 @@ from django.shortcuts import render
 
 from ..graphql.views import GraphQLView
 
-EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
+EXAMPLE_QUERY = f"""# Welcome to Saleor GraphQL API!
 #
 # Type queries into this side of the screen, and you will see
 # intelligent typeaheads aware of the current GraphQL type schema
@@ -11,20 +11,18 @@ EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
 #
 # Here is an example query to fetch a list of products:
 #
-{
-  products(first: 5, channel: "%(channel_slug)s") {
-    edges {
-      node {
+{{
+  products(first: 5, channel: "{settings.DEFAULT_CHANNEL_SLUG}") {{
+    edges {{
+      node {{
         id
         name
         description
-      }
-    }
-  }
-}
-""" % {
-    "channel_slug": settings.DEFAULT_CHANNEL_SLUG
-}
+      }}
+    }}
+  }}
+}}
+"""
 
 
 class DemoGraphQLView(GraphQLView):

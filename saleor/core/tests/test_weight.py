@@ -30,7 +30,7 @@ def test_get_default_weight_unit(site_settings):
 
 
 @pytest.mark.parametrize(
-    "default_weight_unit, expected_value",
+    ("default_weight_unit", "expected_value"),
     [
         (WeightUnits.KG, Weight(kg=1)),
         (WeightUnits.G, Weight(g=1000)),

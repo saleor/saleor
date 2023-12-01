@@ -51,7 +51,7 @@ def test_subscription_query():
 
 
 @pytest.mark.parametrize(
-    "query,events",
+    ("query", "events"),
     [
         (
             """
@@ -235,7 +235,7 @@ def test_get_event_type_from_subscription(query, events):
 
 
 @pytest.mark.parametrize(
-    "query,error_msg,error_type,error_code",
+    ("query", "error_msg", "error_type", "error_code"),
     [
         (
             """

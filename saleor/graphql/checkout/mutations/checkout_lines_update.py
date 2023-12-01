@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 import graphene
 from django.forms import ValidationError
 
@@ -194,7 +192,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         )
 
     @classmethod
-    def _get_variants_from_lines_input(cls, lines: List[Dict]) -> List[ProductVariant]:
+    def _get_variants_from_lines_input(cls, lines: list[dict]) -> list[ProductVariant]:
         """Return list of ProductVariant objects.
 
         Uses variants ids or lines ids provided in CheckoutLineUpdateInput to

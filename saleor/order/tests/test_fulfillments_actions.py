@@ -677,10 +677,7 @@ def test_create_fulfillments_quantity_allocated_lower_than_line_quantity(
     warehouse,
     site_settings,
 ):
-    """Ensure that when for some lines quantity allocated is lower than line quantity
-    and an error is raised during the deallocation uantity allocated value for
-    all allocation will be updated."""
-
+    """Test that stock allocation is immune to overselling."""
     # given
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()

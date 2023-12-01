@@ -11,7 +11,9 @@ from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionItem
 from .....webhook.event_types import WebhookEventSyncType
 from .....webhook.models import Webhook
-from ...tasks import create_deliveries_for_subscriptions
+from .....webhook.transport.asynchronous.transport import (
+    create_deliveries_for_subscriptions,
+)
 
 TRANSACTION_CANCELATION_REQUESTED_SUBSCRIPTION = (
     fragments.TRANSACTION_ITEM_DETAILS

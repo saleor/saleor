@@ -30,7 +30,6 @@ from ...payment import TransactionAction, TransactionEventType
 from ...payment.interface import RefundData, TransactionActionData, TransactionData
 from ...payment.models import TransactionItem
 from ...plugins.manager import get_plugins_manager
-from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
 from ...shipping.interface import ShippingMethodData
 from ...warehouse import WarehouseClickAndCollectOption
@@ -64,6 +63,7 @@ from ..payloads import (
     generate_translation_payload,
 )
 from ..serializers import serialize_checkout_lines
+from ..transport.utils import from_payment_app_id
 
 
 def parse_django_datetime(date):
@@ -380,8 +380,11 @@ def test_generate_order_payload_no_user_email_but_user_set(
     fulfilled_order,
     customer_user,
 ):
-    """Ensure that the assigned user's email is returned in `user_email` payload field
-    when the user_email order value is empty."""
+    """Test that user email is always set.
+
+    Ensure that the assigned user's email is returned in `user_email` payload field
+    when the user_email order value is empty.
+    """
     # given
     fulfillment_lines = '"fulfillment_lines"'
     mocked_fulfillment_lines.return_value = fulfillment_lines
@@ -609,7 +612,7 @@ def test_order_lines_have_all_required_fields(
 
 
 @pytest.mark.parametrize(
-    "charge_taxes, prices_entered_with_tax",
+    ("charge_taxes", "prices_entered_with_tax"),
     [(False, False), (False, True), (True, False), (True, True)],
 )
 def test_order_lines_for_tax_calculation_have_all_required_fields(
@@ -1524,8 +1527,11 @@ def test_generate_collection_point_payload(order_with_lines_for_cc):
     )
 
 
-def test_generate_sale_payload_no_previous_and_current_has_empty_catalogue_lists(sale):
-    payload = json.loads(generate_sale_payload(sale))[0]
+def test_generate_sale_payload_no_previous_and_current_has_empty_catalogue_lists(
+    promotion_converted_from_sale,
+):
+    promotion = promotion_converted_from_sale
+    payload = json.loads(generate_sale_payload(promotion))[0]
 
     assert not payload["categories_added"]
     assert not payload["categories_removed"]
@@ -1534,19 +1540,22 @@ def test_generate_sale_payload_no_previous_and_current_has_empty_catalogue_lists
     assert not payload["products_added"]
     assert not payload["products_removed"]
 
-    assert graphene.Node.to_global_id("Sale", sale.id) == payload["id"]
+    assert graphene.Node.to_global_id("Sale", promotion.old_sale_id) == payload["id"]
 
 
-def test_generate_sale_payload_with_current_only_has_empty_removed_fields(sale):
+def test_generate_sale_payload_with_current_only_has_empty_removed_fields(
+    promotion_converted_from_sale,
+):
     catalogue_info = {
         "categories": {1, 2, 3},
         "collections": {45, 70, 90},
         "products": {4, 5, 6},
         "variants": {"aa", "bb", "cc"},
     }
-    payload = json.loads(generate_sale_payload(sale, current_catalogue=catalogue_info))[
-        0
-    ]
+    promotion = promotion_converted_from_sale
+    payload = json.loads(
+        generate_sale_payload(promotion, current_catalogue=catalogue_info)
+    )[0]
 
     assert set(payload["categories_added"]) == catalogue_info["categories"]
     assert set(payload["collections_added"]) == catalogue_info["collections"]
@@ -1558,7 +1567,10 @@ def test_generate_sale_payload_with_current_only_has_empty_removed_fields(sale):
     assert not payload["variants_removed"]
 
 
-def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
+def test_generate_sale_payload_with_current_only_has_empty_added_fields(
+    promotion_converted_from_sale,
+):
+    promotion = promotion_converted_from_sale
     catalogue_info = {
         "categories": {1, 2, 3},
         "collections": {45, 70, 90},
@@ -1566,7 +1578,7 @@ def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
         "variants": {"aa", "bb", "cc"},
     }
     payload = json.loads(
-        generate_sale_payload(sale, previous_catalogue=catalogue_info)
+        generate_sale_payload(promotion, previous_catalogue=catalogue_info)
     )[0]
 
     assert set(payload["categories_removed"]) == catalogue_info["categories"]
@@ -1579,7 +1591,10 @@ def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
     assert not payload["variants_added"]
 
 
-def test_generate_sale_payload_calculates_set_differences(sale):
+def test_generate_sale_payload_calculates_set_differences(
+    promotion_converted_from_sale,
+):
+    promotion = promotion_converted_from_sale
     previous_info = {
         "categories": {1, 2, 3},
         "collections": {45, 70, 90},
@@ -1595,7 +1610,7 @@ def test_generate_sale_payload_calculates_set_differences(sale):
 
     payload = json.loads(
         generate_sale_payload(
-            sale, previous_catalogue=previous_info, current_catalogue=current_info
+            promotion, previous_catalogue=previous_info, current_catalogue=current_info
         )
     )[0]
 
@@ -1609,8 +1624,9 @@ def test_generate_sale_payload_calculates_set_differences(sale):
     assert set(payload["variants_removed"]) == {"ccc"}
 
 
-def test_generate_sale_toggle_payload(sale):
+def test_generate_sale_toggle_payload(promotion_converted_from_sale):
     # given
+    promotion = promotion_converted_from_sale
     current_info = {
         "categories": {4, 2, 3},
         "collections": set(),
@@ -1619,7 +1635,7 @@ def test_generate_sale_toggle_payload(sale):
     }
 
     # when
-    payload = json.loads(generate_sale_toggle_payload(sale, current_info))[0]
+    payload = json.loads(generate_sale_toggle_payload(promotion, current_info))[0]
 
     # then
     assert payload["is_active"] is True
@@ -1627,6 +1643,7 @@ def test_generate_sale_toggle_payload(sale):
     assert not payload["collections"]
     assert set(payload["products"]) == current_info["products"]
     assert set(payload["variants"]) == current_info["variants"]
+    assert graphene.Node.to_global_id("Sale", promotion.old_sale_id) == payload["id"]
 
 
 @patch("saleor.webhook.payloads.serialize_checkout_lines_for_tax_calculation")
@@ -2108,7 +2125,7 @@ GROSS_AMOUNT = sentinel.GROSS_AMOUNT
 
 
 @pytest.mark.parametrize(
-    "action_type, action_value",
+    ("action_type", "action_value"),
     [
         (TransactionAction.CHARGE, Decimal("5.000")),
         (TransactionAction.REFUND, Decimal("9.000")),
@@ -2191,7 +2208,7 @@ def test_generate_transaction_action_request_payload_for_order(
 
 
 @pytest.mark.parametrize(
-    "action_type, request_type, action_value",
+    ("action_type", "request_type", "action_value"),
     [
         (
             TransactionAction.CHARGE,

@@ -5,10 +5,12 @@ from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...discount import DiscountType, DiscountValueType
+from ...discount.interface import VariantPromotionRuleInfo
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...graphql.order.utils import OrderLineData
 from ...plugins.manager import get_plugins_manager
+from ...product.models import VariantChannelListingPromotionRule
 from .. import OrderStatus
 from ..events import OrderEvents
 from ..fetch import OrderLineInfo
@@ -17,6 +19,7 @@ from ..utils import (
     add_gift_cards_to_order,
     add_variant_to_order,
     change_order_line_quantity,
+    create_order_line_discounts,
     get_order_country,
     get_total_order_discount_excluding_shipping,
     get_valid_shipping_methods_for_order,
@@ -26,13 +29,13 @@ from ..utils import (
 
 
 @pytest.mark.parametrize(
-    "status, previous_quantity, new_quantity, added_count, removed_count",
-    (
+    ("status", "previous_quantity", "new_quantity", "added_count", "removed_count"),
+    [
         (OrderStatus.DRAFT, 5, 2, 0, 3),
         (OrderStatus.UNCONFIRMED, 2, 5, 3, 0),
         (OrderStatus.UNCONFIRMED, 2, 0, 0, 2),
         (OrderStatus.DRAFT, 5, 5, 0, 0),
-    ),
+    ],
 )
 def test_change_quantity_generates_proper_event(
     status,
@@ -251,21 +254,28 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
 
 
 def test_add_variant_to_order(
-    order, customer_user, variant, site_settings, discount_info
+    order,
+    customer_user,
+    variant,
+    promotion_with_single_rule,
 ):
     # given
     manager = get_plugins_manager()
     quantity = 4
-    collections = variant.product.collections.all()
+
+    promotion = promotion_with_single_rule
+    discount_value = promotion.rules.first().reward_value
     channel_listing = variant.channel_listings.get(channel=order.channel)
-    base_unit_price = variant.get_price(
-        variant.product, collections, order.channel, channel_listing, [discount_info]
+    channel_listing.discounted_price_amount = (
+        channel_listing.price.amount - discount_value
     )
+    channel_listing.save(update_fields=["discounted_price_amount"])
+
+    base_unit_price = variant.get_price(channel_listing)
     unit_price = TaxedMoney(net=base_unit_price, gross=base_unit_price)
     total_price = unit_price * quantity
-    undiscounted_base_unit_price = variant.get_price(
-        variant.product, collections, order.channel, channel_listing, []
-    )
+
+    undiscounted_base_unit_price = variant.get_base_price(channel_listing)
     undiscounted_unit_price = TaxedMoney(
         net=undiscounted_base_unit_price, gross=undiscounted_base_unit_price
     )
@@ -281,7 +291,6 @@ def test_add_variant_to_order(
         customer_user,
         None,
         manager,
-        [discount_info],
     )
 
     # then
@@ -556,3 +565,88 @@ def test_get_order_country_use_channel_country(order):
 
     # then
     assert country == order.channel.default_country
+
+
+def test_create_order_line_discounts(
+    order_line, promotion, promotion_translation_fr, promotion_rule_translation_fr
+):
+    # given
+    rules = promotion.rules.all()
+    rule_1 = rules[0]
+    rule_2 = rules[1]
+
+    order = order_line.order
+    variant = order_line.variant
+    variant_channel_listing = variant.channel_listings.get(
+        channel_id=order_line.order.channel_id
+    )
+
+    (
+        listing_promotion_rule_1,
+        listing_promotion_rule_2,
+    ) = VariantChannelListingPromotionRule.objects.bulk_create(
+        [
+            VariantChannelListingPromotionRule(
+                variant_channel_listing=variant_channel_listing,
+                promotion_rule=rule_1,
+                discount_amount=Decimal("10.0"),
+                currency=order.currency,
+            ),
+            VariantChannelListingPromotionRule(
+                variant_channel_listing=variant_channel_listing,
+                promotion_rule=rule_2,
+                discount_amount=Decimal("5.0"),
+                currency=order.currency,
+            ),
+        ]
+    )
+
+    promotion_rule_translation_fr.promotion_rule = rule_1
+    promotion_rule_translation_fr.save(update_fields=["promotion_rule"])
+
+    rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule_1,
+            variant_listing_promotion_rule=listing_promotion_rule_1,
+            promotion=promotion,
+            promotion_translation=promotion_translation_fr,
+            rule_translation=promotion_rule_translation_fr,
+        ),
+        VariantPromotionRuleInfo(
+            rule=rule_2,
+            variant_listing_promotion_rule=listing_promotion_rule_2,
+            promotion=promotion,
+            promotion_translation=promotion_translation_fr,
+            rule_translation=None,
+        ),
+    ]
+
+    # when
+    line_discounts = create_order_line_discounts(order_line, rules_info)
+
+    # then
+    assert len(line_discounts) == 2
+    discount_1, discount_2 = line_discounts
+
+    for discount in [discount_1, discount_2]:
+        assert discount.line == order_line
+        assert discount.type == DiscountType.PROMOTION
+        assert discount.currency == order.currency
+        assert discount.reason is None
+
+    assert discount_1.amount_value == listing_promotion_rule_1.discount_amount
+    assert discount_1.value_type == rule_1.reward_value_type
+    assert discount_1.value == rule_1.reward_value
+    assert discount_1.name == f"{promotion.name}: {rule_1.name}"
+    assert (
+        discount_1.translated_name
+        == f"{promotion_translation_fr.name}: {promotion_rule_translation_fr.name}"
+    )
+    assert discount_1.promotion_rule == rule_1
+
+    assert discount_2.amount_value == listing_promotion_rule_2.discount_amount
+    assert discount_2.value_type == rule_2.reward_value_type
+    assert discount_2.value == rule_2.reward_value
+    assert discount_2.name == f"{promotion.name}: {rule_2.name}"
+    assert discount_2.translated_name == f"{promotion_translation_fr.name}"
+    assert discount_2.promotion_rule == rule_2

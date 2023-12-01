@@ -7,6 +7,7 @@ from .....app.types import AppType
 from .....core.jwt import create_access_token_for_app, jwt_decode
 from .....thumbnail import IconThumbnailFormat
 from .....thumbnail.models import Thumbnail
+from ....tests.fixtures import ApiClient
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 QUERY_APP = """
@@ -66,7 +67,7 @@ QUERY_APP = """
 
 
 @freeze_time("2012-01-14 11:00:00")
-@pytest.mark.parametrize("app_type", ("external", "custom"))
+@pytest.mark.parametrize("app_type", ["external", "custom"])
 def test_app_query(
     app_type,
     staff_api_client,
@@ -227,6 +228,21 @@ def test_own_app_without_id(
     assert app_data["privateMetadata"][0]["value"] == "metadata"
 
 
+def test_own_app_without_id_as_removed_app(
+    removed_app,
+):
+    # given
+    removed_app_api_client = ApiClient(app=removed_app)
+
+    # when
+    response = removed_app_api_client.post_graphql(
+        QUERY_APP,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
 def test_app_query_without_permission(
     app_api_client,
     app,
@@ -342,6 +358,30 @@ def test_app_query_pending_installation(staff_api_client, app):
     assert content["data"]["app"] is None
 
 
+def test_app_query_app_marked_as_removed(
+    staff_api_client,
+    permission_manage_apps,
+    removed_app,
+):
+    # given
+    app = removed_app
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP,
+        variables,
+        permissions=[permission_manage_apps],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["app"]
+    assert not app_data
+
+
 QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS = """
     query ($id: ID, $size: Int, $format: IconThumbnailFormatEnum){
         app(id: $id){
@@ -382,7 +422,7 @@ QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS = """
 
 
 @freeze_time("2012-01-14 11:00:00")
-@pytest.mark.parametrize("app_type", ("external", "custom"))
+@pytest.mark.parametrize("app_type", ["external", "custom"])
 def test_app_query_for_staff_without_manage_apps(
     app_type,
     staff_api_client,
@@ -460,13 +500,13 @@ def test_app_query_access_token_with_audience(
 
 @pytest.mark.parametrize(
     "format",
-    (
+    [
         None,
         IconThumbnailFormat.WEBP,
         IconThumbnailFormat.ORIGINAL,
-    ),
+    ],
 )
-@pytest.mark.parametrize("thumbnail_exists", (True, False))
+@pytest.mark.parametrize("thumbnail_exists", [True, False])
 def test_app_query_logo_thumbnail_with_size_and_format_url_returned(
     thumbnail_exists,
     format,
@@ -508,11 +548,11 @@ def test_app_query_logo_thumbnail_with_size_and_format_url_returned(
 
 @pytest.mark.parametrize(
     "format",
-    (
+    [
         None,
         IconThumbnailFormat.WEBP,
         IconThumbnailFormat.ORIGINAL,
-    ),
+    ],
 )
 def test_app_query_logo_thumbnail_with_zero_size_value_original_image_url_returned(
     format, staff_api_client, app, site_settings, icon_image, media_root

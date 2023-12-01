@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from ...payment import models as payment_models
 
@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from ...app.models import App
 
 
-def metadata_contains_empty_key(metadata_list: List[dict]) -> bool:
+def metadata_contains_empty_key(metadata_list: list[dict]) -> bool:
     return not all([data["key"].strip() for data in metadata_list])
 
 

@@ -105,6 +105,7 @@ def test_unlogged_customer_unable_to_buy_product_without_shipping_option_CORE_01
         e2e_not_logged_api_client,
         checkout_id,
         total_gross_amount,
+        token="fully_charged",
     )
     errors = checkout_payment_data["errors"]
 

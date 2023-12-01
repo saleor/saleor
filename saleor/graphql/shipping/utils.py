@@ -1,4 +1,5 @@
-from typing import Iterable, List, Optional, overload
+from collections.abc import Iterable
+from typing import Optional, overload
 
 from django.core.exceptions import ValidationError
 
@@ -34,7 +35,7 @@ def get_shipping_model_by_object_id(object_id, raise_error=True):
     return None
 
 
-def get_instances_by_object_ids(object_ids: List[str]) -> Iterable[ShippingMethod]:
+def get_instances_by_object_ids(object_ids: list[str]) -> Iterable[ShippingMethod]:
     model_ids = []
     for object_id in object_ids:
         _, object_pk = from_global_id_or_error(object_id)

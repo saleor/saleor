@@ -1,5 +1,6 @@
+from unittest.mock import patch
+
 import graphene
-from mock import patch
 
 from .....payment import TransactionKind
 from .....payment.models import ChargeStatus

@@ -25,22 +25,10 @@ We recommend using at least version `1.0.0b` as it contains many fixes and featu
 
 *Tip:* We recommend that you use this workflow and keep `pyproject.toml` as well as `poetry.lock` under version control to make sure all computers and environments run exactly the same code.
 
-### Other tools
-
-For compatibility, Saleor also provides `requirements.txt` and `requirements_dev.txt`.
-
-These files should be updated by running `poetry export --without-hashes -f requirements.txt -o requirements.txt` and `poetry export --without-hashes -f requirements.txt -o requirements_dev.txt --with dev`, respectively.
-
 ## Coding style
 
 Saleor uses various tools to maintain a common coding style and help with development.
-To install all the development tools, run the following commands:
-
-```shell
-python -m pip install -r requirements_dev.txt
-```
-
-or use `poetry`:
+To install all the development tools, use [Poetry](https://python-poetry.org):
 
 ```shell
 poetry install
@@ -62,15 +50,7 @@ Module names should make their purpose obvious. Avoid generic file names such as
 
 ### Linters
 
-Use [black](https://github.com/python/black/) to make sure your code is correctly formatted.
-
-Use [isort](https://github.com/timothycrosley/isort) to maintain consistent imports.
-
-Use [pylint](https://www.pylint.org/) with the `pylint-django` plugin to catch errors in your code.
-
-Use [pycodestyle](http://pycodestyle.pycqa.org/en/latest/) to make sure your code adheres to PEP 8.
-
-Use [pydocstyle](http://pydocstyle.pycqa.org/en/latest/) to check that your docstrings are properly formatted.
+Use [ruff](https://github.com/astral-sh/ruff) to check and format your code.
 
 ## EditorConfig
 

@@ -16,6 +16,7 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_39,
@@ -272,7 +273,10 @@ class Attribute(ModelObjectType[models.Attribute]):
     @staticmethod
     def resolve_choices(root: models.Attribute, info: ResolveInfo, **kwargs):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
-            qs = cast(QuerySet[models.AttributeValue], root.values.all())
+            qs = cast(
+                QuerySet[models.AttributeValue],
+                root.values.using(get_database_connection_name(info.context)).all(),
+            )
         else:
             qs = cast(
                 QuerySet[models.AttributeValue], models.AttributeValue.objects.none()
@@ -321,7 +325,7 @@ class Attribute(ModelObjectType[models.Attribute]):
     def resolve_product_types(root: models.Attribute, info: ResolveInfo, **kwargs):
         from ..product.types import ProductTypeCountableConnection
 
-        qs = root.product_types.all()
+        qs = root.product_types.using(get_database_connection_name(info.context)).all()
         return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
 
     @staticmethod
@@ -330,7 +334,9 @@ class Attribute(ModelObjectType[models.Attribute]):
     ):
         from ..product.types import ProductTypeCountableConnection
 
-        qs = root.product_variant_types.all()
+        qs = root.product_variant_types.using(
+            get_database_connection_name(info.context)
+        ).all()
         return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
 
 

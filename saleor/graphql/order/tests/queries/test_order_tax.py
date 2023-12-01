@@ -13,7 +13,7 @@ from ....tests.utils import get_graphql_content
 
 
 @pytest.mark.parametrize(
-    "fun_to_patch, price_name",
+    ("fun_to_patch", "price_name"),
     [
         ("order_total", "total"),
         ("order_undiscounted_total", "undiscountedTotal"),
@@ -82,7 +82,7 @@ ORDER_LINE_PRICE_DATA = OrderTaxedPricesData(
 
 
 @pytest.mark.parametrize(
-    "fun_to_patch, price_name, expected_price",
+    ("fun_to_patch", "price_name", "expected_price"),
     [
         ("order_line_unit", "unitPrice", ORDER_LINE_PRICE_DATA.price_with_discounts),
         (
@@ -164,7 +164,7 @@ query OrderLineTaxRate($id: ID!) {
 
 
 @pytest.mark.parametrize(
-    "query, fun_to_patch, path",
+    ("query", "fun_to_patch", "path"),
     [
         (ORDER_SHIPPING_TAX_RATE_QUERY, "order_shipping_tax_rate", ["shippingTaxRate"]),
         (ORDER_LINE_TAX_RATE_QUERY, "order_line_tax_rate", ["lines", 0, "taxRate"]),

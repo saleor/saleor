@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -116,9 +115,9 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def clean_discount_values(
-        cls, cleaned_input, voucher, errors: defaultdict[str, List[ValidationError]]
+        cls, cleaned_input, voucher, errors: defaultdict[str, list[ValidationError]]
     ):
-        error_dict: Dict[str, List[ValidationError]] = {
+        error_dict: dict[str, list[ValidationError]] = {
             "channels_without_value": [],
             "channels_with_invalid_value_precision": [],
             "channels_with_invalid_percentage_value": [],
@@ -208,7 +207,7 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
         cls, _root, info: ResolveInfo, /, *, id, input
     ):
         voucher = cls.get_node_or_error(info, id, only_type=Voucher, field="id")
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         cleaned_input = cls.clean_channels(
             info, input, errors, DiscountErrorCode.DUPLICATED_INPUT_ITEM.value
         )
@@ -218,8 +217,9 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
             raise ValidationError(errors)
 
         cls.save(voucher, cleaned_input)
+
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.voucher_updated, voucher)
+        cls.call_event(manager.voucher_updated, voucher, voucher.code)
 
         return VoucherChannelListingUpdate(
             voucher=ChannelContext(node=voucher, channel_slug=None)

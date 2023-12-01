@@ -357,9 +357,7 @@ def test_recalculate_order_prices_order_discounts_and_total_undiscounted_price_c
 def test_update_order_discounts_and_base_undiscounted_total_shipping_price_changed(
     draft_order, order_lines, shipping_method_weight_based
 ):
-    """Ensure that the order discounts and order base undiscounted price is properly
-    updated after changing the shipping price.
-    """
+    """Test that discounts are properly updated when shipping price changes."""
     # given
     order = draft_order
     currency = order.currency
@@ -408,9 +406,7 @@ def test_update_order_discounts_and_base_undiscounted_total_shipping_price_chang
 def test_update_order_discounts_and_base_undiscounted_total_line_quantity_changed(
     draft_order, order_lines, shipping_method_weight_based
 ):
-    """Ensure that the order discounts and order base undiscounted price is properly
-    updated after changing the line quantity
-    """
+    """Test that discounts are properly updated when line quantities change."""
     # given
     order = draft_order
 
@@ -925,6 +921,45 @@ def test_fetch_order_prices_if_expired_flat_rates_and_no_tax_calc_strategy(
 
     assert line.tax_rate == Decimal("0.2300")
     assert order.shipping_tax_rate == Decimal("0.2300")
+
+
+def test_fetch_order_prices_on_promotion_if_expired_recalculate_all_prices(
+    plugins_manager,
+    fetch_kwargs,
+    order_with_lines,
+    order_line_on_promotion,
+    tax_data,
+):
+    # given
+    currency = order_with_lines.currency
+    order_line_on_promotion.order = order_with_lines
+    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    order_with_lines.refresh_from_db()
+    shipping_price = get_taxed_money(tax_data, "shipping_price", currency)
+    assert order_with_lines.shipping_price == shipping_price
+    assert order_with_lines.shipping_tax_rate == tax_data.shipping_tax_rate / 100
+    subtotal = zero_taxed_money(currency)
+    undiscounted_subtotal = zero_taxed_money(currency)
+    for order_line, tax_line in zip(order_with_lines.lines.all(), tax_data.lines):
+        line_total = get_taxed_money(tax_line, "total", currency)
+        subtotal += line_total
+        undiscounted_subtotal += order_line.undiscounted_total_price
+        assert order_line.total_price == line_total
+        assert order_line.unit_price == line_total / order_line.quantity
+        assert order_line.tax_rate == tax_line.tax_rate / 100
+
+    assert order_with_lines.total != order_with_lines.undiscounted_total
+
+    assert (
+        order_with_lines.undiscounted_total
+        == undiscounted_subtotal + shipping_price.net
+    )
+    assert order_with_lines.total == subtotal + shipping_price
 
 
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")

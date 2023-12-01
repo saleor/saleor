@@ -26,7 +26,7 @@ mutation OrderDiscountDelete($discountId: ID!){
 """
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_delete_order_discount_from_order_with_old_id(
     status,
     draft_order_with_fixed_discount_order,
@@ -102,7 +102,7 @@ mutation OrderDiscountUpdate($discountId: ID!, $input: OrderDiscountCommonInput!
 """
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_percentage_order_discount_by_old_id(
     status,
     draft_order_with_fixed_discount_order,

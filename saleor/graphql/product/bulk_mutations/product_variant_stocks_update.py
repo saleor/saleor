@@ -1,14 +1,14 @@
 from collections import defaultdict
-from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....warehouse import models as warehouse_models
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -49,7 +49,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         stocks = data["stocks"]
         sku = data.get("sku")
         variant_id = data.get("variant_id")
@@ -92,6 +92,15 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
     @traced_atomic_transaction()
     def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses, manager):
         stocks = []
+        webhooks_stock_in = get_webhooks_for_event(
+            WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
+        )
+        webhooks_stock_out = get_webhooks_for_event(
+            WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
+        )
+        webhooks_stock_update = get_webhooks_for_event(
+            WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
+        )
         for stock_data, warehouse in zip(stocks_data, warehouses):
             stock, is_created = warehouse_models.Stock.objects.get_or_create(
                 product_variant=variant, warehouse=warehouse
@@ -101,19 +110,27 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 <= 0
                 < stock_data["quantity"]
             ):
-                transaction.on_commit(
-                    lambda: manager.product_variant_back_in_stock(stock)
+                cls.call_event(
+                    manager.product_variant_back_in_stock,
+                    stock,
+                    webhooks=webhooks_stock_in,
                 )
 
             if stock_data["quantity"] <= 0 or (
                 stock_data["quantity"] - stock.quantity_allocated <= 0
             ):
-                transaction.on_commit(
-                    lambda: manager.product_variant_out_of_stock(stock)
+                cls.call_event(
+                    manager.product_variant_out_of_stock,
+                    stock,
+                    webhooks=webhooks_stock_out,
                 )
 
             stock.quantity = stock_data["quantity"]
             stocks.append(stock)
-            transaction.on_commit(lambda: manager.product_variant_stock_updated(stock))
+            cls.call_event(
+                manager.product_variant_stock_updated,
+                stock,
+                webhooks=webhooks_stock_update,
+            )
 
         warehouse_models.Stock.objects.bulk_update(stocks, ["quantity"])

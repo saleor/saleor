@@ -27,6 +27,12 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
         gross {
           amount
         }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
       }
       totalBalance {
         amount
@@ -35,15 +41,23 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
         gross {
           amount
         }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
       }
-    billingAddress {
+      billingAddress {
         firstName
         lastName
         companyName
         streetAddress1
         streetAddress2
         postalCode
-        country{ code }
+        country {
+          code
+        }
         city
         countryArea
         phone
@@ -55,7 +69,9 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
         streetAddress1
         streetAddress2
         postalCode
-        country{ code }
+        country {
+          code
+        }
         city
         countryArea
         phone
@@ -63,6 +79,12 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
       isShippingRequired
       shippingPrice {
         gross {
+          amount
+        }
+        net {
+          amount
+        }
+        tax {
           amount
         }
       }

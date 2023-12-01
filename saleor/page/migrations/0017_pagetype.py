@@ -1,7 +1,7 @@
 import django.db.models.deletion
+from django.apps import apps as registry
 from django.db import migrations, models
 from django.db.models.signals import post_migrate
-from django.apps import apps as registry
 
 import saleor.core.utils.json_serializer
 

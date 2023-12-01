@@ -746,7 +746,7 @@ def test_shipping_method_channel_listing_update_remove_channels(
 
 
 @pytest.mark.parametrize(
-    "price, min_price, max_price, invalid_field",
+    ("price", "min_price", "max_price", "invalid_field"),
     [(10**9, 2, 3, "price"), (1, 2, 10**11, "maximumOrderPrice")],
 )
 def test_shipping_method_channel_listing_create_channel_max_value_validation(

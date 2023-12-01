@@ -663,12 +663,12 @@ def test_validate_gateway_response_incorrect_transaction_kind(gateway_response):
         validate_gateway_response(gateway_response)
 
     assert str(e.value) == (
-        "Gateway response kind must be one of {}".format(sorted(ALLOWED_GATEWAY_KINDS))
+        f"Gateway response kind must be one of {sorted(ALLOWED_GATEWAY_KINDS)}"
     )
 
 
 def test_validate_gateway_response_not_json_serializable(gateway_response):
-    class CustomClass(object):
+    class CustomClass:
         pass
 
     gateway_response.raw_response = CustomClass()
@@ -680,7 +680,7 @@ def test_validate_gateway_response_not_json_serializable(gateway_response):
 
 
 @pytest.mark.parametrize(
-    "currency, exp_response",
+    ("currency", "exp_response"),
     [("EUR", True), ("USD", True), ("PLN", False)],
 )
 def test_is_currency_supported(

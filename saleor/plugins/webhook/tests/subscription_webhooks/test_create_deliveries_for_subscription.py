@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import graphene
@@ -14,7 +15,10 @@ from .....product.models import Category
 from .....shipping.models import ShippingMethod, ShippingZone
 from .....site.models import SiteSettings
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ...tasks import create_deliveries_for_subscriptions, logger
+from .....webhook.transport.asynchronous.transport import (
+    create_deliveries_for_subscriptions,
+    logger,
+)
 from . import subscription_queries
 from .payloads import (
     generate_account_events_payload,
@@ -35,6 +39,8 @@ from .payloads import (
     generate_page_payload,
     generate_page_type_payload,
     generate_permission_group_payload,
+    generate_promotion_payload,
+    generate_promotion_rule_payload,
     generate_sale_payload,
     generate_shipping_method_payload,
     generate_shop_payload,
@@ -776,7 +782,7 @@ def test_gift_card_metadata_updated(
 
 
 def test_gift_card_export_completed(
-    user_export_file, tmpdir, subscription_gift_card_export_completed_webhook
+    user_export_file, subscription_gift_card_export_completed_webhook, media_root
 ):
     # given
     file_mock = MagicMock(spec=File)
@@ -1231,7 +1237,7 @@ def test_product_metadata_updated(
 
 
 def test_product_export_completed(
-    user_export_file, tmpdir, subscription_product_export_completed_webhook
+    user_export_file, subscription_product_export_completed_webhook, media_root
 ):
     # given
     file_mock = MagicMock(spec=File)
@@ -1595,8 +1601,9 @@ def test_draft_order_deleted(order, subscription_draft_order_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_sale_created(sale, subscription_sale_created_webhook):
+def test_sale_created(promotion_converted_from_sale, subscription_sale_created_webhook):
     # given
+    sale = promotion_converted_from_sale
     webhooks = [subscription_sale_created_webhook]
     event_type = WebhookEventAsyncType.SALE_CREATED
     expected_payload = generate_sale_payload(sale)
@@ -1610,8 +1617,9 @@ def test_sale_created(sale, subscription_sale_created_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_sale_updated(sale, subscription_sale_updated_webhook):
+def test_sale_updated(promotion_converted_from_sale, subscription_sale_updated_webhook):
     # given
+    sale = promotion_converted_from_sale
     webhooks = [subscription_sale_updated_webhook]
     event_type = WebhookEventAsyncType.SALE_UPDATED
     expected_payload = generate_sale_payload(sale)
@@ -1625,8 +1633,9 @@ def test_sale_updated(sale, subscription_sale_updated_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_sale_deleted(sale, subscription_sale_deleted_webhook):
+def test_sale_deleted(promotion_converted_from_sale, subscription_sale_deleted_webhook):
     # given
+    sale = promotion_converted_from_sale
     webhooks = [subscription_sale_deleted_webhook]
     event_type = WebhookEventAsyncType.SALE_DELETED
     expected_payload = generate_sale_payload(sale)
@@ -1640,14 +1649,147 @@ def test_sale_deleted(sale, subscription_sale_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_sale_toggle(sale, subscription_sale_toggle_webhook):
+def test_sale_toggle(promotion_converted_from_sale, subscription_sale_toggle_webhook):
     # given
+    sale = promotion_converted_from_sale
     webhooks = [subscription_sale_toggle_webhook]
     event_type = WebhookEventAsyncType.SALE_TOGGLE
     expected_payload = generate_sale_payload(sale)
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, sale, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_promotion_created(promotion, subscription_promotion_created_webhook):
+    # given
+    webhooks = [subscription_promotion_created_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_CREATED
+    expected_payload = generate_promotion_payload(promotion)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, promotion, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_promotion_updated(promotion, subscription_promotion_updated_webhook):
+    # given
+    webhooks = [subscription_promotion_updated_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_UPDATED
+    expected_payload = generate_promotion_payload(promotion)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, promotion, webhooks)
+
+    # hen
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_promotion_deleted(promotion, subscription_promotion_deleted_webhook):
+    # given
+    webhooks = [subscription_promotion_deleted_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_DELETED
+    expected_payload = generate_promotion_payload(promotion)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, promotion, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_promotion_started(promotion, subscription_promotion_started_webhook):
+    # given
+    webhooks = [subscription_promotion_started_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_STARTED
+    expected_payload = generate_promotion_payload(promotion)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, promotion, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_promotion_ended(promotion, subscription_promotion_ended_webhook):
+    # given
+    webhooks = [subscription_promotion_ended_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_ENDED
+    expected_payload = generate_promotion_payload(promotion)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, promotion, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_promotion_rule_created(
+    promotion_rule, subscription_promotion_rule_created_webhook
+):
+    # given
+    webhooks = [subscription_promotion_rule_created_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_RULE_CREATED
+    expected_payload = generate_promotion_rule_payload(promotion_rule)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, promotion_rule, webhooks
+    )
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_promotion_rule_updated(
+    promotion_rule, subscription_promotion_rule_updated_webhook
+):
+    # given
+    webhooks = [subscription_promotion_rule_updated_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_RULE_UPDATED
+    expected_payload = generate_promotion_rule_payload(promotion_rule)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, promotion_rule, webhooks
+    )
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_promotion_rule_deleted(
+    promotion_rule, subscription_promotion_rule_deleted_webhook
+):
+    # given
+    webhooks = [subscription_promotion_rule_deleted_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_RULE_DELETED
+    expected_payload = generate_promotion_rule_payload(promotion_rule)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, promotion_rule, webhooks
+    )
 
     # then
     assert deliveries[0].payload.payload == json.dumps(expected_payload)
@@ -1726,6 +1868,42 @@ def test_fulfillment_created(fulfillment, subscription_fulfillment_created_webho
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_fulfillment_with_refund_amounts(
+    fulfillment, subscription_fulfillment_created_webhook
+):
+    # given
+    shipping_refund = Decimal("10")
+    total_refund = Decimal("15")
+    fulfillment.shipping_refund_amount = shipping_refund
+    fulfillment.total_refund_amount = total_refund
+    fulfillment.save()
+
+    webhooks = [subscription_fulfillment_created_webhook]
+    event_type = WebhookEventAsyncType.FULFILLMENT_CREATED
+    expected_payload = generate_fulfillment_payload(
+        fulfillment, add_notify_customer_field=True
+    )
+    expected_payload["fulfillment"]["shippingRefundedAmount"] = {
+        "amount": shipping_refund
+    }
+    expected_payload["fulfillment"]["totalRefundedAmount"] = {"amount": total_refund}
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "fulfillment": fulfillment,
+            "notify_customer": True,
+        },
+        webhooks,
+    )
+
+    # then
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_fulfillment_canceled(fulfillment, subscription_fulfillment_canceled_webhook):
     # given
     webhooks = [subscription_fulfillment_canceled_webhook]
@@ -1736,7 +1914,7 @@ def test_fulfillment_canceled(fulfillment, subscription_fulfillment_canceled_web
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
 
     # then
-    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -1777,7 +1955,7 @@ def test_fulfillment_metadata_updated(
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
 
     # then
-    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -1794,7 +1972,7 @@ def test_fulfillment_tracking_number_updated(
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
 
     # then
-    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -2307,6 +2485,32 @@ def test_voucher_metadata_updated(
 
     # then
     expected_payload = generate_voucher_payload(voucher, voucher_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_voucher_code_export_completed(
+    user_export_file, tmpdir, subscription_voucher_code_export_completed_webhook
+):
+    # given
+    file_mock = MagicMock(spec=File)
+    file_mock.name = "temp_file.csv"
+
+    user_export_file.content_file = file_mock
+    user_export_file.save()
+
+    webhooks = [subscription_voucher_code_export_completed_webhook]
+    event_type = WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED
+    export_file_id = graphene.Node.to_global_id("ExportFile", user_export_file.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, user_export_file, webhooks
+    )
+
+    # then
+    expected_payload = generate_export_payload(user_export_file, export_file_id)
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

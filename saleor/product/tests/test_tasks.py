@@ -1,87 +1,90 @@
 import logging
+import uuid
 from datetime import timedelta
+from decimal import Decimal
 from unittest.mock import patch
 
+import graphene
+import pytest
 from django.utils import timezone
 
+from ...discount import RewardValueType
+from ...discount.models import Promotion
 from ..tasks import (
     _get_preorder_variants_to_clean,
-    update_product_discounted_price_task,
-    update_products_discounted_prices_of_sale_task,
+    update_products_discounted_prices_for_promotion_task,
+    update_products_discounted_prices_of_promotion_task,
     update_products_search_vector_task,
     update_variants_names,
 )
 
 
-@patch("saleor.product.utils.variant_prices." "update_products_discounted_prices")
-def test_update_products_discounted_prices_of_sale_task(
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
+def test_update_products_discounted_prices_of_promotion_task(
     update_products_discounted_prices_mock,
-    new_sale,
-    product_list,
     product,
-    category,
-    collection,
 ):
     # given
-    new_sale.products.add(product)
-    category.products.add(product_list[0])
-    new_sale.categories.add(category)
-    collection.products.add(product_list[1])
-    new_sale.variants.add(product_list[2].variants.first())
+    promotion = Promotion.objects.create(
+        name="Promotion",
+    )
+    promotion.rules.create(
+        name="Percentage promotion rule",
+        promotion=promotion,
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("5.0"),
+    )
 
     # when
-    update_products_discounted_prices_of_sale_task(new_sale.id)
+    update_products_discounted_prices_of_promotion_task(promotion.id)
 
     # then
     update_products_discounted_prices_mock.assert_called_once()
     args, kwargs = update_products_discounted_prices_mock.call_args
 
-    expected_products = [product] + product_list
-    assert len(args[0]) == len(expected_products)
-    assert {product.id for product in args[0]} == {
-        instance.id for instance in expected_products
-    }
+    assert len(args[0]) == 1
+    assert {id for id in args[0]} == {product.id}
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_of_sale")
-def test_update_products_discounted_prices_of_sale_task_discount_does_not_exist(
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
+def test_update_products_discounted_prices_of_promotion_task_discount_does_not_exist(
     update_product_prices_mock, caplog
 ):
     # given
     caplog.set_level(logging.WARNING)
-    discount_id = -1
+    promotion_id = uuid.uuid4()
 
     # when
-    update_products_discounted_prices_of_sale_task(discount_id)
+    update_products_discounted_prices_of_promotion_task(promotion_id)
 
     # then
     update_product_prices_mock.assert_not_called()
-    assert f"Cannot find discount with id: {discount_id}" in caplog.text
+    assert f"Cannot find promotion with id: {promotion_id}" in caplog.text
 
 
-@patch("saleor.product.tasks.update_products_discounted_price")
-def test_update_product_discounted_price_task(update_product_price_mock, product):
-    # when
-    update_product_discounted_price_task(product.id)
-
-    # then
-    update_product_price_mock.assert_called_once_with([product])
-
-
-@patch("saleor.product.tasks.update_products_discounted_price")
-def test_update_product_discounted_price_task_product_does_not_exist(
-    update_product_price_mock, caplog
+@patch("saleor.product.tasks.DISCOUNTED_PRODUCT_BATCH", 1)
+@patch("saleor.product.utils.variant_prices.update_discounted_prices_for_promotion")
+def test_update_products_discounted_prices_for_promotion_task(
+    update_products_discounted_prices_mock,
+    product_list,
 ):
     # given
-    caplog.set_level(logging.WARNING)
-    product_id = -1
+    ids = [product.id for product in product_list]
 
     # when
-    update_product_discounted_price_task(product_id)
+    update_products_discounted_prices_for_promotion_task(ids)
 
     # then
-    update_product_price_mock.assert_not_called()
-    assert f"Cannot find product with id: {product_id}" in caplog.text
+    update_products_discounted_prices_mock.call_count == len(ids)
 
 
 @patch("saleor.product.tasks._update_variants_names")
@@ -97,10 +100,7 @@ def test_update_variants_names(
     assert {arg.pk for arg in args[1]} == {size_attribute.pk}
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_of_sale")
-def test_update_variants_names_product_type_does_not_exist(
-    update_variants_names_mock, caplog
-):
+def test_update_variants_names_product_type_does_not_exist(caplog):
     # given
     caplog.set_level(logging.WARNING)
     product_type_id = -1
@@ -109,7 +109,6 @@ def test_update_variants_names_product_type_does_not_exist(
     update_variants_names(product_type_id, [])
 
     # then
-    update_variants_names_mock.assert_not_called()
     assert f"Cannot find product type with id: {product_type_id}" in caplog.text
 
 
@@ -147,3 +146,11 @@ def test_update_products_search_vector_task(product):
 
     # then
     assert product.search_index_dirty is False
+
+
+@pytest.mark.slow
+@pytest.mark.limit_memory("50 MB")
+def test_mem_usage_update_products_discounted_prices(lots_of_products_with_variants):
+    update_products_discounted_prices_for_promotion_task(
+        lots_of_products_with_variants.values_list("pk", flat=True)
+    )

@@ -1,17 +1,13 @@
 import json
 import uuid
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import asdict
 from decimal import Decimal
 from typing import (
     TYPE_CHECKING,
     Any,
-    DefaultDict,
-    Dict,
-    Iterable,
-    List,
     Optional,
-    Set,
     Union,
 )
 
@@ -41,7 +37,6 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
-from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Collection, Product, ProductMedia
 from ..shipping.interface import ShippingMethodData
@@ -55,7 +50,8 @@ from .payload_serializers import PayloadSerializer
 from .serializers import (
     serialize_checkout_lines,
     serialize_checkout_lines_for_tax_calculation,
-    serialize_product_or_variant_attributes,
+    serialize_product_attributes,
+    serialize_variant_attributes,
 )
 
 if TYPE_CHECKING:
@@ -65,7 +61,7 @@ if TYPE_CHECKING:
 from ..payment.models import Payment, TransactionItem
 
 if TYPE_CHECKING:
-    from ..discount.models import Sale
+    from ..discount.models import Promotion
     from ..invoice.models import Invoice
     from ..payment.interface import (
         PaymentData,
@@ -129,7 +125,7 @@ def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
     return {"id": requestor.name, "type": "app"}  # type: ignore
 
 
-def generate_meta(*, requestor_data: Dict[str, Any], camel_case=False, **kwargs):
+def generate_meta(*, requestor_data: dict[str, Any], camel_case=False, **kwargs):
     meta_result = {
         "issued_at": timezone.now().isoformat(),
         "version": __version__,
@@ -405,26 +401,26 @@ def _generate_order_payment_payload(payments: Iterable["Payment"]):
 
 
 def _calculate_added(
-    previous_catalogue: DefaultDict[str, Set[str]],
-    current_catalogue: DefaultDict[str, Set[str]],
+    previous_catalogue: defaultdict[str, set[str]],
+    current_catalogue: defaultdict[str, set[str]],
     key: str,
-) -> List[str]:
+) -> list[str]:
     return list(current_catalogue[key] - previous_catalogue[key])
 
 
 def _calculate_removed(
-    previous_catalogue: DefaultDict[str, Set[str]],
-    current_catalogue: DefaultDict[str, Set[str]],
+    previous_catalogue: defaultdict[str, set[str]],
+    current_catalogue: defaultdict[str, set[str]],
     key: str,
-) -> List[str]:
+) -> list[str]:
     return _calculate_added(current_catalogue, previous_catalogue, key)
 
 
 @traced_payload_generator
 def generate_sale_payload(
-    sale: "Sale",
-    previous_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
-    current_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
+    promotion: "Promotion",
+    previous_catalogue: Optional[defaultdict[str, set[str]]] = None,
+    current_catalogue: Optional[defaultdict[str, set[str]]] = None,
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):
     if previous_catalogue is None:
@@ -433,12 +429,12 @@ def generate_sale_payload(
         current_catalogue = defaultdict(set)
 
     serializer = PayloadSerializer()
-    sale_fields = ("id",)
 
     return serializer.serialize(
-        [sale],
-        fields=sale_fields,
+        [promotion],
+        fields=[],
         extra_dict_data={
+            "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
             "categories_added": _calculate_added(
                 previous_catalogue, current_catalogue, "categories"
@@ -470,22 +466,22 @@ def generate_sale_payload(
 
 @traced_payload_generator
 def generate_sale_toggle_payload(
-    sale: "Sale",
-    catalogue: DefaultDict[str, Set[str]],
+    promotion: "Promotion",
+    catalogue: defaultdict[str, set[str]],
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):
     serializer = PayloadSerializer()
-    sale_fields = ("id",)
 
     extra_dict_data = {key: list(ids) for key, ids in catalogue.items()}
     extra_dict_data["meta"] = generate_meta(
         requestor_data=generate_requestor(requestor)
     )
-    extra_dict_data["is_active"] = sale.is_active()
+    extra_dict_data["is_active"] = promotion.is_active()
+    extra_dict_data["id"] = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
     return serializer.serialize(
-        [sale],
-        fields=sale_fields,
+        [promotion],
+        fields=[],
         extra_dict_data=extra_dict_data,
     )
 
@@ -729,7 +725,7 @@ def generate_product_payload(
         },
         extra_dict_data={
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
-            "attributes": serialize_product_or_variant_attributes(product),
+            "attributes": serialize_product_attributes(product),
             "media": [
                 {
                     "alt": media_obj.alt,
@@ -748,7 +744,7 @@ def generate_product_payload(
                 )
             ),
             "variants": lambda x: json.loads(
-                (generate_product_variant_payload(x, with_meta=False))
+                generate_product_variant_payload(x, with_meta=False)
             ),
         },
     )
@@ -845,7 +841,7 @@ def generate_product_variant_payload(
 ):
     extra_dict_data = {
         "id": lambda v: v.get_global_id(),
-        "attributes": lambda v: serialize_product_or_variant_attributes(v),
+        "attributes": lambda v: serialize_variant_attributes(v),
         "product_id": lambda v: graphene.Node.to_global_id("Product", v.product_id),
         "media": lambda v: generate_product_variant_media_payload(v),
         "channel_listings": lambda v: json.loads(
@@ -1043,6 +1039,8 @@ def _generate_refund_data_payload(data):
 def generate_payment_payload(
     payment_data: "PaymentData", requestor: Optional["RequestorOrLazyObject"] = None
 ):
+    from .transport.utils import from_payment_app_id
+
     data = asdict(payment_data)
 
     if refund_data := data.get("refund_data"):
@@ -1133,7 +1131,13 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         payload = generate_customer_payload(user)
     elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
         product = _get_sample_object(
-            Product.objects.prefetch_related("category", "collections", "variants")
+            Product.objects.prefetch_related(
+                "category",
+                "collections",
+                "variants",
+                "attributevalues__value",
+                "product_type__attributeproduct__attribute",
+            )
         )
         payload = generate_product_payload(product) if product else None
     elif event_name in checkout_events:
@@ -1221,7 +1225,7 @@ def _generate_payload_for_shipping_method(method: ShippingMethodData):
 @traced_payload_generator
 def generate_excluded_shipping_methods_for_order_payload(
     order: "Order",
-    available_shipping_methods: List[ShippingMethodData],
+    available_shipping_methods: list[ShippingMethodData],
 ):
     order_data = json.loads(generate_order_payload(order))[0]
     payload = {
@@ -1237,7 +1241,7 @@ def generate_excluded_shipping_methods_for_order_payload(
 @traced_payload_generator
 def generate_excluded_shipping_methods_for_checkout_payload(
     checkout: "Checkout",
-    available_shipping_methods: List[ShippingMethodData],
+    available_shipping_methods: list[ShippingMethodData],
 ):
     checkout_data = json.loads(generate_checkout_payload(checkout))[0]
     payload = {

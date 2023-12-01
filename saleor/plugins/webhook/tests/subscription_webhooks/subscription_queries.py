@@ -570,6 +570,22 @@ VOUCHER_METADATA_UPDATED = (
 )
 
 
+VOUCHER_CODE_EXPORT_COMPLETED = (
+    fragments.VOUCHER_CODE_EXPORT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on VoucherCodeExportCompleted{
+          export{
+            ...VoucherCodeExportDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 SHOP_METADATA_UPDATED = """
     subscription{
       event {
@@ -1308,6 +1324,131 @@ SALE_TOGGLE = (
 """
 )
 
+
+PROMOTION_CREATED = (
+    fragments.PROMOTION_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PromotionCreated{
+          promotion{
+            ...PromotionDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+PROMOTION_UPDATED = (
+    fragments.PROMOTION_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PromotionUpdated{
+          promotion{
+            ...PromotionDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+PROMOTION_DELETED = (
+    fragments.PROMOTION_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PromotionDeleted{
+          promotion{
+            ...PromotionDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+PROMOTION_STARTED = (
+    fragments.PROMOTION_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PromotionStarted{
+          promotion{
+            ...PromotionDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+PROMOTION_ENDED = (
+    fragments.PROMOTION_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PromotionEnded{
+          promotion{
+            ...PromotionDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+PROMOTION_RULE_CREATED = (
+    fragments.PROMOTION_RULE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PromotionRuleCreated{
+          promotionRule{
+            ...PromotionRuleDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+PROMOTION_RULE_UPDATED = (
+    fragments.PROMOTION_RULE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PromotionRuleUpdated{
+          promotionRule{
+            ...PromotionRuleDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+PROMOTION_RULE_DELETED = (
+    fragments.PROMOTION_RULE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PromotionRuleDeleted{
+          promotionRule{
+            ...PromotionRuleDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 INVOICE_REQUESTED = (
     fragments.INVOICE_DETAILS
     + fragments.INVOICE_ORDER_DETAILS
@@ -1837,6 +1978,7 @@ subscription {
         }
         ... on SaleTranslation {
           id
+          __typename
         }
         ... on VoucherTranslation {
           id
@@ -1845,6 +1987,13 @@ subscription {
           id
         }
         ... on AttributeValueTranslation {
+          id
+        }
+        ... on PromotionTranslation {
+          id
+          __typename
+        }
+        ... on PromotionRuleTranslation {
           id
         }
       }
@@ -1881,6 +2030,7 @@ subscription {
         }
         ... on SaleTranslation {
           id
+          __typename
         }
         ... on VoucherTranslation {
           id
@@ -1889,6 +2039,13 @@ subscription {
           id
         }
         ... on AttributeValueTranslation {
+          id
+        }
+        ... on PromotionTranslation {
+          id
+          __typename
+        }
+        ... on PromotionRuleTranslation {
           id
         }
       }

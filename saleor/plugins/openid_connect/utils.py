@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 import requests
 from authlib.jose import JWTClaims, jwt
@@ -17,6 +17,7 @@ from django.utils import timezone
 from jwt import PyJWTError
 
 from ...account.models import Group, User
+from ...account.search import prepare_user_search_document_value
 from ...account.utils import get_user_groups_permissions
 from ...core.http_client import HTTPClient
 from ...core.jwt import (
@@ -48,6 +49,8 @@ if TYPE_CHECKING:
 JWKS_KEY = "oauth_jwks"
 JWKS_CACHE_TIME = 60 * 60  # 1 hour
 USER_INFO_DEFAULT_CACHE_TIME = 60 * 60  # 1 hour
+
+OIDC_DEFAULT_CACHE_TIME = 60 * 60  # 1 hour
 
 
 OAUTH_TOKEN_REFRESH_FIELD = "oauth_refresh_token"
@@ -162,7 +165,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
     access_token: str,
     use_scope_permissions: bool,
     audience: str,
-    staff_user_domains: List[str],
+    staff_user_domains: list[str],
     staff_default_group_name: str,
 ):
     try:
@@ -249,7 +252,7 @@ def get_user_from_oauth_access_token(
     user_info_url: str,
     use_scope_permissions: bool,
     audience: str,
-    staff_user_domains: List[str],
+    staff_user_domains: list[str],
     staff_default_group_name: str,
 ):
     # we try to decode token to define if the structure is a jwt format.
@@ -314,7 +317,7 @@ def create_jwt_token(
     id_payload: CodeIDToken,
     user: User,
     access_token: str,
-    permissions: Optional[List[str]],
+    permissions: Optional[list[str]],
     owner: str,
 ) -> str:
     additional_payload = {
@@ -377,7 +380,7 @@ def get_or_create_user_from_payload(
     oauth_url: str,
     last_login: Optional[int] = None,
 ) -> User:
-    oidc_metadata_key = f"oidc-{oauth_url}"
+    oidc_metadata_key = f"oidc:{oauth_url}"
     user_email = payload.get("email")
     if not user_email:
         raise AuthenticationError("Missing user's email.")
@@ -397,8 +400,14 @@ def get_or_create_user_from_payload(
         "private_metadata": {oidc_metadata_key: sub},
         "password": make_password(None),
     }
+    cache_key = oidc_metadata_key + ":" + str(sub)
+    user_id = cache.get(cache_key)
+    if user_id:
+        get_kwargs = {"id": user_id}
     try:
-        user = User.objects.get(**get_kwargs)
+        user = User.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).get(
+            **get_kwargs
+        )
     except User.DoesNotExist:
         user, _ = User.objects.get_or_create(
             email=user_email,
@@ -420,10 +429,13 @@ def get_or_create_user_from_payload(
         user=user,
         oidc_key=oidc_metadata_key,
         user_email=user_email,
+        user_first_name=defaults_create["first_name"],
+        user_last_name=defaults_create["last_name"],
         sub=sub,  # type: ignore
         last_login=last_login,
     )
 
+    cache.set(cache_key, user.id, min(JWKS_CACHE_TIME, OIDC_DEFAULT_CACHE_TIME))
     return user
 
 
@@ -437,14 +449,16 @@ def _update_user_details(
     user: User,
     oidc_key: str,
     user_email: str,
+    user_first_name: str,
+    user_last_name: str,
     sub: str,
     last_login: Optional[int],
 ):
     user_sub = user.get_value_from_private_metadata(oidc_key)
-    fields_to_save = []
+    fields_to_save = set()
     if user_sub != sub:
         user.store_value_in_private_metadata({oidc_key: sub})
-        fields_to_save.append("private_metadata")
+        fields_to_save.add("private_metadata")
 
     if user.email != user_email:
         if User.objects.filter(email=user_email).exists():
@@ -455,12 +469,13 @@ def _update_user_details(
             return
         user.email = user_email
         match_orders_with_new_user(user)
-        fields_to_save.append("email")
+        fields_to_save.update({"email", "search_document"})
+
     if last_login:
         if not user.last_login or user.last_login.timestamp() < last_login:
             login_time = timezone.make_aware(datetime.fromtimestamp(last_login))
             user.last_login = login_time
-            fields_to_save.append("last_login")
+            fields_to_save.add("last_login")
     else:
         if (
             not user.last_login
@@ -468,7 +483,20 @@ def _update_user_details(
             > settings.OAUTH_UPDATE_LAST_LOGIN_THRESHOLD
         ):
             user.last_login = timezone.now()
-            fields_to_save.append("last_login")
+            fields_to_save.add("last_login")
+
+    if user.first_name != user_first_name:
+        user.first_name = user_first_name
+        fields_to_save.update({"first_name", "search_document"})
+
+    if user.last_name != user_last_name:
+        user.last_name = user_last_name
+        fields_to_save.update({"last_name", "search_document"})
+
+    if "search_document" in fields_to_save:
+        user.search_document = prepare_user_search_document_value(
+            user, attach_addresses_data=False
+        )
 
     if fields_to_save:
         user.save(update_fields=fields_to_save)
@@ -510,7 +538,7 @@ def create_tokens_from_oauth_payload(
     token_data: dict,
     user: User,
     claims: CodeIDToken,
-    permissions: Optional[List[str]],
+    permissions: Optional[list[str]],
     owner: str,
 ):
     refresh_token = token_data.get("refresh_token")
@@ -582,7 +610,7 @@ def validate_refresh_token(refresh_token, data):
             )
 
 
-def get_incorrect_or_missing_urls(urls: dict) -> List[str]:
+def get_incorrect_or_missing_urls(urls: dict) -> list[str]:
     validator = URLValidator()
     incorrect_urls = []
     for field, url in urls.items():
@@ -655,6 +683,6 @@ def get_saleor_permissions_from_list(permissions: list) -> QuerySet[Permission]:
     return permissions
 
 
-def get_saleor_permission_names(permissions: QuerySet) -> List[str]:
+def get_saleor_permission_names(permissions: QuerySet) -> list[str]:
     permission_names = get_permission_names(permissions)
     return list(permission_names)

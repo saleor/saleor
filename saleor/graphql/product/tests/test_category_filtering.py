@@ -1,5 +1,6 @@
 import graphene
 import pytest
+from freezegun import freeze_time
 
 from ....product.models import (
     Category,
@@ -47,7 +48,7 @@ QUERY_CATEGORIES_WITH_FILTERING = """
 
 
 @pytest.mark.parametrize(
-    "filter_by, categories_count",
+    ("filter_by", "categories_count"),
     [
         ({"slugs": ["category1"]}, 1),
         ({"slugs": ["category2", "category3"]}, 2),
@@ -72,6 +73,86 @@ def test_categories_with_filtering(
     # then
     content = get_graphql_content(response)
     categories_nodes = content["data"]["categories"]["edges"]
+    assert len(categories_nodes) == categories_count
+
+
+@pytest.mark.parametrize(
+    ("filter_by", "categories_count"),
+    [
+        ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 3),
+        ({"updatedAt": {"lte": "2012-01-14T12:00:05+00:00"}}, 3),
+        ({"updatedAt": {"gte": "2012-01-14T11:29:00+00:00"}}, 2),
+        ({"updatedAt": {"lte": "2012-01-14T11:31:00+00:00"}}, 2),
+        ({"updatedAt": {"gte": "2012-01-14T12:01:00+00:00"}}, 0),
+        ({"updatedAt": {"lte": "2012-01-14T10:59:00+00:00"}}, 0),
+        ({"updatedAt": {}}, 3),
+        (
+            {
+                "updatedAt": {
+                    "lte": "2012-01-14T12:01:00+00:00",
+                    "gte": "2012-01-14T11:59:00+00:00",
+                },
+            },
+            1,
+        ),
+        (
+            {
+                "updatedAt": {
+                    "lte": "2012-01-14T12:01:00+00:00",
+                    "gte": "2012-01-14T11:29:00+00:00",
+                },
+            },
+            2,
+        ),
+    ],
+)
+def test_order_query_with_filter_updated_at(
+    filter_by,
+    categories_count,
+    staff_api_client,
+):
+    # given
+    with freeze_time("2012-01-14 11:00:00"):
+        Category.objects.create(
+            name="Category1",
+            slug="category1",
+            lft=0,
+            rght=0,
+            tree_id=2,
+            level=0,
+        )
+
+    with freeze_time("2012-01-14 11:30:00"):
+        Category.objects.create(
+            name="Category2",
+            slug="category2",
+            lft=1,
+            rght=2,
+            tree_id=1,
+            level=0,
+        )
+
+    with freeze_time("2012-01-14 12:00:00"):
+        Category.objects.create(
+            name="Category3",
+            slug="category3",
+            lft=1,
+            rght=2,
+            tree_id=2,
+            level=0,
+        )
+
+    variables = {"filter": filter_by}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_CATEGORIES_WITH_FILTERING,
+        variables,
+    )
+
+    content = get_graphql_content(response)
+    categories_nodes = content["data"]["categories"]["edges"]
+    # then
     assert len(categories_nodes) == categories_count
 
 
@@ -106,7 +187,7 @@ query ($id: ID!, $channel: String, $filters: ProductFilterInput) {
 
 
 @pytest.mark.parametrize(
-    "channel, filter_channel, count, indexes_of_products_in_result",
+    ("channel", "filter_channel", "count", "indexes_of_products_in_result"),
     [
         ("channel_USD.slug", "channel_USD.slug", 2, [1, 2]),
         ("channel_USD.slug", "channel_PLN.slug", 2, [1, 2]),
@@ -161,7 +242,7 @@ def test_category_filter_products_by_channel(
 
 
 @pytest.mark.parametrize(
-    "is_published, count, indexes_of_products_in_result",
+    ("is_published", "count", "indexes_of_products_in_result"),
     [
         (True, 2, [1, 2]),
         (False, 1, [0]),
@@ -253,7 +334,7 @@ def test_category_filter_products_by_multiple_attributes(
 
 
 @pytest.mark.parametrize(
-    "stock_availability, count, indexes_of_products_in_result",
+    ("stock_availability", "count", "indexes_of_products_in_result"),
     [
         ("OUT_OF_STOCK", 2, [1, 2]),
         ("IN_STOCK", 1, [0]),
@@ -303,7 +384,7 @@ def test_category_filter_products_by_stock_availability(
 
 
 @pytest.mark.parametrize(
-    "quantity_input, warehouse_indexes, count, indexes_of_products_in_result",
+    ("quantity_input", "warehouse_indexes", "count", "indexes_of_products_in_result"),
     [
         ({"lte": "80", "gte": "20"}, [1, 2], 1, [1]),
         ({"lte": "120", "gte": "40"}, [1, 2], 1, [0]),
@@ -403,7 +484,7 @@ def test_category_filter_products_by_stocks(
 
 
 @pytest.mark.parametrize(
-    "is_published, count, indexes_of_products_in_result",
+    ("is_published", "count", "indexes_of_products_in_result"),
     [
         (True, 1, [1]),
         (False, 0, []),

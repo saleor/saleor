@@ -5,7 +5,9 @@ import graphene
 
 from .....webhook.event_types import WebhookEventSyncType
 from .....webhook.models import Webhook
-from ...tasks import create_deliveries_for_subscriptions
+from .....webhook.transport.asynchronous.transport import (
+    create_deliveries_for_subscriptions,
+)
 
 PAYMENT_GATEWAY_INITIALIZE_SESSION = """
 subscription {

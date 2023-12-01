@@ -1,8 +1,9 @@
 import logging
+from collections.abc import Iterable
 from dataclasses import asdict
 from decimal import Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 from urllib.parse import urljoin
 
 import opentracing
@@ -239,7 +240,7 @@ class AvataxPlugin(BasePlugin):
         self,
         checkout_info: "CheckoutInfo",
         currency: str,
-        lines: List[Dict],
+        lines: list[dict],
         shipping_price: Money,
     ) -> TaxedMoney:
         discount_amount = Decimal(0.0)
@@ -393,7 +394,7 @@ class AvataxPlugin(BasePlugin):
 
     @staticmethod
     def _calculate_checkout_line_total_price(
-        taxes_data: Dict[str, Any],
+        taxes_data: dict[str, Any],
         item_code: str,
         prices_entered_with_tax: Callable[[], bool],
         # base_value should be provided as SimpleLazyObject
@@ -455,7 +456,7 @@ class AvataxPlugin(BasePlugin):
 
     @staticmethod
     def _calculate_order_line_total_price(
-        taxes_data: Dict[str, Any],
+        taxes_data: dict[str, Any],
         item_code: str,
         prices_entered_with_tax: Callable[[], bool],
         base_value: OrderTaxedPricesData,
@@ -634,7 +635,7 @@ class AvataxPlugin(BasePlugin):
             zero_taxed_money(currency),
         )
 
-    def get_tax_rate_type_choices(self, previous_value: Any) -> List[TaxType]:
+    def get_tax_rate_type_choices(self, previous_value: Any) -> list[TaxType]:
         if not self.active:
             return previous_value
         return [
@@ -733,7 +734,7 @@ class AvataxPlugin(BasePlugin):
 
     @staticmethod
     def _get_unit_tax_rate(
-        response: Dict[str, Any],
+        response: dict[str, Any],
         item_code: str,
         base_rate: Decimal,
     ):
@@ -754,7 +755,7 @@ class AvataxPlugin(BasePlugin):
 
     @staticmethod
     def _get_shipping_tax_rate(
-        response: Dict[str, Any],
+        response: dict[str, Any],
         base_rate: Decimal,
     ):
         if response is None:

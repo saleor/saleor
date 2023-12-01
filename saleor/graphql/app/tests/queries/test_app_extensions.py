@@ -96,6 +96,33 @@ def test_app_extensions_app_not_active(
     assert len(extensions_data) == 0
 
 
+def test_app_extensions_app_removed_app(
+    staff_api_client, removed_app, permission_manage_products
+):
+    # given
+    app_extension = AppExtension.objects.create(
+        app=removed_app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+    )
+    app_extension.permissions.add(permission_manage_products)
+    variables = {}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSIONS,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    extensions_data = content["data"]["appExtensions"]["edges"]
+
+    assert len(extensions_data) == 0
+
+
 def test_app_extensions_user_not_staff(
     user_api_client, app, permission_manage_products
 ):
@@ -120,7 +147,7 @@ def test_app_extensions_user_not_staff(
 
 
 @pytest.mark.parametrize(
-    "filter, expected_count",
+    ("filter", "expected_count"),
     [
         ({}, 4),
         ({"target": AppExtensionTargetEnum.APP_PAGE.name}, 1),

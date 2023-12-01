@@ -1,6 +1,7 @@
 import datetime
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import Iterable, Optional
+from typing import Optional
 from uuid import uuid4
 
 import graphene
@@ -33,9 +34,8 @@ from ..core.utils import build_absolute_uri
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, get_translation
 from ..core.weight import zero_weight
-from ..discount import DiscountInfo
 from ..discount.models import PromotionRule
-from ..discount.utils import calculate_discounted_price
+from ..discount.utils import calculate_discounted_price_for_rules
 from ..permission.enums import (
     DiscountPermissions,
     OrderPermissions,
@@ -60,6 +60,7 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     description_plaintext = TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
     )
@@ -80,6 +81,7 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
                 fields=["name", "slug", "description_plaintext"],
                 opclasses=["gin_trgm_ops"] * 3,
             ),
+            BTreeIndex(fields=["updated_at"], name="updated_at_idx"),
         ]
 
     def __str__(self) -> str:
@@ -101,12 +103,7 @@ class CategoryTranslation(SeoModelTranslation):
 
     def __repr__(self) -> str:
         class_ = type(self)
-        return "%s(pk=%r, name=%r, category_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.name,
-            self.category_id,
-        )
+        return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, category_pk={self.category_id!r})"
 
     def get_translated_object_id(self):
         return "Category", self.category_id
@@ -166,12 +163,7 @@ class ProductType(ModelWithMetadata):
 
     def __repr__(self) -> str:
         class_ = type(self)
-        return "<%s.%s(pk=%r, name=%r)>" % (
-            class_.__module__,
-            class_.__name__,
-            self.pk,
-            self.name,
-        )
+        return f"<{class_.__module__}.{class_.__name__}(pk={self.pk!r}, name={self.name!r})>"
 
 
 class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
@@ -250,12 +242,7 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
 
     def __repr__(self) -> str:
         class_ = type(self)
-        return "<%s.%s(pk=%r, name=%r)>" % (
-            class_.__module__,
-            class_.__name__,
-            self.pk,
-            self.name,
-        )
+        return f"<{class_.__module__}.{class_.__name__}(pk={self.pk!r}, name={self.name!r})>"
 
     def __str__(self) -> str:
         return self.name
@@ -285,12 +272,7 @@ class ProductTranslation(SeoModelTranslation):
 
     def __repr__(self) -> str:
         class_ = type(self)
-        return "%s(pk=%r, name=%r, product_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.name,
-            self.product_id,
-        )
+        return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, product_pk={self.product_id!r})"
 
     def get_translated_object_id(self):
         return "Product", self.product_id
@@ -355,7 +337,9 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
     )
-    media = models.ManyToManyField("ProductMedia", through="VariantMedia")
+    media = models.ManyToManyField(
+        "product.ProductMedia", through="product.VariantMedia"
+    )
     track_inventory = models.BooleanField(default=True)
     is_preorder = models.BooleanField(default=False)
     preorder_end_date = models.DateTimeField(null=True, blank=True)
@@ -389,7 +373,8 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         self,
         channel_listing: "ProductVariantChannelListing",
         price_override: Optional["Decimal"] = None,
-    ):
+    ) -> "Money":
+        """Return the base variant price before applying the promotion discounts."""
         return (
             channel_listing.price
             if price_override is None
@@ -398,23 +383,22 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
 
     def get_price(
         self,
-        product: Product,
-        collections: Iterable["Collection"],
-        channel: Channel,
         channel_listing: "ProductVariantChannelListing",
-        discounts: Optional[Iterable[DiscountInfo]] = None,
         price_override: Optional["Decimal"] = None,
+        promotion_rules: Optional[Iterable["PromotionRule"]] = None,
     ) -> "Money":
-        price = self.get_base_price(channel_listing, price_override)
-        collection_ids = {collection.id for collection in collections}
-        return calculate_discounted_price(
-            product=product,
-            price=price,
-            discounts=discounts,
-            collection_ids=collection_ids,
-            channel=channel,
-            variant_id=self.id,
-        )[1]
+        """Return the variant discounted price with applied promotions.
+
+        If a custom price is provided, return the price with applied discounts from
+        valid promotion rules for this variant.
+        """
+        if price_override is None:
+            return channel_listing.discounted_price or channel_listing.price
+        price: "Money" = self.get_base_price(channel_listing, price_override)
+        rules = promotion_rules or []
+        return calculate_discounted_price_for_rules(
+            price=price, rules=rules, currency=channel_listing.currency
+        )
 
     def get_weight(self):
         return self.weight or self.product.weight or self.product.product_type.weight
@@ -461,12 +445,7 @@ class ProductVariantTranslation(Translation):
 
     def __repr__(self):
         class_ = type(self)
-        return "%s(pk=%r, name=%r, variant_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.name,
-            self.product_variant_id,
-        )
+        return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, variant_pk={self.product_variant_id!r})"
 
     def __str__(self):
         return self.name or str(self.product_variant)
@@ -522,7 +501,7 @@ class ProductVariantChannelListing(models.Model):
     promotion_rules = models.ManyToManyField(
         PromotionRule,
         help_text=("Promotion rules that were included in the discounted price."),
-        through="VariantChannelListingPromotionRule",
+        through="product.VariantChannelListingPromotionRule",
         blank=True,
     )
 
@@ -734,12 +713,7 @@ class CollectionTranslation(SeoModelTranslation):
 
     def __repr__(self):
         class_ = type(self)
-        return "%s(pk=%r, name=%r, collection_pk=%r)" % (
-            class_.__name__,
-            self.pk,
-            self.name,
-            self.collection_id,
-        )
+        return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, collection_pk={self.collection_id!r})"
 
     def __str__(self) -> str:
         return self.name if self.name else str(self.pk)

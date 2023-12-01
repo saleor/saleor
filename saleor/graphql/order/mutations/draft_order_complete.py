@@ -9,6 +9,8 @@ from ....core.exceptions import InsufficientStock
 from ....core.postgres import FlatConcatSearchVector
 from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
+from ....discount.models import VoucherCode
+from ....discount.utils import add_voucher_usage_by_customer
 from ....order import OrderStatus, models
 from ....order.actions import order_created
 from ....order.calculations import fetch_order_prices_if_expired
@@ -71,6 +73,18 @@ class DraftOrderComplete(BaseMutation):
         return order
 
     @classmethod
+    def setup_voucher_customer(cls, order, channel):
+        if (
+            order.voucher
+            and order.voucher_code
+            and order.voucher.apply_once_per_customer
+            and channel.include_draft_order_in_voucher_usage
+        ):
+            code = VoucherCode.objects.filter(code=order.voucher_code).first()
+            if code:
+                add_voucher_usage_by_customer(code, order.get_customer_email())
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id: str
     ):
@@ -108,6 +122,7 @@ class DraftOrderComplete(BaseMutation):
             order.save()
 
             channel = order.channel
+            cls.setup_voucher_customer(order, channel)
             order_lines_info = []
             for line in order.lines.all():
                 if not line.variant:

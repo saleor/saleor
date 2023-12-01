@@ -38,6 +38,24 @@ class VoucherDelete(ModelDeleteMutation):
         return response
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, code):
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.voucher_deleted, instance)
+        cls.call_event(manager.voucher_deleted, instance, code)
+
+    @classmethod
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
+    ):
+        """Perform a mutation that deletes a model instance."""
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
+
+        cls.clean_instance(info, instance)
+        db_id = instance.id
+        code = instance.codes.first().code
+        instance.delete()
+
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        instance.id = db_id
+        cls.post_save_action(info, instance, code)
+        return cls.success_response(instance)

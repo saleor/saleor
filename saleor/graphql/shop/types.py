@@ -9,12 +9,13 @@ from ... import __version__, schema_version
 from ...account import models as account_models
 from ...channel import models as channel_models
 from ...core.models import ModelWithMetadata
-from ...core.utils import build_absolute_uri
+from ...core.utils import build_absolute_uri, get_domain, is_ssl_enabled
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import SitePermissions, get_permissions
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..core import ResolveInfo
+from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
@@ -65,10 +66,10 @@ class Domain(graphene.ObjectType):
     ssl_enabled = graphene.Boolean(
         description="Inform if SSL is enabled.", required=True
     )
-    url = graphene.String(description="Shop's absolute URL.", required=True)
+    url = graphene.String(description="The absolute URL of the API.", required=True)
 
     class Meta:
-        description = "Represents shop's domain."
+        description = "Represents API domain."
 
 
 class OrderSettings(ModelObjectType[site_models.SiteSettings]):
@@ -415,21 +416,23 @@ class Shop(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_channel_currencies(_, _info):
+    def resolve_channel_currencies(_, info):
         return set(
-            channel_models.Channel.objects.values_list("currency_code", flat=True)
+            channel_models.Channel.objects.using(
+                get_database_connection_name(info.context)
+            ).values_list("currency_code", flat=True)
         )
 
     @staticmethod
-    def resolve_countries(_, _info, **kwargs):
-        return resolve_countries(**kwargs)
+    def resolve_countries(_, info, **kwargs):
+        return resolve_countries(info, **kwargs)
 
     @staticmethod
     @load_site_callback
     def resolve_domain(_, _info, site):
         return Domain(
-            host=site.domain,
-            ssl_enabled=settings.ENABLE_SSL,
+            host=get_domain(site),
+            ssl_enabled=is_ssl_enabled(),
             url=build_absolute_uri("/"),
         )
 
@@ -494,7 +497,7 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_default_country(_, _info):
+    def resolve_default_country(_, info):
         default_country_code = settings.DEFAULT_COUNTRY
         default_country_name = countries.countries.get(default_country_code)
         if default_country_name:
@@ -561,8 +564,10 @@ class Shop(graphene.ObjectType):
         return site.settings.default_digital_url_valid_days
 
     @staticmethod
-    def resolve_staff_notification_recipients(_, _info):
-        return account_models.StaffNotificationRecipient.objects.all()
+    def resolve_staff_notification_recipients(_, info):
+        return account_models.StaffNotificationRecipient.objects.using(
+            get_database_connection_name(info.context)
+        ).all()
 
     @staticmethod
     @load_site_callback

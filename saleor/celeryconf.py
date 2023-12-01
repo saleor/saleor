@@ -31,7 +31,7 @@ app.autodiscover_tasks(
     packages=[
         "saleor.attribute.migrations.tasks",
     ],
-    related_name="saleor3_16",
+    related_name="saleor3_14",
 )
 app.autodiscover_tasks(
     packages=[

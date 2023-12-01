@@ -1,6 +1,6 @@
 from functools import reduce
 from operator import add, mul
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Optional, Union, cast
 
 from graphql import (
     GraphQLError,
@@ -30,15 +30,15 @@ CostAwareNode = Union[
     OperationDefinition,
 ]
 
-GraphQLFieldMap = Dict[str, GraphQLField]
+GraphQLFieldMap = dict[str, GraphQLField]
 
 
 class CostValidator(ValidationRule):
     maximum_cost: int
     default_cost: int = 0
     default_complexity: int = 1
-    variables: Optional[Dict] = None
-    cost_map: Optional[Dict[str, Dict[str, Any]]] = None
+    variables: Optional[dict] = None
+    cost_map: Optional[dict[str, dict[str, Any]]] = None
 
     def __init__(
         self,
@@ -46,8 +46,8 @@ class CostValidator(ValidationRule):
         *,
         default_cost: int = 0,
         default_complexity: int = 1,
-        variables: Optional[Dict] = None,
-        cost_map: Optional[Dict[str, Dict[str, Any]]] = None,
+        variables: Optional[dict] = None,
+        cost_map: Optional[dict[str, dict[str, Any]]] = None,
     ):  # pylint: disable=super-init-not-called
         self.maximum_cost = maximum_cost
         self.variables = variables
@@ -55,7 +55,7 @@ class CostValidator(ValidationRule):
         self.default_cost = default_cost
         self.default_complexity = default_complexity
         self.cost = 0
-        self.operation_multipliers: List[Any] = []
+        self.operation_multipliers: list[Any] = []
 
     def __call__(self, context: ValidationContext):
         self.context = context
@@ -79,7 +79,7 @@ class CostValidator(ValidationRule):
                     continue
                 field_type = get_named_type(field.type)
                 try:
-                    field_args: Dict[str, Any] = get_argument_values(
+                    field_args: dict[str, Any] = get_argument_values(
                         field.args,
                         child_node.arguments,
                         self.variables,
@@ -127,9 +127,7 @@ class CostValidator(ValidationRule):
             total += node_cost
         return total
 
-    def enter_operation_definition(
-        self, node, key, parent, path, ancestors
-    ):  # pylint: disable=unused-argument
+    def enter_operation_definition(self, node, key, parent, path, ancestors):  # pylint: disable=unused-argument
         if self.cost_map:
             try:
                 validate_cost_map(self.cost_map, self.context.get_schema())
@@ -150,9 +148,7 @@ class CostValidator(ValidationRule):
                 node, self.context.get_schema().get_subscription_type()
             )
 
-    def leave_operation_definition(
-        self, node, key, parent, path, ancestors
-    ):  # pylint: disable=unused-argument
+    def leave_operation_definition(self, node, key, parent, path, ancestors):  # pylint: disable=unused-argument
         if self.cost > self.maximum_cost:
             self.context.report_error(self.get_cost_exceeded_error())
 
@@ -166,9 +162,9 @@ class CostValidator(ValidationRule):
             return reduce(mul, self.operation_multipliers, complexity)
         return complexity
 
-    def get_args_from_cost_map(self, node: Field, parent_type: str, field_args: Dict):
+    def get_args_from_cost_map(self, node: Field, parent_type: str, field_args: dict):
         cost_args = None
-        cost_map = cast(Dict[Any, Dict], self.cost_map)
+        cost_map = cast(dict[Any, dict], self.cost_map)
         if parent_type in cost_map:
             cost_args = cost_map[parent_type].get(node.name.value)
         if not cost_args:
@@ -180,7 +176,7 @@ class CostValidator(ValidationRule):
             )
         return cost_args
 
-    def get_multipliers_from_string(self, multipliers: List[str], field_args):
+    def get_multipliers_from_string(self, multipliers: list[str], field_args):
         accessors = [s.split(".") for s in multipliers]
         multipliers: Any = []
         for accessor in accessors:
@@ -213,8 +209,8 @@ class CostValidator(ValidationRule):
         node: Any,
         key: Optional[Union[int, str]],
         parent: Any,
-        path: List[Union[int, str]],
-        ancestors: List[Any],
+        path: list[Union[int, str]],
+        ancestors: list[Any],
     ):
         if isinstance(node, OperationDefinition):
             self.enter_operation_definition(node, key, parent, path, ancestors)
@@ -224,14 +220,14 @@ class CostValidator(ValidationRule):
         node: Any,
         key: Optional[Union[int, str]],
         parent: Any,
-        path: List[Union[int, str]],
-        ancestors: List[Any],
+        path: list[Union[int, str]],
+        ancestors: list[Any],
     ):
         if isinstance(node, OperationDefinition):
             self.leave_operation_definition(node, key, parent, path, ancestors)
 
 
-def validate_cost_map(cost_map: Dict[str, Dict[str, Any]], schema: GraphQLSchema):
+def validate_cost_map(cost_map: dict[str, dict[str, Any]], schema: GraphQLSchema):
     type_map = schema.get_type_map()
     for type_name, type_fields in cost_map.items():
         if type_name not in type_map:
@@ -275,8 +271,8 @@ def cost_validator(
     *,
     default_cost: int = 0,
     default_complexity: int = 1,
-    variables: Optional[Dict] = None,
-    cost_map: Optional[Dict[str, Dict[str, Any]]] = None,
+    variables: Optional[dict] = None,
+    cost_map: Optional[dict[str, dict[str, Any]]] = None,
 ) -> CostValidator:
     return CostValidator(
         maximum_cost=maximum_cost,

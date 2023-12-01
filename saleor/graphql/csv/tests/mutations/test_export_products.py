@@ -61,7 +61,7 @@ EXPORT_PRODUCTS_BY_APP_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "input, called_data",
+    ("input", "called_data"),
     [
         (
             {
@@ -92,16 +92,20 @@ def test_export_products_mutation(
     input,
     called_data,
 ):
+    # given
     query = EXPORT_PRODUCTS_MUTATION
     user = staff_api_client.user
     variables = {"input": input}
 
+    # when
     response = staff_api_client.post_graphql(
         query,
         variables=variables,
         permissions=[permission_manage_products, permission_manage_apps],
     )
     content = get_graphql_content(response)
+
+    # then
     data = content["data"]["exportProducts"]
     export_file_data = data["exportFile"]
 
@@ -127,6 +131,7 @@ def test_export_products_mutation_by_app(
     permission_manage_products,
     permission_manage_apps,
 ):
+    # given
     query = EXPORT_PRODUCTS_BY_APP_MUTATION
     app = app_api_client.app
     variables = {
@@ -137,6 +142,7 @@ def test_export_products_mutation_by_app(
         }
     }
 
+    # when
     response = app_api_client.post_graphql(
         query,
         variables=variables,
@@ -146,6 +152,8 @@ def test_export_products_mutation_by_app(
         ],
     )
     content = get_graphql_content(response)
+
+    # then
     data = content["data"]["exportProducts"]
     export_file_data = data["exportFile"]
 
@@ -170,6 +178,7 @@ def test_export_products_mutation_ids_scope(
     permission_manage_products,
     permission_manage_apps,
 ):
+    # given
     query = EXPORT_PRODUCTS_MUTATION
     user = staff_api_client.user
 
@@ -194,12 +203,15 @@ def test_export_products_mutation_ids_scope(
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         query,
         variables=variables,
         permissions=[permission_manage_products, permission_manage_apps],
     )
     content = get_graphql_content(response)
+
+    # then
     data = content["data"]["exportProducts"]
     export_file_data = data["exportFile"]
 
@@ -231,6 +243,7 @@ def test_export_products_mutation_ids_scope_invalid_object_type(
     permission_manage_products,
     permission_manage_apps,
 ):
+    # given
     query = EXPORT_PRODUCTS_MUTATION
 
     products = product_list[:2]
@@ -252,12 +265,15 @@ def test_export_products_mutation_ids_scope_invalid_object_type(
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         query,
         variables=variables,
         permissions=[permission_manage_products, permission_manage_apps],
     )
     content = get_graphql_content(response)
+
+    # then
     data = content["data"]["exportProducts"]
     errors = data["errors"]
     assert len(errors) == 1
@@ -278,6 +294,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
     permission_manage_products,
     permission_manage_apps,
 ):
+    # given
     query = EXPORT_PRODUCTS_MUTATION
     user = staff_api_client.user
 
@@ -315,12 +332,15 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         query,
         variables=variables,
         permissions=[permission_manage_products, permission_manage_apps],
     )
     content = get_graphql_content(response)
+
+    # then
     data = content["data"]["exportProducts"]
     export_file_data = data["exportFile"]
 
@@ -359,6 +379,7 @@ def test_export_products_mutation_with_warehouse_ids_invalid_object_type(
     permission_manage_products,
     permission_manage_apps,
 ):
+    # given
     query = EXPORT_PRODUCTS_MUTATION
 
     products = product_list[:2]
@@ -389,12 +410,15 @@ def test_export_products_mutation_with_warehouse_ids_invalid_object_type(
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         query,
         variables=variables,
         permissions=[permission_manage_products, permission_manage_apps],
     )
     content = get_graphql_content(response)
+
+    # then
     data = content["data"]["exportProducts"]
     errors = data["errors"]
     assert len(errors) == 1
@@ -415,6 +439,7 @@ def test_export_products_mutation_with_attribute_ids_invalid_object_type(
     permission_manage_products,
     permission_manage_apps,
 ):
+    # given
     query = EXPORT_PRODUCTS_MUTATION
 
     products = product_list[:2]
@@ -445,12 +470,15 @@ def test_export_products_mutation_with_attribute_ids_invalid_object_type(
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         query,
         variables=variables,
         permissions=[permission_manage_products, permission_manage_apps],
     )
     content = get_graphql_content(response)
+
+    # then
     data = content["data"]["exportProducts"]
     errors = data["errors"]
     assert len(errors) == 1
@@ -471,6 +499,7 @@ def test_export_products_mutation_with_channel_ids_invalid_object_type(
     permission_manage_products,
     permission_manage_apps,
 ):
+    # given
     query = EXPORT_PRODUCTS_MUTATION
 
     products = product_list[:2]
@@ -501,12 +530,15 @@ def test_export_products_mutation_with_channel_ids_invalid_object_type(
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         query,
         variables=variables,
         permissions=[permission_manage_products, permission_manage_apps],
     )
     content = get_graphql_content(response)
+
+    # then
     data = content["data"]["exportProducts"]
     errors = data["errors"]
     assert len(errors) == 1
@@ -518,7 +550,7 @@ def test_export_products_mutation_with_channel_ids_invalid_object_type(
 
 
 @pytest.mark.parametrize(
-    "input, error_field",
+    ("input", "error_field"),
     [
         (
             {
@@ -547,14 +579,18 @@ def test_export_products_mutation_failed(
     input,
     error_field,
 ):
+    # given
     query = EXPORT_PRODUCTS_MUTATION
     user = staff_api_client.user
     variables = {"input": input}
 
+    # when
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
+
+    # then
     data = content["data"]["exportProducts"]
     errors = data["errors"]
 
@@ -565,3 +601,37 @@ def test_export_products_mutation_failed(
     assert not ExportEvent.objects.filter(
         user=user, type=ExportEvents.EXPORT_PENDING
     ).exists()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_export_completed")
+def test_export_products_webhooks(
+    product_export_completed_mock,
+    user_api_client,
+    product_list,
+    permission_manage_products,
+    permission_manage_apps,
+    media_root,
+):
+    # given
+    query = EXPORT_PRODUCTS_MUTATION
+    variables = {
+        "input": {
+            "scope": ExportScope.ALL.name,
+            "exportInfo": {},
+            "fileType": FileTypeEnum.CSV.name,
+        }
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_products, permission_manage_apps],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["exportProducts"]
+    assert not data["errors"]
+
+    product_export_completed_mock.assert_called_once()

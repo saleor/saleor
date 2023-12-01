@@ -498,6 +498,54 @@ def test_request_charge_action_by_app(
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
+def test_request_charge_action_by_removed_app(
+    mocked_transaction_request, mocked_is_active, order, removed_app
+):
+    transaction = TransactionItem.objects.create(
+        name="Credit card",
+        psp_reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+        app=removed_app,
+    )
+    action_value = Decimal("5.00")
+    requested_event = transaction.events.create(
+        amount_value=action_value,
+        currency=transaction.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+    mocked_is_active.side_effect = [True, True]
+
+    # when
+    request_charge_action(
+        transaction=transaction,
+        manager=get_plugins_manager(),
+        charge_value=action_value,
+        channel_slug=order.channel.slug,
+        user=None,
+        app=removed_app,
+        request_event=requested_event,
+    )
+
+    # then
+    assert mocked_is_active.called
+    mocked_transaction_request.assert_called_once_with(
+        TransactionActionData(
+            action_type=TransactionAction.CHARGE,
+            transaction=transaction,
+            event=requested_event,
+            transaction_app_owner=removed_app,
+            action_value=action_value,
+            granted_refund=None,
+        ),
+        order.channel.slug,
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
 def test_request_charge_action_on_checkout(
     mocked_transaction_request,
     mocked_is_active,
@@ -545,10 +593,10 @@ def test_request_charge_action_on_checkout(
     assert mocked_is_active.called
     mocked_transaction_request.assert_called_once_with(
         TransactionActionData(
-            transaction=transaction,
             action_type=TransactionAction.CHARGE,
-            action_value=action_value,
+            transaction=transaction,
             event=requested_event,
+            action_value=action_value,
             transaction_app_owner=app,
         ),
         checkout.channel.slug,
@@ -1082,8 +1130,7 @@ def test_request_cancelation_action_on_checkout(
 @patch("saleor.payment.gateway.void")
 @patch("saleor.payment.gateway.refund")
 def test_payment_refund_or_void_no_payment(refund_mock, void_mock):
-    """Ensure that either refund or void method is not called when
-    there is no payment object."""
+    """Test that neither refund nor void is called when there is no payment object."""
     # when
     gateway.payment_refund_or_void(None, get_plugins_manager(), None)
 
@@ -1094,8 +1141,7 @@ def test_payment_refund_or_void_no_payment(refund_mock, void_mock):
 
 @patch("saleor.payment.gateway.refund")
 def test_payment_refund_or_void_refund_called(refund_mock, payment):
-    """Ensure that the refund method is called when payment can be refunded
-    and there is no refund transaction."""
+    """Test that refund is called when there is no matching transaction."""
     # given
     payment.transactions.count() == 0
     payment.charge_status = ChargeStatus.FULLY_CHARGED
@@ -1112,9 +1158,7 @@ def test_payment_refund_or_void_refund_called(refund_mock, payment):
 def test_payment_refund_or_void_refund_not_called_refund_already_started(
     refund_mock, payment
 ):
-    """Ensure that the refund method is not called when the refund process
-    is already ongoing -  there is a `REFUND_ONGOING` transaction with
-    the given transaction_id."""
+    """Test that refund is not called if a matching transaction already exists."""
     # given
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.save(update_fields=["charge_status"])
@@ -1140,8 +1184,7 @@ def test_payment_refund_or_void_refund_not_called_refund_already_started(
 
 @patch("saleor.payment.gateway.refund")
 def test_payment_refund_or_void_refund_called_txn_exist(refund_mock, payment):
-    """Ensure that the refund method is called when the refund process
-    is already ongoing but not covered full payment captured amount."""
+    """Test that refund is called when existing transactions don't cover the captured amount."""
     # given
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.save(update_fields=["charge_status"])
@@ -1171,8 +1214,7 @@ def test_payment_refund_or_void_refund_called_txn_exist(refund_mock, payment):
 def test_payment_refund_or_void_refund_called_no_txn_with_given_transaction_id(
     refund_mock, payment
 ):
-    """Ensure that the refund method is called when payment has the refund ongoing
-    transaction but with different transaction_id that was provided."""
+    """Test that refund is called when unrelated refund transactions exist."""
     # given
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.save(update_fields=["charge_status"])
@@ -1200,8 +1242,7 @@ def test_payment_refund_or_void_refund_called_no_txn_with_given_transaction_id(
 
 @patch("saleor.payment.gateway.void")
 def test_payment_refund_or_void_void_called(void_mock, payment):
-    """Ensure that the refund method is called when payment can be voided
-    and there is no void transaction for given payment."""
+    """Test that void is called when there is no matching transaction."""
     # given
     payment.can_void = Mock(return_value=True)
     assert payment.can_void() is True
@@ -1216,8 +1257,7 @@ def test_payment_refund_or_void_void_called(void_mock, payment):
 
 @patch("saleor.payment.gateway.void")
 def test_payment_refund_or_void_void_not_called_txn_exist(void_mock, payment):
-    """Ensure that void method is not called when VOID transaction already exists with
-    given transaction_id."""
+    """Test that void is not called if a matching void transaction already exists."""
     # given
     payment.can_void = Mock(return_value=True)
     assert payment.can_refund() is False

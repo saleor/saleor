@@ -13,8 +13,7 @@ def queryset_in_batches(qs, batch_size: int):
             yield ids[index : min(index + batch_size, length)]
 
     ids = qs.values_list("id", flat=True)
-    for ids_batch in batch_ids():
-        yield ids_batch
+    yield from batch_ids()
 
 
 def update_uuid_field(model_cls, batch_size: int):

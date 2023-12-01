@@ -250,7 +250,7 @@ def test_parse_transaction_action_data_with_only_psp_reference():
 
 
 @pytest.mark.parametrize(
-    "event_time, expected_datetime",
+    ("event_time", "expected_datetime"),
     [
         (
             "2023-10-17T10:18:28.111Z",
@@ -941,14 +941,20 @@ def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
     assert failed_event.type == TransactionEventType.AUTHORIZATION_FAILURE
 
 
+@pytest.mark.parametrize(
+    ("first_event_amount", "second_event_amount"),
+    [(12.02, 12.02), ("12.02", 12.02), (12.02, "12.02"), ("12.02", "12.02")],
+)
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_same_event(
     transaction_item_generator,
+    first_event_amount,
+    second_event_amount,
     app,
 ):
     # given
     expected_psp_reference = "psp:122:222"
-    event_amount = 12.00
+    event_amount = first_event_amount
     event_type = TransactionEventType.AUTHORIZATION_SUCCESS
     event_time = "2022-11-18T13:25:58.169685+00:00"
     event_url = "http://localhost:3000/event/ref123"
@@ -963,14 +969,14 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
 
     request_event = TransactionEvent.objects.create(
         type=TransactionEventType.AUTHORIZATION_REQUEST,
-        amount_value=event_amount,
+        amount_value=second_event_amount,
         currency="USD",
         transaction_id=transaction.id,
     )
 
     response_data = {
         "pspReference": expected_psp_reference,
-        "amount": event_amount,
+        "amount": second_event_amount,
         "result": event_type.upper(),
         "time": event_time,
         "externalUrl": event_url,
@@ -987,6 +993,53 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
     assert request_event.psp_reference == expected_psp_reference
     assert event
     assert event.pk == existing_authorize_success.pk
+
+
+@pytest.mark.parametrize(
+    "event_amount",
+    [None, "NaN", "-Inf", "Inf", "One"],
+)
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_handle_incorrect_values(
+    transaction_item_generator,
+    event_amount,
+    app,
+):
+    # given
+    expected_psp_reference = "psp:122:222"
+    event_amount = event_amount
+    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+
+    transaction = transaction_item_generator()
+
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        amount_value=Decimal(10),
+        currency="USD",
+        transaction_id=transaction.id,
+        psp_reference=expected_psp_reference,
+    )
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+    }
+
+    # when
+    event = create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    assert event.type == TransactionEventType.AUTHORIZATION_FAILURE
+    assert TransactionEvent.objects.count() == 2
+    request_event.refresh_from_db()
+    assert request_event.psp_reference == expected_psp_reference
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -1040,7 +1093,7 @@ def test_create_transaction_event_from_request_and_webhook_response_different_am
 
 
 @pytest.mark.parametrize(
-    "db_field_name, value, event_type",
+    ("db_field_name", "value", "event_type"),
     [
         ("authorized_value", Decimal("12"), TransactionEventType.AUTHORIZATION_SUCCESS),
         ("charged_value", Decimal("13"), TransactionEventType.CHARGE_SUCCESS),
@@ -1154,7 +1207,7 @@ def test_create_manual_adjustment_events_additional_cancel(
 
 
 @pytest.mark.parametrize(
-    "request_type, expected_events",
+    ("request_type", "expected_events"),
     [
         (
             TransactionEventType.AUTHORIZATION_REQUEST,
@@ -1193,7 +1246,7 @@ def test_get_correct_event_types_based_on_request_type(request_type, expected_ev
 
 
 @pytest.mark.parametrize(
-    "response_result, transaction_amount_field_name",
+    ("response_result", "transaction_amount_field_name"),
     [
         (TransactionEventType.AUTHORIZATION_REQUEST, "authorize_pending_value"),
         (TransactionEventType.AUTHORIZATION_SUCCESS, "authorized_value"),
@@ -1234,7 +1287,7 @@ def test_create_transaction_event_for_transaction_session_success_response(
 
 
 @pytest.mark.parametrize(
-    "response_result, transaction_amount_field_name",
+    ("response_result", "transaction_amount_field_name"),
     [
         (TransactionEventType.AUTHORIZATION_REQUEST, "authorize_pending_value"),
         (TransactionEventType.AUTHORIZATION_SUCCESS, "authorized_value"),

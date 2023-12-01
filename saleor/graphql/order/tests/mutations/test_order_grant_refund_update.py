@@ -1,7 +1,9 @@
 from decimal import Decimal
 
-from saleor.core.prices import quantize_price
+import pytest
 
+from .....core.prices import quantize_price
+from .....order.utils import update_order_charge_data
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import (
     assert_no_permission,
@@ -9,6 +11,7 @@ from ....tests.utils import (
     get_graphql_content_from_response,
 )
 from ...enums import (
+    OrderChargeStatusEnum,
     OrderGrantRefundUpdateErrorCode,
     OrderGrantRefundUpdateLineErrorCode,
 )
@@ -141,8 +144,9 @@ def test_grant_refund_update_by_user(
     )
 
 
+@pytest.mark.parametrize("amount", [Decimal("0.00"), Decimal("20.00")])
 def test_grant_refund_update_only_amount_by_user(
-    staff_api_client, app, permission_manage_orders, order
+    amount, staff_api_client, app, permission_manage_orders, order
 ):
     # given
     current_reason = "Granted refund reason."
@@ -155,7 +159,6 @@ def test_grant_refund_update_only_amount_by_user(
     )
     granted_refund_id = to_global_id_or_none(granted_refund)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    amount = Decimal("20.00")
     variables = {
         "id": granted_refund_id,
         "input": {"amount": amount},
@@ -181,8 +184,9 @@ def test_grant_refund_update_only_amount_by_user(
     assert granted_refund.reason == current_reason
 
 
+@pytest.mark.parametrize("reason", ["", "new reason"])
 def test_grant_refund_update_only_reason_by_user(
-    staff_api_client, app, permission_manage_orders, order
+    reason, staff_api_client, app, permission_manage_orders, order
 ):
     # given
     current_reason = "Granted refund reason."
@@ -195,7 +199,6 @@ def test_grant_refund_update_only_reason_by_user(
     )
     granted_refund_id = to_global_id_or_none(granted_refund)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    reason = "new reason"
     variables = {
         "id": granted_refund_id,
         "input": {"reason": reason},
@@ -323,8 +326,9 @@ def test_grant_refund_update_by_app(
     )
 
 
+@pytest.mark.parametrize("amount", [Decimal("0.00"), Decimal("20.00")])
 def test_grant_refund_update_only_amount_by_app(
-    app_api_client, staff_user, permission_manage_orders, order
+    amount, app_api_client, staff_user, permission_manage_orders, order
 ):
     # given
     current_reason = "Granted refund reason."
@@ -337,7 +341,6 @@ def test_grant_refund_update_only_amount_by_app(
     )
     granted_refund_id = to_global_id_or_none(granted_refund)
     app_api_client.app.permissions.set([permission_manage_orders])
-    amount = Decimal("20.00")
     variables = {
         "id": granted_refund_id,
         "input": {"amount": amount},
@@ -366,8 +369,9 @@ def test_grant_refund_update_only_amount_by_app(
     )
 
 
+@pytest.mark.parametrize("reason", ["", "new reason"])
 def test_grant_refund_update_only_reason_by_app(
-    app_api_client, staff_user, permission_manage_orders, order
+    reason, app_api_client, staff_user, permission_manage_orders, order
 ):
     # given
     current_reason = "Granted refund reason."
@@ -381,7 +385,6 @@ def test_grant_refund_update_only_reason_by_app(
     granted_refund_id = to_global_id_or_none(granted_refund)
     app_api_client.app.permissions.set([permission_manage_orders])
 
-    reason = "new reason"
     variables = {
         "id": granted_refund_id,
         "input": {"reason": reason},
@@ -674,6 +677,74 @@ def test_grant_refund_update_with_add_and_remove_lines(
     assert (
         granted_refund.amount_value
         == order_line.unit_price_gross_amount * expected_quantity
+    )
+    assert quantize_price(
+        granted_refund.amount_value, order_with_lines.currency
+    ) == quantize_price(
+        Decimal(granted_refund_data["amount"]["amount"]), order_with_lines.currency
+    )
+
+
+def test_grant_refund_update_with_same_line_in_add_and_remove(
+    app_api_client, staff_user, permission_manage_orders, order_with_lines
+):
+    # given
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("10.00")
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order_with_lines.currency,
+        reason=current_reason,
+        user=staff_user,
+    )
+    last_order_line = order_with_lines.lines.last()
+    last_order_line.quantity = 2
+    last_order_line.save()
+    granted_refund_line_to_remove = granted_refund.lines.create(
+        order_line=last_order_line, quantity=1
+    )
+
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    expected_quantity = 2
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "addLines": [
+                {
+                    "id": to_global_id_or_none(last_order_line),
+                    "quantity": expected_quantity,
+                }
+            ],
+            "removeLines": [to_global_id_or_none(granted_refund_line_to_remove)],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    granted_refund.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    assert not data["errors"]
+    assert len(data["order"]["grantedRefunds"]) == 1
+    granted_refund_data = data["order"]["grantedRefunds"][0]
+    assert len(granted_refund_data["lines"]) == 1
+    assert granted_refund_data["lines"][0]["orderLine"]["id"] == to_global_id_or_none(
+        last_order_line
+    )
+
+    assert len(granted_refund.lines.all()) == 1
+    granted_refund_line = granted_refund.lines.first()
+    assert granted_refund_line.order_line == last_order_line
+    assert granted_refund_line.quantity == expected_quantity
+
+    assert (
+        granted_refund.amount_value
+        == last_order_line.unit_price_gross_amount * expected_quantity
     )
     assert quantize_price(
         granted_refund.amount_value, order_with_lines.currency
@@ -1156,3 +1227,53 @@ def test_grant_refund_update_with_shipping_cost_already_included(
         == OrderGrantRefundUpdateErrorCode.SHIPPING_COSTS_ALREADY_GRANTED.name
     )
     assert len(granted_refund.lines.all()) == 0
+
+
+def test_grant_refund_updates_order_charge_status(
+    staff_api_client, app, permission_manage_orders, order_with_lines
+):
+    # given
+    order = order_with_lines
+    new_granted_refund_amount = Decimal("5.00")
+    order.payment_transactions.create(
+        charged_value=order.total.gross.amount - new_granted_refund_amount,
+        authorized_value=Decimal(12),
+        currency=order_with_lines.currency,
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("10.00")
+    granted_refund = order.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order.currency,
+        reason=current_reason,
+        app=app,
+    )
+
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "amount": new_granted_refund_amount,
+        },
+    }
+    update_order_charge_data(order)
+
+    # overcharged as total(98.40) - current grantedRefund(10.00) is less than
+    # total charged(98.40 - 5.00)
+    assert order.charge_status == OrderChargeStatusEnum.OVERCHARGED.value
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    order.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    assert not data["errors"]
+
+    assert data["order"]["id"] == to_global_id_or_none(order)
+    assert len(data["order"]["grantedRefunds"]) == 1
+
+    assert order.charge_status == OrderChargeStatusEnum.FULL.value

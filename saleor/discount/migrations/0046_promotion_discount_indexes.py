@@ -1,6 +1,6 @@
-from django.db import migrations
-from django.contrib.postgres.operations import AddIndexConcurrently
 from django.contrib.postgres.indexes import BTreeIndex
+from django.contrib.postgres.operations import AddIndexConcurrently
+from django.db import migrations
 
 
 class Migration(migrations.Migration):

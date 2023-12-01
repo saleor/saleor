@@ -1,8 +1,8 @@
-from typing import Dict, TypeVar
+from typing import TypeVar
 
 import graphene
 
-federated_entities: Dict[str, graphene.ObjectType] = {}
+federated_entities: dict[str, graphene.ObjectType] = {}
 
 
 T = TypeVar("T", bound=graphene.ObjectType)

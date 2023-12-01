@@ -4,8 +4,8 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from .....discount import DiscountValueType
-from .....discount.models import Sale, SaleChannelListing
+from .....discount import RewardValueType
+from .....discount.models import Promotion, PromotionRule
 from ....tests.utils import get_graphql_content
 
 
@@ -13,47 +13,53 @@ from ....tests.utils import get_graphql_content
 @freeze_time("2020-03-18 12:00:00")
 def sales_for_pagination(channel_USD):
     now = timezone.now()
-    sales = Sale.objects.bulk_create(
+    promotions = Promotion.objects.bulk_create(
         [
-            Sale(
+            Promotion(
                 name="Sale1",
                 start_date=now + timezone.timedelta(hours=4),
                 end_date=now + timezone.timedelta(hours=14),
-                type=DiscountValueType.PERCENTAGE,
             ),
-            Sale(
+            Promotion(
                 name="Sale2",
                 end_date=now + timezone.timedelta(hours=1),
             ),
-            Sale(
+            Promotion(
                 name="Sale3",
                 end_date=now + timezone.timedelta(hours=2),
-                type=DiscountValueType.PERCENTAGE,
             ),
-            Sale(
+            Promotion(
                 name="Sale4",
                 end_date=now + timezone.timedelta(hours=1),
             ),
-            Sale(
+            Promotion(
                 name="Sale15",
                 start_date=now + timezone.timedelta(hours=1),
                 end_date=now + timezone.timedelta(hours=2),
             ),
         ]
     )
+    for promotion in promotions:
+        promotion.assign_old_sale_id()
+
     values = [Decimal("1"), Decimal("7"), Decimal("5"), Decimal("5"), Decimal("25")]
-    SaleChannelListing.objects.bulk_create(
+    rules = PromotionRule.objects.bulk_create(
         [
-            SaleChannelListing(
-                discount_value=values[i],
-                sale=sale,
-                channel=channel_USD,
-                currency=channel_USD.currency_code,
+            PromotionRule(
+                promotion=promotion,
+                reward_value=values[i],
+                reward_value_type=RewardValueType.FIXED,
             )
-            for i, sale in enumerate(sales)
+            for i, promotion in enumerate(promotions)
         ]
     )
-    return sales
+    rules[0].reward_value_type = RewardValueType.PERCENTAGE
+    rules[2].reward_value_type = RewardValueType.PERCENTAGE
+    PromotionRule.objects.bulk_update(rules, fields=["reward_value_type"])
+    for rule in rules:
+        rule.channels.add(channel_USD)
+
+    return promotions
 
 
 QUERY_SALES_PAGINATION = """
@@ -82,7 +88,7 @@ QUERY_SALES_PAGINATION = """
 
 
 @pytest.mark.parametrize(
-    "sort_by, sales_order",
+    ("sort_by", "sales_order"),
     [
         ({"field": "NAME", "direction": "ASC"}, ["Sale1", "Sale15", "Sale2"]),
         ({"field": "NAME", "direction": "DESC"}, ["Sale4", "Sale3", "Sale2"]),
@@ -98,7 +104,7 @@ def test_sales_pagination_with_sorting(
     permission_manage_discounts,
     sales_for_pagination,
 ):
-    page_size = 3
+    page_size = 5
 
     variables = {"first": page_size, "after": None, "sortBy": sort_by}
     response = staff_api_client.post_graphql(
@@ -146,7 +152,7 @@ def test_sales_pagination_with_sorting_and_channel(
 
 
 @pytest.mark.parametrize(
-    "filter_by, sales_order",
+    ("filter_by", "sales_order"),
     [
         ({"status": "SCHEDULED"}, ["Sale1", "Sale15"]),
         ({"status": "ACTIVE"}, ["Sale2", "Sale3"]),

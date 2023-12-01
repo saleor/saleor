@@ -18,11 +18,13 @@ from ....core.utils.validators import get_oembed_data
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
-from ....product.tasks import update_products_discounted_prices_task
+from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....thumbnail.utils import get_filename_from_url
 from ....warehouse.models import Warehouse
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...attribute.types import AttributeValueInput
-from ...attribute.utils import AttributeAssignmentMixin
+from ...attribute.utils import ProductAttributeAssignmentMixin
 from ...channel import ChannelContext
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -208,6 +210,12 @@ class ProductBulkCreate(BaseMutation):
     def generate_unique_slug(cls, slugable_value, new_slugs):
         slug = slugify(unidecode(slugable_value))
 
+        # in case when slugable_value contains only not allowed in slug characters,
+        # slugify function will return empty string, so we need to provide some default
+        # value
+        if slug == "":
+            slug = "-"
+
         search_field = "slug__iregex"
         pattern = rf"{slug}-\d+$|{slug}$"
         lookup = {search_field: pattern}
@@ -280,7 +288,7 @@ class ProductBulkCreate(BaseMutation):
         if attributes := cleaned_input.get("attributes"):
             try:
                 attributes_qs = cleaned_input["product_type"].product_attributes.all()
-                attributes = AttributeAssignmentMixin.clean_input(
+                attributes = ProductAttributeAssignmentMixin.clean_input(
                     attributes, attributes_qs
                 )
                 cleaned_input["attributes"] = attributes
@@ -290,14 +298,15 @@ class ProductBulkCreate(BaseMutation):
                         product_index, exc, index_error_map, "attributes"
                     )
                 else:
-                    index_error_map[product_index].append(
-                        ProductBulkCreateError(
-                            path="attributes",
-                            message=exc.message,
-                            code=exc.code,
+                    for error in exc.error_list:
+                        index_error_map[product_index].append(
+                            ProductBulkCreateError(
+                                path="attributes",
+                                message=error.message,
+                                code=error.code,
+                            )
                         )
-                    )
-                attributes_errors_count += 1
+                    attributes_errors_count += 1
         return attributes_errors_count
 
     @classmethod
@@ -747,7 +756,7 @@ class ProductBulkCreate(BaseMutation):
         models.ProductChannelListing.objects.bulk_create(listings_to_create)
 
         for product, attributes in attributes_to_save:
-            AttributeAssignmentMixin.save(product, attributes)
+            ProductAttributeAssignmentMixin.save(product, attributes)
 
         if variants_input_data:
             variants = cls.save_variants(info, variants_input_data)
@@ -830,17 +839,20 @@ class ProductBulkCreate(BaseMutation):
     def post_save_actions(cls, info, products, variants, channels):
         manager = get_plugin_manager_promise(info.context).get()
         product_ids = []
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_CREATED)
         for product in products:
-            cls.call_event(manager.product_created, product.node)
+            cls.call_event(manager.product_created, product.node, webhooks=webhooks)
             product_ids.append(product.node.id)
 
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_CREATED)
         for variant in variants:
-            cls.call_event(manager.product_variant_created, variant)
+            cls.call_event(manager.product_variant_created, variant, webhooks=webhooks)
 
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.CHANNEL_UPDATED)
         for channel in channels:
-            cls.call_event(manager.channel_updated, channel)
+            cls.call_event(manager.channel_updated, channel, webhooks=webhooks)
 
-        update_products_discounted_prices_task.delay(product_ids)
+        update_products_discounted_prices_for_promotion_task.delay(product_ids)
 
     @classmethod
     @traced_atomic_transaction()

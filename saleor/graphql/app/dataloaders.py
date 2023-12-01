@@ -17,7 +17,11 @@ class AppByIdLoader(DataLoader):
     context_key = "app_by_id"
 
     def batch_load(self, keys):
-        apps = App.objects.using(self.database_connection_name).in_bulk(keys)
+        apps = (
+            App.objects.using(self.database_connection_name)
+            .filter(removed_at__isnull=True)
+            .in_bulk(keys)
+        )
         return [apps.get(key) for key in keys]
 
 
@@ -51,7 +55,7 @@ class AppsByAppIdentifierLoader(DataLoader):
 
     def batch_load(self, keys):
         apps = App.objects.using(self.database_connection_name).filter(
-            identifier__in=keys
+            identifier__in=keys, removed_at__isnull=True
         )
         apps_map = defaultdict(list)
         for app in apps:
@@ -64,7 +68,7 @@ class AppTokensByAppIdLoader(DataLoader):
 
     def batch_load(self, keys):
         tokens = AppToken.objects.using(self.database_connection_name).filter(
-            app_id__in=keys
+            app_id__in=keys, app__removed_at__isnull=True
         )
         tokens_by_app_map = defaultdict(list)
         for token in tokens:
@@ -80,14 +84,6 @@ class AppByTokenLoader(DataLoader):
         for raw_token in keys:
             last_4s_to_raw_token_map[raw_token[-4:]].append(raw_token)
 
-        # The app should always be taken from the default database.
-        # The app is retrieved from the database before the mutation code is reached,
-        # in case the replica database is set the app from the replica will be returned.
-        # In such case, when in the mutation there is another ask for an app,
-        # the cached instance from the replica is returned. Then the error is raised
-        # when any object is saved with a reference to this app.
-        # Because of that loaders that are used in context shouldn't use
-        # the replica database.
         tokens = (
             AppToken.objects.using(self.database_connection_name)
             .filter(token_last_4__in=last_4s_to_raw_token_map.keys())
@@ -101,7 +97,9 @@ class AppByTokenLoader(DataLoader):
 
         apps = (
             App.objects.using(self.database_connection_name)
-            .filter(id__in=authed_apps.values(), is_active=True)
+            .filter(
+                id__in=authed_apps.values(), is_active=True, removed_at__isnull=True
+            )
             .in_bulk()
         )
 

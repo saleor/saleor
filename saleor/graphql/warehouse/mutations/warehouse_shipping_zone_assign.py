@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -36,7 +35,7 @@ class WarehouseShippingZoneAssign(ModelMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id: str, shipping_zone_ids: List[str]
+        cls, _root, info: ResolveInfo, /, *, id: str, shipping_zone_ids: list[str]
     ):
         warehouse = cls.get_node_or_error(info, id, only_type=Warehouse)
         shipping_zones = cls.get_nodes_or_error(

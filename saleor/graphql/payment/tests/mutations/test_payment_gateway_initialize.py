@@ -1,6 +1,5 @@
 from decimal import Decimal
-
-import mock
+from unittest import mock
 
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -456,7 +455,7 @@ def test_for_checkout_with_missing_payment_gateway(
     checkout = checkout_with_prices
     expected_app_identifier = "app.id"
     expected_error_msg = (
-        "Active app with `HANDLE_PAYMENT` permissions or " "app webhook not found."
+        "Active app with `HANDLE_PAYMENT` permissions or app webhook not found."
     )
     expected_input_data = {"input": "json"}
     excpected_amount = Decimal(30)
@@ -516,7 +515,7 @@ def test_for_order_with_missing_payment_gateway(
     expected_input_data = {"input": "json"}
     excpected_amount = Decimal(30)
     expected_error_msg = (
-        "Active app with `HANDLE_PAYMENT` permissions or " "app webhook not found."
+        "Active app with `HANDLE_PAYMENT` permissions or app webhook not found."
     )
     mocked_initialize.return_value = []
     variables = {
@@ -581,7 +580,7 @@ def test_for_checkout_with_multiple_payment_gateways(
     third_expected_input_data = {"input": "json3"}
 
     expected_error_msg = (
-        "Active app with `HANDLE_PAYMENT` permissions or " "app webhook not found."
+        "Active app with `HANDLE_PAYMENT` permissions or app webhook not found."
     )
 
     mocked_initialize.return_value = [
@@ -688,7 +687,7 @@ def test_for_order_with_multiple_payment_gateways(
     third_expected_input_data = {"input": "json3"}
 
     expected_error_msg = (
-        "Active app with `HANDLE_PAYMENT` permissions or " "app webhook not found."
+        "Active app with `HANDLE_PAYMENT` permissions or app webhook not found."
     )
 
     mocked_initialize.return_value = [

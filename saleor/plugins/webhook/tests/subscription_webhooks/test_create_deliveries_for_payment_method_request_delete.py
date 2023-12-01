@@ -4,7 +4,9 @@ import graphene
 
 from .....payment.interface import StoredPaymentMethodRequestDeleteData
 from .....webhook.event_types import WebhookEventSyncType
-from ...tasks import create_deliveries_for_subscriptions
+from .....webhook.transport.asynchronous.transport import (
+    create_deliveries_for_subscriptions,
+)
 
 STORED_PAYMENT_METHOD_DELETE_REQUESTED = """
 subscription {

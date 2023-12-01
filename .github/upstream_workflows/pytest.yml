@@ -6,7 +6,6 @@ on:
     paths:
       - "**.py"
       - Dockerfile
-      - requirements_dev.txt
       - "saleor/**"
       - ".github/workflows/pytest.yml"
       - pyproject.toml
@@ -18,8 +17,8 @@ on:
     paths:
       - "**.py"
       - Dockerfile
-      - requirements_dev.txt
       - "saleor/**"
+      - ".github/workflows/pytest.yml"
       - pyproject.toml
       - poetry.lock
 
@@ -54,7 +53,7 @@ jobs:
 
       - name: Install and configure poetry
         run: |
-          python -m pip install poetry==1.5.0
+          pip install poetry==1.7.0
 
       - name: Cache the venv
         id: cached-poetry-dependencies
@@ -65,22 +64,31 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m poetry install --no-root
+          poetry env use python3.9
+          poetry install --no-root
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+
+      - name: Add Python Virtual Environment to PATH
+        run: |
+          # Note: requires `poetry env use` to be ran, otherwise poetry
+          # may not be able to find which virtual environment is in use.
+          # Ticket: https://github.com/python-poetry/poetry/issues/7190
+          echo "$(poetry env info -p)"/bin >> $GITHUB_PATH
 
       # Run linters and Django related checks
       # `git config` command is a workaround for https://github.com/actions/runner-images/issues/6775
       - name: Run Linters and Checks
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          python -m poetry run pre-commit run --all
+          pre-commit run --all
         if: ${{ always() }}
 
       - name: Run unit tests
         run: |
-          python -m poetry run pytest \
+          pytest \
             -m "not e2e" \
             --cov \
+            --cov-report= \
             --junitxml=junit/test-results.xml \
             --django-db-bench=${{ env.BENCH_PATH }}
 
@@ -92,7 +100,7 @@ jobs:
             ${{ runner.os }}-pre-commit-
 
       # Publish coverage and test results
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
 
       - uses: actions/upload-artifact@v3
         with:
@@ -118,5 +126,4 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          python -m poetry run pytest \
-            -m "e2e"
+          pytest -m "e2e"

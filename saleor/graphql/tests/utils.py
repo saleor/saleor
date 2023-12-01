@@ -8,8 +8,9 @@ def get_graphql_content_from_response(response):
 
 
 def get_graphql_content(response, *, ignore_errors: bool = False):
-    """Gets GraphQL content from the response, and optionally checks if it
-    contains any operating-related errors, eg. schema errors or lack of
+    """Extract GraphQL content from the API response.
+
+    Optionally ignore protocol-level errors, eg. schema errors or lack of
     permissions.
     """
     content = get_graphql_content_from_response(response)

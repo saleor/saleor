@@ -41,7 +41,7 @@ mutation OrderDiscountAdd($orderId: ID!, $input: OrderDiscountCommonInput!){
 
 
 @pytest.mark.parametrize(
-    "value,value_type",
+    ("value", "value_type"),
     [
         (Decimal("2222222"), DiscountValueTypeEnum.FIXED.name),
         (Decimal("101"), DiscountValueTypeEnum.PERCENTAGE.name),
@@ -88,7 +88,7 @@ def test_add_fixed_order_discount_order_is_not_draft(
     assert error["code"] == OrderErrorCode.CANNOT_DISCOUNT.name
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_add_fixed_order_discount_to_order(
     status, draft_order, staff_api_client, permission_group_manage_orders
 ):
@@ -135,7 +135,7 @@ def test_add_fixed_order_discount_to_order(
     assert discount_data["amount_value"] == str(order_discount.amount.amount)
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_add_percentage_order_discount_to_order(
     status, draft_order, staff_api_client, permission_group_manage_orders
 ):
@@ -168,7 +168,7 @@ def test_add_percentage_order_discount_to_order(
     errors = data["errors"]
     assert len(errors) == 0
 
-    # Use `net` values in comparison due to that fixture have taxes incluted in
+    # Use `net` values in comparison due to that fixture have taxes included in
     # prices but after recalculation taxes are removed because in tests we
     # don't use any tax app.
     assert expected_net_total == order.total.net
@@ -295,7 +295,7 @@ mutation OrderDiscountUpdate($discountId: ID!, $input: OrderDiscountCommonInput!
 """
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_percentage_order_discount_to_order(
     status,
     draft_order_with_fixed_discount_order,
@@ -358,7 +358,7 @@ def test_update_percentage_order_discount_to_order(
 
 
 @patch("saleor.order.calculations.PluginsManager.calculate_order_shipping")
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_fixed_order_discount_to_order(
     mocked_function,
     status,
@@ -449,7 +449,7 @@ def test_update_order_discount_order_is_not_draft(
 
 
 @pytest.mark.parametrize(
-    "value,value_type",
+    ("value", "value_type"),
     [
         (Decimal("2222222"), DiscountValueTypeEnum.FIXED.name),
         (Decimal("101"), DiscountValueTypeEnum.PERCENTAGE.name),
@@ -598,7 +598,7 @@ mutation OrderDiscountDelete($discountId: ID!){
 """
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_delete_order_discount_from_order(
     status,
     draft_order_with_fixed_discount_order,
@@ -765,7 +765,7 @@ mutation OrderLineDiscountUpdate($input: OrderDiscountCommonInput!, $orderLineId
 """
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_order_line_discount(
     status,
     draft_order_with_fixed_discount_order,
@@ -925,7 +925,7 @@ def test_update_order_line_discount_by_app(
     assert discount_data["amount_value"] == str(unit_discount.amount)
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_order_line_discount_line_with_discount(
     status,
     draft_order_with_fixed_discount_order,
@@ -1074,7 +1074,7 @@ mutation OrderLineDiscountRemove($orderLineId: ID!){
 """
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_total")
 def test_delete_discount_from_order_line(

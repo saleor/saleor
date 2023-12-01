@@ -40,6 +40,7 @@ def create_product_type(
     has_variants=False,
     product_attributes=None,
     variant_attributes=None,
+    kind="NORMAL",
 ):
     if not product_attributes:
         product_attributes = []
@@ -56,6 +57,7 @@ def create_product_type(
             "hasVariants": has_variants,
             "productAttributes": product_attributes,
             "variantAttributes": variant_attributes,
+            "kind": kind,
         }
     }
 

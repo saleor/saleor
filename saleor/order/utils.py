@@ -1,8 +1,8 @@
+from collections.abc import Iterable
 from decimal import Decimal
 from functools import wraps
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
+from typing import TYPE_CHECKING, Optional, cast
 
-import graphene
 from django.db.models import QuerySet, Sum
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -24,8 +24,11 @@ from ..discount.models import (
 )
 from ..discount.utils import (
     apply_discount_to_value,
+    get_discount_name,
+    get_discount_translated_name,
     get_products_voucher_discount,
-    get_sale_applied_as_a_discount,
+    get_sale_id,
+    prepare_promotion_discount_reason,
     validate_voucher_in_order,
 )
 from ..giftcard import events as gift_card_events
@@ -62,6 +65,7 @@ if TYPE_CHECKING:
     from ..app.models import App
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
+    from ..discount.interface import VariantPromotionRuleInfo
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
 
@@ -211,40 +215,29 @@ def create_order_line(
     order,
     line_data,
     manager,
-    discounts=None,
     allocate_stock=False,
 ):
-    from ..discount.sale_converter import get_promotion_rule_for_sale
-
     channel = order.channel
     variant = line_data.variant
     quantity = line_data.quantity
     price_override = line_data.price_override
+    rules_info = line_data.rules_info
 
     product = variant.product
-    collections = product.collections.all()
     channel_listing = variant.channel_listings.get(channel=channel)
 
     # vouchers are not applied for new lines in unconfirmed/draft orders
     untaxed_unit_price = variant.get_price(
-        product,
-        collections,
-        channel,
         channel_listing,
-        discounts,
+        price_override=price_override,
+        promotion_rules=(
+            [rule_info.rule for rule_info in rules_info] if rules_info else None
+        ),
+    )
+    untaxed_undiscounted_price = variant.get_base_price(
+        channel_listing,
         price_override=price_override,
     )
-    if not discounts:
-        untaxed_undiscounted_price = untaxed_unit_price
-    else:
-        untaxed_undiscounted_price = variant.get_price(
-            product,
-            collections,
-            channel,
-            channel_listing,
-            [],
-            price_override=price_override,
-        )
     unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
     undiscounted_unit_price = TaxedMoney(
         net=untaxed_undiscounted_price, gross=untaxed_undiscounted_price
@@ -289,15 +282,15 @@ def create_order_line(
 
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
-        sale, sale_channel_listing = get_sale_applied_as_a_discount(
-            product=product,
-            price=channel_listing.price,
-            discounts=discounts,
-            collections=collections,
-            channel=channel,
-            variant_id=variant.id,
-        )
-        sale_id = sale.id if sale else None
+        if rules_info:
+            line_discounts = create_order_line_discounts(line, rules_info)
+            promotion = rules_info[0].promotion
+            line.sale_id = get_sale_id(promotion)
+            line.unit_discount_reason = (
+                prepare_promotion_discount_reason(promotion, line.sale_id)
+                if line_discounts
+                else None
+            )
 
         tax_configuration = channel.tax_configuration
         prices_entered_with_tax = tax_configuration.prices_entered_with_tax
@@ -308,10 +301,6 @@ def create_order_line(
             discount_amount = unit_discount.net
         line.unit_discount = discount_amount
         line.unit_discount_value = discount_amount.amount
-        line.unit_discount_reason = (
-            f"Sale: {graphene.Node.to_global_id('Sale', sale_id)}"
-        )
-        line.sale_id = graphene.Node.to_global_id("Sale", sale_id) if sale_id else None
 
         line.save(
             update_fields=[
@@ -321,21 +310,6 @@ def create_order_line(
                 "sale_id",
             ]
         )
-
-        if sale:
-            rule = get_promotion_rule_for_sale(sale, sale_channel_listing)
-            OrderLineDiscount.objects.create(
-                type=DiscountType.SALE,
-                value_type=sale.type,
-                value=sale_channel_listing.discount_value
-                if sale_channel_listing
-                else None,
-                amount_value=discount_amount.amount,
-                currency=discount_amount.currency,
-                sale=sale,
-                promotion_rule=rule,
-                line=line,
-            )
 
     if allocate_stock:
         increase_allocations(
@@ -354,6 +328,31 @@ def create_order_line(
     return line
 
 
+def create_order_line_discounts(
+    line: "OrderLine", rules_info: Iterable["VariantPromotionRuleInfo"]
+) -> Iterable["OrderLineDiscount"]:
+    line_discounts_to_create: list[OrderLineDiscount] = []
+    for rule_info in rules_info:
+        rule = rule_info.rule
+        rule_discount_amount = rule_info.variant_listing_promotion_rule.discount_amount
+        line_discounts_to_create.append(
+            OrderLineDiscount(
+                line=line,
+                type=DiscountType.PROMOTION,
+                value_type=rule.reward_value_type,
+                value=rule.reward_value,
+                amount_value=rule_discount_amount,
+                currency=line.currency,
+                name=get_discount_name(rule, rule_info.promotion),
+                translated_name=get_discount_translated_name(rule_info),
+                reason=None,
+                promotion_rule=rule,
+            )
+        )
+
+    return OrderLineDiscount.objects.bulk_create(line_discounts_to_create)
+
+
 @traced_atomic_transaction()
 def add_variant_to_order(
     order,
@@ -361,7 +360,6 @@ def add_variant_to_order(
     user,
     app,
     manager,
-    discounts=None,
     allocate_stock=False,
 ):
     """Add total_quantity of variant to order.
@@ -407,7 +405,6 @@ def add_variant_to_order(
             order,
             line_data,
             manager,
-            discounts,
             allocate_stock,
         )
 
@@ -421,7 +418,7 @@ def add_gift_cards_to_order(
 ):
     order_gift_cards = []
     gift_cards_to_update = []
-    balance_data: List[Tuple[GiftCard, float]] = []
+    balance_data: list[tuple[GiftCard, float]] = []
     used_by_user = checkout_info.user
     used_by_email = cast(str, checkout_info.get_customer_email())
     for gift_card in checkout_info.checkout.gift_cards.select_for_update():
@@ -451,7 +448,7 @@ def add_gift_cards_to_order(
 def update_gift_card_balance(
     gift_card: GiftCard,
     total_price_left: Money,
-    balance_data: List[Tuple[GiftCard, float]],
+    balance_data: list[tuple[GiftCard, float]],
 ) -> Money:
     previous_balance = gift_card.current_balance
     if total_price_left < gift_card.current_balance:
@@ -606,7 +603,7 @@ def sum_order_totals(qs, currency_code):
 def get_all_shipping_methods_for_order(
     order: Order,
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
-) -> List[ShippingMethodData]:
+) -> list[ShippingMethodData]:
     if not order.is_shipping_required():
         return []
 
@@ -638,7 +635,7 @@ def get_valid_shipping_methods_for_order(
     order: Order,
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     manager: "PluginsManager",
-) -> List[ShippingMethodData]:
+) -> list[ShippingMethodData]:
     """Return a list of shipping methods according to Saleor's own business logic."""
     valid_methods = get_all_shipping_methods_for_order(order, shipping_channel_listings)
     if not valid_methods:
@@ -693,7 +690,7 @@ def get_discounted_lines(lines, voucher):
 def get_prices_of_discounted_specific_product(
     lines: Iterable[OrderLine],
     voucher: Voucher,
-) -> List[Money]:
+) -> list[Money]:
     """Get prices of variants belonging to the discounted specific products.
 
     Specific products are products, collections and categories.
@@ -771,13 +768,17 @@ def get_total_order_discount_excluding_shipping(order: Order) -> Money:
     return total_order_discount
 
 
-def get_order_discounts(order: Order) -> List[OrderDiscount]:
+def get_order_discounts(order: Order) -> list[OrderDiscount]:
     """Return all discounts applied to the order by staff user."""
     return list(order.discounts.filter(type=DiscountType.MANUAL))
 
 
 def create_order_discount_for_order(
-    order: Order, reason: str, value_type: str, value: Decimal
+    order: Order,
+    reason: str,
+    value_type: str,
+    value: Decimal,
+    type: Optional[str] = None,
 ):
     """Add new order discount and update the prices."""
 
@@ -789,12 +790,14 @@ def create_order_discount_for_order(
     )
 
     new_amount = quantize_price((current_total - gross_total).gross, currency)
+    kwargs = {} if not type else {"type": type}
 
     order_discount = order.discounts.create(
         value_type=value_type,
         value=value,
         reason=reason,
         amount=new_amount,  # type: ignore
+        **kwargs,
     )
     return order_discount
 
@@ -916,9 +919,7 @@ def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
 
     current_total_gross = order.total_gross_amount - granted_refund_amount
     current_total_gross = max(current_total_gross, Decimal("0"))
-    current_total_gross = quantize_price(
-        current_total_gross - granted_refund_amount, order.currency
-    )
+    current_total_gross = quantize_price(current_total_gross, order.currency)
 
     if total_charged == current_total_gross:
         order.charge_status = OrderChargeStatus.FULL
@@ -936,8 +937,8 @@ def _update_order_total_charged(
     order_transactions: Iterable["TransactionItem"],
 ):
     order.total_charged_amount = sum(
-        order_payments.values_list("captured_amount", flat=True)
-    ) or Decimal(0)
+        [p.captured_amount for p in order_payments], Decimal(0)
+    )
     order.total_charged_amount += sum([tr.charged_value for tr in order_transactions])
 
 
@@ -955,7 +956,7 @@ def update_order_charge_data(
     if order_granted_refunds is None:
         order_granted_refunds = order.granted_refunds.all()
     granted_refund_amount = sum(
-        [refund.amount.amount for refund in order_granted_refunds]
+        [refund.amount.amount for refund in order_granted_refunds], Decimal(0)
     )
     _update_order_total_charged(
         order, order_payments=order_payments, order_transactions=order_transactions

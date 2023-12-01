@@ -47,6 +47,7 @@ class ProductVariantBulkErrorCode(Enum):
     REQUIRED = "required"
     UNIQUE = "unique"
     PRODUCT_NOT_ASSIGNED_TO_CHANNEL = "product_not_assigned_to_channel"
+    STOCK_ALREADY_EXISTS = "stock_already_exists"
 
 
 class ProductBulkCreateErrorCode(Enum):

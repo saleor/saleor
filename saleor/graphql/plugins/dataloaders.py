@@ -39,6 +39,9 @@ class AnonymousPluginManagerLoader(DataLoader):
     context_key = "anonymous_plugin_manager"
 
     def batch_load(self, keys):
+        # When modify this code, modify also code
+        # in `saleor.core.auth_backend.PluginBackend.authenticate`
+
         allow_replica = getattr(self.context, "allow_replica", True)
         return [get_plugins_manager(None, allow_replica) for key in keys]
 

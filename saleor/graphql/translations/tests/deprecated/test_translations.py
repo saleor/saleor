@@ -405,7 +405,7 @@ QUERY_TRANSLATION_SALE = """
 
 
 @pytest.mark.parametrize(
-    "perm_codenames, return_sale",
+    ("perm_codenames", "return_sale"),
     [
         (["manage_translations"], False),
         (["manage_translations", "manage_discounts"], True),
@@ -413,29 +413,37 @@ QUERY_TRANSLATION_SALE = """
 )
 def test_translation_query_sale(
     staff_api_client,
-    sale,
-    sale_translation_fr,
+    promotion_converted_from_sale,
+    promotion_converted_from_sale_translation_fr,
     perm_codenames,
     return_sale,
     permission_manage_translations,
     permission_manage_discounts,
 ):
-    sale_id = graphene.Node.to_global_id("Sale", sale.id)
+    # given
+    promotion = promotion_converted_from_sale
+    promotion_translation = promotion.translations.first()
+    sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
+
     variables = {
         "id": sale_id,
         "kind": TranslatableKinds.SALE.name,
         "languageCode": LanguageCodeEnum.FR.name,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_SALE,
         variables,
         permissions=[permission_manage_discounts, permission_manage_translations],
     )
+
+    # then
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
-    assert data["name"] == sale.name
-    assert data["translation"]["name"] == sale_translation_fr.name
-    assert data["sale"]["name"] == sale.name
+    assert data["name"] == promotion.name
+    assert data["translation"]["name"] == promotion_translation.name
+    assert data["sale"]["name"] == promotion.name
 
 
 QUERY_TRANSLATION_VOUCHER = """

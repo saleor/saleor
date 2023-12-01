@@ -78,8 +78,7 @@ def test_update_page_publication_date(
 def test_page_update_mutation_publication_date_and_published_at_provided(
     staff_api_client, permission_manage_pages, page_type
 ):
-    """Ensure an error is raised when publishedAt and publicationDate are both
-    provided."""
+    """Test that setting publication date and time are mutually exclusive."""
     data = {
         "slug": "test-url",
         "title": "Test page",

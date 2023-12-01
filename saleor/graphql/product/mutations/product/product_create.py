@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -9,10 +7,9 @@ from .....core.utils.editorjs import clean_editor_js
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
-from .....product.search import update_product_search_vector
-from .....product.tasks import update_product_discounted_price_task
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....attribute.types import AttributeValueInput
-from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
+from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import (
@@ -123,7 +120,7 @@ class ProductCreateInput(ProductInput):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
+T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
 class ProductCreate(ModelMutation):
@@ -147,7 +144,9 @@ class ProductCreate(ModelMutation):
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
         attributes_qs = product_type.product_attributes.all()
-        attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
+        attributes = ProductAttributeAssignmentMixin.clean_input(
+            attributes, attributes_qs
+        )
         return attributes
 
     @classmethod
@@ -206,10 +205,11 @@ class ProductCreate(ModelMutation):
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
         with traced_atomic_transaction():
+            instance.search_index_dirty = True
             instance.save()
             attributes = cleaned_input.get("attributes")
             if attributes:
-                AttributeAssignmentMixin.save(instance, attributes)
+                ProductAttributeAssignmentMixin.save(instance, attributes)
 
     @classmethod
     def _save_m2m(cls, _info: ResolveInfo, instance, cleaned_data):
@@ -220,8 +220,7 @@ class ProductCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
-        update_product_search_vector(instance)
-        update_product_discounted_price_task.delay(instance.id)
+        update_products_discounted_prices_for_promotion_task.delay([instance.id])
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_created, product)
 

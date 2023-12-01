@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Optional
 
 import braintree as braintree_sdk
 import opentracing
@@ -28,8 +28,8 @@ ERROR_CODES_WHITELIST = {
 }
 
 
-def get_billing_data(payment_information: PaymentData) -> Dict:
-    billing: Dict[str, str] = {}
+def get_billing_data(payment_information: PaymentData) -> dict:
+    billing: dict[str, str] = {}
     if payment_information.billing:
         billing_info = payment_information.billing
         billing = {
@@ -46,7 +46,7 @@ def get_billing_data(payment_information: PaymentData) -> Dict:
     return billing
 
 
-def get_customer_data(payment_information: PaymentData) -> Dict:
+def get_customer_data(payment_information: PaymentData) -> dict:
     """Provide customer info, use only for new customer creation."""
     return {
         "order_id": payment_information.graphql_payment_id,
@@ -56,7 +56,7 @@ def get_customer_data(payment_information: PaymentData) -> Dict:
     }
 
 
-def get_error_for_client(errors: List) -> str:
+def get_error_for_client(errors: list) -> str:
     """Filter all error messages and decides which one is visible for the client."""
     if not errors:
         return ""
@@ -67,9 +67,9 @@ def get_error_for_client(errors: List) -> str:
     return default_msg
 
 
-def extract_gateway_response(braintree_result) -> Dict:
+def extract_gateway_response(braintree_result) -> dict:
     """Extract data from Braintree response that will be stored locally."""
-    errors: List[Optional[Dict[str, str]]] = []
+    errors: list[Optional[dict[str, str]]] = []
     if not braintree_result.is_success:
         errors = [
             {"code": error.code, "message": error.message}
@@ -348,7 +348,7 @@ def process_payment(
 
 def list_client_sources(
     config: GatewayConfig, customer_id: str
-) -> List[CustomerSource]:
+) -> list[CustomerSource]:
     gateway = get_braintree_gateway(**config.connection_params)
     with opentracing.global_tracer().start_active_span(
         "braintree.customer.find"

@@ -28,7 +28,7 @@ def query_customer_with_filter():
 
 
 @pytest.mark.parametrize(
-    "customer_filter, count",
+    ("customer_filter", "count"),
     [
         ({"search": "mirumee.com"}, 2),
         ({"search": "Alice"}, 1),
@@ -189,7 +189,7 @@ def test_query_customers_with_filter_by_not_existing_id(
 
 
 @pytest.mark.parametrize(
-    "customer_filter, count",
+    ("customer_filter", "count"),
     [
         ({"placedOrders": {"gte": "2019-04-18"}}, 1),
         ({"placedOrders": {"lte": "2012-01-14"}}, 1),
@@ -221,7 +221,7 @@ def test_query_customers_with_filter_placed_orders(
 
 
 @pytest.mark.parametrize(
-    "customer_filter, count",
+    ("customer_filter", "count"),
     [
         ({"dateJoined": {"gte": "2019-04-18"}}, 1),
         ({"dateJoined": {"lte": "2012-01-14"}}, 1),
@@ -263,7 +263,7 @@ def test_query_customers_with_filter_date_joined_and_updated_at(
 
 
 @pytest.mark.parametrize(
-    "customer_filter, count",
+    ("customer_filter", "count"),
     [
         ({"numberOfOrders": {"gte": 0, "lte": 1}}, 1),
         ({"numberOfOrders": {"gte": 1, "lte": 3}}, 2),
@@ -397,7 +397,7 @@ QUERY_CUSTOMERS_WITH_PAGINATION = """
 """
 
 
-@pytest.fixture()
+@pytest.fixture
 def customers_for_search(db, address):
     accounts = User.objects.bulk_create(
         [
@@ -447,7 +447,7 @@ def customers_for_search(db, address):
 
 
 @pytest.mark.parametrize(
-    "customer_filter, users_order",
+    ("customer_filter", "users_order"),
     [
         ({"search": "example.com"}, ["Alan", "Harry"]),  # email
         ({"search": "davis@test.com"}, ["Robert", "Xavier"]),  # email

@@ -1,7 +1,8 @@
 from decimal import Decimal
+
+import django.db.models.deletion
 from django.db import migrations, models
 from django.utils import timezone
-import django.db.models.deletion
 
 
 class Migration(migrations.Migration):

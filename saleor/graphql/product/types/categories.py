@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 import graphene
 from graphene import relay
@@ -22,6 +22,7 @@ from ...core.context import get_database_connection_name
 from ...core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_314,
+    ADDED_IN_317,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
     RICH_CONTENT,
@@ -59,6 +60,11 @@ class Category(ModelObjectType[models.Category]):
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
+    )
+    updated_at = graphene.DateTime(
+        required=True,
+        description="The date and time when the category was last updated."
+        + ADDED_IN_317,
     )
     ancestors = ConnectionField(
         lambda: CategoryCountableConnection,
@@ -187,7 +193,7 @@ class Category(ModelObjectType[models.Category]):
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    def __resolve_references(roots: List["Category"], _info):
+    def __resolve_references(roots: list["Category"], _info):
         return resolve_federation_references(Category, roots, models.Category.objects)
 
 

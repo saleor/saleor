@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import DefaultDict, Iterable, List, Tuple, cast
+from collections.abc import Iterable
+from typing import cast
 
 from django.db.models import F
 
@@ -18,21 +19,22 @@ from ..core.dataloaders import DataLoader
 
 
 class OrderLinesByVariantIdAndChannelIdLoader(
-    DataLoader[Tuple[int, int], List[OrderLine]]
+    DataLoader[tuple[int, int], list[OrderLine]]
 ):
     context_key = "orderline_by_variant_and_channel"
 
-    def batch_load(self, keys: Iterable[Tuple[int, int]]):
+    def batch_load(self, keys: Iterable[tuple[int, int]]):
         channel_ids = [key[1] for key in keys]
         variant_ids = [key[0] for key in keys]
         order_lines = (
             OrderLine.objects.using(self.database_connection_name)
             .filter(order__channel_id__in=channel_ids, variant_id__in=variant_ids)
             .annotate(channel_id=F("order__channel_id"))
+            .order_by("created_at", "id")
         )
 
-        order_line_by_variant_and_channel_map: DefaultDict[
-            Tuple[int, int], List[OrderLine]
+        order_line_by_variant_and_channel_map: defaultdict[
+            tuple[int, int], list[OrderLine]
         ] = defaultdict(list)
         for order_line in order_lines:
             key = (

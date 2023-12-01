@@ -170,7 +170,7 @@ def test_user_doesnt_have_permissions_from_token(prefix, staff_user, app, rf):
 
 
 @pytest.mark.parametrize(
-    "user_permissions, app_permissions, expected_limited_permissions",
+    ("user_permissions", "app_permissions", "expected_limited_permissions"),
     [
         (
             ["manage_apps", "manage_checkouts"],

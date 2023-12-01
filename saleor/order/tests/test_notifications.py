@@ -7,6 +7,10 @@ from django.core.files import File
 from measurement.measures import Weight
 from prices import Money, fixed_discount
 
+from ...attribute.tests.model_helpers import (
+    get_product_attribute_values,
+    get_product_attributes,
+)
 from ...core.notify_events import NotifyEventType
 from ...core.prices import quantize_price
 from ...core.tests.utils import get_site_context_payload
@@ -96,20 +100,21 @@ def test_get_custom_order_payload(order, site_settings):
 
 
 def test_get_order_line_payload(order_line):
-    order_line.variant.product.weight = Weight(kg=5)
-    order_line.variant.product.save()
+    product = order_line.variant.product
+    product.weight = Weight(kg=5)
+    product.save()
 
     payload = get_order_line_payload(order_line)
 
-    attributes = order_line.variant.product.attributes.all()
+    attributes = get_product_attributes(product)
     expected_attributes_payload = []
     for attr in attributes:
         expected_attributes_payload.append(
             {
                 "assignment": {
                     "attribute": {
-                        "slug": attr.assignment.attribute.slug,
-                        "name": attr.assignment.attribute.name,
+                        "slug": attr.slug,
+                        "name": attr.name,
                     }
                 },
                 "values": [
@@ -119,7 +124,7 @@ def test_get_order_line_payload(order_line):
                         "slug": value.slug,
                         "file_url": value.file_url,
                     }
-                    for value in attr.values.all()
+                    for value in get_product_attribute_values(product, attr)
                 ],
             }
         )

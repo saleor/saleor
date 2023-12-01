@@ -4,7 +4,9 @@ import graphene
 
 from .....payment.interface import PaymentGatewayInitializeTokenizationRequestData
 from .....webhook.event_types import WebhookEventSyncType
-from ...tasks import create_deliveries_for_subscriptions
+from .....webhook.transport.asynchronous.transport import (
+    create_deliveries_for_subscriptions,
+)
 
 PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION = """
 subscription {

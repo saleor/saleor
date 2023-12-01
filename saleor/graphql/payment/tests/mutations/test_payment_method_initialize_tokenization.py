@@ -9,7 +9,7 @@ from .....payment.interface import (
     PaymentMethodTokenizationResult,
 )
 from .....plugins.manager import PluginsManager
-from .....plugins.webhook.utils import to_payment_app_id
+from .....webhook.transport.utils import to_payment_app_id
 from ....core.enums import PaymentMethodInitializeTokenizationErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import PaymentMethodTokenizationResultEnum, TokenizedPaymentFlowEnum
@@ -35,7 +35,7 @@ $paymentFlowToSupport: TokenizedPaymentFlowEnum!){
 
 
 @pytest.mark.parametrize(
-    "expected_input_data, expected_output_data",
+    ("expected_input_data", "expected_output_data"),
     [
         (None, None),
         (None, {"foo": "bar1"}),

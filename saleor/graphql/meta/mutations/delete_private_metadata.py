@@ -1,5 +1,3 @@
-from typing import List
-
 import graphene
 
 from ...core import ResolveInfo
@@ -32,7 +30,7 @@ class DeletePrivateMetadata(BaseMetadataMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id: str, keys: List[str]
+        cls, _root, info: ResolveInfo, /, *, id: str, keys: list[str]
     ):
         instance = cls.get_instance(info, id=id)
 

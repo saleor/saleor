@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import List
 from urllib.parse import urlencode
 
 import graphene
@@ -428,7 +427,7 @@ class StaffDeleteMixin(UserDeleteMixin):
         context: SaleorContext,
         permissions=None,
         require_all_permissions=False,
-        **data
+        **data,
     ):
         if get_app_promise(context).get():
             raise PermissionDenied(
@@ -438,7 +437,7 @@ class StaffDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def clean_instance(cls, info: ResolveInfo, instance):
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
         requestor = info.context.user
 
@@ -490,7 +489,7 @@ class StaffDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def check_if_removing_left_not_manageable_permissions(
-        cls, requestor, users, field, errors: defaultdict[str, List[ValidationError]]
+        cls, requestor, users, field, errors: defaultdict[str, list[ValidationError]]
     ):
         """Check if after removing users all permissions will be manageable.
 

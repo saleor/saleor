@@ -60,12 +60,12 @@ def test_address_form_postal_code_validation():
 
 
 @pytest.mark.parametrize(
-    "country, phone, is_valid",
-    (
+    ("country", "phone", "is_valid"),
+    [
         ("US", "123-456-7890", False),
         ("US", "(541) 754-3010", True),
         ("FR", "0600000000", True),
-    ),
+    ],
 )
 def test_address_form_phone_number_validation(country, phone, is_valid):
     data = {"country": country, "phone": phone}
@@ -78,7 +78,7 @@ def test_address_form_phone_number_validation(country, phone, is_valid):
 
 
 @pytest.mark.parametrize(
-    "form_data, form_valid, expected_country",
+    ("form_data", "form_valid", "expected_country"),
     [
         ({}, False, "PL"),
         (
@@ -130,8 +130,8 @@ def test_country_aware_form_has_only_supported_countries():
 
 
 @pytest.mark.parametrize(
-    "input_data, is_valid",
-    (
+    ("input_data", "is_valid"),
+    [
         ({"phone": "123"}, False),
         ({"phone": "+48123456789"}, True),
         ({"phone": "+12025550169"}, True),
@@ -148,7 +148,7 @@ def test_country_aware_form_has_only_supported_countries():
         ({"country": "US", "phone": "1-541-754-3010"}, True),
         ({"country": "FR", "phone": "1234567890"}, False),
         ({"country": "FR", "phone": "0600000000"}, True),
-    ),
+    ],
 )
 def test_validate_possible_number(input_data, is_valid):
     if not is_valid:
@@ -203,7 +203,7 @@ def test_compare_addresses_different_country(address):
 
 
 @pytest.mark.parametrize(
-    "email, first_name, last_name, full_name",
+    ("email", "first_name", "last_name", "full_name"),
     [
         ("John@example.com", "John", "Doe", "John Doe"),
         ("John@example.com", "John", "", "John"),
@@ -219,7 +219,7 @@ def test_get_full_name_user_with_names(
 
 
 @pytest.mark.parametrize(
-    "email, first_name, last_name, full_name",
+    ("email", "first_name", "last_name", "full_name"),
     [
         ("John@example.com", "John", "Doe", "John Doe"),
         ("John@example.com", "John", "", "John"),
@@ -237,7 +237,7 @@ def test_get_full_name_user_with_address(
 
 
 @pytest.mark.parametrize(
-    "email, first_name, last_name, full_name",
+    ("email", "first_name", "last_name", "full_name"),
     [
         ("John@example.com", "John", "Doe", "John Doe"),
         ("John@example.com", "John", "", "John"),

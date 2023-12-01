@@ -7,7 +7,6 @@ import requests
 from celery.exceptions import MaxRetriesExceededError
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files import File
 from django.core.files.storage import default_storage
@@ -19,7 +18,7 @@ from .. import schema_version
 from ..app.headers import AppHeaders, DeprecatedAppHeaders
 from ..celeryconf import app
 from ..core.http_client import HTTPClient
-from ..core.utils import build_absolute_uri
+from ..core.utils import build_absolute_uri, get_domain
 from ..permission.enums import get_permission_names
 from ..plugins.manager import PluginsManager
 from ..thumbnail import ICON_MIME_TYPES
@@ -49,11 +48,13 @@ def validate_app_install_response(response: Response):
             error_msg = str(response.json()["error"]["message"])
         except Exception:
             raise err
-        raise AppInstallationError(error_msg, response=response)
+        raise AppInstallationError(
+            error_msg, request=response.request, response=response
+        )
 
 
 def send_app_token(target_url: str, token: str):
-    domain = Site.objects.get_current().domain
+    domain = get_domain()
     headers = {
         "Content-Type": "application/json",
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
@@ -153,7 +154,7 @@ def fetch_brand_data_task(
     self, brand_data: dict, *, app_installation_id=None, app_id=None
 ):
     """Task to fetch app's brand data. Last retry delayed 24H."""
-    app = App.objects.filter(id=app_id).first()
+    app = App.objects.filter(id=app_id, removed_at__isnull=True).first()
     app_inst = AppInstallation.objects.filter(id=app_installation_id).first()
     if not app_inst or (app_inst and app_inst.brand_logo_default):
         if not app or (app and app.brand_logo_default):

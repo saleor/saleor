@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import Iterable, Optional, Tuple, cast
+from typing import Optional, cast
 
 from django.db import transaction
 from django.db.models import prefetch_related_objects
@@ -7,6 +8,7 @@ from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
+from ..discount import DiscountType
 from ..order import base_calculations
 from ..payment.model_helpers import get_subtotal
 from ..plugins.manager import PluginsManager
@@ -181,7 +183,7 @@ def fetch_order_prices_if_expired(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-) -> Tuple[Order, Optional[Iterable[OrderLine]]]:
+) -> tuple[Order, Optional[Iterable[OrderLine]]]:
     """Fetch order prices with taxes.
 
     First calculate and apply all order prices with taxes separately,
@@ -201,6 +203,8 @@ def fetch_order_prices_if_expired(
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_order(order)
     should_charge_tax = charge_taxes and not order.tax_exemption
+
+    _update_order_discount_for_voucher(order)
 
     if lines is None:
         lines = list(order.lines.select_related("variant__product__product_type"))
@@ -261,6 +265,40 @@ def fetch_order_prices_if_expired(
             ],
         )
         return order, lines
+
+
+def _update_order_discount_for_voucher(order: Order):
+    """Create or delete OrderDiscount instances."""
+
+    if not order.voucher_id:
+        order.discounts.filter(type=DiscountType.VOUCHER).delete()
+
+    elif (
+        order.voucher_id
+        and not order.discounts.filter(voucher_code=order.voucher_code).exists()
+    ):
+        voucher = order.voucher
+        voucher_channel_listing = voucher.channel_listings.filter(  # type: ignore
+            channel=order.channel
+        ).first()
+        if voucher_channel_listing:
+            order.discounts.create(
+                value_type=voucher.discount_value_type,  # type: ignore
+                value=voucher_channel_listing.discount_value,
+                reason=f"Voucher: {voucher.name}",  # type: ignore
+                voucher=voucher,
+                type=DiscountType.VOUCHER,
+                voucher_code=order.voucher_code,
+            )
+
+    # Prefetch has to be cleared and refreshed to avoid returning cached discounts
+    if (
+        hasattr(order, "_prefetched_objects_cache")
+        and "discounts" in order._prefetched_objects_cache
+    ):
+        del order._prefetched_objects_cache["discounts"]
+
+    prefetch_related_objects([order], "discounts")
 
 
 def _calculate_and_add_tax(

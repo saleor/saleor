@@ -1,4 +1,4 @@
-from typing import Any, Dict, Type
+from typing import Any
 
 from django.core.exceptions import ValidationError
 from graphql.error import GraphQLError
@@ -8,11 +8,11 @@ from ...core.utils import from_global_id_or_error
 
 
 def get_instance(
-    input: Dict[str, Any],
+    input: dict[str, Any],
     model,
-    key_map: Dict[str, str],
-    instance_storage: Dict[str, Any],
-    error_enum: Type[OrderBulkCreateErrorCode],
+    key_map: dict[str, str],
+    instance_storage: dict[str, Any],
+    error_enum: type[OrderBulkCreateErrorCode],
     path: str = "",
 ):
     """Resolve instance based on input data, model and `key_map` argument provided.
@@ -40,8 +40,8 @@ def get_instance(
     """
     model_name = model.__name__
     if len(key_map) > 1:
-        if sum((input.get(key) is not None for key in key_map.keys())) > 1:
-            args = ", ".join((k for k in key_map.keys()))
+        if sum(input.get(key) is not None for key in key_map.keys()) > 1:
+            args = ", ".join(k for k in key_map.keys())
             raise ValidationError(
                 message=f"Only one of [{args}] arguments can be provided "
                 f"to resolve {model_name} instance.",
@@ -49,8 +49,8 @@ def get_instance(
                 params={"path": path},
             )
 
-        if all((input.get(key) is None for key in key_map.keys())):
-            args = ", ".join((k for k in key_map.keys()))
+        if all(input.get(key) is None for key in key_map.keys()):
+            args = ", ".join(k for k in key_map.keys())
             raise ValidationError(
                 message=f"One of [{args}] arguments must be provided "
                 f"to resolve {model_name} instance.",

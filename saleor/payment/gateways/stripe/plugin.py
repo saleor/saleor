@@ -1,12 +1,12 @@
 import logging
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
-from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.http.request import split_domain_port
 
+from ....core.utils import get_domain
 from ....graphql.core.enums import PluginErrorCode
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import TransactionKind
@@ -21,6 +21,15 @@ from ...interface import (
 from ...models import Transaction
 from ...utils import price_from_minor_unit, price_to_minor_unit
 from ..utils import get_supported_currencies
+from .consts import (
+    ACTION_REQUIRED_STATUSES,
+    AUTHORIZED_STATUS,
+    PLUGIN_ID,
+    PLUGIN_NAME,
+    PROCESSING_STATUS,
+    SUCCESS_STATUS,
+    WEBHOOK_PATH,
+)
 from .stripe_api import (
     cancel_payment_intent,
     capture_payment_intent,
@@ -39,15 +48,6 @@ from .webhooks import handle_webhook
 if TYPE_CHECKING:
     from ....plugins.models import PluginConfiguration
 
-from .consts import (
-    ACTION_REQUIRED_STATUSES,
-    AUTHORIZED_STATUS,
-    PLUGIN_ID,
-    PLUGIN_NAME,
-    PROCESSING_STATUS,
-    SUCCESS_STATUS,
-    WEBHOOK_PATH,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +155,7 @@ class StripeGatewayPlugin(BasePlugin):
 
     def _get_transaction_details_for_stripe_status(
         self, status: str
-    ) -> Tuple[str, bool]:
+    ) -> tuple[str, bool]:
         kind = TransactionKind.AUTH
         action_required = True
 
@@ -457,7 +457,7 @@ class StripeGatewayPlugin(BasePlugin):
 
     def list_payment_sources(
         self, customer_id: str, previous_value
-    ) -> List[CustomerSource]:
+    ) -> list[CustomerSource]:
         if not self.active:
             return previous_value
         payment_methods, error = list_customer_payment_methods(
@@ -509,7 +509,7 @@ class StripeGatewayPlugin(BasePlugin):
 
         # check saved domain. Make sure that it is not localhost domain. We are not able
         # to subscribe to stripe webhooks with localhost.
-        domain = Site.objects.get_current().domain
+        domain = get_domain()
         localhost_domains = ["localhost", "127.0.0.1"]
         domain, _ = split_domain_port(domain)
         if not domain:
@@ -528,7 +528,8 @@ class StripeGatewayPlugin(BasePlugin):
         webhook = None
         if not webhook_id and not webhook_secret_data.get("value"):
             webhook = subscribe_webhook(
-                api_key, plugin_configuration.channel.slug  # type: ignore
+                api_key,
+                plugin_configuration.channel.slug,  # type: ignore
             )
 
         if not webhook:

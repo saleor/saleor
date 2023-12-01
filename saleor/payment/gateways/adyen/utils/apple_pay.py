@@ -112,7 +112,7 @@ def make_request_to_initialize_apple_pay(
 
 
 def initialize_apple_pay(payment_data: dict, certificate: str) -> dict:
-    # The apple pay on the web requires additional step
+    # The Apple Pay on the web requires additional step
     validation_url = payment_data.get("validationUrl", "")
     merchant_identifier = payment_data.get("merchantIdentifier", "")
     domain = payment_data.get("domain", "")

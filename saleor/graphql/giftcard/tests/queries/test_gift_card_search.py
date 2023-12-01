@@ -24,7 +24,7 @@ QUERY_GIFT_CARDS = """
 
 
 @pytest.mark.parametrize(
-    "search,indexes",
+    ("search", "indexes"),
     [("expiry", [0, 1]), ("staff_test@example.com", [2]), ("banana", [])],
 )
 def test_query_gift_cards_with_search(

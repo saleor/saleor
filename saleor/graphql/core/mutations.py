@@ -1,16 +1,11 @@
 import os.path
 import secrets
+from collections.abc import Collection, Iterable
 from enum import Enum
 from itertools import chain
 from typing import (
     Any,
-    Collection,
-    Dict,
-    Iterable,
-    List,
     Optional,
-    Tuple,
-    Type,
     TypeVar,
     Union,
     cast,
@@ -176,7 +171,7 @@ class BaseMutation(graphene.Mutation):
         support_meta_field=False,
         support_private_meta_field=False,
         auto_webhook_events_message: bool = True,
-        webhook_events_info: Optional[List[WebhookEventInfo]] = None,
+        webhook_events_info: Optional[list[WebhookEventInfo]] = None,
         **options,
     ):
         if not _meta:
@@ -233,7 +228,7 @@ class BaseMutation(graphene.Mutation):
     def _get_node_by_pk(
         cls,
         info: ResolveInfo,
-        graphene_type: Type[ModelObjectType[MT]],
+        graphene_type: type[ModelObjectType[MT]],
         pk: Union[int, str],
         qs=None,
     ) -> Optional[MT]:
@@ -283,7 +278,7 @@ class BaseMutation(graphene.Mutation):
         node_id: str,
         *,
         field: str = "id",
-        only_type: Type[ModelObjectType[MT]],
+        only_type: type[ModelObjectType[MT]],
         qs: Any = None,
         code: str = "not_found",
     ) -> MT:
@@ -297,7 +292,7 @@ class BaseMutation(graphene.Mutation):
         node_id: Optional[str],
         *,
         field: str = "id",
-        only_type: Type[ModelObjectType[MT]],
+        only_type: type[ModelObjectType[MT]],
         qs: Any = None,
         code: str = "not_found",
     ) -> Optional[MT]:
@@ -352,7 +347,7 @@ class BaseMutation(graphene.Mutation):
         node_id: Optional[str],
         *,
         field: str = "id",
-        only_type: Optional[Type[ObjectType]] = None,
+        only_type: Optional[type[ObjectType]] = None,
         qs: Optional[QuerySet] = None,
         code: str = "not_found",
     ) -> Optional[Model]:
@@ -408,15 +403,15 @@ class BaseMutation(graphene.Mutation):
     @overload
     @classmethod
     def get_nodes_or_error(
-        cls, ids, field, only_type: Type[ModelObjectType[MT]], qs=None, schema=None
-    ) -> List[MT]:
+        cls, ids, field, only_type: type[ModelObjectType[MT]], qs=None, schema=None
+    ) -> list[MT]:
         ...
 
     @overload
     @classmethod
     def get_nodes_or_error(
         cls, ids, field, only_type: Optional[ObjectType] = None, qs=None, schema=None
-    ) -> List[Model]:
+    ) -> list[Model]:
         ...
 
     @classmethod
@@ -561,11 +556,11 @@ class BaseMutation(graphene.Mutation):
         return cls(errors=errors, **extra)
 
     @staticmethod
-    def call_event(func_obj, *func_args):
-        return call_event(func_obj, *func_args)
+    def call_event(func_obj, *func_args, **kwargs):
+        return call_event(func_obj, *func_args, **kwargs)
 
     @classmethod
-    def update_metadata(cls, instance, meta_data_list: List, is_private: bool = False):
+    def update_metadata(cls, instance, meta_data_list: list, is_private: bool = False):
         if is_private:
             instance.store_value_in_private_metadata(
                 {data.key: data.value for data in meta_data_list}
@@ -576,7 +571,7 @@ class BaseMutation(graphene.Mutation):
             )
 
     @classmethod
-    def validate_metadata_keys(cls, metadata_list: List[dict]):
+    def validate_metadata_keys(cls, metadata_list: list[dict]):
         if metadata_contains_empty_key(metadata_list):
             raise ValidationError(
                 {
@@ -794,7 +789,6 @@ class ModelMutation(BaseMutation):
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         """Perform an action after saving an object and its m2m."""
-        pass
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
@@ -1005,10 +999,10 @@ class BaseBulkMutation(BaseMutation):
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, ids, **data
-    ) -> Tuple[int, Optional[ValidationError]]:
+    ) -> tuple[int, Optional[ValidationError]]:
         """Perform a mutation that deletes a list of model instances."""
         clean_instance_ids = []
-        errors_dict: Dict[str, List[ValidationError]] = {}
+        errors_dict: dict[str, list[ValidationError]] = {}
         # Allow to pass empty list for dummy mutation
         if not ids:
             return 0, None
@@ -1092,10 +1086,10 @@ class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, ids, **data
-    ) -> Tuple[int, Optional[ValidationError]]:
+    ) -> tuple[int, Optional[ValidationError]]:
         """Perform a mutation that deletes a list of model instances."""
         clean_instance_ids = []
-        errors_dict: Dict[str, List[ValidationError]] = {}
+        errors_dict: dict[str, list[ValidationError]] = {}
         # Allow to pass empty list for dummy mutation
         if not ids:
             return 0, None
@@ -1178,6 +1172,8 @@ class FileUpload(BaseMutation):
         cls, _root, info: ResolveInfo, /, file
     ):
         file_data: UploadedFile = cast(UploadedFile, info.context.FILES[file])
+        if not file_data.file:
+            raise ValidationError("Received an empty file.")
 
         # add unique text fragment to the file name to prevent file overriding
         file_name, format = os.path.splitext(file_data.name or "")

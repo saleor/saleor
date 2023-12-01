@@ -33,6 +33,7 @@ def test_validate_app_install_response():
     error_message = "Test error msg"
     response = Mock(spec=requests.Response)
     response.raise_for_status.side_effect = requests.HTTPError
+    response.request = Mock()
     response.json.return_value = {"error": {"message": error_message}}
 
     with pytest.raises(AppInstallationError) as error:
@@ -40,7 +41,7 @@ def test_validate_app_install_response():
     assert str(error.value) == error_message
 
 
-@pytest.mark.parametrize("json_response", ({}, {"error": {}}, Exception))
+@pytest.mark.parametrize("json_response", [{}, {"error": {}}, Exception])
 def test_validate_app_install_response_when_wrong_error_message(json_response):
     response = Mock(spec=requests.Response)
     response.raise_for_status.side_effect = requests.HTTPError
@@ -306,7 +307,7 @@ def test_install_app_with_extension(
 
 
 @pytest.mark.parametrize(
-    "app_permissions, extension_permissions",
+    ("app_permissions", "extension_permissions"),
     [
         ([], ["MANAGE_PRODUCTS"]),
         (["MANAGE_PRODUCTS"], ["MANAGE_PRODUCTS", "MANAGE_APPS"]),
@@ -500,7 +501,7 @@ def test_install_app_webhook_incorrect_url(
     assert error_dict["webhooks"][0].message == "Invalid target url."
 
 
-@pytest.mark.parametrize("is_active", (True, False))
+@pytest.mark.parametrize("is_active", [True, False])
 def test_install_app_with_webhook_is_active(
     is_active, app_manifest, app_manifest_webhook, app_installation, monkeypatch
 ):
@@ -545,9 +546,7 @@ def test_install_app_webhook_incorrect_query(
     app_manifest, app_manifest_webhook, app_installation, monkeypatch
 ):
     # given
-    app_manifest_webhook[
-        "query"
-    ] = """
+    app_manifest_webhook["query"] = """
         no {
             that's {
                 not {
@@ -745,6 +744,14 @@ def test_fetch_brand_data_task_terminated(
 ):
     app.delete(), app_installation.delete()
     fetch_brand_data_task({}, app_installation_id=app_installation.id, app_id=app.id)
+    mock_fetch_icon_image.assert_not_called()
+
+
+@patch("saleor.app.installation_utils.fetch_icon_image")
+def test_fetch_brand_data_task_for_removed_app(
+    mock_fetch_icon_image, removed_app, media_root
+):
+    fetch_brand_data_task({}, app_id=removed_app.id)
     mock_fetch_icon_image.assert_not_called()
 
 

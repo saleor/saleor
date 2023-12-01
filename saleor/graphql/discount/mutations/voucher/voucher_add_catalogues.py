@@ -1,16 +1,20 @@
 import graphene
+from django.core.exceptions import ValidationError
 
+from .....discount.error_codes import DiscountErrorCode
 from .....permission.enums import DiscountPermissions
+from .....product.utils import get_products_ids_without_variants
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_31
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
+from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ....product.types import Category, Collection, Product, ProductVariant
 from ...types import Voucher
-from ..sale.sale_base_discount_catalogue import BaseDiscountCatalogueMutation
 
 
 class CatalogueInput(BaseInputObjectType):
@@ -37,7 +41,7 @@ class CatalogueInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
 
-class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
+class VoucherBaseCatalogueMutation(BaseMutation):
     voucher = graphene.Field(
         Voucher, description="Voucher of which catalogue IDs will be modified."
     )
@@ -59,6 +63,21 @@ class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
             response.voucher = ChannelContext(node=response.voucher, channel_slug=None)
         return response
 
+    @classmethod
+    def clean_product(cls, products):
+        products_ids_without_variants = get_products_ids_without_variants(products)
+        if products_ids_without_variants:
+            error_code = DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value
+            raise ValidationError(
+                {
+                    "products": ValidationError(
+                        "Cannot manage products without variants.",
+                        code=error_code,
+                        params={"products": products_ids_without_variants},
+                    )
+                }
+            )
+
 
 class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
     class Meta:
@@ -79,11 +98,32 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
         voucher = cls.get_node_or_error(
             info, data.get("id"), only_type=Voucher, field="voucher_id"
         )
-        input_data = data.get("input", {})
-        cls.add_catalogues_to_node(voucher, input_data)
+        if voucher:
+            input_data = data.get("input", {})
+            cls.add_catalogues_to_node(voucher, input_data)
 
-        if input_data:
-            manager = get_plugin_manager_promise(info.context).get()
-            cls.call_event(manager.voucher_updated, voucher)
+            if input_data:
+                manager = get_plugin_manager_promise(info.context).get()
+                cls.call_event(manager.voucher_updated, voucher, voucher.code)
 
         return VoucherAddCatalogues(voucher=voucher)
+
+    @classmethod
+    def add_catalogues_to_node(cls, node, input):
+        products = input.get("products", [])
+        if products:
+            products = cls.get_nodes_or_error(products, "products", Product)
+            cls.clean_product(products)
+            node.products.add(*products)
+        categories = input.get("categories", [])
+        if categories:
+            categories = cls.get_nodes_or_error(categories, "categories", Category)
+            node.categories.add(*categories)
+        collections = input.get("collections", [])
+        if collections:
+            collections = cls.get_nodes_or_error(collections, "collections", Collection)
+            node.collections.add(*collections)
+        variants = input.get("variants", [])
+        if variants:
+            variants = cls.get_nodes_or_error(variants, "variants", ProductVariant)
+            node.variants.add(*variants)
