@@ -157,6 +157,9 @@ def prepare_unique_attribute_value_slug(attribute: "Attribute", slug: str):
 
 def queryset_in_batches(queryset, batch_size):
     """Slice a queryset into batches."""
+    if batch_size <= 0:
+        return []
+
     queryset = queryset.order_by("pk")
     start_pk = 0
     while True:
