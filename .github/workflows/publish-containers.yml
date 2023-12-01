@@ -70,7 +70,7 @@ jobs:
             Digest: ${{ steps.docker_build.outputs.digest }}
             Tags: ${{ steps.meta.outputs.tags }}"
 
-      - name: Trigger staging deployments for tagged release
+      - name: Trigger staging deployment for tagged release
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
           curl -f -X POST \
@@ -78,12 +78,6 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
             https://api.github.com/repos/saleor/saleor-multitenant/dispatches \
             -d "{\"event_type\":\"deploy-staging\",\"client_payload\":{\"version\":\"${{ steps.meta.outputs.version }}\"}}"
-
-          curl -f -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
-            https://api.github.com/repos/saleor/saleor-cloud-deployments/dispatches \
-            -d "{\"event_type\":\"deploy-demo-staging\",\"client_payload\":{\"version\":\"${{ steps.meta.outputs.version }}\"}}"
 
       - name: Notify Slack
         if: ${{ failure() }}
