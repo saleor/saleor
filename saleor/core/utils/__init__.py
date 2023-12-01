@@ -156,10 +156,8 @@ def prepare_unique_attribute_value_slug(attribute: "Attribute", slug: str):
 
 
 def queryset_in_batches(queryset, batch_size):
-    """Slice a queryset into batches.
-
-    Input queryset should be sorted be pk.
-    """
+    """Slice a queryset into batches."""
+    queryset = queryset.order_by("pk")
     start_pk = 0
     while True:
         qs = queryset.filter(pk__gt=start_pk)[:batch_size]

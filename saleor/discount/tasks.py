@@ -160,7 +160,6 @@ def fetch_promotion_variants_and_product_ids(promotions: "QuerySet[Promotion]"):
         promotion_id_to_variants[rule.promotion_id] |= rule_variants
 
     product_ids: set[int] = set()
-    variants = variants.order_by("pk")
     for variant_ids in queryset_in_batches(variants, 2000):
         variants_batch = ProductVariant.objects.filter(id__in=variant_ids).all()
         product_ids.update(
