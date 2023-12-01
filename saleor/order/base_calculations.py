@@ -22,7 +22,10 @@ def base_order_shipping(order: "Order") -> Money:
 def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     """Return order subtotal.
 
-    Does not include order level discounts.
+    May include order line level discounts, like promotions, specific product vouchers
+    and manual line discounts.
+    Does not include order level discounts, like entire order vouchers and manual
+    order discounts.
     """
     currency = order.currency
     subtotal = zero_money(currency)
@@ -45,7 +48,10 @@ def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
 def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
     """Return order line base total.
 
-    Does not include order level discounts.
+    May include order line level discounts, like promotions, specific product vouchers
+    and manual line discounts.
+    Does not include order level discounts, like entire order vouchers and manual
+    order discounts.
     """
     quantity = order_line.quantity
     price_with_line_discounts = (
@@ -139,7 +145,7 @@ def apply_order_discounts(
         OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
 
     if update_prices:
-        update_order_prices(
+        assign_order_prices(
             order,
             subtotal,
             undiscounted_subtotal,
@@ -191,10 +197,10 @@ def apply_subtotal_discount_to_order_line(line: "OrderLine", discount: Money):
     # This price includes line level discounts, but not entire order ones.
     discounted_base_line_total = base_order_line_total(line).price_with_discounts.net
     total_price = max(discounted_base_line_total - discount, zero_money(currency))
-    update_order_line_prices(line, total_price)
+    assign_order_line_prices(line, total_price)
 
 
-def update_order_line_prices(line: "OrderLine", total_price: Money):
+def assign_order_line_prices(line: "OrderLine", total_price: Money):
     currency = total_price.currency
     line.total_price_net = quantize_price(total_price, currency)
     line.total_price_gross = line.total_price_net
@@ -213,7 +219,7 @@ def update_order_line_prices(line: "OrderLine", total_price: Money):
         line.undiscounted_unit_price_gross_amount = undiscounted_unit_price
 
 
-def update_order_prices(
+def assign_order_prices(
     order: "Order",
     subtotal: Money,
     undiscounted_subtotal: Money,

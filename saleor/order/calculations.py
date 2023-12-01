@@ -9,8 +9,6 @@ from prices import Money, TaxedMoney
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
 from ..discount import DiscountType
-from ..graphql.core import ResolveInfo
-from ..graphql.order.dataloaders import OrderLinesByOrderIdLoader
 from ..order.base_calculations import (
     apply_order_discounts,
     base_order_line_total,
@@ -37,7 +35,6 @@ def fetch_order_prices_if_expired(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-    info: Optional[ResolveInfo] = None,
 ) -> tuple[Order, Optional[Iterable[OrderLine]]]:
     """Fetch order prices with taxes.
 
@@ -89,8 +86,6 @@ def fetch_order_prices_if_expired(
                 "tax_rate",
             ],
         )
-        if info:
-            OrderLinesByOrderIdLoader(info.context).clear(order.id)
 
         return order, lines
 
@@ -347,7 +342,6 @@ def order_line_unit(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-    info: Optional[ResolveInfo] = None,
 ) -> OrderTaxedPricesData:
     """Return the unit price of provided line, taxes included.
 
@@ -356,7 +350,7 @@ def order_line_unit(
     and save them in the model directly.
     """
     currency = order.currency
-    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update, info)
+    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
     order_line = _find_order_line(lines, order_line)
     return OrderTaxedPricesData(
         undiscounted_price=quantize_price(order_line.undiscounted_unit_price, currency),
@@ -370,7 +364,6 @@ def order_line_total(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-    info: Optional[ResolveInfo] = None,
 ) -> OrderTaxedPricesData:
     """Return the total price of provided line, taxes included.
 
@@ -379,7 +372,7 @@ def order_line_total(
     and save them in the model directly.
     """
     currency = order.currency
-    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update, info)
+    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
     order_line = _find_order_line(lines, order_line)
     return OrderTaxedPricesData(
         undiscounted_price=quantize_price(
@@ -395,7 +388,6 @@ def order_line_tax_rate(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-    info: Optional[ResolveInfo] = None,
 ) -> Optional[Decimal]:
     """Return the tax rate of provided line.
 
@@ -403,7 +395,7 @@ def order_line_tax_rate(
     If the prices are expired, call all order price calculation methods
     and save them in the model directly.
     """
-    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update, info)
+    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
     order_line = _find_order_line(lines, order_line)
     return order_line.tax_rate
 
@@ -413,7 +405,6 @@ def order_shipping(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-    info: Optional[ResolveInfo] = None,
 ) -> TaxedMoney:
     """Return the shipping price of the order.
 
@@ -422,7 +413,7 @@ def order_shipping(
     and save them in the model directly.
     """
     currency = order.currency
-    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update, info)
+    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
     return quantize_price(order.shipping_price, currency)
 
 
@@ -431,7 +422,6 @@ def order_shipping_tax_rate(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-    info: Optional[ResolveInfo] = None,
 ) -> Optional[Decimal]:
     """Return the shipping tax rate of the order.
 
@@ -439,7 +429,7 @@ def order_shipping_tax_rate(
     If the prices are expired, call all order price calculation methods
     and save them in the model directly.
     """
-    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update, info)
+    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
     return order.shipping_tax_rate
 
 
@@ -448,7 +438,6 @@ def order_subtotal(
     manager: PluginsManager,
     lines: Iterable[OrderLine],
     force_update: bool = False,
-    info: Optional[ResolveInfo] = None,
 ):
     """Return the total price of the order.
 
@@ -457,9 +446,7 @@ def order_subtotal(
     and save them in the model directly.
     """
     currency = order.currency
-    order, lines = fetch_order_prices_if_expired(
-        order, manager, lines, force_update, info
-    )
+    order, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
     # Lines aren't returned only if
     # we don't pass them to `fetch_order_prices_if_expired`.
     lines = cast(Iterable[OrderLine], lines)
@@ -471,7 +458,6 @@ def order_total(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-    info: Optional[ResolveInfo] = None,
 ) -> TaxedMoney:
     """Return the total price of the order.
 
@@ -480,7 +466,7 @@ def order_total(
     and save them in the model directly.
     """
     currency = order.currency
-    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update, info)
+    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
     return quantize_price(order.total, currency)
 
 
@@ -489,7 +475,6 @@ def order_undiscounted_total(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-    info: Optional[ResolveInfo] = None,
 ) -> TaxedMoney:
     """Return the undiscounted total price of the order.
 
@@ -498,5 +483,5 @@ def order_undiscounted_total(
     and save them in the model directly.
     """
     currency = order.currency
-    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update, info)
+    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
     return quantize_price(order.undiscounted_total, currency)
