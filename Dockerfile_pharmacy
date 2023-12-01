@@ -1,5 +1,5 @@
 ### Build and install packages
-FROM python:3.9-slim-buster as build-python
+FROM python:3.9-slim as build-python
 
 RUN apt-get -y update \
   && apt-get install -y gettext \
@@ -15,7 +15,7 @@ COPY pyproject.toml /app/
 COPY poetry-docker.toml /app/poetry.toml
 COPY poetry.lock /app/
 
-RUN pip install "poetry>=1.3.0,<1.4.0"
+RUN pip install poetry==1.7.0
 RUN pip install wheel
 RUN pip install keyrings.google-artifactregistry-auth
 
@@ -32,7 +32,7 @@ RUN poetry install --only main --no-interaction --no-ansi --no-root
 RUN rm /app/google-build-key.json
 
 ### Final image
-FROM python:3.9-slim-buster
+FROM python:3.9-slim
 
 RUN groupadd -r saleor && useradd -r -g saleor saleor
 
