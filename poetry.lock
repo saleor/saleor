@@ -4182,13 +4182,13 @@ experiments = ["jsonnet (>=0.18,<1.0)"]
 
 [[package]]
 name = "sendgrid"
-version = "6.10.0"
+version = "6.11.0"
 description = "Twilio SendGrid library for Python"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 files = [
-    {file = "sendgrid-6.10.0-py3-none-any.whl", hash = "sha256:522b30fc98306496208c5d8bdd5642cd6a2fd65cad487475f57f9098ce880604"},
-    {file = "sendgrid-6.10.0.tar.gz", hash = "sha256:9b15050c6f8826ee576f76a786efb15d956639f485478cbddd79ed69e8350ab8"},
+    {file = "sendgrid-6.11.0-py3-none-any.whl", hash = "sha256:43ecf5bb742ea5850c7cfe68f5e7d9948772352306d4e83e119899959538b884"},
+    {file = "sendgrid-6.11.0.tar.gz", hash = "sha256:71424b2a97f5a034121ea3b2666c653ba0ed315982f0d57b7851c0c9503dc5ab"},
 ]
 
 [package.dependencies]
@@ -5262,4 +5262,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "3b6f0628ac9b9bc2fce4e72dfaa2366b0135f179cf9b737a473dcc2a9a46cc4c"
+content-hash = "e92a439494d5fee5eac7917086a655e970dd3428d2d11e7af6ff39e075b65a80"
