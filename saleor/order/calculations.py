@@ -9,12 +9,6 @@ from prices import Money, TaxedMoney
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
 from ..discount import DiscountType
-from ..order.base_calculations import (
-    apply_order_discounts,
-    base_order_line_total,
-    base_order_subtotal,
-    update_order_discount_amounts,
-)
 from ..payment.model_helpers import get_subtotal
 from ..plugins.manager import PluginsManager
 from ..tax import TaxCalculationStrategy
@@ -26,6 +20,12 @@ from ..tax.utils import (
     normalize_tax_rate_for_db,
 )
 from . import ORDER_EDITABLE_STATUS
+from .base_calculations import (
+    apply_order_discounts,
+    base_order_line_total,
+    undiscounted_order_total,
+    update_order_discount_amounts,
+)
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
@@ -268,8 +268,7 @@ def _update_order_discounts_and_base_undiscounted_total(
     Entire order vouchers and staff order discounts are recalculated and updated.
     """
     update_order_discount_amounts(order, lines)
-    subtotal = base_order_subtotal(order, lines)
-    undiscounted_total = subtotal + order.base_shipping_price
+    undiscounted_total = undiscounted_order_total(order, lines)
     order.undiscounted_total = TaxedMoney(
         net=undiscounted_total, gross=undiscounted_total
     )

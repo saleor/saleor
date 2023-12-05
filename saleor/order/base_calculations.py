@@ -8,6 +8,7 @@ from ..core.taxes import zero_money
 from ..discount import DiscountType, DiscountValueType, VoucherType
 from ..discount.models import OrderDiscount
 from ..discount.utils import apply_discount_to_value
+from ..shipping.models import ShippingMethodChannelListing
 from .interface import OrderTaxedPricesData
 
 if TYPE_CHECKING:
@@ -147,10 +148,9 @@ def apply_order_discounts(
     if assign_prices:
         assign_order_prices(
             order,
+            lines,
             subtotal,
-            base_subtotal,
             shipping_price,
-            base_shipping_price,
         )
         subtotal_discount = base_subtotal - subtotal
         apply_subtotal_discount_to_order_lines(lines, base_subtotal, subtotal_discount)
@@ -217,23 +217,49 @@ def assign_order_line_prices(line: "OrderLine", total_price: Money):
 
 def assign_order_prices(
     order: "Order",
+    lines: Iterable["OrderLine"],
     subtotal: Money,
-    undiscounted_subtotal: Money,
     shipping_price: Money,
-    undiscounted_shipping_price: Money,
 ):
     order.shipping_price_net_amount = shipping_price.amount
     order.shipping_price_gross_amount = shipping_price.amount
     order.total_net_amount = subtotal.amount + shipping_price.amount
     order.total_gross_amount = subtotal.amount + shipping_price.amount
-    order.undiscounted_total_net_amount = (
-        undiscounted_subtotal.amount + undiscounted_shipping_price.amount
-    )
-    order.undiscounted_total_gross_amount = (
-        undiscounted_subtotal.amount + undiscounted_shipping_price.amount
-    )
+
+    undiscounted_total = undiscounted_order_total(order, lines)
+    order.undiscounted_total_net_amount = undiscounted_total.amount
+    order.undiscounted_total_gross_amount = undiscounted_total.amount
 
 
 def update_order_discount_amounts(order, lines):
     """Update order level discount amount."""
     apply_order_discounts(order, lines, assign_prices=False)
+
+
+def undiscounted_order_shipping(order: "Order") -> Money:
+    """Return shipping price without any discounts."""
+    # TODO: add undiscounted_shipping_price field to order model.
+    # https://github.com/saleor/saleor/issues/14915
+    if shipping_method := order.shipping_method:
+        if listing := ShippingMethodChannelListing.objects.filter(
+            channel=order.channel, shipping_method=shipping_method
+        ).first():
+            return Money(listing.price_amount, order.currency)
+    return zero_money(order.currency)
+
+
+def undiscounted_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
+    """Return order subtotal without any discounts."""
+    currency = order.currency
+    subtotal = zero_money(currency)
+    for line in lines:
+        undiscounted_line_total = line.undiscounted_unit_price.net * line.quantity
+        subtotal += undiscounted_line_total
+    return quantize_price(subtotal, currency)
+
+
+def undiscounted_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
+    """Return order total without any discounts."""
+    subtotal = undiscounted_order_subtotal(order, lines)
+    shipping_price = undiscounted_order_shipping(order)
+    return quantize_price(subtotal + shipping_price, order.currency)
