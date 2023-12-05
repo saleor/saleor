@@ -2,7 +2,6 @@
 
 from django.db import migrations
 
-
 CREATE_INDEX = """
     CREATE INDEX CONCURRENTLY IF NOT EXISTS
         email_upper_idx ON account_user (upper(email));
