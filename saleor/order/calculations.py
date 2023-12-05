@@ -154,7 +154,7 @@ def _recalculate_prices(
                 tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
             )
         else:
-            apply_order_discounts(order, lines, update_prices=True)
+            apply_order_discounts(order, lines, assign_prices=True)
             _remove_tax(order, lines)
 
 

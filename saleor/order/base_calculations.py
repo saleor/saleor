@@ -41,7 +41,7 @@ def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
 
     All discounts are included in this price.
     """
-    subtotal, shipping_price = apply_order_discounts(order, lines, update_prices=False)
+    subtotal, shipping_price = apply_order_discounts(order, lines, assign_prices=False)
     return subtotal + shipping_price
 
 
@@ -73,7 +73,7 @@ def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
 def apply_order_discounts(
     order: "Order",
     lines: Iterable["OrderLine"],
-    update_prices=True,
+    assign_prices=True,
 ) -> tuple[Money, Money]:
     """Calculate prices after applying order level discounts.
 
@@ -85,10 +85,10 @@ def apply_order_discounts(
     Staff order discounts are recalculated and updated in this function
     (OrderDiscounts with type `order_discount.type == DiscountType.MANUAL`).
     """
-    undiscounted_subtotal = base_order_subtotal(order, lines)
-    undiscounted_shipping_price = order.base_shipping_price
-    subtotal = undiscounted_subtotal
-    shipping_price = undiscounted_shipping_price
+    base_subtotal = base_order_subtotal(order, lines)
+    base_shipping_price = order.base_shipping_price
+    subtotal = base_subtotal
+    shipping_price = base_shipping_price
     currency = order.currency
     order_discounts_to_update = []
     for order_discount in order.discounts.all():
@@ -144,25 +144,23 @@ def apply_order_discounts(
     if order_discounts_to_update:
         OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
 
-    if update_prices:
+    if assign_prices:
         assign_order_prices(
             order,
             subtotal,
-            undiscounted_subtotal,
+            base_subtotal,
             shipping_price,
-            undiscounted_shipping_price,
+            base_shipping_price,
         )
-        subtotal_discount = undiscounted_subtotal - subtotal
-        apply_subtotal_discount_to_order_lines(
-            lines, undiscounted_subtotal, subtotal_discount
-        )
+        subtotal_discount = base_subtotal - subtotal
+        apply_subtotal_discount_to_order_lines(lines, base_subtotal, subtotal_discount)
 
     return subtotal, shipping_price
 
 
 def apply_subtotal_discount_to_order_lines(
     lines: Iterable["OrderLine"],
-    undiscounted_subtotal: Money,
+    base_subtotal: Money,
     subtotal_discount: Money,
 ):
     """Calculate order lines prices after applying discounts to entire subtotal."""
@@ -180,11 +178,9 @@ def apply_subtotal_discount_to_order_lines(
         for idx, line in enumerate(lines):
             if idx < lines_count - 1:
                 share = (
-                    line.base_unit_price_amount
-                    * line.quantity
-                    / undiscounted_subtotal.amount
+                    line.base_unit_price_amount * line.quantity / base_subtotal.amount
                 )
-                discount = min(share * remaining_discount, undiscounted_subtotal)
+                discount = min(share * remaining_discount, base_subtotal)
                 apply_subtotal_discount_to_order_line(line, discount)
                 remaining_discount -= discount
             else:
@@ -195,8 +191,8 @@ def apply_subtotal_discount_to_order_line(line: "OrderLine", discount: Money):
     """Calculate order line prices after applying order level discount."""
     currency = discount.currency
     # This price includes line level discounts, but not entire order ones.
-    discounted_base_line_total = base_order_line_total(line).price_with_discounts.net
-    total_price = max(discounted_base_line_total - discount, zero_money(currency))
+    base_line_total = base_order_line_total(line).price_with_discounts.net
+    total_price = max(base_line_total - discount, zero_money(currency))
     assign_order_line_prices(line, total_price)
 
 
@@ -240,4 +236,4 @@ def assign_order_prices(
 
 def update_order_discount_amounts(order, lines):
     """Update order level discount amount."""
-    apply_order_discounts(order, lines, update_prices=False)
+    apply_order_discounts(order, lines, assign_prices=False)
