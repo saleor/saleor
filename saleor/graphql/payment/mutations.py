@@ -2057,7 +2057,9 @@ class TransactionInitialize(TransactionSessionBase):
     @classmethod
     def clean_app_from_payment_gateway(cls, payment_gateway: PaymentGatewayData) -> App:
         app = App.objects.filter(
-            identifier=payment_gateway.app_identifier, removed_at__isnull=True
+            identifier=payment_gateway.app_identifier,
+            removed_at__isnull=True,
+            is_active=True,
         ).first()
         if not app:
             raise ValidationError(
@@ -2212,7 +2214,9 @@ class TransactionProcess(BaseMutation):
                 }
             )
         app = App.objects.filter(
-            identifier=transaction_item.app_identifier, removed_at__isnull=True
+            identifier=transaction_item.app_identifier,
+            removed_at__isnull=True,
+            is_active=True,
         ).first()
         if not app:
             raise ValidationError(
