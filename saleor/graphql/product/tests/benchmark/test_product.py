@@ -601,7 +601,7 @@ def test_filter_products_by_numeric_attributes(
     product = product_list[0]
     product.product_type.product_attributes.add(numeric_attribute)
     associate_attribute_values_to_instance(
-        product, numeric_attribute, *numeric_attribute.values.all()
+        product, {numeric_attribute.id: list(numeric_attribute.values.all())}
     )
     variables = {
         "channel": channel_USD.slug,
@@ -628,7 +628,7 @@ def test_filter_products_by_boolean_attributes(
     product = product_list[0]
     product.product_type.product_attributes.add(boolean_attribute)
     associate_attribute_values_to_instance(
-        product, boolean_attribute, *boolean_attribute.values.all()
+        product, {boolean_attribute.id: list(boolean_attribute.values.all())}
     )
     variables = {
         "channel": channel_USD.slug,

@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Iterable, Set, Union
+from collections import defaultdict
+from typing import Union
 
 from ..page.models import Page
 from ..product.models import Product, ProductVariant
@@ -9,7 +10,6 @@ from .models import (
     AssignedProductAttributeValue,
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
-    Attribute,
     AttributeValue,
 )
 
@@ -19,118 +19,154 @@ AttributeAssignmentType = Union[
 T_INSTANCE = Union[Product, ProductVariant, Page]
 
 
-if TYPE_CHECKING:
-    from .models import AttributePage, AttributeProduct, AttributeVariant
-
-
 def associate_attribute_values_to_instance(
-    instance: T_INSTANCE,
-    attribute: Attribute,
-    *values: AttributeValue,
-) -> AttributeAssignmentType:
-    """Assign given attribute values to a product or variant.
-
-    Note: be aware this function invokes the ``set`` method on the instance's
-    attribute association. Meaning any values already assigned or concurrently
-    assigned will be overridden by this call.
-    """
-    values_ids = {value.pk for value in values}
-
+    instance: T_INSTANCE, attr_val_map: dict[int, list]
+):
     # Ensure the values are actually form the given attribute
-    validate_attribute_owns_values(attribute, values_ids)
+    validate_attribute_owns_values(attr_val_map)
 
     # Associate the attribute and the passed values
-    assignment = _associate_attribute_to_instance(instance, attribute.pk)
-    assignment.values.set(values)
-
-    # While migrating to a new structure we need to make sure we also
-    # copy the assigned product to AssignedProductAttributeValue
-    # where it will live after issue #12881 will be implemented
-    if isinstance(instance, Product):
-        AssignedProductAttributeValue.objects.filter(
-            assignment_id=assignment.pk
-        ).update(product_id=instance.pk)
-
-    # This code will be deleted in new release (3.17), it is temporary solution between
-    # releases to keep database in sync
-    elif isinstance(instance, Page):
-        AssignedPageAttributeValue.objects.filter(assignment_id=assignment.pk).update(
-            page_id=instance.pk
-        )
-
-    sort_assigned_attribute_values(instance, assignment, values)
-
-    return assignment
-
-
-def validate_attribute_owns_values(attribute: Attribute, value_ids: Set[int]) -> None:
-    """Check given value IDs are belonging to the given attribute.
-
-    :raise: AssertionError
-    """
-    attribute_actual_value_ids = set(
-        AttributeValue.objects.filter(
-            pk__in=value_ids, attribute=attribute
-        ).values_list("pk", flat=True)
-    )
-    if attribute_actual_value_ids != value_ids:
-        raise AssertionError("Some values are not from the provided attribute.")
+    _associate_attribute_to_instance(instance, attr_val_map)
 
 
 def _associate_attribute_to_instance(
-    instance: T_INSTANCE, attribute_pk: int
-) -> AttributeAssignmentType:
-    """Associate a given attribute to an instance."""
-    assignment: AttributeAssignmentType
+    instance: T_INSTANCE, attr_val_map: dict[int, list]
+):
     if isinstance(instance, Product):
-        attribute_rel: Union[
-            "AttributeProduct", "AttributeVariant", "AttributePage"
-        ] = instance.product_type.attributeproduct.get(attribute_id=attribute_pk)
+        instance_attrs_ids = instance.product_type.attributeproduct.filter(
+            attribute_id__in=attr_val_map.keys()
+        ).values_list("pk", flat=True)
 
-        assignment, _ = AssignedProductAttribute.objects.get_or_create(
-            product=instance, assignment=attribute_rel
+        assignments = _get_or_create_assignments(
+            instance, instance_attrs_ids, AssignedProductAttribute, "product"
+        )
+
+        values_order_map = _assign_values(
+            instance,
+            assignments,
+            attr_val_map,
+            AssignedProductAttributeValue,
+            "product",
+        )
+        _order_assigned_attr_values(
+            values_order_map, assignments, attr_val_map, AssignedProductAttributeValue
         )
     elif isinstance(instance, ProductVariant):
-        attribute_rel = instance.product.product_type.attributevariant.get(
-            attribute_id=attribute_pk
-        )
+        instance_attrs_ids = instance.product.product_type.attributevariant.filter(
+            attribute_id__in=attr_val_map.keys()
+        ).values_list(
+            "pk", flat=True
+        )  # type: ignore
 
-        assignment, _ = AssignedVariantAttribute.objects.get_or_create(
-            variant=instance, assignment=attribute_rel
+        assignments = _get_or_create_assignments(
+            instance, instance_attrs_ids, AssignedVariantAttribute, "variant"
+        )
+        values_order_map = _assign_values(
+            instance, assignments, attr_val_map, AssignedVariantAttributeValue, None
+        )
+        _order_assigned_attr_values(
+            values_order_map, assignments, attr_val_map, AssignedVariantAttributeValue
         )
     elif isinstance(instance, Page):
-        attribute_rel = instance.page_type.attributepage.get(attribute_id=attribute_pk)
-        assignment, _ = AssignedPageAttribute.objects.get_or_create(
-            page=instance, assignment=attribute_rel
+        instance_attrs_ids = instance.page_type.attributepage.filter(  # type: ignore
+            attribute_id__in=attr_val_map.keys()
+        ).values_list("pk", flat=True)
+
+        assignments = _get_or_create_assignments(
+            instance, instance_attrs_ids, AssignedPageAttribute, "page"
+        )
+        values_order_map = _assign_values(
+            instance, assignments, attr_val_map, AssignedPageAttributeValue, "page"
+        )
+        _order_assigned_attr_values(
+            values_order_map, assignments, attr_val_map, AssignedPageAttributeValue
         )
     else:
         raise AssertionError(f"{instance.__class__.__name__} is unsupported")
 
-    return assignment
 
-
-def sort_assigned_attribute_values(
-    instance: T_INSTANCE,
-    assignment: AttributeAssignmentType,
-    values: Iterable[AttributeValue],
-) -> None:
-    """Sort assigned attribute values based on values list order."""
-
-    instance_to_value_assignment_mapping = {
-        "Product": ("productvalueassignment", AssignedProductAttributeValue),
-        "ProductVariant": ("variantvalueassignment", AssignedVariantAttributeValue),
-        "Page": ("pagevalueassignment", AssignedPageAttributeValue),
-    }
-    assignment_lookup, assignment_model = instance_to_value_assignment_mapping[
-        instance.__class__.__name__
-    ]
-    values_pks = [value.pk for value in values]
-
-    values_assignment = list(
-        getattr(assignment, assignment_lookup).select_related("value")
+def _get_or_create_assignments(
+    instance, instance_attrs_ids, assigment_model, instance_field_name
+):
+    instance_field_kwarg = {instance_field_name: instance}
+    assignments = list(
+        assigment_model.objects.filter(
+            assignment_id__in=instance_attrs_ids, **instance_field_kwarg
+        )
     )
-    values_assignment.sort(key=lambda e: values_pks.index(e.value.pk))
-    for index, value_assignment in enumerate(values_assignment):
-        value_assignment.sort_order = index
 
-    assignment_model.objects.bulk_update(values_assignment, ["sort_order"])
+    assignments_to_create = []
+    for id in instance_attrs_ids:
+        if id not in [a.assignment_id for a in assignments]:
+            assignments_to_create.append(id)
+
+    if assignments_to_create:
+        assignments += list(
+            assigment_model.objects.bulk_create(
+                [
+                    assigment_model(assignment_id=assignment_id, **instance_field_kwarg)
+                    for assignment_id in assignments_to_create
+                ]
+            )
+        )
+    return assignments
+
+
+def _assign_values(
+    instance, assignments, attr_val_map, assigment_model, instance_field_name
+) -> dict[int, list]:
+    instance_field_kwarg = (
+        {instance_field_name: instance} if instance_field_name else {}
+    )
+
+    assigment_attr_map = {a.assignment.attribute_id: a for a in assignments}
+
+    assigment_model.objects.filter(
+        assignment_id__in=[a.pk for a in assignments],
+    ).exclude(
+        value_id__in=[v.pk for values in attr_val_map.values() for v in values]
+    ).delete()
+
+    values_order_map = defaultdict(list)
+    assigned_attr_values_instances = []
+    for attr_id, values in attr_val_map.items():
+        assignment = assigment_attr_map[attr_id]
+
+        for value in values:
+            assigned_attr_values_instances.append(
+                assigment_model(
+                    value=value, assignment_id=assignment.id, **instance_field_kwarg
+                )
+            )
+            values_order_map[assignment.id].append(value.id)
+
+    assigment_model.objects.bulk_create(
+        assigned_attr_values_instances, ignore_conflicts=True
+    )
+    return values_order_map
+
+
+def _order_assigned_attr_values(
+    values_order_map, assignments, attr_val_map, assigment_model
+) -> None:
+    assigned_attrs_values = assigment_model.objects.filter(
+        assignment_id__in=(a.pk for a in assignments),
+        value_id__in=(v.pk for values in attr_val_map.values() for v in values),
+    )
+    for value in assigned_attrs_values:
+        value.sort_order = values_order_map[value.assignment_id].index(value.value_id)
+
+    assigment_model.objects.bulk_update(assigned_attrs_values, ["sort_order"])
+
+
+def validate_attribute_owns_values(attr_val_map: dict[int, list]) -> None:
+    values = defaultdict(set)
+    for value in AttributeValue.objects.filter(
+        attribute_id__in=attr_val_map.keys(),
+        pk__in=[v.pk for values in attr_val_map.values() for v in values],
+    ).iterator():
+        values[value.attribute_id].add(value.id)
+
+    for attribute_id, value_ids in attr_val_map.items():
+        if values[attribute_id] != {v.pk for v in value_ids}:
+            raise AssertionError("Some values are not from the provided attribute.")
