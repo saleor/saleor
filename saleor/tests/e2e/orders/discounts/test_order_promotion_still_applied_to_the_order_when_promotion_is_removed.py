@@ -9,7 +9,7 @@ from ...promotions.utils import (
     delete_promotion,
     promotion_query,
 )
-from ...shop.utils.preparing_shop import prepare_shop
+from ...shop.utils.preparing_shop import prepare_default_shop
 from ...utils import assign_permissions
 from ..utils import (
     draft_order_complete,
@@ -41,11 +41,11 @@ def test_order_promotion_still_applied_to_the_order_when_promotion_is_removed_CO
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
 
     (
         product_id,

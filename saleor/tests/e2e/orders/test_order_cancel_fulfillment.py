@@ -18,18 +18,27 @@ from .utils import (
 
 def prepare_order(e2e_staff_api_client):
     price = 10
-    shop_settings = {
-        "fulfillmentAutoApprove": True,
-        "fulfillmentAllowUnpaid": False,
-    }
 
-    shop_data = prepare_shop(
+    shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
-        shop_settings_update=shop_settings,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [{}],
+                    },
+                ],
+                "order_settings": {},
+            }
+        ],
+        shop_settings={
+            "fulfillmentAutoApprove": True,
+            "fulfillmentAllowUnpaid": False,
+        },
     )
-    channel_id = shop_data["channels"][0]["id"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    channel_id = shop_data[0]["id"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+    shipping_method_id = shop_data[0]["shipping_zones"][0]["shipping_methods"][0]["id"]
 
     _product_id, product_variant_id, _product_variant_price = prepare_product(
         e2e_staff_api_client,

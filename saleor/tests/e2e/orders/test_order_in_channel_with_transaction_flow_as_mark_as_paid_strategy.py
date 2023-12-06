@@ -34,19 +34,25 @@ def test_order_in_channel_with_transaction_flow_as_mark_as_paid_strategy_CORE_02
     app_permissions = [permission_manage_payments]
     assign_permissions(e2e_app_api_client, app_permissions)
 
-    shop_settings = {
-        "fulfillmentAutoApprove": True,
-    }
-    channel_config = [{"order_settings": {"markAsPaidStrategy": "TRANSACTION_FLOW"}}]
-
-    shop_data = prepare_shop(
+    shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
-        channels_settings=channel_config,
-        shop_settings_update=shop_settings,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [{}],
+                    },
+                ],
+                "order_settings": {"markAsPaidStrategy": "TRANSACTION_FLOW"},
+            }
+        ],
+        shop_settings={
+            "fulfillmentAutoApprove": True,
+        },
     )
-    channel_id = shop_data["channels"][0]["id"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    channel_id = shop_data[0]["id"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+    shipping_method_id = shop_data[0]["shipping_zones"][0]["shipping_methods"][0]["id"]
 
     price = 2
     (

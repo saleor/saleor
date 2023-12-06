@@ -1,7 +1,7 @@
 import pytest
 
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from ..warehouse.utils import update_warehouse
 from .utils import (
@@ -26,12 +26,11 @@ def test_unlogged_customer_buy_by_click_and_collect_CORE_0105(
     ]
 
     assign_permissions(e2e_staff_api_client, permissions)
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
+
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
     update_warehouse(
         e2e_staff_api_client,
         warehouse_id,

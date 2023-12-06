@@ -10,7 +10,7 @@ from ...product.utils import (
     create_product_variant_channel_listing,
 )
 from ...promotions.utils import create_promotion, create_promotion_rule
-from ...shop.utils import prepare_shop
+from ...shop.utils.preparing_shop import prepare_default_shop
 from ...utils import assign_permissions
 from ..utils import (
     draft_order_complete,
@@ -24,7 +24,6 @@ def prepare_product(
     e2e_staff_api_client,
     warehouse_id,
     channel_id,
-    channel_slug,
     shipping_method_id,
     variant_price_1,
     variant_price_2,
@@ -142,11 +141,12 @@ def test_order_products_from_category_on_fixed_promotion_CORE_2106(
         permission_manage_orders,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
+
     variant_price_1 = "20"
     variant_price_2 = "10"
     promotion_name = "Promotion Fixed"
@@ -163,7 +163,6 @@ def test_order_products_from_category_on_fixed_promotion_CORE_2106(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
-        channel_slug,
         shipping_method_id,
         variant_price_1,
         variant_price_2,

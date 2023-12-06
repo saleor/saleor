@@ -3,7 +3,7 @@ import pytest
 from ... import DEFAULT_ADDRESS
 from ...product.utils.preparing_product import prepare_product
 from ...sales.utils import create_sale, create_sale_channel_listing, sale_catalogues_add
-from ...shop.utils.preparing_shop import prepare_shop
+from ...shop.utils.preparing_shop import prepare_default_shop
 from ...utils import assign_permissions
 from ..utils import (
     draft_order_complete,
@@ -65,10 +65,10 @@ def test_order_products_on_fixed_sale_CORE_1001(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
 
     (
         product_id,

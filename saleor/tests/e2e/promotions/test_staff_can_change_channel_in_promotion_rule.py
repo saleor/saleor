@@ -43,59 +43,67 @@ def prepare_promotion(
 
 
 def prepare_channels_with_product(e2e_staff_api_client):
-    channels = [
-        {
-            "channel_name": "First Channel",
-            "slug": "first-channel",
-            "currency": "USD",
-            "country": "US",
-        },
-        {
-            "channel_name": "Second Channel",
-            "slug": "second-channel",
-            "currency": "PLN",
-            "country": "PL",
-        },
-    ]
-    shop_data = prepare_shop(
+    shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
-        channels_settings=channels,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "countries": ["US"],
+                        "name": "us shipping zone",
+                        "shipping_methods": [{}],
+                    },
+                ],
+                "order_settings": {},
+            },
+            {
+                "shipping_zones": [
+                    {
+                        "countries": ["PL"],
+                        "name": "pl shipping zone",
+                        "shipping_methods": [{}],
+                    },
+                ],
+                "order_settings": {},
+            },
+        ],
+        shop_settings={},
     )
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    first_channel_id = shop_data["channels"][0]["id"]
-    first_channel_slug = shop_data["channels"][0]["slug"]
-    second_channel_id = shop_data["channels"][1]["id"]
-    second_channel_slug = shop_data["channels"][1]["slug"]
+    us_channel_id = shop_data[0]["id"]
+    us_channel_slug = shop_data[0]["slug"]
+    pl_channel_id = shop_data[1]["id"]
+    pl_channel_slug = shop_data[1]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
 
     product_id, product_variant_id, _ = prepare_product(
-        e2e_staff_api_client, warehouse_id, first_channel_id, "7.99"
+        e2e_staff_api_client, warehouse_id, us_channel_id, "7.99"
     )
 
     product_listing_data = raw_create_product_channel_listing(
         e2e_staff_api_client,
         product_id,
-        second_channel_id,
+        pl_channel_id,
         is_published=True,
         visible_in_listings=True,
         is_available_for_purchase=True,
     )
     assert (
         product_listing_data["product"]["channelListings"][1]["channel"]["id"]
-        == second_channel_id
+        == pl_channel_id
     )
 
     variant_listing_data = raw_create_product_variant_channel_listing(
-        e2e_staff_api_client, product_variant_id, second_channel_id, price="99"
+        e2e_staff_api_client, product_variant_id, pl_channel_id, price="99"
     )
     assert (
         variant_listing_data["variant"]["channelListings"][1]["channel"]["id"]
-        == second_channel_id
+        == pl_channel_id
     )
     return (
-        first_channel_id,
-        first_channel_slug,
-        second_channel_id,
-        second_channel_slug,
+        us_channel_id,
+        us_channel_slug,
+        pl_channel_id,
+        pl_channel_slug,
         product_id,
     )
 
@@ -116,10 +124,10 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
     assign_permissions(e2e_staff_api_client, permissions)
 
     (
-        first_channel_id,
-        first_channel_slug,
-        second_channel_id,
-        second_channel_slug,
+        us_channel_id,
+        us_channel_slug,
+        pl_channel_id,
+        pl_channel_slug,
         product_id,
     ) = prepare_channels_with_product(e2e_staff_api_client)
 
@@ -129,7 +137,7 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
         50,
         "PERCENTAGE",
         predicate_input,
-        channel_id=[first_channel_id],
+        channel_id=[us_channel_id],
     )
 
     # Step 1 Update promotion rule: switch channels
@@ -137,15 +145,15 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
         e2e_staff_api_client,
         promotion_rule_id,
         input={
-            "addChannels": [second_channel_id],
-            "removeChannels": [first_channel_id],
+            "addChannels": [pl_channel_id],
+            "removeChannels": [us_channel_id],
             "cataloguePredicate": predicate_input,
         },
     )
 
     # Step 2 Check if promotion is applied for product on second channel
     product_data_channel_2 = get_product(
-        e2e_staff_api_client, product_id, second_channel_slug
+        e2e_staff_api_client, product_id, pl_channel_slug
     )
     assert product_data_channel_2["pricing"]["onSale"] is True
     variant = product_data_channel_2["variants"][0]
@@ -153,6 +161,6 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
 
     # Step 3 Check if promotion is not applied for product on first channel
     product_data_channel_1 = get_product(
-        e2e_staff_api_client, product_id, first_channel_slug
+        e2e_staff_api_client, product_id, us_channel_slug
     )
     assert product_data_channel_1["pricing"]["onSale"] is False

@@ -51,21 +51,18 @@ def create_channel(
     staff_api_client,
     warehouse_ids=None,
     channel_name="Test channel",
-    slug=f"channel_slug_{uuid.uuid4()}",
+    slug=None,
     currency="USD",
     country="US",
+    shipping_zones=None,
     is_active=True,
-    order_settings={
-        "markAsPaidStrategy": "PAYMENT_FLOW",
-        "automaticallyFulfillNonShippableGiftCard": False,
-        "allowUnpaidOrders": False,
-        "automaticallyConfirmAllNewOrders": True,
-        "expireOrdersAfter": 60,
-        "deleteExpiredOrdersAfter": 1,
-    },
+    order_settings={},
 ):
     if not warehouse_ids:
         warehouse_ids = []
+
+    if slug is None:
+        slug = f"channel_slug_{uuid.uuid4()}"
 
     variables = {
         "input": {
@@ -75,7 +72,16 @@ def create_channel(
             "defaultCountry": country,
             "isActive": is_active,
             "addWarehouses": warehouse_ids,
-            "orderSettings": order_settings,
+            "addShippingZones": shipping_zones,
+            "orderSettings": {
+                "markAsPaidStrategy": "PAYMENT_FLOW",
+                "automaticallyFulfillNonShippableGiftCard": False,
+                "allowUnpaidOrders": False,
+                "automaticallyConfirmAllNewOrders": True,
+                "expireOrdersAfter": 60,
+                "deleteExpiredOrdersAfter": 1,
+                **order_settings,
+            },
         }
     }
 

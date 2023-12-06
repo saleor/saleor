@@ -8,7 +8,7 @@ from ..sales.utils import (
     raw_create_sale_channel_listing,
     sale_catalogues_add,
 )
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 
 
@@ -62,9 +62,9 @@ def test_sale_updated_by_promotion_can_not_be_handled_by_sales_core_2116(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    warehouse_id = shop_data["warehouse"]["id"]
 
     (
         product_id,

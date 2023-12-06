@@ -26,43 +26,54 @@ def test_digital_checkout_calculate_simple_tax_based_on_billing_country_CORE_200
         permission_manage_product_types_and_attributes,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
+
     tax_settings = {
         "charge_taxes": True,
         "tax_calculation_strategy": "FLAT_RATES",
         "display_gross_prices": False,
         "prices_entered_with_tax": False,
-        "tax_rates": [
-            {
-                "type": "shipping_country",
-                "name": "Shipping Country Tax Rate",
-                "country_code": "US",
-                "rate": 9,
-            },
-            {
-                "type": "billing_country",
-                "name": "Billing Country Tax Rate",
-                "country_code": "CZ",
-                "rate": 21,
-            },
-        ],
     }
 
-    shop_data = prepare_shop(
+    shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
-        shipping_zones=[{"countries": ["CZ", "US"]}],
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "countries": ["US"],
+                        "shipping_methods": [
+                            {
+                                "name": "us shipping zone",
+                                "add_channels": {},
+                            }
+                        ],
+                    },
+                    {
+                        "countries": ["CZ"],
+                        "shipping_methods": [
+                            {
+                                "name": "cz shipping zone",
+                                "add_channels": {},
+                            }
+                        ],
+                    },
+                ],
+                "order_settings": {},
+            },
+        ],
         tax_settings=tax_settings,
     )
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    billing_country_tax_rate = shop_data["tax_rates"].get("billing_country").get("rate")
-    billing_country_code = (
-        shop_data["tax_rates"].get("billing_country").get("country_code")
-    )
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+    billing_country_code = "CZ"
+    billing_tax = 21
+    shipping_tax = 9
+
     update_country_tax_rates(
         e2e_staff_api_client,
         billing_country_code,
-        [{"rate": billing_country_tax_rate}],
+        [{"rate": billing_tax}],
     )
 
     variant_price = 88.89
@@ -105,15 +116,22 @@ def test_digital_checkout_calculate_simple_tax_based_on_billing_country_CORE_200
 
     # Step 3 - Get checkout and verify taxes
     checkout_data = get_checkout(e2e_not_logged_api_client, checkout_id)
-    calculated_tax = round(
-        (product_variant_price * (billing_country_tax_rate / 100)),
+    billing_tax = round(
+        (product_variant_price * (billing_tax / 100)),
         2,
     )
+    shipping_tax = round(
+        (product_variant_price * (shipping_tax / 100)),
+        2,
+    )
+
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
 
     assert checkout_data["totalPrice"]["net"]["amount"] == product_variant_price
-    assert checkout_data["totalPrice"]["tax"]["amount"] == calculated_tax
-    assert total_gross_amount == product_variant_price + calculated_tax
+    assert checkout_data["totalPrice"]["tax"]["amount"] == billing_tax
+    assert checkout_data["totalPrice"]["tax"]["amount"] != shipping_tax
+
+    assert total_gross_amount == product_variant_price + billing_tax
 
     # Step 4 - Create payment for checkout.
     checkout_dummy_payment_create(
@@ -130,7 +148,5 @@ def test_digital_checkout_calculate_simple_tax_based_on_billing_country_CORE_200
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["paymentStatus"] == "FULLY_CHARGED"
     assert order_data["total"]["net"]["amount"] == product_variant_price
-    assert order_data["total"]["tax"]["amount"] == calculated_tax
-    assert (
-        order_data["total"]["gross"]["amount"] == product_variant_price + calculated_tax
-    )
+    assert order_data["total"]["tax"]["amount"] == billing_tax
+    assert order_data["total"]["gross"]["amount"] == product_variant_price + billing_tax

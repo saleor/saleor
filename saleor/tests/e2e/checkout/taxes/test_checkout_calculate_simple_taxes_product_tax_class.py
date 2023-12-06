@@ -26,18 +26,13 @@ def test_checkout_calculate_simple_tax_based_on_product_tax_class_CORE_2005(
         permission_manage_product_types_and_attributes,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
+
     tax_settings = {
         "charge_taxes": True,
         "tax_calculation_strategy": "FLAT_RATES",
         "display_gross_prices": False,
         "prices_entered_with_tax": True,
         "tax_rates": [
-            {
-                "type": "country",
-                "name": "Country Tax Rate",
-                "country_code": "US",
-                "rate": 23,
-            },
             {
                 "type": "product",
                 "name": "Product Tax Rate",
@@ -46,18 +41,34 @@ def test_checkout_calculate_simple_tax_based_on_product_tax_class_CORE_2005(
             },
         ],
     }
-    shop_data = prepare_shop(
+    shop_data, tax_config = prepare_shop(
         e2e_staff_api_client,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [
+                            {
+                                "add_channels": {},
+                            }
+                        ],
+                    },
+                ],
+                "order_settings": {},
+            },
+        ],
         tax_settings=tax_settings,
     )
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
-    product_tax_class_id = shop_data["tax_classes"].get("product_tax_class_id")
-    product_tax_rate = shop_data["tax_rates"].get("product").get("rate")
-    country_tax_rate = shop_data["tax_rates"].get("country").get("rate")
-    country = shop_data["tax_rates"].get("country").get("country_code")
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    shipping_method_id = shop_data[0]["shipping_zones"][0]["shipping_methods"][0]["id"]
+    shipping_price = 10.0
+    warehouse_id = shop_data[0]["warehouse_id"]
+    product_tax_class_id = tax_config[0]["product_tax_class_id"]
+    product_tax_rate = tax_config[1]["product"]["rate"]
+    country_tax_rate = 23
+    country = "US"
+
     update_country_tax_rates(
         e2e_staff_api_client,
         country,

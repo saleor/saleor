@@ -92,25 +92,27 @@ def test_buy_gift_card_in_the_checkout_CORE_1102(
         permission_manage_plugins,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
-    shop_settings = {
-        "fulfillmentAutoApprove": True,
-        "fulfillmentAllowUnpaid": True,
-    }
-    channel_config = [
-        {
-            "order_settings": {
-                "automaticallyFulfillNonShippableGiftCard": True,
-            }
-        }
-    ]
-    shop_data = prepare_shop(
+
+    shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
-        channels_settings=channel_config,
-        shop_settings_update=shop_settings,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [{}],
+                    },
+                ],
+                "order_settings": {"automaticallyFulfillNonShippableGiftCard": True},
+            }
+        ],
+        shop_settings={
+            "fulfillmentAutoApprove": True,
+            "fulfillmentAllowUnpaid": True,
+        },
     )
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
 
     product_variant_id, _product_variant_price, _product_id = prepare_product_gift_card(
         e2e_staff_api_client,

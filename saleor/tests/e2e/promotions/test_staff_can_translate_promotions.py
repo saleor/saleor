@@ -9,7 +9,7 @@ from ..promotions.utils import (
     translate_promotion,
     translate_promotion_rule,
 )
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..translations.utils import get_translations
 from ..utils import assign_permissions
 
@@ -69,9 +69,10 @@ def test_staff_translate_promotions_core_2119(
         permission_manage_translations,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
+
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    warehouse_id = shop_data["warehouse"]["id"]
 
     product_id, _product_variant_id, _ = prepare_product(
         e2e_staff_api_client, warehouse_id, channel_id, "37.99"

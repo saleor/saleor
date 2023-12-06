@@ -8,7 +8,7 @@ from ..sales.utils import (
     raw_create_sale_channel_listing,
     sale_catalogues_add,
 )
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import promotions_query, translate_promotion
 
@@ -16,10 +16,10 @@ from .utils import promotions_query, translate_promotion
 def prepare_sale(e2e_staff_api_client):
     price = 10
 
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
 
     (
         product_id,

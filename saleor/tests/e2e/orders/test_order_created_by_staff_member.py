@@ -6,7 +6,7 @@ from ..orders.utils.draft_order_create import draft_order_create
 from ..orders.utils.draft_order_update import draft_order_update
 from ..orders.utils.order_lines_create import order_lines_create
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 
 
@@ -27,10 +27,10 @@ def test_order_created_by_staff_member_CORE_0201(
 
     price = 10
 
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
 
     (
         _product_id,

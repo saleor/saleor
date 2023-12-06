@@ -12,7 +12,7 @@ from ..product.utils import (
     get_product,
 )
 from ..promotions.utils import create_promotion, create_promotion_rule
-from ..shop.utils import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 
 
@@ -20,9 +20,9 @@ def prepare_product(
     e2e_staff_api_client,
     variant_price,
 ):
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
 
     product_type_data = create_product_type(
         e2e_staff_api_client,

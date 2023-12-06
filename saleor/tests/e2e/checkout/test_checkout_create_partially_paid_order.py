@@ -31,21 +31,30 @@ def test_should_be_able_to_create_partially_paid_order_core_0112(
         permission_manage_payments,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
-    channel_config = [
-        {
-            "order_settings": {
-                "allowUnpaidOrders": True,
-            }
-        }
-    ]
-    shop_data = prepare_shop(
+
+    shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
-        channels_settings=channel_config,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [{}],
+                    },
+                ],
+                "order_settings": {
+                    "allowUnpaidOrders": True,
+                },
+            }
+        ],
+        shop_settings={
+            "fulfillmentAutoApprove": True,
+            "fulfillmentAllowUnpaid": True,
+        },
     )
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+    shipping_method_id = shop_data[0]["shipping_zones"][0]["shipping_methods"][0]["id"]
 
     app_permissions = [permission_manage_payments]
     assign_permissions(e2e_app_api_client, app_permissions)

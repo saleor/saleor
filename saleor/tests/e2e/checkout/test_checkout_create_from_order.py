@@ -2,7 +2,7 @@ import pytest
 
 from ..orders.utils import draft_order_create, order_lines_create
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import checkout_create_from_order
 
@@ -26,9 +26,9 @@ def test_checkout_create_from_order_core_0104(
 
     price = 10
 
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    warehouse_id = shop_data["warehouse"]["id"]
 
     (
         _product_id,

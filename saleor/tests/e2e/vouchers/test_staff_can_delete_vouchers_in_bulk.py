@@ -1,6 +1,6 @@
 import pytest
 
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import (
     create_voucher,
@@ -54,10 +54,8 @@ def test_staff_can_delete_vouchers_in_bulk_CORE_0924(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channels"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
 
     voucher_ids = create_multiple_vouchers(e2e_staff_api_client, channel_id)
 

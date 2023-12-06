@@ -44,17 +44,26 @@ def test_guest_checkout_should_be_assigned_to_user_after_creating_the_account_CO
     )
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_settings = {
-        "enableAccountConfirmationByEmail": False,
-    }
-    shop_data = prepare_shop(
+    shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
-        shop_settings_update=shop_settings,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [{}],
+                    },
+                ],
+                "order_settings": {},
+            }
+        ],
+        shop_settings={
+            "enableAccountConfirmationByEmail": False,
+        },
     )
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+    shipping_method_id = shop_data[0]["shipping_zones"][0]["shipping_methods"][0]["id"]
 
     variant_price = 10
 

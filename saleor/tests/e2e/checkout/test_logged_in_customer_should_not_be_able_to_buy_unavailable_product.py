@@ -8,7 +8,7 @@ from ..product.utils import (
     create_product_variant_channel_listing,
     raw_create_product_channel_listing,
 )
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import raw_checkout_create
 
@@ -16,10 +16,10 @@ from .utils import raw_checkout_create
 def prepare_unavailable_product(
     e2e_staff_api_client,
 ):
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
 
     product_type_data = create_product_type(
         e2e_staff_api_client,

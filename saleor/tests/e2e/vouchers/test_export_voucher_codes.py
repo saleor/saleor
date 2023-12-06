@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import (
     create_voucher,
@@ -73,10 +73,8 @@ def test_export_valid_voucher_ids_CORE_0925(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(
-        e2e_staff_api_client,
-    )
-    channel_id = shop_data["channels"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
 
     voucher_ids, _voucher_code_ids = create_vouchers_with_multiple_codes(
         e2e_staff_api_client, channel_id
@@ -131,8 +129,8 @@ def test_export_voucher_ids_and_codes_CORE_0925(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
 
     voucher_ids, voucher_code_ids = create_vouchers_with_multiple_codes(
         e2e_staff_api_client, channel_id
@@ -182,8 +180,8 @@ def test_export_valid_voucher_code_ids_CORE_0925(
 
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
 
     _voucher_ids, voucher_code_ids = create_vouchers_with_multiple_codes(
         e2e_staff_api_client, channel_id
@@ -340,8 +338,8 @@ def test_export_voucher_codes_with_invalid_file_type_CORE_0925(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
 
     voucher_ids, _voucher_code_ids = create_vouchers_with_multiple_codes(
         e2e_staff_api_client, channel_id

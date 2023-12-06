@@ -2,7 +2,7 @@ import pytest
 
 from .. import DEFAULT_ADDRESS
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..transactions.utils import create_transaction
 from ..utils import assign_permissions
 from .utils import (
@@ -37,10 +37,10 @@ def test_cancel_fully_paid_order_CORE_0206(
 
     price = 10
 
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
 
     (
         _product_id,

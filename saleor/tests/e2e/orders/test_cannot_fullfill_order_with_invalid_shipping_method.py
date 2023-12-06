@@ -26,17 +26,43 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(
+    channels, _tax_config = prepare_shop(
         e2e_staff_api_client,
-        shipping_zones=[{"countries": ["US"]}, {"countries": ["PL"]}],
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "countries": ["US"],
+                        "shipping_methods": [
+                            {"name": "us shipping zone", "add_channels": {}}
+                        ],
+                    },
+                    {
+                        "countries": ["PL"],
+                        "shipping_methods": [
+                            {"name": "pl shipping zone", "add_channels": {}}
+                        ],
+                    },
+                ],
+                "order_settings": {},
+            }
+        ],
+        shop_settings={},
     )
 
-    first_shipping_method_id = shop_data["shipping_methods"][0]["id"]
-    second_shipping_method_id = shop_data["shipping_methods"][1]["id"]
-    channel_id = shop_data["channels"][0]["id"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
+    us_shipping_method_id = channels[0]["shipping_zones"][0]["shipping_methods"][0][
+        "id"
+    ]
+    second_shipping_method_id = channels[0]["shipping_zones"][1]["shipping_methods"][0][
+        "id"
+    ]
+
+    warehouse_id = channels[0]["warehouse_id"]
+
+    channel_id = channels[0]["id"]
 
     price = 2
+
     (
         _product_id,
         product_variant_id,
@@ -69,40 +95,39 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
     assert order_product_variant_id == product_variant_id
 
     # Step 2 - Update order's shipping method
-    input_data = {
-        "shippingMethod": first_shipping_method_id,
-        "shippingAddress": DEFAULT_ADDRESS,
-        "billingAddress": DEFAULT_ADDRESS,
-    }
     draft_order = draft_order_update(
         e2e_staff_api_client,
         order_id,
-        input_data,
+        {
+            "shippingMethod": us_shipping_method_id,
+            "shippingAddress": DEFAULT_ADDRESS,
+            "billingAddress": DEFAULT_ADDRESS,
+        },
     )
-    order_shipping_id = draft_order["order"]["deliveryMethod"]["id"]
-    assert order_shipping_id == first_shipping_method_id
+
+    assert draft_order["order"]["deliveryMethod"]["id"] == us_shipping_method_id
 
     # Step 3 - Update order's shipping address for country PL
-    polish_address = {
-        "firstName": "Jan",
-        "lastName": "Kowalski",
-        "phone": "+48123456787",
-        "companyName": "Saleor PL",
-        "country": "PL",
-        "countryArea": "",
-        "city": "WROCLAW",
-        "postalCode": "53-346",
-        "streetAddress1": "Smolna",
-        "streetAddress2": "13/1",
-    }
-    update_input = {"shippingAddress": polish_address}
     draft_update = draft_order_update(
         e2e_staff_api_client,
         order_id,
-        update_input,
+        {
+            "shippingAddress": {
+                "firstName": "Jan",
+                "lastName": "Kowalski",
+                "phone": "+48123456787",
+                "companyName": "Saleor PL",
+                "country": "PL",
+                "countryArea": "",
+                "city": "WROCLAW",
+                "postalCode": "53-346",
+                "streetAddress1": "Smolna",
+                "streetAddress2": "13/1",
+            }
+        },
     )
-    draft_order_shipping_id = draft_update["order"]["deliveryMethod"]["id"]
-    assert draft_order_shipping_id == order_shipping_id
+
+    assert draft_update["order"]["deliveryMethod"]["id"] == us_shipping_method_id
 
     # Step 4 - Complete the order and check that 2nd shipping method is now available
     order_complete = raw_draft_order_complete(
@@ -118,5 +143,7 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
         e2e_staff_api_client,
         order_id,
     )
-    order_shipping_method = order_details["availableShippingMethods"][0]["id"]
-    assert order_shipping_method == second_shipping_method_id
+
+    assert (
+        order_details["availableShippingMethods"][0]["id"] == second_shipping_method_id
+    )

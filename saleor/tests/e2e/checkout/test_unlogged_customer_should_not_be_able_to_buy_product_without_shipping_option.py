@@ -20,10 +20,23 @@ def test_unlogged_customer_unable_to_buy_product_without_shipping_option_CORE_01
     ]
 
     assign_permissions(e2e_staff_api_client, permissions)
-    shop_data = prepare_shop(e2e_staff_api_client, shipping_methods=[])
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
+    shop_data, _tax_config = prepare_shop(
+        e2e_staff_api_client,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [],
+                    },
+                ],
+                "order_settings": {},
+            }
+        ],
+        shop_settings={},
+    )
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
 
     variant_price = 10
 

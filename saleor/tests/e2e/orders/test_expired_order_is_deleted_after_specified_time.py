@@ -39,24 +39,29 @@ def test_expired_order_is_deleted_after_specified_time_CORE_0216(
 
     price = 10
 
-    channel_config = [
-        {
-            "order_settings": {
-                "expireOrdersAfter": 1,
-                "deleteExpiredOrdersAfter": "1",
+    shop_data, _tax_config = prepare_shop(
+        e2e_staff_api_client,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [{}],
+                    },
+                ],
+                "order_settings": {
+                    "expireOrdersAfter": 1,
+                    "deleteExpiredOrdersAfter": "1",
+                },
             }
-        }
-    ]
-
-    shop_data = prepare_shop(e2e_staff_api_client, channels_settings=channel_config)
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
-    expire_order_after_in_minutes = shop_data["channels"][0]["orderSettings"][
-        "expireOrdersAfter"
-    ]
-    delete_expired_order_after_in_days = shop_data["channels"][0]["orderSettings"][
+        ],
+        shop_settings={},
+    )
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+    shipping_method_id = shop_data[0]["shipping_zones"][0]["shipping_methods"][0]["id"]
+    expire_order_after_in_minutes = shop_data[0]["order_settings"]["expireOrdersAfter"]
+    delete_expired_order_after_in_days = shop_data[0]["order_settings"][
         "deleteExpiredOrdersAfter"
     ]
     (

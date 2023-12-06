@@ -26,18 +26,26 @@ def test_checkout_with_shipping_method_with_min_order_value_CORE_0501(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shipping_method_channel_listing_settings = {
-        "minimumOrderPrice": 20.0,
-    }
-
-    shop_data = prepare_shop(
+    shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
-        shipping_method_channel_listing_settings=shipping_method_channel_listing_settings,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [
+                            {"add_channels": {"minimum_order_price": 20.0}}
+                        ],
+                    },
+                ],
+                "order_settings": {},
+            }
+        ],
+        shop_settings={},
     )
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+    shipping_method_id = shop_data[0]["shipping_zones"][0]["shipping_methods"][0]["id"]
 
     first_variant_price = 25
 

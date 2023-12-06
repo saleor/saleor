@@ -3,7 +3,7 @@ import pytest
 from ....product.utils import get_product
 from ....product.utils.preparing_product import prepare_product
 from ....promotions.utils import create_promotion, create_promotion_rule
-from ....shop.utils.preparing_shop import prepare_shop
+from ....shop.utils import prepare_default_shop
 from ....utils import assign_permissions
 from ...utils import checkout_create
 
@@ -26,10 +26,10 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_shop(e2e_staff_api_client)
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
 
     (
         product_id,

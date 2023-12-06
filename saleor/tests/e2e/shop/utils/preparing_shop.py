@@ -1,5 +1,3 @@
-import base64
-
 from ...channel.utils import create_channel
 from ...shipping_zone.utils import (
     create_shipping_method,
@@ -14,25 +12,6 @@ from ...taxes.utils import (
 )
 from ...warehouse.utils import create_warehouse
 from ..utils.shop_update_settings import update_shop_settings
-
-
-def decode_and_modify_base64_descriptor(encoded_string, new_descriptor=None):
-    base64_bytes = encoded_string.encode("ascii")
-    decoded_bytes = base64.b64decode(base64_bytes)
-    decoded_string = decoded_bytes.decode("ascii")
-
-    modified_string = decoded_string
-    if new_descriptor:
-        parts = decoded_string.split(":")
-        if len(parts) >= 2:
-            modified_string = f"{new_descriptor}:{parts[1]}"
-
-    modified_base64 = base64.b64encode(modified_string.encode("ascii")).decode("ascii")
-
-    padding = "=" * ((4 - len(modified_base64) % 4) % 4)
-    modified_base64_padded = modified_base64 + padding
-
-    return decoded_string, modified_base64_padded
 
 
 def create_and_update_tax_classes(e2e_staff_api_client, tax_rates):
@@ -71,89 +50,67 @@ def create_and_update_tax_classes(e2e_staff_api_client, tax_rates):
 
 def prepare_shop(
     e2e_staff_api_client,
-    warehouses=None,
-    channels_settings=None,
-    shipping_zones=None,
-    shipping_methods=None,
-    shop_settings_update=None,
+    channels=None,
+    shop_settings=None,
     tax_settings=None,
-    shipping_method_channel_listing_settings={},
-    **kwargs,
 ):
-    if warehouses is None:
-        warehouses = [create_warehouse(e2e_staff_api_client, **kwargs)]
+    if shop_settings is not None:
+        update_shop_settings(e2e_staff_api_client, input_data=shop_settings)
+
+    warehouse_id = create_warehouse(e2e_staff_api_client)["id"]
+
     created_channels = []
-    if channels_settings:
-        for channel_config in channels_settings:
-            channel = create_channel(
-                e2e_staff_api_client,
-                warehouse_ids=[warehouses[0]["id"]],
-                **channel_config,
-            )
-            created_channels.append(channel)
-    else:
-        default_channel = create_channel(
-            e2e_staff_api_client, warehouse_ids=[warehouses[0]["id"]], **kwargs
+    for channel_index, channel in enumerate(channels):
+        if channel is None:
+            channel = []
+        created_channel = create_channel(
+            e2e_staff_api_client,
+            order_settings=channel["order_settings"],
+            warehouse_ids=[warehouse_id],
         )
-        created_channels.append(default_channel)
-    shipping_zones = []
-    if shipping_zones is not None:
-        for shipping_zone in shipping_zones:
-            created = create_shipping_zone(
+        channel_id = created_channel["id"]
+        created_channels.append(
+            {
+                "id": channel_id,
+                "warehouse_id": warehouse_id,
+                "slug": created_channel["slug"],
+                "shipping_zones": [],
+                "order_settings": created_channel["orderSettings"],
+            }
+        )
+
+        for shipping_zone_index, shipping_zone in enumerate(channel["shipping_zones"]):
+            created_shipping_zone = create_shipping_zone(
                 e2e_staff_api_client,
-                warehouse_ids=[w["id"] for w in warehouses],
-                channel_ids=[c["id"] for c in created_channels],
+                warehouse_ids=[warehouse_id],
+                channel_ids=[channel_id],
                 countries=shipping_zone.get("countries"),
             )
-            shipping_zones.append(created)
-    else:
-        shipping_zones.append(
-            create_shipping_zone(
-                e2e_staff_api_client,
-                warehouse_ids=[w["id"] for w in warehouses],
-                channel_ids=[c["id"] for c in created_channels],
-            )
-        )
 
-    if shipping_methods is None:
-        shipping_methods = []
-        for shipping_zone in shipping_zones:
-            shipping_method_data = create_shipping_method(
-                e2e_staff_api_client, shipping_zone_id=shipping_zone["id"], **kwargs
+            created_channels[channel_index]["shipping_zones"].append(
+                {
+                    "id": created_shipping_zone["id"],
+                    "shipping_methods": [],
+                }
             )
-            _, modified_encoded_id = decode_and_modify_base64_descriptor(
-                shipping_method_data["id"], "ShippingMethod"
-            )
-            shipping_method_data["id"] = modified_encoded_id
 
-            for channel in created_channels:
-                channel_listing_data = create_shipping_method_channel_listing(
+            for shipping_zone in shipping_zone["shipping_methods"]:
+                created_shipping_method = create_shipping_method(
                     e2e_staff_api_client,
-                    shipping_method_id=modified_encoded_id,
-                    channel_id=channel["id"],
-                    price=shipping_method_channel_listing_settings.get(
-                        "price", "10.00"
-                    ),
-                    minimum_order_price=shipping_method_channel_listing_settings.get(
-                        "minimumOrderPrice", None
-                    ),
-                    maximum_order_price=shipping_method_channel_listing_settings.get(
-                        "maximumOrderPrice", None
-                    ),
-                    **kwargs,
+                    shipping_zone_id=created_shipping_zone["id"],
+                    name=shipping_zone.get("name"),
                 )
-                if channel_listing_data.get("channelListings"):
-                    price_info = channel_listing_data["channelListings"][0].get(
-                        "price", {}
-                    )
-                    shipping_price = price_info.get("amount")
-                    shipping_method_data["price"] = shipping_price
 
-            shipping_methods.append(shipping_method_data)
+                created_channels[channel_index]["shipping_zones"][shipping_zone_index][
+                    "shipping_methods"
+                ].append({"id": created_shipping_method["id"]})
 
-    if shop_settings_update is not None:
-        update_shop_settings(e2e_staff_api_client, input_data=shop_settings_update)
-
+                create_shipping_method_channel_listing(
+                    e2e_staff_api_client,
+                    shipping_method_id=created_shipping_method["id"],
+                    channel_id=created_channel["id"],
+                    add_channels=shipping_zone.get("add_channels", None),
+                )
     created_tax_classes = {}
     tax_rates = {}
     if tax_settings:
@@ -173,13 +130,41 @@ def prepare_shop(
                 tax_class_id = tax_classes_result.get(tax_type, {}).get("id")
                 if tax_class_id:
                     created_tax_classes[f"{tax_type}_tax_class_id"] = tax_class_id
+    tax_config = [created_tax_classes, tax_rates]
+    return created_channels, tax_config
+
+
+def prepare_default_shop(
+    e2e_staff_api_client,
+):
+    created_warehouse = create_warehouse(e2e_staff_api_client)
+
+    created_channel = create_channel(
+        e2e_staff_api_client,
+        warehouse_ids=[created_warehouse["id"]],
+    )
+
+    created_shipping_zone = create_shipping_zone(
+        e2e_staff_api_client,
+        warehouse_ids=[created_warehouse["id"]],
+        channel_ids=[created_channel["id"]],
+    )
+
+    created_shipping_method = create_shipping_method(
+        e2e_staff_api_client,
+        shipping_zone_id=created_shipping_zone["id"],
+    )
+
+    _ = create_shipping_method_channel_listing(
+        e2e_staff_api_client,
+        shipping_method_id=created_shipping_method["id"],
+        channel_id=created_channel["id"],
+        add_channels={},
+    )
 
     return {
-        "warehouses": warehouses,
-        "channels": created_channels,
-        "shipping_zones": shipping_zones,
-        "shipping_methods": shipping_methods,
-        "tax_classes": created_tax_classes,
-        "tax_rates": tax_rates,
-        "shop_settings": shop_settings_update,
+        "warehouse": created_warehouse,
+        "channel": created_channel,
+        "shipping_zone": created_shipping_zone,
+        "shipping_method": created_shipping_method,
     }

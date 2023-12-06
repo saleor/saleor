@@ -28,6 +28,9 @@ def test_order_calculate_simple_tax_based_on_shipping_tax_class_CORE_2010(
         permission_manage_orders,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
+
+    country_code = "US"
+    shipping_tax_rate = 8
     tax_settings = {
         "charge_taxes": True,
         "tax_calculation_strategy": "FLAT_RATES",
@@ -35,38 +38,43 @@ def test_order_calculate_simple_tax_based_on_shipping_tax_class_CORE_2010(
         "prices_entered_with_tax": True,
         "tax_rates": [
             {
-                "type": "country",
-                "name": "Country Tax Rate",
-                "country_code": "US",
-                "rate": 10,
-            },
-            {
                 "type": "shipping_country",
                 "name": "Shipping Country Tax Rate",
-                "country_code": "US",
-                "rate": 8,
+                "country_code": country_code,
+                "rate": shipping_tax_rate,
             },
         ],
     }
-
-    shop_data = prepare_shop(
+    shop_data, tax_config = prepare_shop(
         e2e_staff_api_client,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [
+                            {
+                                "add_channels": {},
+                            }
+                        ],
+                    },
+                ],
+                "order_settings": {},
+            },
+        ],
         tax_settings=tax_settings,
     )
-    channel_id = shop_data["channels"][0]["id"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
-    shipping_price = shop_data["shipping_methods"][0]["price"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_tax_class_id = shop_data["tax_classes"].get(
-        "shipping_country_tax_class_id"
-    )
-    shipping_class_tax_rate = shop_data["tax_rates"].get("shipping_country").get("rate")
-    country_tax_rate = shop_data["tax_rates"].get("country").get("rate")
-    country = shop_data["tax_rates"].get("country").get("country_code")
+
+    channel_id = shop_data[0]["id"]
+    shipping_method_id = shop_data[0]["shipping_zones"][0]["shipping_methods"][0]["id"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+    shipping_tax_class_id = tax_config[0]["shipping_country_tax_class_id"]
+    shipping_tax_rate = tax_config[1]["shipping_country"]["rate"]
+    country_tax_rate = 10
+    shipping_price = 10.0
 
     update_country_tax_rates(
         e2e_staff_api_client,
-        country,
+        country_code,
         [{"rate": country_tax_rate}],
     )
     input_data = {"taxClass": shipping_tax_class_id}
@@ -75,8 +83,13 @@ def test_order_calculate_simple_tax_based_on_shipping_tax_class_CORE_2010(
         shipping_method_id,
         input_data,
     )
+
     variant_price = "33.33"
-    (_product_id, product_variant_id, product_variant_price) = prepare_product(
+    (
+        _product_id,
+        product_variant_id,
+        product_variant_price,
+    ) = prepare_product(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
@@ -104,15 +117,16 @@ def test_order_calculate_simple_tax_based_on_shipping_tax_class_CORE_2010(
         lines,
     )
     order_data = order_data["order"]
+    shipping_method_id = order_data["shippingMethods"][0]["id"]
+    shipping_price = order_data["shippingMethods"][0]["price"]["amount"]
+    shipping_price = float(shipping_price)
 
     subtotal_gross = round((product_variant_price * 2), 2)
-
     subtotal_tax = round(
         (subtotal_gross * country_tax_rate) / (100 + country_tax_rate),
         2,
     )
     subtotal_net = round(subtotal_gross - subtotal_tax, 2)
-
     assert order_data["isShippingRequired"] is True
     assert order_data["total"]["gross"]["amount"] == subtotal_gross
     assert order_data["total"]["tax"]["amount"] == subtotal_tax
@@ -129,10 +143,10 @@ def test_order_calculate_simple_tax_based_on_shipping_tax_class_CORE_2010(
 
     shipping_gross = shipping_price
     shipping_tax = round(
-        (shipping_price * shipping_class_tax_rate) / (shipping_class_tax_rate + 100),
-        2,
+        (shipping_price * shipping_tax_rate) / (shipping_tax_rate + 100), 2
     )
     shipping_net = round(shipping_price - shipping_tax, 2)
+
     assert order_data["deliveryMethod"]["id"] == shipping_method_id
     assert order_data["shippingPrice"]["net"]["amount"] == shipping_net
     assert order_data["shippingPrice"]["tax"]["amount"] == shipping_tax

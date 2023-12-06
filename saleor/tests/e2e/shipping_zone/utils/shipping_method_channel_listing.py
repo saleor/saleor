@@ -33,22 +33,19 @@ mutation ShippingMethodChannelListingUpdate(
 
 
 def create_shipping_method_channel_listing(
-    staff_api_client,
-    shipping_method_id,
-    channel_id,
-    price,
-    minimum_order_price,
-    maximum_order_price,
+    staff_api_client, shipping_method_id, channel_id, add_channels
 ):
+    if add_channels is None:
+        add_channels = {}
     variables = {
         "id": shipping_method_id,
         "input": {
             "addChannels": [
                 {
                     "channelId": channel_id,
-                    "price": price,
-                    "maximumOrderPrice": maximum_order_price,
-                    "minimumOrderPrice": minimum_order_price,
+                    "price": add_channels.get("price", "10.00"),
+                    "maximumOrderPrice": add_channels.get("maximum_order_price", None),
+                    "minimumOrderPrice": add_channels.get("minimum_order_price", None),
                 }
             ]
         },

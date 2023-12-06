@@ -26,6 +26,9 @@ def test_checkout_calculate_simple_tax_based_on_shipping_tax_class_CORE_2009(
         permission_manage_product_types_and_attributes,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
+
+    shipping_country = "US"
+    shipping_class_tax_rate = 8
     tax_settings = {
         "charge_taxes": True,
         "tax_calculation_strategy": "FLAT_RATES",
@@ -33,38 +36,46 @@ def test_checkout_calculate_simple_tax_based_on_shipping_tax_class_CORE_2009(
         "prices_entered_with_tax": False,
         "tax_rates": [
             {
-                "type": "billing_country",
-                "name": "Billing Country Tax Rate",
-                "country_code": "US",
-                "rate": 10,
-            },
-            {
                 "type": "shipping_country",
                 "name": "Shipping Country Tax Rate",
-                "country_code": "US",
-                "rate": 8,
+                "country_code": shipping_country,
+                "rate": shipping_class_tax_rate,
             },
         ],
     }
 
-    shop_data = prepare_shop(
+    shop_data, tax_config = prepare_shop(
         e2e_staff_api_client,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [
+                            {
+                                "add_channels": {},
+                            }
+                        ],
+                    },
+                ],
+                "order_settings": {},
+            },
+        ],
         tax_settings=tax_settings,
     )
-    channel_id = shop_data["channels"][0]["id"]
-    channel_slug = shop_data["channels"][0]["slug"]
-    shipping_method_id = shop_data["shipping_methods"][0]["id"]
-    shipping_price = shop_data["shipping_methods"][0]["price"]
-    warehouse_id = shop_data["warehouses"][0]["id"]
-    shipping_tax_class_id = shop_data["tax_classes"].get(
-        "shipping_country_tax_class_id"
-    )
-    shipping_class_tax_rate = shop_data["tax_rates"].get("shipping_country").get("rate")
-    country = shop_data["tax_rates"].get("shipping_country").get("country_code")
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    shipping_method_id = shop_data[0]["shipping_zones"][0]["shipping_methods"][0]["id"]
+
+    shipping_price = 10.0
+    warehouse_id = shop_data[0]["warehouse_id"]
+    shipping_tax_class_id = tax_config[0]["shipping_country_tax_class_id"]
+    shipping_class_tax_rate = tax_config[1]["shipping_country"]["rate"]
+    billing_country_code = "US"
+    billing_country_tax_rate = 10
 
     update_country_tax_rates(
         e2e_staff_api_client,
-        country,
+        shipping_country,
         [{"rate": shipping_class_tax_rate}],
     )
     input_data = {"taxClass": shipping_tax_class_id}
@@ -110,6 +121,7 @@ def test_checkout_calculate_simple_tax_based_on_shipping_tax_class_CORE_2009(
     subtotal_gross = subtotal_net + subtotal_tax
 
     assert checkout_data["isShippingRequired"] is True
+    assert checkout_data["billingAddress"]["country"]["code"] == billing_country_code
     assert checkout_data["totalPrice"]["gross"]["amount"] == subtotal_gross
     assert checkout_data["totalPrice"]["tax"]["amount"] == subtotal_tax
     assert checkout_data["totalPrice"]["net"]["amount"] == subtotal_net
@@ -123,11 +135,14 @@ def test_checkout_calculate_simple_tax_based_on_shipping_tax_class_CORE_2009(
     shipping_net_price = shipping_price
     shipping_net = shipping_net_price
     shipping_tax = round(shipping_net * (shipping_class_tax_rate / 100), 2)
+    billing_tax = round(subtotal_net * (billing_country_tax_rate / 100), 2)
     shipping_gross = shipping_net + shipping_tax
 
     assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
     assert checkout_data["shippingPrice"]["net"]["amount"] == shipping_net
     assert checkout_data["shippingPrice"]["tax"]["amount"] == shipping_tax
+    assert checkout_data["shippingPrice"]["tax"]["amount"] != billing_tax
+
     assert checkout_data["shippingPrice"]["gross"]["amount"] == shipping_gross
 
     total_gross_amount = round((subtotal_gross + shipping_gross), 1)
