@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import graphene
 import pytest
+from freezegun import freeze_time
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
@@ -1865,3 +1866,35 @@ def test_transaction_create_for_order_triggers_webhook_when_partially_refunded(
     assert not mock_order_fully_refunded.called
     mock_order_updated.assert_called_once_with(order_with_lines)
     mock_order_refunded.assert_called_once_with(order_with_lines)
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_transaction_create_for_checkout_updates_last_transaction_modified_at(
+    checkout_with_items, permission_manage_payments, app_api_client
+):
+    # given
+    assert checkout_with_items.last_transaction_modified_at is None
+    psp_reference = "PSP reference - 123"
+    authorized_value = Decimal("10")
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
+        "transaction": {
+            "pspReference": psp_reference,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+    transaction = checkout_with_items.payment_transactions.first()
+
+    assert checkout_with_items.last_transaction_modified_at == transaction.modified_at
