@@ -34,7 +34,7 @@ def generate_and_set_variant_name(
 
 
 def get_variant_selection_attributes(
-    attributes: Iterable[tuple["Attribute", bool]]
+    attributes: Iterable[tuple["Attribute", bool]],
 ) -> list[tuple["Attribute", bool]]:
     """Return attributes that can be used in variant selection.
 
