@@ -1563,7 +1563,8 @@ def test_get_product_with_sorted_attribute_values(
     )
 
     associate_attribute_values_to_instance(
-        product, product_type_page_reference_attribute, attr_value_2, attr_value_1
+        product,
+        {product_type_page_reference_attribute.pk: [attr_value_2, attr_value_1]},
     )
 
     product_id = graphene.Node.to_global_id("Product", product.id)

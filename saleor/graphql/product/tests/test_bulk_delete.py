@@ -733,7 +733,9 @@ def test_delete_products_with_file_attributes(
         product_type = product.product_type
         product_type.product_attributes.add(file_attribute)
         existing_value = values[i]
-        associate_attribute_values_to_instance(product, file_attribute, existing_value)
+        associate_attribute_values_to_instance(
+            product, {file_attribute.pk: [existing_value]}
+        )
 
     variables = {
         "ids": [
@@ -905,7 +907,9 @@ def test_delete_product_types_with_file_attributes(
         product.product_type = product_type
         product.save()
         existing_value = values[i]
-        associate_attribute_values_to_instance(product, file_attribute, existing_value)
+        associate_attribute_values_to_instance(
+            product, {file_attribute.pk: [existing_value]}
+        )
 
     variables = {
         "ids": [
@@ -1330,7 +1334,7 @@ def test_product_delete_removes_reference_to_product(
         reference_product=product_ref,
     )
     associate_attribute_values_to_instance(
-        product, product_type_product_reference_attribute, attr_value
+        product, {product_type_product_reference_attribute.id: [attr_value]}
     )
 
     reference_id = graphene.Node.to_global_id("Product", product_ref.pk)
@@ -1370,9 +1374,7 @@ def test_product_delete_removes_variant_reference_to_product(
     )
 
     associate_attribute_values_to_instance(
-        variant,
-        product_type_product_reference_attribute,
-        attr_value,
+        variant, {product_type_product_reference_attribute.id: [attr_value]}
     )
     reference_id = graphene.Node.to_global_id("Product", product_list[0].pk)
 
@@ -1413,7 +1415,7 @@ def test_product_delete_removes_reference_to_variant(
         reference_variant=variant_ref,
     )
     associate_attribute_values_to_instance(
-        product, product_type_variant_reference_attribute, attr_value
+        product, {product_type_variant_reference_attribute.id: [attr_value]}
     )
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -1456,7 +1458,7 @@ def test_product_delete_removes_reference_to_page(
         reference_product=product,
     )
     associate_attribute_values_to_instance(
-        page, page_type_product_reference_attribute, attr_value
+        page, {page_type_product_reference_attribute.id: [attr_value]}
     )
 
     reference_id = graphene.Node.to_global_id("Product", product.pk)
@@ -1510,7 +1512,9 @@ def test_delete_product_variants_with_file_attribute(
         product_type = variant.product.product_type
         product_type.variant_attributes.add(file_attribute)
         existing_value = values[i]
-        associate_attribute_values_to_instance(variant, file_attribute, existing_value)
+        associate_attribute_values_to_instance(
+            variant, {file_attribute.id: [existing_value]}
+        )
 
     variables = {
         "ids": [

@@ -170,7 +170,7 @@ def test_filter_attributes_in_category_invalid_category_id(
     last_product.channel_listings.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     variables = {
@@ -212,7 +212,7 @@ def test_filter_attributes_in_category_object_with_given_id_does_not_exist(
     last_product.channel_listings.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     variables = {
@@ -249,7 +249,7 @@ def test_filter_attributes_in_category_not_visible_in_listings_by_customer(
     last_product.channel_listings.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -299,7 +299,7 @@ def test_filter_attributes_in_category_not_visible_in_listings_by_staff_with_per
     last_product.channel_listings.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -343,7 +343,7 @@ def test_filter_attributes_in_category_not_in_listings_by_staff_without_manage_p
     last_product.channel_listings.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -390,7 +390,7 @@ def test_filter_attributes_in_category_not_visible_in_listings_by_app_with_perm(
     last_product.channel_listings.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -434,7 +434,7 @@ def test_filter_attributes_in_category_not_in_listings_by_app_without_manage_pro
     last_product.channel_listings.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -475,7 +475,7 @@ def test_filter_attributes_in_category_not_published_by_customer(
     last_product.channel_listings.all().update(is_published=False)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -525,7 +525,7 @@ def test_filter_attributes_in_category_not_published_by_staff_with_perm(
     last_product.channel_listings.all().update(is_published=False)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -569,7 +569,7 @@ def test_filter_attributes_in_category_not_published_by_staff_without_manage_pro
     last_product.channel_listings.all().update(is_published=False)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -616,7 +616,7 @@ def test_filter_attributes_in_category_not_published_by_app_with_perm(
     last_product.channel_listings.all().update(is_published=False)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -660,7 +660,7 @@ def test_filter_attributes_in_category_not_published_by_app_without_manage_produ
     last_product.channel_listings.all().update(is_published=False)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -704,7 +704,7 @@ def test_filter_attributes_in_collection_invalid_category_id(
         collection.products.add(product)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     variables = {
@@ -749,7 +749,7 @@ def test_filter_attributes_in_collection_object_with_given_id_does_not_exist(
         collection.products.add(product)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     variables = {
@@ -789,7 +789,7 @@ def test_filter_attributes_in_collection_not_visible_in_listings_by_customer(
         collection.products.add(product)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -832,7 +832,7 @@ def test_filter_in_collection_not_published_by_customer(
         collection.products.add(product)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -885,7 +885,7 @@ def test_filter_in_collection_not_published_by_staff_with_perm(
         collection.products.add(product)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -932,7 +932,7 @@ def test_filter_in_collection_not_published_by_staff_without_manage_products(
         collection.products.add(product)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -982,7 +982,7 @@ def test_filter_in_collection_not_published_by_app_with_perm(
         collection.products.add(product)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
@@ -1029,7 +1029,7 @@ def test_filter_in_collection_not_published_by_app_without_manage_products(
         collection.products.add(product)
 
     associate_attribute_values_to_instance(
-        product_list[-1], weight_attribute, weight_attribute.values.first()
+        product_list[-1], {weight_attribute.pk: [weight_attribute.values.first()]}
     )
 
     attribute_count = Attribute.objects.count()
