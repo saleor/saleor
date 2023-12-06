@@ -43,15 +43,22 @@ def handle_promotion_toggle():
     Send the notifications about starting or ending promotions and call recalculation
     of product discounted prices.
     """
+    BATCH_SIZE = 100
     manager = get_plugins_manager()
 
-    staring_promotions = get_starting_promotions()
-    ending_promotions = get_ending_promotions()
+    ending_promotions = Promotion.objects.none()
+    staring_promotions = get_starting_promotions()[:BATCH_SIZE]
+    if not staring_promotions:
+        ending_promotions = get_ending_promotions()[:BATCH_SIZE]
 
     if not staring_promotions and not ending_promotions:
         return
 
-    promotions = staring_promotions | ending_promotions
+    promotion_ids = [
+        promotion.id for promotion in staring_promotions | ending_promotions
+    ]
+    promotions = Promotion.objects.filter(id__in=promotion_ids)
+    # promotions = staring_promotions | ending_promotions
     promotion_id_to_variants, product_ids = fetch_promotion_variants_and_product_ids(
         promotions
     )
