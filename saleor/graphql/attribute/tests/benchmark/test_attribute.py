@@ -170,7 +170,7 @@ def test_attribute_value_translation(
 
     product.product_type.product_attributes.add(rich_text_attribute_with_many_values)
     associate_attribute_values_to_instance(
-        product, rich_text_attribute_with_many_values, *attribute_values
+        product, {rich_text_attribute_with_many_values.pk: attribute_values}
     )
 
     variables = {"slug": product.slug}

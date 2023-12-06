@@ -117,12 +117,18 @@ def test_delete_attributes_products_search_document_updated(
     attr_3_name = "attr 3 value"
     attr_3_value = AttributeValue.objects.create(name=attr_3_name, attribute=attr_3)
 
-    associate_attribute_values_to_instance(product_1, attr_1, attr_1_value)
     associate_attribute_values_to_instance(
-        product_1, color_attribute, color_attribute_value
+        product_1,
+        {attr_1.id: [attr_1_value], color_attribute.id: [color_attribute_value]},
     )
-    associate_attribute_values_to_instance(product_2, attr_2, attr_2_value)
-    associate_attribute_values_to_instance(variant_1, attr_3, attr_3_value)
+    associate_attribute_values_to_instance(
+        product_2,
+        {attr_2.id: [attr_2_value]},
+    )
+    associate_attribute_values_to_instance(
+        variant_1,
+        {attr_3.id: [attr_3_value]},
+    )
 
     variables = {
         "ids": [
@@ -231,9 +237,18 @@ def test_delete_attribute_values_search_document_updated(
     product_type.product_attributes.add(attribute)
     product_type.variant_attributes.add(attribute)
 
-    associate_attribute_values_to_instance(product_1, attribute, value_1, value_4)
-    associate_attribute_values_to_instance(product_2, attribute, value_2)
-    associate_attribute_values_to_instance(variant_1, attribute, value_3)
+    associate_attribute_values_to_instance(
+        product_1,
+        {attribute.id: [value_1, value_4]},
+    )
+    associate_attribute_values_to_instance(
+        product_2,
+        {attribute.id: [value_2]},
+    )
+    associate_attribute_values_to_instance(
+        variant_1,
+        {attribute.id: [value_3]},
+    )
 
     variables = {
         "ids": [
