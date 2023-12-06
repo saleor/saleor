@@ -126,6 +126,7 @@ class TransactionEventReport(ModelMutation):
             "charge_pending_value",
             "refund_pending_value",
             "cancel_pending_value",
+            "modified_at",
         ]
 
         if (

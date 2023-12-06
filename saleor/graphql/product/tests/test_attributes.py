@@ -1055,7 +1055,10 @@ def test_unassign_attributes_from_product_type(
     product_attr_value = AttributeValue.objects.create(
         attribute=attribute, name="Test value", slug="test-value"
     )
-    associate_attribute_values_to_instance(product, attribute, product_attr_value)
+    associate_attribute_values_to_instance(
+        product,
+        {attribute.pk: [product_attr_value]},
+    )
 
     remaining_attribute_global_id = graphene.Node.to_global_id(
         "Attribute", product_attributes[1].pk
@@ -1391,7 +1394,7 @@ def test_sort_product_attribute_values(
         ]
     )
     associate_attribute_values_to_instance(
-        product, product_type_page_reference_attribute, *attr_values
+        product, {product_type_page_reference_attribute.pk: attr_values}
     )
 
     variables = {
@@ -1458,7 +1461,7 @@ def test_sort_product_attribute_values_invalid_attribute_id(
         ]
     )
     associate_attribute_values_to_instance(
-        product, product_type_page_reference_attribute, *attr_values
+        product, {product_type_page_reference_attribute.pk: attr_values}
     )
 
     variables = {
@@ -1521,7 +1524,7 @@ def test_sort_product_attribute_values_invalid_value_id(
         ]
     )
     associate_attribute_values_to_instance(
-        product, product_type_page_reference_attribute, *attr_values
+        product, {product_type_page_reference_attribute.pk: attr_values}
     )
 
     invalid_value_id = graphene.Node.to_global_id(
@@ -1626,7 +1629,7 @@ def test_sort_product_variant_attribute_values(
         ]
     )
     associate_attribute_values_to_instance(
-        variant, product_type_page_reference_attribute, *attr_values
+        variant, {product_type_page_reference_attribute.pk: attr_values}
     )
 
     variables = {
@@ -1696,7 +1699,7 @@ def test_sort_product_variant_attribute_values_invalid_attribute_id(
         ]
     )
     associate_attribute_values_to_instance(
-        variant, product_type_page_reference_attribute, *attr_values
+        variant, {product_type_page_reference_attribute.pk: attr_values}
     )
 
     variables = {
@@ -1760,7 +1763,7 @@ def test_sort_product_variant_attribute_values_invalid_value_id(
         ]
     )
     associate_attribute_values_to_instance(
-        variant, product_type_page_reference_attribute, *attr_values
+        variant, {product_type_page_reference_attribute.pk: attr_values}
     )
 
     invalid_value_id = graphene.Node.to_global_id(
