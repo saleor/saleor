@@ -501,7 +501,10 @@ def test_products_filter_by_attributes(
     product = product_list[0]
     product.product_type = product_type
     product.save()
-    associate_attribute_values_to_instance(product, attribute, attr_value)
+    associate_attribute_values_to_instance(
+        product,
+        {attribute.id: [attr_value]},
+    )
 
     variables = {
         "channel": channel_USD.slug,
@@ -548,7 +551,8 @@ def test_products_filter_by_numeric_attributes(
     # given
     product_list[0].product_type.product_attributes.add(numeric_attribute)
     associate_attribute_values_to_instance(
-        product_list[0], numeric_attribute, *numeric_attribute.values.all()
+        product_list[0],
+        {numeric_attribute.id: list(numeric_attribute.values.all())},
     )
 
     product_type = ProductType.objects.create(
@@ -565,7 +569,8 @@ def test_products_filter_by_numeric_attributes(
         attribute=numeric_attribute, name="5", slug="5"
     )
     associate_attribute_values_to_instance(
-        product_list[1], numeric_attribute, attr_value
+        product_list[1],
+        {numeric_attribute.id: [attr_value]},
     )
 
     attr_value = AttributeValue.objects.create(
@@ -573,7 +578,8 @@ def test_products_filter_by_numeric_attributes(
     )
     product_list[2].product_type = product_type
     associate_attribute_values_to_instance(
-        product_list[2], numeric_attribute, attr_value
+        product_list[2],
+        {numeric_attribute.id: [attr_value]},
     )
 
     variables = {
@@ -609,8 +615,7 @@ def test_products_filter_by_boolean_attributes(
     product_list[0].product_type.product_attributes.add(boolean_attribute)
     associate_attribute_values_to_instance(
         product_list[0],
-        boolean_attribute,
-        boolean_attribute.values.get(boolean=filter_value),
+        {boolean_attribute.id: [boolean_attribute.values.get(boolean=filter_value)]},
     )
 
     product_type = ProductType.objects.create(
@@ -624,7 +629,8 @@ def test_products_filter_by_boolean_attributes(
 
     product_list[1].product_type = product_type
     associate_attribute_values_to_instance(
-        product_list[1], boolean_attribute, boolean_attribute.values.get(boolean=False)
+        product_list[1],
+        {boolean_attribute.id: [boolean_attribute.values.get(boolean=False)]},
     )
 
     variables = {
@@ -657,7 +663,8 @@ def test_products_filter_by_attributes_values_and_range(
     attr_value_1 = product_attr.values.first()
     product_list[0].product_type.product_attributes.add(numeric_attribute)
     associate_attribute_values_to_instance(
-        product_list[0], numeric_attribute, *numeric_attribute.values.all()
+        product_list[0],
+        {numeric_attribute.id: list(numeric_attribute.values.all())},
     )
 
     product_type = ProductType.objects.create(
@@ -674,7 +681,8 @@ def test_products_filter_by_attributes_values_and_range(
         attribute=numeric_attribute, name="1.2", slug="1_2"
     )
     associate_attribute_values_to_instance(
-        product_list[1], numeric_attribute, attr_value_2
+        product_list[1],
+        {numeric_attribute.id: [attr_value_2]},
     )
     variables = {
         "channel": channel_USD.slug,
@@ -708,7 +716,8 @@ def test_products_filter_by_swatch_attributes(
     # given
     product_list[0].product_type.product_attributes.add(swatch_attribute)
     associate_attribute_values_to_instance(
-        product_list[0], swatch_attribute, *swatch_attribute.values.all()
+        product_list[0],
+        {swatch_attribute.id: list(swatch_attribute.values.all())},
     )
 
     product_type = ProductType.objects.create(
@@ -724,7 +733,8 @@ def test_products_filter_by_swatch_attributes(
         attribute=swatch_attribute, name="Dark", slug="dark"
     )
     associate_attribute_values_to_instance(
-        product_list[1], swatch_attribute, attr_value
+        product_list[1],
+        {swatch_attribute.id: [attr_value]},
     )
 
     variables = {
@@ -771,13 +781,16 @@ def test_products_filter_by_date_range_date_attributes(
     )
 
     associate_attribute_values_to_instance(
-        product_list[0], date_attribute, attr_value_1
+        product_list[0],
+        {date_attribute.id: [attr_value_1]},
     )
     associate_attribute_values_to_instance(
-        product_list[1], date_attribute, attr_value_2
+        product_list[1],
+        {date_attribute.id: [attr_value_2]},
     )
     associate_attribute_values_to_instance(
-        product_list[2], date_attribute, attr_value_3
+        product_list[2],
+        {date_attribute.id: [attr_value_3]},
     )
 
     variables = {
@@ -832,13 +845,16 @@ def test_products_filter_by_date_range_date_variant_attributes(
     )
 
     associate_attribute_values_to_instance(
-        product_list[0].variants.first(), date_attribute, attr_value_1
+        product_list[0].variants.first(),
+        {date_attribute.id: [attr_value_1]},
     )
     associate_attribute_values_to_instance(
-        product_list[1].variants.first(), date_attribute, attr_value_2
+        product_list[1].variants.first(),
+        {date_attribute.id: [attr_value_2]},
     )
     associate_attribute_values_to_instance(
-        product_list[2].variants.first(), date_attribute, attr_value_3
+        product_list[2].variants.first(),
+        {date_attribute.id: [attr_value_3]},
     )
 
     variables = {
@@ -896,13 +912,16 @@ def test_products_filter_by_date_range_date_time_attributes(
     )
 
     associate_attribute_values_to_instance(
-        product_list[0], date_time_attribute, attr_value_1
+        product_list[0],
+        {date_time_attribute.id: [attr_value_1]},
     )
     associate_attribute_values_to_instance(
-        product_list[1], date_time_attribute, attr_value_2
+        product_list[1],
+        {date_time_attribute.id: [attr_value_2]},
     )
     associate_attribute_values_to_instance(
-        product_list[2], date_time_attribute, attr_value_3
+        product_list[2],
+        {date_time_attribute.id: [attr_value_3]},
     )
 
     variables = {
@@ -960,13 +979,16 @@ def test_products_filter_by_date_range_date_time_variant_attributes(
     )
 
     associate_attribute_values_to_instance(
-        product_list[0].variants.first(), date_time_attribute, attr_value_1
+        product_list[0].variants.first(),
+        {date_time_attribute.id: [attr_value_1]},
     )
     associate_attribute_values_to_instance(
-        product_list[1].variants.first(), date_time_attribute, attr_value_2
+        product_list[1].variants.first(),
+        {date_time_attribute.id: [attr_value_2]},
     )
     associate_attribute_values_to_instance(
-        product_list[2].variants.first(), date_time_attribute, attr_value_3
+        product_list[2].variants.first(),
+        {date_time_attribute.id: [attr_value_3]},
     )
 
     variables = {
@@ -1028,13 +1050,16 @@ def test_products_filter_by_date_time_range_date_time_attributes(
     )
 
     associate_attribute_values_to_instance(
-        product_list[0], date_time_attribute, attr_value_1
+        product_list[0],
+        {date_time_attribute.id: [attr_value_1]},
     )
     associate_attribute_values_to_instance(
-        product_list[1].variants.first(), date_time_attribute, attr_value_2
+        product_list[1].variants.first(),
+        {date_time_attribute.id: [attr_value_2]},
     )
     associate_attribute_values_to_instance(
-        product_list[2].variants.first(), date_time_attribute, attr_value_3
+        product_list[2].variants.first(),
+        {date_time_attribute.id: [attr_value_3]},
     )
 
     variables = {

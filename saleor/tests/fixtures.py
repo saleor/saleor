@@ -2088,7 +2088,7 @@ def categories_tree(db, product_type, channel_USD):  # pylint: disable=W0613
         visible_in_listings=True,
     )
 
-    associate_attribute_values_to_instance(product, product_attr, attr_value)
+    associate_attribute_values_to_instance(product, {product_attr.pk: [attr_value]})
     return parent
 
 
@@ -2312,7 +2312,9 @@ def product(product_type, category, warehouse, channel_USD, default_tax_class):
         available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
-    associate_attribute_values_to_instance(product, product_attr, product_attr_value)
+    associate_attribute_values_to_instance(
+        product, {product_attr.pk: [product_attr_value]}
+    )
 
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
@@ -2328,7 +2330,9 @@ def product(product_type, category, warehouse, channel_USD, default_tax_class):
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
-    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    associate_attribute_values_to_instance(
+        variant, {variant_attr.pk: [variant_attr_value]}
+    )
 
     return product
 
@@ -2490,7 +2494,9 @@ def product_with_rich_text_attribute(
         available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
-    associate_attribute_values_to_instance(product, product_attr, product_attr_value)
+    associate_attribute_values_to_instance(
+        product, {product_attr.pk: [product_attr_value]}
+    )
 
     variant_attr = product_type_with_rich_text_attribute.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
@@ -2506,7 +2512,9 @@ def product_with_rich_text_attribute(
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
-    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    associate_attribute_values_to_instance(
+        variant, {variant_attr.pk: [variant_attr_value]}
+    )
     return [product, variant]
 
 
@@ -2660,10 +2668,10 @@ def product_with_variant_with_two_attributes(
     )
 
     associate_attribute_values_to_instance(
-        variant, color_attribute, color_attribute.values.first()
+        variant, {color_attribute.pk: [color_attribute.values.first()]}
     )
     associate_attribute_values_to_instance(
-        variant, size_attribute, size_attribute.values.first()
+        variant, {size_attribute.pk: [size_attribute.values.first()]}
     )
 
     return product
@@ -2723,10 +2731,10 @@ def product_with_variant_with_external_media(
     )
 
     associate_attribute_values_to_instance(
-        variant, color_attribute, color_attribute.values.first()
+        variant, {color_attribute.pk: [color_attribute.values.first()]}
     )
     associate_attribute_values_to_instance(
-        variant, size_attribute, size_attribute.values.first()
+        variant, {size_attribute.pk: [size_attribute.values.first()]}
     )
 
     return product
@@ -2774,7 +2782,7 @@ def product_with_variant_with_file_attribute(
     )
 
     associate_attribute_values_to_instance(
-        variant, file_attribute, file_attribute.values.first()
+        variant, {file_attribute.pk: [file_attribute.values.first()]}
     )
 
     return product
@@ -2799,7 +2807,9 @@ def product_with_multiple_values_attributes(product, product_type, category) -> 
     product_type.product_attributes.clear()
     product_type.product_attributes.add(attribute)
 
-    associate_attribute_values_to_instance(product, attribute, attr_val_1, attr_val_2)
+    associate_attribute_values_to_instance(
+        product, {attribute.pk: [attr_val_1, attr_val_2]}
+    )
     return product
 
 
@@ -3270,7 +3280,7 @@ def product_list(
     Stock.objects.bulk_create(stocks)
 
     for product in products:
-        associate_attribute_values_to_instance(product, product_attr, attr_value)
+        associate_attribute_values_to_instance(product, {product_attr.pk: [attr_value]})
         product.search_vector = FlatConcatSearchVector(
             *prepare_product_search_vector_value(product)
         )
@@ -3551,7 +3561,9 @@ def unavailable_product_with_variant(
     )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
 
-    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    associate_attribute_values_to_instance(
+        variant, {variant_attr.pk: [variant_attr_value]}
+    )
     return product
 
 
@@ -5438,7 +5450,7 @@ def page(db, page_type):
     page_attr = page_type.page_attributes.first()
     page_attr_value = page_attr.values.first()
 
-    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+    associate_attribute_values_to_instance(page, {page_attr.pk: [page_attr_value]})
 
     return page
 
@@ -5458,7 +5470,7 @@ def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
     page_attr = page_type_with_rich_text_attribute.page_attributes.first()
     page_attr_value = page_attr.values.first()
 
-    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+    associate_attribute_values_to_instance(page, {page_attr.pk: [page_attr_value]})
 
     return page
 
@@ -5612,7 +5624,7 @@ def translated_page_unique_attribute_value(page, rich_text_attribute_page_type):
     page_type.page_attributes.add(rich_text_attribute_page_type)
     attribute_value = rich_text_attribute_page_type.values.first()
     associate_attribute_values_to_instance(
-        page, rich_text_attribute_page_type, attribute_value
+        page, {rich_text_attribute_page_type.id: [attribute_value]}
     )
     return AttributeValueTranslation.objects.create(
         language_code="fr",
@@ -5627,7 +5639,7 @@ def translated_product_unique_attribute_value(product, rich_text_attribute):
     product_type.product_attributes.add(rich_text_attribute)
     attribute_value = rich_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        product, rich_text_attribute, attribute_value
+        product, {rich_text_attribute.id: [attribute_value]}
     )
     return AttributeValueTranslation.objects.create(
         language_code="fr",
@@ -5642,7 +5654,7 @@ def translated_variant_unique_attribute_value(variant, rich_text_attribute):
     product_type.variant_attributes.add(rich_text_attribute)
     attribute_value = rich_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, rich_text_attribute, attribute_value
+        variant, {rich_text_attribute.id: [attribute_value]}
     )
     return AttributeValueTranslation.objects.create(
         language_code="fr",
