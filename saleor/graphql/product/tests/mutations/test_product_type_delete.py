@@ -73,8 +73,7 @@ def test_product_type_delete_with_file_attributes(
     product_type.product_attributes.add(file_attribute)
     associate_attribute_values_to_instance(
         product_with_variant_with_file_attribute,
-        file_attribute,
-        file_attribute.values.last(),
+        {file_attribute.pk: [file_attribute.values.last()]},
     )
     values = list(file_attribute.values.all())
 

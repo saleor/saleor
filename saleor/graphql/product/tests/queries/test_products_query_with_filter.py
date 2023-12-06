@@ -66,7 +66,10 @@ def test_products_query_with_filter_attributes(
     second_product.product_type = product_type
     second_product.slug = "second-product"
     second_product.save()
-    associate_attribute_values_to_instance(second_product, attribute, attr_value)
+    associate_attribute_values_to_instance(
+        second_product,
+        {attribute.id: [attr_value]},
+    )
 
     variables = {
         "filter": {
@@ -112,7 +115,8 @@ def test_products_query_with_filter_numeric_attributes(
 ):
     product.product_type.product_attributes.add(numeric_attribute)
     associate_attribute_values_to_instance(
-        product, numeric_attribute, *numeric_attribute.values.all()
+        product,
+        {numeric_attribute.id: list(numeric_attribute.values.all())},
     )
 
     product_type = ProductType.objects.create(
@@ -135,7 +139,8 @@ def test_products_query_with_filter_numeric_attributes(
     )
 
     associate_attribute_values_to_instance(
-        second_product, numeric_attribute, attr_value
+        second_product,
+        {numeric_attribute.id: [attr_value]},
     )
 
     third_product = Product.objects.create(
@@ -148,7 +153,10 @@ def test_products_query_with_filter_numeric_attributes(
         attribute=numeric_attribute, name="5", slug="5_X"
     )
 
-    associate_attribute_values_to_instance(third_product, numeric_attribute, attr_value)
+    associate_attribute_values_to_instance(
+        third_product,
+        {numeric_attribute.id: [attr_value]},
+    )
 
     second_product.refresh_from_db()
     third_product.refresh_from_db()
@@ -203,7 +211,8 @@ def test_products_query_with_filter_boolean_attributes(
     product.product_type.product_attributes.add(boolean_attribute)
 
     associate_attribute_values_to_instance(
-        product, boolean_attribute, boolean_attribute.values.get(boolean=filter_value)
+        product,
+        {boolean_attribute.id: [boolean_attribute.values.get(boolean=filter_value)]},
     )
 
     product_type = ProductType.objects.create(
@@ -222,7 +231,8 @@ def test_products_query_with_filter_boolean_attributes(
         category=category,
     )
     associate_attribute_values_to_instance(
-        second_product, boolean_attribute, boolean_attribute.values.get(boolean=False)
+        second_product,
+        {boolean_attribute.id: [boolean_attribute.values.get(boolean=False)]},
     )
 
     second_product.refresh_from_db()
@@ -263,7 +273,8 @@ def test_products_query_with_filter_by_attributes_values_and_range(
     attr_value_1 = product_attr.values.first()
     product.product_type.product_attributes.add(numeric_attribute)
     associate_attribute_values_to_instance(
-        product, numeric_attribute, *numeric_attribute.values.all()
+        product,
+        {numeric_attribute.id: list(numeric_attribute.values.all())},
     )
 
     product_type = ProductType.objects.create(
@@ -286,7 +297,8 @@ def test_products_query_with_filter_by_attributes_values_and_range(
     )
 
     associate_attribute_values_to_instance(
-        second_product, numeric_attribute, attr_value_2
+        second_product,
+        {numeric_attribute.id: [attr_value_2]},
     )
 
     second_product.refresh_from_db()
@@ -322,7 +334,8 @@ def test_products_query_with_filter_swatch_attributes(
 ):
     product.product_type.product_attributes.add(swatch_attribute)
     associate_attribute_values_to_instance(
-        product, swatch_attribute, *swatch_attribute.values.all()
+        product,
+        {swatch_attribute.id: list(swatch_attribute.values.all())},
     )
 
     product_type = ProductType.objects.create(
@@ -343,7 +356,10 @@ def test_products_query_with_filter_swatch_attributes(
         attribute=swatch_attribute, name="Dark", slug="dark"
     )
 
-    associate_attribute_values_to_instance(second_product, swatch_attribute, attr_value)
+    associate_attribute_values_to_instance(
+        second_product,
+        {swatch_attribute.id: [attr_value]},
+    )
 
     second_product.refresh_from_db()
 
@@ -395,13 +411,16 @@ def test_products_query_with_filter_date_range_date_attributes(
     )
 
     associate_attribute_values_to_instance(
-        product_list[0], date_attribute, attr_value_1
+        product_list[0],
+        {date_attribute.id: [attr_value_1]},
     )
     associate_attribute_values_to_instance(
-        product_list[1], date_attribute, attr_value_2
+        product_list[1],
+        {date_attribute.id: [attr_value_2]},
     )
     associate_attribute_values_to_instance(
-        product_list[2], date_attribute, attr_value_3
+        product_list[2],
+        {date_attribute.id: [attr_value_3]},
     )
 
     variables = {
@@ -459,13 +478,16 @@ def test_products_query_with_filter_date_range_date_variant_attributes(
     )
 
     associate_attribute_values_to_instance(
-        product_list[0].variants.first(), date_attribute, attr_value_1
+        product_list[0].variants.first(),
+        {date_attribute.id: [attr_value_1]},
     )
     associate_attribute_values_to_instance(
-        product_list[1].variants.first(), date_attribute, attr_value_2
+        product_list[1].variants.first(),
+        {date_attribute.id: [attr_value_2]},
     )
     associate_attribute_values_to_instance(
-        product_list[2].variants.first(), date_attribute, attr_value_3
+        product_list[2].variants.first(),
+        {date_attribute.id: [attr_value_3]},
     )
 
     variables = {
@@ -526,13 +548,16 @@ def test_products_query_with_filter_date_range_date_time_attributes(
     )
 
     associate_attribute_values_to_instance(
-        product_list[0], date_time_attribute, attr_value_1
+        product_list[0],
+        {date_time_attribute.id: [attr_value_1]},
     )
     associate_attribute_values_to_instance(
-        product_list[1], date_time_attribute, attr_value_2
+        product_list[1],
+        {date_time_attribute.id: [attr_value_2]},
     )
     associate_attribute_values_to_instance(
-        product_list[2], date_time_attribute, attr_value_3
+        product_list[2],
+        {date_time_attribute.id: [attr_value_3]},
     )
 
     variables = {
@@ -593,13 +618,16 @@ def test_products_query_with_filter_date_range_date_time_variant_attributes(
     )
 
     associate_attribute_values_to_instance(
-        product_list[0].variants.first(), date_time_attribute, attr_value_1
+        product_list[0].variants.first(),
+        {date_time_attribute.id: [attr_value_1]},
     )
     associate_attribute_values_to_instance(
-        product_list[1].variants.first(), date_time_attribute, attr_value_2
+        product_list[1].variants.first(),
+        {date_time_attribute.id: [attr_value_2]},
     )
     associate_attribute_values_to_instance(
-        product_list[2].variants.first(), date_time_attribute, attr_value_3
+        product_list[2].variants.first(),
+        {date_time_attribute.id: [attr_value_3]},
     )
 
     variables = {
@@ -664,13 +692,16 @@ def test_products_query_with_filter_date_time_range_date_time_attributes(
     )
 
     associate_attribute_values_to_instance(
-        product_list[0], date_time_attribute, attr_value_1
+        product_list[0],
+        {date_time_attribute.id: [attr_value_1]},
     )
     associate_attribute_values_to_instance(
-        product_list[1].variants.first(), date_time_attribute, attr_value_2
+        product_list[1].variants.first(),
+        {date_time_attribute.id: [attr_value_2]},
     )
     associate_attribute_values_to_instance(
-        product_list[2].variants.first(), date_time_attribute, attr_value_3
+        product_list[2].variants.first(),
+        {date_time_attribute.id: [attr_value_3]},
     )
 
     variables = {
@@ -1040,7 +1071,8 @@ def test_products_query_with_filter_search_by_dropdown_attribute_value(
     dropdown_attr_value.save(update_fields=["name"])
 
     associate_attribute_values_to_instance(
-        product_with_dropdown_attr, color_attribute, dropdown_attr_value
+        product_with_dropdown_attr,
+        {color_attribute.id: [dropdown_attr_value]},
     )
 
     product_with_dropdown_attr.refresh_from_db()
@@ -1101,9 +1133,7 @@ def test_products_query_with_filter_search_by_multiselect_attribute_value(
 
     associate_attribute_values_to_instance(
         product_with_multiselect_attr,
-        multiselect_attribute,
-        multiselect_attr_val_1,
-        multiselect_attr_val_2,
+        {multiselect_attribute.id: [multiselect_attr_val_1, multiselect_attr_val_2]},
     )
 
     product_with_multiselect_attr.refresh_from_db()
@@ -1151,7 +1181,8 @@ def test_products_query_with_filter_search_by_rich_text_attribute(
     rich_text_value.save(update_fields=["rich_text"])
 
     associate_attribute_values_to_instance(
-        product_with_rich_text_attr, rich_text_attribute, rich_text_value
+        product_with_rich_text_attr,
+        {rich_text_attribute.id: [rich_text_value]},
     )
 
     product_with_rich_text_attr.refresh_from_db()
@@ -1199,7 +1230,8 @@ def test_products_query_with_filter_search_by_plain_text_attribute(
     plain_text_value.save(update_fields=["plain_text"])
 
     associate_attribute_values_to_instance(
-        product_with_plain_text_attr, plain_text_attribute, plain_text_value
+        product_with_plain_text_attr,
+        {plain_text_attribute.id: [plain_text_value]},
     )
 
     product_with_plain_text_attr.refresh_from_db()
@@ -1250,7 +1282,8 @@ def test_products_query_with_filter_search_by_numeric_attribute_value(
     numeric_attr_value.save(update_fields=["name"])
 
     associate_attribute_values_to_instance(
-        product_with_numeric_attr, numeric_attribute, numeric_attr_value
+        product_with_numeric_attr,
+        {numeric_attribute.id: [numeric_attr_value]},
     )
 
     product_with_numeric_attr.refresh_from_db()
@@ -1297,7 +1330,8 @@ def test_products_query_with_filter_search_by_numeric_attribute_value_without_un
     numeric_attr_value.save(update_fields=["name"])
 
     associate_attribute_values_to_instance(
-        product_with_numeric_attr, numeric_attribute, numeric_attr_value
+        product_with_numeric_attr,
+        {numeric_attribute.id: [numeric_attr_value]},
     )
 
     product_with_numeric_attr.refresh_from_db()
@@ -1345,7 +1379,8 @@ def test_products_query_with_filter_search_by_date_attribute_value(
     date_attr_value.save(update_fields=["date_time"])
 
     associate_attribute_values_to_instance(
-        product_with_date_attr, date_attribute, date_attr_value
+        product_with_date_attr,
+        {date_attribute.id: [date_attr_value]},
     )
 
     product_with_date_attr.refresh_from_db()
@@ -1393,7 +1428,8 @@ def test_products_query_with_filter_search_by_date_time_attribute_value(
     date_time_attr_value.save(update_fields=["date_time"])
 
     associate_attribute_values_to_instance(
-        product_with_date_time_attr, date_time_attribute, date_time_attr_value
+        product_with_date_time_attr,
+        {date_time_attribute.id: [date_time_attr_value]},
     )
 
     product_with_date_time_attr.refresh_from_db()
