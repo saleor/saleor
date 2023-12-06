@@ -1,14 +1,13 @@
 """Checkout-related utility functions."""
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple
+from typing import Iterable, Optional, Tuple
 
+from django.db.models import Exists, Q
 from prices import Money
 
 from ..core.taxes import zero_money
+from ..payment.models import TransactionItem
 from . import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .models import Checkout
-
-if TYPE_CHECKING:
-    from ..payment.models import TransactionItem
 
 
 def _update_charge_status(
@@ -111,3 +110,19 @@ def update_checkout_payment_statuses(
         if fields_to_update:
             fields_to_update.append("last_change")
             checkout.save(update_fields=fields_to_update)
+
+
+def update_refundable_for_checkout(checkout_pk):
+    """Update automatically refundable status for checkout.
+
+    The refundable status is calculated based on the transaction. If transaction is
+    not refundable or doesn't have enough funds to refund, the function will calculate
+    the status based on the rest of transactions for the checkout.
+    """
+    transactions_subquery = TransactionItem.objects.filter(
+        Q(checkout_id=checkout_pk, last_refund_success=True)
+        & (Q(authorized_value__gt=0) | Q(charged_value__gt=0))
+    )
+    Checkout.objects.filter(pk=checkout_pk).update(
+        automatically_refundable=Exists(transactions_subquery)
+    )
