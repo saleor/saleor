@@ -162,6 +162,252 @@ def test_trigger_transaction_request_with_webhook_subscription(
 
 
 @freeze_time("2022-06-11 12:50")
+@mock.patch("saleor.plugins.webhook.tasks.handle_transaction_request_task.delay")
+def test_trigger_transaction_request_missing_app_owner_updates_refundable_checkout(
+    mocked_task,
+    transaction_item_created_by_app,
+    staff_user,
+    permission_manage_payments,
+    app,
+    checkout,
+):
+    # given
+    subscription = """
+    subscription{
+        event{
+            ...on TransactionRefundRequested{
+                transaction{
+                    id
+                }
+                action{
+                    amount
+                    actionType
+                }
+            }
+        }
+    }
+    """
+    checkout.automatically_refundable = True
+    checkout.save()
+
+    transaction_item_created_by_app.order = None
+    transaction_item_created_by_app.checkout = checkout
+    transaction_item_created_by_app.save()
+    event = transaction_item_created_by_app.events.create(
+        type=TransactionEventType.REFUND_REQUEST
+    )
+
+    app.permissions.set([permission_manage_payments])
+
+    webhook = app.webhooks.create(
+        name="webhook",
+        is_active=True,
+        target_url="http://localhost:3000/",
+        subscription_query=subscription,
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
+
+    transaction_data = TransactionActionData(
+        transaction=transaction_item_created_by_app,
+        action_type="refund",
+        action_value=Decimal("10.00"),
+        event=event,
+        transaction_app_owner=None,
+    )
+
+    # when
+    trigger_transaction_request(
+        transaction_data, WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED, staff_user
+    )
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item_created_by_app.refresh_from_db()
+    assert checkout.automatically_refundable is False
+    assert transaction_item_created_by_app.last_refund_success is False
+    assert not mocked_task.called
+
+
+@freeze_time("2022-06-11 12:50")
+@mock.patch("saleor.plugins.webhook.tasks.handle_transaction_request_task.delay")
+def test_trigger_transaction_request_missing_webhook_updates_refundable_checkout(
+    mocked_task,
+    transaction_item_created_by_app,
+    staff_user,
+    permission_manage_payments,
+    app,
+    checkout,
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save()
+
+    transaction_item_created_by_app.order = None
+    transaction_item_created_by_app.checkout = checkout
+    transaction_item_created_by_app.save()
+    event = transaction_item_created_by_app.events.create(
+        type=TransactionEventType.REFUND_REQUEST
+    )
+
+    app.permissions.set([permission_manage_payments])
+
+    transaction_data = TransactionActionData(
+        transaction=transaction_item_created_by_app,
+        action_type="refund",
+        action_value=Decimal("10.00"),
+        event=event,
+        transaction_app_owner=app,
+    )
+
+    # when
+    trigger_transaction_request(
+        transaction_data, WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED, staff_user
+    )
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item_created_by_app.refresh_from_db()
+    assert checkout.automatically_refundable is False
+    assert transaction_item_created_by_app.last_refund_success is False
+    assert not mocked_task.called
+
+
+@freeze_time("2022-06-11 12:50")
+@mock.patch("saleor.plugins.webhook.tasks.handle_transaction_request_task.delay")
+def test_trigger_transaction_request_incorrect_subscription_updates_refundable_checkout(
+    mocked_task,
+    transaction_item_created_by_app,
+    staff_user,
+    permission_manage_payments,
+    app,
+    checkout,
+):
+    # given
+    subscription = """
+        subscription{
+            event{
+                ...on TransactionRefundRequested{
+                    transaction{
+                        id
+                        incorrectField
+                    }
+                    action{
+                        amount
+                        actionType
+                    }
+                }
+            }
+        }
+        """
+    checkout.automatically_refundable = True
+    checkout.save()
+
+    transaction_item_created_by_app.order = None
+    transaction_item_created_by_app.checkout = checkout
+    transaction_item_created_by_app.save()
+    event = transaction_item_created_by_app.events.create(
+        type=TransactionEventType.REFUND_REQUEST
+    )
+
+    app.permissions.set([permission_manage_payments])
+
+    webhook = app.webhooks.create(
+        name="webhook",
+        is_active=True,
+        target_url="http://localhost:3000/",
+        subscription_query=subscription,
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
+
+    transaction_data = TransactionActionData(
+        transaction=transaction_item_created_by_app,
+        action_type="refund",
+        action_value=Decimal("10.00"),
+        event=event,
+        transaction_app_owner=app,
+    )
+
+    # when
+    trigger_transaction_request(
+        transaction_data, WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED, staff_user
+    )
+
+    # then
+    checkout.refresh_from_db()
+    transaction_item_created_by_app.refresh_from_db()
+    assert checkout.automatically_refundable is False
+    assert transaction_item_created_by_app.last_refund_success is False
+    assert not mocked_task.called
+
+
+@freeze_time("2022-06-11 12:50")
+@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+def test_handle_transaction_request_task_missing_delivery_updates_refundable_checkout(
+    mocked_post_request,
+    transaction_item_generator,
+    permission_manage_payments,
+    staff_user,
+    mocked_webhook_response,
+    app,
+    checkout,
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save()
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    expected_psp_reference = "psp:ref:123"
+    mocked_webhook_response.text = json.dumps({"pspReference": expected_psp_reference})
+    mocked_webhook_response.content = json.dumps(
+        {"pspReference": expected_psp_reference}
+    )
+    mocked_post_request.return_value = mocked_webhook_response
+
+    target_url = "http://localhost:3000/"
+
+    event = transaction.events.create(type=TransactionEventType.REFUND_REQUEST)
+    app.permissions.set([permission_manage_payments])
+
+    webhook = app.webhooks.create(
+        name="webhook",
+        is_active=True,
+        target_url=target_url,
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
+
+    transaction_data = TransactionActionData(
+        transaction=transaction,
+        action_type="refund",
+        action_value=Decimal("10.00"),
+        event=event,
+        transaction_app_owner=app,
+    )
+
+    payload = generate_transaction_action_request_payload(transaction_data, staff_user)
+    event_payload = EventPayload.objects.create(payload=payload)
+    delivery = EventDelivery.objects.create(
+        status=EventDeliveryStatus.PENDING,
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
+        payload=event_payload,
+        webhook=webhook,
+    )
+    delivery_id = delivery.id
+
+    delivery.delete()
+
+    # when
+    handle_transaction_request_task(delivery_id, transaction_data.event.id)
+
+    # then
+    checkout.refresh_from_db()
+    transaction.refresh_from_db()
+
+    assert checkout.automatically_refundable is False
+    assert transaction.last_refund_success is False
+    assert not mocked_post_request.called
+
+
+@freeze_time("2022-06-11 12:50")
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 def test_handle_transaction_request_task_with_only_psp_reference(
     mocked_post_request,

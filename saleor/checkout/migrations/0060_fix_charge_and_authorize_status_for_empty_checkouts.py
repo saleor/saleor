@@ -16,6 +16,7 @@ def fix_charge_status_for_empty_checkouts(apps, _schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("checkout", "0059_merge_0058"),
+        ("payment", "0049_auto_20230322_0634"),
     ]
     operations = [
         migrations.RunPython(
