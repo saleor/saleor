@@ -151,6 +151,10 @@ class TransactionItem(ModelWithMetadata):
     )
     app_identifier = models.CharField(blank=True, null=True, max_length=256)
 
+    # If last release funds action failed the flag will be set to False
+    # Used to define if the checkout with transaction is refundable or not
+    last_refund_success = models.BooleanField(default=True)
+
     class Meta:
         ordering = ("pk",)
         indexes = [

@@ -5858,6 +5858,7 @@ def transaction_item_generator():
         refunded_value=Decimal(0),
         canceled_value=Decimal(0),
         use_old_id=False,
+        last_refund_success=True,
     ):
         if available_actions is None:
             available_actions = []
@@ -5874,6 +5875,7 @@ def transaction_item_generator():
             app=app,
             user=user,
             use_old_id=use_old_id,
+            last_refund_success=last_refund_success,
         )
         create_manual_adjustment_events(
             transaction=transaction,
