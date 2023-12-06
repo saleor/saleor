@@ -465,6 +465,9 @@ def test_update_product(
     non_default_category,
     collection_list,
     product_with_variant_with_two_attributes,
+    color_attribute,
+    size_attribute,
+    boolean_attribute,
     other_description_json,
     permission_manage_products,
     monkeypatch,
@@ -529,6 +532,24 @@ def test_update_product(
     product_slug = "updated-product"
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
+    product.product_type.product_attributes.add(size_attribute)
+    product.product_type.product_attributes.add(color_attribute)
+    product.product_type.product_attributes.add(boolean_attribute)
+
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+            "values": ["newValue"],
+        },
+        {
+            "id": graphene.Node.to_global_id("Attribute", size_attribute.pk),
+            "values": ["newValue"],
+        },
+        {
+            "id": graphene.Node.to_global_id("Attribute", boolean_attribute.pk),
+            "values": ["False"],
+        },
+    ]
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -546,6 +567,7 @@ def test_update_product(
             "description": other_description_json,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
+            "attributes": attributes,
         },
     }
 
