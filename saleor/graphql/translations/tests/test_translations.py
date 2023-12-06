@@ -2196,7 +2196,8 @@ def test_plain_text_attribute_value_create_translation(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant,
+        {plain_text_attribute.pk: [attribute_value]},
     )
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.id
@@ -2477,7 +2478,8 @@ def test_plain_text_attribute_value_update_translation_only_plain_text(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant,
+        {plain_text_attribute.pk: [attribute_value]},
     )
 
     text = "Jakiś bazowy opis"
@@ -2516,7 +2518,8 @@ def test_plain_text_attribute_value_update_translation_only_plain_text_long_text
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant,
+        {plain_text_attribute.pk: [attribute_value]},
     )
 
     text = "Jakiś bazowy opis"
@@ -2557,7 +2560,8 @@ def test_plain_text_attribute_value_update_translation_name_set_manually(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant,
+        {plain_text_attribute.pk: [attribute_value]},
     )
 
     text = "Jakiś bazowy opis"
@@ -2597,7 +2601,8 @@ def test_plain_text_attribute_value_update_translation_empty_name(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant,
+        {plain_text_attribute.pk: [attribute_value]},
     )
 
     text = "Jakiś bazowy opis"
@@ -2636,7 +2641,8 @@ def test_plain_text_attribute_value_update_translation_name_null(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant,
+        {plain_text_attribute.pk: [attribute_value]},
     )
 
     text = "Jakiś bazowy opis"
@@ -3821,7 +3827,7 @@ def test_product_attribute_value_plain_text_translation(
 
     product_attr_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        product, plain_text_attribute, product_attr_value
+        product, {plain_text_attribute.id: [product_attr_value]}
     )
 
     text = "Test plain text translation"
@@ -3862,7 +3868,7 @@ def test_nested_product_attribute_translation(
 
     product_attr_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        product, plain_text_attribute, product_attr_value
+        product, {plain_text_attribute.id: [product_attr_value]}
     )
 
     text = "Test attribute translation"
@@ -3970,7 +3976,7 @@ def test_product_variant_attribute_value_plain_text_translation(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant, {plain_text_attribute.id: [attribute_value]}
     )
 
     text = "Test plain text translation"
@@ -4011,7 +4017,7 @@ def test_nested_product_variant_attribute_translation(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant, {plain_text_attribute.id: [attribute_value]}
     )
 
     text = "Test attribute translation"
@@ -4114,7 +4120,7 @@ def test_page_attribute_value_plain_text_translation(
     attribute_value = plain_text_attribute_page_type.values.first()
 
     associate_attribute_values_to_instance(
-        page, plain_text_attribute_page_type, attribute_value
+        page, {plain_text_attribute_page_type.id: [attribute_value]}
     )
 
     text = "Test plain text translation"
@@ -4157,7 +4163,7 @@ def test_nested_page_attribute_translation(
     attribute_value = plain_text_attribute_page_type.values.first()
 
     associate_attribute_values_to_instance(
-        page, plain_text_attribute_page_type, attribute_value
+        page, {plain_text_attribute_page_type.id: [attribute_value]}
     )
 
     text = "Test attribute translation"
