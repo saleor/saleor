@@ -218,7 +218,7 @@ def test_get_default_order_payload(order_line):
     order.subtotal = get_subtotal(order.lines.all(), order.currency)
     order_line_payload = get_order_line_payload(order_line)
     redirect_url = "http://redirect.com/path"
-    subtotal = order.get_subtotal()
+    subtotal = order.subtotal
     order.total = subtotal + order.shipping_price
     tax = order.total_gross_amount - order.total_net_amount
 

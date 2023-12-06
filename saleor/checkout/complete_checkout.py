@@ -1219,10 +1219,15 @@ def _create_order_from_checkout(
         + shipping_total
     )
     order.undiscounted_total = undiscounted_total
+    currency = checkout_info.checkout.currency
+    subtotal_list = [line.line.total_price for line in order_lines_info]
+    order.subtotal = sum(subtotal_list, zero_taxed_money(currency))
     order.save(
         update_fields=[
             "undiscounted_total_net_amount",
             "undiscounted_total_gross_amount",
+            "subtotal_net_amount",
+            "subtotal_gross_amount",
         ]
     )
     # allocations
@@ -1235,16 +1240,6 @@ def _create_order_from_checkout(
     )
 
     # giftcards
-    currency = checkout_info.checkout.currency
-    subtotal_list = [line.line.total_price for line in order_lines_info]
-    order.subtotal = sum(subtotal_list, zero_taxed_money(currency))
-    order.save(
-        update_fields=[
-            "subtotal_net_amount",
-            "subtotal_gross_amount",
-        ]
-    )
-
     total_without_giftcard = (
         order.subtotal + shipping_total - checkout_info.checkout.discount
     )

@@ -279,7 +279,7 @@ def validate_voucher_in_order(order: "Order"):
     if not order.voucher:
         return
 
-    subtotal = order.get_subtotal()
+    subtotal = order.subtotal
     quantity = order.get_total_quantity()
     customer_email = order.get_customer_email()
     tax_configuration = order.channel.tax_configuration

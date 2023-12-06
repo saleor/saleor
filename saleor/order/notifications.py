@@ -243,7 +243,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     order_details_url = ""
     if redirect_url:
         order_details_url = prepare_order_details_url(order, redirect_url)
-    subtotal = order.get_subtotal()
+    subtotal = order.subtotal
     tax = order.total_gross_amount - order.total_net_amount or Decimal(0)
 
     lines = order.lines.prefetch_related(

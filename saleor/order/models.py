@@ -424,9 +424,6 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     def is_shipping_required(self):
         return any(line.is_shipping_required for line in self.lines.all())
 
-    def get_subtotal(self):
-        return self.subtotal
-
     def get_total_quantity(self):
         return sum([line.quantity for line in self.lines.all()])
 

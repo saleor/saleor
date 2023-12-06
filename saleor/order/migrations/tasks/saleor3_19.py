@@ -8,16 +8,15 @@ BATCH_SIZE = 1000
 
 
 @app.task
-def update_order_subtotals(batch_id=None, batch_size=BATCH_SIZE):
-    # Determine the starting and ending order numbers for the current batch
-    if batch_id is None:
-        batch_id = 0
-    start_order_number = batch_id * batch_size
-    end_order_number = start_order_number + batch_size
+def update_order_subtotals(batch_id=0):
+    start_order_number = batch_id * BATCH_SIZE
+    end_order_number = start_order_number + BATCH_SIZE
 
     # Get the orders for the current batch based on order numbers
     current_batch_order_numbers = Order.objects.filter(
-        number__gte=start_order_number, number__lt=end_order_number
+        number__gte=start_order_number,
+        number__lt=end_order_number,
+        subtotal_gross_amount__gt=0,
     ).values_list("number", flat=True)
 
     # If there are no orders in the range, exit the task
@@ -51,4 +50,4 @@ def update_order_subtotals(batch_id=None, batch_size=BATCH_SIZE):
         orders_to_update, ["subtotal_net_amount", "subtotal_gross_amount"]
     )
 
-    update_order_subtotals.delay(batch_id + 1, batch_size)
+    update_order_subtotals.delay(batch_id + 1)
