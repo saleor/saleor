@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import graphene
 import pytest
+from freezegun import freeze_time
 from mock import patch
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
@@ -2945,3 +2946,56 @@ def test_transaction_update_by_app_assign_app_owner(
     assert transaction.app_identifier == app_api_client.app.identifier
     assert transaction.app == app_api_client.app
     assert transaction.user is None
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_transaction_update_for_checkout_updates_last_transaction_modified_at(
+    checkout_with_items,
+    permission_manage_payments,
+    app_api_client,
+    transaction_item_generator,
+    app,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    transaction = transaction_item_generator(
+        checkout_id=checkout_with_items.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+    with freeze_time("2000-05-31 12:00:01"):
+        transaction.save(update_fields=["modified_at"])
+    previous_modified_at = transaction.modified_at
+    checkout_with_items.last_transaction_modified_at = previous_modified_at
+    checkout_with_items.save()
+
+    authorized_value = Decimal("12")
+    charged_value = Decimal("13")
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+    transaction.refresh_from_db()
+
+    assert checkout_with_items.last_transaction_modified_at != previous_modified_at
+    assert checkout_with_items.last_transaction_modified_at == transaction.modified_at

@@ -10,7 +10,10 @@ def test_associate_attribute_to_non_product_instance(color_attribute):
     value = color_attribute.values.first()
 
     with pytest.raises(AssertionError) as exc:
-        associate_attribute_values_to_instance(instance, attribute, value)  # noqa
+        associate_attribute_values_to_instance(
+            instance,
+            {attribute.id: [value]},
+        )  # noqa
 
     assert exc.value.args == ("ProductType is unsupported",)
 
@@ -26,7 +29,10 @@ def test_associate_attribute_to_product_instance_from_different_attribute(
     value = size_attribute.values.first()
 
     with pytest.raises(AssertionError) as exc:
-        associate_attribute_values_to_instance(instance, attribute, value)
+        associate_attribute_values_to_instance(
+            instance,
+            {attribute.id: [value]},
+        )
 
     assert exc.value.args == ("Some values are not from the provided attribute.",)
 
@@ -40,7 +46,8 @@ def test_associate_attribute_to_product_instance_without_values(product):
     attribute = old_assignment.attribute
 
     # Clear the values
-    new_assignment = associate_attribute_values_to_instance(product, attribute)
+    associate_attribute_values_to_instance(product, {attribute.id: []})
+    new_assignment = product.attributes.last()
 
     # Ensure the values were cleared and no new assignment entry was created
     assert new_assignment.pk == old_assignment.pk
@@ -57,9 +64,10 @@ def test_associate_attribute_to_product_instance_multiple_values(product):
     values = attribute.values.all()
 
     # Assign new values
-    new_assignment = associate_attribute_values_to_instance(
-        product, attribute, values[1], values[0]
+    associate_attribute_values_to_instance(
+        product, {attribute.id: [values[1], values[0]]}
     )
+    new_assignment = product.attributes.last()
 
     # Ensure the new assignment was created and ordered correctly
     assert new_assignment.pk == old_assignment.pk
@@ -79,9 +87,8 @@ def test_associate_attribute_to_page_instance_multiple_values(page):
     values = attribute.values.all()
 
     # Clear the values
-    new_assignment = associate_attribute_values_to_instance(
-        page, attribute, values[1], values[0]
-    )
+    associate_attribute_values_to_instance(page, {attribute.id: [values[1], values[0]]})
+    new_assignment = page.attributes.last()
 
     # Ensure the new assignment was created and ordered correctly
     assert new_assignment.pk == old_assignment.pk
@@ -97,10 +104,11 @@ def test_associate_attribute_to_variant_instance_multiple_values(variant):
     attribute = variant.product.product_type.variant_attributes.first()
     values = attribute.values.all()
 
-    new_assignment = associate_attribute_values_to_instance(
-        variant, attribute, values[0], values[1]
+    associate_attribute_values_to_instance(
+        variant, {attribute.id: [values[0], values[1]]}
     )
 
+    new_assignment = variant.attributes.last()
     # Ensure the new assignment was created and ordered correctly
     assert new_assignment.values.count() == 2
     assert list(

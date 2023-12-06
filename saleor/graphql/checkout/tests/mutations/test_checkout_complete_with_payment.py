@@ -3856,8 +3856,8 @@ def test_checkout_complete_payment_create_create_run_in_meantime(
         user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
 
     # when
-    with before_after.before(
-        "saleor.checkout.complete_checkout._get_order_data",
+    with before_after.after(
+        "saleor.checkout.complete_checkout._process_payment",
         call_payment_create_mutation,
     ):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)

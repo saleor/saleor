@@ -35,6 +35,7 @@ from ...payment.models import TransactionEvent
 from ...payment.utils import (
     create_failed_transaction_event,
     create_transaction_event_from_request_and_webhook_response,
+    recalculate_refundable_for_checkout,
 )
 from ...site.models import Site
 from ...webhook import observability
@@ -774,13 +775,6 @@ def observability_reporter_task():
 def trigger_transaction_request(
     transaction_data: "TransactionActionData", event_type: str, requestor
 ):
-    if not transaction_data.event:
-        logger.warning(
-            "The transaction request for transaction: %s doesn't have a "
-            "proper REQUEST event.",
-            transaction_data.transaction.id,
-        )
-        return None
     if not transaction_data.transaction_app_owner:
         create_failed_transaction_event(
             transaction_data.event,
@@ -788,6 +782,9 @@ def trigger_transaction_request(
                 "Cannot process the action as the given transaction is not "
                 "attached to any app."
             ),
+        )
+        recalculate_refundable_for_checkout(
+            transaction_data.transaction, transaction_data.event
         )
         return None
     webhook = get_webhooks_for_event(
@@ -798,18 +795,29 @@ def trigger_transaction_request(
             transaction_data.event,
             cause="Cannot find a webhook that can process the action.",
         )
+        recalculate_refundable_for_checkout(
+            transaction_data.transaction, transaction_data.event
+        )
         return None
 
     if webhook.subscription_query:
-        delivery = create_delivery_for_subscription_sync_event(
-            event_type=event_type,
-            subscribable_object=transaction_data,
-            webhook=webhook,
-        )
+        delivery = None
+        try:
+            delivery = create_delivery_for_subscription_sync_event(
+                event_type=event_type,
+                subscribable_object=transaction_data,
+                webhook=webhook,
+            )
+        except PaymentError as e:
+            logger.warning("Failed to create delivery for subscription webhook: %s", e)
+
         if not delivery:
             create_failed_transaction_event(
                 transaction_data.event,
                 cause="Cannot generate a payload for the action.",
+            )
+            recalculate_refundable_for_checkout(
+                transaction_data.transaction, transaction_data.event
             )
             return None
     else:
@@ -838,17 +846,19 @@ def trigger_transaction_request(
     retry_kwargs={"max_retries": 5},
 )
 def handle_transaction_request_task(self, delivery_id, request_event_id):
-    delivery = get_delivery_for_webhook(delivery_id)
-    if not delivery:
-        logger.error(
-            f"Cannot find the delivery with id: {delivery_id} "
-            f"for transaction-request webhook."
-        )
-        return None
     request_event = TransactionEvent.objects.filter(id=request_event_id).first()
     if not request_event:
         logger.error(
             f"Cannot find the request event with id: {request_event_id} "
+            f"for transaction-request webhook."
+        )
+        return None
+
+    delivery = get_delivery_for_webhook(delivery_id)
+    if not delivery:
+        recalculate_refundable_for_checkout(request_event.transaction, request_event)
+        logger.error(
+            f"Cannot find the delivery with id: {delivery_id} "
             f"for transaction-request webhook."
         )
         return None

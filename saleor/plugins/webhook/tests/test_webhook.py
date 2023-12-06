@@ -1936,6 +1936,114 @@ def test_transaction_refund_requested(
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_transaction_request")
+def test_transaction_refund_requested_missing_app_owner_updated_refundable_for_checkout(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    checkout,
+    channel_USD,
+    app,
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save()
+    any_webhook.app = app
+    any_webhook.save()
+
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        name="Credit card",
+        psp_reference="PSP ref",
+        available_actions=[
+            "refund",
+        ],
+        currency="USD",
+        checkout_id=checkout.pk,
+        authorized_value=Decimal("10"),
+        app_identifier=app.identifier,
+        app=app,
+    )
+    event = transaction.events.create(type=TransactionEventType.REFUND_REQUEST)
+    action_value = Decimal("5.00")
+    transaction_action_data = TransactionActionData(
+        transaction=transaction,
+        action_type=TransactionAction.REFUND,
+        action_value=action_value,
+        event=event,
+        transaction_app_owner=None,
+    )
+
+    # when
+    manager.transaction_refund_requested(
+        transaction_action_data, channel_slug=channel_USD.slug
+    )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.automatically_refundable is False
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_transaction_request")
+def test_transaction_cancel_requested_missing_app_owner_updated_refundable_for_checkout(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    checkout,
+    channel_USD,
+    app,
+):
+    # given
+    checkout.automatically_refundable = True
+    checkout.save()
+    any_webhook.app = app
+    any_webhook.save()
+
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        name="Credit card",
+        psp_reference="PSP ref",
+        available_actions=[
+            "refund",
+        ],
+        currency="USD",
+        checkout_id=checkout.pk,
+        authorized_value=Decimal("10"),
+        app_identifier=app.identifier,
+        app=app,
+    )
+    event = transaction.events.create(type=TransactionEventType.CANCEL_REQUEST)
+    action_value = Decimal("5.00")
+    transaction_action_data = TransactionActionData(
+        transaction=transaction,
+        action_type=TransactionAction.CANCEL,
+        action_value=action_value,
+        event=event,
+        transaction_app_owner=None,
+    )
+
+    # when
+    manager.transaction_refund_requested(
+        transaction_action_data, channel_slug=channel_USD.slug
+    )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.automatically_refundable is False
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_transaction_request")
 def test_transaction_cancelation_requested(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,

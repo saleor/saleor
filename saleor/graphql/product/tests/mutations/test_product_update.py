@@ -565,7 +565,9 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
     attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
     product_type.product_attributes.add(file_attribute)
     existing_value = file_attribute.values.first()
-    associate_attribute_values_to_instance(product, file_attribute, existing_value)
+    associate_attribute_values_to_instance(
+        product, {file_attribute.pk: [existing_value]}
+    )
 
     values_count = file_attribute.values.count()
     domain = site_settings.site.domain
@@ -690,7 +692,7 @@ def test_update_product_with_numeric_attribute_value_new_value_is_not_created(
     value = AttributeValue.objects.create(
         attribute=numeric_attribute, slug=slug_value, name="20.0"
     )
-    associate_attribute_values_to_instance(product, numeric_attribute, value)
+    associate_attribute_values_to_instance(product, {numeric_attribute.pk: [value]})
 
     value_count = AttributeValue.objects.count()
 
@@ -795,7 +797,7 @@ def test_update_product_clean_boolean_attribute_value(
 
     product_type.product_attributes.add(boolean_attribute)
     associate_attribute_values_to_instance(
-        product, boolean_attribute, boolean_attribute.values.first()
+        product, {boolean_attribute.pk: [boolean_attribute.values.first()]}
     )
 
     product_attr = product.attributes.get(assignment__attribute_id=boolean_attribute.id)
@@ -841,7 +843,7 @@ def test_update_product_clean_file_attribute_value(
 
     product_type.product_attributes.add(file_attribute)
     associate_attribute_values_to_instance(
-        product, file_attribute, file_attribute.values.first()
+        product, {file_attribute.pk: [file_attribute.values.first()]}
     )
 
     product_attr = product.attributes.get(assignment__attribute_id=file_attribute.id)
@@ -1282,7 +1284,7 @@ def test_update_product_with_page_reference_attribute_existing_value(
         reference_page=page,
     )
     associate_attribute_values_to_instance(
-        product, product_type_page_reference_attribute, attr_value
+        product, {product_type_page_reference_attribute.pk: [attr_value]}
     )
 
     values_count = product_type_page_reference_attribute.values.count()
@@ -1569,7 +1571,7 @@ def test_update_product_with_product_reference_attribute_existing_value(
         reference_product=product_ref,
     )
     associate_attribute_values_to_instance(
-        product, product_type_product_reference_attribute, attr_value
+        product, {product_type_product_reference_attribute.pk: [attr_value]}
     )
 
     values_count = product_type_product_reference_attribute.values.count()
@@ -1698,7 +1700,8 @@ def test_update_product_change_values_ordering(
     )
 
     associate_attribute_values_to_instance(
-        product, product_type_page_reference_attribute, attr_value_2, attr_value_1
+        product,
+        {product_type_page_reference_attribute.pk: [attr_value_2, attr_value_1]},
     )
 
     assert list(
@@ -2200,7 +2203,7 @@ def test_update_product_with_numeric_attribute_by_numeric_field_null_value(
     value = AttributeValue.objects.create(
         attribute=numeric_attribute, slug=slug_value, name="20.0"
     )
-    associate_attribute_values_to_instance(product, numeric_attribute, value)
+    associate_attribute_values_to_instance(product, {numeric_attribute.pk: [value]})
 
     variables = {
         "productId": product_id,
@@ -2237,7 +2240,7 @@ def test_update_product_with_numeric_attribute_by_numeric_field_new_value_not_cr
     value = AttributeValue.objects.create(
         attribute=numeric_attribute, slug=slug_value, name="20.0"
     )
-    associate_attribute_values_to_instance(product, numeric_attribute, value)
+    associate_attribute_values_to_instance(product, {numeric_attribute.pk: [value]})
 
     value_count = AttributeValue.objects.count()
 
@@ -2553,7 +2556,7 @@ def test_update_product_with_multiselect_attribute_existing_values(
     attr_value_id_2 = graphene.Node.to_global_id("AttributeValue", attr_value_2.pk)
     attr_value_name_2 = product.attributes.first().values.all()[1].name
 
-    associate_attribute_values_to_instance(product, attribute, attr_value_1)
+    associate_attribute_values_to_instance(product, {attribute.pk: [attr_value_1]})
     assert len(product.attributes.first().values.all()) == 1
 
     variables = {
