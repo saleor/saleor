@@ -71,17 +71,17 @@ def _associate_attribute_to_instance(
         instance_field_name,
     ) = variables
 
-    attribute_filter = {
-        "attribute_id__in": attr_val_map.keys(),
+    attribute_filter: dict[str, Union[int, list[int]]] = {
+        "attribute_id__in": list(attr_val_map.keys()),
     }
 
     if isinstance(instance, Page):
-        attribute_filter["page_type_id"] = instance.page_type_id  # type: ignore
+        attribute_filter["page_type_id"] = instance.page_type_id
     elif isinstance(instance, ProductVariant):
         prod_type_id = instance.product.product_type_id
-        attribute_filter["product_type_id"] = prod_type_id  # type: ignore
+        attribute_filter["product_type_id"] = prod_type_id
     else:
-        attribute_filter["product_type_id"] = instance.product_type_id  # type: ignore
+        attribute_filter["product_type_id"] = instance.product_type_id
 
     instance_attrs_ids = instance_attribute_model.objects.filter(
         **attribute_filter
@@ -91,7 +91,7 @@ def _associate_attribute_to_instance(
         instance, instance_attrs_ids, assignment_model, instance_field_name
     )
 
-    values_order_map = _assign_values(
+    values_order_map = _overwrite_values(
         instance,
         assignments,
         attr_val_map,
@@ -104,11 +104,11 @@ def _associate_attribute_to_instance(
 
 
 def _get_or_create_assignments(
-    instance, instance_attrs_ids, assigment_model, instance_field_name
+    instance, instance_attrs_ids, assignment_model, instance_field_name
 ):
     instance_field_kwarg = {instance_field_name: instance}
     assignments = list(
-        assigment_model.objects.filter(
+        assignment_model.objects.filter(
             assignment_id__in=instance_attrs_ids, **instance_field_kwarg
         )
     )
@@ -120,9 +120,11 @@ def _get_or_create_assignments(
 
     if assignments_to_create:
         assignments += list(
-            assigment_model.objects.bulk_create(
+            assignment_model.objects.bulk_create(
                 [
-                    assigment_model(assignment_id=assignment_id, **instance_field_kwarg)
+                    assignment_model(
+                        assignment_id=assignment_id, **instance_field_kwarg
+                    )
                     for assignment_id in assignments_to_create
                 ]
             )
@@ -130,16 +132,16 @@ def _get_or_create_assignments(
     return assignments
 
 
-def _assign_values(
-    instance, assignments, attr_val_map, assigment_model, instance_field_name
+def _overwrite_values(
+    instance, assignments, attr_val_map, assignment_model, instance_field_name
 ) -> dict[int, list]:
     instance_field_kwarg = (
         {instance_field_name: instance} if instance_field_name else {}
     )
 
-    assigment_attr_map = {a.assignment.attribute_id: a for a in assignments}
+    assignment_attr_map = {a.assignment.attribute_id: a for a in assignments}
 
-    assigment_model.objects.filter(
+    assignment_model.objects.filter(
         assignment_id__in=[a.pk for a in assignments],
     ).exclude(
         value_id__in=[v.pk for values in attr_val_map.values() for v in values]
@@ -148,17 +150,17 @@ def _assign_values(
     values_order_map = defaultdict(list)
     assigned_attr_values_instances = []
     for attr_id, values in attr_val_map.items():
-        assignment = assigment_attr_map[attr_id]
+        assignment = assignment_attr_map[attr_id]
 
         for value in values:
             assigned_attr_values_instances.append(
-                assigment_model(
+                assignment_model(
                     value=value, assignment_id=assignment.id, **instance_field_kwarg
                 )
             )
             values_order_map[assignment.id].append(value.id)
 
-    assigment_model.objects.bulk_create(
+    assignment_model.objects.bulk_create(
         assigned_attr_values_instances, ignore_conflicts=True
     )
     return values_order_map
