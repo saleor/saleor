@@ -91,7 +91,7 @@ def test_attributes_of_products_are_sorted_on_variant(
 
     # Assign attributes to the product
     associate_attribute_values_to_instance(
-        variant, color_attribute, color_attribute.values.first()
+        variant, {color_attribute.id: [color_attribute.values.first()]}
     )
 
     # Sort the database attributes by their sort order and ID (when None)
@@ -151,7 +151,7 @@ def test_attributes_of_products_are_sorted_on_product(
     # Assign attributes to the product
     AssignedProductAttributeValue.objects.filter(product_id=product.pk).delete()
     associate_attribute_values_to_instance(
-        product, color_attribute, color_attribute.values.first()
+        product, {color_attribute.id: [color_attribute.values.first()]}
     )
 
     # Sort the database attributes by their sort order and ID (when None)

@@ -69,8 +69,13 @@ def test_generate_and_set_variant_name_different_attributes(
     size = size_attribute.values.get(slug="big")
 
     # Associate the colors and size to variant attributes
-    associate_attribute_values_to_instance(variant, color_attribute, *tuple(colors))
-    associate_attribute_values_to_instance(variant, size_attribute, size)
+    associate_attribute_values_to_instance(
+        variant,
+        {
+            color_attribute.id: colors,
+            size_attribute.id: [size],
+        },
+    )
 
     # Generate the variant name from the attributes
     generate_and_set_variant_name(variant, variant.sku)
@@ -112,8 +117,13 @@ def test_generate_and_set_variant_name_only_variant_selection_attributes(
     size.save(update_fields=["sort_order"])
 
     # Associate the colors and size to variant attributes
-    associate_attribute_values_to_instance(variant, color_attribute, *tuple(colors))
-    associate_attribute_values_to_instance(variant, size_attribute, size)
+    associate_attribute_values_to_instance(
+        variant,
+        {
+            color_attribute.id: colors,
+            size_attribute.id: [size],
+        },
+    )
 
     # Generate the variant name from the attributes
     generate_and_set_variant_name(variant, variant.sku)
@@ -154,8 +164,13 @@ def test_generate_and_set_variant_name_only_not_variant_selection_attributes(
     )
 
     # Associate the colors and size to variant attributes
-    associate_attribute_values_to_instance(variant, color_attribute, *values[:2])
-    associate_attribute_values_to_instance(variant, file_attribute, values[-1])
+    associate_attribute_values_to_instance(
+        variant,
+        {
+            color_attribute.id: values[:2],
+            file_attribute.id: [values[-1]],
+        },
+    )
 
     # Generate the variant name from the attributes
     generate_and_set_variant_name(variant, variant.sku)
