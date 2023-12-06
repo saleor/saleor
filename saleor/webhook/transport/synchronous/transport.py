@@ -20,7 +20,10 @@ from ....graphql.webhook.subscription_payload import (
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 from ....payment import PaymentError
 from ....payment.models import TransactionEvent
-from ....payment.utils import create_transaction_event_from_request_and_webhook_response
+from ....payment.utils import (
+    create_transaction_event_from_request_and_webhook_response,
+    recalculate_refundable_for_checkout,
+)
 from ... import observability
 from ...const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ...event_types import WebhookEventSyncType
@@ -55,17 +58,18 @@ task_logger = get_task_logger(__name__)
     retry_kwargs={"max_retries": 5},
 )
 def handle_transaction_request_task(self, delivery_id, request_event_id):
-    delivery = get_delivery_for_webhook(delivery_id)
-    if not delivery:
-        logger.error(
-            f"Cannot find the delivery with id: {delivery_id} "
-            f"for transaction-request webhook."
-        )
-        return None
     request_event = TransactionEvent.objects.filter(id=request_event_id).first()
     if not request_event:
         logger.error(
             f"Cannot find the request event with id: {request_event_id} "
+            f"for transaction-request webhook."
+        )
+        return None
+    delivery = get_delivery_for_webhook(delivery_id)
+    if not delivery:
+        recalculate_refundable_for_checkout(request_event.transaction, request_event)
+        logger.error(
+            f"Cannot find the delivery with id: {delivery_id} "
             f"for transaction-request webhook."
         )
         return None
