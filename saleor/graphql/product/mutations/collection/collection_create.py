@@ -8,6 +8,7 @@ from .....core.utils.date_time import convert_to_utc_date_time
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import CollectionErrorCode
+from .....product.tasks import collection_run_product_updated_task
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
@@ -116,9 +117,8 @@ class CollectionCreate(ModelMutation):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.collection_created, instance)
 
-        products = instance.products.prefetched_for_webhook(single_object=False)
-        for product in products:
-            cls.call_event(manager.product_updated, product)
+        product_ids = list(instance.products.values_list("id", flat=True))
+        collection_run_product_updated_task.delay(product_ids)
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **kwargs):

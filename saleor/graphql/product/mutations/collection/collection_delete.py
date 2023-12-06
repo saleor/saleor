@@ -2,7 +2,10 @@ import graphene
 
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from .....product.tasks import (
+    collection_run_product_updated_task,
+    update_products_discounted_prices_for_promotion_task,
+)
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.mutations import ModelDeleteMutation
@@ -28,21 +31,14 @@ class CollectionDelete(ModelDeleteMutation):
         cls, _root, info: ResolveInfo, /, *, id: str
     ):
         instance = cls.get_node_or_error(info, id, only_type=Collection)
-        products = list(
-            instance.products.prefetched_for_webhook(  # type: ignore[attr-defined]
-                single_object=False
-            )
-        )
+        product_ids = list(instance.products.values_list("id", flat=True))
 
         result = super().perform_mutation(_root, info, id=id)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.collection_deleted, instance)
-        for product in products:
-            cls.call_event(manager.product_updated, product)
 
-        update_products_discounted_prices_for_promotion_task.delay(
-            [product.id for product in products]
-        )
+        collection_run_product_updated_task.delay(product_ids)
+        update_products_discounted_prices_for_promotion_task.delay(product_ids)
 
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)
