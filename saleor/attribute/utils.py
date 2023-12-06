@@ -10,7 +10,10 @@ from .models import (
     AssignedProductAttributeValue,
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
+    AttributePage,
+    AttributeProduct,
     AttributeValue,
+    AttributeVariant,
 )
 
 AttributeAssignmentType = Union[
@@ -19,9 +22,32 @@ AttributeAssignmentType = Union[
 T_INSTANCE = Union[Product, ProductVariant, Page]
 
 
+instance_to_function_variables_mapping = {
+    "Product": (
+        AttributeProduct,
+        AssignedProductAttribute,
+        AssignedProductAttributeValue,
+        "product",
+    ),
+    "ProductVariant": (
+        AttributeVariant,
+        AssignedVariantAttribute,
+        AssignedVariantAttributeValue,
+        "variant",
+    ),
+    "Page": (AttributePage, AssignedPageAttribute, AssignedPageAttributeValue, "page"),
+}
+
+
 def associate_attribute_values_to_instance(
     instance: T_INSTANCE, attr_val_map: dict[int, list]
 ):
+    """Assign given attribute values to a product, variant or page.
+
+    Note: be aware any values already assigned or concurrently
+    assigned will be overridden by this call.
+    """
+
     # Ensure the values are actually form the given attribute
     validate_attribute_owns_values(attr_val_map)
 
@@ -32,57 +58,49 @@ def associate_attribute_values_to_instance(
 def _associate_attribute_to_instance(
     instance: T_INSTANCE, attr_val_map: dict[int, list]
 ):
-    if isinstance(instance, Product):
-        instance_attrs_ids = instance.product_type.attributeproduct.filter(
-            attribute_id__in=attr_val_map.keys()
-        ).values_list("pk", flat=True)
+    instance_type = instance.__class__.__name__
+    variables = instance_to_function_variables_mapping.get(instance_type)
 
-        assignments = _get_or_create_assignments(
-            instance, instance_attrs_ids, AssignedProductAttribute, "product"
-        )
+    if not variables:
+        raise AssertionError(f"{instance_type} is unsupported")
 
-        values_order_map = _assign_values(
-            instance,
-            assignments,
-            attr_val_map,
-            AssignedProductAttributeValue,
-            "product",
-        )
-        _order_assigned_attr_values(
-            values_order_map, assignments, attr_val_map, AssignedProductAttributeValue
-        )
+    (
+        instance_attribute_model,
+        assignment_model,
+        value_model,
+        instance_field_name,
+    ) = variables
+
+    attribute_filter = {
+        "attribute_id__in": attr_val_map.keys(),
+    }
+
+    if isinstance(instance, Page):
+        attribute_filter["page_type_id"] = instance.page_type_id  # type: ignore
     elif isinstance(instance, ProductVariant):
-        instance_attrs_ids = instance.product.product_type.attributevariant.filter(
-            attribute_id__in=attr_val_map.keys()
-        ).values_list(
-            "pk", flat=True
-        )  # type: ignore
-
-        assignments = _get_or_create_assignments(
-            instance, instance_attrs_ids, AssignedVariantAttribute, "variant"
-        )
-        values_order_map = _assign_values(
-            instance, assignments, attr_val_map, AssignedVariantAttributeValue, None
-        )
-        _order_assigned_attr_values(
-            values_order_map, assignments, attr_val_map, AssignedVariantAttributeValue
-        )
-    elif isinstance(instance, Page):
-        instance_attrs_ids = instance.page_type.attributepage.filter(  # type: ignore
-            attribute_id__in=attr_val_map.keys()
-        ).values_list("pk", flat=True)
-
-        assignments = _get_or_create_assignments(
-            instance, instance_attrs_ids, AssignedPageAttribute, "page"
-        )
-        values_order_map = _assign_values(
-            instance, assignments, attr_val_map, AssignedPageAttributeValue, "page"
-        )
-        _order_assigned_attr_values(
-            values_order_map, assignments, attr_val_map, AssignedPageAttributeValue
-        )
+        prod_type_id = instance.product.product_type_id
+        attribute_filter["product_type_id"] = prod_type_id  # type: ignore
     else:
-        raise AssertionError(f"{instance.__class__.__name__} is unsupported")
+        attribute_filter["product_type_id"] = instance.product_type_id  # type: ignore
+
+    instance_attrs_ids = instance_attribute_model.objects.filter(
+        **attribute_filter
+    ).values_list("pk", flat=True)
+
+    assignments = _get_or_create_assignments(
+        instance, instance_attrs_ids, assignment_model, instance_field_name
+    )
+
+    values_order_map = _assign_values(
+        instance,
+        assignments,
+        attr_val_map,
+        value_model,
+        None if instance_field_name == "variant" else instance_field_name,
+    )
+    _order_assigned_attr_values(
+        values_order_map, assignments, attr_val_map, value_model
+    )
 
 
 def _get_or_create_assignments(
