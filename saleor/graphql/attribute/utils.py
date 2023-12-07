@@ -396,6 +396,7 @@ class AttributeAssignmentMixin:
         pre_save_bulk = defaultdict(
             lambda: defaultdict(list)  # type: ignore[var-annotated]
         )
+        attr_val_map = defaultdict(list)
 
         for attribute, attr_values in cleaned_input:
             is_handled_by_values_field = (
@@ -423,11 +424,14 @@ class AttributeAssignmentMixin:
                     pre_save_bulk[key][attribute].append(value)
 
         attribute_and_values = cls._bulk_create_pre_save_values(pre_save_bulk)
-        for attribute, values in attribute_and_values.items():
-            associate_attribute_values_to_instance(instance, attribute, *values)
 
+        for attribute, values in attribute_and_values.items():
             if not values:
                 clean_assignment.append(attribute.pk)
+            else:
+                attr_val_map[attribute.pk].extend(values)
+
+        associate_attribute_values_to_instance(instance, attr_val_map)
 
         # drop attribute assignment model when values are unassigned from instance
         if clean_assignment:

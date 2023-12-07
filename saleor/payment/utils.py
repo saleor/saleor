@@ -20,6 +20,7 @@ from ..channel import TransactionFlowStrategy
 from ..checkout.actions import transaction_amounts_for_checkout_updated
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
+from ..checkout.payment_utils import update_refundable_for_checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..graphql.core.utils import str_to_enum
@@ -61,6 +62,68 @@ logger = logging.getLogger(__name__)
 
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
+
+
+def _recalculate_last_refund_success_for_transaction(
+    transaction_item: TransactionItem,
+    request_event: TransactionEvent,
+    response_event: Optional[TransactionEvent] = None,
+) -> bool:
+    """Recalculate last_refund_success for transaction.
+
+    Based on the request and response events, we can determine if the last refund was
+    successful or not.
+    If response event is none, the request event can store the details updated based
+    on the response from the gateway (in case of async flow).
+    If the request event doesn't have these details, we can assume that the last
+    refund failed.
+    As a response we return the boolean flag which determines if the transaction's last
+    refund success was changed.
+    """
+    last_refund_success_changed = False
+    last_refund_success = transaction_item.last_refund_success
+    if response_event:
+        if response_event.type in [
+            TransactionEventType.REFUND_SUCCESS,
+            TransactionEventType.CANCEL_SUCCESS,
+        ]:
+            last_refund_success_changed = last_refund_success is not True
+            transaction_item.last_refund_success = True
+
+        if response_event.type in [
+            TransactionEventType.REFUND_FAILURE,
+            TransactionEventType.CANCEL_FAILURE,
+        ]:
+            last_refund_success_changed = last_refund_success is not False
+            transaction_item.last_refund_success = False
+    elif request_event.type in [
+        TransactionEventType.REFUND_REQUEST,
+        TransactionEventType.CANCEL_REQUEST,
+    ]:
+        if request_event.include_in_calculations:
+            last_refund_success_changed = last_refund_success is not True
+            transaction_item.last_refund_success = True
+        else:
+            last_refund_success_changed = last_refund_success is not False
+            transaction_item.last_refund_success = False
+    return last_refund_success_changed
+
+
+def recalculate_refundable_for_checkout(
+    transaction_item: TransactionItem,
+    request_event: TransactionEvent,
+    response_event: Optional[TransactionEvent] = None,
+):
+    last_refund_success_changed = _recalculate_last_refund_success_for_transaction(
+        transaction_item,
+        request_event,
+        response_event,
+    )
+    if last_refund_success_changed:
+        transaction_item.save(update_fields=["last_refund_success"])
+
+    if transaction_item.checkout_id:
+        update_refundable_for_checkout(transaction_item.checkout_id)
 
 
 def create_payment_lines_information(
@@ -1200,6 +1263,7 @@ def create_transaction_event_for_transaction_session(
                 "cancel_pending_value",
                 "psp_reference",
                 "available_actions",
+                "modified_at",
             ]
         )
         if transaction_item.order_id:
@@ -1233,7 +1297,9 @@ def create_transaction_event_from_request_and_webhook_response(
         transaction_webhook_response=transaction_webhook_response,
         event_type=request_event.type,
     )
+    transaction_item = request_event.transaction
     if not transaction_request_response:
+        recalculate_refundable_for_checkout(transaction_item, request_event)
         return create_failed_transaction_event(request_event, cause=error_msg or "")
 
     psp_reference = transaction_request_response.psp_reference
@@ -1249,6 +1315,7 @@ def create_transaction_event_from_request_and_webhook_response(
             currency=request_event.currency,
         )
         if error_msg:
+            recalculate_refundable_for_checkout(transaction_item, request_event)
             return create_failed_transaction_event(request_event, cause=error_msg)
 
     transaction_item = request_event.transaction
@@ -1271,6 +1338,7 @@ def create_transaction_event_from_request_and_webhook_response(
             "charge_pending_value",
             "refund_pending_value",
             "cancel_pending_value",
+            "modified_at",
         ]
     )
 
@@ -1294,6 +1362,7 @@ def create_transaction_event_from_request_and_webhook_response(
         )
     elif transaction_item.checkout_id:
         manager = get_plugins_manager()
+        recalculate_refundable_for_checkout(transaction_item, request_event, event)
         transaction_amounts_for_checkout_updated(transaction_item, manager)
     return event
 

@@ -1,8 +1,11 @@
+import datetime
 from decimal import Decimal
 
 import graphene
 import mock
 import pytest
+import pytz
+from freezegun import freeze_time
 
 from .....channel import TransactionFlowStrategy
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
@@ -972,3 +975,77 @@ def test_transaction_process_for_removed_app(
         == TransactionProcessErrorCode.MISSING_PAYMENT_APP.name
     )
     assert data["errors"][0]["field"] == "id"
+
+
+@freeze_time("2023-03-18 12:00:00")
+@pytest.mark.parametrize(
+    "previous_last_transaction_modified_at",
+    [None, datetime.datetime(2020, 1, 1, tzinfo=pytz.UTC)],
+)
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
+def test_updates_checkout_last_transaction_modified_at(
+    mocked_process,
+    mocked_fully_paid,
+    previous_last_transaction_modified_at,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    plugins_manager,
+    transaction_item_generator,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout.last_transaction_modified_at = previous_last_transaction_modified_at
+    checkout.save()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info,
+        plugins_manager,
+        lines,
+    )
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk,
+        app=webhook_app,
+    )
+    TransactionEvent.objects.create(
+        include_in_calculations=False,
+        transaction=transaction_item,
+        amount_value=checkout_info.checkout.total_gross_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_process.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionProcess"]["errors"]
+
+    checkout.refresh_from_db()
+    transaction = checkout.payment_transactions.first()
+    assert checkout.last_transaction_modified_at == transaction.modified_at
+    assert (
+        checkout.last_transaction_modified_at != previous_last_transaction_modified_at
+    )

@@ -29,6 +29,7 @@ from .utils import (
     create_transaction,
     gateway_postprocess,
     get_already_processed_transaction_or_create_new_transaction,
+    recalculate_refundable_for_checkout,
     update_payment,
     validate_gateway_response,
 )
@@ -238,6 +239,9 @@ def _request_payment_action(
         and not transaction_request_event_active
         and not webhooks
     ):
+        recalculate_refundable_for_checkout(
+            transaction_action_data.transaction, transaction_action_data.event
+        )
         create_failed_transaction_event(
             transaction_action_data.event,
             cause="No app or plugin is configured to handle payment action requests.",

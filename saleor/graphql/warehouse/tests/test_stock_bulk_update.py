@@ -8,6 +8,10 @@ from ...tests.utils import get_graphql_content
 STOCKS_BULK_UPDATE_MUTATION = """
     mutation StockBulkUpdate($stocks: [StockBulkUpdateInput!]!){
         stockBulkUpdate(stocks: $stocks){
+            errors{
+                message
+                code
+            }
             results{
                 errors {
                     field
@@ -275,6 +279,47 @@ def test_stocks_bulk_update_using_variant_external_ref_and_warehouse_id(
     assert data["count"] == 2
     assert stock_1.quantity == new_quantity_1
     assert stock_2.quantity == new_quantity_2
+
+
+def test_stocks_bulk_update_return_error_when_inputs_have_different_selectors(
+    staff_api_client,
+    variant_with_many_stocks,
+    permission_manage_products,
+):
+    # given
+    variant = variant_with_many_stocks
+    variant_external_reference = variant.external_reference
+
+    stocks = variant.stocks.all()
+    stock_1 = stocks[0]
+    stock_2 = stocks[1]
+
+    warehouse_1_id = graphene.Node.to_global_id("Warehouse", stock_1.warehouse_id)
+
+    stocks_input = [
+        {
+            "variantExternalReference": variant_external_reference,
+            "warehouseId": warehouse_1_id,
+            "quantity": 123,
+        },
+        {
+            "variantExternalReference": variant_external_reference,
+            "warehouseExternalReference": stock_2.warehouse.external_reference,
+            "quantity": 123,
+        },
+    ]
+
+    variables = {"stocks": stocks_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["stockBulkUpdate"]
+
+    # then
+    assert data["errors"][0]["code"] == StockBulkUpdateErrorCode.GRAPHQL_ERROR.name
+    assert data["count"] == 0
 
 
 def test_stocks_bulk_update_when_no_variant_args_provided(

@@ -38,6 +38,10 @@ from ...payment.interface import (
     TransactionSessionData,
 )
 from ...payment.models import Payment, TransactionItem
+from ...payment.utils import (
+    create_failed_transaction_event,
+    recalculate_refundable_for_checkout,
+)
 from ...thumbnail.models import Thumbnail
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
@@ -1874,6 +1878,13 @@ class WebhookPlugin(BasePlugin):
             return previous_value
 
         if not transaction_data.transaction_app_owner:
+            create_failed_transaction_event(
+                transaction_data.event,
+                cause="Transaction request skipped. Missing relation to PaymentApp.",
+            )
+            recalculate_refundable_for_checkout(
+                transaction_data.transaction, transaction_data.event
+            )
             logger.warning(
                 f"Transaction request skipped for "
                 f"{transaction_data.transaction.psp_reference}. "
