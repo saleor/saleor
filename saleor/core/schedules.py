@@ -4,13 +4,11 @@ from datetime import datetime, timedelta
 from typing import cast
 
 import pytz
-from celery.utils.log import get_task_logger
 from celery.utils.time import maybe_timedelta, remaining
 from django.db.models import F, Q
 
 from ..schedulers.customschedule import CustomSchedule
 
-task_logger = get_task_logger(__name__)
 schedstate = namedtuple("schedstate", ("is_due", "next"))
 
 

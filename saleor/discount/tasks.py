@@ -9,7 +9,6 @@ from celery.utils.log import get_task_logger
 from django.db.models import Exists, F, OuterRef, Q, QuerySet
 
 from ..celeryconf import app
-from ..core.utils import queryset_in_batches
 from ..graphql.discount.utils import get_variants_for_predicate
 from ..order import OrderStatus
 from ..order.models import Order, OrderLine
@@ -167,19 +166,10 @@ def fetch_promotion_variants_and_product_ids(promotions: "QuerySet[Promotion]"):
         rule_variants = get_variants_for_predicate(rule.catalogue_predicate)
         variants |= rule_variants
         promotion_id_to_variants[rule.promotion_id] |= rule_variants
-
-    product_ids: set[int] = set()
-    # Batch size of 10000 doesn't change execution time of query significantly comparing
-    # to single select call, but prevent breaking the query
-    for variant_ids in queryset_in_batches(variants, 10000):
-        variants_batch = ProductVariant.objects.filter(id__in=variant_ids).all()
-        product_ids.update(
-            Product.objects.filter(
-                Exists(variants_batch.filter(product_id=OuterRef("id")))
-            ).values_list("id", flat=True)
-        )
-
-    return promotion_id_to_variants, list(product_ids)
+    products = Product.objects.filter(
+        Exists(variants.filter(product_id=OuterRef("id")))
+    )
+    return promotion_id_to_variants, list(products.values_list("id", flat=True))
 
 
 def decrease_voucher_code_usage_of_draft_orders(channel_id: int):

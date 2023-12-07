@@ -153,19 +153,3 @@ def prepare_unique_attribute_value_slug(attribute: "Attribute", slug: str):
         "slug", flat=True
     )
     return prepare_unique_slug(slug, value_slugs)
-
-
-def queryset_in_batches(queryset, batch_size):
-    """Slice a queryset into batches."""
-    if batch_size <= 0:
-        return []
-
-    queryset = queryset.order_by("pk")
-    start_pk = 0
-    while True:
-        qs = queryset.filter(pk__gt=start_pk)[:batch_size]
-        pks = list(qs.values_list("pk", flat=True))
-        if not pks:
-            break
-        yield pks
-        start_pk = pks[-1]
