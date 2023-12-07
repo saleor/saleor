@@ -920,8 +920,11 @@ def test_get_excluded_shipping_methods_or_fetch_invalid_response_type(
 
 
 def test_parse_list_shipping_methods_response_response_incorrect_format(app):
+    # given
     response_data_with_incorrect_format = [[1], 2, "3"]
+    # when
     result = parse_list_shipping_methods_response(
         response_data_with_incorrect_format, app
     )
+    # then
     assert result == []

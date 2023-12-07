@@ -16,9 +16,11 @@ def test_get_shipping_methods_for_checkout_webhook_response_none(
     checkout_ready_to_complete,
     shipping_app,
 ):
+    # given
     checkout = checkout_ready_to_complete
     plugin = webhook_plugin()
     mocked_webhook.return_value = None
+
     # when
     response = plugin.get_shipping_methods_for_checkout(checkout, None)
 
