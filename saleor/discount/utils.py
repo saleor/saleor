@@ -17,6 +17,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
+from ..checkout.models import Checkout
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
 from ..discount.models import VoucherCustomer
@@ -553,6 +554,41 @@ def get_variants_to_promotions_map(
         )
 
     return rules_info_per_variant_and_promotion_id
+
+
+def fetch_promotion_rules_for_checkout(
+    checkout: Checkout,
+):
+    from ..graphql.discount.utils import PredicateType, filter_qs_by_predicate
+
+    rules_per_promotion_id = defaultdict(list)
+    promotions = Promotion.objects.active()
+    rules = (
+        PromotionRule.objects.filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id")))
+        )
+        .exclude(checkout_and_order_predicate={})
+        .prefetch_related("channels")
+    )
+    rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
+
+    checkout_channel_id = checkout.channel_id
+    currency = checkout.channel.currency_code
+    checkout_qs = Checkout.objects.filter(pk=checkout.pk)
+    for rule in list(rules.iterator()):
+        rule_channel_ids = rule_to_channel_ids_map.get(rule.id, [])
+        if checkout_channel_id not in rule_channel_ids:
+            continue
+        checkouts = filter_qs_by_predicate(
+            rule.checkout_and_order_predicate,
+            checkout_qs,
+            PredicateType.CHECKOUT,
+            currency,
+        )
+        if checkouts.exists():
+            rules_per_promotion_id[rule.promotion_id].append(rule)
+
+    return rules_per_promotion_id
 
 
 def _get_rule_to_channel_ids_map(rules: QuerySet):
