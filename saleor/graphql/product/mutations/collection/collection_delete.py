@@ -26,6 +26,15 @@ class CollectionDelete(ModelDeleteMutation):
         error_type_class = CollectionError
         error_type_field = "collection_errors"
 
+    @staticmethod
+    def batch_product_ids(ids):
+        # Batch size of 25k ids, assuming their pks are at least 7 digits each
+        # after json serialization, weights 225kB of payload.
+        BATCH_SIZE = 25000
+        _length = len(ids)
+        for i in range(0, _length, BATCH_SIZE):
+            yield ids[i : min(i + BATCH_SIZE, _length)]
+
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id: str
@@ -37,7 +46,8 @@ class CollectionDelete(ModelDeleteMutation):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.collection_deleted, instance)
 
-        collection_run_product_updated_task.delay(product_ids)
+        for ids_batch in cls.batch_product_ids(product_ids):
+            collection_run_product_updated_task.delay(ids_batch)
         update_products_discounted_prices_for_promotion_task.delay(product_ids)
 
         return CollectionDelete(
