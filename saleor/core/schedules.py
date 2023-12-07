@@ -1,3 +1,4 @@
+import os
 from collections import namedtuple
 from datetime import datetime, timedelta
 from typing import cast
@@ -29,7 +30,7 @@ class promotion_webhook_schedule(CustomSchedule):
 
     """
 
-    def __init__(self, initial_timedelta=10, nowfun=None, app=None):
+    def __init__(self, initial_timedelta=60, nowfun=None, app=None):
         self.initial_timedelta: timedelta = cast(
             timedelta, maybe_timedelta(initial_timedelta)
         )
@@ -40,6 +41,8 @@ class promotion_webhook_schedule(CustomSchedule):
             app=app,
             import_path="saleor.core.schedules.promotion_webhook_schedule",
         )
+        # Seconds left to next batch processing
+        self.NEXT_BATCH_RUN_TIME = int(os.environ.get("INC_135_NEXT_RUN", 5))
 
     def remaining_estimate(self, last_run_at):
         """Estimate of next run time.
@@ -67,7 +70,6 @@ class promotion_webhook_schedule(CustomSchedule):
         )
 
         # Time in seconds, when to trigger another batch processing
-        NEXT_BATCH_RUN_TIME = 10
         now = datetime.now(pytz.UTC)
 
         # remaining time must be calculated as the next call is overridden with 0
@@ -79,13 +81,10 @@ class promotion_webhook_schedule(CustomSchedule):
         ending_promotions = get_ending_promotions()
 
         # if task needs to be handled in batches, schedule next run with const value
-        task_logger.info(
-            f"Promos number: {len(staring_promotions | ending_promotions)}"
-        )
         if len(staring_promotions | ending_promotions) > PROMOTION_TOGGLE_BATCH_SIZE:
-            self.next_run = (now + timedelta(seconds=NEXT_BATCH_RUN_TIME)) - now
+            self.next_run = (now + timedelta(seconds=self.NEXT_BATCH_RUN_TIME)) - now
             is_due = remaining == 0
-            return schedstate(is_due, NEXT_BATCH_RUN_TIME)
+            return schedstate(is_due, self.NEXT_BATCH_RUN_TIME)
 
         # is_due is True when there is at least one sale to notify about
         # and the remaining time from previous call is 0

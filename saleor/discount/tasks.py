@@ -1,3 +1,4 @@
+import os
 from collections import defaultdict
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -35,7 +36,7 @@ if TYPE_CHECKING:
 
 task_logger = get_task_logger(__name__)
 # Batch of size 100 takes ~1.3sec and consumes ~3mb at peak
-PROMOTION_TOGGLE_BATCH_SIZE = 100
+PROMOTION_TOGGLE_BATCH_SIZE = int(os.environ.get("INC_135_BATCH_SIZE", 100))
 
 
 @app.task
