@@ -15,6 +15,8 @@ from ..discount.models import Promotion
 from ..plugins.manager import get_plugins_manager
 from ..product.models import Category, CollectionProduct
 from ..warehouse.management import deactivate_preorder_for_variant
+from ..webhook.event_types import WebhookEventAsyncType
+from ..webhook.utils import get_webhooks_for_event
 from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
 from .utils.variant_prices import update_discounted_prices_for_promotion
@@ -194,5 +196,6 @@ def collection_run_product_updated_task(product_ids):
             single_object=False
         )
     )
+    webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED)
     for product in products:
-        manager.product_updated(product)
+        manager.product_updated(product, webhooks=webhooks)
