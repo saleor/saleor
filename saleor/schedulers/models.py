@@ -19,7 +19,7 @@ class CustomSchedule(models.Model):  # type: ignore[django-manager-missing] # pr
     to invoke it.
 
     Import path should be pointing to the initialized object (variable), like so:
-    >>> # ./my_pkg/scheduler.py
+    >>> # ./my_pkg/testy_patch.py
     >>> class MyScheduler(BaseSchedule):
     ...     # Do something
     ...     pass

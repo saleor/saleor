@@ -34,6 +34,9 @@ if TYPE_CHECKING:
     from uuid import UUID
 
 task_logger = get_task_logger(__name__)
+from saleor.core.schedules import pp
+
+PROMOTION_TOGGLE_BATCH_SIZE = 1
 
 
 @app.task
@@ -43,77 +46,88 @@ def handle_promotion_toggle():
     Send the notifications about starting or ending promotions and call recalculation
     of product discounted prices.
     """
-    BATCH_SIZE = 100
     manager = get_plugins_manager()
 
     ending_promotions = Promotion.objects.none()
-    staring_promotions = get_starting_promotions()[:BATCH_SIZE]
+    staring_promotions = get_starting_promotions()
     if not staring_promotions:
-        ending_promotions = get_ending_promotions()[:BATCH_SIZE]
+        ending_promotions = get_ending_promotions()
 
-    if not staring_promotions and not ending_promotions:
-        return
 
+    promotions = staring_promotions | ending_promotions
     promotion_ids = [
         promotion.id for promotion in staring_promotions | ending_promotions
-    ]
-    promotions = Promotion.objects.filter(id__in=promotion_ids)
+    ][:PROMOTION_TOGGLE_BATCH_SIZE]
+    promotions = Promotion.objects.filter(id__in=promotion_ids).all()
+
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    # staring_promotions = get_starting_promotions()
+    # ending_promotions = get_ending_promotions()
+    # if not staring_promotions and not ending_promotions:
+    #     return
+    #
     # promotions = staring_promotions | ending_promotions
+    # promotion_ids = [
+    #     promotion.id for promotion in staring_promotions | ending_promotions
+    # ]
+    # pp(f"handler", f"promotion ids to start:{promotion_ids}")
     promotion_id_to_variants, product_ids = fetch_promotion_variants_and_product_ids(
         promotions
     )
+    # promotions = Promotion.objects.all()
+    # promotions = Promotion.objects.all()
+    pp(f"handler", f"fetched products:{product_ids}")
+    # for staring_promo in staring_promotions:
+    #     manager.promotion_started(staring_promo)
+    #
+    # for ending_promo in ending_promotions:
+    #     manager.promotion_ended(ending_promo)
+    #
+    # # DEPRECATED: will be removed in Saleor 4.0.
+    # for promotion in promotions:
+    #     variants = promotion_id_to_variants.get(promotion.id)
+    #     catalogues = {
+    #         "variants": [
+    #             graphene.Node.to_global_id("ProductVariant", v.pk) for v in variants
+    #         ]
+    #         if variants
+    #         else [],
+    #         "products": [],
+    #         "categories": [],
+    #         "collections": [],
+    #     }
+    #     manager.sale_toggle(promotion, catalogues)
 
-    for staring_promo in staring_promotions:
-        manager.promotion_started(staring_promo)
+    # if product_ids:\
+    #     # Recalculate discounts of affected products
+    #     update_products_discounted_prices_for_promotion_task.delay(product_ids)
 
-    for ending_promo in ending_promotions:
-        manager.promotion_ended(ending_promo)
-
-    # DEPRECATED: will be removed in Saleor 4.0.
-    for promotion in promotions:
-        variants = promotion_id_to_variants.get(promotion.id)
-        catalogues = {
-            "variants": [
-                graphene.Node.to_global_id("ProductVariant", v.pk) for v in variants
-            ]
-            if variants
-            else [],
-            "products": [],
-            "categories": [],
-            "collections": [],
-        }
-        manager.sale_toggle(promotion, catalogues)
-
-    if product_ids:
-        # Recalculate discounts of affected products
-        update_products_discounted_prices_for_promotion_task.delay(product_ids)
-
-    starting_promotion_ids = ", ".join(
-        [str(staring_promo.id) for staring_promo in staring_promotions]
-    )
-    ending_promotions_ids = ", ".join(
-        [str(ending_promo.id) for ending_promo in ending_promotions]
-    )
-    # DEPRECATED: will be removed in Saleor 4.0.
-    promotion_ids = ", ".join([str(promo.id) for promo in promotions])
+    # starting_promotion_ids = ", ".join(
+    #     [str(staring_promo.id) for staring_promo in staring_promotions]
+    # )
+    # ending_promotions_ids = ", ".join(
+    #     [str(ending_promo.id) for ending_promo in ending_promotions]
+    # )
+    # # DEPRECATED: will be removed in Saleor 4.0.
+    # promotion_ids = ", ".join([str(promo.id) for promo in promotions])
 
     promotions.update(last_notification_scheduled_at=datetime.now(pytz.UTC))
-
-    if starting_promotion_ids:
-        task_logger.info(
-            "The promotion_started webhook sent for Promotions with ids: %s",
-            starting_promotion_ids,
-        )
-    if ending_promotions_ids:
-        task_logger.info(
-            "The promotion_ended webhook sent for Promotions with ids: %s",
-            ending_promotions_ids,
-        )
-
-    # DEPRECATED: will be removed in Saleor 4.0.
-    task_logger.info(
-        "The sale_toggle webhook sent for sales with ids: %s", promotion_ids
-    )
+    # if starting_promotion_ids:
+    #     task_logger.info(
+    #         "The promotion_started webhook sent for Promotions with ids: %s",
+    #         starting_promotion_ids,
+    #     )
+    # if ending_promotions_ids:
+    #     task_logger.info(
+    #         "The promotion_ended webhook sent for Promotions with ids: %s",
+    #         ending_promotions_ids,
+    #     )
+    #
+    # # DEPRECATED: will be removed in Saleor 4.0.
+    # task_logger.info(
+    #     "The sale_toggle webhook sent for sales with ids: %s", promotion_ids
+    # )
 
 
 def get_starting_promotions():
