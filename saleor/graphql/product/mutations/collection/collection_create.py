@@ -8,7 +8,7 @@ from .....core.utils.date_time import convert_to_utc_date_time
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import CollectionErrorCode
-from .....product.tasks import collection_run_product_updated_task
+from .....product.tasks import collection_product_updated_task
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
@@ -128,7 +128,7 @@ class CollectionCreate(ModelMutation):
 
         product_ids = list(instance.products.values_list("id", flat=True))
         for ids_batch in cls.batch_product_ids(product_ids):
-            collection_run_product_updated_task.delay(ids_batch)
+            collection_product_updated_task.delay(ids_batch)
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **kwargs):
