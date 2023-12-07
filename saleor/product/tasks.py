@@ -12,8 +12,11 @@ from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
 from ..discount.models import Promotion
+from ..plugins.manager import get_plugins_manager
 from ..product.models import Category, CollectionProduct
 from ..warehouse.management import deactivate_preorder_for_variant
+from ..webhook.event_types import WebhookEventAsyncType
+from ..webhook.utils import get_webhooks_for_event
 from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
 from .utils.variant_prices import update_discounted_prices_for_promotion
@@ -183,3 +186,16 @@ def update_products_search_vector_task():
         :PRODUCTS_BATCH_SIZE
     ]
     update_products_search_vector(products, use_batches=False)
+
+
+@app.task(queue=settings.COLLECTION_PRODUCT_UPDATED_QUEUE_NAME)
+def collection_product_updated_task(product_ids):
+    manager = get_plugins_manager()
+    products = list(
+        Product.objects.filter(id__in=product_ids).prefetched_for_webhook(
+            single_object=False
+        )
+    )
+    webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED)
+    for product in products:
+        manager.product_updated(product, webhooks=webhooks)
