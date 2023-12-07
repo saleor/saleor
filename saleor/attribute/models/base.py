@@ -1,3 +1,4 @@
+from functools import reduce
 from typing import TYPE_CHECKING, TypeVar, Union
 
 from django.contrib.postgres.indexes import GinIndex
@@ -215,6 +216,76 @@ class AttributeTranslation(Translation):
         return {"name": self.name}
 
 
+class AttributeValueManager(models.Manager):
+    def bulk_get_or_create(self, objects_data):
+        results = []
+        objects_not_in_db = []
+        query_params = []
+
+        for obj in objects_data:
+            defaults = obj.pop("defaults")
+            query_params.append(models.Q(**obj))
+            obj["defaults"] = defaults
+
+        query = self.filter(reduce(lambda x, y: x | y, query_params))
+
+        for obj in objects_data:
+            defaults = obj.pop("defaults")
+            try:
+                record = query.get(**obj)
+            except self.model.DoesNotExist:
+                obj.update(defaults)
+                record = self.model(**obj)
+                objects_not_in_db.append(record)
+
+            results.append(record)
+
+        if objects_not_in_db:
+            self.bulk_create(objects_not_in_db)
+
+        return results
+
+    def bulk_update_or_create(self, objects_data):
+        results = []
+        objects_not_in_db = []
+        objects_to_be_updated = []
+        update_fields = set()
+        query_params = []
+
+        for obj in objects_data:
+            defaults = obj.pop("defaults")
+            query_params.append(models.Q(**obj))
+            obj["defaults"] = defaults
+
+        query = self.filter(reduce(lambda x, y: x | y, query_params))
+
+        for obj in objects_data:
+            defaults = obj.pop("defaults")
+            try:
+                record = query.get(**obj)
+            except self.model.DoesNotExist:
+                obj.update(defaults)
+                record = self.model(**obj)
+                objects_not_in_db.append(record)
+            else:
+                for key, value in defaults.items():
+                    setattr(record, key, value)
+                    update_fields.add(key)
+                objects_to_be_updated.append(record)
+
+            results.append(record)
+
+        if objects_not_in_db:
+            self.bulk_create(objects_not_in_db)
+
+        if objects_to_be_updated:
+            self.bulk_update(
+                objects_to_be_updated, fields=update_fields  # type: ignore[arg-type]
+            )
+
+        return results
+
+
 class AttributeValue(ModelWithExternalReference):
     name = models.CharField(max_length=250)
     # keeps hex code color value in #RRGGBBAA format
@@ -255,6 +326,7 @@ class AttributeValue(ModelWithExternalReference):
     sort_order = models.IntegerField(editable=False, db_index=True, null=True)
 
     translated = TranslationProxy()
+    objects = AttributeValueManager()
 
     class Meta:
         ordering = ("sort_order", "pk")
