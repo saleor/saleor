@@ -50,12 +50,12 @@ class AppExtensionByAppIdLoader(DataLoader):
         return [extensions_map.get(app_id, []) for app_id in keys]
 
 
-class AppsByAppIdentifierLoader(DataLoader):
+class ActiveAppsByAppIdentifierLoader(DataLoader):
     context_key = "apps_by_app_identifier"
 
     def batch_load(self, keys):
         apps = App.objects.using(self.database_connection_name).filter(
-            identifier__in=keys
+            identifier__in=keys, is_active=True, removed_at__isnull=True
         )
         apps_map = defaultdict(list)
         for app in apps:
