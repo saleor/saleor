@@ -1,7 +1,9 @@
+from datetime import datetime
 from decimal import Decimal
 
 import graphene
 import pytest
+from freezegun import freeze_time
 
 from .....payment import TransactionEventStatus, TransactionEventType
 from .....payment.models import TransactionEvent
@@ -268,6 +270,47 @@ def test_transaction_created_by_app_query_by_staff(
         transaction_item_created_by_app,
         event,
         app,
+    )
+
+
+@freeze_time("2022-05-12 12:00:00")
+def test_transaction_created_by_app_marked_to_remove(
+    staff_api_client,
+    transaction_item_created_by_app,
+    permission_manage_payments,
+    app,
+    webhook_app,
+):
+    # given
+    app.is_active = False
+    app.removed_at = datetime.now()
+    app.save()
+
+    webhook_app.identifier = app.identifier
+    webhook_app.save()
+
+    event = transaction_item_created_by_app.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
+
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.token
+        )
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_QUERY, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    _assert_transaction_fields_created_by(
+        content,
+        transaction_item_created_by_app,
+        event,
+        webhook_app,
     )
 
 
@@ -648,3 +691,59 @@ def test_transaction_event_by_reinstalled_app(
     assert event_data["amount"]["currency"] == event.currency
     assert event_data["type"] == event.type.upper()
     assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
+
+
+@freeze_time("2022-05-12 12:00:00")
+def test_transaction_event_by_app_marked_to_remove(
+    transaction_item_created_by_app,
+    permission_manage_payments,
+    permission_manage_staff,
+    staff_api_client,
+    app,
+    webhook_app,
+):
+    # given
+    identifier = "app.identifier"
+    app.identifier = identifier
+    app.is_active = False
+    app.removed_at = datetime.now()
+    app.save()
+    webhook_app.identifier = identifier
+    webhook_app.save()
+
+    psp_reference = "psp-ref-123"
+    event = TransactionEvent.objects.create(
+        transaction=transaction_item_created_by_app,
+        status=TransactionEventStatus.SUCCESS,
+        psp_reference=psp_reference,
+        message="Sucesfull charge",
+        currency="USD",
+        type=TransactionEventType.CHARGE_SUCCESS,
+        amount_value=Decimal("10.00"),
+        external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
+        app_identifier=app.identifier,
+        app=app,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.token
+        )
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_QUERY,
+        variables,
+        permissions=[permission_manage_payments, permission_manage_staff],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    events = content["data"]["transaction"]["events"]
+    assert len(events) == 2
+    event_data = [event for event in events if event["pspReference"] == psp_reference][
+        0
+    ]
+    assert event_data["amount"]["currency"] == event.currency
+    assert event_data["createdBy"]["id"] == to_global_id_or_none(webhook_app)
