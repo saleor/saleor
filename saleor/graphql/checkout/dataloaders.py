@@ -778,7 +778,7 @@ class CheckoutProblemsByCheckoutIdDataloader(
         line_problems_dataloader = CheckoutLinesProblemsByCheckoutIdLoader(self.context)
 
         def _resolve_problems(
-            checkouts_lines_problems: list[dict[str, list[CHECKOUT_LINE_PROBLEM_TYPE]]]
+            checkouts_lines_problems: list[dict[str, list[CHECKOUT_LINE_PROBLEM_TYPE]]],
         ):
             checkout_problems = defaultdict(list)
             for checkout_pk, checkout_lines_problems in zip(

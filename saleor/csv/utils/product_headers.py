@@ -10,7 +10,7 @@ from . import ProductExportFields
 
 
 def get_product_export_fields_and_headers_info(
-    export_info: dict[str, list]
+    export_info: dict[str, list],
 ) -> tuple[list[str], list[str], list[str]]:
     """Get export fields, all headers and headers mapping.
 
@@ -31,7 +31,7 @@ def get_product_export_fields_and_headers_info(
 
 
 def get_product_export_fields_and_headers(
-    export_info: dict[str, list]
+    export_info: dict[str, list],
 ) -> tuple[list[str], list[str]]:
     """Get export fields from export info and prepare headers mapping.
 
