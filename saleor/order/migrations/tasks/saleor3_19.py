@@ -1,4 +1,4 @@
-from django.db.models import F, Func, OuterRef, Subquery
+from django.db.models import F, Func, Min, OuterRef, Subquery
 
 from ....celeryconf import app
 from ...models import Order, OrderLine
@@ -8,7 +8,12 @@ BATCH_SIZE = 1000
 
 
 @app.task
-def update_order_subtotals(batch_id=0):
+def update_order_subtotals(batch_id=None):
+    if batch_id is None:
+        # Get the minimum order number from the database
+        min_order_number = Order.objects.aggregate(Min("number"))["number__min"] or 0
+        batch_id = min_order_number // BATCH_SIZE
+
     start_order_number = batch_id * BATCH_SIZE
     end_order_number = start_order_number + BATCH_SIZE
 
