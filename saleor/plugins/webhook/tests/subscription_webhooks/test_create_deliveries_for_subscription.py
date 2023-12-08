@@ -19,6 +19,9 @@ from .....webhook.transport.asynchronous.transport import (
     create_deliveries_for_subscriptions,
     logger,
 )
+from .....webhook.transport.synchronous.transport import (
+    create_delivery_for_subscription_sync_event,
+)
 from . import subscription_queries
 from .payloads import (
     generate_account_events_payload,
@@ -2695,6 +2698,24 @@ def test_checkout_filter_shipping_methods_with_circular_call_for_available_gatew
         == "Resolving this field is not allowed in synchronous events."
     )
     assert payload["checkout"] is None
+
+
+def test_checkout_list_methods_mismatch_in_subscription_query_definition(
+    checkout_ready_to_complete,
+    subscription_checkout_shipping_filter_and_list_missing_one_in_definition,
+):
+    # This test ensures  that subscription returns None and does not raise an error
+    # given
+    webhook = subscription_checkout_shipping_filter_and_list_missing_one_in_definition
+    event_type = WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+
+    # when
+    deliveries = create_delivery_for_subscription_sync_event(
+        event_type, checkout_ready_to_complete, webhook
+    )
+
+    # then
+    assert not deliveries
 
 
 def test_order_filter_shipping_methods(
