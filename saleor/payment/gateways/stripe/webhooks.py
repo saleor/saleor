@@ -1,6 +1,7 @@
 import logging
 from typing import Optional, cast
 
+import stripe
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Prefetch
@@ -497,6 +498,15 @@ def handle_refund(
     payment_intent_id = charge.payment_intent
     payment = _get_payment(payment_intent_id)
 
+    # stripe introduced breaking change and in newer version of api
+    # charge object doesn't contain refunds by default
+    if not getattr(charge, "refunds", None):
+        charge_with_refunds = stripe.Charge.retrieve(
+            charge.stripe_id,
+            api_key=charge.api_key,
+            expand=["refunds"],
+        )
+        charge.refunds = charge_with_refunds.refunds
     refund = charge.refunds.data[0]
     if not payment:
         logger.warning(
