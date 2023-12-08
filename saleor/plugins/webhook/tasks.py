@@ -165,12 +165,12 @@ def create_delivery_for_subscription_sync_event(
         app=webhook.app,
     )
     if not data:
-        # PaymentError is a temporary exception type. New type will be implemented
-        # in separate PR to ensure proper handling for all sync events.
-        # It was implemented when sync webhooks were handling payment events only.
-        raise PaymentError(
-            f"No payload was generated with subscription for event: {event_type}"
+        logger.info(
+            "No payload was generated with subscription for event: %s", event_type
         )
+        # Return None so if subscription query returns no data Saleor will not crash but
+        # log the issue and continue without creating a delivery.
+        return None
     event_payload = EventPayload.objects.create(payload=json.dumps({**data}))
     event_delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,

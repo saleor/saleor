@@ -58,6 +58,8 @@ def parse_list_shipping_methods_response(
 ) -> List["ShippingMethodData"]:
     shipping_methods = []
     for shipping_method_data in response_data:
+        if not validate_shipping_method_data(shipping_method_data):
+            continue
         method_id = shipping_method_data.get("id")
         method_name = shipping_method_data.get("name")
         method_amount = shipping_method_data.get("amount")
@@ -73,6 +75,13 @@ def parse_list_shipping_methods_response(
             )
         )
     return shipping_methods
+
+
+def validate_shipping_method_data(shipping_method_data):
+    if type(shipping_method_data) is not dict:
+        return False
+    keys = ["id", "name", "amount", "currency", "maximum_delivery_days"]
+    return all(key in shipping_method_data for key in keys)
 
 
 def _compare_order_payloads(payload: str, cached_payload: str) -> bool:
@@ -120,7 +129,7 @@ def get_excluded_shipping_methods_or_fetch(
             subscribable_object=subscribable_object,
             timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
         )
-        if response_data:
+        if response_data and type(response_data) is dict:
             excluded_methods.extend(
                 get_excluded_shipping_methods_from_response(response_data)
             )

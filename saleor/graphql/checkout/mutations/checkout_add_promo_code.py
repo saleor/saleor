@@ -62,7 +62,6 @@ class CheckoutAddPromoCode(BaseMutation):
         token=None,
     ):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
-
         manager = get_plugin_manager_promise(info.context).get()
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
 
