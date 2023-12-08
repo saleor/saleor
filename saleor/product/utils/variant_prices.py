@@ -271,7 +271,7 @@ def _get_discounted_variants_prices_for_promotions(
             variant_listing.discounted_price_amount = discounted_variant_price.amount
             variants_listings_to_update.append(variant_listing)
 
-            # delete variant listing - promotion rules relationd that are not valid
+            # delete variant listing - promotion rules relations that are not valid
             # anymore
             VariantChannelListingPromotionRule.objects.filter(
                 variant_channel_listing_id=variant_listing.id
