@@ -493,7 +493,7 @@ def handle_successful_payment_intent(
 
 
 def handle_refund(
-    charge: StripeObject, _gateway_config: "GatewayConfig", channel_slug: str
+    charge: StripeObject, gateway_config: "GatewayConfig", channel_slug: str
 ):
     payment_intent_id = charge.payment_intent
     payment = _get_payment(payment_intent_id)
@@ -501,9 +501,10 @@ def handle_refund(
     # stripe introduced breaking change and in newer version of api
     # charge object doesn't contain refunds by default
     if not getattr(charge, "refunds", None):
+        api_key = gateway_config.connection_params["secret_api_key"]
         charge_with_refunds = stripe.Charge.retrieve(
             charge.stripe_id,
-            api_key=charge.api_key,
+            api_key=api_key,
             expand=["refunds"],
         )
         charge.refunds = charge_with_refunds.refunds
