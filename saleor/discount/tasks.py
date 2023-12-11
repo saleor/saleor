@@ -1,4 +1,3 @@
-import os
 from collections import defaultdict
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -35,7 +34,7 @@ if TYPE_CHECKING:
 
 task_logger = get_task_logger(__name__)
 # Batch of size 100 takes ~1.3sec and consumes ~3mb at peak
-PROMOTION_TOGGLE_BATCH_SIZE = int(os.environ.get("INC_135_BATCH_SIZE", 100))
+PROMOTION_TOGGLE_BATCH_SIZE = 100
 
 
 @app.task
@@ -47,21 +46,24 @@ def handle_promotion_toggle():
     """
     manager = get_plugins_manager()
 
-    ending_promotions = Promotion.objects.none()
     starting_promotions = get_starting_promotions(batch=True)
-    if not starting_promotions:
-        ending_promotions = get_ending_promotions(batch=True)
-        promotion_ids = [promotion.id for promotion in ending_promotions]
-    else:
-        promotion_ids = [promotion.id for promotion in starting_promotions]
-
+    ending_promotions = get_ending_promotions(batch=True)
+    promotion_ids = [
+        promotion.id for promotion in starting_promotions | ending_promotions
+    ][:PROMOTION_TOGGLE_BATCH_SIZE]
+    starting_promotions = [
+        promotion for promotion in starting_promotions if promotion.id in promotion_ids
+    ]
+    ending_promotions = [
+        promotion for promotion in ending_promotions if promotion.id in promotion_ids
+    ]
     promotions = Promotion.objects.filter(id__in=promotion_ids).all()
     promotion_id_to_variants, product_ids = fetch_promotion_variants_and_product_ids(
         promotions
     )
 
-    for staring_promo in starting_promotions:
-        manager.promotion_started(staring_promo)
+    for starting_promo in starting_promotions:
+        manager.promotion_started(starting_promo)
 
     for ending_promo in ending_promotions:
         manager.promotion_ended(ending_promo)

@@ -1,4 +1,3 @@
-import os
 from collections import namedtuple
 from datetime import datetime, timedelta
 from typing import cast
@@ -40,7 +39,7 @@ class promotion_webhook_schedule(CustomSchedule):
             import_path="saleor.core.schedules.promotion_webhook_schedule",
         )
         # Seconds left to next batch processing
-        self.NEXT_BATCH_RUN_TIME = int(os.environ.get("INC_135_NEXT_RUN", 5))
+        self.NEXT_BATCH_RUN_TIME = 5
 
     def remaining_estimate(self, last_run_at):
         """Estimate of next run time.
@@ -80,7 +79,7 @@ class promotion_webhook_schedule(CustomSchedule):
 
         # if task needs to be handled in batches, schedule next run with const value
         if len(staring_promotions | ending_promotions) > PROMOTION_TOGGLE_BATCH_SIZE:
-            self.next_run = (now + timedelta(seconds=self.NEXT_BATCH_RUN_TIME)) - now
+            self.next_run = timedelta(seconds=self.NEXT_BATCH_RUN_TIME)
             is_due = remaining == 0
             return schedstate(is_due, self.NEXT_BATCH_RUN_TIME)
 
