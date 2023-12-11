@@ -977,6 +977,47 @@ def test_transaction_process_for_removed_app(
     assert data["errors"][0]["field"] == "id"
 
 
+def test_transaction_process_for_disabled_app(
+    user_api_client,
+    checkout_with_prices,
+    app,
+    transaction_item_generator,
+):
+    # given
+    expected_amount = Decimal("10.00")
+    expected_app_identifier = "webhook.app.identifier"
+    app.identifier = expected_app_identifier
+    app.is_active = False
+    app.save()
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token)
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    content = get_graphql_content(response)
+    data = content["data"]["transactionProcess"]
+    assert (
+        data["errors"][0]["code"]
+        == TransactionProcessErrorCode.MISSING_PAYMENT_APP.name
+    )
+    assert data["errors"][0]["field"] == "id"
+
+
 @freeze_time("2023-03-18 12:00:00")
 @pytest.mark.parametrize(
     "previous_last_transaction_modified_at",
