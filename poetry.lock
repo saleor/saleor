@@ -3570,13 +3570,13 @@ dev = ["pre-commit", "pytest-asyncio", "tox"]
 
 [[package]]
 name = "pytest-recording"
-version = "0.13.0"
+version = "0.13.1"
 description = "A pytest plugin that allows you recording of network interactions via VCR.py"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pytest_recording-0.13.0-py3-none-any.whl", hash = "sha256:679b0ae6eb3337b981f6a4d590a30c28c43855bfac5b9ad87070ad6d08b05dbc"},
-    {file = "pytest_recording-0.13.0.tar.gz", hash = "sha256:b24b707af843341457d9d340328f361eceb0efe980e388341941b4fada3745ca"},
+    {file = "pytest_recording-0.13.1-py3-none-any.whl", hash = "sha256:e5c75feb2593eb4ed9362182c6640bfe19004204bf9a6082d62c91b5fdb50a3e"},
+    {file = "pytest_recording-0.13.1.tar.gz", hash = "sha256:1265d679f39263f115968ec01c2a3bfed250170fd1b0d9e288970b2e4a13737a"},
 ]
 
 [package.dependencies]
@@ -3585,7 +3585,7 @@ vcrpy = ">=2.0.1"
 
 [package.extras]
 dev = ["pytest-recording[tests]"]
-tests = ["pytest-httpbin", "pytest-mock", "requests", "werkzeug (==2.3.6)"]
+tests = ["pytest-httpbin", "pytest-mock", "requests", "werkzeug (==3.0.1)"]
 
 [[package]]
 name = "pytest-socket"
@@ -5334,4 +5334,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "3b6f0628ac9b9bc2fce4e72dfaa2366b0135f179cf9b737a473dcc2a9a46cc4c"
+content-hash = "7123496c403cc464f6a74fbf779f286a391919df70c5c2c61a6f73f302181555"
