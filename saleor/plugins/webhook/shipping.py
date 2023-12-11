@@ -78,7 +78,7 @@ def parse_list_shipping_methods_response(
 
 
 def validate_shipping_method_data(shipping_method_data):
-    if type(shipping_method_data) is not dict:
+    if not isinstance(shipping_method_data, dict):
         return False
     keys = ["id", "name", "amount", "currency", "maximum_delivery_days"]
     return all(key in shipping_method_data for key in keys)
@@ -129,7 +129,7 @@ def get_excluded_shipping_methods_or_fetch(
             subscribable_object=subscribable_object,
             timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         )
-        if response_data and type(response_data) is dict:
+        if response_data and isinstance(response_data, dict):
             excluded_methods.extend(
                 get_excluded_shipping_methods_from_response(response_data)
             )
