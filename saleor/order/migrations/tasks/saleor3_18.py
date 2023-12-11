@@ -1,4 +1,4 @@
-from django.db.models import F, Func, Min, OuterRef, Subquery
+from django.db.models import F, Func, OuterRef, Subquery
 
 from ....celeryconf import app
 from ...models import Order, OrderLine
@@ -8,19 +8,17 @@ BATCH_SIZE = 1000
 
 
 @app.task
-def update_order_subtotals(batch_id=None):
-    if batch_id is None:
-        # Get the minimum order number from the database
-        min_order_number = Order.objects.aggregate(Min("number"))["number__min"] or 0
-        batch_id = min_order_number // BATCH_SIZE
-
-    start_order_number = batch_id * BATCH_SIZE
-    end_order_number = start_order_number + BATCH_SIZE
+def update_order_subtotals(start_number=None):
+    if start_number is None:
+        first_order = Order.objects.last()
+        if first_order is None:
+            return  # Exit if there are no orders
+        start_number = first_order.number
 
     # Get the orders for the current batch based on order numbers
     current_batch_order_numbers = Order.objects.filter(
-        number__gte=start_order_number, number__lt=end_order_number
-    ).values_list("number", flat=True)
+        number__gt=start_number
+    ).values_list("number", flat=True)[:BATCH_SIZE]
 
     # If there are no orders in the range, exit the task
     if not current_batch_order_numbers:
@@ -53,4 +51,6 @@ def update_order_subtotals(batch_id=None):
         orders_to_update, ["subtotal_net_amount", "subtotal_gross_amount"]
     )
 
-    update_order_subtotals.delay(batch_id + 1)
+    if current_batch_order_numbers:
+        last_number = current_batch_order_numbers[0]
+        update_order_subtotals.delay(last_number)
