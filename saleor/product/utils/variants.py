@@ -1,10 +1,13 @@
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
+from django.db.models import Exists, OuterRef, QuerySet
+
 from ...attribute import AttributeType
+from ...discount.models import PromotionRule
+from ..models import ProductVariant
 
 if TYPE_CHECKING:
     from ...attribute.models import AssignedVariantAttribute, Attribute
-    from ..models import ProductVariant
 
 
 def generate_and_set_variant_name(
@@ -45,3 +48,34 @@ def get_variant_selection_attributes(
         for attribute, variant_selection in attributes
         if variant_selection and attribute.type == AttributeType.PRODUCT_TYPE
     ]
+
+
+def fetch_variants_for_promotion_rules(
+    product_ids: Iterable[int],
+    rules: QuerySet[PromotionRule],
+):
+    from ...graphql.discount.utils import get_variants_for_predicate
+
+    PromotionRuleVariant = PromotionRule.variants.through
+    # Clear existing variants assigned to promotion rules
+    PromotionRuleVariant.objects.filter(
+        Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+    ).delete()
+
+    # Only look for variants that belong to the provided products
+    # TODO: as it's denormalization, maybe we should take
+    # all Variants into consideration?
+    variant_qs = ProductVariant.objects.filter(product_id__in=product_ids)
+    promotion_rule_variants = []
+    for rule in list(rules.iterator()):
+        variants = get_variants_for_predicate(rule.catalogue_predicate, variant_qs)
+        promotion_rule_variants.extend(
+            [
+                PromotionRuleVariant(
+                    promotionrule_id=rule.pk, productvariant_id=variant.pk
+                )
+                for variant in variants
+            ]
+        )
+
+    PromotionRuleVariant.objects.bulk_create(promotion_rule_variants)

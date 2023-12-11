@@ -5,9 +5,11 @@ import pytest
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import add_variant_to_checkout
+from ...discount.models import PromotionRule
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Product, ProductVariantChannelListing
 from ...product.utils.variant_prices import update_discounted_prices_for_promotion
+from ...product.utils.variants import fetch_variants_for_promotion_rules
 from .. import DiscountValueType, RewardValueType
 from ..models import Promotion
 from ..utils import create_or_update_discount_objects_from_promotion_for_checkout
@@ -97,6 +99,9 @@ def test_rounding_issue_with_percentage_promotion(
         variant_channel_listings, ["price_amount"]
     )
 
+    fetch_variants_for_promotion_rules(
+        [product.id for product in product_list], PromotionRule.objects.all()
+    )
     update_discounted_prices_for_promotion(Product.objects.all())
 
     checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())

@@ -11,7 +11,7 @@ from django.utils import timezone
 from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
-from ..discount.models import Promotion
+from ..discount.models import Promotion, PromotionRule
 from ..plugins.manager import get_plugins_manager
 from ..product.models import Category, CollectionProduct
 from ..warehouse.management import deactivate_preorder_for_variant
@@ -20,14 +20,19 @@ from ..webhook.utils import get_webhooks_for_event
 from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
 from .utils.variant_prices import update_discounted_prices_for_promotion
-from .utils.variants import generate_and_set_variant_name
+from .utils.variants import (
+    fetch_variants_for_promotion_rules,
+    generate_and_set_variant_name,
+)
 
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
 
 VARIANTS_UPDATE_BATCH = 500
-# Results in update time ~2s for 500 promotions
+# Results in update time ~2s for 500 promotions - TODO: calculate batch size
 DISCOUNTED_PRODUCT_BATCH = 500
+# TODO: calculate batch size
+PROMOTION_RULE_BATCH_SIZE = 500
 
 
 def _variants_in_batches(variants_qs):
@@ -150,14 +155,34 @@ def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
 
 
 @app.task
-def update_products_discounted_prices_for_promotion_task(product_ids: Iterable[int]):
+def update_products_discounted_prices_for_promotion_task(
+    product_ids: Iterable[int], start_id: Optional[UUID] = None
+):
+    promotions = Promotion.objects.active()
+    kwargs = {"id__gt": start_id} if start_id else {}
+    rules = PromotionRule.objects.order_by("id").filter(
+        Exists(promotions.filter(id=OuterRef("promotion_id"))), **kwargs
+    )[:PROMOTION_RULE_BATCH_SIZE]
+    if ids := list(rules.values_list("pk", flat=True)):
+        qs = PromotionRule.objects.filter(pk__in=ids)
+        # TODO: check for big number of variants
+        fetch_variants_for_promotion_rules(product_ids, rules=qs)
+        update_products_discounted_prices_for_promotion_task.delay(product_ids, ids[-1])
+    else:
+        # when all promotion rules variants are up to date, call discounted prices
+        # recalculation for products
+        update_discounted_prices_task.delay(product_ids)
+
+
+@app.task
+def update_discounted_prices_task(product_ids: Iterable[int]):
     """Update the product discounted prices for given product ids."""
     ids = sorted(product_ids)[:DISCOUNTED_PRODUCT_BATCH]
     qs = Product.objects.filter(pk__in=ids)
     if ids:
         update_discounted_prices_for_promotion(qs)
         remaining_ids = list(set(product_ids) - set(ids))
-        update_products_discounted_prices_for_promotion_task.delay(remaining_ids)
+        update_discounted_prices_task.delay(remaining_ids)
 
 
 @app.task
