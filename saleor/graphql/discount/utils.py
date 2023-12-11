@@ -54,9 +54,13 @@ def get_products_for_promotion(promotion: Promotion) -> ProductsQueryset:
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 
-def get_products_for_rule(rule: PromotionRule) -> ProductsQueryset:
+def get_products_for_rule(
+    rule: PromotionRule, *, update_rule_variants=False
+) -> ProductsQueryset:
     """Get products that are included in the rule based on catalogue predicate."""
     variants = get_variants_for_predicate(deepcopy(rule.catalogue_predicate))
+    if update_rule_variants:
+        rule.variants.set(variants)
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 

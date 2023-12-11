@@ -3,7 +3,7 @@ import graphene
 from .....discount import events, models
 from .....graphql.core.mutations import ModelDeleteMutation
 from .....permission.enums import DiscountPermissions
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from .....product.tasks import update_discounted_prices_task
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
@@ -64,7 +64,7 @@ class PromotionRuleDelete(ModelDeleteMutation):
         instance.id = db_id
 
         if product_ids:
-            update_products_discounted_prices_for_promotion_task.delay(product_ids)
+            update_discounted_prices_task.delay(product_ids)
 
         app = get_app_promise(info.context).get()
         events.rule_deleted_event(info.context.user, app, [instance])
