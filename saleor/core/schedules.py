@@ -66,7 +66,6 @@ class promotion_webhook_schedule(CustomSchedule):
             get_starting_promotions,
         )
 
-        # Time in seconds, when to trigger another batch processing
         now = datetime.now(pytz.UTC)
 
         # remaining time must be calculated as the next call is overridden with 0
@@ -121,8 +120,7 @@ class promotion_webhook_schedule(CustomSchedule):
             else:
                 next_upcoming_date = now + self.initial_timedelta
 
-        next_run = min((next_upcoming_date - now), self.initial_timedelta)
-        self.next_run = next_run
+        self.next_run = min((next_upcoming_date - now), self.initial_timedelta)
         return schedstate(is_due, self.next_run.total_seconds())
 
 

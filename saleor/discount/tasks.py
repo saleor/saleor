@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     from uuid import UUID
 
 task_logger = get_task_logger(__name__)
-# Batch of size 100 takes ~1.3sec and consumes ~3mb at peak
+# Batch of size 100 takes ~1 sec and consumes ~3mb at peak
 PROMOTION_TOGGLE_BATCH_SIZE = 100
 
 
