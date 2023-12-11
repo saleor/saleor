@@ -90,6 +90,11 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
             "The catalogue predicate that must be met to apply the rule reward."
         ),
     )
+    checkout_and_order_predicate = JSON(
+        description=(
+            "The checkout/order predicate that must be met to apply the rule reward."
+        ),
+    )
     reward_value = PositiveDecimal(
         description=(
             "The reward value of the promotion rule. Defines the discount value "

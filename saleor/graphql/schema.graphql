@@ -14268,6 +14268,11 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   cataloguePredicate: JSON
 
   """
+  The checkout/order predicate that must be met to apply the rule reward.
+  """
+  checkoutAndOrderPredicate: JSON
+
+  """
   The reward value of the promotion rule. Defines the discount value applied when the rule conditions are met.
   """
   rewardValue: PositiveDecimal
