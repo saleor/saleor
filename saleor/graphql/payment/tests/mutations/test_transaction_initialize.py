@@ -940,7 +940,6 @@ def test_transaction_initialize_for_removed_app(
     user_api_client,
     checkout_with_prices,
     removed_app,
-    transaction_session_response,
 ):
     # given
     expected_amount = Decimal("10.00")
@@ -948,6 +947,39 @@ def test_transaction_initialize_for_removed_app(
     expected_app_identifier = "webhook.app.identifier"
     removed_app.identifier = expected_app_identifier
     removed_app.save()
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionInitialize"]
+    assert data["errors"][0]["code"] == TransactionInitializeErrorCode.NOT_FOUND.name
+    assert data["errors"][0]["field"] == "paymentGateway"
+    mocked_initialize.assert_not_called()
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_transaction_initialize_for_disabled_app(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    app,
+):
+    # given
+    expected_amount = Decimal("10.00")
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    app.identifier = expected_app_identifier
+    app.is_active = False
+    app.save()
 
     variables = {
         "action": None,

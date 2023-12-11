@@ -5,6 +5,8 @@ import pytest
 
 from ...order import OrderEvents
 from ...plugins.manager import get_plugins_manager
+from ...webhook.event_types import WebhookEventSyncType
+from ...webhook.models import Webhook
 from .. import (
     ChargeStatus,
     CustomPaymentChoices,
@@ -370,7 +372,7 @@ def test_request_charge_action_missing_active_event(
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_charge_action_with_transaction_action_request(
-    mocked_transaction_request, mocked_is_active, order, staff_user
+    mocked_transaction_request, mocked_is_active, order, staff_user, app
 ):
     # given
     transaction = TransactionItem.objects.create(
@@ -381,6 +383,8 @@ def test_request_charge_action_with_transaction_action_request(
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
+        app=app,
+        app_identifier=app.identifier,
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
@@ -409,7 +413,7 @@ def test_request_charge_action_with_transaction_action_request(
             action_type=TransactionAction.CHARGE,
             action_value=action_value,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
         ),
         channel_slug=order.channel.slug,
     )
@@ -424,7 +428,7 @@ def test_request_charge_action_with_transaction_action_request(
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
 def test_request_charge_action_on_order(
-    mocked_transaction_request, mocked_is_active, order, staff_user
+    mocked_transaction_request, mocked_is_active, order, staff_user, app
 ):
     # given
     transaction = TransactionItem.objects.create(
@@ -435,6 +439,8 @@ def test_request_charge_action_on_order(
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
+        app=app,
+        app_identifier=app.identifier,
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
@@ -463,7 +469,7 @@ def test_request_charge_action_on_order(
             action_type=TransactionAction.CHARGE,
             action_value=action_value,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
         ),
         order.channel.slug,
     )
@@ -489,6 +495,8 @@ def test_request_charge_action_by_app(
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
+        app=app,
+        app_identifier=app.identifier,
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
@@ -517,7 +525,7 @@ def test_request_charge_action_by_app(
             action_type=TransactionAction.CHARGE,
             action_value=action_value,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
         ),
         order.channel.slug,
     )
@@ -529,11 +537,8 @@ def test_request_charge_action_by_app(
     assert event.app == app
 
 
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
-def test_request_charge_action_by_removed_app(
-    mocked_transaction_request, mocked_is_active, order, removed_app
-):
+def test_request_action_by_removed_app(mocked_transaction_request, order, removed_app):
     # given
     app_identifier = "webhook.app.identifier"
     removed_app.identifier = app_identifier
@@ -554,7 +559,100 @@ def test_request_charge_action_by_removed_app(
         currency=transaction.currency,
         type=TransactionEventType.CHARGE_REQUEST,
     )
-    mocked_is_active.side_effect = [False, True]
+
+    # when & then
+    with pytest.raises(PaymentError):
+        request_charge_action(
+            transaction=transaction,
+            manager=get_plugins_manager(),
+            charge_value=action_value,
+            channel_slug=order.channel.slug,
+            user=None,
+            app=removed_app,
+            request_event=requested_event,
+        )
+    assert not mocked_transaction_request.called
+
+
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
+def test_request_action_by_disabled_app(mocked_transaction_request, order, app):
+    # given
+    app_identifier = "webhook.app.identifier"
+    app.identifier = app_identifier
+    app.is_active = False
+    app.save()
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        name="Credit card",
+        psp_reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+        app_identifier=app_identifier,
+    )
+    action_value = Decimal("5.00")
+    requested_event = transaction.events.create(
+        amount_value=action_value,
+        currency=transaction.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    # when & then
+    with pytest.raises(PaymentError):
+        request_charge_action(
+            transaction=transaction,
+            manager=get_plugins_manager(),
+            charge_value=action_value,
+            channel_slug=order.channel.slug,
+            user=None,
+            app=app,
+            request_event=requested_event,
+        )
+    assert not mocked_transaction_request.called
+
+
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
+def test_request_action_by_removed_app_and_second_active(
+    mocked_transaction_request,
+    order,
+    removed_app,
+    webhook_app,
+    permission_manage_payments,
+):
+    # given
+    app_identifier = "webhook.app.identifier"
+    active_app = webhook_app
+    active_app.identifier = app_identifier
+    active_app.save()
+    active_app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=active_app,
+    )
+    event_type = WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED
+    webhook.events.create(event_type=event_type)
+
+    removed_app.identifier = app_identifier
+    removed_app.save()
+
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        name="Credit card",
+        psp_reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+        app_identifier=app_identifier,
+        app=removed_app,
+    )
+    action_value = Decimal("5.00")
+    requested_event = transaction.events.create(
+        amount_value=action_value,
+        currency=transaction.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
 
     # when
     request_charge_action(
@@ -563,19 +661,81 @@ def test_request_charge_action_by_removed_app(
         charge_value=action_value,
         channel_slug=order.channel.slug,
         user=None,
-        app=removed_app,
+        app=None,
         request_event=requested_event,
     )
 
     # then
-    assert mocked_is_active.called
     mocked_transaction_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
             action_type=TransactionAction.CHARGE,
             action_value=action_value,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=active_app,
+        ),
+        order.channel.slug,
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
+def test_request_action_by_disabled_app_and_second_active(
+    mocked_transaction_request, order, app, webhook_app, permission_manage_payments
+):
+    # given
+    app_identifier = "webhook.app.identifier"
+    active_app = webhook_app
+    active_app.identifier = app_identifier
+    active_app.save()
+    active_app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=active_app,
+    )
+    event_type = WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED
+    webhook.events.create(event_type=event_type)
+
+    app.identifier = app_identifier
+    app.is_active = False
+    app.save()
+
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        name="Credit card",
+        psp_reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+        app_identifier=app_identifier,
+        app=app,
+    )
+    action_value = Decimal("5.00")
+    requested_event = transaction.events.create(
+        amount_value=action_value,
+        currency=transaction.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    # when
+    request_charge_action(
+        transaction=transaction,
+        manager=get_plugins_manager(),
+        charge_value=action_value,
+        channel_slug=order.channel.slug,
+        user=None,
+        app=None,
+        request_event=requested_event,
+    )
+
+    # then
+    mocked_transaction_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.CHARGE,
+            action_value=action_value,
+            event=requested_event,
+            transaction_app_owner=active_app,
         ),
         order.channel.slug,
     )
@@ -584,7 +744,7 @@ def test_request_charge_action_by_removed_app(
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
 def test_request_charge_action_on_checkout(
-    mocked_transaction_request, mocked_is_active, checkout, staff_user
+    mocked_transaction_request, mocked_is_active, checkout, staff_user, app
 ):
     # given
     transaction = TransactionItem.objects.create(
@@ -595,6 +755,8 @@ def test_request_charge_action_on_checkout(
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
+        app=app,
+        app_identifier=app.identifier,
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
@@ -623,7 +785,7 @@ def test_request_charge_action_on_checkout(
             action_type=TransactionAction.CHARGE,
             action_value=action_value,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
         ),
         checkout.channel.slug,
     )
@@ -704,7 +866,7 @@ def test_request_refund_action_updates_refundable_for_checkout(
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_refund_action_with_transaction_action_request(
-    mocked_transaction_request, mocked_is_active, order, staff_user
+    mocked_transaction_request, mocked_is_active, order, staff_user, app
 ):
     # given
     transaction = TransactionItem.objects.create(
@@ -715,6 +877,8 @@ def test_request_refund_action_with_transaction_action_request(
         currency="USD",
         order_id=order.pk,
         charged_value=Decimal("10"),
+        app=app,
+        app_identifier=app.identifier,
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
@@ -743,7 +907,7 @@ def test_request_refund_action_with_transaction_action_request(
             action_type=TransactionAction.REFUND,
             action_value=action_value,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
         ),
         channel_slug=order.channel.slug,
     )
@@ -758,7 +922,7 @@ def test_request_refund_action_with_transaction_action_request(
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
 def test_request_refund_action_on_order(
-    mocked_transaction_request, mocked_is_active, order, staff_user
+    mocked_transaction_request, mocked_is_active, order, staff_user, app
 ):
     # given
     transaction = TransactionItem.objects.create(
@@ -769,6 +933,8 @@ def test_request_refund_action_on_order(
         currency="USD",
         order_id=order.pk,
         charged_value=Decimal("10"),
+        app=app,
+        app_identifier=app.identifier,
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
@@ -797,7 +963,7 @@ def test_request_refund_action_on_order(
             action_type=TransactionAction.REFUND,
             action_value=action_value,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
         ),
         order.channel.slug,
     )
@@ -823,6 +989,8 @@ def test_request_refund_action_by_app(
         currency="USD",
         order_id=order.pk,
         charged_value=Decimal("10"),
+        app=app,
+        app_identifier=app.identifier,
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
@@ -851,7 +1019,7 @@ def test_request_refund_action_by_app(
             action_type=TransactionAction.REFUND,
             action_value=action_value,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
         ),
         order.channel.slug,
     )
@@ -867,7 +1035,7 @@ def test_request_refund_action_by_app(
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
 def test_request_refund_action_on_checkout(
-    mocked_transaction_request, mocked_is_active, checkout, staff_user
+    mocked_transaction_request, mocked_is_active, checkout, staff_user, app
 ):
     # given
     transaction = TransactionItem.objects.create(
@@ -878,6 +1046,8 @@ def test_request_refund_action_on_checkout(
         currency="USD",
         checkout_id=checkout.pk,
         charged_value=Decimal("10"),
+        app=app,
+        app_identifier=app.identifier,
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
@@ -906,7 +1076,7 @@ def test_request_refund_action_on_checkout(
             action_type=TransactionAction.REFUND,
             action_value=action_value,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
         ),
         checkout.channel.slug,
     )
@@ -988,7 +1158,7 @@ def test_request_cancel_action_updates_refundable_for_checkout(
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_cancelation_requested")
 def test_request_cancelation_action_on_order(
-    mocked_transaction_request, mocked_is_active, order, staff_user
+    mocked_transaction_request, mocked_is_active, order, staff_user, app
 ):
     # given
     transaction = TransactionItem.objects.create(
@@ -999,6 +1169,8 @@ def test_request_cancelation_action_on_order(
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
+        app=app,
+        app_identifier=app.identifier,
     )
     requested_event = transaction.events.create(
         currency=transaction.currency,
@@ -1026,7 +1198,7 @@ def test_request_cancelation_action_on_order(
             action_type=TransactionAction.CANCEL,
             action_value=None,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
         ),
         order.channel.slug,
     )
@@ -1040,7 +1212,7 @@ def test_request_cancelation_action_on_order(
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_cancelation_action_with_transaction_action_request(
-    mocked_transaction_request, mocked_is_active, order, staff_user
+    mocked_transaction_request, mocked_is_active, order, staff_user, app
 ):
     # given
     transaction = TransactionItem.objects.create(
@@ -1051,6 +1223,8 @@ def test_request_cancelation_action_with_transaction_action_request(
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
+        app=app,
+        app_identifier=app.identifier,
     )
     requested_event = transaction.events.create(
         currency=transaction.currency, type=TransactionEventType.CANCEL_REQUEST
@@ -1077,7 +1251,7 @@ def test_request_cancelation_action_with_transaction_action_request(
             action_type=TransactionAction.CANCEL,
             action_value=None,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
         ),
         channel_slug=order.channel.slug,
     )
@@ -1102,6 +1276,8 @@ def test_request_cancelation_action_by_app(
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
+        app=app,
+        app_identifier=app.identifier,
     )
     requested_event = transaction.events.create(
         currency=transaction.currency, type=TransactionEventType.CANCEL_REQUEST
@@ -1128,7 +1304,7 @@ def test_request_cancelation_action_by_app(
             action_type=TransactionAction.CANCEL,
             action_value=None,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
         ),
         order.channel.slug,
     )
@@ -1143,7 +1319,7 @@ def test_request_cancelation_action_by_app(
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_cancelation_requested")
 def test_request_cancelation_action_on_checkout(
-    mocked_transaction_request, mocked_is_active, checkout, staff_user
+    mocked_transaction_request, mocked_is_active, checkout, staff_user, app
 ):
     # given
     transaction = TransactionItem.objects.create(
@@ -1154,6 +1330,8 @@ def test_request_cancelation_action_on_checkout(
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
+        app=app,
+        app_identifier=app.identifier,
     )
     requested_event = transaction.events.create(
         currency=transaction.currency,
@@ -1181,7 +1359,7 @@ def test_request_cancelation_action_on_checkout(
             action_type=TransactionAction.CANCEL,
             action_value=None,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
         ),
         checkout.channel.slug,
     )
