@@ -15,6 +15,7 @@ from text_unidecode import unidecode
 
 from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ...attribute import models as attribute_models
+from ...attribute.models import AttributeValue
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...core.utils import (
     generate_unique_slug,
@@ -197,7 +198,7 @@ class AttributeAssignmentMixin:
             },
         }
 
-        return (("get_or_create", value),)
+        return ((AttributeValue.objects.get_or_create, value),)
 
     @classmethod
     def clean_input(
@@ -585,7 +586,8 @@ class AttributeAssignmentMixin:
             if attr_value.value:
                 attr_value_model = prepare_attribute_values(
                     attribute, [attr_value.value]
-                )[0]
+                )[0][0]
+                attr_value_model.save()
                 if attr_value_model.id not in [a.id for a in attribute_values]:
                     attribute_values.append(attr_value_model)
 
@@ -642,7 +644,7 @@ class AttributeAssignmentMixin:
         return cls._update_or_create_value(instance, attribute, defaults)
 
     @classmethod
-    def _pre_save_plain_text_values(  # db update or create
+    def _pre_save_plain_text_values(
         cls,
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
@@ -675,7 +677,7 @@ class AttributeAssignmentMixin:
                 "boolean": boolean,
             },
         }
-        return (("get_or_create", value),)
+        return ((AttributeValue.objects.get_or_create, value),)
 
     @classmethod
     def _pre_save_date_time_values(
@@ -719,7 +721,7 @@ class AttributeAssignmentMixin:
             "slug": slug,
             "defaults": value_defaults,
         }
-        return (("update_or_create", value),)
+        return ((AttributeValue.objects.update_or_create, value),)
 
     @classmethod
     def _pre_save_reference_values(
@@ -747,7 +749,7 @@ class AttributeAssignmentMixin:
 
             reference_list.append(
                 (
-                    "get_or_create",
+                    AttributeValue.objects.get_or_create,
                     {
                         "attribute": attribute,
                         "slug": slugify(
@@ -782,42 +784,39 @@ class AttributeAssignmentMixin:
             instance, attribute, "file_url", attr_value.file_url
         )
         if value is None:
-            value = attribute_models.AttributeValue(
+            value = AttributeValue(
                 attribute=attribute,
                 file_url=file_url,
                 name=name,
                 content_type=attr_value.content_type,
             )
             value.slug = generate_unique_slug(value, name)
-            return (("create", value),)
+            return ((AttributeValue.objects.create, value),)
         return ((None, value),)
 
     @classmethod
     def _prepare_attribute_values(cls, attribute, values):
-        results, values_to_create = prepare_attribute_values(
-            attribute, values, bulk_create=False
-        )
+        results, values_to_create = prepare_attribute_values(attribute, values)
         return [(None, record) for record in results] + [
-            ("create", record) for record in values_to_create
+            (AttributeValue.objects.create, record) for record in values_to_create
         ]
 
     @classmethod
     def _bulk_create_pre_save_values(cls, pre_save_bulk):
-        results = defaultdict(list)
+        results: Dict["Attribute", list[AttributeValue]] = defaultdict(list)
+
         for action, attribute_data in pre_save_bulk.items():
             for attribute, values in attribute_data.items():
-                if action == "create":
-                    values = attribute_models.AttributeValue.objects.bulk_create(values)
-                elif action == "update_or_create":
-                    values = (
-                        attribute_models.AttributeValue.objects.bulk_update_or_create(
-                            values
-                        )
-                    )
-                elif action == "get_or_create":
-                    values = attribute_models.AttributeValue.objects.bulk_get_or_create(
-                        values
-                    )
+                if action == AttributeValue.objects.create:
+                    values = AttributeValue.objects.bulk_create(values)
+                elif action == AttributeValue.objects.update_or_create:
+                    values = AttributeValue.objects.bulk_update_or_create(values)
+                elif action == AttributeValue.objects.get_or_create:
+                    values = AttributeValue.objects.bulk_get_or_create(values)
+                else:
+                    # ensuring that empty values will be added to results,
+                    # so assignments will be removed properly in that case
+                    results.setdefault(attribute, [])
 
                 results[attribute].extend(values)
 
@@ -830,9 +829,7 @@ def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
     )
 
 
-def prepare_attribute_values(
-    attribute: attribute_models.Attribute, values: List[str], bulk_create=True
-):
+def prepare_attribute_values(attribute: attribute_models.Attribute, values: List[str]):
     slug_to_value_map = {}
     name_to_value_map = {}
     for val in attribute.values.filter(Q(name__in=values) | Q(slug__in=values)):
@@ -864,9 +861,6 @@ def prepare_attribute_values(
             # extend name to slug value to not create two elements with the same name
             name_to_value_map[instance.name] = instance
 
-    if bulk_create:
-        attribute_models.AttributeValue.objects.bulk_create(values_to_create)
-        return result
     return result, values_to_create
 
 
