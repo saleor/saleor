@@ -16,9 +16,10 @@ def update_order_subtotals(start_number=None):
         start_number = first_order.number
 
     # Get the orders for the current batch based on order numbers
-    current_batch_order_numbers = Order.objects.filter(
-        number__gt=start_number
-    ).values_list("number", flat=True)[:BATCH_SIZE]
+    queryset = Order.objects.order_by("number").filter(number__gte=start_number)[
+        :BATCH_SIZE
+    ]
+    current_batch_order_numbers = list(queryset.values_list("number", flat=True))
 
     # If there are no orders in the range, exit the task
     if not current_batch_order_numbers:
@@ -51,6 +52,5 @@ def update_order_subtotals(start_number=None):
         orders_to_update, ["subtotal_net_amount", "subtotal_gross_amount"]
     )
 
-    if current_batch_order_numbers:
-        last_number = current_batch_order_numbers[0]
-        update_order_subtotals.delay(last_number)
+    last_number = current_batch_order_numbers[-1]
+    update_order_subtotals.delay(last_number + 1)
