@@ -67,8 +67,10 @@ def pretty_json(obj: Any) -> str:
     return json.dumps(obj, indent=2, ensure_ascii=True)
 
 
-def dump_payload(payload: Any) -> str:
-    return json.dumps(to_camel_case(payload), ensure_ascii=True, cls=CustomJsonEncoder)
+def dump_payload(payload: Any) -> bytes:
+    return json.dumps(
+        to_camel_case(payload), ensure_ascii=True, cls=CustomJsonEncoder
+    ).encode("utf-8")
 
 
 TRUNC_PLACEHOLDER = JsonTruncText(truncated=False)
@@ -150,7 +152,7 @@ def generate_api_call_payload(
     response: HttpResponse,
     gql_operations: list["GraphQLOperationResponse"],
     bytes_limit: int,
-) -> str:
+) -> bytes:
     payload = ApiCallPayload(
         event_type=ObservabilityEventTypes.API_CALL,
         request=ApiCallRequest(
@@ -190,7 +192,7 @@ def generate_event_delivery_attempt_payload(
     attempt: "EventDeliveryAttempt",
     next_retry: Optional["datetime"],
     bytes_limit: int,
-) -> str:
+) -> bytes:
     if not attempt.delivery:
         raise ValueError(
             f"EventDeliveryAttempt {attempt.id} is not assigned to delivery. "
