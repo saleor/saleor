@@ -76,6 +76,7 @@ class AppCreate(ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
+        instance.identifier = graphene.Node.to_global_id("App", instance.pk)
         instance.save()
         _, auth_token = instance.tokens.create(name="Default")
         return auth_token

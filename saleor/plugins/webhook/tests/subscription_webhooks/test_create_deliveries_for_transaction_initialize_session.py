@@ -1,4 +1,5 @@
 import json
+import uuid
 from decimal import Decimal
 
 import graphene
@@ -24,6 +25,7 @@ subscription {
         actionType
       }
       data
+      idempotencyKey
       sourceObject{
         __typename
         ... on Checkout{
@@ -66,6 +68,7 @@ def test_transaction_initialize_session_checkout_with_data(
         message=None,
     )
     action_type = TransactionFlowStrategy.CHARGE
+    idempotency_key = str(uuid.uuid4())
 
     subscribable_object = TransactionSessionData(
         transaction=transaction,
@@ -78,6 +81,7 @@ def test_transaction_initialize_session_checkout_with_data(
         payment_gateway=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=payload_data, error=None
         ),
+        idempotency_key=idempotency_key,
     )
 
     # when
@@ -99,6 +103,7 @@ def test_transaction_initialize_session_checkout_with_data(
             "currency": "USD",
             "actionType": action_type.upper(),
         },
+        "idempotencyKey": idempotency_key,
         "data": payload_data,
         "sourceObject": {
             "__typename": "Checkout",
@@ -131,6 +136,7 @@ def test_transaction_initialize_session_checkout_without_data(
         message=None,
     )
     action_type = TransactionFlowStrategy.CHARGE
+    idempotency_key = str(uuid.uuid4())
 
     subscribable_object = TransactionSessionData(
         transaction=transaction,
@@ -143,6 +149,7 @@ def test_transaction_initialize_session_checkout_without_data(
         payment_gateway=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=payload_data, error=None
         ),
+        idempotency_key=idempotency_key,
     )
 
     # when
@@ -164,6 +171,7 @@ def test_transaction_initialize_session_checkout_without_data(
             "actionType": action_type.upper(),
         },
         "data": payload_data,
+        "idempotencyKey": idempotency_key,
         "sourceObject": {
             "__typename": "Checkout",
             "id": checkout_id,
@@ -195,6 +203,7 @@ def test_transaction_initialize_session_order_with_data(
         message=None,
     )
     action_type = TransactionFlowStrategy.CHARGE
+    idempotency_key = str(uuid.uuid4())
 
     subscribable_object = TransactionSessionData(
         transaction=transaction,
@@ -207,6 +216,7 @@ def test_transaction_initialize_session_order_with_data(
         payment_gateway=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=payload_data, error=None
         ),
+        idempotency_key=idempotency_key,
     )
 
     # when
@@ -228,6 +238,7 @@ def test_transaction_initialize_session_order_with_data(
             "currency": "USD",
             "actionType": action_type.upper(),
         },
+        "idempotencyKey": idempotency_key,
         "data": payload_data,
         "sourceObject": {
             "__typename": "Order",
@@ -259,6 +270,7 @@ def test_transaction_initialize_session_order_without_data(
         message=None,
     )
     action_type = TransactionFlowStrategy.CHARGE
+    idempotency_key = str(uuid.uuid4())
 
     subscribable_object = TransactionSessionData(
         transaction=transaction,
@@ -271,6 +283,7 @@ def test_transaction_initialize_session_order_without_data(
         payment_gateway=PaymentGatewayData(
             app_identifier=webhook_app.identifier, data=payload_data, error=None
         ),
+        idempotency_key=idempotency_key,
     )
 
     # when
@@ -291,6 +304,7 @@ def test_transaction_initialize_session_order_without_data(
             "currency": "USD",
             "actionType": action_type.upper(),
         },
+        "idempotencyKey": idempotency_key,
         "data": payload_data,
         "sourceObject": {
             "__typename": "Order",

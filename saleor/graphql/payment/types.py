@@ -327,6 +327,11 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         description=("User or App that created the transaction event." + ADDED_IN_313),
     )
 
+    idempotency_key = graphene.String(
+        description="Idempotency key assigned to the event." + ADDED_IN_314,
+        required=False,
+    )
+
     class Meta:
         description = "Represents transaction's event."
         interfaces = [relay.Node]

@@ -40,6 +40,7 @@ from ...payment import (
     StorePaymentMethod,
     TransactionAction,
     TransactionEventType,
+    TransactionItemIdempotencyUniqueError,
     TransactionKind,
     gateway,
 )
@@ -85,6 +86,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
     ADDED_IN_313,
+    ADDED_IN_314,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
     PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT,
@@ -1468,6 +1470,7 @@ class TransactionRequestAction(BaseMutation):
             user=user,
             app=app,
             app_identifier=app.identifier if app else None,
+            idempotency_key=str(uuid.uuid4()),
         )
 
     @classmethod
@@ -2014,6 +2017,14 @@ class TransactionInitialize(TransactionSessionBase):
             description="The ID of the checkout or order.",
             required=True,
         )
+        idempotency_key = graphene.String(
+            description=(
+                "The idempotency key assigned to the action. It will be passed to the "
+                "payment app to discover potential duplicate actions. If not provided, "
+                "the default one will be generated. If empty string provided, INVALID "
+                "error code will be raised." + ADDED_IN_314
+            )
+        )
         amount = graphene.Argument(
             PositiveDecimal,
             description=(
@@ -2074,13 +2085,39 @@ class TransactionInitialize(TransactionSessionBase):
         return app
 
     @classmethod
+    def clean_idempotency_key(cls, idempotency_key: Optional[str]):
+        if not idempotency_key and isinstance(idempotency_key, str):
+            raise ValidationError(
+                {
+                    "idempotency_key": ValidationError(
+                        message="Cannot be provided as an empty string.",
+                        code=TransactionInitializeErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+        if not idempotency_key:
+            idempotency_key = str(uuid.uuid4())
+        return idempotency_key
+
+    @classmethod
     def perform_mutation(
-        cls, root, info, *, id, payment_gateway, amount=None, action=None
+        cls,
+        root,
+        info,
+        *,
+        id,
+        payment_gateway,
+        amount=None,
+        action=None,
+        idempotency_key=None
     ):
         manager = get_plugin_manager_promise(info.context).get()
         payment_gateway_data = PaymentGatewayData(
             app_identifier=payment_gateway["id"], data=payment_gateway.get("data")
         )
+        idempotency_key = cls.clean_idempotency_key(idempotency_key)
+
         source_object = cls.clean_source_object(
             info,
             id,
@@ -2095,14 +2132,30 @@ class TransactionInitialize(TransactionSessionBase):
             amount,
         )
         app = cls.clean_app_from_payment_gateway(payment_gateway_data)
-        transaction, event, data = handle_transaction_initialize_session(
-            source_object=source_object,
-            payment_gateway=payment_gateway_data,
-            amount=amount,
-            action=action,
-            app=app,
-            manager=manager,
-        )
+
+        try:
+            transaction, event, data = handle_transaction_initialize_session(
+                source_object=source_object,
+                payment_gateway=payment_gateway_data,
+                amount=amount,
+                action=action,
+                app=app,
+                manager=manager,
+                idempotency_key=idempotency_key,
+            )
+        except TransactionItemIdempotencyUniqueError:
+            raise ValidationError(
+                {
+                    "idempotency_key": ValidationError(
+                        message=(
+                            "Different transaction with provided idempotency key "
+                            "already exists."
+                        ),
+                        code=TransactionInitializeErrorCode.UNIQUE.value,
+                    )
+                }
+            )
+
         return cls(transaction=transaction, transaction_event=event, data=data)
 
 

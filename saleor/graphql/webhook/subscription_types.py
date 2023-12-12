@@ -1632,6 +1632,13 @@ class TransactionSessionBase(SubscriptionObjectType, AbstractType):
 
 
 class TransactionInitializeSession(TransactionSessionBase):
+    idempotency_key = graphene.String(
+        description=(
+            "Idempotency key assigned to the transaction initialize." + ADDED_IN_314
+        ),
+        required=True,
+    )
+
     class Meta:
         root_type = None
         enable_dry_run = False
@@ -1642,6 +1649,13 @@ class TransactionInitializeSession(TransactionSessionBase):
             + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_PAYMENTS
+
+    @classmethod
+    def resolve_idempotency_key(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        _, transaction_session_data = root
+        return transaction_session_data.idempotency_key
 
 
 class TransactionProcessSession(TransactionSessionBase):

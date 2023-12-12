@@ -27,12 +27,14 @@ mutation TransactionInitialize(
   $amount: PositiveDecimal,
   $id: ID!,
   $paymentGateway: PaymentGatewayToInitialize!
+  $idempotencyKey: String
 ) {
   transactionInitialize(
     action: $action
     amount: $amount
     id: $id
     paymentGateway: $paymentGateway
+    idempotencyKey: $idempotencyKey
   ) {
     data
     transaction {
@@ -171,6 +173,7 @@ def _assert_fields(
             payment_gateway=PaymentGatewayData(
                 app_identifier=app_identifier, data=None, error=None
             ),
+            idempotency_key=request_event.idempotency_key,
         )
     )
 
@@ -224,6 +227,228 @@ def test_for_checkout_without_payment_gateway_data(
     )
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_for_checkout_with_idempotency_key(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = "CHARGE_SUCCESS"
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+    idempotency_key = "ABC"
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "idempotencyKey": idempotency_key,
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=expected_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_initialize=mocked_initialize,
+        charged_value=expected_amount,
+        returned_data=expected_response["data"],
+    )
+    transaction = checkout.payment_transactions.last()
+    assert transaction.idempotency_key == idempotency_key
+    assert transaction.events.first().idempotency_key == idempotency_key
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_for_checkout_with_multiple_calls_and_idempotency_key(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = "CHARGE_SUCCESS"
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+    idempotency_key = "ABC"
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "idempotencyKey": idempotency_key,
+    }
+    user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=expected_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_initialize=mocked_initialize,
+        charged_value=expected_amount,
+        returned_data=expected_response["data"],
+    )
+    assert checkout.payment_transactions.count() == 1
+    transaction = checkout.payment_transactions.last()
+    assert transaction.idempotency_key == idempotency_key
+    assert transaction.events.count() == 2
+    assert transaction.events.first().idempotency_key == idempotency_key
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_for_order_with_multiple_calls_and_idempotency_key(
+    mocked_initialize,
+    user_api_client,
+    order_with_lines,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    order = order_with_lines
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = "CHARGE_SUCCESS"
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+    idempotency_key = "ABC"
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(order),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "idempotencyKey": idempotency_key,
+    }
+    user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    _assert_fields(
+        content=content,
+        source_object=order,
+        expected_amount=expected_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_initialize=mocked_initialize,
+        charged_value=expected_amount,
+        returned_data=expected_response["data"],
+    )
+    order.refresh_from_db()
+    assert order.payment_transactions.count() == 1
+    transaction = order.payment_transactions.last()
+    assert transaction.idempotency_key == idempotency_key
+    assert transaction.events.count() == 2
+    assert transaction.events.first().idempotency_key == idempotency_key
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_for_order_with_idempotency_key(
+    mocked_initialize,
+    user_api_client,
+    order_with_lines,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    order = order_with_lines
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = "CHARGE_SUCCESS"
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+    idempotency_key = "ABC"
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(order),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "idempotencyKey": idempotency_key,
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    _assert_fields(
+        content=content,
+        source_object=order,
+        expected_amount=expected_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_initialize=mocked_initialize,
+        charged_value=expected_amount,
+        returned_data=expected_response["data"],
+    )
+    order.refresh_from_db()
+    transaction = order.payment_transactions.last()
+    assert transaction.idempotency_key == idempotency_key
+    assert transaction.events.first().idempotency_key == idempotency_key
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -932,6 +1157,167 @@ def test_uses_default_channel_action(
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         returned_data=expected_response["data"],
     )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_transaction_initialize_for_already_used_idempotency_key(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_item_generator,
+    transaction_session_response,
+):
+    # given
+    checkout = checkout_with_prices
+    idempotency_key = "ABC"
+
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    already_existing_transaction = transaction_item_generator(app=webhook_app)
+    already_existing_transaction.idempotency_key = idempotency_key
+    already_existing_transaction.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = "CHARGE_SUCCESS"
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "idempotencyKey": idempotency_key,
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionInitialize"]
+    assert data["errors"]
+    assert data["errors"][0]["code"] == TransactionInitializeErrorCode.UNIQUE.name
+    assert data["errors"][0]["field"] == "idempotencyKey"
+    mocked_initialize.assert_not_called()
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_transaction_initialize_for_already_used_idempotency_key_and_different_input(
+    mocked_initialize,
+    user_api_client,
+    order_with_lines,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    order = order_with_lines
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    first_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = "CHARGE_SUCCESS"
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+    idempotency_key = "ABC"
+
+    variables = {
+        "action": None,
+        "amount": first_amount,
+        "id": to_global_id_or_none(order),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "idempotencyKey": idempotency_key,
+    }
+    user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    variables["amount"] = Decimal("20.00")
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionInitialize"]
+    assert data["errors"]
+    assert data["errors"][0]["code"] == TransactionInitializeErrorCode.UNIQUE.name
+    assert data["errors"][0]["field"] == "idempotencyKey"
+
+    assert order.payment_transactions.count() == 1
+    transaction = order.payment_transactions.last()
+    request_event = transaction.events.first()
+    mocked_initialize.assert_called_with(
+        TransactionSessionData(
+            transaction=transaction,
+            source_object=order,
+            action=TransactionProcessActionData(
+                action_type=TransactionFlowStrategy.CHARGE,
+                amount=first_amount,
+                currency=order.currency,
+            ),
+            payment_gateway=PaymentGatewayData(
+                app_identifier=expected_app_identifier, data=None, error=None
+            ),
+            idempotency_key=request_event.idempotency_key,
+        )
+    )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_transaction_initialize_for_empty_string_as_idempotency_key(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_item_generator,
+    transaction_session_response,
+):
+    # given
+    checkout = checkout_with_prices
+    idempotency_key = ""
+
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = "CHARGE_SUCCESS"
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "idempotencyKey": idempotency_key,
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionInitialize"]
+    assert data["errors"]
+    assert data["errors"][0]["code"] == TransactionInitializeErrorCode.INVALID.name
+    assert data["errors"][0]["field"] == "idempotencyKey"
+    mocked_initialize.assert_not_called()
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
