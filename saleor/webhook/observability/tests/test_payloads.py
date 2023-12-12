@@ -364,43 +364,45 @@ def test_generate_event_delivery_attempt_payload(event_attempt):
 
     payload = generate_event_delivery_attempt_payload(event_attempt, None, 1024)
 
-    assert payload == EventDeliveryAttemptPayload(
-        id=graphene.Node.to_global_id("EventDeliveryAttempt", event_attempt.pk),
-        time=created_at,
-        duration=None,
-        status=EventDeliveryStatus.PENDING,
-        next_retry=None,
-        event_type=ObservabilityEventTypes.EVENT_DELIVERY_ATTEMPT,
-        request=EventDeliveryAttemptRequest(
-            headers=[],
-        ),
-        response=EventDeliveryAttemptResponse(
-            headers=[],
-            content_length=16,
-            status_code=None,
-            body=JsonTruncText("example_response", False),
-        ),
-        event_delivery=EventDelivery(
-            id=graphene.Node.to_global_id("EventDelivery", delivery.pk),
+    assert payload == dump_payload(
+        EventDeliveryAttemptPayload(
+            id=graphene.Node.to_global_id("EventDeliveryAttempt", event_attempt.pk),
+            event_type=ObservabilityEventTypes.EVENT_DELIVERY_ATTEMPT,
+            time=created_at,
+            duration=None,
             status=EventDeliveryStatus.PENDING,
-            event_type=WebhookEventAsyncType.ANY,
-            event_sync=False,
-            payload=EventDeliveryPayload(
-                content_length=32,
-                body=JsonTruncText(
-                    pretty_json(json.loads(delivery.payload.payload)), False
+            next_retry=None,
+            request=EventDeliveryAttemptRequest(
+                headers=[],
+            ),
+            response=EventDeliveryAttemptResponse(
+                headers=[],
+                content_length=16,
+                body=JsonTruncText("example_response", False),
+                status_code=None,
+            ),
+            event_delivery=EventDelivery(
+                id=graphene.Node.to_global_id("EventDelivery", delivery.pk),
+                status=EventDeliveryStatus.PENDING,
+                event_type=WebhookEventAsyncType.ANY,
+                event_sync=False,
+                payload=EventDeliveryPayload(
+                    content_length=32,
+                    body=JsonTruncText(
+                        pretty_json(json.loads(delivery.payload.payload)), False
+                    ),
                 ),
             ),
-        ),
-        webhook=Webhook(
-            id=graphene.Node.to_global_id("Webhook", webhook.pk),
-            name="Simple webhook",
-            target_url="http://www.example.com/test",
-            subscription_query=None,
-        ),
-        app=App(
-            id=graphene.Node.to_global_id("App", app.pk), name="Sample app objects"
-        ),
+            webhook=Webhook(
+                id=graphene.Node.to_global_id("Webhook", webhook.pk),
+                name="Simple webhook",
+                target_url="http://www.example.com/test",
+                subscription_query=None,
+            ),
+            app=App(
+                id=graphene.Node.to_global_id("App", app.pk), name="Sample app objects"
+            ),
+        )
     )
 
 
@@ -436,16 +438,17 @@ def test_generate_event_delivery_attempt_payload_with_next_retry_date(
         event_attempt, next_retry_date, 1024
     )
 
-    assert payload["next_retry"] == next_retry_date
+    assert json.loads(payload)["nextRetry"] == "1914-06-28T10:50:00Z"
 
 
 def test_generate_event_delivery_attempt_payload_with_non_empty_headers(event_attempt):
     headers = {"Content-Length": "19", "Content-Type": "application/json"}
-    headers_list = [("Content-Length", "19"), ("Content-Type", "application/json")]
+    headers_list = [["Content-Length", "19"], ["Content-Type", "application/json"]]
     event_attempt.request_headers = json.dumps(headers)
     event_attempt.response_headers = json.dumps(headers)
 
     payload = generate_event_delivery_attempt_payload(event_attempt, None, 1024)
+    payload = json.loads(payload)
 
     assert payload["request"]["headers"] == headers_list
     assert payload["response"]["headers"] == headers_list
@@ -462,9 +465,10 @@ def test_generate_event_delivery_attempt_payload_with_subscription_query(
     webhook.subscription_query = query
 
     payload = generate_event_delivery_attempt_payload(event_attempt, None, 1024)
+    payload = json.loads(payload)
 
-    assert payload["webhook"]["subscription_query"].text == query
-    assert payload["event_delivery"]["payload"]["body"].text == pretty_json(MASK)
+    assert payload["webhook"]["subscriptionQuery"]["text"] == query
+    assert payload["eventDelivery"]["payload"]["body"]["text"] == pretty_json(MASK)
 
 
 def test_generate_event_delivery_attempt_payload_target_url_obfuscated(
@@ -473,7 +477,6 @@ def test_generate_event_delivery_attempt_payload_target_url_obfuscated(
     webhook.target_url = "http://user:password@example.com/webhooks"
 
     payload = generate_event_delivery_attempt_payload(event_attempt, None, 1024)
+    payload = json.loads(payload)
 
-    assert (
-        payload["webhook"]["target_url"] == f"http://user:{MASK}@example.com/webhooks"
-    )
+    assert payload["webhook"]["targetUrl"] == f"http://user:{MASK}@example.com/webhooks"

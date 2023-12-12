@@ -190,7 +190,7 @@ def generate_event_delivery_attempt_payload(
     attempt: "EventDeliveryAttempt",
     next_retry: Optional["datetime"],
     bytes_limit: int,
-) -> EventDeliveryAttemptPayload:
+) -> str:
     if not attempt.delivery:
         raise ValueError(
             f"EventDeliveryAttempt {attempt.id} is not assigned to delivery. "
@@ -266,4 +266,4 @@ def generate_event_delivery_attempt_payload(
     payload["event_delivery"]["payload"]["body"] = JsonTruncText.truncate(
         pretty_json(event_delivery_payload), remaining
     )
-    return payload
+    return dump_payload(payload)
