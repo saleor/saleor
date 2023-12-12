@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import partial
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Callable, Optional
 
 from asgiref.local import Local
 from django.conf import settings
@@ -102,7 +102,7 @@ def put_event(generate_payload: Callable[[], bytes]):
         logger.error("Observability event dropped.", exc_info=True)
 
 
-def pop_events_with_remaining_size() -> tuple[list[Any], int]:
+def pop_events_with_remaining_size() -> tuple[list[bytes], int]:
     with opentracing_trace("pop_events", "buffer"):
         try:
             buffer = get_buffer(get_buffer_name())
