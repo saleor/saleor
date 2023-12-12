@@ -164,6 +164,7 @@ class TransactionSessionData:
     action: TransactionProcessActionData
     payment_gateway_data: PaymentGatewayData
     customer_ip_address: Optional[str]
+    idempotency_key: Optional[str] = None
 
 
 @dataclass
