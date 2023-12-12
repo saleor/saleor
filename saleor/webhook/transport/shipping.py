@@ -79,7 +79,7 @@ def parse_list_shipping_methods_response(
 def validate_shipping_method_data(shipping_method_data):
     if not isinstance(shipping_method_data, dict):
         return False
-    keys = ["id", "name", "amount", "currency", "maximum_delivery_days"]
+    keys = ["id", "name", "amount", "currency"]
     return all(key in shipping_method_data for key in keys)
 
 
