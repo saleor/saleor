@@ -236,9 +236,7 @@ def test_serialize_checkout_lines_for_tax_calculation_with_promotion(
     }
     promotion_rule.save(update_fields=["catalogue_predicate"])
 
-    fetch_variants_for_promotion_rules(
-        [product.id for product in product_list], PromotionRule.objects.all()
-    )
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
     update_discounted_prices_for_promotion(Product.objects.all())
 
     lines, _ = fetch_checkout_lines(checkout)

@@ -99,9 +99,7 @@ def test_rounding_issue_with_percentage_promotion(
         variant_channel_listings, ["price_amount"]
     )
 
-    fetch_variants_for_promotion_rules(
-        [product.id for product in product_list], PromotionRule.objects.all()
-    )
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
     update_discounted_prices_for_promotion(Product.objects.all())
 
     checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())

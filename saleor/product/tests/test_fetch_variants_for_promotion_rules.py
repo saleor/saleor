@@ -4,7 +4,6 @@ import graphene
 
 from ...discount import RewardValueType
 from ...discount.models import PromotionRule
-from ..models import Product
 from ..utils.variants import fetch_variants_for_promotion_rules
 
 
@@ -43,9 +42,7 @@ def test_fetch_variants_for_promotion_rules_discount(
     rule_2.channels.add(channel_USD)
 
     # when
-    fetch_variants_for_promotion_rules(
-        Product.objects.all(), PromotionRule.objects.all()
-    )
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
 
     # then
     rule_1.refresh_from_db()
@@ -79,9 +76,7 @@ def test_fetch_variants_for_promotion_rules_no_applicable_variants(
     rule.channels.add(channel_USD)
 
     # when
-    fetch_variants_for_promotion_rules(
-        Product.objects.all(), PromotionRule.objects.all()
-    )
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
 
     # then
     rule.refresh_from_db()

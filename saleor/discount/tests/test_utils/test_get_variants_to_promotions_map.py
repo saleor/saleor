@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import graphene
 
-from ....product.models import Product, ProductVariant
+from ....product.models import ProductVariant
 from ....product.utils.variants import fetch_variants_for_promotion_rules
 from ... import PromotionRuleInfo, RewardValueType
 from ...models import Promotion, PromotionRule
@@ -122,9 +122,7 @@ def test_get_variants_to_promotions_map_from_different_promotions(
 def test_get_variants_to_promotions_map_no_active_rules(product):
     # given
     variants = ProductVariant.objects.all()
-    fetch_variants_for_promotion_rules(
-        list(Product.objects.values_list("id", flat=True)), PromotionRule.objects.all()
-    )
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
 
     # when
     rules_per_promotion = get_variants_to_promotions_map(variants)
