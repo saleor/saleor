@@ -18,7 +18,6 @@ from ....graphql.webhook.subscription_payload import (
     initialize_request,
 )
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
-from ....payment import PaymentError
 from ....payment.models import TransactionEvent
 from ....payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
