@@ -70,7 +70,7 @@ def webhook_data():
 def test_trigger_webhook_sync(mock_request, payment_app):
     data = '{"key": "value"}'
     trigger_webhook_sync(
-        WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app.webhooks.first()
+        WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app.webhooks.first(), False
     )
     event_delivery = EventDelivery.objects.first()
     mock_request.assert_called_once_with(event_delivery)
@@ -94,6 +94,7 @@ def test_trigger_webhook_sync_with_subscription(
         WebhookEventSyncType.PAYMENT_CAPTURE,
         data,
         payment_app.webhooks.first(),
+        False,
         payment,
     )
     mock_request.assert_called_once_with(fake_delivery)

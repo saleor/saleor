@@ -136,6 +136,7 @@ def test_app_update_trigger_mutation(
         [any_webhook],
         app_with_token,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

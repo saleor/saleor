@@ -94,7 +94,8 @@ def test_customer_create_address_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_CREATED,
             user_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 
