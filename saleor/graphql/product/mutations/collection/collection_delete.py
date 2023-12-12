@@ -33,7 +33,7 @@ class CollectionDelete(ModelDeleteMutation):
         BATCH_SIZE = 25000
         _length = len(ids)
         for i in range(0, _length, BATCH_SIZE):
-            yield ids[i : min(i + BATCH_SIZE, _length)]
+            yield ids[i : i + BATCH_SIZE]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
