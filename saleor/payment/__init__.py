@@ -15,6 +15,10 @@ class GatewayError(IOError):
     pass
 
 
+class TransactionItemIdempotencyUniqueError(Exception):
+    pass
+
+
 class CustomPaymentChoices:
     MANUAL = "manual"
 
