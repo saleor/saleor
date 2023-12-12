@@ -1,5 +1,8 @@
+from decimal import Decimal
+
 import pytest
 
+from .....core.prices import quantize_price
 from ... import DEFAULT_ADDRESS
 from ...product.utils.preparing_product import prepare_product
 from ...promotions.utils import create_promotion, create_promotion_rule
@@ -53,7 +56,7 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     )
 
     promotion_name = "Percentage promotion"
-    discount_value = 10
+    promotion_discount_value = Decimal(10)
     discount_type = "PERCENTAGE"
     promotion_rule_name = "rule for product"
 
@@ -67,13 +70,14 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
         promotion_id,
         catalogue_predicate,
         discount_type,
-        discount_value,
+        promotion_discount_value,
         promotion_rule_name,
         result_channel_id,
     )
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
     assert promotion_rule["channels"][0]["id"] == result_channel_id
     assert product_predicate[0] == product_id
+    currency = "USD"
 
     # Step 1 - Create a draft order for a product with fixed promotion
     input = {
@@ -93,25 +97,29 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     lines = [{"variantId": product_variant_id, "quantity": quantity}]
     order_lines = order_lines_create(e2e_staff_api_client, order_id, lines)
     order_product_variant_id = order_lines["order"]["lines"][0]["variant"]["id"]
-    promotion_value = round(float(product_variant_price) * discount_value / 100, 2)
+    product_variant_price = Decimal(product_variant_price)
+    promotion_value = quantize_price(
+        product_variant_price * promotion_discount_value / 100, currency
+    )
     assert order_product_variant_id == product_variant_id
-    unit_price = float(product_variant_price) - promotion_value
+    unit_price = product_variant_price - promotion_value
     undiscounted_unit_price = order_lines["order"]["lines"][0]["undiscountedUnitPrice"][
         "gross"
     ]["amount"]
-    assert undiscounted_unit_price == float(product_variant_price)
+    assert undiscounted_unit_price == product_variant_price
     assert (
         order_lines["order"]["lines"][0]["unitPrice"]["gross"]["amount"] == unit_price
     )
     promotion_reason = order_lines["order"]["lines"][0]["unitDiscountReason"]
     assert promotion_reason == f"Promotion: {promotion_id}"
+    subtotal = unit_price * quantity
 
     # Step 3 - Add manual discount to the order
+    manual_discount_value = 2
     manual_discount_input = {
         "valueType": "FIXED",
-        "value": 2,
+        "value": manual_discount_value,
     }
-
     discount_data = order_discount_add(
         e2e_staff_api_client,
         order_id,
@@ -121,10 +129,10 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     assert discount is not None
     assert discount["type"] == "MANUAL"
     assert discount["valueType"] == "FIXED"
-    discount_value = discount["value"]
-    assert discount_value == 2
+    assert discount["value"] == manual_discount_value
 
     # Step 4 - Add a shipping method to the order
+    base_shipping_price = 10
     input = {"shippingMethod": result_shipping_method_id}
     draft_update = draft_order_update(e2e_staff_api_client, order_id, input)
     order_shipping_id = draft_update["order"]["deliveryMethod"]["id"]
@@ -139,18 +147,33 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     assert order_complete_id == order_id
     order_line = order["order"]["lines"][0]
     assert order_line["productVariantId"] == product_variant_id
-    product_price = order_line["undiscountedUnitPrice"]["gross"]["amount"]
-    assert product_price == float(product_variant_price)
-    assert promotion_value == order_line["unitDiscount"]["amount"]
+    product_price = quantize_price(
+        Decimal(order_line["undiscountedUnitPrice"]["gross"]["amount"]), currency
+    )
+    manual_discount_subtotal_share = (
+        subtotal / (base_shipping_price + subtotal) * manual_discount_value
+    )
+    manual_discount_shipping_share = (
+        manual_discount_value - manual_discount_subtotal_share
+    )
+    assert product_price == product_variant_price
+    assert order_line["unitDiscount"]["amount"] == promotion_value
     assert order_line["unitDiscountType"] == "FIXED"
     assert order_line["unitDiscountValue"] == promotion_value
     assert order_line["unitDiscountReason"] == promotion_reason
     product_discounted_price = product_price - promotion_value
-    shipping_amount = order["order"]["shippingPrice"]["gross"]["amount"]
-    assert shipping_amount == shipping_price
-    subtotal = quantity * product_discounted_price - discount_value
-    assert subtotal == order["order"]["subtotal"]["gross"]["amount"]
-    assert subtotal == subtotal_gross_amount
+    shipping_amount = quantize_price(
+        Decimal(order["order"]["shippingPrice"]["gross"]["amount"]), currency
+    )
+    assert shipping_amount == quantize_price(
+        base_shipping_price - manual_discount_shipping_share, currency
+    )
+    assert float(shipping_amount) == shipping_price
+    subtotal = quantize_price(
+        quantity * product_discounted_price - manual_discount_subtotal_share, currency
+    )
+    assert float(subtotal) == order["order"]["subtotal"]["gross"]["amount"]
+    assert float(subtotal) == subtotal_gross_amount
     total = shipping_amount + subtotal
     assert total == order["order"]["total"]["gross"]["amount"]
     assert total == total_gross_amount
