@@ -3,7 +3,7 @@ import itertools
 import graphene
 from django.db import models
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, BaseFilterSet
-from graphene import Argument, InputField, String
+from graphene import Argument, InputField, String, relay
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
@@ -11,12 +11,13 @@ from ...core.scalars import Decimal
 from ..descriptions import (
     ADDED_IN_311,
     ADDED_IN_314,
+    ADDED_IN_319,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ..scalars import Date
-from . import NonNullList
+from . import BaseObjectType, NonNullList
 from .base import BaseInputObjectType
 from .common import DateRangeInput, DateTimeRangeInput, DecimalRangeInput, IntRangeInput
 from .converter import convert_form_field
@@ -252,3 +253,26 @@ class GlobalIDFilterInput(graphene.InputObjectType):
             + ADDED_IN_314
             + PREVIEW_FEATURE
         )
+
+
+class DecimalRange(BaseObjectType):
+    gte = Decimal(description="Decimal value greater than or equal to.")
+    lte = Decimal(description="Decimal value less than or equal to.")
+
+    class Meta:
+        description = "Represents decimal range." + ADDED_IN_319 + PREVIEW_FEATURE
+        interfaces = [relay.Node]
+
+
+class DecimalFilter(BaseObjectType):
+    eq = Decimal(description=FilterInputDescriptions.EQ)
+    one_of = NonNullList(Decimal, description=FilterInputDescriptions.ONE_OF)
+    range = graphene.Field(DecimalRange, description=FilterInputDescriptions.RANGE)
+
+    class Meta:
+        description = (
+            "Represents filtering options for decimal fields."
+            + ADDED_IN_319
+            + PREVIEW_FEATURE
+        )
+        interfaces = [relay.Node]

@@ -14279,7 +14279,7 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  checkoutAndOrderPredicate: JSON
+  checkoutAndOrderPredicate: CheckoutAndOrderPredicate
 
   """
   The reward type of the promotion rule.
@@ -14301,6 +14301,84 @@ type PromotionRule implements Node @doc(category: "Discounts") {
 enum RewardValueTypeEnum @doc(category: "Discounts") {
   FIXED
   PERCENTAGE
+}
+
+"""
+Represents predicate that must be met to apply the rule reward.
+
+Added in Saleor 3.19.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutAndOrderPredicate implements Node @doc(category: "Discounts") {
+  """The ID of the object."""
+  id: ID!
+
+  """
+  Represents checkout/order predicate that must be met to apply the rule reward.
+  """
+  discountedObjectPredicate: DiscountedObjectPredicate
+  AND: [CheckoutAndOrderPredicate!]
+  OR: [CheckoutAndOrderPredicate!]
+}
+
+"""
+Represents checkout/order predicate that must be met to apply the rule reward.
+
+Added in Saleor 3.19.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type DiscountedObjectPredicate implements Node @doc(category: "Discounts") {
+  """The ID of the object."""
+  id: ID!
+
+  """Checkout/order subtotal price predicate."""
+  subtotalPrice: DecimalFilter
+
+  """Checkout/order total price predicate."""
+  totalPrice: DecimalFilter
+  AND: [DiscountedObjectPredicate!]
+  OR: [DiscountedObjectPredicate!]
+}
+
+"""
+Represents filtering options for decimal fields.
+
+Added in Saleor 3.19.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type DecimalFilter implements Node {
+  """The ID of the object."""
+  id: ID!
+
+  """The value equal to."""
+  eq: Decimal
+
+  """The value included in."""
+  oneOf: [Decimal!]
+
+  """The value in range."""
+  range: DecimalRange
+}
+
+"""
+Represents decimal range.
+
+Added in Saleor 3.19.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type DecimalRange implements Node {
+  """The ID of the object."""
+  id: ID!
+
+  """Decimal value greater than or equal to."""
+  gte: Decimal
+
+  """Decimal value less than or equal to."""
+  lte: Decimal
 }
 
 """An enumeration."""
