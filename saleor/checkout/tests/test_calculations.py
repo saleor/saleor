@@ -293,7 +293,7 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     variant = line_info.variant
     product_price = variant.get_price(line_info.channel_listing)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     add_promo_code_to_checkout(
@@ -378,7 +378,7 @@ def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
     """
     # given
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout = checkout_with_items_and_shipping
     checkout.price_expiration = timezone.now()
@@ -436,7 +436,7 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
     """
     # given
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout = checkout_with_items_and_shipping
     checkout.price_expiration = timezone.now()

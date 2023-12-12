@@ -793,7 +793,7 @@ def test_base_tax_rate_gross_price_zero():
 
 def test_base_checkout_total(checkout_with_item, shipping_method, voucher_percentage):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     channel = checkout_with_item.channel
     currency = checkout_with_item.currency
 
@@ -834,7 +834,7 @@ def test_base_checkout_total_high_discount_on_entire_order_apply_once_per_order(
     voucher_channel_listing.discount_value = 100
     voucher_channel_listing.save(update_fields=["discount_value"])
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_method = shipping_method
     checkout_with_item.voucher_code = voucher_percentage.code
@@ -862,7 +862,7 @@ def test_base_checkout_total_high_discount_on_shipping(
     checkout_with_item, shipping_method, voucher_shipping_type
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     channel = checkout_with_item.channel
     shipping_price = shipping_method.channel_listings.get(channel=channel).price

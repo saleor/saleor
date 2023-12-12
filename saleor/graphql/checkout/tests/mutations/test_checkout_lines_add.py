@@ -116,7 +116,7 @@ def test_checkout_lines_add(
     assert calculate_checkout_quantity(lines) == 4
     assert not Reservation.objects.exists()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
@@ -190,7 +190,7 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     )
 
     # create checkout discount objects for checkout lines
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines_infos, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines_infos, manager)
     recalculate_checkout_discount(manager, checkout_info, lines_infos)
@@ -376,7 +376,7 @@ def test_checkout_lines_add_only_stock_in_cc_warehouse(
     assert calculate_checkout_quantity(lines) == 4
     assert not Reservation.objects.exists()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
