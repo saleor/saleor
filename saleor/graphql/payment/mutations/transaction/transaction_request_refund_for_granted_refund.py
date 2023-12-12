@@ -1,3 +1,4 @@
+import uuid
 from typing import TYPE_CHECKING, cast
 
 import graphene
@@ -99,6 +100,7 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
             amount_value=action_value,
             currency=transaction_item.currency,
             type=TransactionEventType.REFUND_REQUEST,
+            idempotency_key=str(uuid.uuid4()),
         )
 
         try:
