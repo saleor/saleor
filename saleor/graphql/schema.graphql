@@ -27463,6 +27463,24 @@ input PromotionRuleInput @doc(category: "Discounts") {
   """
   rewardValue: PositiveDecimal
 
+  """
+  Defines the conditions on the checkout/order level that must be met for the reward to be applied.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutAndOrderPredicate: CheckoutAndOrderPredicateInput
+
+  """
+  Defines the reward type of the promotion rule.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  rewardType: RewardTypeEnum
+
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
 }
@@ -27485,6 +27503,31 @@ input CataloguePredicateInput @doc(category: "Discounts") {
 
   """A list of conditions of which at least one must be met."""
   OR: [CataloguePredicateInput!]
+}
+
+input CheckoutAndOrderPredicateInput @doc(category: "Discounts") {
+  """Defines the conditions related to checkout and order objects."""
+  discountedObjectPredicate: DiscountedObjectPredicateInput
+
+  """List of conditions that must be met."""
+  AND: [CheckoutAndOrderPredicateInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CheckoutAndOrderPredicateInput!]
+}
+
+input DiscountedObjectPredicateInput @doc(category: "Discounts") {
+  """Subtotal price range condition."""
+  subtotalPrice: DecimalFilterInput
+
+  """Total price range condition."""
+  totalPrice: DecimalFilterInput
+
+  """List of conditions that must be met."""
+  AND: [DiscountedObjectPredicateInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [DiscountedObjectPredicateInput!]
 }
 
 """
@@ -27639,6 +27682,24 @@ input PromotionRuleCreateInput {
   """
   rewardValue: PositiveDecimal
 
+  """
+  Defines the conditions on the checkout/order level that must be met for the reward to be applied.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutAndOrderPredicate: CheckoutAndOrderPredicateInput
+
+  """
+  Defines the reward type of the promotion rule.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  rewardType: RewardTypeEnum
+
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
 
@@ -27711,6 +27772,24 @@ input PromotionRuleUpdateInput {
   Defines the discount value. Required when catalogue predicate is provided.
   """
   rewardValue: PositiveDecimal
+
+  """
+  Defines the conditions on the checkout/order level that must be met for the reward to be applied.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutAndOrderPredicate: CheckoutAndOrderPredicateInput
+
+  """
+  Defines the reward type of the promotion rule.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  rewardType: RewardTypeEnum
 
   """List of channel ids to add."""
   addChannels: [ID!]
