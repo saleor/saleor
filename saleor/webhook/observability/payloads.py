@@ -73,6 +73,10 @@ def dump_payload(payload: Any) -> bytes:
     ).encode("utf-8")
 
 
+def concatenate_json_events(events: list[bytes]) -> bytes:
+    return b"[" + b", ".join(events) + b"]"
+
+
 TRUNC_PLACEHOLDER = JsonTruncText(truncated=False)
 EMPTY_TRUNC = JsonTruncText(truncated=True)
 GQL_OPERATION_PLACEHOLDER = GraphQLOperation(

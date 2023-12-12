@@ -250,7 +250,7 @@ def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
                     webhook.saleor_domain,
                     webhook.secret_key,
                     event_type,
-                    events,
+                    observability.concatenate_json_events(events),
                 )
                 if response.status == EventDeliveryStatus.FAILED:
                     failed = len(events)

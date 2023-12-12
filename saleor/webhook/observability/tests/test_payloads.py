@@ -29,6 +29,7 @@ from ..payload_schema import (
 from ..payloads import (
     GQL_OPERATION_PLACEHOLDER_SIZE,
     JsonTruncText,
+    concatenate_json_events,
     dump_payload,
     generate_api_call_payload,
     generate_event_delivery_attempt_payload,
@@ -76,6 +77,15 @@ from ..utils import GraphQLOperationResponse
 )
 def test_to_camel_case(snake_payload, expected_camel):
     assert to_camel_case(snake_payload) == expected_camel
+
+
+@pytest.mark.parametrize(
+    "events", [[], [b'{"event": "data"}'], [b'{"event": "data"}' for _ in range(10)]]
+)
+def test_concatenate_json_events_with_one_event(events):
+    payload = json.loads(concatenate_json_events(events))
+    assert isinstance(payload, list)
+    assert len(payload) == len(events)
 
 
 def test_serialize_gql_operation_result(gql_operation_factory):
