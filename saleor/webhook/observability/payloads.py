@@ -150,7 +150,7 @@ def generate_api_call_payload(
     response: HttpResponse,
     gql_operations: list["GraphQLOperationResponse"],
     bytes_limit: int,
-) -> ApiCallPayload:
+) -> str:
     payload = ApiCallPayload(
         event_type=ObservabilityEventTypes.API_CALL,
         request=ApiCallRequest(
@@ -182,7 +182,7 @@ def generate_api_call_payload(
     payload["gql_operations"] = serialize_gql_operation_results(
         gql_operations, remaining_bytes
     )
-    return payload
+    return dump_payload(payload)
 
 
 @traced_payload_generator

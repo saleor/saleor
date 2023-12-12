@@ -253,49 +253,51 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory, site_settings
     payload = generate_api_call_payload(
         request, response, [first_result, second_result], 2048
     )
-    request_id = payload["request"]["id"]
+    request_id = json.loads(payload)["request"]["id"]
 
     assert UUID(request_id, version=4)
-    assert payload == ApiCallPayload(
-        event_type=ObservabilityEventTypes.API_CALL,
-        request=ApiCallRequest(
-            id=request_id,
-            method="POST",
-            url=f"http://{site_settings.site.domain}/graphql",
-            time=request.request_time.timestamp(),
-            content_length=19,
-            headers=[
-                ("Cookie", "***"),
-                ("Content-Length", "19"),
-                ("Content-Type", "application/json"),
-            ],
-        ),
-        app=App(
-            id=graphene.Node.to_global_id("App", app.pk), name="Sample app objects"
-        ),
-        response=ApiCallResponse(
-            headers=[
-                ("Content-Type", "application/json"),
-            ],
-            status_code=200,
-            content_length=20,
-        ),
-        gql_operations=[
-            GraphQLOperation(
-                name=JsonTruncText("FirstQuery", False),
-                operation_type="query",
-                query=JsonTruncText(query_a, False),
-                result=JsonTruncText(pretty_json(result_a), False),
-                result_invalid=False,
+    assert payload == dump_payload(
+        ApiCallPayload(
+            event_type=ObservabilityEventTypes.API_CALL,
+            request=ApiCallRequest(
+                id=request_id,
+                method="POST",
+                url=f"http://{site_settings.site.domain}/graphql",
+                time=request.request_time.timestamp(),
+                headers=[
+                    ("Cookie", "***"),
+                    ("Content-Length", "19"),
+                    ("Content-Type", "application/json"),
+                ],
+                content_length=19,
             ),
-            GraphQLOperation(
-                name=JsonTruncText("SecondQuery", False),
-                operation_type="query",
-                query=JsonTruncText(query_b, False),
-                result=JsonTruncText(pretty_json(result_b), False),
-                result_invalid=False,
+            response=ApiCallResponse(
+                headers=[
+                    ("Content-Type", "application/json"),
+                ],
+                status_code=200,
+                content_length=20,
             ),
-        ],
+            app=App(
+                id=graphene.Node.to_global_id("App", app.pk), name="Sample app objects"
+            ),
+            gql_operations=[
+                GraphQLOperation(
+                    name=JsonTruncText("FirstQuery", False),
+                    operation_type="query",
+                    query=JsonTruncText(query_a, False),
+                    result=JsonTruncText(pretty_json(result_a), False),
+                    result_invalid=False,
+                ),
+                GraphQLOperation(
+                    name=JsonTruncText("SecondQuery", False),
+                    operation_type="query",
+                    query=JsonTruncText(query_b, False),
+                    result=JsonTruncText(pretty_json(result_b), False),
+                    result_invalid=False,
+                ),
+            ],
+        )
     )
 
 
@@ -307,7 +309,7 @@ def test_generate_api_call_payload_request_not_from_app(rf):
     response = JsonResponse({"response": "data"})
     payload = generate_api_call_payload(request, response, [], 1024)
 
-    assert payload["app"] is None
+    assert json.loads(payload)["app"] is None
 
 
 def test_generate_api_call_payload_skip_operations_when_size_limit_too_low(
@@ -324,23 +326,20 @@ def test_generate_api_call_payload_skip_operations_when_size_limit_too_low(
     first_result = gql_operation_factory(query, "FirstQuery", None, result)
     second_result = gql_operation_factory(query, "SecondQuery", None, result)
     payload_without_operations = generate_api_call_payload(request, response, [], 1024)
-    bytes_limit = (
-        len(dump_payload(payload_without_operations))
-        + GQL_OPERATION_PLACEHOLDER_SIZE * 2
-    )
-    operation_trunc_payload = GraphQLOperation(
-        name=JsonTruncText("", True),
-        operation_type="query",
-        query=JsonTruncText("", True),
-        result=JsonTruncText("", True),
-        result_invalid=False,
-    )
+    bytes_limit = len(payload_without_operations) + GQL_OPERATION_PLACEHOLDER_SIZE * 2
+    operation_trunc_payload = {
+        "name": {"text": "", "truncated": True},
+        "operationType": "query",
+        "query": {"text": "", "truncated": True},
+        "result": {"text": "", "truncated": True},
+        "resultInvalid": False,
+    }
 
     payload = generate_api_call_payload(
         request, response, [first_result, second_result], bytes_limit
     )
 
-    assert payload["gql_operations"] == [operation_trunc_payload] * 2
+    assert json.loads(payload)["gqlOperations"] == [operation_trunc_payload] * 2
 
 
 def test_generate_api_call_payload_when_too_low_bytes_limit(app, rf):
