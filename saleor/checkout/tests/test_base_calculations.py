@@ -66,7 +66,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale(
     checkout_with_single_item, discount_info, category
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
         checkout_with_single_item, checkout_lines_info, manager
@@ -117,7 +117,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_custom_price(
     line.price_override = price_override
     line.save(update_fields=["price_override"])
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
         checkout_with_single_item, checkout_lines_info, manager
@@ -392,7 +392,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_and_voucher(
     voucher_channel_listing.discount = voucher_amount
     voucher_channel_listing.save()
     checkout_with_single_item.voucher_code = voucher.code
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
         checkout_with_single_item, checkout_lines_info, manager
@@ -473,7 +473,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale(
     checkout_line.quantity = quantity
     checkout_line.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
         checkout_with_single_item, checkout_lines_info, manager
@@ -539,7 +539,7 @@ def test_calculate_base_line_total_price_with_1_cent_variant_on_10_percentage_sa
     variant_channel_listing.price_amount = Decimal("0.01")
     variant_channel_listing.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
         checkout_with_single_item, checkout_lines_info, manager
@@ -721,7 +721,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher(
     voucher_channel_listing.save()
 
     checkout_with_single_item.voucher_code = voucher.code
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
         checkout_with_single_item, checkout_lines_info, manager
@@ -787,7 +787,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher_applie
     voucher_channel_listing.save()
 
     checkout_with_single_item.voucher_code = voucher.code
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
         checkout_with_single_item, checkout_lines_info, manager
@@ -843,7 +843,7 @@ def test_base_tax_rate_gross_price_zero():
 
 def test_base_checkout_total(checkout_with_item, shipping_method, voucher_percentage):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     channel = checkout_with_item.channel
     currency = checkout_with_item.currency
 
@@ -884,7 +884,7 @@ def test_base_checkout_total_high_discount_on_entire_order_apply_once_per_order(
     voucher_channel_listing.discount_value = 100
     voucher_channel_listing.save(update_fields=["discount_value"])
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_method = shipping_method
     checkout_with_item.voucher_code = voucher_percentage.code
@@ -912,7 +912,7 @@ def test_base_checkout_total_high_discount_on_shipping(
     checkout_with_item, shipping_method, voucher_shipping_type
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     channel = checkout_with_item.channel
     shipping_price = shipping_method.channel_listings.get(channel=channel).price

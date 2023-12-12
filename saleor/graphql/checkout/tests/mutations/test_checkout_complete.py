@@ -189,7 +189,7 @@ def test_checkout_complete_0_total_value_no_payment(
 
     checkout.refresh_from_db()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.checkout_total(
@@ -253,7 +253,7 @@ def test_checkout_complete_0_total_value_from_voucher(
 
     checkout.refresh_from_db()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -314,7 +314,7 @@ def test_checkout_complete_0_total_value_from_giftcard(
 
     checkout.refresh_from_db()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(

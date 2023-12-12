@@ -1077,10 +1077,10 @@ def test_checkout_payment_charge(
         }
     """
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_billing_address)
     checkout_info = fetch_checkout_info(checkout_with_billing_address, lines, manager)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     total = calculations.checkout_total(
         manager=manager,
         checkout_info=checkout_info,

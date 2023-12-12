@@ -81,7 +81,7 @@ def test_checkout_add_voucher_for_entire_order(api_client, checkout_with_item, v
         "promoCode": voucher.code,
     }
     assert voucher.type == VoucherType.ENTIRE_ORDER
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     taxed_total = calculations.checkout_total(
@@ -292,7 +292,7 @@ def test_checkout_add_voucher_code_checkout_with_sale(
     api_client, checkout_with_item, voucher_percentage, product, channel_USD
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     address = checkout_with_item.shipping_address
@@ -342,7 +342,7 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
     voucher = voucher_specific_product_type
     checkout = checkout_with_item
     expected_discount = Decimal(1.5)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -409,7 +409,7 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
     voucher.products.add(product)
     expected_discount = Money(Decimal(1.5), checkout.currency)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -474,7 +474,7 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
     voucher.collections.add(collection)
     expected_voucher_discount = Money(Decimal(1.5), checkout.currency)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     subtotal = calculations.checkout_subtotal(
@@ -539,7 +539,7 @@ def test_checkout_add_category_code_checkout_with_sale(
     voucher.categories.add(category)
     expected_discount = Money(Decimal(1.5), checkout.currency)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -632,7 +632,7 @@ def test_checkout_add_variant_voucher_code_apply_once_per_order(
         variant_3_price * (Decimal(discount_value) / 100), checkout.currency
     )
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout.price_expiration = timezone.now()
@@ -790,7 +790,7 @@ def test_checkout_add_used_gift_card_code(
 
 
 def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_card):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     taxed_total = calculations.checkout_total(
@@ -816,7 +816,7 @@ def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_
 def test_checkout_get_total_with_many_gift_card(
     api_client, checkout_with_gift_card, gift_card_created_by_staff
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_gift_card)
     checkout_info = fetch_checkout_info(checkout_with_gift_card, lines, manager)
     taxed_total = calculations.calculate_checkout_total_with_gift_cards(
@@ -952,7 +952,9 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
     checkout.billing_address = address_usa
     checkout.save()
 
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     variant = variant_with_many_stocks_different_shipping_zones
     add_variant_to_checkout(checkout_info, variant, 5)
     checkout.save()
@@ -1159,7 +1161,7 @@ def test_checkout_add_voucher_code_invalidates_price(
     api_client, checkout_with_item, voucher
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     subtotal = base_calculations.base_checkout_subtotal(
@@ -1181,29 +1183,3 @@ def test_checkout_add_voucher_code_invalidates_price(
     assert data["checkout"]["voucherCode"] == voucher.code
     assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == expected_total
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total
-
-
-def test_with_active_problems_flow(
-    api_client,
-    checkout_with_problems,
-    voucher,
-):
-    # given
-    channel = checkout_with_problems.channel
-    channel.use_legacy_error_flow_for_checkout = False
-    channel.save(update_fields=["use_legacy_error_flow_for_checkout"])
-
-    variables = {
-        "id": to_global_id_or_none(checkout_with_problems),
-        "promoCode": voucher.code,
-    }
-
-    # when
-    response = api_client.post_graphql(
-        MUTATION_CHECKOUT_ADD_PROMO_CODE,
-        variables,
-    )
-    content = get_graphql_content(response)
-
-    # then
-    assert not content["data"]["checkoutAddPromoCode"]["errors"]

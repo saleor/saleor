@@ -636,7 +636,7 @@ def test_use_default_country_rate_when_no_tax_class_was_set_before(
     order_with_lines,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order = order_with_lines
     country = get_order_country(order)
     TaxClassCountryRate.objects.create(country=country, rate=20)
