@@ -29,10 +29,10 @@ logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
 
 VARIANTS_UPDATE_BATCH = 500
-# Results in update time ~2s for 500 promotions - TODO: calculate batch size
-DISCOUNTED_PRODUCT_BATCH = 500
-# TODO: calculate batch size
-PROMOTION_RULE_BATCH_SIZE = 500
+# Results in update time ~0.2s
+DISCOUNTED_PRODUCT_BATCH = 2000
+# Results in update time ~1.5s
+PROMOTION_RULE_BATCH_SIZE = 250
 
 
 def _variants_in_batches(variants_qs):
@@ -165,8 +165,7 @@ def update_products_discounted_prices_for_promotion_task(
     )[:PROMOTION_RULE_BATCH_SIZE]
     if ids := list(rules.values_list("pk", flat=True)):
         qs = PromotionRule.objects.filter(pk__in=ids)
-        # TODO: check for big number of variants
-        fetch_variants_for_promotion_rules(product_ids, rules=qs)
+        fetch_variants_for_promotion_rules(rules=qs)
         update_products_discounted_prices_for_promotion_task.delay(product_ids, ids[-1])
     else:
         # when all promotion rules variants are up to date, call discounted prices
