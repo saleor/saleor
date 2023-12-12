@@ -4,6 +4,7 @@ from celery.canvas import Signature
 
 from ....core import EventDeliveryStatus
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.observability import concatenate_json_events
 from ....webhook.transport.asynchronous.transport import (
     observability_reporter_task,
     observability_send_events,
@@ -23,7 +24,7 @@ def test_observability_reporter_task(
     observability_webhook_data,
     settings,
 ):
-    events, batch_count = [b"event", b"event"], 5
+    events, batch_count = [b'{"event": "data"}', b'{"event": "data"}'], 5
     webhooks = [observability_webhook_data]
     mock_pop_events_with_remaining_size.return_value = events, batch_count
     mock_get_webhooks.return_value = webhooks
@@ -49,7 +50,7 @@ def test_observability_send_events(
     mock_send_observability_events,
     observability_webhook_data,
 ):
-    events, batch_count = [b"event", b"event"], 5
+    events, batch_count = [b'{"event": "data"}', b'{"event": "data"}'], 5
     webhooks = [observability_webhook_data]
     mock_pop_events_with_remaining_size.return_value = events, batch_count
     mock_get_webhooks.return_value = webhooks
@@ -74,7 +75,7 @@ def test_send_observability_events(
         observability_webhook_data.saleor_domain,
         observability_webhook_data.secret_key,
         WebhookEventAsyncType.OBSERVABILITY,
-        events,
+        concatenate_json_events(events),
     )
 
 
