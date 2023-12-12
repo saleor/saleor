@@ -11,6 +11,7 @@ from ...discount import RewardValueType
 from ...discount.models import Promotion
 from ..tasks import (
     _get_preorder_variants_to_clean,
+    update_discounted_prices_task,
     update_products_discounted_prices_for_promotion_task,
     update_products_discounted_prices_of_promotion_task,
     update_products_search_vector_task,
@@ -70,9 +71,29 @@ def test_update_products_discounted_prices_of_promotion_task_discount_does_not_e
     assert f"Cannot find promotion with id: {promotion_id}" in caplog.text
 
 
+@patch("saleor.product.tasks.PROMOTION_RULE_BATCH_SIZE", 1)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
+@patch("saleor.product.utils.variants.fetch_variants_for_promotion_rules")
+def test_update_products_discounted_prices_for_promotion_task(
+    fetch_variants_for_promotion_rules_mock,
+    update_discounted_prices_task_mock,
+    promotion_list,
+    product_list,
+):
+    # given
+    product_ids = [product.id for product in product_list]
+
+    # when
+    update_products_discounted_prices_for_promotion_task(product_ids)
+
+    # then
+    fetch_variants_for_promotion_rules_mock.call_count == len(product_ids)
+    update_discounted_prices_task_mock.assert_called_once_with(product_ids)
+
+
 @patch("saleor.product.tasks.DISCOUNTED_PRODUCT_BATCH", 1)
 @patch("saleor.product.utils.variant_prices.update_discounted_prices_for_promotion")
-def test_update_products_discounted_prices_for_promotion_task(
+def test_update_discounted_prices_task(
     update_products_discounted_prices_mock,
     product_list,
 ):
@@ -80,7 +101,7 @@ def test_update_products_discounted_prices_for_promotion_task(
     ids = [product.id for product in product_list]
 
     # when
-    update_products_discounted_prices_for_promotion_task(ids)
+    update_discounted_prices_task(ids)
 
     # then
     update_products_discounted_prices_mock.call_count == len(ids)
