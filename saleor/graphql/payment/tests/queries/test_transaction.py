@@ -61,6 +61,7 @@ TRANSACTION_QUERY = """
                     amount
                 }
                 type
+                idempotencyKey
                 createdBy{
                     ... on User {
                         id
