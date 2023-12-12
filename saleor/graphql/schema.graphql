@@ -14261,6 +14261,11 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   """
   channels: [Channel!]
 
+  """
+  The reward value of the promotion rule. Defines the discount value applied when the rule conditions are met.
+  """
+  rewardValue: PositiveDecimal
+
   """The type of reward value of the promotion rule."""
   rewardValueType: RewardValueTypeEnum
 
@@ -14269,13 +14274,21 @@ type PromotionRule implements Node @doc(category: "Discounts") {
 
   """
   The checkout/order predicate that must be met to apply the rule reward.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   checkoutAndOrderPredicate: JSON
 
   """
-  The reward value of the promotion rule. Defines the discount value applied when the rule conditions are met.
+  The reward type of the promotion rule.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  rewardValue: PositiveDecimal
+  rewardType: RewardTypeEnum
 
   """Returns translated promotion rule fields for the given language code."""
   translation(
@@ -14288,6 +14301,11 @@ type PromotionRule implements Node @doc(category: "Discounts") {
 enum RewardValueTypeEnum @doc(category: "Discounts") {
   FIXED
   PERCENTAGE
+}
+
+"""An enumeration."""
+enum RewardTypeEnum @doc(category: "Discounts") {
+  SUBTOTAL_DISCOUNT
 }
 
 union PromotionEvent = PromotionCreatedEvent | PromotionUpdatedEvent | PromotionStartedEvent | PromotionEndedEvent | PromotionRuleCreatedEvent | PromotionRuleUpdatedEvent | PromotionRuleDeletedEvent

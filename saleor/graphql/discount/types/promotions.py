@@ -6,7 +6,7 @@ from ....permission.auth_filters import AuthorizationFilters
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection
-from ...core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_317, ADDED_IN_319, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
 from ...core.scalars import JSON, PositiveDecimal
@@ -20,7 +20,7 @@ from ..dataloaders import (
     PromotionEventsByPromotionIdLoader,
     PromotionRulesByPromotionIdLoader,
 )
-from ..enums import RewardValueTypeEnum
+from ..enums import RewardTypeEnum, RewardValueTypeEnum
 from .promotion_events import PromotionEvent
 
 
@@ -82,6 +82,12 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
         ],
     )
+    reward_value = PositiveDecimal(
+        description=(
+            "The reward value of the promotion rule. Defines the discount value "
+            "applied when the rule conditions are met."
+        )
+    )
     reward_value_type = RewardValueTypeEnum(
         description="The type of reward value of the promotion rule."
     )
@@ -93,13 +99,14 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     checkout_and_order_predicate = JSON(
         description=(
             "The checkout/order predicate that must be met to apply the rule reward."
+            + ADDED_IN_319
+            + PREVIEW_FEATURE
         ),
     )
-    reward_value = PositiveDecimal(
+    reward_type = RewardTypeEnum(
         description=(
-            "The reward value of the promotion rule. Defines the discount value "
-            "applied when the rule conditions are met."
-        )
+            "The reward type of the promotion rule." + ADDED_IN_319 + PREVIEW_FEATURE
+        ),
     )
     translation = TranslationField(PromotionRuleTranslation, type_name="promotion rule")
 

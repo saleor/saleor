@@ -814,7 +814,7 @@ class ProductBulkCreate(BaseMutation):
                     image_data = HTTPClient.send_request(
                         "GET", media_url, stream=True, timeout=30, allow_redirects=False
                     )
-                    image_data = File(image_data.raw, filename)
+                    image_data = File(image_data.data, filename)
                     media_to_create.append(
                         models.ProductMedia(
                             image=image_data,
