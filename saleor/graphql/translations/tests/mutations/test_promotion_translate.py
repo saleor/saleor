@@ -92,6 +92,7 @@ def test_promotion_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
 
 

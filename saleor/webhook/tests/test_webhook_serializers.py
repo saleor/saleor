@@ -283,7 +283,7 @@ def test_serialize_checkout_lines_for_tax_calculation(
     # given
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     tax_configuration = checkout_info.tax_configuration
@@ -346,7 +346,7 @@ def test_serialize_checkout_lines_for_tax_calculation_with_promotion(
     update_discounted_prices_for_promotion(Product.objects.all())
 
     lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     create_or_update_discount_objects_from_promotion_for_checkout(lines)
 

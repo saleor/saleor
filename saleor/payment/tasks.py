@@ -108,7 +108,7 @@ def transaction_release_funds_for_checkout_task():
                 [event for _tr, event in transactions_with_cancel_request_events]
                 + [event for _tr, event in transactions_with_charge_request_events]
             )
-            manager = get_plugins_manager()
+            manager = get_plugins_manager(allow_replica=False)
             for transaction, event in transactions_with_cancel_request_events:
                 channel_slug = channel_map[transaction.channel_id].slug
                 try:
