@@ -24,7 +24,7 @@ def handle_sale_toggle():
     Send the notifications about starting or ending sales and call recalculation
     of product discounted prices.
     """
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     sales = get_sales_to_notify_about()
 

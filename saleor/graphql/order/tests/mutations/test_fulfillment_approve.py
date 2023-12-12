@@ -264,7 +264,7 @@ def test_fulfillment_approve_gift_cards_created(
                 warehouse_pk=stock_2.warehouse.pk,
             ),
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     query = APPROVE_FULFILLMENT_MUTATION

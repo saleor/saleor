@@ -79,7 +79,7 @@ class WebhookResponse:
 
 
 def create_deliveries_for_subscriptions(
-    event_type, subscribable_object, webhooks, requestor=None
+    event_type, subscribable_object, webhooks, requestor=None, allow_replica=False
 ) -> List[EventDelivery]:
     """Create a list of event deliveries with payloads based on subscription query.
 
@@ -91,6 +91,7 @@ def create_deliveries_for_subscriptions(
     :param webhooks: sequence of async webhooks.
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :return: List of event deliveries to send via webhook tasks.
+    :param allow_replica: use a replica database.
     """
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
@@ -106,7 +107,10 @@ def create_deliveries_for_subscriptions(
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
             request=initialize_request(
-                requestor, event_type in WebhookEventSyncType.ALL, event_type=event_type
+                requestor,
+                event_type in WebhookEventSyncType.ALL,
+                event_type=event_type,
+                allow_replica=allow_replica,
             ),
             app=webhook.app,
         )
@@ -132,7 +136,12 @@ def create_deliveries_for_subscriptions(
 
 
 def create_delivery_for_subscription_sync_event(
-    event_type, subscribable_object, webhook, requestor=None, request=None
+    event_type,
+    subscribable_object,
+    webhook,
+    requestor=None,
+    request=None,
+    allow_replica=False,
 ) -> Optional[EventDelivery]:
     """Generate webhook payload based on subscription query and create delivery object.
 
@@ -145,6 +154,7 @@ def create_delivery_for_subscription_sync_event(
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :param request: used to share context between sync event calls
     :return: List of event deliveries to send via webhook tasks.
+    :param allow_replica: use replica database.
     """
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
@@ -154,7 +164,10 @@ def create_delivery_for_subscription_sync_event(
 
     if not request:
         request = initialize_request(
-            requestor, event_type in WebhookEventSyncType.ALL, event_type=event_type
+            requestor,
+            event_type in WebhookEventSyncType.ALL,
+            event_type=event_type,
+            allow_replica=allow_replica,
         )
 
     data = generate_payload_from_subscription(
@@ -188,6 +201,7 @@ def trigger_webhooks_async(
     subscribable_object=None,
     requestor=None,
     legacy_data_generator=None,
+    allow_replica=False,
 ):
     """Trigger async webhooks - both regular and subscription.
 
@@ -199,6 +213,7 @@ def trigger_webhooks_async(
     :param subscribable_object: subscribable object used in subscription webhooks.
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :param legacy_data_generator: used to generate payload for regular webhooks.
+    :param allow_replica: use a replica database.
     """
     regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
     deliveries = []
@@ -224,6 +239,7 @@ def trigger_webhooks_async(
                 subscribable_object=subscribable_object,
                 webhooks=subscription_webhooks,
                 requestor=requestor,
+                allow_replica=allow_replica,
             )
         )
 
@@ -242,6 +258,7 @@ def trigger_webhook_sync(
     event_type: str,
     payload: str,
     webhook: "Webhook",
+    allow_replica: bool,
     subscribable_object=None,
     timeout=None,
     request=None,
@@ -256,6 +273,7 @@ def trigger_webhook_sync(
             subscribable_object=subscribable_object,
             webhook=webhook,
             request=request,
+            allow_replica=allow_replica,
         )
         if not delivery:
             return None

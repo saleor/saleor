@@ -1529,7 +1529,7 @@ def test_handle_successful_payment_intent_for_checkout_when_already_processing_c
 ):
     # given
     plugin = stripe_plugin()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     payment = payment_stripe_for_checkout
     payment.to_confirm = True
     payment.save()

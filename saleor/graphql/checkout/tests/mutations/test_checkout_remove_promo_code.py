@@ -274,7 +274,7 @@ def test_checkout_remove_voucher_code_invalidates_price(
     checkout_with_item.price_expiration = timezone.now() + timedelta(days=2)
     checkout_with_item.voucher_code = voucher.code
     checkout_with_item.save(update_fields=["voucher_code", "price_expiration"])
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     subtotal = base_calculations.base_checkout_subtotal(

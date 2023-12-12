@@ -86,7 +86,7 @@ def test_calculate_checkout_line_total(
     plugin_configuration,
 ):
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -141,7 +141,7 @@ def test_calculate_checkout_line_total_with_sale(
     plugin_configuration,
 ):
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -198,7 +198,7 @@ def test_calculate_checkout_line_total_with_variant_on_sale(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line = lines[0]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     checkout.shipping_address = address
@@ -264,7 +264,7 @@ def test_calculate_checkout_line_total_with_voucher(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     checkout.shipping_address = address
@@ -324,7 +324,7 @@ def test_calculate_checkout_line_total_with_voucher_once_per_order(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     checkout.shipping_address = address
@@ -384,7 +384,7 @@ def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     checkout.shipping_address = address
@@ -448,7 +448,7 @@ def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher_only_onc
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     checkout.shipping_address = address
@@ -505,7 +505,7 @@ def test_calculate_checkout_line_without_sku_total(
     )
 
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -566,7 +566,7 @@ def test_calculate_checkout_line_without_sku_total_with_sale(
     )
 
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -617,7 +617,7 @@ def test_calculate_order_line_total(
     plugin_configuration,
 ):
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     order = order_line.order
 
@@ -686,7 +686,7 @@ def test_calculate_order_line_without_sku_total(
     )
 
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     site_settings.company_address = address
     site_settings.save(update_fields=["company_address"])
@@ -744,7 +744,7 @@ def test_calculate_order_line_total_with_discount(
 ):
     # given
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     site_settings.company_address = address
     site_settings.save(update_fields=["company_address"])
@@ -824,7 +824,7 @@ def test_calculate_order_line_total_entire_order_voucher(
 ):
     # given
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     order = order_line.order
     channel = order.channel
@@ -916,7 +916,7 @@ def test_calculate_order_line_total_shipping_voucher(
 ):
     # given
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     order = order_line.order
     channel = order_line.order.channel
@@ -995,7 +995,7 @@ def test_calculate_order_line_total_order_not_valid(
     plugin_configuration,
 ):
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     site_settings.company_address = address
     site_settings.save(update_fields=["company_address"])
@@ -1045,7 +1045,7 @@ def test_calculate_order_shipping_order_not_valid(
 ):
     # given
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     site_settings.company_address = address
     site_settings.save(update_fields=["company_address"])
@@ -1115,7 +1115,7 @@ def test_calculate_checkout_total_uses_default_calculation(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.save()
 
@@ -1182,7 +1182,7 @@ def test_calculate_checkout_total_uses_default_calculation_with_sale(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.save()
 
@@ -1254,7 +1254,7 @@ def test_calculate_checkout_total(
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.save()
 
@@ -1329,7 +1329,7 @@ def test_calculate_checkout_total_with_sale(
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.save()
 
@@ -1405,7 +1405,7 @@ def test_calculate_checkout_total_for_JPY(
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout.shipping_address = ship_to_pl_address
     checkout.save()
 
@@ -1479,7 +1479,7 @@ def test_calculate_checkout_total_for_JPY_with_sale(
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout.shipping_address = ship_to_pl_address
     checkout.save()
 
@@ -1554,7 +1554,7 @@ def test_calculate_checkout_total_voucher_on_entire_order(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     channel = checkout_with_item.channel
 
     tax_configuration = channel.tax_configuration
@@ -1611,7 +1611,7 @@ def test_calculate_checkout_total_voucher_on_entire_order_applied_once_per_order
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     site_settings.company_address = address
     site_settings.save()
 
@@ -1684,7 +1684,7 @@ def test_calculate_checkout_total_voucher_on_entire_order_product_without_taxes(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     channel = checkout_with_item.channel
 
     tax_configuration = channel.tax_configuration
@@ -1758,7 +1758,7 @@ def test_calculate_checkout_total_voucher_on_shipping(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     channel = checkout_with_item.channel
 
     tax_configuration = channel.tax_configuration
@@ -1805,7 +1805,7 @@ def test_calculate_checkout_total_not_charged_product_and_shipping_with_0_price(
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.save()
     channel = checkout_with_item.channel
@@ -1861,7 +1861,7 @@ def test_calculate_checkout_shipping(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     site_settings.company_address = address
     site_settings.save()
 
@@ -1907,7 +1907,7 @@ def test_calculate_checkout_subtotal(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     tax_configuration = checkout_with_item.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
@@ -1957,7 +1957,7 @@ def test_calculate_checkout_subtotal_with_sale(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     tax_configuration = checkout_with_item.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
@@ -2004,7 +2004,7 @@ def test_calculate_checkout_subtotal_for_product_without_tax(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     tax_configuration = checkout.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = True
@@ -2063,7 +2063,7 @@ def test_calculate_checkout_subtotal_voucher_on_entire_order(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     channel = checkout_with_item.channel
 
     tax_configuration = channel.tax_configuration
@@ -2126,7 +2126,7 @@ def test_calculate_checkout_subtotal_voucher_on_shipping(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     channel = checkout_with_item.channel
 
     tax_configuration = channel.tax_configuration
@@ -2162,7 +2162,7 @@ def test_calculate_order_shipping(
     order_line, shipping_zone, site_settings, address, plugin_configuration
 ):
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
@@ -2183,7 +2183,7 @@ def test_calculate_order_total(
     order_line, shipping_zone, site_settings, address, plugin_configuration
 ):
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
@@ -2210,7 +2210,7 @@ def test_calculate_order_total_for_JPY(
 ):
     # given
     plugin_configuration(channel=channel_JPY)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order = order_line_JPY.order
     method = shipping_zone_JPY.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
@@ -2235,7 +2235,7 @@ def test_calculate_order_shipping_entire_order_voucher(
 ):
     # given
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     variant = order_line.variant
     channel = order_line.order.channel
@@ -2287,7 +2287,7 @@ def test_calculate_order_shipping_free_shipping_voucher(
 ):
     # given
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     variant = order_line.variant
     channel = order_line.order.channel
@@ -2346,7 +2346,7 @@ def test_calculate_order_shipping_voucher_on_shipping(
 ):
     # given
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     variant = order_line.variant
     channel = order_line.order.channel
@@ -2398,7 +2398,7 @@ def test_calculate_order_shipping_zero_shipping_amount(
     order_line, shipping_zone, site_settings, address, plugin_configuration
 ):
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
@@ -2423,7 +2423,7 @@ def test_calculate_order_shipping_base_shipping_price_0(
     order_line, shipping_zone, site_settings, address, plugin_configuration
 ):
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
@@ -2448,7 +2448,7 @@ def test_calculate_order_shipping_not_shippable_order(
 ):
     # given
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     order_line.is_shipping_required = False
     order_line.save(update_fields=["is_shipping_required"])
@@ -2478,7 +2478,7 @@ def test_calculate_order_line_unit(
     plugin_configuration,
 ):
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order_line.unit_price = TaxedMoney(
         net=Money("10.00", "USD"), gross=Money("10.00", "USD")
     )
@@ -2520,7 +2520,7 @@ def test_calculate_order_line_unit_in_JPY(
     plugin_configuration,
 ):
     plugin_configuration(channel=channel_JPY)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # Net price from `test_calculate_checkout_line_unit_price_in_JPY`
     order_line_JPY.unit_price = TaxedMoney(
@@ -2563,7 +2563,7 @@ def test_calculate_order_line_unit_with_discount(
 ):
     # given
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     unit_price = TaxedMoney(net=Money("10.00", "USD"), gross=Money("10.00", "USD"))
     order_line.unit_price = unit_price
     order_line.base_unit_price = unit_price.gross
@@ -2613,7 +2613,7 @@ def test_calculate_checkout_line_unit_price(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line = lines[0]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     checkout.shipping_address = address
@@ -2661,7 +2661,7 @@ def test_calculate_checkout_line_unit_price_in_JPY(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_line = lines[0]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone_JPY.shipping_methods.get()
     checkout.shipping_address = ship_to_pl_address
@@ -2700,7 +2700,7 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line = lines[0]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     checkout.shipping_address = address
@@ -2762,7 +2762,7 @@ def test_calculate_checkout_line_unit_price_with_voucher(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     checkout.shipping_address = address
@@ -2822,7 +2822,7 @@ def test_calculate_checkout_line_unit_price_with_voucher_once_per_order(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     checkout.shipping_address = address
@@ -2883,7 +2883,7 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale_and_voucher(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     checkout.shipping_address = address
@@ -2947,7 +2947,7 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale_and_voucher_onl
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     checkout.shipping_address = address
@@ -2997,7 +2997,7 @@ def test_preprocess_order_creation(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     site_settings.company_address = address
     site_settings.save()
 
@@ -3029,7 +3029,7 @@ def test_preprocess_order_creation_no_lines_data(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     site_settings.company_address = address
     site_settings.save()
 
@@ -3060,7 +3060,7 @@ def test_preprocess_order_creation_wrong_data(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -3092,7 +3092,7 @@ def test_preprocess_order_creation_shipping_voucher_no_tax_class_on_delivery_met
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     site_settings.company_address = address
     site_settings.save()
 
@@ -3152,7 +3152,7 @@ def test_checkout_needs_new_fetch(checkout_with_item, address, shipping_method):
         from_postal_code="53-601",
         from_country="PL",
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     checkout_data = generate_request_data_from_checkout(checkout_info, lines, config)
@@ -3183,7 +3183,7 @@ def test_generate_request_data_from_checkout_for_cc(
         from_postal_code="53-601",
         from_country="PL",
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
@@ -3228,7 +3228,7 @@ def test_generate_request_data_from_checkout_for_cc_and_single_location(
     avatax_config.from_postal_code = address_data.get("postal_code")
     avatax_config.from_country = address_data.get("country")
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
@@ -3283,7 +3283,7 @@ def test_get_checkout_tax_data_with_single_point(
     checkout_with_item.collection_point = warehouse
     checkout_with_item.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
@@ -3310,7 +3310,7 @@ def test_taxes_need_new_fetch_uses_cached_data(checkout_with_item, address):
         from_postal_code="53-601",
         from_country="PL",
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     checkout_data = generate_request_data_from_checkout(checkout_info, lines, config)
@@ -3337,7 +3337,7 @@ def test_get_checkout_line_tax_rate(
     )
     unit_price = TaxedMoney(Money(12, "USD"), Money(14, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -3397,7 +3397,7 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
     )
     unit_price = TaxedMoney(Money(12, "USD"), Money(12, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     tax_configuration = checkout_with_item.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = False
@@ -3466,7 +3466,7 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
     )
     unit_price = TaxedMoney(Money(12, "USD"), Money(12, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     product_type = ProductType.objects.create(
         name="non-taxable", kind=ProductTypeKind.NORMAL, tax_class=tax_class_zero_rates
@@ -3533,7 +3533,7 @@ def test_get_checkout_line_tax_rate_checkout_no_shipping_method_default_value_re
     plugin_configuration()
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_address = address
     checkout_with_item.save(update_fields=["shipping_address"])
@@ -3567,7 +3567,7 @@ def test_get_checkout_line_tax_rate_error_in_response(
     )
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -3607,7 +3607,7 @@ def test_get_order_line_tax_rate(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(14, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     product = Product.objects.get(name=order_line.product_name)
 
@@ -3638,7 +3638,7 @@ def test_get_order_line_tax_rate_order_not_valid_default_value_returned(
     plugin_configuration()
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     product = Product.objects.get(name=order_line.product_name)
 
@@ -3668,7 +3668,7 @@ def test_get_order_line_tax_rate_error_in_response(
     )
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     product = Product.objects.get(name=order_line.product_name)
 
@@ -3701,7 +3701,7 @@ def test_get_checkout_shipping_tax_rate(
     plugin_configuration()
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -3726,7 +3726,7 @@ def test_get_checkout_shipping_tax_rate(
 def test__get_shipping_tax_rate_handles_multiple_tax_districts(
     avalara_response_for_checkout_with_items_and_shipping, channel_USD
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
 
     # 0.46 == sum of two tax districts
@@ -3739,7 +3739,7 @@ def test__get_shipping_tax_rate_handles_multiple_tax_districts(
 def test__get_unit_tax_rate_handles_multiple_tax_districts(
     avalara_response_for_checkout_with_items_and_shipping, channel_USD
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
 
     # 0.36 == sum of two tax districts
@@ -3756,7 +3756,7 @@ def test_get_checkout_shipping_tax_rate_checkout_not_valid_default_value_returne
     plugin_configuration()
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_address = address
     checkout_with_item.save(update_fields=["shipping_address"])
@@ -3788,7 +3788,7 @@ def test_get_checkout_shipping_tax_rate_error_in_response(
     )
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -3821,7 +3821,7 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
     )
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -3854,7 +3854,7 @@ def test_get_order_shipping_tax_rate(
     plugin_configuration()
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
@@ -3880,7 +3880,7 @@ def test_get_order_shipping_tax_rate_shipping_with_tax_class(
     plugin_configuration()
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
@@ -3909,7 +3909,7 @@ def test_get_order_shipping_tax_rate_order_not_valid_default_value_returned(
     plugin_configuration()
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     tax_rate = manager.get_order_shipping_tax_rate(order, shipping_price)
@@ -3931,7 +3931,7 @@ def test_get_order_shipping_tax_rate_error_in_response(
     )
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
@@ -3958,7 +3958,7 @@ def test_get_order_shipping_tax_rate_skip_plugin(
     )
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
@@ -3974,7 +3974,7 @@ def test_get_order_shipping_tax_rate_skip_plugin(
 
 def test_get_plugin_configuration(settings, channel_USD):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID)
 
     configuration_fields = [
@@ -3994,7 +3994,7 @@ def test_save_plugin_configuration(
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     plugin_configuration()
     api_get_request_mock.return_value = {"authenticated": True}
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     manager.save_plugin_configuration(
         AvataxPlugin.PLUGIN_ID,
         channel_USD.slug,
@@ -4023,7 +4023,7 @@ def test_save_plugin_configuration_authentication_failed(
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     plugin_configuration(active=False)
     api_get_request_mock.return_value = {"authenticated": False}
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     with pytest.raises(ValidationError) as e:
@@ -4052,7 +4052,7 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(
 ):
     plugin_configuration(None, None)
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     with pytest.raises(ValidationError):
         manager.save_plugin_configuration(
             AvataxPlugin.PLUGIN_ID, channel_USD.slug, {"active": True}
@@ -4061,7 +4061,7 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(
 
 def test_show_taxes_on_storefront(plugin_configuration):
     plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     assert manager.show_taxes_on_storefront() is False
 
 
@@ -4080,7 +4080,7 @@ def test_order_confirmed(
     )
     conf = {data["name"]: data["value"] for data in plugin_conf.configuration}
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     manager.order_confirmed(order)
@@ -4159,7 +4159,7 @@ def test_order_created_no_lines(
 ):
     """Ensure that when order has no lines, the request to avatax api is not sent."""
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     manager.order_created(order)
@@ -4182,7 +4182,7 @@ def test_plugin_uses_configuration_from_db(
 ):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     configuration = plugin_configuration()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
@@ -4208,7 +4208,7 @@ def test_plugin_uses_configuration_from_db(
     AvataxPlugin._update_config_items(field_to_update, configuration.configuration)
     configuration.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     with pytest.raises(TaxError):
         manager.preprocess_order_creation(checkout_info, lines)
 
@@ -4216,7 +4216,7 @@ def test_plugin_uses_configuration_from_db(
 def test_skip_disabled_plugin(settings, plugin_configuration):
     plugin_configuration(username=None, password=None)
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     plugin: AvataxPlugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID)
 
     assert (
@@ -4233,7 +4233,7 @@ def test_get_tax_code_from_object_meta(product, settings, plugin_configuration):
     )
     plugin_configuration(username=None, password=None)
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     tax_type = manager.get_tax_code_from_object_meta(product.tax_class)
 
     assert isinstance(tax_type, TaxType)
@@ -4962,7 +4962,9 @@ def test_validate_checkout_click_and_collect(
     )
     lines_info, _ = fetch_checkout_lines(user_checkout_with_items_for_cc)
     checkout_info = fetch_checkout_info(
-        user_checkout_with_items_for_cc, lines_info, get_plugins_manager()
+        user_checkout_with_items_for_cc,
+        lines_info,
+        get_plugins_manager(allow_replica=False),
     )
 
     # when
@@ -4989,7 +4991,7 @@ def test_generate_request_data_from_checkout_lines_uses_tax_code_from_product_ta
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_item, lines, get_plugins_manager()
+        checkout_with_item, lines, get_plugins_manager(allow_replica=False)
     )
 
     config = avatax_config
@@ -5022,7 +5024,7 @@ def test_generate_request_data_from_checkout_lines_uses_tax_code_from_product_ty
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_item, lines, get_plugins_manager()
+        checkout_with_item, lines, get_plugins_manager(allow_replica=False)
     )
 
     config = avatax_config
@@ -5051,7 +5053,7 @@ def test_generate_request_data_from_checkout_lines_sets_different_tax_code_for_z
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_item, lines, get_plugins_manager()
+        checkout_with_item, lines, get_plugins_manager(allow_replica=False)
     )
 
     config = avatax_config
@@ -5084,7 +5086,7 @@ def test_generate_request_data_from_checkout_lines_sets_different_tax_code_only_
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_item, lines, get_plugins_manager()
+        checkout_with_item, lines, get_plugins_manager(allow_replica=False)
     )
 
     config = avatax_config
@@ -5126,7 +5128,7 @@ def test_generate_request_data_from_checkout_lines_with_collection_point(
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_item, lines, get_plugins_manager()
+        checkout_with_item, lines, get_plugins_manager(allow_replica=False)
     )
     config = avatax_config
 
@@ -5166,7 +5168,7 @@ def test_generate_request_data_from_checkout_lines_with_shipping_method(
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_item, lines, get_plugins_manager()
+        checkout_with_item, lines, get_plugins_manager(allow_replica=False)
     )
     config = avatax_config
 
@@ -5199,7 +5201,7 @@ def test_generate_request_data_from_checkout_lines_adds_lines_with_taxes_disable
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_item, lines, get_plugins_manager()
+        checkout_with_item, lines, get_plugins_manager(allow_replica=False)
     )
 
     # when
@@ -5397,7 +5399,7 @@ def test_assign_tax_code_to_object_meta(
         lambda _: {tax_code: description},
     )
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     manager.assign_tax_code_to_object_meta(product.tax_class, tax_code)
@@ -5423,7 +5425,7 @@ def test_assign_tax_code_to_object_meta_none_as_tax_code(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"standard": description},
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     manager.assign_tax_code_to_object_meta(product.tax_class, tax_code)
@@ -5448,7 +5450,7 @@ def test_assign_tax_code_to_object_meta_no_obj_id_and_none_as_tax_code(
     )
 
     tax_class = TaxClass(name="A new tax class.")
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     manager.assign_tax_code_to_object_meta(tax_class, tax_code)
@@ -5472,7 +5474,7 @@ def test_assign_tax_code_to_object_meta_no_obj_id(
         lambda _: {tax_code: description},
     )
     tax_class = TaxClass(name="A new product.")
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     manager.assign_tax_code_to_object_meta(tax_class, tax_code)
@@ -5491,7 +5493,7 @@ def test_calculate_checkout_shipping_validates_checkout(
     # given
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     plugin_configuration(channel=channel_USD)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item
     lines, _ = fetch_checkout_lines(checkout)
 
@@ -5522,7 +5524,7 @@ def test_calculate_checkout_line_total_validates_checkout(
     # given
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     plugin_configuration(channel=channel_USD)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item
     lines, _ = fetch_checkout_lines(checkout)
 
@@ -5554,7 +5556,7 @@ def test_calculate_checkout_line_unit_price_validates_checkout(
     # given
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     plugin_configuration(channel=channel_USD)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item
     lines, _ = fetch_checkout_lines(checkout)
 

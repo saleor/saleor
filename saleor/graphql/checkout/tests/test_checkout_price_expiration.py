@@ -33,7 +33,7 @@ def test_checkout_lines_add_invalidate_prices(
     stock,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     query = ADD_CHECKOUT_LINES
     variables = {
         "checkoutId": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
@@ -78,7 +78,7 @@ def test_checkout_lines_update_invalidate_prices(
     stock,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     query = UPDATE_CHECKOUT_LINES
     variables = {
         "token": checkout_with_items.token,
@@ -122,7 +122,7 @@ def test_checkout_lines_delete_invalidate_prices(
     checkout_with_items,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     query = DELETE_CHECKOUT_LINES
     variables = {
         "token": checkout_with_items.token,
@@ -163,7 +163,7 @@ def test_checkout_line_delete_invalidate_prices(
     checkout_with_items,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     query = DELETE_CHECKOUT_LINE
     variables = {
         "token": checkout_with_items.token,
@@ -207,7 +207,7 @@ def test_checkout_shipping_address_update_invalidate_prices(
     plugins_manager,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     query = UPDATE_CHECKOUT_SHIPPING_ADDRESS
     variables = {
         "token": checkout_with_items.token,
@@ -249,7 +249,7 @@ def test_checkout_billing_address_update_invalidate_prices(
     graphql_address_data,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     query = UPDATE_CHECKOUT_BILLING_ADDRESS
     variables = {
         "token": checkout_with_items.token,

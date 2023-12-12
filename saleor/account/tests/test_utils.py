@@ -78,7 +78,7 @@ def test_store_user_address_uses_existing_one(address):
 
     expected_user_addresses_count = 1
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     store_user_address(user, address, AddressType.BILLING, manager)
 
     assert user.addresses.count() == expected_user_addresses_count
@@ -97,7 +97,7 @@ def test_store_user_address_uses_existing_one_despite_duplicated(address):
 
     expected_user_addresses_count = 2
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     store_user_address(user, address, AddressType.BILLING, manager)
 
     assert user.addresses.count() == expected_user_addresses_count
@@ -111,7 +111,7 @@ def test_store_user_address_create_new_address_if_not_associated(address):
     user = User.objects.create_user("test@example.com", "password")
     expected_user_addresses_count = 1
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     store_user_address(user, address, AddressType.BILLING, manager)
 
     assert user.addresses.count() == expected_user_addresses_count
@@ -129,7 +129,7 @@ def test_store_user_address_address_not_saved(address):
 
     address_count = user.addresses.count()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     store_user_address(user, address, AddressType.BILLING, manager)
 
     assert user.addresses.count() == address_count

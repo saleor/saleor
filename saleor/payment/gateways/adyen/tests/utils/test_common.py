@@ -716,7 +716,7 @@ def test_request_data_for_gateway_config(
     assert address.country.code != address_other_country.country.code
 
     merchant_account = "test_account"
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines_info, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines_info, manager)
 
@@ -737,7 +737,7 @@ def test_request_data_for_gateway_config(
 def test_request_data_for_gateway_config_no_country(checkout, address, settings):
     # given
     merchant_account = "test_account"
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines_info, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines_info, manager)
 

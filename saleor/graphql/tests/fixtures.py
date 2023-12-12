@@ -157,7 +157,7 @@ def schema_context():
     params = {
         "user": SimpleLazyObject(lambda: None),
         "app": SimpleLazyObject(lambda: None),
-        "plugins": get_plugins_manager(),
+        "plugins": get_plugins_manager(allow_replica=False),
         "auth_token": "",
     }
     return graphene.types.Context(**params)
@@ -170,7 +170,7 @@ def info(schema_context):
 
 @pytest.fixture
 def anonymous_plugins():
-    return get_plugins_manager()
+    return get_plugins_manager(allow_replica=False)
 
 
 class LoggingHandler(logging.Handler):

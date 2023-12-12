@@ -165,6 +165,7 @@ def test_permission_group_create_mutation_trigger_webhook(
         [any_webhook],
         group,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -861,6 +862,7 @@ def test_permission_group_update_mutation_trigger_webhook(
         [any_webhook],
         group1,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -2549,6 +2551,7 @@ def test_group_delete_mutation_trigger_webhook(
         [any_webhook],
         group1,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
