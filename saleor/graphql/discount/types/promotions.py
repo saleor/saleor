@@ -97,14 +97,21 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
             "The catalogue predicate that must be met to apply the rule reward."
         ),
     )
-    checkout_and_order_predicate = graphene.Field(
-        "saleor.graphql.discount.types.promotions.CheckoutAndOrderPredicate",
+    checkout_and_order_predicate = JSON(
         description=(
             "The checkout/order predicate that must be met to apply the rule reward."
             + ADDED_IN_319
             + PREVIEW_FEATURE
         ),
     )
+    # checkout_and_order_predicate = graphene.Field(
+    #     "saleor.graphql.discount.types.promotions.CheckoutAndOrderPredicate",
+    #     description=(
+    #         "The checkout/order predicate that must be met to apply the rule reward."
+    #         + ADDED_IN_319
+    #         + PREVIEW_FEATURE
+    #     ),
+    # )
     reward_type = RewardTypeEnum(
         description="The reward type of the promotion rule."
         + ADDED_IN_319

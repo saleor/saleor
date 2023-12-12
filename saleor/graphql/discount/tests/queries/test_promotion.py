@@ -29,7 +29,6 @@ QUERY_PROMOTION_BY_ID = """
                 rewardValueType
                 rewardValue
                 cataloguePredicate
-                checkoutAndOrderPredicate
                 rewardType
             }
         }
@@ -55,7 +54,6 @@ def _assert_promotion_data(promotion, content_data):
             "rewardValueType": rule.reward_value_type.upper(),
             "rewardValue": rule.reward_value,
             "cataloguePredicate": rule.catalogue_predicate,
-            "checkoutAndOrderPredicate": rule.checkout_and_order_predicate,
             "rewardType": rule.reward_type,
         }
         assert rule_data in promotion_data["rules"]
@@ -306,3 +304,52 @@ def test_query_promotion_events(
             event_data["ruleId"] = db_event.parameters.get("rule_id")
 
         assert event_data in events
+
+
+# QUERY_PROMOTION_BY_ID_WITH_PREDICATES = """
+#     query Promotion($id: ID!) {
+#         promotion(id: $id) {
+#             id
+#             rules {
+#                 rewardValueType
+#                 rewardValue
+#                 cataloguePredicate
+#                 checkoutAndOrderPredicate {
+#                     discountedObjectPredicate {
+#                         subtotalPrice {
+#                             range {
+#                                 gte
+#                                 lte
+#                             }
+#                         }
+#                         totalPrice {
+#                             range {
+#                                 gte
+#                                 lte
+#                             }
+#                         }
+#                     }
+#                 }
+#                 rewardType
+#             }
+#         }
+#     }
+# """
+#
+#
+# def test_query_promotion_checkout_and_order_predicate(
+#     promotion, staff_api_client, permission_group_manage_discounts
+# ):
+#     # given
+#     permission_group_manage_discounts.user_set.add(staff_api_client.user)
+#     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+#
+#     variables = {"id": promotion_id}
+#
+#     # when
+#     response = staff_api_client.post_graphql(
+#         QUERY_PROMOTION_BY_ID_WITH_PREDICATES, variables
+#     )
+#
+#     # then
+#     content = get_graphql_content(response)
