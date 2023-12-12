@@ -43,7 +43,7 @@ def test_create_refund_fulfillment_only_order_lines(
         payment=payment,
         order_lines_to_refund=order_refund_lines,
         fulfillment_lines_to_refund=[],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     flush_post_commit_hooks()
@@ -109,7 +109,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
         payment=payment,
         order_lines_to_refund=order_refund_lines,
         fulfillment_lines_to_refund=[],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         refund_shipping_costs=True,
     )
 
@@ -170,7 +170,7 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
         payment=payment,
         order_lines_to_refund=[],
         fulfillment_lines_to_refund=fulfillment_refund_lines,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     flush_post_commit_hooks()
@@ -228,7 +228,7 @@ def test_create_refund_fulfillment_custom_amount(
         payment=payment,
         order_lines_to_refund=[],
         fulfillment_lines_to_refund=fulfillment_refund_lines,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         amount=amount,
     )
 
