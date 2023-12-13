@@ -891,7 +891,7 @@ def test_generate_excluded_shipping_methods_for_checkout_payload(
 
 
 @mock.patch("saleor.webhook.transport.shipping.parse_excluded_shipping_methods")
-@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
+@mock.patch("saleor.webhook.transport.shipping.trigger_webhook_sync")
 @mock.patch(
     "saleor.webhook.transport.shipping.get_excluded_shipping_methods_from_response"
 )
