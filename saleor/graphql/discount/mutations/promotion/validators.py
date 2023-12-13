@@ -12,8 +12,7 @@ if TYPE_CHECKING:
 
 def clean_promotion_rule(cleaned_input, errors, error_class, index=None):
     clean_predicates(cleaned_input, errors, error_class, index=None)
-    # if sum([bool(predicate) for predicate in [catalogue_predicate, order_predicate]]) == 1:
-    if not errors.get("predicates"):
+    if not errors.get(None):
         clean_reward(cleaned_input, errors, error_class, index)
         clean_catalogue_predicate(cleaned_input, errors, error_class, index)
         clean_checkout_and_order_predicate(cleaned_input, errors, error_class, index)
@@ -23,7 +22,7 @@ def clean_predicates(cleaned_input, errors, error_class, index=None):
     catalogue_predicate = cleaned_input.get("catalogue_predicate")
     order_predicate = cleaned_input.get("checkout_and_order_predicate")
     if not catalogue_predicate and not order_predicate:
-        errors["predicate"].append(
+        errors[None].append(
             ValidationError(
                 message=(
                     "At least one of predicates is required: "
@@ -34,7 +33,7 @@ def clean_predicates(cleaned_input, errors, error_class, index=None):
             )
         )
     elif catalogue_predicate and order_predicate:
-        errors["predicate"].append(
+        errors[None].append(
             ValidationError(
                 message=(
                     "Only one of predicates can be provided: "
