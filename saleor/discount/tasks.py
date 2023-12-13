@@ -17,6 +17,9 @@ from .models import Promotion, PromotionRule
 if TYPE_CHECKING:
     from uuid import UUID
 
+# Results in update time ~0.1s
+EXPIRED_RULES_BATCH_SIZE = 5000
+
 task_logger = get_task_logger(__name__)
 # Batch of size 100 takes ~1 sec and consumes ~3mb at peak
 PROMOTION_TOGGLE_BATCH_SIZE = 100
@@ -73,6 +76,9 @@ def handle_promotion_toggle():
             "collections": [],
         }
         manager.sale_toggle(promotion, catalogues)
+
+    if ending_promotions:
+        clear_promotion_rule_variants_task.delay()
 
     if product_ids:
         # Recalculate discounts of affected products
@@ -167,3 +173,21 @@ def fetch_promotion_variants_and_product_ids(promotions: "QuerySet[Promotion]"):
         Exists(variants.filter(product_id=OuterRef("id")))
     )
     return promotion_id_to_variants, list(products.values_list("id", flat=True))
+
+
+@app.task
+def clear_promotion_rule_variants_task():
+    """Clear all promotion rule variants."""
+    promotions = Promotion.objects.expired()
+    rules = PromotionRule.objects.filter(
+        Exists(promotions.filter(id=OuterRef("promotion_id")))
+    )
+    PromotionRuleVariant = PromotionRule.variants.through
+    rule_variants_id = list(
+        PromotionRuleVariant.objects.filter(
+            Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+        )[:EXPIRED_RULES_BATCH_SIZE].values_list("pk", flat=True)
+    )
+    if rule_variants_id:
+        PromotionRuleVariant.objects.filter(pk__in=rule_variants_id).delete()
+        clear_promotion_rule_variants_task.delay()

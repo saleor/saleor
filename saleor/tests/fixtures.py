@@ -5559,6 +5559,7 @@ def promotion_list(channel_USD, product, collection):
     )
     for rule in rules:
         rule.channels.add(channel_USD)
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
     return promotions
 
 

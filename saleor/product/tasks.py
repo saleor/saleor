@@ -159,6 +159,11 @@ def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
 def update_products_discounted_prices_for_promotion_task(
     product_ids: Iterable[int], start_id: Optional[UUID] = None
 ):
+    """Update the product discounted prices for given product ids.
+
+    Firstly the promotion rule variants are recalculated, then the products discounted
+    prices are calculated.
+    """
     promotions = Promotion.objects.active()
     kwargs = {"id__gt": start_id} if start_id else {}
     rules = PromotionRule.objects.order_by("id").filter(
