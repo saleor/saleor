@@ -843,6 +843,9 @@ UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
 )
 # Queue name for "async webhook" events
 WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
+PRIORITY_WEBHOOK_CELERY_QUEUE_NAME = os.environ.get(
+    "PRIORITY_WEBHOOK_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
+)
 
 # Lock time for request password reset mutation per user (seconds)
 RESET_PASSWORD_LOCK_TIME = parse(

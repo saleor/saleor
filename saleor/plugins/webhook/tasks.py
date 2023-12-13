@@ -243,8 +243,19 @@ def trigger_webhooks_async(
             )
         )
 
+    queue = (
+        settings.WEBHOOK_CELERY_QUEUE_NAME
+        if not priority_queue
+        else settings.PRIORITY_WEBHOOK_CELERY_QUEUE_NAME
+    )
     for delivery in deliveries:
-        send_webhook_request_async.delay(delivery.id)
+        send_webhook_request_async.apply_async(
+            kwargs={"event_delivery_id": delivery.id},
+            queue=queue,
+            bind=True,
+            retry_backoff=10,
+            retry_kwargs={"max_retries": 5},
+        )
 
 
 def group_webhooks_by_subscription(webhooks):

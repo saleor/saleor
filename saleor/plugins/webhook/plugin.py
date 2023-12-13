@@ -539,6 +539,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def _trigger_menu_event(self, event_type, menu, webhooks=None):
@@ -629,6 +630,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
@@ -646,6 +648,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def order_paid(self, order: "Order", previous_value: Any) -> Any:
@@ -663,6 +666,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def order_refunded(self, order: "Order", previous_value: Any) -> Any:
@@ -680,6 +684,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def order_fully_refunded(self, order: "Order", previous_value: Any) -> Any:
@@ -697,6 +702,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def order_updated(self, order: "Order", previous_value: Any, webhooks=None) -> Any:
@@ -714,6 +720,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def order_expired(self, order: "Order", previous_value: Any) -> Any:
@@ -731,6 +738,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def sale_created(
@@ -911,6 +919,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
@@ -928,6 +937,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def order_metadata_updated(self, order: "Order", previous_value: Any) -> Any:
@@ -955,6 +965,7 @@ class WebhookPlugin(BasePlugin):
                 orders,
                 self.requestor,
                 legacy_data_generator=generate_bulk_order_payload,
+                priority_queue=True,
             )
 
     def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
@@ -972,6 +983,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def draft_order_updated(self, order: "Order", previous_value: Any) -> Any:
@@ -989,6 +1001,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def draft_order_deleted(self, order: "Order", previous_value: Any) -> Any:
@@ -1006,6 +1019,7 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
                 legacy_data_generator=order_data_generator,
+                priority_queue=True,
             )
 
     def fulfillment_created(self, fulfillment: "Fulfillment", previous_value):
@@ -1443,6 +1457,7 @@ class WebhookPlugin(BasePlugin):
                 checkout,
                 self.requestor,
                 legacy_data_generator=checkout_data_generator,
+                priority_queue=True,
             )
 
     def checkout_updated(self, checkout: "Checkout", previous_value: Any) -> Any:
@@ -1460,6 +1475,7 @@ class WebhookPlugin(BasePlugin):
                 checkout,
                 self.requestor,
                 legacy_data_generator=checkout_data_generator,
+                priority_queue=True,
             )
 
     def checkout_fully_paid(self, checkout: "Checkout", previous_value: Any) -> Any:
@@ -1477,6 +1493,7 @@ class WebhookPlugin(BasePlugin):
                 checkout,
                 self.requestor,
                 legacy_data_generator=checkout_data_generator,
+                priority_queue=True,
             )
 
     def checkout_metadata_updated(
