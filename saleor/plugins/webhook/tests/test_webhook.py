@@ -1556,7 +1556,7 @@ def test_notify_user(
 ):
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_plugins_manager(lambda: customer_user, True)
+    manager = get_plugins_manager(True, lambda: customer_user)
     timestamp = timezone.make_aware(
         datetime.strptime("2020-03-18 12:00", "%Y-%m-%d %H:%M"), timezone.utc
     ).isoformat()
