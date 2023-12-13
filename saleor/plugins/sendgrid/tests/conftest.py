@@ -28,7 +28,7 @@ def sendgrid_email_plugin(settings, channel_USD):
         api_key=None,
     ):
         settings.PLUGINS = ["saleor.plugins.sendgrid.plugin.SendgridEmailPlugin"]
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         manager.save_plugin_configuration(
             SendgridEmailPlugin.PLUGIN_ID,
             channel_USD.slug,
@@ -101,7 +101,7 @@ def sendgrid_email_plugin(settings, channel_USD):
                 ],
             },
         )
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         return manager.plugins_per_channel[channel_USD.slug][0]
 
     return fun

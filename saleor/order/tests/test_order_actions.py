@@ -103,7 +103,7 @@ def test_handle_fully_paid_order_digital_lines(
     order.redirect_url = redirect_url
     order.save()
     order_info = fetch_order_info(order)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     handle_fully_paid_order(manager, order_info)
 
@@ -124,7 +124,7 @@ def test_handle_fully_paid_order_digital_lines(
 
 @patch("saleor.order.actions.send_payment_confirmation")
 def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     order.payments.add(Payment.objects.create())
     order_info = fetch_order_info(order)
@@ -141,7 +141,7 @@ def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
 def test_handle_fully_paid_order_no_email(mock_send_payment_confirmation, order):
     order.user = None
     order.user_email = ""
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order_info = fetch_order_info(order)
 
     handle_fully_paid_order(manager, order_info)
@@ -190,7 +190,7 @@ def test_handle_fully_paid_order_gift_cards_created(
         ["variant", "is_gift_card", "is_shipping_required", "quantity"],
     )
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     order.payments.add(Payment.objects.create())
     order_info = fetch_order_info(order)
@@ -261,7 +261,7 @@ def test_handle_fully_paid_order_gift_cards_not_created(
         ["variant", "is_gift_card", "is_shipping_required", "quantity"],
     )
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     order.payments.add(Payment.objects.create())
     order_info = fetch_order_info(order)
@@ -281,7 +281,7 @@ def test_handle_fully_paid_order_gift_cards_not_created(
 
 
 def test_mark_as_paid_with_payment(admin_user, draft_order):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     mark_order_as_paid_with_payment(draft_order, admin_user, None, manager)
     payment = draft_order.payments.last()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
@@ -294,7 +294,7 @@ def test_mark_as_paid_with_payment(admin_user, draft_order):
 
 def test_mark_as_paid_with_external_reference_with_payment(admin_user, draft_order):
     external_reference = "transaction_id"
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     mark_order_as_paid_with_payment(
         draft_order, admin_user, None, manager, external_reference=external_reference
     )
@@ -313,7 +313,7 @@ def test_mark_as_paid_no_billing_address(admin_user, draft_order):
     draft_order.billing_address = None
     draft_order.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     with pytest.raises(PaymentError, match="Order does not have a billing address."):
         mark_order_as_paid_with_payment(draft_order, admin_user, None, manager)
 
@@ -328,7 +328,7 @@ def test_clean_mark_order_as_paid(payment_txn_preauth):
 
 def test_mark_as_paid_with_transaction(admin_user, draft_order):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     channel = draft_order.channel
     channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
     channel.save(update_fields=["order_mark_as_paid_strategy"])
@@ -356,7 +356,7 @@ def test_mark_as_paid_with_transaction(admin_user, draft_order):
 def test_mark_as_paid_with_external_reference_with_transaction(admin_user, draft_order):
     # given
     external_reference = "transaction_id"
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     channel = draft_order.channel
     channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
     channel.save(update_fields=["order_mark_as_paid_strategy"])
@@ -376,7 +376,9 @@ def test_cancel_fulfillment(fulfilled_order, warehouse):
     fulfillment = fulfilled_order.fulfillments.first()
     line_1, line_2 = fulfillment.lines.all()
 
-    cancel_fulfillment(fulfillment, None, None, warehouse, get_plugins_manager())
+    cancel_fulfillment(
+        fulfillment, None, None, warehouse, get_plugins_manager(allow_replica=False)
+    )
 
     fulfillment.refresh_from_db()
     fulfilled_order.refresh_from_db()
@@ -394,7 +396,9 @@ def test_cancel_fulfillment_variant_witout_inventory_tracking(
     stock = line.order_line.variant.stocks.get()
     stock_quantity_before = stock.quantity
 
-    cancel_fulfillment(fulfillment, None, None, warehouse, get_plugins_manager())
+    cancel_fulfillment(
+        fulfillment, None, None, warehouse, get_plugins_manager(allow_replica=False)
+    )
 
     fulfillment.refresh_from_db()
     line.refresh_from_db()
@@ -412,7 +416,7 @@ def test_cancel_order(
 ):
     # given
     order = fulfilled_order_with_all_cancelled_fulfillments
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     assert Allocation.objects.filter(
         order_line__order=order, quantity_allocated__gt=0
@@ -454,7 +458,7 @@ def test_order_refunded_by_user(
     app = None
 
     # when
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order_refunded(order, order.user, app, amount, payment, manager)
 
     # then
@@ -487,7 +491,7 @@ def test_order_refunded_by_app(
     amount = order.total.gross.amount
 
     # when
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order_refunded(order, None, app, amount, payment, manager)
 
     # then
@@ -519,7 +523,7 @@ def test_fulfill_order_lines(order_with_lines):
                 warehouse_pk=stock.warehouse.pk,
             )
         ],
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
     )
 
     stock.refresh_from_db()
@@ -558,7 +562,7 @@ def test_fulfill_order_lines_multiple_lines(order_with_lines):
                 warehouse_pk=stock_2.warehouse.pk,
             ),
         ],
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
     )
 
     stock_1.refresh_from_db()
@@ -581,7 +585,8 @@ def test_fulfill_order_lines_with_variant_deleted(order_with_lines):
     line.refresh_from_db()
 
     fulfill_order_lines(
-        [OrderLineInfo(line=line, quantity=line.quantity)], get_plugins_manager()
+        [OrderLineInfo(line=line, quantity=line.quantity)],
+        get_plugins_manager(allow_replica=False),
     )
 
 
@@ -606,7 +611,7 @@ def test_fulfill_order_lines_without_inventory_tracking(order_with_lines):
                 warehouse_pk=stock.warehouse.pk,
             )
         ],
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
     )
 
     stock.refresh_from_db()
@@ -645,7 +650,7 @@ def test_fulfill_digital_lines(
 
     order_with_lines.refresh_from_db()
     order_info = fetch_order_info(order_with_lines)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     automatically_fulfill_digital_lines(order_info, manager)
 
@@ -695,7 +700,7 @@ def test_fulfill_digital_lines_no_allocation(
 
     order_with_lines.refresh_from_db()
     order_info = fetch_order_info(order_with_lines)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     automatically_fulfill_digital_lines(order_info, manager)
@@ -721,7 +726,7 @@ def test_order_transaction_updated_order_fully_paid(
     transaction_item = transaction_item_generator(
         order_id=order_with_lines.pk, charged_value=order_with_lines.total.gross.amount
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
         order_with_lines,
     )
@@ -754,7 +759,7 @@ def test_order_transaction_updated_order_partially_paid(
     transaction_item = transaction_item_generator(
         order_id=order_with_lines.pk, charged_value=Decimal("10")
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
         order_with_lines,
     )
@@ -790,7 +795,7 @@ def test_order_transaction_updated_order_partially_paid_and_multiple_transaction
     transaction_item = transaction_item_generator(
         order_id=order_with_lines.pk, charged_value=Decimal("5")
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
         order_with_lines,
     )
@@ -825,7 +830,7 @@ def test_order_transaction_updated_with_the_same_transaction_charged_amount(
     transaction_item = transaction_item_generator(
         order_id=order_with_lines.pk, charged_value=charged_value
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
         order_with_lines,
     )
@@ -859,7 +864,7 @@ def test_order_transaction_updated_order_authorized(
         order_id=order_with_lines.pk,
         authorized_value=order_with_lines.total.gross.amount,
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
         order_with_lines,
     )
@@ -895,7 +900,7 @@ def test_order_transaction_updated_order_partially_authorized_and_multiple_trans
     transaction_item = transaction_item_generator(
         order_id=order_with_lines.pk, authorized_value=Decimal("5")
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
         order_with_lines,
     )
@@ -930,7 +935,7 @@ def test_order_transaction_updated_with_the_same_transaction_authorized_amount(
     transaction_item = transaction_item_generator(
         order_id=order_with_lines.pk, authorized_value=authorized_value
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
         order_with_lines,
     )
@@ -963,7 +968,7 @@ def test_order_transaction_updated_order_fully_refunded(
     transaction_item = transaction_item_generator(
         order_id=order_with_lines.pk, refunded_value=order_with_lines.total.gross.amount
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
         order_with_lines,
     )
@@ -996,7 +1001,7 @@ def test_order_transaction_updated_order_partially_refunded(
     transaction_item = transaction_item_generator(
         order_id=order_with_lines.pk, refunded_value=Decimal(10)
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
         order_with_lines,
     )
@@ -1033,7 +1038,7 @@ def test_order_transaction_updated_order_fully_refunded_and_multiple_transaction
         order_id=order_with_lines.pk,
         refunded_value=order_with_lines.total.gross.amount - Decimal("10"),
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
         order_with_lines,
     )
@@ -1086,7 +1091,7 @@ def test_order_transaction_updated_order_fully_refunded_with_transaction_and_pay
         refunded_value=order_with_lines.total.gross.amount - Decimal("10"),
     )
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
         order_with_lines,
     )

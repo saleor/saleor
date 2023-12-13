@@ -2,9 +2,9 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from prices import Money
 
-from ....core.taxes import zero_money
-from ....discount import DiscountType, DiscountValueType
-from ... import base_calculations
+from ...core.taxes import zero_money
+from ...discount import DiscountType, DiscountValueType
+from .. import base_calculations
 
 
 def test_base_order_total(order_with_lines):
@@ -24,7 +24,7 @@ def test_base_order_total(order_with_lines):
     assert order_total == undiscounted_total
 
 
-def test_base_order_total_with_fixed_voucher(order_with_lines):
+def test_base_order_total_with_fixed_voucher(order_with_lines, voucher):
     # given
     order = order_with_lines
     lines = order.lines.all()
@@ -43,6 +43,7 @@ def test_base_order_total_with_fixed_voucher(order_with_lines):
         translated_name="VoucherPL",
         currency=order.currency,
         amount_value=0,
+        voucher=voucher,
     )
 
     # when
@@ -54,7 +55,7 @@ def test_base_order_total_with_fixed_voucher(order_with_lines):
     assert order_discount.amount_value == discount_amount
 
 
-def test_base_order_total_with_fixed_voucher_more_then_total(order_with_lines):
+def test_base_order_total_with_fixed_voucher_more_then_total(order_with_lines, voucher):
     # given
     order = order_with_lines
     lines = order.lines.all()
@@ -71,6 +72,7 @@ def test_base_order_total_with_fixed_voucher_more_then_total(order_with_lines):
         translated_name="VoucherPL",
         currency=order.currency,
         amount_value=0,
+        voucher=voucher,
     )
 
     # when
@@ -83,7 +85,7 @@ def test_base_order_total_with_fixed_voucher_more_then_total(order_with_lines):
     assert order_discount.amount == subtotal
 
 
-def test_base_order_total_with_percentage_voucher(order_with_lines):
+def test_base_order_total_with_percentage_voucher(order_with_lines, voucher_percentage):
     # given
     order = order_with_lines
     lines = order.lines.all()
@@ -102,6 +104,7 @@ def test_base_order_total_with_percentage_voucher(order_with_lines):
         translated_name="VoucherPL",
         currency=order.currency,
         amount_value=0,
+        voucher=voucher_percentage,
     )
 
     # when
@@ -224,7 +227,7 @@ def test_base_order_total_with_percentage_manual_discount(order_with_lines):
 
 
 def test_base_order_total_with_fixed_voucher_and_fixed_manual_discount(
-    order_with_lines,
+    order_with_lines, voucher
 ):
     # given
     order = order_with_lines
@@ -244,6 +247,7 @@ def test_base_order_total_with_fixed_voucher_and_fixed_manual_discount(
         translated_name="StaffDiscountPL",
         currency=order.currency,
         amount_value=0,
+        voucher=voucher,
     )
     manual_discount_amount = 10
     manual_order_discount = order.discounts.create(
@@ -270,7 +274,7 @@ def test_base_order_total_with_fixed_voucher_and_fixed_manual_discount(
 
 
 def test_base_order_total_with_percentage_voucher_and_fixed_manual_discount(
-    order_with_lines,
+    order_with_lines, voucher_percentage
 ):
     # given
     order = order_with_lines
@@ -290,6 +294,7 @@ def test_base_order_total_with_percentage_voucher_and_fixed_manual_discount(
         translated_name="StaffDiscountPL",
         currency=order.currency,
         amount_value=0,
+        voucher=voucher_percentage,
     )
     manual_discount_amount = 10
     manual_order_discount = order.discounts.create(
@@ -316,7 +321,7 @@ def test_base_order_total_with_percentage_voucher_and_fixed_manual_discount(
 
 
 def test_base_order_total_with_fixed_voucher_and_percentage_manual_discount(
-    order_with_lines,
+    order_with_lines, voucher
 ):
     # given
     order = order_with_lines
@@ -336,6 +341,7 @@ def test_base_order_total_with_fixed_voucher_and_percentage_manual_discount(
         translated_name="StaffDiscountPL",
         currency=order.currency,
         amount_value=0,
+        voucher=voucher,
     )
     temporary_total = undiscounted_total - Money(
         voucher_discount_amount, order.currency
@@ -365,7 +371,7 @@ def test_base_order_total_with_fixed_voucher_and_percentage_manual_discount(
 
 
 def test_base_order_total_with_percentage_voucher_and_percentage_manual_discount(
-    order_with_lines,
+    order_with_lines, voucher_percentage
 ):
     # given
     order = order_with_lines
@@ -385,6 +391,7 @@ def test_base_order_total_with_percentage_voucher_and_percentage_manual_discount
         translated_name="StaffDiscountPL",
         currency=order.currency,
         amount_value=0,
+        voucher=voucher_percentage,
     )
 
     temporary_total = undiscounted_total - Money(
@@ -415,7 +422,7 @@ def test_base_order_total_with_percentage_voucher_and_percentage_manual_discount
 
 
 def test_base_order_total_with_fixed_manual_discount_and_fixed_voucher(
-    order_with_lines,
+    order_with_lines, voucher
 ):
     # given
     order = order_with_lines
@@ -446,6 +453,7 @@ def test_base_order_total_with_fixed_manual_discount_and_fixed_voucher(
         translated_name="StaffDiscountPL",
         currency=order.currency,
         amount_value=0,
+        voucher=voucher,
     )
 
     # when
@@ -462,7 +470,7 @@ def test_base_order_total_with_fixed_manual_discount_and_fixed_voucher(
 
 
 def test_base_order_total_with_fixed_manual_discount_and_percentage_voucher(
-    order_with_lines,
+    order_with_lines, voucher_percentage
 ):
     # given
     order = order_with_lines
@@ -499,6 +507,7 @@ def test_base_order_total_with_fixed_manual_discount_and_percentage_voucher(
         translated_name="StaffDiscountPL",
         currency=order.currency,
         amount_value=voucher_discount_amount,
+        voucher=voucher_percentage,
     )
 
     # when
@@ -519,7 +528,7 @@ def test_base_order_total_with_fixed_manual_discount_and_percentage_voucher(
 
 
 def test_base_order_total_with_percentage_manual_discount_and_fixed_voucher(
-    order_with_lines,
+    order_with_lines, voucher
 ):
     # given
     order = order_with_lines
@@ -550,6 +559,7 @@ def test_base_order_total_with_percentage_manual_discount_and_fixed_voucher(
         translated_name="StaffDiscountPL",
         currency=order.currency,
         amount_value=0,
+        voucher=voucher,
     )
 
     # when
@@ -566,7 +576,7 @@ def test_base_order_total_with_percentage_manual_discount_and_fixed_voucher(
 
 
 def test_base_order_total_with_percentage_manual_discount_and_percentage_voucher(
-    order_with_lines,
+    order_with_lines, voucher_percentage
 ):
     # given
     order = order_with_lines
@@ -598,6 +608,7 @@ def test_base_order_total_with_percentage_manual_discount_and_percentage_voucher
         translated_name="StaffDiscountPL",
         currency=order.currency,
         amount_value=0,
+        voucher=voucher_percentage,
     )
 
     # when

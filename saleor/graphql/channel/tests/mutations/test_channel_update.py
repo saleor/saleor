@@ -540,7 +540,10 @@ def test_channel_update_mutation_trigger_webhook(
     metadata_webhook_args = update_webhook_args.copy()
     metadata_webhook_args[1] = WebhookEventAsyncType.CHANNEL_METADATA_UPDATED
     mocked_webhook_trigger.assert_has_calls(
-        [call(*update_webhook_args), call(*metadata_webhook_args)]
+        [
+            call(*update_webhook_args, allow_replica=False),
+            call(*metadata_webhook_args, allow_replica=False),
+        ]
     )
 
 

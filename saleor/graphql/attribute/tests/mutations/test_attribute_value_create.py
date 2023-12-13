@@ -155,6 +155,7 @@ def test_create_attribute_value_trigger_webhooks(
         [any_webhook],
         color_attribute,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
     attribute_value_created_call = mock.call(
@@ -172,6 +173,7 @@ def test_create_attribute_value_trigger_webhooks(
         [any_webhook],
         attribute_value,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
     # then

@@ -94,6 +94,7 @@ def test_sale_translate(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
 
 
