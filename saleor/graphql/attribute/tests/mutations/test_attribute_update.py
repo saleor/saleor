@@ -145,6 +145,7 @@ def test_update_attribute_trigger_webhook(
         [any_webhook],
         color_attribute,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

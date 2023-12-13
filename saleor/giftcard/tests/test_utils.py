@@ -192,7 +192,7 @@ def test_gift_cards_create(
     staff_user,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     line_1, line_2 = gift_card_shippable_order_line, gift_card_non_shippable_order_line
     user_email = order.user_email
     fulfillment = order.fulfillments.create(tracking_number="123")
@@ -292,7 +292,7 @@ def test_gift_cards_create_expiry_date_set(
     staff_user,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     site_settings.gift_card_expiry_type = GiftCardSettingsExpiryType.EXPIRY_PERIOD
     site_settings.gift_card_expiry_period_type = TimePeriodType.WEEK
     site_settings.gift_card_expiry_period = 20
@@ -368,7 +368,7 @@ def test_gift_cards_create_multiple_quantity(
     staff_user,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     quantity = 3
     gift_card_non_shippable_order_line.quantity = quantity
     gift_card_non_shippable_order_line.save(update_fields=["quantity"])
@@ -425,7 +425,7 @@ def test_gift_cards_create_trigger_webhook(
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     line_1, line_2 = gift_card_shippable_order_line, gift_card_non_shippable_order_line
     fulfillment = order.fulfillments.create(tracking_number="123")
     fulfillment_line_1 = fulfillment.lines.create(
@@ -480,6 +480,7 @@ def test_gift_cards_create_trigger_webhook(
         [any_webhook],
         gift_card,
         None,
+        allow_replica=False,
     )
 
     send_notification_mock.assert_called()
@@ -559,7 +560,7 @@ def test_fulfill_non_shippable_gift_cards(
     warehouse,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order_lines = [gift_card_shippable_order_line, gift_card_non_shippable_order_line]
 
     # when
@@ -599,7 +600,7 @@ def test_fulfill_non_shippable_gift_cards_line_with_allocation(
     warehouse,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order_lines = [gift_card_shippable_order_line, gift_card_non_shippable_order_line]
 
     order = gift_card_non_shippable_order_line.order
@@ -641,7 +642,7 @@ def test_fulfill_gift_card_lines(
     site_settings,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order = gift_card_non_shippable_order_line.order
     non_shippable_variant = gift_card_non_shippable_order_line.variant
     non_shippable_variant.track_inventory = True
@@ -691,7 +692,7 @@ def test_fulfill_gift_card_lines_lack_of_stock(
     site_settings,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order = gift_card_non_shippable_order_line.order
     gift_card_non_shippable_order_line.variant.stocks.all().delete()
 
