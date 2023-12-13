@@ -444,6 +444,45 @@ def test_promotion_rule_update_remove_last_channel_from_fixed_discount(
     assert errors[0]["field"] == "removeChannels"
 
 
+def test_promotion_rule_update_remove_and_add_channel_with_the_same_currency(
+    app_api_client,
+    permission_manage_discounts,
+    channel_USD,
+    other_channel_USD,
+    promotion,
+):
+    # given
+    rule = promotion.rules.get(name="Fixed promotion rule")
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    remove_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    add_channel_ids = [graphene.Node.to_global_id("Channel", other_channel_USD.pk)]
+    reward_value = Decimal("10")
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "removeChannels": remove_channel_ids,
+            "addChannels": add_channel_ids,
+            "rewardValue": reward_value,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    assert data["promotionRule"]
+    assert len(data["promotionRule"]["channels"]) == 1
+    assert data["promotionRule"]["channels"][0]["slug"] == other_channel_USD.slug
+
+
 def test_promotion_rule_update_change_reward_value_type_to_fixed_multiple_channels(
     app_api_client,
     permission_manage_discounts,
