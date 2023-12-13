@@ -10,8 +10,7 @@ from ...core.descriptions import ADDED_IN_317, ADDED_IN_319, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
 from ...core.scalars import JSON, PositiveDecimal
-from ...core.types import BaseObjectType, ModelObjectType, NonNullList
-from ...core.types.filter_input import DecimalFilter
+from ...core.types import ModelObjectType, NonNullList
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import PromotionRuleTranslation, PromotionTranslation
@@ -104,14 +103,6 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
             + PREVIEW_FEATURE
         ),
     )
-    # checkout_and_order_predicate = graphene.Field(
-    #     "saleor.graphql.discount.types.promotions.CheckoutAndOrderPredicate",
-    #     description=(
-    #         "The checkout/order predicate that must be met to apply the rule reward."
-    #         + ADDED_IN_319
-    #         + PREVIEW_FEATURE
-    #     ),
-    # )
     reward_type = RewardTypeEnum(
         description="The reward type of the promotion rule."
         + ADDED_IN_319
@@ -141,51 +132,3 @@ class PromotionCountableConnection(CountableConnection):
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS
         node = Promotion
-
-
-class DiscountedObjectPredicate(BaseObjectType):
-    subtotal_price = graphene.Field(
-        DecimalFilter, description="Checkout/order subtotal price predicate."
-    )
-    total_price = graphene.Field(
-        DecimalFilter, description="Checkout/order total price predicate."
-    )
-    AND = NonNullList(
-        "saleor.graphql.discount.types.promotions.DiscountedObjectPredicate",
-    )
-    OR = NonNullList(
-        "saleor.graphql.discount.types.promotions.DiscountedObjectPredicate",
-    )
-
-    class Meta:
-        description = (
-            "Represents checkout/order predicate that must be met to apply "
-            "the rule reward." + ADDED_IN_319 + PREVIEW_FEATURE
-        )
-        interfaces = [relay.Node]
-        doc_category = DOC_CATEGORY_DISCOUNTS
-
-
-class CheckoutAndOrderPredicate(BaseObjectType):
-    discounted_object_predicate = graphene.Field(
-        DiscountedObjectPredicate,
-        description=(
-            "Represents checkout/order predicate that must be met to apply "
-            "the rule reward."
-        ),
-    )
-    AND = NonNullList(
-        "saleor.graphql.discount.types.promotions.CheckoutAndOrderPredicate",
-    )
-    OR = NonNullList(
-        "saleor.graphql.discount.types.promotions.CheckoutAndOrderPredicate",
-    )
-
-    class Meta:
-        description = (
-            "Represents predicate that must be met to apply the rule reward."
-            + ADDED_IN_319
-            + PREVIEW_FEATURE
-        )
-        interfaces = [relay.Node]
-        doc_category = DOC_CATEGORY_DISCOUNTS
