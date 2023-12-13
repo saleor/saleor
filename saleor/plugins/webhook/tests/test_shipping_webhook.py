@@ -921,7 +921,7 @@ def test_get_excluded_shipping_methods_or_fetch_invalid_response_type(
 
     # when
     get_excluded_shipping_methods_or_fetch(
-        webhooks, event_type, '{"test":"payload"}', "test", checkout
+        webhooks, event_type, '{"test":"payload"}', "test", checkout, False
     )
     # then
     mocked_get_excluded.asssert_not_called()
