@@ -24,6 +24,7 @@ from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 from ..channel.models import Channel
 from ..core.taxes import zero_money
 from ..discount.models import VoucherCustomer
+from ..product.models import Product, ProductVariant
 from . import DiscountType, PromotionRuleInfo
 from .models import (
     CheckoutLineDiscount,
@@ -527,3 +528,31 @@ def _get_rule_to_channel_ids_map(rules: QuerySet):
         channel_id = promotion_rule_channel.channel_id  # type: ignore[attr-defined]
         rule_to_channel_ids_map[rule_id].append(channel_id)
     return rule_to_channel_ids_map
+
+
+def get_current_products_for_rules(rules: "QuerySet[PromotionRule]"):
+    """Get currently assigned products to promotions.
+
+    Collect all products for variants that are assigned to promotion rules.
+    """
+    PromotionRuleVariant = PromotionRule.variants.through
+    rule_variants = PromotionRuleVariant.objects.filter(
+        Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+    )
+    variants = ProductVariant.objects.filter(
+        Exists(rule_variants.filter(productvariant_id=OuterRef("id")))
+    )
+    return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
+
+
+def get_current_products_for_rule(rule: "PromotionRule"):
+    """Get currently assigned products to promotion rule.
+
+    Collect all products for variants that are assigned to promotion rule.
+    """
+    PromotionRuleVariant = PromotionRule.variants.through
+    rule_variants = PromotionRuleVariant.objects.filter(promotionrule_id=rule.pk)
+    variants = ProductVariant.objects.filter(
+        Exists(rule_variants.filter(productvariant_id=OuterRef("id")))
+    )
+    return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))

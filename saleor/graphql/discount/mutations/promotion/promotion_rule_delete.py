@@ -1,6 +1,7 @@
 import graphene
 
 from .....discount import events, models
+from .....discount.utils import get_current_products_for_rule
 from .....graphql.core.mutations import ModelDeleteMutation
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_discounted_prices_task
@@ -14,7 +15,6 @@ from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PromotionRuleDeleteErrorCode
 from ...types import PromotionRule
-from ...utils import get_products_for_rule
 from ..utils import clear_promotion_old_sale_id
 
 
@@ -50,7 +50,7 @@ class PromotionRuleDelete(ModelDeleteMutation):
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
         cls.clean_instance(info, instance)
 
-        products = get_products_for_rule(instance)
+        products = get_current_products_for_rule(instance)
         product_ids = list(products.values_list("id", flat=True))
 
         db_id = instance.id

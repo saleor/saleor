@@ -12,6 +12,7 @@ from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
 from ..discount.models import Promotion, PromotionRule
+from ..discount.utils import get_current_products_for_rules
 from ..plugins.manager import get_plugins_manager
 from ..product.models import Category, CollectionProduct
 from ..warehouse.management import deactivate_preorder_for_variant
@@ -148,10 +149,10 @@ def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
     except ObjectDoesNotExist:
         logging.warning(f"Cannot find promotion with id: {promotion_pk}.")
         return
-    products = get_products_for_promotion(promotion)
-    update_products_discounted_prices_for_promotion_task.delay(
-        list(products.values_list("id", flat=True))
-    )
+    previous_products = get_current_products_for_rules(promotion.rules.all())
+    products = get_products_for_promotion(promotion, update_rule_variants=True)
+    products |= previous_products
+    update_discounted_prices_task.delay(list(products.values_list("id", flat=True)))
 
 
 @app.task

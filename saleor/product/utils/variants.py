@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
+from django.db import transaction
 from django.db.models import Exists, OuterRef, QuerySet
 
 from ...attribute import AttributeType
@@ -56,11 +57,6 @@ def fetch_variants_for_promotion_rules(
     from saleor.graphql.discount.utils import get_variants_for_predicate
 
     PromotionRuleVariant = PromotionRule.variants.through
-    # Clear existing variants assigned to promotion rules
-    PromotionRuleVariant.objects.filter(
-        Exists(rules.filter(pk=OuterRef("promotionrule_id")))
-    ).delete()
-
     promotion_rule_variants = []
     for rule in list(rules.iterator()):
         variants = get_variants_for_predicate(rule.catalogue_predicate)
@@ -73,4 +69,9 @@ def fetch_variants_for_promotion_rules(
             ]
         )
 
-    PromotionRuleVariant.objects.bulk_create(promotion_rule_variants)
+    with transaction.atomic():
+        # Clear existing variants assigned to promotion rules
+        PromotionRuleVariant.objects.filter(
+            Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+        ).delete()
+        PromotionRuleVariant.objects.bulk_create(promotion_rule_variants)

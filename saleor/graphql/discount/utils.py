@@ -4,6 +4,7 @@ from enum import Enum
 from typing import DefaultDict, Dict, List, Optional, Set, Union, cast
 
 import graphene
+from django.db import transaction
 from django.db.models import Exists, OuterRef, QuerySet
 from graphene.utils.str_converters import to_camel_case
 
@@ -48,9 +49,13 @@ def clean_predicate(predicate: Union[Dict[str, Union[dict, list]], list]):
     }
 
 
-def get_products_for_promotion(promotion: Promotion) -> ProductsQueryset:
+def get_products_for_promotion(
+    promotion: Promotion, *, update_rule_variants=False
+) -> ProductsQueryset:
     """Get products that are included in the promotion based on catalogue predicate."""
-    variants = get_variants_for_promotion(promotion)
+    variants = get_variants_for_promotion(
+        promotion, update_rule_variants=update_rule_variants
+    )
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 
@@ -64,11 +69,33 @@ def get_products_for_rule(
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 
-def get_variants_for_promotion(promotion: Promotion) -> ProductVariantQueryset:
+def get_variants_for_promotion(
+    promotion: Promotion, *, update_rule_variants=False
+) -> ProductVariantQueryset:
     """Get variants that are included in the promotion based on catalogue predicate."""
     queryset = ProductVariant.objects.none()
-    for rule in promotion.rules.iterator():
-        queryset |= get_variants_for_predicate(rule.catalogue_predicate)
+    promotion_rule_variants = []
+    PromotionRuleVariant = PromotionRule.variants.through
+    rules = promotion.rules
+    for rule in list(rules.iterator()):
+        variants = get_variants_for_predicate(rule.catalogue_predicate)
+        queryset |= variants
+        if update_rule_variants:
+            promotion_rule_variants.extend(
+                [
+                    PromotionRuleVariant(
+                        promotionrule_id=rule.pk, productvariant_id=variant.pk
+                    )
+                    for variant in variants
+                ]
+            )
+    if promotion_rule_variants:
+        with transaction.atomic():
+            # Clear existing variants assigned to promotion rules
+            PromotionRuleVariant.objects.filter(
+                Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+            ).delete()
+            PromotionRuleVariant.objects.bulk_create(promotion_rule_variants)
     return queryset
 
 
