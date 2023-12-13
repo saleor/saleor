@@ -4,7 +4,7 @@ from celery.canvas import Signature
 
 from ....core import EventDeliveryStatus
 from ....webhook.event_types import WebhookEventAsyncType
-from ....webhook.observability import dump_payload
+from ....webhook.observability import concatenate_json_events
 from ....webhook.transport.asynchronous.transport import (
     observability_reporter_task,
     observability_send_events,
@@ -24,7 +24,7 @@ def test_observability_reporter_task(
     observability_webhook_data,
     settings,
 ):
-    events, batch_count = ["event", "event"], 5
+    events, batch_count = [b'{"event": "data"}', b'{"event": "data"}'], 5
     webhooks = [observability_webhook_data]
     mock_pop_events_with_remaining_size.return_value = events, batch_count
     mock_get_webhooks.return_value = webhooks
@@ -50,7 +50,7 @@ def test_observability_send_events(
     mock_send_observability_events,
     observability_webhook_data,
 ):
-    events, batch_count = ["event", "event"], 5
+    events, batch_count = [b'{"event": "data"}', b'{"event": "data"}'], 5
     webhooks = [observability_webhook_data]
     mock_pop_events_with_remaining_size.return_value = events, batch_count
     mock_get_webhooks.return_value = webhooks
@@ -66,7 +66,7 @@ def test_observability_send_events(
 def test_send_observability_events(
     mock_send_webhook_using_scheme_method, observability_webhook_data
 ):
-    events = [{"event": "data"}, {"event": "data"}]
+    events = [b'{"event": "data"}', b'{"event": "data"}']
 
     send_observability_events([observability_webhook_data], events)
 
@@ -75,17 +75,17 @@ def test_send_observability_events(
         observability_webhook_data.saleor_domain,
         observability_webhook_data.secret_key,
         WebhookEventAsyncType.OBSERVABILITY,
-        dump_payload(events),
+        concatenate_json_events(events),
     )
 
 
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
-def test_send_observability_events_when_reposnse_failed(
+def test_send_observability_events_when_response_failed(
     mock_send_webhook_using_scheme_method, observability_webhook_data
 ):
-    events = [{"event": "data"}, {"event": "data"}]
+    events = [b'{"event": "data"}', b'{"event": "data"}']
     response = Mock()
     response.status = EventDeliveryStatus.FAILED
     mock_send_webhook_using_scheme_method.return_value = response
@@ -104,7 +104,7 @@ def test_send_observability_events_to_google_pub_sub(
         "gcpubsub://cloud.google.com/projects/saleor/topics/test"
     )
     webhooks = [observability_webhook_data]
-    events = [{"event": "data"}, {"event": "data"}]
+    events = [b'{"event": "data"}', b'{"event": "data"}']
 
     send_observability_events(webhooks, events)
 
@@ -114,20 +114,20 @@ def test_send_observability_events_to_google_pub_sub(
         observability_webhook_data.saleor_domain,
         observability_webhook_data.secret_key,
         WebhookEventAsyncType.OBSERVABILITY,
-        dump_payload(events[-1]),
+        events[-1],
     )
 
 
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
-def test_send_observability_events_to_google_pub_sub_when_reposnse_failed(
+def test_send_observability_events_to_google_pub_sub_when_response_failed(
     mock_send_webhook_using_scheme_method, observability_webhook_data
 ):
     observability_webhook_data.target_url = (
         "gcpubsub://cloud.google.com/projects/saleor/topics/test"
     )
-    events = [{"event": "data"}, {"event": "data"}]
+    events = [b'{"event": "data"}', b'{"event": "data"}']
     response = Mock()
     response.status = EventDeliveryStatus.FAILED
     mock_send_webhook_using_scheme_method.return_value = response

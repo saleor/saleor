@@ -244,8 +244,8 @@ def test_report_event_delivery_attempt_not_active(
     mock_put_event.assert_not_called()
 
 
-def test_put_event(patch_get_buffer, buffer):
-    put_event(lambda: {"payload": "data"})
+def test_put_event(patch_get_buffer, buffer, event_data):
+    put_event(lambda: event_data)
     assert buffer.size() == 1
 
 
@@ -268,19 +268,19 @@ def test_put_event_catch_exceptions(patch_get_buffer, buffer, error):
 
 
 def test_pop_events_with_remaining_size(patch_get_buffer, buffer):
-    payload = "payload-{}"
-    buffer.put_events([payload.format(i) for i in range(BATCH_SIZE + BATCH_SIZE // 2)])
+    payloads_count = BATCH_SIZE + (BATCH_SIZE // 2)
+    payloads = [f"event-data-{i}".encode() for i in range(payloads_count)]
+    buffer.put_events(payloads)
 
-    events, batch_count = pop_events_with_remaining_size()
+    events, remaining_batch_count = pop_events_with_remaining_size()
 
-    assert events == [payload.format(i) for i in range(BATCH_SIZE)]
-    assert batch_count == 1
+    assert events == [f"event-data-{i}".encode() for i in range(BATCH_SIZE)]
+    assert remaining_batch_count == 1
 
 
 def test_pop_events_with_remaining_size_catch_exceptions(
     redis_server, buffer, patch_get_buffer
 ):
-    payload = "payload-{}"
-    buffer.put_events([payload.format(i) for i in range(BATCH_SIZE)])
+    buffer.put_events([f"event-data-{i}".encode() for i in range(BATCH_SIZE)])
     redis_server.connected = False
     assert pop_events_with_remaining_size() == ([], 0)
