@@ -543,16 +543,3 @@ def get_current_products_for_rules(rules: "QuerySet[PromotionRule]"):
         Exists(rule_variants.filter(productvariant_id=OuterRef("id")))
     )
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
-
-
-def get_current_products_for_rule(rule: "PromotionRule"):
-    """Get currently assigned products to promotion rule.
-
-    Collect all products for variants that are assigned to promotion rule.
-    """
-    PromotionRuleVariant = PromotionRule.variants.through
-    rule_variants = PromotionRuleVariant.objects.filter(promotionrule_id=rule.pk)
-    variants = ProductVariant.objects.filter(
-        Exists(rule_variants.filter(productvariant_id=OuterRef("id")))
-    )
-    return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))

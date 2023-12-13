@@ -1,7 +1,7 @@
 import graphene
 
 from .....discount import events, models
-from .....discount.utils import get_current_products_for_rule
+from .....discount.utils import get_current_products_for_rules
 from .....graphql.core.mutations import ModelDeleteMutation
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_discounted_prices_task
@@ -50,7 +50,9 @@ class PromotionRuleDelete(ModelDeleteMutation):
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
         cls.clean_instance(info, instance)
 
-        products = get_current_products_for_rule(instance)
+        products = get_current_products_for_rules(
+            models.PromotionRule.objects.filter(id=instance.id)
+        )
         product_ids = list(products.values_list("id", flat=True))
 
         db_id = instance.id
