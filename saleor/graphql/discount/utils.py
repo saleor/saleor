@@ -326,14 +326,6 @@ def get_categories_from_predicate(catalogue_predicate) -> QuerySet:
     ).all()
 
 
-def get_product_ids_for_predicate(predicate: dict) -> set[int]:
-    variants = get_variants_for_predicate(predicate)
-    products = Product.objects.filter(
-        Exists(variants.filter(product_id=OuterRef("id")))
-    )
-    return set(products.values_list("id", flat=True))
-
-
 def merge_catalogues_info(
     catalogue_1: CatalogueInfo, catalogue_2: CatalogueInfo
 ) -> CatalogueInfo:

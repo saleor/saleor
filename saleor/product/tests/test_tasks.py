@@ -19,11 +19,9 @@ from ..tasks import (
 )
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_update_products_discounted_prices_of_promotion_task(
-    update_products_discounted_prices_mock,
+    update_discounted_prices_task_mock,
     product,
 ):
     # given
@@ -46,8 +44,8 @@ def test_update_products_discounted_prices_of_promotion_task(
     update_products_discounted_prices_of_promotion_task(promotion.id)
 
     # then
-    update_products_discounted_prices_mock.assert_called_once()
-    args, kwargs = update_products_discounted_prices_mock.call_args
+    update_discounted_prices_task_mock.assert_called_once()
+    args, kwargs = update_discounted_prices_task_mock.call_args
 
     assert len(args[0]) == 1
     assert {id for id in args[0]} == {product.id}
