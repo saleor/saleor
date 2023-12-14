@@ -307,6 +307,10 @@ class Promotion(ModelWithMetadata):
                 "Manage sales and vouchers.",
             ),
         )
+        indexes = [
+            BTreeIndex(fields=["start_date"], name="start_date_idx"),
+            BTreeIndex(fields=["end_date"], name="end_date_idx"),
+        ]
 
     def is_active(self, date=None):
         if date is None:
