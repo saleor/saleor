@@ -26,6 +26,7 @@ from ....order import OrderStatus
 from ....product import ProductTypeKind
 from ....product.models import Product, ProductType
 from ....shipping.utils import convert_to_shipping_method_data
+from ....tax import TaxCalculationStrategy
 from ....tax.models import TaxClass
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
@@ -4150,6 +4151,160 @@ def test_order_confirmed(
         conf_data,
         order.pk,
     )
+
+
+@patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_preprocess_order_creation_with_enabled_flat_rates(
+    api_post_request_task_mock,
+    checkout_with_item,
+    address,
+    ship_to_pl_address,
+    site_settings,
+    shipping_zone,
+    plugin_configuration,
+):
+    # given
+    channel = checkout_with_item.channel
+    tax_configuration = channel.tax_configuration
+    tax_configuration.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    plugin_configuration(
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_postal_code="53-603",
+        from_country="PL",
+        shipping_tax_code="FR00001",
+    )
+
+    manager = get_plugins_manager(allow_replica=True)
+    site_settings.company_address = address
+    site_settings.save()
+
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+
+    # when
+    manager.preprocess_order_creation(checkout_info, lines)
+
+    # then
+    assert not api_post_request_task_mock.called
+
+
+@patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_preprocess_order_creation_with_country_exception_for_flat_rates(
+    api_post_request_task_mock,
+    checkout_with_item,
+    address,
+    ship_to_pl_address,
+    site_settings,
+    shipping_zone,
+    plugin_configuration,
+):
+    # given
+    channel = checkout_with_item.channel
+    tax_configuration = channel.tax_configuration
+    tax_configuration.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    tax_configuration.country_exceptions.create(
+        country="PL",
+        tax_calculation_strategy=TaxCalculationStrategy.FLAT_RATES,
+    )
+
+    plugin_configuration(
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_postal_code="53-603",
+        from_country="PL",
+        shipping_tax_code="FR00001",
+    )
+
+    manager = get_plugins_manager(allow_replica=True)
+    site_settings.company_address = address
+    site_settings.save()
+
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+
+    # when
+    manager.preprocess_order_creation(checkout_info, lines)
+
+    # then
+    assert not api_post_request_task_mock.called
+
+
+@patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_order_confirmed_skip_when_flat_rate_usage(
+    api_post_request_task_mock, order, plugin_configuration
+):
+    # given
+    channel = order.channel
+    tax_configuration = channel.tax_configuration
+    tax_configuration.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    plugin_configuration(
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_postal_code="53-603",
+        from_country="PL",
+        shipping_tax_code="FR00001",
+    )
+
+    manager = get_plugins_manager(allow_replica=True)
+
+    # when
+    manager.order_confirmed(order)
+
+    # then
+    assert not api_post_request_task_mock.called
+
+
+@patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_order_confirmed_skip_with_country_exception_for_flat_rate(
+    api_post_request_task_mock, order, order_line, plugin_configuration
+):
+    # given
+    channel = order.channel
+    tax_configuration = channel.tax_configuration
+    tax_configuration.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    tax_configuration.country_exceptions.create(
+        country="PL",
+        tax_calculation_strategy=TaxCalculationStrategy.FLAT_RATES,
+    )
+
+    plugin_configuration(
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_postal_code="53-603",
+        from_country="PL",
+        shipping_tax_code="FR00001",
+    )
+
+    manager = get_plugins_manager(allow_replica=True)
+
+    # when
+    manager.order_confirmed(order)
+
+    # then
+    assert not api_post_request_task_mock.called
 
 
 @patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
