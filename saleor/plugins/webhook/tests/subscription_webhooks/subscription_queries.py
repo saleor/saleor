@@ -2447,3 +2447,22 @@ ORDER_CALCULATE_TAXES = """
       }
     }
 """
+
+CHECKOUT_SHIPPING_LIST_AND_FILTER = """
+    subscription {
+      event {
+        ... on CheckoutFilterShippingMethods {
+          __typename
+          checkout {
+            id
+          }
+        }
+        ... on ShippingListMethodsForCheckout {
+          __typename
+          checkout {
+            id
+          }
+        }
+      }
+    }
+"""
