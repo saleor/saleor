@@ -86,22 +86,25 @@ def resolve_products(
     info: ResolveInfo, requestor, channel_slug=None
 ) -> ChannelQsContext:
     connection_name = get_database_connection_name(info.context)
-    qs = (
-        models.Product.objects.all()
-        .using(connection_name)
-        .visible_to_user(requestor, channel_slug)
+    qs = models.Product.objects.using(connection_name).visible_to_user(
+        requestor, channel_slug
     )
     if not has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
-        channels = Channel.objects.using(connection_name).filter(slug=str(channel_slug))
-        product_channel_listings = models.ProductChannelListing.objects.using(
-            connection_name
-        ).filter(
-            Exists(channels.filter(pk=OuterRef("channel_id"))),
-            visible_in_listings=True,
-        )
-        qs = qs.filter(
-            Exists(product_channel_listings.filter(product_id=OuterRef("pk")))
-        )
+        if channel := (
+            Channel.objects.using(connection_name)
+            .filter(slug=str(channel_slug))
+            .first()
+        ):
+            product_channel_listings = (
+                models.ProductChannelListing.objects.using(connection_name)
+                .filter(channel_id=channel.id, visible_in_listings=True)
+                .values("id")
+            )
+            qs = qs.filter(
+                Exists(product_channel_listings.filter(product_id=OuterRef("pk")))
+            )
+        else:
+            qs = models.Product.objects.none()
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
