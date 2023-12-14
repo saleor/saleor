@@ -2,7 +2,17 @@ import datetime
 import re
 from collections import defaultdict, namedtuple
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -31,6 +41,7 @@ from ...product.error_codes import ProductErrorCode
 from ..core.utils import from_global_id_or_error, get_duplicated_values
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..utils import get_nodes
+from .enums import AttributeValueBulkActionEnum
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -198,7 +209,7 @@ class AttributeAssignmentMixin:
             },
         }
 
-        return ((AttributeValue.objects.get_or_create, value),)
+        return ((AttributeValueBulkActionEnum.GET_OR_CREATE, value),)
 
     @classmethod
     def clean_input(
@@ -461,7 +472,7 @@ class AttributeAssignmentMixin:
                 value = attribute_models.AttributeValue.objects.get(
                     external_reference=external_ref
                 )
-                return ((None, value),)
+                return ((AttributeValueBulkActionEnum.NONE, value),)
             except attribute_models.AttributeValue.DoesNotExist:
                 raise ValidationError(
                     "Attribute value with given externalReference can't be found"
@@ -473,7 +484,7 @@ class AttributeAssignmentMixin:
                 value = attribute_models.AttributeValue.objects.get(pk=attr_value_id)
                 return (
                     (
-                        None,
+                        AttributeValueBulkActionEnum.NONE,
                         value,
                     ),
                 )
@@ -502,9 +513,9 @@ class AttributeAssignmentMixin:
             return cls._get_create_value_instance(attribute, attr_value, external_ref)
 
         if external_ref:
-            value = attribute_models.AttributeValue.objects.get(
+            value = attribute_models.AttributeValue.objects.filter(
                 external_reference=external_ref
-            )
+            ).first()
             if not value:
                 raise ValidationError(
                     "Attribute value with given externalReference can't be found"
@@ -518,7 +529,9 @@ class AttributeAssignmentMixin:
 
         if id := attr_values.swatch.id:
             _, attr_value_id = from_global_id_or_error(id)
-            value = attribute_models.AttributeValue.objects.get(pk=attr_value_id)
+            value = attribute_models.AttributeValue.objects.filter(
+                pk=attr_value_id
+            ).first()
             if not value:
                 raise ValidationError("Attribute value with given ID can't be found")
             return (
@@ -559,8 +572,11 @@ class AttributeAssignmentMixin:
 
             if external_ref:
                 try:
-                    value = attribute_models.AttributeValue.objects.get(
-                        external_reference=external_ref
+                    value = cast(
+                        AttributeValue,
+                        AttributeValue.objects.filter(
+                            external_reference=external_ref
+                        ).first(),
                     )
                     if value.id not in [a.id for a in attribute_values]:
                         attribute_values.append(value)
@@ -572,10 +588,11 @@ class AttributeAssignmentMixin:
             if attr_value.id:
                 try:
                     _, attr_value_id = from_global_id_or_error(attr_value.id)
-                    attr_value_model = attribute_models.AttributeValue.objects.get(
+                    attr_value_model = AttributeValue.objects.filter(
                         pk=attr_value_id
-                    )
-                except attribute_models.AttributeValue.DoesNotExist:
+                    ).first()
+                    attr_value_model = cast(AttributeValue, attr_value_model)
+                except AttributeValue.DoesNotExist:
                     raise ValidationError(
                         "Attribute value with given ID can't be found"
                     )
@@ -587,11 +604,14 @@ class AttributeAssignmentMixin:
                 attr_value_model = prepare_attribute_values(
                     attribute, [attr_value.value]
                 )[0][0]
+                attr_value_model = cast(AttributeValue, attr_value_model)
                 attr_value_model.save()
                 if attr_value_model.id not in [a.id for a in attribute_values]:
                     attribute_values.append(attr_value_model)
 
-        return [(None, value) for value in attribute_values]
+        return [
+            (AttributeValueBulkActionEnum.NONE, value) for value in attribute_values
+        ]
 
     @classmethod
     def _pre_save_numeric_values(
@@ -677,7 +697,7 @@ class AttributeAssignmentMixin:
                 "boolean": boolean,
             },
         }
-        return ((AttributeValue.objects.get_or_create, value),)
+        return ((AttributeValueBulkActionEnum.GET_OR_CREATE, value),)
 
     @classmethod
     def _pre_save_date_time_values(
@@ -721,7 +741,7 @@ class AttributeAssignmentMixin:
             "slug": slug,
             "defaults": value_defaults,
         }
-        return ((AttributeValue.objects.update_or_create, value),)
+        return ((AttributeValueBulkActionEnum.UPDATE_OR_CREATE, value),)
 
     @classmethod
     def _pre_save_reference_values(
@@ -749,7 +769,7 @@ class AttributeAssignmentMixin:
 
             reference_list.append(
                 (
-                    AttributeValue.objects.get_or_create,
+                    AttributeValueBulkActionEnum.GET_OR_CREATE,
                     {
                         "attribute": attribute,
                         "slug": slugify(
@@ -791,14 +811,14 @@ class AttributeAssignmentMixin:
                 content_type=attr_value.content_type,
             )
             value.slug = generate_unique_slug(value, name)
-            return ((AttributeValue.objects.create, value),)
+            return ((AttributeValueBulkActionEnum.CREATE, value),)
         return ((None, value),)
 
     @classmethod
     def _prepare_attribute_values(cls, attribute, values):
         results, values_to_create = prepare_attribute_values(attribute, values)
-        return [(None, record) for record in results] + [
-            (AttributeValue.objects.create, record) for record in values_to_create
+        return [(AttributeValueBulkActionEnum.NONE, record) for record in results] + [
+            (AttributeValueBulkActionEnum.CREATE, record) for record in values_to_create
         ]
 
     @classmethod
@@ -807,11 +827,11 @@ class AttributeAssignmentMixin:
 
         for action, attribute_data in pre_save_bulk.items():
             for attribute, values in attribute_data.items():
-                if action == AttributeValue.objects.create:
+                if action == AttributeValueBulkActionEnum.CREATE:
                     values = AttributeValue.objects.bulk_create(values)
-                elif action == AttributeValue.objects.update_or_create:
+                elif action == AttributeValueBulkActionEnum.UPDATE_OR_CREATE:
                     values = AttributeValue.objects.bulk_update_or_create(values)
-                elif action == AttributeValue.objects.get_or_create:
+                elif action == AttributeValueBulkActionEnum.GET_OR_CREATE:
                     values = AttributeValue.objects.bulk_get_or_create(values)
                 else:
                     # ensuring that empty values will be added to results,

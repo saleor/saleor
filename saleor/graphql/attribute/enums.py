@@ -1,3 +1,5 @@
+from enum import Enum
+
 import graphene
 
 from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
@@ -19,3 +21,10 @@ AttributeEntityTypeEnum = graphene.Enum(
     [(str_to_enum(name.upper()), code) for code, name in AttributeEntityType.CHOICES],
 )
 AttributeEntityTypeEnum.doc_category = DOC_CATEGORY_ATTRIBUTES
+
+
+class AttributeValueBulkActionEnum(Enum):
+    NONE = None
+    CREATE = "create"
+    GET_OR_CREATE = "get_or_create"
+    UPDATE_OR_CREATE = "update_or_create"

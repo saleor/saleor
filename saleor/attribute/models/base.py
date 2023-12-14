@@ -1,4 +1,3 @@
-from functools import reduce
 from typing import TYPE_CHECKING, TypeVar, Union
 
 from django.contrib.postgres.indexes import GinIndex
@@ -217,27 +216,42 @@ class AttributeTranslation(Translation):
 
 
 class AttributeValueManager(models.Manager):
+    def _prepare_query_for_bulk_operation(self, objects_data):
+        query_params = models.Q()
+
+        for obj in objects_data:
+            defaults = obj.pop("defaults")
+            query_params |= models.Q(**obj)
+            obj["defaults"] = defaults
+
+        return self.filter(query_params)
+
+    def _is_correct_record(self, record, obj):
+        is_correct_record = (
+            getattr(record, field_name) == field_value
+            for field_name, field_value in obj.items()
+            if field_name != "defaults"
+        )
+        return is_correct_record
+
     def bulk_get_or_create(self, objects_data):
         results = []
         objects_not_in_db = []
-        query_params = []
+
+        query = self._prepare_query_for_bulk_operation(objects_data)
+
+        for record in query.iterator():
+            for obj in objects_data:
+                if self._is_correct_record(record, obj):
+                    results.append(record)
+                    objects_data.remove(obj)
+                    break
 
         for obj in objects_data:
             defaults = obj.pop("defaults")
-            query_params.append(models.Q(**obj))
-            obj["defaults"] = defaults
-
-        query = self.filter(reduce(lambda x, y: x | y, query_params))
-
-        for obj in objects_data:
-            defaults = obj.pop("defaults")
-            try:
-                record = query.get(**obj)
-            except self.model.DoesNotExist:
-                obj.update(defaults)
-                record = self.model(**obj)
-                objects_not_in_db.append(record)
-
+            obj.update(defaults)
+            record = self.model(**obj)
+            objects_not_in_db.append(record)
             results.append(record)
 
         if objects_not_in_db:
@@ -250,29 +264,26 @@ class AttributeValueManager(models.Manager):
         objects_not_in_db = []
         objects_to_be_updated = []
         update_fields = set()
-        query_params = []
+
+        query = self._prepare_query_for_bulk_operation(objects_data)
+
+        for record in query.iterator():
+            for obj in objects_data:
+                if self._is_correct_record(record, obj):
+                    for key, value in obj["defaults"].items():
+                        setattr(record, key, value)
+                        update_fields.add(key)
+
+                    results.append(record)
+                    objects_to_be_updated.append(record)
+                    objects_data.remove(obj)
+                    break
 
         for obj in objects_data:
             defaults = obj.pop("defaults")
-            query_params.append(models.Q(**obj))
-            obj["defaults"] = defaults
-
-        query = self.filter(reduce(lambda x, y: x | y, query_params))
-
-        for obj in objects_data:
-            defaults = obj.pop("defaults")
-            try:
-                record = query.get(**obj)
-            except self.model.DoesNotExist:
-                obj.update(defaults)
-                record = self.model(**obj)
-                objects_not_in_db.append(record)
-            else:
-                for key, value in defaults.items():
-                    setattr(record, key, value)
-                    update_fields.add(key)
-                objects_to_be_updated.append(record)
-
+            obj.update(defaults)
+            record = self.model(**obj)
+            objects_not_in_db.append(record)
             results.append(record)
 
         if objects_not_in_db:
