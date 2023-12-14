@@ -1,5 +1,6 @@
 from django.db.models import Exists, F, OuterRef
 from django.db import transaction
+from django.conf import settings
 
 from ....celeryconf import app
 from ...models import (
@@ -196,11 +197,17 @@ def get_discount_voucher_id_to_code_map(model_discounts):
 
 @app.task
 def set_promotion_rule_variants(start_id=None):
-    promotions = Promotion.objects.active()
+    promotions = Promotion.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).active()
     kwargs = {"id__gt": start_id} if start_id else {}
-    rules = PromotionRule.objects.order_by("id").filter(
-        Exists(promotions.filter(id=OuterRef("promotion_id"))), **kwargs
-    )[:PROMOTION_RULE_BATCH_SIZE]
+    rules = (
+        PromotionRule.objects.order_by("id")
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(Exists(promotions.filter(id=OuterRef("promotion_id"))), **kwargs)[
+            :PROMOTION_RULE_BATCH_SIZE
+        ]
+    )
     if ids := list(rules.values_list("pk", flat=True)):
         qs = PromotionRule.objects.filter(pk__in=ids)
         fetch_variants_for_promotion_rules(rules=qs)

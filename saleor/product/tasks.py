@@ -167,13 +167,19 @@ def update_products_discounted_prices_for_promotion_task(
     Firstly the promotion rule variants are recalculated, then the products discounted
     prices are calculated.
     """
-    promotions = Promotion.objects.active()
+    promotions = Promotion.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).active()
     kwargs = {"id__gt": start_id} if start_id else {}
     if rule_ids:
         kwargs["id__in"] = rule_ids  # type: ignore[assignment]
-    rules = PromotionRule.objects.order_by("id").filter(
-        Exists(promotions.filter(id=OuterRef("promotion_id"))), **kwargs
-    )[:PROMOTION_RULE_BATCH_SIZE]
+    rules = (
+        PromotionRule.objects.order_by("id")
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(Exists(promotions.filter(id=OuterRef("promotion_id"))), **kwargs)[
+            :PROMOTION_RULE_BATCH_SIZE
+        ]
+    )
     if ids := list(rules.values_list("pk", flat=True)):
         qs = PromotionRule.objects.filter(pk__in=ids)
         fetch_variants_for_promotion_rules(rules=qs)
