@@ -9,7 +9,7 @@ from ...core.exceptions import PermissionDenied
 from ...payment import models
 from ...permission.enums import OrderPermissions
 from ..account.dataloaders import UserByUserIdLoader
-from ..app.dataloaders import AppByIdLoader, AppsByAppIdentifierLoader
+from ..app.dataloaders import ActiveAppsByAppIdentifierLoader, AppByIdLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
@@ -362,20 +362,33 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         This covers a case when a third-party app was re-installed, but we're still able
         to determine which one is the owner of the transaction.
         """
+
+        def get_first_app_by_identifier(apps):
+            if apps:
+                return apps[0]
+            return None
+
+        def get_active_app(app):
+            if app and app.is_active and not app.removed_at:
+                return app
+
+            if root.app_identifier:
+                return (
+                    ActiveAppsByAppIdentifierLoader(info.context)
+                    .load(root.app_identifier)
+                    .then(get_first_app_by_identifier)
+                )
+
         if root.app_id:
-            return AppByIdLoader(info.context).load(root.app_id)
+            return AppByIdLoader(info.context).load(root.app_id).then(get_active_app)
+
         if root.app_identifier:
-
-            def get_first_app(apps):
-                if apps:
-                    return apps[0]
-                return None
-
             return (
-                AppsByAppIdentifierLoader(info.context)
+                ActiveAppsByAppIdentifierLoader(info.context)
                 .load(root.app_identifier)
-                .then(get_first_app)
+                .then(get_first_app_by_identifier)
             )
+
         if root.user_id:
             return UserByUserIdLoader(info.context).load(root.user_id)
         return None
@@ -572,20 +585,32 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         to determine which one is the owner of the transaction.
         """
 
+        def get_first_app_by_identifier(apps):
+            if apps:
+                return apps[0]
+            return None
+
+        def get_active_app(app):
+            if app and app.is_active and not app.removed_at:
+                return app
+
+            if root.app_identifier:
+                return (
+                    ActiveAppsByAppIdentifierLoader(info.context)
+                    .load(root.app_identifier)
+                    .then(get_first_app_by_identifier)
+                )
+
         if root.app_id:
-            return AppByIdLoader(info.context).load(root.app_id)
+            return AppByIdLoader(info.context).load(root.app_id).then(get_active_app)
+
         if root.app_identifier:
-
-            def get_first_app(apps):
-                if apps:
-                    return apps[0]
-                return None
-
             return (
-                AppsByAppIdentifierLoader(info.context)
+                ActiveAppsByAppIdentifierLoader(info.context)
                 .load(root.app_identifier)
-                .then(get_first_app)
+                .then(get_first_app_by_identifier)
             )
+
         if root.user_id:
             return UserByUserIdLoader(info.context).load(root.user_id)
         return None

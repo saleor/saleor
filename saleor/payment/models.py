@@ -33,6 +33,7 @@ class TransactionItem(ModelWithMetadata):
     use_old_id = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+    idempotency_key = models.CharField(max_length=512, blank=True, null=True)
     status = models.CharField(max_length=512, blank=True, null=True, default="")
     name = models.CharField(max_length=512, blank=True, null=True, default="")
     message = models.CharField(max_length=512, blank=True, null=True, default="")
@@ -173,6 +174,7 @@ class TransactionEvent(models.Model):
         blank=True,
         null=True,
     )
+    idempotency_key = models.CharField(max_length=512, blank=True, null=True)
     psp_reference = models.CharField(max_length=512, blank=True, null=True)
     message = models.CharField(max_length=512, blank=True, null=True, default="")
     transaction = models.ForeignKey(

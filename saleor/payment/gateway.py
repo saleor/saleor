@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Callable, List, Optional
+from typing import TYPE_CHECKING, Callable, List, Optional, cast
 
 from ..account.models import User
 from ..app.models import App
@@ -196,10 +196,15 @@ def _create_transaction_data(
 ):
     app_owner = None
     if transaction.app_id:
-        app_owner = transaction.app
-    elif transaction.app_identifier:
+        app_owner = cast(App, transaction.app)
+        if not app_owner.is_active or app_owner.removed_at:
+            app_owner = None
+
+    if not app_owner and transaction.app_identifier:
         app_owner = App.objects.filter(
-            identifier=transaction.app_identifier, removed_at__isnull=True
+            identifier=transaction.app_identifier,
+            removed_at__isnull=True,
+            is_active=True,
         ).first()
 
     return TransactionActionData(

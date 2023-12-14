@@ -9,6 +9,25 @@ from ....webhook.payloads import generate_checkout_payload
 from ..shipping import generate_cache_key_for_shipping_list_methods_for_checkout
 
 
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_get_shipping_methods_for_checkout_webhook_response_none(
+    mocked_webhook,
+    webhook_plugin,
+    checkout_ready_to_complete,
+    shipping_app,
+):
+    # given
+    checkout = checkout_ready_to_complete
+    plugin = webhook_plugin()
+    mocked_webhook.return_value = None
+
+    # when
+    response = plugin.get_shipping_methods_for_checkout(checkout, None)
+
+    # then
+    assert not response
+
+
 @mock.patch("saleor.plugins.webhook.plugin.cache.set")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_get_shipping_methods_for_checkout_set_cache(
