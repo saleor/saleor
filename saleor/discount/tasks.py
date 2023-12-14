@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Dict
 import graphene
 import pytz
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from django.db.models import Exists, F, OuterRef, Q, QuerySet
 
 from ..celeryconf import app
@@ -185,15 +186,19 @@ def fetch_promotion_variants_and_product_ids(promotions: "QuerySet[Promotion]"):
 @app.task
 def clear_promotion_rule_variants_task():
     """Clear all promotion rule variants."""
-    promotions = Promotion.objects.expired()
-    rules = PromotionRule.objects.filter(
-        Exists(promotions.filter(id=OuterRef("promotion_id")))
-    )
+    promotions = Promotion.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).expired()
+    rules = PromotionRule.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(Exists(promotions.filter(id=OuterRef("promotion_id"))))
     PromotionRuleVariant = PromotionRule.variants.through
     rule_variants_id = list(
-        PromotionRuleVariant.objects.filter(
-            Exists(rules.filter(pk=OuterRef("promotionrule_id")))
-        )[:EXPIRED_RULES_BATCH_SIZE].values_list("pk", flat=True)
+        PromotionRuleVariant.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(Exists(rules.filter(pk=OuterRef("promotionrule_id"))))[
+            :EXPIRED_RULES_BATCH_SIZE
+        ]
+        .values_list("pk", flat=True)
     )
     if rule_variants_id:
         PromotionRuleVariant.objects.filter(pk__in=rule_variants_id).delete()
