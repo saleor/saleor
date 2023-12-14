@@ -13,6 +13,10 @@ from ....core.types import CollectionError
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Collection
 
+# Batch size of 25k ids, assuming their pks are at least 7 digits each
+# after json serialization, weights 225kB of payload.
+PRODUCTS_BATCH_SIZE = 25000
+
 
 class CollectionDelete(ModelDeleteMutation):
     class Arguments:
@@ -28,12 +32,9 @@ class CollectionDelete(ModelDeleteMutation):
 
     @staticmethod
     def batch_product_ids(ids):
-        # Batch size of 25k ids, assuming their pks are at least 7 digits each
-        # after json serialization, weights 225kB of payload.
-        BATCH_SIZE = 25000
         _length = len(ids)
-        for i in range(0, _length, BATCH_SIZE):
-            yield ids[i : i + BATCH_SIZE]
+        for i in range(0, _length, PRODUCTS_BATCH_SIZE):
+            yield ids[i : i + PRODUCTS_BATCH_SIZE]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
