@@ -91,7 +91,6 @@ def test_checkout_calculate_taxes(
 ):
     # given
     webhook_app.permissions.add(permission_handle_taxes)
-    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
@@ -157,7 +156,6 @@ def test_checkout_calculate_taxes_with_free_shipping_voucher(
     # given
     checkout = checkout_with_voucher_free_shipping
     webhook_app.permissions.add(permission_handle_taxes)
-    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
@@ -199,7 +197,6 @@ def test_checkout_calculate_taxes_with_voucher(
 ):
     # given
     webhook_app.permissions.add(permission_handle_taxes)
-    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
@@ -257,7 +254,6 @@ def test_checkout_calculate_taxes_with_shipping_voucher(
     # given
     voucher.type = VoucherType.SHIPPING
     webhook_app.permissions.add(permission_handle_taxes)
-    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
@@ -313,7 +309,6 @@ def test_checkout_calculate_taxes_empty_checkout(
 ):
     # given
     webhook_app.permissions.add(permission_handle_taxes)
-    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
@@ -360,7 +355,6 @@ def test_order_calculate_taxes(
     shipping_method = shipping_zone.shipping_methods.first()
     order.shipping_method = shipping_method
     webhook_app.permissions.add(permission_handle_taxes)
-    event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
@@ -442,7 +436,6 @@ def test_order_calculate_taxes_with_discounts(
     order.refresh_from_db()
 
     webhook_app.permissions.add(permission_handle_taxes)
-    event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
@@ -492,7 +485,6 @@ def test_order_calculate_taxes_empty_order(
     # given
     order = Order.objects.create(channel=channel_USD, currency="USD")
     webhook_app.permissions.add(permission_handle_taxes)
-    event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
