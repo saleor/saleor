@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, TypeVar, Union
+from typing import TYPE_CHECKING, List, TypeVar, Union
 
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models, transaction
@@ -236,7 +236,7 @@ class AttributeValueManager(models.Manager):
 
     def bulk_get_or_create(self, objects_data):
         results = []
-        objects_not_in_db = []
+        objects_not_in_db: List[AttributeValue] = []
 
         query = self._prepare_query_for_bulk_operation(objects_data)
 
@@ -247,21 +247,16 @@ class AttributeValueManager(models.Manager):
                     objects_data.remove(obj)
                     break
 
-        for obj in objects_data:
-            defaults = obj.pop("defaults")
-            obj.update(defaults)
-            record = self.model(**obj)
-            objects_not_in_db.append(record)
-            results.append(record)
+        self._add_new_records(objects_data, objects_not_in_db, results)
 
         if objects_not_in_db:
-            self.bulk_create(objects_not_in_db)
+            self.bulk_create(objects_not_in_db)  # type: ignore[arg-type]
 
         return results
 
     def bulk_update_or_create(self, objects_data):
         results = []
-        objects_not_in_db = []
+        objects_not_in_db: List[AttributeValue] = []
         objects_to_be_updated = []
         update_fields = set()
 
@@ -279,15 +274,10 @@ class AttributeValueManager(models.Manager):
                     objects_data.remove(obj)
                     break
 
-        for obj in objects_data:
-            defaults = obj.pop("defaults")
-            obj.update(defaults)
-            record = self.model(**obj)
-            objects_not_in_db.append(record)
-            results.append(record)
+        self._add_new_records(objects_data, objects_not_in_db, results)
 
         if objects_not_in_db:
-            self.bulk_create(objects_not_in_db)
+            self.bulk_create(objects_not_in_db)  # type: ignore[arg-type]
 
         if objects_to_be_updated:
             self.bulk_update(
@@ -295,6 +285,14 @@ class AttributeValueManager(models.Manager):
             )
 
         return results
+
+    def _add_new_records(self, objects_data, objects_not_in_db, results):
+        for obj in objects_data:
+            defaults = obj.pop("defaults")
+            obj.update(defaults)
+            record = self.model(**obj)
+            objects_not_in_db.append(record)
+            results.append(record)
 
 
 class AttributeValue(ModelWithExternalReference):

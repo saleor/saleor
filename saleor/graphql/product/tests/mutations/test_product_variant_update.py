@@ -1317,11 +1317,6 @@ def test_update_variant_with_date_attribute(
         "sku": sku,
         "attributes": [
             {"id": date_attribute_id, "date": date_value},
-            {"id": date_attribute_id, "date": date_value},
-            {"id": date_attribute_id, "date": date_value},
-            {"id": date_attribute_id, "date": date_value},
-            {"id": date_attribute_id, "date": date_value},
-            {"id": date_attribute_id, "date": date_value},
         ],
     }
 
