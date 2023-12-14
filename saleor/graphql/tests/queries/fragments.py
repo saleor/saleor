@@ -482,5 +482,16 @@ fragment TransactionFragment on TransactionItem {
       }
     }
   }
+  checkout {
+    id
+    channel {
+      slug
+    }
+    totalPrice {
+      gross {
+        amount
+      }
+    }
+  }
 }
 """
