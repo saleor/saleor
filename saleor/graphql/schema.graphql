@@ -27658,6 +27658,7 @@ enum PromotionRuleCreateErrorCode {
   INVALID
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
+  MIXED_PREDICATES
 }
 
 input PromotionRuleCreateInput {

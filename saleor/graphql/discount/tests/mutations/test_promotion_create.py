@@ -674,7 +674,7 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_promotion_create_missing_catalogue_predicate(
+def test_promotion_create_missing_predicate(
     staff_api_client,
     permission_group_manage_discounts,
     description_json,
@@ -737,7 +737,7 @@ def test_promotion_create_missing_catalogue_predicate(
     assert not data["promotion"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionCreateErrorCode.REQUIRED.name
-    assert errors[0]["field"] == "cataloguePredicate"
+    assert errors[0]["field"] is None
     assert errors[0]["index"] == 1
 
 

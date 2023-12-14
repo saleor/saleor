@@ -41,6 +41,7 @@ class PromotionRuleCreateErrorCode(Enum):
     INVALID = "invalid"
     MULTIPLE_CURRENCIES_NOT_ALLOWED = "multiple_currencies_not_allowed"
     INVALID_PRECISION = "invalid_precision"
+    MIXED_PREDICATES = "mixed_predicates"
 
 
 class PromotionRuleUpdateErrorCode(Enum):

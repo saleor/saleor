@@ -17,7 +17,7 @@ from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PromotionRuleCreateErrorCode
 from ...types import PromotionRule
-from ...utils import get_products_for_rule
+from ...utils import get_predicate_type, get_products_for_rule
 from ..utils import clear_promotion_old_sale_id
 from .promotion_create import PromotionRuleInput
 from .validators import clean_promotion_rule
@@ -60,7 +60,14 @@ class PromotionRuleCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
-        clean_promotion_rule(cleaned_input, errors, PromotionRuleCreateErrorCode)
+        promotion = cleaned_input["promotion"]
+        predicate_type = get_predicate_type(promotion)
+        clean_promotion_rule(
+            cleaned_input,
+            errors,
+            PromotionRuleCreateErrorCode,
+            predicate_type=predicate_type,
+        )
 
         if errors:
             raise ValidationError(errors)

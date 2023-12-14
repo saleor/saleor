@@ -437,3 +437,12 @@ def create_catalogue_predicate(collection_ids, category_ids, product_ids, varian
         predicate = {}
 
     return predicate
+
+
+def get_predicate_type(promotion: Promotion) -> Optional[PredicateType]:
+    if rule := promotion.rules.first():
+        if rule.catalogue_predicate:
+            return PredicateType.CATALOGUE
+        elif rule.checkout_and_order_predicate:
+            return PredicateType.ORDER
+    return None

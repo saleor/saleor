@@ -5,20 +5,27 @@ from graphene.utils.str_converters import to_camel_case
 
 from .....discount import RewardValueType
 from ....core.validators import validate_price_precision
+from ...utils import PredicateType
 
 if TYPE_CHECKING:
     from decimal import Decimal
 
 
-def clean_promotion_rule(cleaned_input, errors, error_class, index=None):
-    clean_predicates(cleaned_input, errors, error_class, index=None)
+def clean_promotion_rule(
+    cleaned_input, errors, error_class, index=None, predicate_type=None
+):
+    clean_predicates(
+        cleaned_input, errors, error_class, index=None, predicate_type=predicate_type
+    )
     if not errors.get(None):
         clean_reward(cleaned_input, errors, error_class, index)
         clean_catalogue_predicate(cleaned_input, errors, error_class, index)
         clean_checkout_and_order_predicate(cleaned_input, errors, error_class, index)
 
 
-def clean_predicates(cleaned_input, errors, error_class, index=None):
+def clean_predicates(
+    cleaned_input, errors, error_class, index=None, predicate_type=None
+):
     catalogue_predicate = cleaned_input.get("catalogue_predicate")
     order_predicate = cleaned_input.get("checkout_and_order_predicate")
     if not catalogue_predicate and not order_predicate:
@@ -39,7 +46,29 @@ def clean_predicates(cleaned_input, errors, error_class, index=None):
                     "Only one of predicates can be provided: "
                     "cataloguePredicate or checkoutAndOrderPredicate."
                 ),
-                code=error_class.NOT_FOUND.value,
+                code=error_class.MIXED_PREDICATES.value,
+                params={"index": index} if index is not None else {},
+            )
+        )
+    elif catalogue_predicate and predicate_type == PredicateType.ORDER:
+        errors["catalogue_predicate"].append(
+            ValidationError(
+                message=(
+                    "Predicate types can't be mixed. Given promotion already "
+                    "have a rule with checkoutAndOrderPredicate defined."
+                ),
+                code=error_class.MIXED_PREDICATES.value,
+                params={"index": index} if index is not None else {},
+            )
+        )
+    elif order_predicate and predicate_type == PredicateType.CATALOGUE:
+        errors["checkout_and_order_predicate"].append(
+            ValidationError(
+                message=(
+                    "Predicate types can't be mixed. Given promotion already "
+                    "have a rule with cataloguePredicate defined."
+                ),
+                code=error_class.MIXED_PREDICATES.value,
                 params={"index": index} if index is not None else {},
             )
         )
