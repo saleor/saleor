@@ -142,9 +142,9 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         search = kwargs.get("search")
 
         requestor = get_user_or_app_from_context(info.context)
-        qs = root.node.products.visible_to_user(  # type: ignore[attr-defined] # mypy does not properly resolve the related manager # noqa: E501
-            requestor, root.channel_slug
-        ).using(get_database_connection_name(info.context))
+        qs = root.node.products.visible_to_user(requestor, root.channel_slug).using(
+            get_database_connection_name(info.context)
+        )
 
         if search:
             qs = ChannelQsContext(

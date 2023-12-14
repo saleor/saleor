@@ -28,11 +28,7 @@ class CollectionDelete(ModelDeleteMutation):
         cls, _root, info: ResolveInfo, /, *, id: str
     ):
         instance = cls.get_node_or_error(info, id, only_type=Collection)
-        products = list(
-            instance.products.prefetched_for_webhook(  # type: ignore[attr-defined]
-                single_object=False
-            )
-        )
+        products = list(instance.products.prefetched_for_webhook(single_object=False))
 
         result = super().perform_mutation(_root, info, id=id)
         manager = get_plugin_manager_promise(info.context).get()

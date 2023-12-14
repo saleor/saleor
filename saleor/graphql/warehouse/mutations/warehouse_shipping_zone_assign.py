@@ -62,7 +62,7 @@ class WarehouseShippingZoneAssign(ModelMutation, I18nMixin):
         Raise and error when the condition is not fulfilled.
         """
         shipping_zone_ids = [zone.id for zone in shipping_zones]
-        ChannelShippingZone = channel_models.Channel.shipping_zones.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
+        ChannelShippingZone = channel_models.Channel.shipping_zones.through
         channel_shipping_zones = ChannelShippingZone.objects.filter(
             shippingzone_id__in=shipping_zone_ids
         )

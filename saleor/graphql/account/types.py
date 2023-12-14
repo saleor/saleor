@@ -456,7 +456,7 @@ class User(ModelObjectType[models.User]):
 
     @staticmethod
     def resolve_addresses(root: models.User, _info: ResolveInfo):
-        return root.addresses.annotate_default(root).all()  # type: ignore[attr-defined] # mypy does not properly recognize the related manager # noqa: E501
+        return root.addresses.annotate_default(root).all()
 
     @staticmethod
     def resolve_checkout(root: models.User, _info: ResolveInfo):
@@ -927,7 +927,7 @@ class Group(ModelObjectType[models.Group]):
 
     @staticmethod
     def resolve_users(root: models.Group, _info: ResolveInfo):
-        return root.user_set.all()
+        return root.user_set.all()  # type: ignore[attr-defined]
 
     @staticmethod
     def resolve_permissions(root: models.Group, _info: ResolveInfo):
