@@ -157,7 +157,10 @@ def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
 
 @app.task
 def update_products_discounted_prices_for_promotion_task(
-    product_ids: Iterable[int], start_id: Optional[UUID] = None
+    product_ids: Iterable[int],
+    start_id: Optional[UUID] = None,
+    *,
+    rule_ids: Optional[list[UUID]] = None
 ):
     """Update the product discounted prices for given product ids.
 
@@ -166,13 +169,17 @@ def update_products_discounted_prices_for_promotion_task(
     """
     promotions = Promotion.objects.active()
     kwargs = {"id__gt": start_id} if start_id else {}
+    if rule_ids:
+        kwargs["id__in"] = rule_ids  # type: ignore[assignment]
     rules = PromotionRule.objects.order_by("id").filter(
         Exists(promotions.filter(id=OuterRef("promotion_id"))), **kwargs
     )[:PROMOTION_RULE_BATCH_SIZE]
     if ids := list(rules.values_list("pk", flat=True)):
         qs = PromotionRule.objects.filter(pk__in=ids)
         fetch_variants_for_promotion_rules(rules=qs)
-        update_products_discounted_prices_for_promotion_task.delay(product_ids, ids[-1])
+        update_products_discounted_prices_for_promotion_task.delay(
+            product_ids, ids[-1], rule_ids=rule_ids
+        )
     else:
         # when all promotion rules variants are up to date, call discounted prices
         # recalculation for products

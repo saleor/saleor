@@ -80,9 +80,16 @@ def handle_promotion_toggle():
     if ending_promotions:
         clear_promotion_rule_variants_task.delay()
 
+    rule_ids = list(
+        PromotionRule.objects.filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id")))
+        ).values_list("pk", flat=True)
+    )
     if product_ids:
         # Recalculate discounts of affected products
-        update_products_discounted_prices_for_promotion_task.delay(product_ids)
+        update_products_discounted_prices_for_promotion_task.delay(
+            product_ids, rule_ids
+        )
 
     starting_promotion_ids = ", ".join(
         [str(staring_promo.id) for staring_promo in starting_promotions]

@@ -184,6 +184,10 @@ def test_handle_promotion_toggle(
         product_list[0].id,
         product_list[2].id,
     }
+    assert {rule_id for rule_id in args[1]} == {
+        rules[0].id,
+        rules[2].id,
+    }
 
     mock_clear_promotion_rule_variants_task.assert_called_once()
 
