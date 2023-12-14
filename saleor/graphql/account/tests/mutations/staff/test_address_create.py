@@ -103,7 +103,8 @@ def test_create_address_mutation_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_CREATED,
             staff_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 

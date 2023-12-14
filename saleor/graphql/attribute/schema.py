@@ -67,10 +67,10 @@ class AttributeQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     def resolve_attribute(
-        self, _info: ResolveInfo, *, id=None, slug=None, external_reference=None
+        self, info: ResolveInfo, *, id=None, slug=None, external_reference=None
     ):
         return resolve_by_global_id_slug_or_ext_ref(
-            models.Attribute, id, slug, external_reference
+            info, models.Attribute, id, slug, external_reference
         )
 
 

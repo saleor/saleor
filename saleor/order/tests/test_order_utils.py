@@ -71,7 +71,7 @@ def test_change_quantity_generates_proper_event(
         previous_quantity,
         new_quantity,
         order_with_lines.channel,
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
     )
 
     if removed_count:
@@ -123,7 +123,7 @@ def test_change_quantity_update_line_fields(
         line.quantity,
         new_quantity,
         order_with_lines.channel,
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
     )
 
     # then
@@ -184,7 +184,9 @@ def test_get_valid_shipping_methods_for_order(order_line_with_one_allocation, ad
 
     # when
     valid_shipping_methods = get_valid_shipping_methods_for_order(
-        order, order.channel.shipping_method_listings.all(), get_plugins_manager()
+        order,
+        order.channel.shipping_method_listings.all(),
+        get_plugins_manager(allow_replica=False),
     )
 
     # then
@@ -206,7 +208,9 @@ def test_get_valid_shipping_methods_for_order_no_channel_shipping_zones(
 
     # when
     valid_shipping_methods = get_valid_shipping_methods_for_order(
-        order, order.channel.shipping_method_listings.all(), get_plugins_manager()
+        order,
+        order.channel.shipping_method_listings.all(),
+        get_plugins_manager(allow_replica=False),
     )
 
     # then
@@ -225,7 +229,9 @@ def test_get_valid_shipping_methods_for_order_no_shipping_address(
 
     # when
     valid_shipping_methods = get_valid_shipping_methods_for_order(
-        order, order.channel.shipping_method_listings.all(), get_plugins_manager()
+        order,
+        order.channel.shipping_method_listings.all(),
+        get_plugins_manager(allow_replica=False),
     )
 
     # then
@@ -246,7 +252,9 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
 
     # when
     valid_shipping_methods = get_valid_shipping_methods_for_order(
-        order, order.channel.shipping_method_listings.all(), get_plugins_manager()
+        order,
+        order.channel.shipping_method_listings.all(),
+        get_plugins_manager(allow_replica=False),
     )
 
     # then
@@ -260,7 +268,7 @@ def test_add_variant_to_order(
     promotion_with_single_rule,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     quantity = 4
 
     promotion = promotion_with_single_rule
@@ -309,7 +317,7 @@ def test_add_gift_cards_to_order(
     checkout = checkout_with_item
     checkout.user = staff_user
     checkout.gift_cards.add(gift_card, gift_card_expiry_date)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -363,7 +371,7 @@ def test_add_gift_cards_to_order_with_more_than_total(
     checkout = checkout_with_item
     checkout.user = staff_user
     checkout.gift_cards.add(gift_card_expiry_date, gift_card)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -393,7 +401,7 @@ def test_add_gift_cards_to_order_no_checkout_user(
     checkout.save(update_fields=["user", "email"])
 
     checkout.gift_cards.add(gift_card, gift_card_expiry_date)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 

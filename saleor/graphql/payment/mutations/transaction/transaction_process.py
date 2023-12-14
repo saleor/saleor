@@ -148,7 +148,11 @@ class TransactionProcess(BaseMutation):
                     )
                 }
             )
-        app = App.objects.filter(identifier=transaction_item.app_identifier).first()
+        app = App.objects.filter(
+            identifier=transaction_item.app_identifier,
+            removed_at__isnull=True,
+            is_active=True,
+        ).first()
         if not app:
             raise ValidationError(
                 {

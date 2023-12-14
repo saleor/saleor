@@ -11,6 +11,7 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+from ..core.context import get_database_connection_name
 from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.federation import federated_entity, resolve_federation_references
@@ -77,7 +78,7 @@ class PageType(ModelObjectType[models.PageType]):
     ):
         qs = attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
-        )
+        ).using(get_database_connection_name(info.context))
         qs = filter_connection_queryset(qs, kwargs, info.context)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 

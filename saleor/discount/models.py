@@ -22,6 +22,7 @@ from ..core.models import ModelWithMetadata
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import Translation
+from ..permission.enums import DiscountPermissions
 from . import (
     DiscountType,
     DiscountValueType,
@@ -320,6 +321,12 @@ class Promotion(ModelWithMetadata):
 
     class Meta:
         ordering = ("name", "pk")
+        permissions = (
+            (
+                DiscountPermissions.MANAGE_DISCOUNTS.codename,
+                "Manage promotions and vouchers.",
+            ),
+        )
 
     def is_active(self, date=None):
         if date is None:

@@ -619,6 +619,14 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.order.tasks.expire_orders_task",
         "schedule": BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA,
     },
+    "remove-apps-marked-as-removed": {
+        "task": "saleor.app.tasks.remove_apps_task",
+        "schedule": crontab(hour=3, minute=0),
+    },
+    "release-funds-for-abandoned-checkouts": {
+        "task": "saleor.payment.tasks.transaction_release_funds_for_checkout_task",
+        "schedule": timedelta(minutes=10),
+    },
 }
 
 # The maximum wait time between each is_due() call on schedulers
@@ -629,6 +637,12 @@ CELERY_BEAT_MAX_LOOP_INTERVAL = 300  # 5 minutes
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
 )
+# Time between marking app "to remove" and removing the app from the database.
+# App is not visible for the user after removing, but it still exists in the database.
+# Saleor needs time to process sending `APP_DELETED` webhook and possible retrying,
+# so we need to wait for some time before removing the App from the database.
+DELETE_APP_TTL = timedelta(seconds=parse(os.environ.get("DELETE_APP_TTL", "1 day")))
+
 
 # Observability settings
 OBSERVABILITY_BROKER_URL = os.environ.get("OBSERVABILITY_BROKER_URL")
@@ -814,6 +828,17 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
 CHECKOUT_PRICES_TTL = timedelta(
     seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "1 hour"))
 )
+
+CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = timedelta(
+    seconds=parse(os.environ.get("CHECKOUT_TTL_BEFORE_RELEASING_FUNDS", "6 hours"))
+)
+CHECKOUT_BATCH_FOR_RELEASING_FUNDS = os.environ.get(
+    "CHECKOUT_BATCH_FOR_RELEASING_FUNDS", 30
+)
+TRANSACTION_BATCH_FOR_RELEASING_FUNDS = os.environ.get(
+    "TRANSACTION_BATCH_FOR_RELEASING_FUNDS", 60
+)
+
 
 # The maximum SearchVector expression count allowed per index SQL statement
 # If the count is exceeded, the expression list will be truncated

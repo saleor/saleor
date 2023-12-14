@@ -69,7 +69,7 @@ def get_variants_for_promotion(promotion: Promotion) -> ProductVariantQueryset:
 
 
 def _handle_product_predicate(
-    predicate_data: dict[str, Union[dict, list]]
+    predicate_data: dict[str, Union[dict, list]],
 ) -> ProductVariantQueryset:
     product_qs = where_filter_qs(
         Product.objects.all(), {}, ProductWhere, predicate_data, None
@@ -80,7 +80,7 @@ def _handle_product_predicate(
 
 
 def _handle_variant_predicate(
-    predicate_data: dict[str, Union[dict, list]]
+    predicate_data: dict[str, Union[dict, list]],
 ) -> ProductVariantQueryset:
     return where_filter_qs(
         ProductVariant.objects.all(), {}, ProductVariantWhere, predicate_data, None
@@ -88,7 +88,7 @@ def _handle_variant_predicate(
 
 
 def _handle_collection_predicate(
-    predicate_data: dict[str, Union[dict, list]]
+    predicate_data: dict[str, Union[dict, list]],
 ) -> ProductVariantQueryset:
     collection_qs = where_filter_qs(
         Collection.objects.all(), {}, CollectionWhere, predicate_data, None
@@ -105,7 +105,7 @@ def _handle_collection_predicate(
 
 
 def _handle_category_predicate(
-    predicate_data: dict[str, Union[dict, list]]
+    predicate_data: dict[str, Union[dict, list]],
 ) -> ProductVariantQueryset:
     category_qs = where_filter_qs(
         Category.objects.all(), {}, CategoryWhere, predicate_data, None

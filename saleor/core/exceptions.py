@@ -44,13 +44,6 @@ class PreorderAllocationError(Exception):
         self.order_line = order_line
 
 
-class ReadOnlyException(Exception):
-    def __init__(self, msg=None):
-        if msg is None:
-            msg = "API runs in read-only mode"
-        super().__init__(msg)
-
-
 class ProductNotPublished(Exception):
     def __init__(self, context=None):
         super().__init__("Can't add unpublished product.")

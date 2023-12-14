@@ -57,6 +57,8 @@ def parse_list_shipping_methods_response(
 ) -> list["ShippingMethodData"]:
     shipping_methods = []
     for shipping_method_data in response_data:
+        if not validate_shipping_method_data(shipping_method_data):
+            continue
         method_id = shipping_method_data.get("id")
         method_name = shipping_method_data.get("name")
         method_amount = shipping_method_data.get("amount")
@@ -72,6 +74,13 @@ def parse_list_shipping_methods_response(
             )
         )
     return shipping_methods
+
+
+def validate_shipping_method_data(shipping_method_data):
+    if not isinstance(shipping_method_data, dict):
+        return False
+    keys = ["id", "name", "amount", "currency"]
+    return all(key in shipping_method_data for key in keys)
 
 
 def _compare_order_payloads(payload: str, cached_payload: str) -> bool:
@@ -93,6 +102,7 @@ def get_excluded_shipping_methods_or_fetch(
     payload: str,
     cache_key: str,
     subscribable_object: Optional[Union["Order", "Checkout"]],
+    allow_replica: bool,
 ) -> dict[str, list[ExcludedShippingMethod]]:
     """Return data of all excluded shipping methods.
 
@@ -116,10 +126,11 @@ def get_excluded_shipping_methods_or_fetch(
             event_type,
             payload,
             webhook,
+            allow_replica,
             subscribable_object=subscribable_object,
             timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         )
-        if response_data:
+        if response_data and isinstance(response_data, dict):
             excluded_methods.extend(
                 get_excluded_shipping_methods_from_response(response_data)
             )
@@ -133,6 +144,7 @@ def get_excluded_shipping_data(
     payload_fun: Callable[[], str],
     cache_key: str,
     subscribable_object: Optional[Union["Order", "Checkout"]],
+    allow_replica: bool,
 ) -> list[ExcludedShippingMethod]:
     """Exclude not allowed shipping methods by sync webhook.
 
@@ -152,7 +164,7 @@ def get_excluded_shipping_data(
         payload = payload_fun()
 
         excluded_methods_map = get_excluded_shipping_methods_or_fetch(
-            webhooks, event_type, payload, cache_key, subscribable_object
+            webhooks, event_type, payload, cache_key, subscribable_object, allow_replica
         )
 
     # Gather responses for previous plugins

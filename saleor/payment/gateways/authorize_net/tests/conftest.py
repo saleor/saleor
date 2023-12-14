@@ -37,7 +37,7 @@ def authorize_net_plugin(_, settings, channel_USD, authorize_net_gateway_config)
     settings.PLUGINS = [
         "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin"
     ]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     connection_params = authorize_net_gateway_config.connection_params
 
@@ -70,5 +70,5 @@ def authorize_net_plugin(_, settings, channel_USD, authorize_net_gateway_config)
         },
     )
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     return manager.plugins_per_channel[channel_USD.slug][0]

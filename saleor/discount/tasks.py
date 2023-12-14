@@ -42,7 +42,7 @@ def handle_promotion_toggle():
     Send the notifications about starting or ending promotions and call recalculation
     of product discounted prices.
     """
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     staring_promotions = get_starting_promotions()
     ending_promotions = get_ending_promotions()

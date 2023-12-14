@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pytest
-from dateutil.tz import tzlocal
+from django.utils import timezone
+from freezegun import freeze_time
 
 from ... import DEFAULT_ADDRESS
 from ...product.utils import get_product
@@ -12,6 +13,7 @@ from ...utils import assign_permissions
 from ..utils import draft_order_create
 
 
+@freeze_time("2023-10-15 12:00:00")
 @pytest.mark.e2e
 def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     e2e_staff_api_client,
@@ -37,9 +39,9 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     discount_value = 5
     discount_type = "FIXED"
     promotion_rule_name = "rule for product"
-    today = datetime.now(tzlocal()).isoformat()
-    tomorrow = (datetime.now(tzlocal()) + timedelta(days=1)).isoformat()
-    month_after = (datetime.now(tzlocal()) + timedelta(days=30)).isoformat()
+    today = timezone.now()
+    tomorrow = today + timedelta(days=1)
+    month_after = today + timedelta(days=30)
 
     (
         warehouse_id,
@@ -51,7 +53,7 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     (
         product_id,
         product_variant_id,
-        product_variant_price,
+        _product_variant_price,
     ) = prepare_product(
         e2e_staff_api_client, warehouse_id, channel_id, variant_price=20
     )
@@ -68,8 +70,8 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     promotion_end_date = promotion_data["endDate"]
 
     assert promotion_id is not None
-    assert promotion_start_date == tomorrow
-    assert promotion_end_date == month_after
+    assert promotion_start_date == tomorrow.isoformat()
+    assert promotion_end_date == month_after.isoformat()
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
 
@@ -87,7 +89,6 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     assert product_predicate[0] == product_id
 
     # Step 2 - Get product and check if it is on promotion
-
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)
     assert product_data["id"] == product_id
     assert product_data["pricing"]["onSale"] is False
@@ -104,14 +105,11 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
         "shippingMethod": shipping_method_id,
         "lines": [{"variantId": product_variant_id, "quantity": 2}],
     }
-    today = datetime.now(tzlocal()).isoformat().split("T")[0]
     data = draft_order_create(e2e_staff_api_client, input)
     order_id = data["order"]["id"]
     assert order_id is not None
     order_create_date = data["order"]["created"]
-    order_datetime = datetime.strptime(order_create_date, "%Y-%m-%dT%H:%M:%S.%f%z")
-    order_date_formatted = order_datetime.date().isoformat().split("T")[0]
-    assert order_date_formatted == today
+    assert order_create_date == today.isoformat()
     assert today != tomorrow
     assert today != month_after
     assert data["order"]["discounts"] == []

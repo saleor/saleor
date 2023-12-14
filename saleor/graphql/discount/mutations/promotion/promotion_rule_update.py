@@ -39,7 +39,7 @@ class PromotionRuleUpdateError(Error):
 class PromotionRuleUpdateInput(PromotionRuleBaseInput):
     add_channels = NonNullList(
         graphene.ID,
-        description="List of channel ids to remove.",
+        description="List of channel ids to add.",
     )
     remove_channels = NonNullList(
         graphene.ID,
@@ -121,14 +121,14 @@ class PromotionRuleUpdate(ModelMutation):
         channel_currencies = set(
             instance.channels.values_list("currency_code", flat=True)
         )
-        if add_channels := cleaned_input.get("add_channels"):
-            channel_currencies.update(
-                [channel.currency_code for channel in add_channels]
-            )
         if remove_channels := cleaned_input.get("remove_channels"):
             channel_currencies = channel_currencies - {
                 channel.currency_code for channel in remove_channels
             }
+        if add_channels := cleaned_input.get("add_channels"):
+            channel_currencies.update(
+                [channel.currency_code for channel in add_channels]
+            )
 
         if "reward_value" in cleaned_input or "reward_value_type" in cleaned_input:
             reward_value = cleaned_input.get("reward_value") or instance.reward_value

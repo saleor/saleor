@@ -30,7 +30,12 @@ class AppActivate(ModelMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, /, *, id):
-        app = cls.get_instance(info, id=id)
+        qs = models.App.objects.filter(removed_at__isnull=True)
+        app = cls.get_instance(
+            info,
+            id=id,
+            qs=qs,
+        )
         app.is_active = True
         cls.save(info, app, None)
         manager = get_plugin_manager_promise(info.context).get()

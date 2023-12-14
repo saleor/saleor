@@ -6,7 +6,6 @@ from django.test import override_settings
 from graphql.execution.base import ExecutionResult
 
 from .... import __version__ as saleor_version
-from ....demo.views import EXAMPLE_QUERY
 from ....graphql.utils import INTERNAL_ERROR_MESSAGE
 from ...tests.fixtures import API_PATH
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
@@ -241,12 +240,6 @@ def test_unexpected_exceptions_are_logged_in_their_own_logger(
     assert graphql_log_handler.messages == [
         "saleor.graphql.errors.unhandled[ERROR].NotImplementedError"
     ]
-
-
-def test_example_query(api_client, product):
-    response = api_client.post_graphql(EXAMPLE_QUERY)
-    content = get_graphql_content(response)
-    assert content["data"]["products"]["edges"][0]["node"]["name"] == product.name
 
 
 @pytest.mark.parametrize(

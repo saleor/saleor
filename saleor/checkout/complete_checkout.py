@@ -1,13 +1,8 @@
+import logging
 from collections.abc import Iterable
 from datetime import timedelta
 from decimal import Decimal
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Optional,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from uuid import UUID
 
 from django.conf import settings
@@ -56,6 +51,7 @@ from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
+from ..tax.calculations import get_taxed_undiscounted_price
 from ..tax.utils import (
     get_shipping_tax_class_kwargs_for_order,
     get_tax_class_kwargs_for_order_line,
@@ -96,6 +92,8 @@ if TYPE_CHECKING:
     from ..discount.models import Voucher, VoucherCode
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
+
+logger = logging.getLogger(__name__)
 
 
 def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
@@ -227,12 +225,6 @@ def _create_line_for_order(
         line_info=checkout_line_info,
         channel=checkout_info.channel,
     )
-    undiscounted_unit_price = TaxedMoney(
-        net=undiscounted_base_unit_price, gross=undiscounted_base_unit_price
-    )
-    undiscounted_total_price = TaxedMoney(
-        net=undiscounted_base_total_price, gross=undiscounted_base_total_price
-    )
     # total price after applying all discounts - sales and vouchers
     total_line_price = calculations.checkout_line_total(
         manager=manager,
@@ -252,6 +244,20 @@ def _create_line_for_order(
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=checkout_line_info,
+    )
+    # unit price before applying discounts
+    undiscounted_unit_price = get_taxed_undiscounted_price(
+        undiscounted_base_unit_price,
+        unit_price,
+        tax_rate,
+        prices_entered_with_tax,
+    )
+    # total price before applying discounts
+    undiscounted_total_price = get_taxed_undiscounted_price(
+        undiscounted_base_total_price,
+        total_line_price,
+        tax_rate,
+        prices_entered_with_tax,
     )
 
     voucher_code = None
@@ -1497,28 +1503,34 @@ def complete_checkout_with_payment(
     voucher = checkout_info.voucher
     voucher_code = checkout_info.voucher_code
     if payment:
-        txn = _process_payment(
-            payment=payment,
-            customer_id=customer_id,
-            store_source=store_source,
-            payment_data=payment_data,
-            order_data=order_data,
-            manager=manager,
-            channel_slug=channel_slug,
-            voucher_code=checkout_info.voucher_code,
-            voucher=checkout_info.voucher,
-        )
-
-        # As payment processing might take a while, we need to check if the payment
-        # doesn't become inactive in the meantime. If it's inactive we need to refund
-        # the payment.
-        payment.refresh_from_db()
-        if not payment.is_active:
-            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
-            raise ValidationError(
-                f"The payment with pspReference: {payment.psp_reference} is inactive.",
-                code=CheckoutErrorCode.INACTIVE_PAYMENT.value,
+        with transaction_with_commit_on_errors():
+            Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+            payment = Payment.objects.select_for_update().get(id=payment.id)
+            txn = _process_payment(
+                payment=payment,
+                customer_id=customer_id,
+                store_source=store_source,
+                payment_data=payment_data,
+                order_data=order_data,
+                manager=manager,
+                channel_slug=channel_slug,
+                voucher_code=checkout_info.voucher_code,
+                voucher=checkout_info.voucher,
             )
+
+            # As payment processing might take a while, we need to check if the payment
+            # doesn't become inactive in the meantime. If it's inactive we need to
+            # refund the payment.
+            payment.refresh_from_db()
+            if not payment.is_active:
+                gateway.payment_refund_or_void(
+                    payment, manager, channel_slug=channel_slug
+                )
+                raise ValidationError(
+                    f"The payment with pspReference: {payment.psp_reference} is "
+                    "inactive.",
+                    code=CheckoutErrorCode.INACTIVE_PAYMENT.value,
+                )
 
     with transaction_with_commit_on_errors():
         checkout = (

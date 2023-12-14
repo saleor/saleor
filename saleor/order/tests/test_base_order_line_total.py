@@ -1,7 +1,7 @@
 from prices import TaxedMoney
 
-from ... import base_calculations
-from ...interface import OrderTaxedPricesData
+from .. import base_calculations
+from ..interface import OrderTaxedPricesData
 
 
 def test_base_order_line_total(order_with_lines):

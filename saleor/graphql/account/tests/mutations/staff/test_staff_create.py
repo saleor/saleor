@@ -255,6 +255,7 @@ def test_staff_create_trigger_webhook(
         [any_webhook],
         new_staff_user,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
     assert expected_call in mocked_webhook_trigger.call_args_list
