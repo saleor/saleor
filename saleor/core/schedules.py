@@ -38,6 +38,8 @@ class promotion_webhook_schedule(CustomSchedule):
             app=app,
             import_path="saleor.core.schedules.promotion_webhook_schedule",
         )
+        # Seconds left to next batch processing
+        self.NEXT_BATCH_RUN_TIME = 5
 
     def remaining_estimate(self, last_run_at):
         """Estimate of next run time.
@@ -58,7 +60,11 @@ class promotion_webhook_schedule(CustomSchedule):
 
         """
         from ..discount.models import Promotion
-        from ..discount.tasks import get_ending_promotions, get_starting_promotions
+        from ..discount.tasks import (
+            PROMOTION_TOGGLE_BATCH_SIZE,
+            get_ending_promotions,
+            get_starting_promotions,
+        )
 
         now = datetime.now(pytz.UTC)
 
@@ -67,11 +73,17 @@ class promotion_webhook_schedule(CustomSchedule):
         rem_delta = self.remaining_estimate(last_run_at)
         remaining = max(rem_delta.total_seconds(), 0)
 
+        staring_promotions = get_starting_promotions()
+        ending_promotions = get_ending_promotions()
+
+        # if task needs to be handled in batches, schedule next run with const value
+        if len(staring_promotions | ending_promotions) > PROMOTION_TOGGLE_BATCH_SIZE:
+            self.next_run = timedelta(seconds=self.NEXT_BATCH_RUN_TIME)
+            is_due = remaining == 0
+            return schedstate(is_due, self.NEXT_BATCH_RUN_TIME)
+
         # is_due is True when there is at least one sale to notify about
         # and the remaining time from previous call is 0
-        staring_promotions = get_starting_promotions().order_by("start_date")
-        ending_promotions = get_ending_promotions().order_by("end_date")
-
         is_due = remaining == 0 and (
             staring_promotions.exists() or ending_promotions.exists()
         )
