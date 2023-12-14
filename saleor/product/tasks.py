@@ -192,9 +192,9 @@ def update_products_search_vector_task():
 def collection_product_updated_task(product_ids):
     manager = get_plugins_manager()
     products = list(
-        Product.objects.filter(id__in=product_ids).prefetched_for_webhook(
-            single_object=False
-        )
+        Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(id__in=product_ids)
+        .prefetched_for_webhook(single_object=False)
     )
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED)
     for product in products:
