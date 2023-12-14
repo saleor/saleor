@@ -54,7 +54,7 @@ def get_variant_selection_attributes(
 def fetch_variants_for_promotion_rules(
     rules: QuerySet[PromotionRule],
 ):
-    from saleor.graphql.discount.utils import get_variants_for_predicate
+    from ...graphql.discount.utils import get_variants_for_predicate
 
     PromotionRuleVariant = PromotionRule.variants.through
     promotion_rule_variants = []
