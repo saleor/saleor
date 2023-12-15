@@ -52,22 +52,20 @@ def test_variant_discounts_multiple_promotions(product, channel_USD):
     rule_high.channels.add(channel_USD)
 
     rules_info_per_promotion_id = {
-        promotion_low_discount.id: [
-            PromotionRuleInfo(
-                rule=rule_low,
-                variants=[variant],
-                variant_ids=[variant.id],
-                channel_ids=[channel_USD.id],
-            )
-        ],
-        promotion_high_discount.id: [
-            PromotionRuleInfo(
-                rule=rule_high,
-                variants=[variant],
-                variant_ids=[variant.id],
-                channel_ids=[channel_USD.id],
-            )
-        ],
+        variant.id: {
+            promotion_low_discount.id: [
+                PromotionRuleInfo(
+                    rule=rule_low,
+                    channel_ids=[channel_USD.id],
+                )
+            ],
+            promotion_high_discount.id: [
+                PromotionRuleInfo(
+                    rule=rule_high,
+                    channel_ids=[channel_USD.id],
+                )
+            ],
+        }
     }
 
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
@@ -76,7 +74,7 @@ def test_variant_discounts_multiple_promotions(product, channel_USD):
     # when
     applied_discounts = calculate_discounted_price_for_promotions(
         price=price,
-        rules_info_per_promotion_id=rules_info_per_promotion_id,
+        rules_info_per_variant_and_promotion_id=rules_info_per_promotion_id,
         channel=channel_USD,
         variant_id=variant.id,
     )
@@ -145,28 +143,24 @@ def test_variant_discounts_multiple_promotions_and_rules(product, channel_USD):
     channel_USD.promotionrule_set.add(rule_low_1, rule_low_2, rule_high_1)
 
     rules_info_per_promotion_id = {
-        promotion_low_discount.id: [
-            PromotionRuleInfo(
-                rule=rule_low_1,
-                variants=[variant],
-                variant_ids=[variant.id],
-                channel_ids=[channel_USD.id],
-            ),
-            PromotionRuleInfo(
-                rule=rule_low_2,
-                variants=[variant],
-                variant_ids=[variant.id],
-                channel_ids=[channel_USD.id],
-            ),
-        ],
-        promotion_high_discount.id: [
-            PromotionRuleInfo(
-                rule=rule_high_1,
-                variants=[variant],
-                variant_ids=[variant.id],
-                channel_ids=[channel_USD.id],
-            ),
-        ],
+        variant.id: {
+            promotion_low_discount.id: [
+                PromotionRuleInfo(
+                    rule=rule_low_1,
+                    channel_ids=[channel_USD.id],
+                ),
+                PromotionRuleInfo(
+                    rule=rule_low_2,
+                    channel_ids=[channel_USD.id],
+                ),
+            ],
+            promotion_high_discount.id: [
+                PromotionRuleInfo(
+                    rule=rule_high_1,
+                    channel_ids=[channel_USD.id],
+                ),
+            ],
+        }
     }
 
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
@@ -175,7 +169,7 @@ def test_variant_discounts_multiple_promotions_and_rules(product, channel_USD):
     # when
     applied_discounts = calculate_discounted_price_for_promotions(
         price=price,
-        rules_info_per_promotion_id=rules_info_per_promotion_id,
+        rules_info_per_variant_and_promotion_id=rules_info_per_promotion_id,
         channel=channel_USD,
         variant_id=variant.id,
     )

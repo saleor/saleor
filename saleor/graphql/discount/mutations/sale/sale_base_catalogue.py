@@ -3,19 +3,19 @@ from typing import Union
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import Exists, OuterRef
 
 from .....discount.error_codes import DiscountErrorCode
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from .....product import models as product_models
+from .....product.tasks import update_discounted_prices_task
 from .....product.utils import get_products_ids_without_variants
 from ....core import ResolveInfo
 from ....core.mutations import BaseMutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....product.types import Category, Collection, Product, ProductVariant
 from ...types import Sale
-from ...utils import (
-    convert_catalogue_info_into_predicate,
-    get_product_ids_for_predicate,
-)
+from ...utils import convert_catalogue_info_into_predicate, get_variants_for_predicate
+from ..utils import update_variants_for_promotion
 from ..voucher.voucher_add_catalogues import CatalogueInput
 
 CatalogueInfo = defaultdict[str, set[Union[int, str]]]
@@ -51,8 +51,14 @@ class SaleBaseCatalogueMutation(BaseMutation):
 
         previous_predicate = convert_catalogue_info_into_predicate(previous_catalogue)
         new_predicate = convert_catalogue_info_into_predicate(new_catalogue)
-        previous_product_ids = get_product_ids_for_predicate(previous_predicate)
-        new_product_ids = get_product_ids_for_predicate(new_predicate)
+        previous_product_ids = cls.get_product_ids_for_predicate(previous_predicate)
+        new_variants = get_variants_for_predicate(new_predicate)
+        new_product_ids = set(
+            product_models.Product.objects.filter(
+                Exists(new_variants.filter(product_id=OuterRef("id")))
+            ).values_list("id", flat=True)
+        )
+        update_variants_for_promotion(new_variants, promotion)
 
         if previous_product_ids != new_product_ids:
             is_add_mutation = len(new_product_ids) > len(previous_product_ids)
@@ -60,9 +66,15 @@ class SaleBaseCatalogueMutation(BaseMutation):
                 product_ids = new_product_ids - previous_product_ids
             else:
                 product_ids = previous_product_ids - new_product_ids
-            update_products_discounted_prices_for_promotion_task.delay(
-                list(product_ids)
-            )
+            update_discounted_prices_task.delay(list(product_ids))
+
+    @classmethod
+    def get_product_ids_for_predicate(cls, predicate: dict) -> set[int]:
+        variants = get_variants_for_predicate(predicate)
+        products = product_models.Product.objects.filter(
+            Exists(variants.filter(product_id=OuterRef("id")))
+        )
+        return set(products.values_list("id", flat=True))
 
     @classmethod
     def get_catalogue_info_from_input(cls, input) -> CatalogueInfo:

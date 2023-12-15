@@ -3,13 +3,15 @@ from datetime import datetime
 import graphene
 import pytz
 from django.core.exceptions import ValidationError
+from django.db.models import Exists, OuterRef
 
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.utils import CATALOGUE_FIELDS
 from .....permission.enums import DiscountPermissions
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from .....product import models as product_models
+from .....product.tasks import update_discounted_prices_task
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -29,7 +31,9 @@ from ...utils import (
     convert_migrated_sale_predicate_to_catalogue_info,
     create_catalogue_predicate,
     get_products_for_rule,
+    get_variants_for_predicate,
 )
+from ..utils import update_variants_for_promotion
 from .sale_create import SaleInput
 
 
@@ -186,14 +190,15 @@ class SaleUpdate(ModelMutation):
             field in input.keys()
             for field in [*CATALOGUE_FIELDS, "start_date", "end_date", "type"]
         ):
-            products = get_products_for_rule(rule)
-            if (
-                product_ids := set(products.values_list("id", flat=True))
-                | previous_product_ids
-            ):
-                update_products_discounted_prices_for_promotion_task.delay(
-                    list(product_ids)
-                )
+            variants = get_variants_for_predicate(current_predicate)
+            product_ids = set(
+                product_models.Product.objects.filter(
+                    Exists(variants.filter(product_id=OuterRef("id")))
+                ).values_list("id", flat=True)
+            )
+            update_variants_for_promotion(variants, promotion)
+            if product_ids | previous_product_ids:
+                update_discounted_prices_task.delay(list(product_ids))
 
     @classmethod
     def send_sale_notifications(
