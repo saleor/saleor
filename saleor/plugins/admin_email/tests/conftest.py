@@ -61,7 +61,7 @@ def admin_email_plugin(settings):
         staff_password_reset_subject=STAFF_PASSWORD_RESET_DEFAULT_SUBJECT,
     ):
         settings.PLUGINS = ["saleor.plugins.admin_email.plugin.AdminEmailPlugin"]
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         with patch(
             "saleor.plugins.admin_email.plugin.validate_default_email_configuration"
         ):
@@ -122,7 +122,7 @@ def admin_email_plugin(settings):
                     ],
                 },
             )
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         return manager.global_plugins[0]
 
     return fun

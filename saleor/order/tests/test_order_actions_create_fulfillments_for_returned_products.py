@@ -45,7 +45,7 @@ def test_create_return_fulfillment_only_order_lines(
             for line in order_lines_to_return
         ],
         fulfillment_lines=[],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 
@@ -120,7 +120,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
         payment=payment,
         order_lines=order_lines_to_refund,
         fulfillment_lines=[],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         refund=True,
     )
     returned_fulfillment, replaced_fulfillment, replace_order = response
@@ -196,7 +196,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
         payment=payment,
         order_lines=order_lines_to_refund,
         fulfillment_lines=[],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         refund=True,
         refund_shipping_costs=True,
     )
@@ -288,7 +288,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
         payment=payment,
         order_lines=order_lines_data,
         fulfillment_lines=[],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 
@@ -401,7 +401,7 @@ def test_create_return_fulfillment_only_fulfillment_lines(
             FulfillmentLineData(line=line, quantity=2, replace=False)
             for line in fulfillment_lines
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     returned_fulfillment, replaced_fulfillment, replace_order = response
@@ -456,7 +456,7 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
         payment=payment,
         order_lines=[],
         fulfillment_lines=fulfillment_lines_to_return,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     returned_fulfillment, replaced_fulfillment, replace_order = response
@@ -598,7 +598,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
         payment=payment,
         order_lines=[],
         fulfillment_lines=fulfillment_lines_to_process,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         refund=True,
     )
 
@@ -673,7 +673,7 @@ def test_create_return_fulfillment_only_order_lines_with_old_ids(
             for line in order_lines_to_return
         ],
         fulfillment_lines=[],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 

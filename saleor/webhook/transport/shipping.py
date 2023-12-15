@@ -102,6 +102,7 @@ def get_excluded_shipping_methods_or_fetch(
     payload: str,
     cache_key: str,
     subscribable_object: Optional[Union["Order", "Checkout"]],
+    allow_replica: bool,
 ) -> dict[str, list[ExcludedShippingMethod]]:
     """Return data of all excluded shipping methods.
 
@@ -125,6 +126,7 @@ def get_excluded_shipping_methods_or_fetch(
             event_type,
             payload,
             webhook,
+            allow_replica,
             subscribable_object=subscribable_object,
             timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         )
@@ -142,6 +144,7 @@ def get_excluded_shipping_data(
     payload_fun: Callable[[], str],
     cache_key: str,
     subscribable_object: Optional[Union["Order", "Checkout"]],
+    allow_replica: bool,
 ) -> list[ExcludedShippingMethod]:
     """Exclude not allowed shipping methods by sync webhook.
 
@@ -161,7 +164,7 @@ def get_excluded_shipping_data(
         payload = payload_fun()
 
         excluded_methods_map = get_excluded_shipping_methods_or_fetch(
-            webhooks, event_type, payload, cache_key, subscribable_object
+            webhooks, event_type, payload, cache_key, subscribable_object, allow_replica
         )
 
     # Gather responses for previous plugins

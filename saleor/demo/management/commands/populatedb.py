@@ -15,7 +15,7 @@ def configure_braintree():
         return False
 
     channels = Channel.objects.all()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     for channel in channels:
         manager.save_plugin_configuration(
             BraintreeGatewayPlugin.PLUGIN_ID,
