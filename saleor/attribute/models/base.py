@@ -232,21 +232,32 @@ class AttributeValueManager(models.Manager):
             for field_name, field_value in obj.items()
             if field_name != "defaults"
         )
-        return is_correct_record
+        return all(is_correct_record)
 
     def bulk_get_or_create(self, objects_data):
+        # this method mimics django's queryset.get_or_create method on bulk objects
+        # instead of performing it one by one
+        # https://docs.djangoproject.com/en/5.0/ref/models/querysets/#get-or-create
+
         results = []
         objects_not_in_db: List[AttributeValue] = []
 
         query = self._prepare_query_for_bulk_operation(objects_data)
 
+        # iterate over all records in db and check if they match any of objects data
         for record in query.iterator():
+            # iterate over all objects data and check if they match any of records in db
             for obj in objects_data:
                 if self._is_correct_record(record, obj):
+                    # upon finding existing record add it to results
                     results.append(record)
+
+                    # remove it from objects data, so it won't be added to new records
                     objects_data.remove(obj)
+
                     break
 
+        # add what is left to the list of new records
         self._add_new_records(objects_data, objects_not_in_db, results)
 
         if objects_not_in_db:
@@ -255,6 +266,9 @@ class AttributeValueManager(models.Manager):
         return results
 
     def bulk_update_or_create(self, objects_data):
+        # this method mimics django's queryset.update_or_create method on bulk objects
+        # https://docs.djangoproject.com/en/5.0/ref/models/querysets/#update-or-create
+
         results = []
         objects_not_in_db: List[AttributeValue] = []
         objects_to_be_updated = []
@@ -262,18 +276,28 @@ class AttributeValueManager(models.Manager):
 
         query = self._prepare_query_for_bulk_operation(objects_data)
 
+        # iterate over all records in db and check if they match any of objects data
         for record in query.iterator():
+            # iterate over all objects data and check if they match any of records in db
             for obj in objects_data:
                 if self._is_correct_record(record, obj):
+                    # upon finding a matching record, update it with defaults
                     for key, value in obj["defaults"].items():
                         setattr(record, key, value)
                         update_fields.add(key)
 
+                    # add it to results and objects to be updated
                     results.append(record)
+
+                    # add it to objects to be updated, so it can be bulk updated later
                     objects_to_be_updated.append(record)
+
+                    # remove it from objects data, so it won't be added to new records
                     objects_data.remove(obj)
+
                     break
 
+        # add what is left to the list of new records
         self._add_new_records(objects_data, objects_not_in_db, results)
 
         if objects_not_in_db:
@@ -288,8 +312,11 @@ class AttributeValueManager(models.Manager):
 
     def _add_new_records(self, objects_data, objects_not_in_db, results):
         for obj in objects_data:
+            # updating object data with defaults as they contain new values
             defaults = obj.pop("defaults")
             obj.update(defaults)
+
+            # add new record to the list of new records, so it can be bulk created later
             record = self.model(**obj)
             objects_not_in_db.append(record)
             results.append(record)
