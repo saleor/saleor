@@ -524,6 +524,7 @@ def test_category_create_trigger_webhook(
         [any_webhook],
         category,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -748,6 +749,7 @@ def test_category_update_trigger_webhook(
         [any_webhook],
         category,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -1204,6 +1206,7 @@ def test_category_delete_trigger_webhook(
         [any_webhook],
         category,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

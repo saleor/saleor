@@ -84,12 +84,16 @@ def test_rounding_issue_with_percentage_sale(
     ProductVariantChannelListing.objects.bulk_update(
         variant_channel_listings, ["price_amount"]
     )
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     for variant in variants:
         add_variant_to_checkout(checkout_info, variant, 1)
 
     lines_info, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
 
     sale_channel_listings = fetch_sale_channel_listings([sale.pk])[sale.pk]
     sale_info = DiscountInfo(
