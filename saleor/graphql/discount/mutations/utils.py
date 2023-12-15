@@ -2,9 +2,12 @@ from collections import defaultdict
 from typing import DefaultDict, Set
 
 import graphene
+from django.db import transaction
+from django.db.models import Exists, OuterRef, QuerySet
 
-from ....discount.models import Promotion
+from ....discount.models import Promotion, PromotionRule
 from ....discount.utils import CatalogueInfo
+from ....product.models import ProductVariant
 
 CATALOGUE_FIELD_TO_TYPE_NAME = {
     "categories": "Category",
@@ -33,3 +36,28 @@ def clear_promotion_old_sale_id(promotion: Promotion, *, save=False):
         promotion.old_sale_id = None
         if save:
             promotion.save(update_fields=["old_sale_id"])
+
+
+def update_variants_for_promotion(
+    variants: QuerySet["ProductVariant"], promotion: "Promotion"
+):
+    PromotionRuleVariant = PromotionRule.variants.through
+    rules = PromotionRule.objects.filter(promotion_id=promotion.id)
+    promotion_rule_variants = []
+    for rule_id in promotion.rules.values_list("id", flat=True):
+        promotion_rule_variants.extend(
+            [
+                PromotionRuleVariant(
+                    promotionrule_id=rule_id, productvariant_id=variant.pk
+                )
+                for variant in variants
+            ]
+        )
+    with transaction.atomic():
+        # Clear existing variants assigned to promotion rules
+        PromotionRuleVariant.objects.filter(
+            Exists(rules.filter(id=OuterRef("promotionrule_id")))
+        ).delete()
+        PromotionRuleVariant.objects.bulk_create(
+            promotion_rule_variants, ignore_conflicts=True
+        )

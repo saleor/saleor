@@ -126,6 +126,7 @@ from ..product.models import (
 )
 from ..product.search import prepare_product_search_vector_value
 from ..product.tests.utils import create_image
+from ..product.utils.variants import fetch_variants_for_promotion_rules
 from ..shipping.models import (
     ShippingMethod,
     ShippingMethodChannelListing,
@@ -5444,6 +5445,7 @@ def promotion(channel_USD, product, collection):
     )
     for rule in rules:
         rule.channels.add(channel_USD)
+    fetch_variants_for_promotion_rules(promotion.rules.all())
     return promotion
 
 
@@ -5557,6 +5559,7 @@ def promotion_list(channel_USD, product, collection):
     )
     for rule in rules:
         rule.channels.add(channel_USD)
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
     return promotions
 
 
@@ -5631,6 +5634,7 @@ def promotion_converted_from_sale(catalogue_predicate, channel_USD):
         old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
     )
     rule.channels.add(channel_USD)
+    fetch_variants_for_promotion_rules(promotion.rules.all())
     return promotion
 
 
@@ -5648,6 +5652,7 @@ def promotion_converted_from_sale_with_many_channels(
         old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
     )
     rule.channels.add(channel_PLN)
+    fetch_variants_for_promotion_rules(promotion.rules.all())
     return promotion
 
 

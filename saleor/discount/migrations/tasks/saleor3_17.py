@@ -1,14 +1,17 @@
 from django.db.models import Exists, F, OuterRef
 from django.db import transaction
+from django.conf import settings
 
 from ....celeryconf import app
-from ....discount.models import (
+from ...models import (
     Voucher,
     VoucherCode,
     VoucherCustomer,
     CheckoutLineDiscount,
     OrderDiscount,
     OrderLineDiscount,
+    Promotion,
+    PromotionRule,
 )
 from ....product.models import (
     Product,
@@ -17,6 +20,7 @@ from ....product.models import (
     VariantChannelListingPromotionRule,
 )
 from ....product.utils.variant_prices import update_discounted_prices_for_promotion
+from ....product.utils.variants import fetch_variants_for_promotion_rules
 
 # For 100 rules, with 1000 variants for each rule it takes around 15s
 PRICE_RECALCULATION_BATCH_SIZE = 100
@@ -27,9 +31,11 @@ VOUCHER_BATCH_SIZE = 5000
 # The batch of size 1000 took about 0.2s
 VOUCHER_CUSTOMER_BATCH_SIZE = 1000
 
-
 # The batch took about 0.2s and consumes ~20MB memory at peak
 BASE_DISCOUNT_BATCH_SIZE = 1000
+
+# Results in update time ~0.4s and consumes ~20MB memory at peak
+PROMOTION_RULE_BATCH_SIZE = 250
 
 
 @app.task
@@ -187,3 +193,22 @@ def get_discount_voucher_id_to_code_map(model_discounts):
         voucher_id: code for voucher_id, code in vouchers.values_list("id", "code")
     }
     return voucher_id_to_code_map
+
+
+@app.task
+def set_promotion_rule_variants(start_id=None):
+    promotions = Promotion.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).active()
+    kwargs = {"id__gt": start_id} if start_id else {}
+    rules = (
+        PromotionRule.objects.order_by("id")
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(Exists(promotions.filter(id=OuterRef("promotion_id"))), **kwargs)[
+            :PROMOTION_RULE_BATCH_SIZE
+        ]
+    )
+    if ids := list(rules.values_list("pk", flat=True)):
+        qs = PromotionRule.objects.filter(pk__in=ids)
+        fetch_variants_for_promotion_rules(rules=qs)
+        set_promotion_rule_variants.delay(ids[-1])

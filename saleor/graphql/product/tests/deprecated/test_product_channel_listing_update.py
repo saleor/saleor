@@ -58,11 +58,9 @@ mutation UpdateProductChannelListing(
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_product_channel_listing_update_as_staff_user(
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
     product,
     permission_manage_products,
@@ -137,9 +135,7 @@ def test_product_channel_listing_update_as_staff_user(
         product_data["channelListings"][1]["availableForPurchase"]
         == available_for_purchase_date.isoformat()
     )
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
+    update_discounted_prices_task_mock.assert_called_once_with([product.id])
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

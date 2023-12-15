@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Dict
 import graphene
 import pytz
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from django.db.models import Exists, F, OuterRef, Q, QuerySet
 
 from ..celeryconf import app
@@ -16,6 +17,9 @@ from .models import Promotion, PromotionRule
 
 if TYPE_CHECKING:
     from uuid import UUID
+
+# Results in update time ~0.1s
+EXPIRED_RULES_BATCH_SIZE = 5000
 
 task_logger = get_task_logger(__name__)
 # Batch of size 100 takes ~1 sec and consumes ~3mb at peak
@@ -74,9 +78,19 @@ def handle_promotion_toggle():
         }
         manager.sale_toggle(promotion, catalogues)
 
+    if ending_promotions:
+        clear_promotion_rule_variants_task.delay()
+
+    rule_ids = list(
+        PromotionRule.objects.filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id")))
+        ).values_list("pk", flat=True)
+    )
     if product_ids:
         # Recalculate discounts of affected products
-        update_products_discounted_prices_for_promotion_task.delay(product_ids)
+        update_products_discounted_prices_for_promotion_task.delay(
+            product_ids, rule_ids
+        )
 
     starting_promotion_ids = ", ".join(
         [str(staring_promo.id) for staring_promo in starting_promotions]
@@ -167,3 +181,25 @@ def fetch_promotion_variants_and_product_ids(promotions: "QuerySet[Promotion]"):
         Exists(variants.filter(product_id=OuterRef("id")))
     )
     return promotion_id_to_variants, list(products.values_list("id", flat=True))
+
+
+@app.task
+def clear_promotion_rule_variants_task():
+    """Clear all promotion rule variants."""
+    promotions = Promotion.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).expired()
+    rules = PromotionRule.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(Exists(promotions.filter(id=OuterRef("promotion_id"))))
+    PromotionRuleVariant = PromotionRule.variants.through
+    rule_variants_id = list(
+        PromotionRuleVariant.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(Exists(rules.filter(pk=OuterRef("promotionrule_id"))))[
+            :EXPIRED_RULES_BATCH_SIZE
+        ]
+        .values_list("pk", flat=True)
+    )
+    if rule_variants_id:
+        PromotionRuleVariant.objects.filter(pk__in=rule_variants_id).delete()
+        clear_promotion_rule_variants_task.delay()
