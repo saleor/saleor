@@ -22,13 +22,11 @@ SALE_CATALOGUES_ADD_MUTATION = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_catalogues(
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale_with_empty_predicate,
     category,
@@ -80,16 +78,14 @@ def test_sale_add_catalogues(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
+    update_discounted_prices_task_mock.assert_called_once()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_catalogues_no_changes_in_catalogue(
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -139,16 +135,14 @@ def test_sale_add_catalogues_no_changes_in_catalogue(
     assert current_catalogue == previous_catalogue
 
     updated_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_empty_catalogues(
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -189,16 +183,14 @@ def test_sale_add_empty_catalogues(
     assert variant_id in current_catalogue["variants"]
 
     updated_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_empty_catalogues_to_sale_with_empty_catalogues(
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale_with_empty_predicate,
     permission_manage_discounts,
@@ -230,16 +222,14 @@ def test_sale_add_empty_catalogues_to_sale_with_empty_catalogues(
     assert not current_catalogue["variants"]
 
     updated_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_catalogues_no_product_ids_change(
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -283,14 +273,12 @@ def test_sale_add_catalogues_no_product_ids_change(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_sale_add_catalogues_with_product_without_variants(
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -327,7 +315,7 @@ def test_sale_add_catalogues_with_product_without_variants(
 
     assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
     assert error["message"] == "Cannot manage products without variants."
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
 def test_sale_add_catalogues_with_promotion_id(
