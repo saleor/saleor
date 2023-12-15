@@ -5599,6 +5599,7 @@ def promotion_with_single_rule(catalogue_predicate, channel_USD):
 
 @pytest.fixture
 def promotion_list(channel_USD, product, collection):
+    collection.products.add(product)
     promotions = Promotion.objects.bulk_create(
         [
             Promotion(

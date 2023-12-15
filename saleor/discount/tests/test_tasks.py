@@ -200,8 +200,9 @@ def test_handle_promotion_toggle(
 def test_clear_promotion_rule_variants_task(promotion_list):
     # given
     expired_promotion = promotion_list[-1]
+    expired_promotion.start_date = timezone.now() - timedelta(days=5)
     expired_promotion.end_date = timezone.now() - timedelta(days=1)
-    expired_promotion.save(update_fields=["end_date"])
+    expired_promotion.save(update_fields=["start_date", "end_date"])
 
     PromotionRuleVariant = PromotionRule.variants.through
     expired_rules = PromotionRule.objects.filter(promotion_id=expired_promotion.id)
@@ -209,6 +210,7 @@ def test_clear_promotion_rule_variants_task(promotion_list):
     expired_rule_variants_count = PromotionRuleVariant.objects.filter(
         Exists(expired_rules.filter(pk=OuterRef("promotionrule_id")))
     ).count()
+    assert expired_rule_variants_count > 0
 
     # when
     clear_promotion_rule_variants_task()
