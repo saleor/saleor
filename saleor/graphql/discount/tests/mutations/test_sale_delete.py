@@ -25,13 +25,11 @@ SALE_DELETE_MUTATION = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 def test_sale_delete_mutation(
     deleted_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -63,16 +61,14 @@ def test_sale_delete_mutation(
         promotion.refresh_from_db()
 
     deleted_webhook_mock.assert_called_once_with(promotion, previous_catalogue)
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
+    update_discounted_prices_task_mock.assert_called_once()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 def test_sale_delete_mutation_with_promotion_id(
     deleted_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     permission_manage_discounts,
@@ -100,7 +96,7 @@ def test_sale_delete_mutation_with_promotion_id(
     )
 
     deleted_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
 def test_sale_delete_not_found_error(staff_api_client, permission_manage_discounts):
