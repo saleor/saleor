@@ -123,7 +123,7 @@ def test_serialize_checkout_lines_with_sale(checkout_with_item, discount_info):
     checkout = checkout_with_item
     channel = checkout.channel
     checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, checkout_lines, [discount_info]
@@ -179,7 +179,7 @@ def test_serialize_checkout_lines_for_tax_calculation(
     # given
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     tax_configuration = checkout_info.tax_configuration
@@ -229,7 +229,7 @@ def test_serialize_checkout_lines_for_tax_calculation_with_sale(
     # given
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, lines, [discount_info]

@@ -39,7 +39,7 @@ def recalculate_orders_task(order_ids: List[int]):
 
 @app.task
 def send_order_updated(order_ids):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=True)
     for order in Order.objects.filter(id__in=order_ids):
         manager.order_updated(order)
 
@@ -121,7 +121,7 @@ def _expire_orders(manager, now):
 @app.task()
 def expire_orders_task():
     now = timezone.now()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     _expire_orders(manager, now)
 
 

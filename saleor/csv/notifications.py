@@ -36,7 +36,7 @@ def send_export_download_link_notification(export_file: "ExportFile", data_type:
         **get_site_context(),
     }
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=True)
     manager.notify(NotifyEventType.CSV_EXPORT_SUCCESS, payload)
 
 
@@ -48,5 +48,5 @@ def send_export_failed_info(export_file: "ExportFile", data_type: str):
         "data_type": data_type,
         **get_site_context(),
     }
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=True)
     manager.notify(NotifyEventType.CSV_EXPORT_FAILED, payload)

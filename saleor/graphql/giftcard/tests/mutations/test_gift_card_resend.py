@@ -300,6 +300,7 @@ def test_resend_gift_card_triggers_gift_card_sent_event(
             "sent_to_email": email,
         },
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

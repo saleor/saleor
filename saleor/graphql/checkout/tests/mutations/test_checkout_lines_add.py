@@ -118,7 +118,7 @@ def test_checkout_lines_add(
     assert calculate_checkout_quantity(lines) == 4
     assert not Reservation.objects.exists()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
@@ -160,7 +160,7 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     variant = line.variant
     variant.channel_listings.update(price_amount=variant_unit_price)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # prepare sale with 50% discount
     sale_percentage_value = 50
@@ -174,6 +174,7 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     sale.variants.add(variant)
 
     # create checkout discount objects for checkout lines
+    manager = get_plugins_manager(allow_replica=False)
     lines_infos, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines_infos, manager)
     generate_sale_discount_objects_for_checkout(checkout_info, lines_infos)
@@ -362,7 +363,7 @@ def test_checkout_lines_add_only_stock_in_cc_warehouse(
     assert calculate_checkout_quantity(lines) == 4
     assert not Reservation.objects.exists()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change

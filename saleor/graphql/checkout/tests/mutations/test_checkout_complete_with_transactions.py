@@ -103,7 +103,7 @@ def prepare_checkout_for_test(
     checkout.billing_address = billing_address
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -151,7 +151,7 @@ def test_checkout_without_any_transaction(
     channel.automatically_confirm_all_new_orders = True
     channel.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -200,7 +200,7 @@ def test_checkout_without_any_transaction_allow_to_create_order(
     channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
     channel.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -251,7 +251,7 @@ def test_checkout_with_total_0(
     checkout.billing_address = address
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -317,7 +317,7 @@ def test_checkout_with_authorized(
     channel.automatically_confirm_all_new_orders = True
     channel.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -414,7 +414,7 @@ def test_checkout_with_charged(
     channel.automatically_confirm_all_new_orders = True
     channel.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -501,7 +501,7 @@ def test_checkout_paid_with_multiple_transactions(
     channel.automatically_confirm_all_new_orders = True
     channel.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -563,7 +563,7 @@ def test_checkout_partially_paid(
     channel.automatically_confirm_all_new_orders = True
     channel.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -616,7 +616,7 @@ def test_checkout_partially_paid_allow_unpaid_order(
     channel.allow_unpaid_orders = True
     channel.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -672,7 +672,7 @@ def test_checkout_with_pending_charged(
     channel.automatically_confirm_all_new_orders = True
     channel.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -749,7 +749,7 @@ def test_checkout_with_pending_authorized(
     channel.automatically_confirm_all_new_orders = True
     channel.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -1053,7 +1053,7 @@ def test_checkout_complete(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -1576,7 +1576,7 @@ def test_checkout_with_voucher_complete(
 
     discount_amount = checkout.discount
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1660,7 +1660,7 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
         transaction_events_generator,
     )
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1735,7 +1735,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
     discount_info.variants_ids.add(checkout_line_variant.id)
     sale.variants.add(checkout_line_variant)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1805,7 +1805,7 @@ def test_checkout_with_voucher_on_specific_product_complete(
 
     checkout.lines.first()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1878,7 +1878,7 @@ def test_checkout_complete_product_on_sale(
 
     sale.variants.add(checkout_line_variant)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1953,7 +1953,7 @@ def test_checkout_complete_product_on_many_sales(
     small_sale.variants.add(checkout_line_variant)
     sale.variants.add(checkout_line_variant)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -2032,7 +2032,7 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_sale
 
     sale.variants.add(checkout_line_variant)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -2193,7 +2193,7 @@ def test_checkout_complete_checkout_without_lines(
         transaction_events_generator,
     )
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     assert not lines
     checkout_info = fetch_checkout_info(checkout, lines, manager)
@@ -2699,7 +2699,7 @@ def test_checkout_complete_raises_InvalidShippingMethod_when_warehouse_disabled(
     warehouse_for_cc.click_and_collect_option = WarehouseClickAndCollectOption.DISABLED
     warehouse_for_cc.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -2743,7 +2743,7 @@ def test_checkout_complete_with_preorder_variant(
 
     variants_and_quantities = {line.variant_id: line.quantity for line in checkout}
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -2838,7 +2838,7 @@ def test_checkout_complete_with_click_collect_preorder_fails_for_disabled_wareho
     warehouse_for_cc.click_and_collect_option = WarehouseClickAndCollectOption.DISABLED
     warehouse_for_cc.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
