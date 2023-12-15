@@ -183,7 +183,7 @@ def _finalize_checkout(
         payment.refresh_from_db()
         checkout.refresh_from_db()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
     if unavailable_variant_pks:
         payment_refund_or_void(payment, manager, checkout.channel.slug)
@@ -329,7 +329,7 @@ def handle_authorized_payment_intent(
             payment_intent.amount,
             payment_intent.currency,
         )
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         try_void_or_refund_inactive_payment(payment, transaction, manager)
         return
 
@@ -380,7 +380,9 @@ def handle_failed_payment_intent(
     )
 
     if payment.order:
-        order_voided(payment.order, None, None, payment, get_plugins_manager())
+        order_voided(
+            payment.order, None, None, payment, get_plugins_manager(allow_replica=False)
+        )
 
 
 def handle_processing_payment_intent(
@@ -457,7 +459,9 @@ def handle_successful_payment_intent(
             payment_intent.amount_received,
             payment_intent.currency,
         )
-        try_void_or_refund_inactive_payment(payment, transaction, get_plugins_manager())
+        try_void_or_refund_inactive_payment(
+            payment, transaction, get_plugins_manager(allow_replica=False)
+        )
         return
 
     if payment.order:
@@ -476,7 +480,7 @@ def handle_successful_payment_intent(
                 None,
                 capture_transaction.amount,
                 payment,
-                get_plugins_manager(),
+                get_plugins_manager(allow_replica=False),
             )
         return
 
@@ -538,5 +542,5 @@ def handle_refund(
             None,
             refund_transaction.amount,
             payment,
-            get_plugins_manager(),
+            get_plugins_manager(allow_replica=False),
         )

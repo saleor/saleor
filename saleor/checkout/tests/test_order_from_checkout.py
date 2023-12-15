@@ -24,7 +24,7 @@ def test_create_order_insufficient_stock(
     checkout, customer_user, product_without_shipping, app
 ):
     variant = product_without_shipping.variants.get()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, [], manager)
 
     add_variant_to_checkout(checkout_info, variant, 10, check_quantity=False)
@@ -61,7 +61,7 @@ def test_create_order_with_gift_card(
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -111,7 +111,7 @@ def test_create_order_with_gift_card_partial_use(
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -166,7 +166,7 @@ def test_create_order_with_many_gift_cards_worth_more_than_total(
     checkout.user = customer_user
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -237,7 +237,7 @@ def test_create_order_with_many_gift_cards(
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -307,7 +307,7 @@ def test_create_order_gift_card_bought(
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -377,7 +377,9 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
     app,
 ):
     checkout_user = None if is_anonymous_user else customer_user
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     shippable_variant = shippable_gift_card_product.variants.get()
     add_variant_to_checkout(checkout_info, shippable_variant, 2)
 
@@ -389,7 +391,7 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -444,7 +446,7 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -484,7 +486,7 @@ def test_note_in_created_order(
     checkout_with_item.tracking_code = "tracking_code"
     checkout_with_item.redirect_url = "https://www.example.com"
     checkout_with_item.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
@@ -516,7 +518,7 @@ def test_create_order_use_translations(
     checkout.language_code = "fr"
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     variant = lines[0].variant
@@ -561,7 +563,7 @@ def test_create_order_from_checkout_updates_total_authorized_amount(
         authorized_value=authorized_value,
         currency=checkout_with_item.currency,
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
@@ -598,7 +600,7 @@ def test_create_order_from_checkout_updates_total_charged_amount(
         authorized_value=Decimal(2),
         currency=checkout_with_item.currency,
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
@@ -628,7 +630,7 @@ def test_create_order_from_checkout_update_display_gross_prices(
     tax_configuration.save()
     tax_configuration.country_exceptions.all().delete()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, [], manager)
     checkout_lines, _ = fetch_checkout_lines(checkout)
 
@@ -660,7 +662,7 @@ def test_create_order_from_checkout_store_shipping_prices(
     )
     expected_shipping_tax_rate = Decimal("0.1")
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     manager.get_checkout_shipping_tax_rate = mock.Mock(
         return_value=expected_shipping_tax_rate
     )
@@ -706,7 +708,7 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
     expected_shipping_price = zero_taxed_money(checkout.currency)
     expected_shipping_tax_rate = Decimal("0.0")
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     manager.get_checkout_shipping_tax_rate = mock.Mock(
         return_value=expected_shipping_tax_rate
     )
@@ -749,7 +751,7 @@ def test_note_in_created_order_checkout_line_deleted_in_the_meantime(
     checkout_with_item.tracking_code = "tracking_code"
     checkout_with_item.redirect_url = "https://www.example.com"
     checkout_with_item.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
@@ -785,7 +787,7 @@ def test_note_in_created_order_checkout_deleted_in_the_meantime(
     checkout_with_item.tracking_code = "tracking_code"
     checkout_with_item.redirect_url = "https://www.example.com"
     checkout_with_item.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)

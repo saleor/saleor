@@ -34,7 +34,7 @@ def test_trigger_webhooks_async(
     webhook_type = WebhookEventAsyncType.ORDER_CREATED
     webhooks, payload = Webhook.objects.all(), {"example": "payload"}
 
-    trigger_webhooks_async(payload, webhook_type, webhooks, order)
+    trigger_webhooks_async(payload, webhook_type, webhooks, order, allow_replica=False)
 
     deliveries = EventDelivery.objects.all()
     assert deliveries.count() == 2
@@ -55,7 +55,7 @@ def test_trigger_webhooks_async_no_subscription_webhooks(
     webhook_type = WebhookEventAsyncType.ORDER_UPDATED
     webhooks = Webhook.objects.all()
     data = {"regular_webhook": "data"}
-    trigger_webhooks_async(data, webhook_type, webhooks, order)
+    trigger_webhooks_async(data, webhook_type, webhooks, order, allow_replica=False)
     mocked_create_deliveries_for_subscriptions.assert_not_called()
 
 
@@ -72,6 +72,7 @@ def test_trigger_webhook_sync_with_subscription(
         WebhookEventSyncType.PAYMENT_AUTHORIZE,
         data,
         payment_app.webhooks.first(),
+        False,
         payment,
     )
     event_delivery = EventDelivery.objects.first()

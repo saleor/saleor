@@ -47,7 +47,7 @@ def test_checkout_totals_use_discounts(
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     taxed_total = calculations.checkout_total(

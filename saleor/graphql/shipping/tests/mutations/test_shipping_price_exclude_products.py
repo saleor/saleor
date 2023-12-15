@@ -144,4 +144,5 @@ def test_exclude_products_for_shipping_method_trigger_webhook(
         [any_webhook],
         shipping_method,
         issuer,
+        allow_replica=False,
     )

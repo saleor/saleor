@@ -153,6 +153,7 @@ def test_create_shipping_zone_trigger_webhook(
         [any_webhook],
         shipping_zone,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

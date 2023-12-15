@@ -3101,6 +3101,7 @@ def test_customer_delete_trigger_webhook(
         customer_user,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -3460,6 +3461,7 @@ def test_staff_create_trigger_webhook(
         [any_webhook],
         new_staff_user,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
     assert expected_call in mocked_webhook_trigger.call_args_list
@@ -3861,6 +3863,7 @@ def test_staff_update_trigger_webhook(
         [any_webhook],
         staff_user,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -4393,6 +4396,7 @@ def test_staff_delete_trigger_webhook(
         [any_webhook],
         staff_user,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -4945,7 +4949,8 @@ def test_create_address_mutation_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_CREATED,
             staff_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 
@@ -5094,7 +5099,8 @@ def test_address_update_mutation_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_UPDATED,
             staff_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 
@@ -5203,7 +5209,8 @@ def test_customer_address_update_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_UPDATED,
             user_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 
@@ -5329,7 +5336,8 @@ def test_address_delete_mutation_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_DELETED,
             staff_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 
@@ -5411,7 +5419,8 @@ def test_customer_delete_address_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_DELETED,
             user_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 
@@ -6089,7 +6098,8 @@ def test_customer_create_address_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_CREATED,
             user_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 

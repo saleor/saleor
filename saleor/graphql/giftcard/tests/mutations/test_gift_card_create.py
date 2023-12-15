@@ -692,6 +692,7 @@ def test_create_gift_card_trigger_webhook(
         [any_webhook],
         gift_card,
         SimpleLazyObject(lambda: app_api_client.app),
+        allow_replica=False,
     )
 
 
@@ -771,6 +772,7 @@ def test_create_gift_card_with_email_triggers_gift_card_sent_webhook(
             "sent_to_email": customer_user.email,
         },
         SimpleLazyObject(lambda: app_api_client.app),
+        allow_replica=False,
     )
 
 

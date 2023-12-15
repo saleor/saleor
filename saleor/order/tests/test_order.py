@@ -75,7 +75,7 @@ def test_order_get_subtotal(order_with_lines):
     )
 
     fetch_order_prices_if_expired(
-        order_with_lines, get_plugins_manager(), force_update=True
+        order_with_lines, get_plugins_manager(allow_replica=False), force_update=True
     )
 
     target_subtotal = order_with_lines.total - order_with_lines.shipping_price
@@ -597,7 +597,7 @@ def test_order_weight_change_line_quantity(staff_user, lines_info):
         new_quantity,
         line_info.quantity,
         order.channel,
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
     )
     assert order.weight == _calculate_order_weight_from_lines(order)
 
@@ -605,7 +605,7 @@ def test_order_weight_change_line_quantity(staff_user, lines_info):
 def test_order_weight_delete_line(lines_info):
     order = lines_info[0].line.order
     line_info = lines_info[0]
-    delete_order_line(line_info, get_plugins_manager())
+    delete_order_line(line_info, get_plugins_manager(allow_replica=False))
     assert order.weight == _calculate_order_weight_from_lines(order)
 
 
@@ -898,7 +898,7 @@ def test_ordered_item_change_quantity(staff_user, transactional_db, lines_info):
         lines_info[1].quantity,
         0,
         order.channel,
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
     )
     change_order_line_quantity(
         staff_user,
@@ -907,7 +907,7 @@ def test_ordered_item_change_quantity(staff_user, transactional_db, lines_info):
         lines_info[0].quantity,
         0,
         order.channel,
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
     )
     assert order.get_total_quantity() == 0
 
@@ -927,7 +927,7 @@ def test_change_order_line_quantity_changes_total_prices(
         line_info.quantity,
         new_quantity,
         order.channel,
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
     )
     assert line_info.line.total_price == line_info.line.unit_price * new_quantity
 
@@ -945,7 +945,7 @@ def test_send_fulfillment_order_lines_mails_by_user(
     has_standard,
     has_digital,
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     redirect_url = "http://localhost.pl"
     order = fulfilled_order
     order.redirect_url = redirect_url
@@ -989,7 +989,7 @@ def test_send_fulfillment_order_lines_mails_by_app(
     has_standard,
     has_digital,
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     redirect_url = "http://localhost.pl"
     order = fulfilled_order
     order.redirect_url = redirect_url

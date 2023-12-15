@@ -219,4 +219,5 @@ def test_deactivate_gift_card_trigger_webhook(
         [any_webhook],
         gift_card,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )

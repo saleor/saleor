@@ -169,4 +169,5 @@ def test_remove_products_from_excluded_products_for_shipping_method_trigger_webh
         [any_webhook],
         shipping_method,
         issuer,
+        allow_replica=False,
     )

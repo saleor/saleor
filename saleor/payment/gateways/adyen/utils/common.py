@@ -261,7 +261,7 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
     if not checkout:
         raise PaymentError("Unable to calculate products for klarna.")
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     currency = payment_information.currency
@@ -337,7 +337,7 @@ def request_data_for_gateway_config(
     lines: Optional[Iterable[CheckoutLineInfo]],
     merchant_account,
 ) -> Dict[str, Any]:
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_info.checkout
     address = checkout_info.shipping_address or checkout_info.billing_address
     lines = lines or []
