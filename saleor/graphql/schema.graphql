@@ -26209,13 +26209,6 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   """
   Code of a voucher associated with the order.
   
-  DEPRECATED: this field will be removed in Saleor 3.19. Use `voucherCode` instead.
-  """
-  voucher: String
-
-  """
-  Code of a voucher associated with the order.
-  
   Added in Saleor 3.18.
   """
   voucherCode: String
