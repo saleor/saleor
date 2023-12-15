@@ -84,6 +84,9 @@ TRANSACTION_QUERY = """
             order {
                 id
             }
+            checkout {
+                id
+            }
             createdBy{
                 ... on User {
                     id
@@ -531,6 +534,42 @@ def test_transaction_with_pending_amount(
     data = content["data"]["transaction"]
     pending_money = data[api_field]
     assert pending_money["amount"] == expected_value
+
+
+def test_transaction_with_checkout(
+    staff_api_client,
+    checkout_with_items,
+    transaction_item_generator,
+    permission_manage_payments,
+    permission_manage_staff,
+):
+    # given
+    charged_amount = Decimal("10.00")
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_items.pk,
+        charged_value=charged_amount,
+    )
+
+    event = transaction_item.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token)
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_QUERY,
+        variables,
+        permissions=[permission_manage_payments, permission_manage_staff],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    _assert_transaction_fields(content, transaction_item, event)
+    data = content["data"]["transaction"]
+    assert data["checkout"]["id"] == to_global_id_or_none(checkout_with_items)
 
 
 def test_transaction_event_by_user(

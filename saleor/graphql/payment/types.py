@@ -498,6 +498,10 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         "saleor.graphql.order.types.Order",
         description="The related order." + ADDED_IN_36,
     )
+    checkout = graphene.Field(
+        "saleor.graphql.checkout.types.Checkout",
+        description="The related checkout." + ADDED_IN_314,
+    )
     events = NonNullList(
         TransactionEvent, required=True, description="List of all transaction's events."
     )
@@ -569,6 +573,12 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         if not root.order_id:
             return
         return OrderByIdLoader(info.context).load(root.order_id)
+
+    @staticmethod
+    def resolve_checkout(root: models.TransactionItem, info):
+        if not root.checkout_id:
+            return
+        return CheckoutByTokenLoader(info.context).load(root.checkout_id)
 
     @staticmethod
     def resolve_events(root: models.TransactionItem, info):
