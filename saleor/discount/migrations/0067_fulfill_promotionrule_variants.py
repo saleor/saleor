@@ -4,12 +4,12 @@ from django.apps import apps as registry
 from django.db import migrations
 from django.db.models.signals import post_migrate
 
-from ..tasks import set_promotion_rule_variants
+from ..tasks import set_promotion_rule_variants_task
 
 
 def update_promotion_rule_variants(apps, _schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
-        set_promotion_rule_variants.delay()
+        set_promotion_rule_variants_task.delay()
 
     sender = registry.get_app_config("discount")
     post_migrate.connect(on_migrations_complete, weak=False, sender=sender)

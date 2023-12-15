@@ -309,7 +309,7 @@ def update_discounted_prices_task():
 @app.task(
     name="saleor.discount.migrations.tasks.saleor3_17.set_promotion_rule_variants"
 )
-def set_promotion_rule_variants(start_id=None):
+def set_promotion_rule_variants_task(start_id=None):
     # WARNING: this function is run during `0067_fulfill_promotionrule_variants`
     # migration, be careful while updating.
     # This task can be deleted after we introduce a different process for calculating
@@ -334,4 +334,4 @@ def set_promotion_rule_variants(start_id=None):
     if ids := list(rules.values_list("pk", flat=True)):
         qs = PromotionRule.objects.filter(pk__in=ids)
         fetch_variants_for_promotion_rules(rules=qs)
-        set_promotion_rule_variants.delay(ids[-1])
+        set_promotion_rule_variants_task.delay(ids[-1])

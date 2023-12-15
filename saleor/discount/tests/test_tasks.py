@@ -17,6 +17,7 @@ from ..tasks import (
     disconnect_voucher_codes_from_draft_orders_task,
     fetch_promotion_variants_and_product_ids,
     handle_promotion_toggle,
+    set_promotion_rule_variants_task,
 )
 
 
@@ -220,6 +221,21 @@ def test_clear_promotion_rule_variants_task(promotion_list):
         PromotionRuleVariant.objects.count()
         == rule_variants_count - expired_rule_variants_count
     )
+
+
+def test_set_promotion_rule_variants_task(promotion_list):
+    # given
+    Promotion.objects.update(start_date=timezone.now() - timedelta(days=5))
+    PromotionRuleVariant = PromotionRule.variants.through
+    PromotionRuleVariant.objects.all().delete()
+
+    # when
+    set_promotion_rule_variants_task()
+
+    # then
+    assert set(
+        PromotionRuleVariant.objects.values_list("promotionrule_id", flat=True)
+    ) == set(PromotionRule.objects.values_list("id", flat=True))
 
 
 def test_decrease_voucher_code_usage_task_multiple_use(
