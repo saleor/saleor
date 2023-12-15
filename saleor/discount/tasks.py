@@ -304,3 +304,34 @@ def update_discounted_prices_task():
         products = Product.objects.filter(id__in=products_ids)
         update_discounted_prices_for_promotion(products)
         update_discounted_prices_task.delay()
+
+
+@app.task(
+    name="saleor.discount.migrations.tasks.saleor3_17.set_promotion_rule_variants"
+)
+def set_promotion_rule_variants(start_id=None):
+    # WARNING: this function is run during `0067_fulfill_promotionrule_variants`
+    # migration, be careful while updating.
+    # This task can be deleted after we introduce a different process for calculating
+    # discounted prices for promotions.
+
+    # Results in update time ~0.4s and consumes ~20MB memory at peak
+    from ..product.utils.variants import fetch_variants_for_promotion_rules
+
+    PROMOTION_RULE_BATCH_SIZE = 250
+
+    promotions = Promotion.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).active()
+    kwargs = {"id__gt": start_id} if start_id else {}
+    rules = (
+        PromotionRule.objects.order_by("id")
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(Exists(promotions.filter(id=OuterRef("promotion_id"))), **kwargs)[
+            :PROMOTION_RULE_BATCH_SIZE
+        ]
+    )
+    if ids := list(rules.values_list("pk", flat=True)):
+        qs = PromotionRule.objects.filter(pk__in=ids)
+        fetch_variants_for_promotion_rules(rules=qs)
+        set_promotion_rule_variants.delay(ids[-1])

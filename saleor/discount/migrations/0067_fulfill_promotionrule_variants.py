@@ -4,7 +4,7 @@ from django.apps import apps as registry
 from django.db import migrations
 from django.db.models.signals import post_migrate
 
-from .tasks.saleor3_17 import set_promotion_rule_variants
+from ..tasks import set_promotion_rule_variants
 
 
 def update_promotion_rule_variants(apps, _schema_editor):
