@@ -233,7 +233,7 @@ def update_products_search_vector_task():
 
 @app.task(queue=settings.COLLECTION_PRODUCT_UPDATED_QUEUE_NAME)
 def collection_product_updated_task(product_ids):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     products = list(
         Product.objects.filter(id__in=product_ids).prefetched_for_webhook(
             single_object=False

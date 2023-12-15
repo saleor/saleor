@@ -53,7 +53,7 @@ from ..tests.sample_plugins import (
 def test_get_plugins_manager(settings):
     plugin_path = "saleor.plugins.tests.sample_plugins.PluginSample"
     settings.PLUGINS = [plugin_path]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     assert isinstance(manager, PluginsManager)
     assert len(manager.all_plugins) == 1
 
@@ -65,7 +65,7 @@ def test_manager_with_default_configuration_for_channel_plugins(
         "saleor.plugins.tests.sample_plugins.ChannelPluginSample",
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     assert len(manager.global_plugins) == 1
     assert isinstance(manager.global_plugins[0], PluginSample)
     assert {channel_PLN.slug, channel_USD.slug} == set(
@@ -91,7 +91,7 @@ def test_manager_with_channel_plugins(
     settings.PLUGINS = [
         "saleor.plugins.tests.sample_plugins.ChannelPluginSample",
     ]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     assert {channel_PLN.slug, channel_USD.slug} == set(
         manager.plugins_per_channel.keys()
@@ -113,7 +113,7 @@ def test_manager_get_plugins_with_channel_slug(
         "saleor.plugins.tests.sample_plugins.PluginInactive",
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     plugins = manager.get_plugins(channel_slug=channel_USD.slug)
 
@@ -127,7 +127,7 @@ def test_manager_get_active_plugins_with_channel_slug(
         "saleor.plugins.tests.sample_plugins.PluginInactive",
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     plugins = manager.get_plugins(channel_slug=channel_USD.slug, active_only=True)
 
@@ -142,7 +142,7 @@ def test_manager_get_plugins_without_channel_slug(
         "saleor.plugins.tests.sample_plugins.PluginInactive",
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     plugins = manager.get_plugins(channel_slug=None)
 
@@ -156,7 +156,7 @@ def test_manager_get_active_plugins_without_channel_slug(
         "saleor.plugins.tests.sample_plugins.PluginInactive",
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     plugins = manager.get_plugins(channel_slug=None, active_only=True)
 
@@ -259,7 +259,7 @@ def test_manager_calculates_checkout_line_total(
     checkout = checkout_with_item_on_promotion
     currency = checkout.currency
     expected_total = Money(amount, currency)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -306,7 +306,7 @@ def test_manager_get_checkout_line_tax_rate_sample_plugin(checkout_with_item):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     checkout_line_info = lines[0]
@@ -331,7 +331,7 @@ def test_manager_get_checkout_line_tax_rate_sample_plugin(checkout_with_item):
 def test_manager_get_checkout_line_tax_rate_no_plugins(
     checkout_with_item, unit_price, expected_tax_rate
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     checkout_line_info = lines[0]
@@ -388,7 +388,7 @@ def test_manager_get_checkout_shipping_tax_rate_sample_plugin(checkout_with_item
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     shipping_price = TaxedMoney(Money(12, "USD"), Money(14, "USD"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
@@ -411,7 +411,7 @@ def test_manager_get_checkout_shipping_tax_rate_sample_plugin(checkout_with_item
 def test_manager_get_checkout_shipping_tax_rate_no_plugins(
     checkout_with_item, shipping_price, expected_tax_rate
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
@@ -555,7 +555,7 @@ def test_manager_get_taxes_for_checkout(
     expected_tax_data,
 ):
     lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     assert PluginsManager(plugins=plugins).get_taxes_for_checkout(
         checkout_info, lines

@@ -171,6 +171,7 @@ def trigger_webhook_sync_if_not_cached(
     payload: str,
     webhook: "Webhook",
     cache_data: dict,
+    allow_replica: bool,
     subscribable_object=None,
     request_timeout=None,
     cache_timeout=None,
@@ -191,6 +192,7 @@ def trigger_webhook_sync_if_not_cached(
             event_type,
             payload,
             webhook,
+            allow_replica,
             subscribable_object=subscribable_object,
             timeout=request_timeout,
             request=request,
@@ -205,7 +207,12 @@ def trigger_webhook_sync_if_not_cached(
 
 
 def create_delivery_for_subscription_sync_event(
-    event_type, subscribable_object, webhook, requestor=None, request=None
+    event_type,
+    subscribable_object,
+    webhook,
+    requestor=None,
+    request=None,
+    allow_replica=False,
 ) -> Optional[EventDelivery]:
     """Generate webhook payload based on subscription query and create delivery object.
 
@@ -218,6 +225,7 @@ def create_delivery_for_subscription_sync_event(
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :param request: used to share context between sync event calls
     :return: List of event deliveries to send via webhook tasks.
+    :param allow_replica: use replica database.
     """
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
@@ -227,7 +235,10 @@ def create_delivery_for_subscription_sync_event(
 
     if not request:
         request = initialize_request(
-            requestor, event_type in WebhookEventSyncType.ALL, event_type=event_type
+            requestor,
+            event_type in WebhookEventSyncType.ALL,
+            event_type=event_type,
+            allow_replica=allow_replica,
         )
     data = generate_payload_from_subscription(
         event_type=event_type,
@@ -257,6 +268,7 @@ def trigger_webhook_sync(
     event_type: str,
     payload: str,
     webhook: "Webhook",
+    allow_replica,
     subscribable_object=None,
     timeout=None,
     request=None,
@@ -268,6 +280,7 @@ def trigger_webhook_sync(
             subscribable_object=subscribable_object,
             webhook=webhook,
             request=request,
+            allow_replica=allow_replica,
         )
         if not delivery:
             return None
@@ -312,7 +325,7 @@ def trigger_all_webhooks_sync(
                 request_context = initialize_request(
                     requestor,
                     event_type in WebhookEventSyncType.ALL,
-                    allow_replica,
+                    allow_replica=allow_replica,
                     event_type=event_type,
                 )
 

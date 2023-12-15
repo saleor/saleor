@@ -36,7 +36,7 @@ def test_send_email_request_change(
     redirect_url = "http://localhost:8000/redirect"
     token = "token_example"
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     notifications.send_request_user_change_email_notification(
         redirect_url,
         customer_user,
@@ -71,7 +71,10 @@ def test_send_email_changed_notification(
     old_email = "example@example.com"
 
     notifications.send_user_change_email_notification(
-        old_email, customer_user, get_plugins_manager(), channel_slug=channel_PLN.slug
+        old_email,
+        customer_user,
+        get_plugins_manager(allow_replica=False),
+        channel_slug=channel_PLN.slug,
     )
 
     expected_payload = {
@@ -105,7 +108,7 @@ def test_send_password_reset_notification(
     notifications.send_password_reset_notification(
         redirect_url,
         customer_user,
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
         channel_slug=channel_PLN.slug,
         staff=is_staff,
     )

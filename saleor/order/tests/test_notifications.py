@@ -311,7 +311,7 @@ def test_get_default_fulfillment_payload(fulfillment, digital_content, site_sett
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_dummy):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order = payment_dummy.order
     order_info = fetch_order_info(order)
     expected_payload = {
@@ -337,7 +337,7 @@ def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_d
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_order_confirmation(mocked_notify, order, site_settings):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     redirect_url = "https://www.example.com"
     order_info = fetch_order_info(order)
 
@@ -359,7 +359,7 @@ def test_send_email_order_confirmation(mocked_notify, order, site_settings):
 def test_send_email_order_confirmation_for_cc(
     mocked_notify, order_with_lines_for_cc, site_settings, warehouse_for_cc
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     redirect_url = "https://www.example.com"
     order_info = fetch_order_info(order_with_lines_for_cc)
 
@@ -484,7 +484,7 @@ def test_send_fulfillment_confirmation_by_user(
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.tracking_number = "https://www.example.com"
     fulfillment.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     notifications.send_fulfillment_confirmation_to_customer(
         order=fulfilled_order,
@@ -511,7 +511,7 @@ def test_send_fulfillment_confirmation_by_app(
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.tracking_number = "https://www.example.com"
     fulfillment.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     notifications.send_fulfillment_confirmation_to_customer(
         order=fulfilled_order,
@@ -536,7 +536,7 @@ def test_send_fulfillment_update(mocked_notify, fulfilled_order, site_settings):
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.tracking_number = "https://www.example.com"
     fulfillment.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     notifications.send_fulfillment_update(
         order=fulfilled_order, fulfillment=fulfillment, manager=manager
@@ -556,7 +556,7 @@ def test_send_email_order_canceled_by_user(
     mocked_notify, order, site_settings, staff_user
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     notifications.send_order_canceled_confirmation(order, staff_user, None, manager)
@@ -579,7 +579,7 @@ def test_send_email_order_canceled_by_user(
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_order_canceled_by_app(mocked_notify, order, site_settings, app):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     notifications.send_order_canceled_confirmation(order, None, app, manager)
@@ -604,7 +604,7 @@ def test_send_email_order_refunded_by_user(
     mocked_notify, order, site_settings, staff_user
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     amount = order.total.gross.amount
 
     # when
@@ -633,7 +633,7 @@ def test_send_email_order_refunded_by_user(
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_order_refunded_by_app(mocked_notify, order, site_settings, app):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     amount = order.total.gross.amount
 
     # when

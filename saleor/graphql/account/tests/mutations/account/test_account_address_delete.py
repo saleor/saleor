@@ -70,7 +70,8 @@ def test_customer_delete_address_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_DELETED,
             user_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 
