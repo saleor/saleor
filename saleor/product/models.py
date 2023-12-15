@@ -251,6 +251,8 @@ class ProductsQueryset(models.QuerySet["Product"]):
                     )
                 return self.none()
             return self.all()
+        if not channel_slug:
+            return self.none()
         return self.published_with_variants(channel_slug)
 
     def annotate_publication_info(self, channel_slug: str):
@@ -927,6 +929,8 @@ class CollectionsQueryset(models.QuerySet["Collection"]):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()
+        if not channel_slug:
+            return self.none()
         return self.published(channel_slug)
 
 
