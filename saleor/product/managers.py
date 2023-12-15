@@ -1,5 +1,5 @@
 import datetime
-from typing import Union
+from typing import Optional, Union
 
 import pytz
 from django.contrib.postgres.aggregates import StringAgg
@@ -66,7 +66,9 @@ class ProductsQueryset(models.QuerySet):
         )
         return published.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
-    def visible_to_user(self, requestor: Union["User", "App", None], channel_slug: str):
+    def visible_to_user(
+        self, requestor: Union["User", "App", None], channel_slug: Optional[str]
+    ):
         from .models import ALL_PRODUCTS_PERMISSIONS, ProductChannelListing
 
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
@@ -79,6 +81,8 @@ class ProductsQueryset(models.QuerySet):
                     Exists(channel_listings.filter(product_id=OuterRef("pk")))
                 )
             return self.all()
+        if not channel_slug:
+            return self.none()
         return self.published_with_variants(channel_slug)
 
     def annotate_publication_info(self, channel_slug: str):
@@ -305,13 +309,17 @@ class CollectionsQueryset(models.QuerySet):
             channel_listings__is_published=True,
         )
 
-    def visible_to_user(self, requestor: Union["User", "App", None], channel_slug: str):
+    def visible_to_user(
+        self, requestor: Union["User", "App", None], channel_slug: Optional[str]
+    ):
         from .models import ALL_PRODUCTS_PERMISSIONS
 
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()
+        if not channel_slug:
+            return self.none()
         return self.published(channel_slug)
 
 

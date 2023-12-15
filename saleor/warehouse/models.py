@@ -40,7 +40,7 @@ else:
 
 class WarehouseQueryset(models.QuerySet["Warehouse"]):
     def for_channel(self, channel_id: int):
-        WarehouseChannel = Channel.warehouses.through  # type: ignore
+        WarehouseChannel = Channel.warehouses.through
         return self.filter(
             Exists(
                 WarehouseChannel.objects.filter(
@@ -50,9 +50,9 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         ).order_by("pk")
 
     def for_country_and_channel(self, country: str, channel_id: int):
-        ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
-        WarehouseShippingZone = ShippingZone.warehouses.through  # type: ignore
-        WarehouseChannel = Channel.warehouses.through  # type: ignore
+        ShippingZoneChannel = Channel.shipping_zones.through
+        WarehouseShippingZone = ShippingZone.warehouses.through
+        WarehouseChannel = Channel.warehouses.through
 
         shipping_zones = ShippingZone.objects.filter(
             countries__contains=country
@@ -262,7 +262,7 @@ class StockQuerySet(models.QuerySet["Stock"]):
         The click and collect warehouses don't have to be assigned to the shipping zones
         so all stocks for a given channel are returned.
         """
-        WarehouseChannel = Channel.warehouses.through  # type: ignore
+        WarehouseChannel = Channel.warehouses.through
 
         channels = Channel.objects.filter(slug=channel_slug).values("pk")
 
@@ -288,9 +288,9 @@ class StockQuerySet(models.QuerySet["Stock"]):
         also the stocks from collection point warehouses allowed in given channel are
         returned.
         """
-        ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
-        WarehouseShippingZone = ShippingZone.warehouses.through  # type: ignore
-        WarehouseChannel = Channel.warehouses.through  # type: ignore
+        ShippingZoneChannel = Channel.shipping_zones.through
+        WarehouseShippingZone = ShippingZone.warehouses.through
+        WarehouseChannel = Channel.warehouses.through
 
         channels = Channel.objects.filter(slug=channel_slug).values("pk")
 

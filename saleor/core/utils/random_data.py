@@ -914,7 +914,7 @@ def create_staffs(staff_password):
 def create_group(name, permissions, users):
     group, _ = Group.objects.get_or_create(name=name)
     group.permissions.add(*permissions)
-    group.user_set.add(*users)
+    group.user_set.add(*users)  # type: ignore[attr-defined]
     return group
 
 

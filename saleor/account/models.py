@@ -143,7 +143,7 @@ class UserManager(BaseUserManager["User"]):
         group, created = Group.objects.get_or_create(name="Full Access")
         if created:
             group.permissions.add(*get_permissions())
-        group.user_set.add(user)
+        group.user_set.add(user)  # type: ignore[attr-defined]
         return user
 
     def customers(self):
