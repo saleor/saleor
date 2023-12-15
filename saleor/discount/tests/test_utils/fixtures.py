@@ -28,7 +28,7 @@ def checkout_lines_info(checkout_with_items, categories, published_collections):
 
 @pytest.fixture
 def checkout_info(checkout_lines_info):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_lines_info[0].line.checkout
     checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
     return checkout_info

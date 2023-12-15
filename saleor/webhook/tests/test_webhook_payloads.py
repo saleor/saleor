@@ -419,7 +419,7 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
     )
     fulfill_order_lines(
         [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
     )
     payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
 
@@ -467,7 +467,7 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
         [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
     )
 
     # when
@@ -1662,7 +1662,7 @@ def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
 
     # when
     lines, _ = fetch_checkout_lines(checkout_with_prices)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout_with_prices, lines, manager)
     payload = json.loads(
         generate_checkout_payload_for_tax_calculation(checkout_info, lines)
@@ -1759,7 +1759,7 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
 
     # when
     lines, _ = fetch_checkout_lines(checkout_with_prices)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout_with_prices, lines, manager)
     payload = json.loads(
         generate_checkout_payload_for_tax_calculation(checkout_info, lines)
@@ -1842,7 +1842,7 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
         mocked_serialized_checkout_lines
     )
     lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when

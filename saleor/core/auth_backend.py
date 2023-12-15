@@ -115,7 +115,7 @@ class PluginBackend(JSONWebTokenBackend):
         # as many Promise are waiting.
 
         allow_replica = getattr(request, "allow_replica", True)
-        manager = get_plugins_manager(None, allow_replica)
+        manager = get_plugins_manager(allow_replica, None)
 
         # Store created manager in request to be used in other Dataloader.
         plugin_loader = AnonymousPluginManagerLoader(request)

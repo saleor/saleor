@@ -22,7 +22,7 @@ def test_get_default_gift_card_payload(gift_card):
 def test_send_gift_card_notification(
     mocked_notify, staff_user, customer_user, gift_card, channel_USD, site_settings
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     resending = False
     send_gift_card_notification(
         staff_user,

@@ -91,7 +91,8 @@ def test_customer_address_update_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_UPDATED,
             user_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 

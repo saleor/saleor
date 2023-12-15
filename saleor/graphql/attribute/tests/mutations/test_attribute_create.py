@@ -177,6 +177,7 @@ def test_create_attribute_trigger_webhook(
         [any_webhook],
         attribute,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
