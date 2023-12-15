@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from django.db.models import QuerySet
-
 if TYPE_CHECKING:
     from .models import PromotionRule
 
@@ -76,6 +74,4 @@ class PromotionEvents:
 @dataclass
 class PromotionRuleInfo:
     rule: "PromotionRule"
-    variant_ids: list[int]
-    variants: QuerySet
     channel_ids: list[int]

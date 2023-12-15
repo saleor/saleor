@@ -327,6 +327,10 @@ class Promotion(ModelWithMetadata):
                 "Manage promotions and vouchers.",
             ),
         )
+        indexes = [
+            BTreeIndex(fields=["start_date"], name="start_date_idx"),
+            BTreeIndex(fields=["end_date"], name="end_date_idx"),
+        ]
 
     def is_active(self, date=None):
         if date is None:
@@ -369,6 +373,7 @@ class PromotionRule(models.Model):
     catalogue_predicate = models.JSONField(
         blank=True, default=dict, encoder=CustomJsonEncoder
     )
+    variants = models.ManyToManyField("product.ProductVariant", blank=True)
     reward_value_type = models.CharField(
         max_length=255, choices=RewardValueType.CHOICES, blank=True, null=True
     )
