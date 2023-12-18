@@ -25,6 +25,7 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
                 code
                 message
                 variants
+                orderLines
             }
             order {
                 status
@@ -546,6 +547,7 @@ def test_draft_order_complete_with_not_excluded_shipping_method(
 def test_draft_order_complete_out_of_stock_variant(
     staff_api_client, permission_group_manage_orders, staff_user, draft_order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
 
@@ -559,15 +561,19 @@ def test_draft_order_complete_out_of_stock_variant(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
+
+    # when
     response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderComplete"]["errors"][0]
     order.refresh_from_db()
+
+    # then
     assert order.status == OrderStatus.DRAFT
     assert order.origin == OrderOrigin.DRAFT
-
     assert error["field"] == "lines"
     assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
+    assert error["orderLines"] == [graphene.Node.to_global_id("OrderLine", line_1.id)]
 
 
 def test_draft_order_complete_existing_user_email_updates_user_field(
