@@ -89,7 +89,7 @@ def handle_promotion_toggle():
     if product_ids:
         # Recalculate discounts of affected products
         update_products_discounted_prices_for_promotion_task.delay(
-            product_ids, rule_ids
+            product_ids, rule_ids=rule_ids
         )
 
     starting_promotion_ids = ", ".join(
