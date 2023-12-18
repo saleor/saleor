@@ -81,3 +81,19 @@ def test_fetch_variants_for_promotion_rules_no_applicable_variants(
     # then
     rule.refresh_from_db()
     assert rule.variants.count() == 0
+
+
+def test_fetch_variants_for_promotion_rules_relation_already_exist(
+    promotion,
+):
+    # given
+    PromotionRuleVariant = PromotionRule.variants.through
+    rule = PromotionRuleVariant.objects.first().promotionrule
+    assert rule.variants.count() > 0
+
+    # when
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
+
+    # then
+    rule.refresh_from_db()
+    assert rule.variants.count() > 0

@@ -184,7 +184,8 @@ def test_handle_promotion_toggle(
         product_list[0].id,
         product_list[2].id,
     }
-    assert {rule_id for rule_id in args[1]} == {
+
+    assert {rule_id for rule_id in kwargs["rule_ids"]} == {
         rules[0].id,
         rules[2].id,
     }
