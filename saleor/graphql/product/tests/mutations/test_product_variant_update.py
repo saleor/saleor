@@ -1639,10 +1639,9 @@ def test_update_product_variant_with_current_file_attribute(
     assert len(variant_data["attributes"]) == 1
     assert variant_data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
     assert len(variant_data["attributes"][0]["values"]) == 1
-    assert (
-        variant_data["attributes"][0]["values"][0]["slug"]
-        == f"{slugify(second_value)}-2"
-    )
+    assert variant_data["attributes"][0]["values"][0][
+        "slug"
+    ] == f"{slugify(second_value)}-2"
 
 
 def test_update_product_variant_with_duplicated_file_attribute(
