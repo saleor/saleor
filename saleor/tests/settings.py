@@ -44,6 +44,9 @@ AUTH_PASSWORD_VALIDATORS = []
 
 PASSWORD_HASHERS = ["saleor.tests.dummy_password_hasher.DummyHasher"]
 
+OBSERVABILITY_ACTIVE = False
+OBSERVABILITY_REPORT_ALL_API_CALLS = False
+
 PLUGINS = []
 
 PATTERNS_IGNORED_IN_QUERY_CAPTURES: List[Union[Pattern, SimpleLazyObject]] = [
