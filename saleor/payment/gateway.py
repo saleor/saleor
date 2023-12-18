@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Callable, Optional, cast
 
 from ..account.models import User
 from ..app.models import App
@@ -30,6 +30,7 @@ from .utils import (
     create_transaction,
     gateway_postprocess,
     get_already_processed_transaction_or_create_new_transaction,
+    recalculate_refundable_for_checkout,
     update_payment,
     validate_gateway_response,
 )
@@ -199,10 +200,15 @@ def _create_transaction_data(
 ):
     app_owner = None
     if transaction.app_id:
-        app_owner = transaction.app
-    elif transaction.app_identifier:
+        app_owner = cast(App, transaction.app)
+        if not app_owner.is_active or app_owner.removed_at:
+            app_owner = None
+
+    if not app_owner and transaction.app_identifier:
         app_owner = App.objects.filter(
-            identifier=transaction.app_identifier, removed_at__isnull=True
+            identifier=transaction.app_identifier,
+            removed_at__isnull=True,
+            is_active=True,
         ).first()
 
     return TransactionActionData(
@@ -233,6 +239,9 @@ def _request_payment_action(
             apps_ids=[transaction_action_data.transaction_app_owner.pk],
         )
     if not transaction_request_event_active and not webhooks:
+        recalculate_refundable_for_checkout(
+            transaction_action_data.transaction, transaction_action_data.event
+        )
         create_failed_transaction_event(
             transaction_action_data.event,
             cause="No app or plugin is configured to handle payment action requests.",

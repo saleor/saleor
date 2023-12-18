@@ -10,12 +10,14 @@ from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...discount import DiscountType
+from ...discount.models import PromotionRule
 from ...discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Product
 from ...product.utils.variant_prices import update_discounted_prices_for_promotion
+from ...product.utils.variants import fetch_variants_for_promotion_rules
 from ..serializers import (
     serialize_checkout_lines,
     serialize_checkout_lines_for_tax_calculation,
@@ -283,7 +285,7 @@ def test_serialize_checkout_lines_for_tax_calculation(
     # given
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     tax_configuration = checkout_info.tax_configuration
@@ -343,10 +345,11 @@ def test_serialize_checkout_lines_for_tax_calculation_with_promotion(
     }
     promotion_rule.save(update_fields=["catalogue_predicate"])
 
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
     update_discounted_prices_for_promotion(Product.objects.all())
 
     lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     create_or_update_discount_objects_from_promotion_for_checkout(lines)
 

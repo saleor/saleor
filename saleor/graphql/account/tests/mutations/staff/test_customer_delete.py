@@ -96,7 +96,9 @@ def test_customer_delete_trigger_webhook(
         customer_user,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
+
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
