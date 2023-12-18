@@ -291,28 +291,75 @@ def test_available_products_with_variants_in_many_channels_pln(
 
 
 def test_visible_to_customer_user(customer_user, product_list, channel_USD):
+    # given
     product = product_list[0]
-    product.variants.all().delete()
+    product.channel_listings.all().delete()
 
+    # when
     available_products = models.Product.objects.visible_to_user(
         customer_user, channel_USD.slug
     )
-    assert available_products.count() == 2
+
+    # then
+    assert available_products.count() == len(product_list) - 1
+
+
+def test_visible_to_customer_user_without_channel_slug(
+    customer_user,
+    product_list,
+    channel_USD,
+    django_assert_num_queries,
+):
+    # given
+    product = product_list[0]
+    product.channel_listings.all().delete()
+
+    # when
+    available_products = models.Product.objects.visible_to_user(customer_user, None)
+
+    # then
+    with django_assert_num_queries(0):
+        assert available_products.count() == 0
 
 
 def test_visible_to_staff_user(
-    staff_user, product_list, channel_USD, permission_manage_products
+    staff_user,
+    product_list,
+    permission_manage_products,
+    channel_USD,
 ):
+    # given
     product = product_list[0]
-    product.variants.all().delete()
+    product.channel_listings.all().delete()
 
     staff_user.user_permissions.add(permission_manage_products)
 
+    # when
+    available_products = models.Product.objects.visible_to_user(staff_user, None)
+
+    # then
+    assert available_products.count() == len(product_list)
+
+
+def test_visible_to_staff_user_with_channel(
+    staff_user,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    product = product_list[0]
+    product.channel_listings.all().delete()
+
+    staff_user.user_permissions.add(permission_manage_products)
+
+    # when
     available_products = models.Product.objects.visible_to_user(
-        staff_user,
-        channel_USD.slug,
+        staff_user, channel_USD.slug
     )
-    assert available_products.count() == 3
+
+    # then
+    assert available_products.count() == len(product_list) - 1
 
 
 def test_filter_not_published_product_is_unpublished(product, channel_USD):
