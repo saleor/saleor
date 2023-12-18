@@ -142,7 +142,11 @@ def validate_order_lines(order: "Order", country: str, errors: T_ERRORS):
         elif line.variant.track_inventory:
             try:
                 check_stock_and_preorder_quantity(
-                    line.variant, country, order.channel.slug, line.quantity
+                    line.variant,
+                    country,
+                    order.channel.slug,
+                    line.quantity,
+                    order_line=line,
                 )
             except InsufficientStock as exc:
                 errors["lines"].extend(
@@ -304,7 +308,6 @@ def prepare_insufficient_stock_order_validation_errors(exc):
             if item.warehouse_pk
             else None
         )
-
         errors.append(
             ValidationError(
                 "Insufficient product stock.",
