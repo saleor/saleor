@@ -64,9 +64,9 @@ def fetch_variants_for_promotion_rules(
         promotion_rule_variants.extend(
             [
                 PromotionRuleVariant(
-                    promotionrule_id=rule.pk, productvariant_id=variant.pk
+                    promotionrule_id=rule.pk, productvariant_id=variant_id
                 )
-                for variant in variants
+                for variant_id in set(variants.values_list("pk", flat=True))
             ]
         )
 
@@ -75,4 +75,6 @@ def fetch_variants_for_promotion_rules(
         PromotionRuleVariant.objects.filter(
             Exists(rules.filter(pk=OuterRef("promotionrule_id")))
         ).delete()
-        PromotionRuleVariant.objects.bulk_create(promotion_rule_variants)
+        PromotionRuleVariant.objects.bulk_create(
+            promotion_rule_variants, ignore_conflicts=True
+        )
