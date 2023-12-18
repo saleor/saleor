@@ -763,24 +763,17 @@ class ProductBulkCreate(BaseMutation):
 
     @classmethod
     def _save_m2m(cls, _info, instances_data):
-        product_collections_map = []
+        product_collections = []
         for instance_data in instances_data:
             product = instance_data["instance"]
             cleaned_input = instance_data["cleaned_input"]
             if collections := cleaned_input.get("collections"):
                 for collection in collections:
-                    product_collections_map.append(
-                        {"product": product, "collection": collection}
+                    product_collections.append(
+                        CollectionProduct(product=product, collection=collection)
                     )
 
-        CollectionProduct.objects.bulk_create(
-            [
-                CollectionProduct(
-                    product=pair["product"], collection=pair["collection"]
-                )
-                for pair in product_collections_map
-            ]
-        )
+        CollectionProduct.objects.bulk_create(product_collections)
 
     @classmethod
     def prepare_products_channel_listings(
