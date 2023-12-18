@@ -19,6 +19,7 @@ from ....core.utils.validators import get_oembed_data
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
+from ....product.models import CollectionProduct
 from ....product.tasks import update_products_discounted_prices_task
 from ....thumbnail.utils import get_filename_from_url
 from ....warehouse.models import Warehouse
@@ -761,6 +762,20 @@ class ProductBulkCreate(BaseMutation):
         return variants, updated_channels
 
     @classmethod
+    def _save_m2m(cls, _info, instances_data):
+        product_collections = []
+        for instance_data in instances_data:
+            product = instance_data["instance"]
+            cleaned_input = instance_data["cleaned_input"]
+            if collections := cleaned_input.get("collections"):
+                for collection in collections:
+                    product_collections.append(
+                        CollectionProduct(product=product, collection=collection)
+                    )
+
+        CollectionProduct.objects.bulk_create(product_collections)
+
+    @classmethod
     def prepare_products_channel_listings(
         cls, product, listings_input, listings_to_create, updated_channels
     ):
@@ -879,6 +894,9 @@ class ProductBulkCreate(BaseMutation):
 
         # save all objects
         variants, updated_channels = cls.save(info, instances_data_with_errors_list)
+
+        # save m2m fields
+        cls._save_m2m(info, instances_data_with_errors_list)
 
         # prepare and return data
         results = get_results(instances_data_with_errors_list)
