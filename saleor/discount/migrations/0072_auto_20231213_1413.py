@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
-        ("discount", "0070_alter_promotion_options"),
+        ("discount", "0071_merge_20231215_0943"),
     ]
 
     operations = [
