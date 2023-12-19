@@ -1,5 +1,5 @@
 from io import BytesIO
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 from django.core.exceptions import ValidationError
@@ -133,10 +133,9 @@ def test_clean_image_file():
     image.save(img_data, format="JPEG")
     field = "image"
 
-    # when
     img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/jpeg")
 
-    # then
+    # when & then
     clean_image_file({field: img}, field, ProductErrorCode)
 
 
@@ -263,4 +262,25 @@ def test_clean_image_file_exif_validation_raising_error(monkeypatch):
         clean_image_file({field: img}, field, ProductErrorCode)
 
     # then
+    assert error_msg in exc.value.args[0][field].message
+
+
+@patch("saleor.thumbnail.utils.magic.from_buffer")
+def test_clean_image_file_invalid_image_mime_type(from_buffer_mock):
+    # given
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="WEBP")
+    field = "image"
+
+    invalid_mime_type = "application/x-empty"
+    from_buffer_mock.return_value = invalid_mime_type
+    img = SimpleUploadedFile("product.webp", img_data.getvalue(), "image/webp")
+
+    # when
+    with pytest.raises(ValidationError) as exc:
+        clean_image_file({field: img}, field, ProductErrorCode)
+
+    # then
+    error_msg = f"Unsupported image MIME type: {invalid_mime_type}"
     assert error_msg in exc.value.args[0][field].message
