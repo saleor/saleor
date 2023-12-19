@@ -79,6 +79,8 @@ class ProductsQueryset(models.QuerySet):
                     Exists(channel_listings.filter(product_id=OuterRef("pk")))
                 )
             return self.all()
+        if not channel_slug:
+            return self.none()
         return self.published_with_variants(channel_slug)
 
     def annotate_publication_info(self, channel_slug: str):
@@ -312,6 +314,8 @@ class CollectionsQueryset(models.QuerySet):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()
+        if not channel_slug:
+            return self.none()
         return self.published(channel_slug)
 
 
