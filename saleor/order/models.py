@@ -26,7 +26,6 @@ from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment
 from ..permission.enums import OrderPermissions
 from ..shipping.models import ShippingMethod
@@ -302,6 +301,20 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     total_charged = MoneyField(
         amount_field="total_charged_amount", currency_field="currency"
     )
+    subtotal_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    subtotal_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    subtotal = TaxedMoneyField(
+        net_amount_field="subtotal_net_amount",
+        gross_amount_field="subtotal_gross_amount",
+    )
 
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
@@ -410,9 +423,6 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
 
     def is_shipping_required(self):
         return any(line.is_shipping_required for line in self.lines.all())
-
-    def get_subtotal(self):
-        return get_subtotal(self.lines.all(), self.currency)
 
     def get_total_quantity(self):
         return sum([line.quantity for line in self.lines.all()])
