@@ -169,6 +169,7 @@ def test_update_shipping_method_trigger_webhook(
         [any_webhook],
         shipping_method,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

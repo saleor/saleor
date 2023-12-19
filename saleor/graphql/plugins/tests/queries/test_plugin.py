@@ -65,7 +65,7 @@ def test_query_plugin_hides_secret_fields(
     settings,
 ):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     configuration = copy.deepcopy(plugin.configuration)
     for conf_field in configuration:
@@ -117,7 +117,7 @@ def test_query_plugin_hides_secret_fields_for_channel_configurations(
     channel_PLN,
 ):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     plugin = manager.get_plugin(
         ChannelPluginSample.PLUGIN_ID, channel_slug=channel_PLN.slug
@@ -159,7 +159,7 @@ def test_query_plugin_configuration(
     staff_api_client, permission_manage_plugins, settings
 ):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     sample_plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
 
     variables = {"id": sample_plugin.PLUGIN_ID}
@@ -181,7 +181,7 @@ def test_query_plugin_configuration_for_channel_configurations(
     staff_api_client, permission_manage_plugins, settings, channel_PLN
 ):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     sample_plugin = manager.get_plugin(
         ChannelPluginSample.PLUGIN_ID, channel_slug=channel_PLN.slug
     )
@@ -241,7 +241,7 @@ def test_query_plugin_configuration_for_invalid_plugin_name(
 
 def test_query_plugin_configuration_as_customer_user(user_api_client, settings):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     sample_plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
 
     variables = {"id": sample_plugin.PLUGIN_ID}

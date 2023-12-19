@@ -79,7 +79,8 @@ def test_address_delete_mutation_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_DELETED,
             staff_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 

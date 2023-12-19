@@ -28,7 +28,7 @@ def test_delete_categories(
     child = parent.children.first()
     product_list = [child.products.first(), parent.products.first()]
 
-    delete_categories([parent.pk], manager=get_plugins_manager())
+    delete_categories([parent.pk], manager=get_plugins_manager(allow_replica=False))
 
     assert not Category.objects.filter(
         id__in=[category.id for category in [parent, child]]
@@ -65,7 +65,7 @@ def test_delete_categories_trigger_product_updated_webhook(
     product_list = [child.products.first(), parent.products.first()]
 
     # when
-    delete_categories([parent.pk], manager=get_plugins_manager())
+    delete_categories([parent.pk], manager=get_plugins_manager(allow_replica=False))
     flush_post_commit_hooks()
 
     # then

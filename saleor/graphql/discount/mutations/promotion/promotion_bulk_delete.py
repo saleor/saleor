@@ -2,9 +2,9 @@ import graphene
 from django.db.models import Exists, OuterRef, QuerySet
 
 from .....discount import models
+from .....discount.utils import get_current_products_for_rules
 from .....permission.enums import DiscountPermissions
-from .....product import models as product_models
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from .....product.tasks import update_discounted_prices_task
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.utils import get_webhooks_for_event
 from ....core import ResolveInfo
@@ -15,7 +15,6 @@ from ....core.types import DiscountError, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Promotion
-from ...utils import get_variants_for_predicate
 
 
 class PromotionBulkDelete(ModelBulkDeleteMutation):
@@ -48,17 +47,12 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
         for promotion in promotions:
             cls.call_event(manager.promotion_deleted, promotion, webhooks=webhooks)
 
-        update_products_discounted_prices_for_promotion_task.delay(list(product_ids))
+        update_discounted_prices_task.delay(list(product_ids))
 
     @classmethod
     def get_product_ids(cls, qs: QuerySet[models.Promotion]):
         rules = models.PromotionRule.objects.filter(
             Exists(qs.filter(id=OuterRef("promotion_id")))
         )
-        variants = product_models.ProductVariant.objects.none()
-        for rule in rules:
-            variants |= get_variants_for_predicate(rule.catalogue_predicate)
-        products = product_models.Product.objects.filter(
-            Exists(variants.filter(product_id=OuterRef("id")))
-        )
+        products = get_current_products_for_rules(rules)
         return set(products.values_list("id", flat=True))

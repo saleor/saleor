@@ -126,6 +126,7 @@ def test_update_menu_trigger_webhook(
         [any_webhook],
         menu,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

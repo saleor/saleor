@@ -35,7 +35,6 @@ from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, get_translation
 from ..core.weight import zero_weight
 from ..discount.models import PromotionRule
-from ..discount.utils import calculate_discounted_price_for_rules
 from ..permission.enums import (
     DiscountPermissions,
     OrderPermissions,
@@ -392,6 +391,8 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         If a custom price is provided, return the price with applied discounts from
         valid promotion rules for this variant.
         """
+        from ..discount.utils import calculate_discounted_price_for_rules
+
         if price_override is None:
             return channel_listing.discounted_price or channel_listing.price
         price: "Money" = self.get_base_price(channel_listing, price_override)
