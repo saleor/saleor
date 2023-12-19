@@ -63,7 +63,7 @@ def openid_plugin(settings, plugin_configuration):
         default_group_name_for_new_staff_users="OpenID test group",
     ):
         settings.PLUGINS = ["saleor.plugins.openid_connect.plugin.OpenIDConnectPlugin"]
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         manager.save_plugin_configuration(
             OpenIDConnectPlugin.PLUGIN_ID,
             None,
@@ -85,7 +85,7 @@ def openid_plugin(settings, plugin_configuration):
                 ),
             },
         )
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         return manager.all_plugins[0]
 
     return fun

@@ -32,7 +32,7 @@ class PluginManagerByRequestorDataloader(DataLoader):
 
     def batch_load(self, keys):
         allow_replica = getattr(self.context, "allow_replica", True)
-        return [get_plugins_manager(lambda: key, allow_replica) for key in keys]
+        return [get_plugins_manager(allow_replica, lambda: user) for user in keys]
 
 
 class AnonymousPluginManagerLoader(DataLoader):
@@ -43,7 +43,7 @@ class AnonymousPluginManagerLoader(DataLoader):
         # in `saleor.core.auth_backend.PluginBackend.authenticate`
 
         allow_replica = getattr(self.context, "allow_replica", True)
-        return [get_plugins_manager(None, allow_replica) for key in keys]
+        return [get_plugins_manager(allow_replica, None) for key in keys]
 
 
 def plugin_manager_promise(context: SaleorContext, app) -> Promise[PluginsManager]:

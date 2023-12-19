@@ -14,7 +14,12 @@ from ....webhook.payloads import (
 )
 from ...base_plugin import ExcludedShippingMethod
 from ..const import CACHE_EXCLUDED_SHIPPING_KEY, CACHE_EXCLUDED_SHIPPING_TIME
-from ..shipping import get_excluded_shipping_methods_from_response, to_shipping_app_id
+from ..shipping import (
+    get_excluded_shipping_methods_from_response,
+    get_excluded_shipping_methods_or_fetch,
+    parse_list_shipping_methods_response,
+    to_shipping_app_id,
+)
 from ..tasks import trigger_webhook_sync
 
 ORDER_QUERY_SHIPPING_METHOD = """
@@ -116,6 +121,7 @@ def test_excluded_shipping_methods_for_order(
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
         shipping_app.webhooks.get(events__event_type=event_type),
+        False,
         subscribable_object=order_with_lines,
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
@@ -198,6 +204,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         event_type,
         payload,
         shipping_app.webhooks.get(events__event_type=event_type),
+        False,
         subscribable_object=order_with_lines,
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
@@ -205,6 +212,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         event_type,
         payload,
         second_shipping_app.webhooks.get(events__event_type=event_type),
+        False,
         subscribable_object=order_with_lines,
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
@@ -305,6 +313,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
             event_type,
             payload,
             webhook,
+            False,
             subscribable_object=order_with_lines,
             timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         )
@@ -514,7 +523,7 @@ def test_trigger_webhook_sync(mock_request, shipping_app):
     data = '{"key": "value"}'
     webhook = shipping_app.webhooks.first()
     trigger_webhook_sync(
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, data, webhook
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, data, webhook, False
     )
     event_delivery = EventDelivery.objects.first()
     mock_request.assert_called_once_with(event_delivery)
@@ -574,6 +583,7 @@ def test_excluded_shipping_methods_for_checkout_webhook(
         event_type,
         payload,
         shipping_app.webhooks.get(events__event_type=event_type),
+        False,
         subscribable_object=checkout_with_items,
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
@@ -702,6 +712,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         event_type,
         payload,
         shipping_app.webhooks.get(events__event_type=event_type),
+        False,
         subscribable_object=checkout_with_items,
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
@@ -709,6 +720,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         event_type,
         payload,
         second_shipping_app.webhooks.get(events__event_type=event_type),
+        False,
         subscribable_object=checkout_with_items,
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
@@ -810,6 +822,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
             event_type,
             payload,
             webhook,
+            False,
             subscribable_object=checkout_with_items,
             timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         )
@@ -884,3 +897,44 @@ def test_generate_excluded_shipping_methods_for_checkout_payload(
     )
     assert "checkout" in json_payload
     assert "channel" in json_payload["checkout"]
+
+
+@mock.patch("saleor.plugins.webhook.shipping.parse_excluded_shipping_methods")
+@mock.patch("saleor.plugins.webhook.shipping.trigger_webhook_sync")
+@mock.patch(
+    "saleor.plugins.webhook.shipping.get_excluded_shipping_methods_from_response"
+)
+def test_get_excluded_shipping_methods_or_fetch_invalid_response_type(
+    mocked_get_excluded,
+    mocked_webhook_sync_trigger,
+    mocked_parse,
+    app,
+    checkout,
+):
+    # given
+    mocked_webhook_sync_trigger.return_value = ["incorrect_type"]
+    webhook = Webhook.objects.create(
+        name="Simple webhook", app=app, target_url="http://www.example.com/test"
+    )
+    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    webhook.events.create(event_type=event_type)
+    webhooks = Webhook.objects.all()
+
+    # when
+    get_excluded_shipping_methods_or_fetch(
+        webhooks, event_type, '{"test":"payload"}', "test", checkout, False
+    )
+    # then
+    mocked_get_excluded.asssert_not_called()
+    mocked_parse.assert_called_once_with([])
+
+
+def test_parse_list_shipping_methods_response_response_incorrect_format(app):
+    # given
+    response_data_with_incorrect_format = [[1], 2, "3"]
+    # when
+    result = parse_list_shipping_methods_response(
+        response_data_with_incorrect_format, app
+    )
+    # then
+    assert result == []
