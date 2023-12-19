@@ -1020,11 +1020,12 @@ class WebhookPlugin(BasePlugin):
         sale: "Promotion",
         catalogue: defaultdict[str, set[str]],
         previous_value: Any,
+        webhooks=None,
     ):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.SALE_TOGGLE
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := get_webhooks_for_event(event_type, webhooks):
             sale_data_generator = partial(
                 generate_sale_toggle_payload,
                 sale,
@@ -1088,21 +1089,25 @@ class WebhookPlugin(BasePlugin):
         self,
         promotion: "Promotion",
         previous_value: Any,
+        webhooks=None,
     ):
         if not self.active:
             return previous_value
         self._trigger_promotion_event(
-            WebhookEventAsyncType.PROMOTION_STARTED, promotion
+            WebhookEventAsyncType.PROMOTION_STARTED, promotion, webhooks=webhooks
         )
 
     def promotion_ended(
         self,
         promotion: "Promotion",
         previous_value: Any,
+        webhooks=None,
     ):
         if not self.active:
             return previous_value
-        self._trigger_promotion_event(WebhookEventAsyncType.PROMOTION_ENDED, promotion)
+        self._trigger_promotion_event(
+            WebhookEventAsyncType.PROMOTION_ENDED, promotion, webhooks=webhooks
+        )
 
     def _trigger_promotion_rule_event(
         self, event_type: str, promotion_rule: "PromotionRule"
