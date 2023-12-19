@@ -40,7 +40,7 @@ def adyen_plugin(settings, channel_USD):
         adyen_auto_capture = adyen_auto_capture or False
         auto_capture = auto_capture or False
         settings.PLUGINS = ["saleor.payment.gateways.adyen.plugin.AdyenGatewayPlugin"]
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
 
         with mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post"):
             manager.save_plugin_configuration(
@@ -62,7 +62,7 @@ def adyen_plugin(settings, channel_USD):
                 },
             )
 
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         return manager.plugins_per_channel[channel_USD.slug][0]
 
     return fun
@@ -74,7 +74,7 @@ def payment_adyen_for_checkout(checkout_with_items, address, shipping_method):
     checkout_with_items.shipping_address = address
     checkout_with_items.shipping_method = shipping_method
     checkout_with_items.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(

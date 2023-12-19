@@ -231,6 +231,7 @@ def test_shipping_method_channel_listing_create_trigger_webhook(
         [any_webhook],
         shipping_method,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

@@ -29,7 +29,7 @@ def test_create_fulfillments(
             {"order_line": order_line2, "quantity": 2},
         ]
     }
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     [fulfillment] = create_fulfillments(
         staff_user,
         None,
@@ -101,7 +101,7 @@ def test_create_fulfillments_require_approval(
             {"order_line": order_line2, "quantity": 2},
         ]
     }
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     [fulfillment] = create_fulfillments(
         staff_user,
         None,
@@ -170,7 +170,7 @@ def test_create_fulfillments_require_approval_as_app(
             {"order_line": order_line2, "quantity": 2},
         ]
     }
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     [fulfillment] = create_fulfillments(
         None,
         app,
@@ -241,7 +241,7 @@ def test_create_fulfillments_without_notification(
         None,
         order,
         fulfillment_lines_for_warehouses,
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
         site_settings,
         False,
     )
@@ -306,7 +306,7 @@ def test_create_fulfillments_many_warehouses(
         None,
         order,
         fulfillment_lines_for_warehouses,
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
         site_settings,
         False,
     )
@@ -356,7 +356,7 @@ def test_create_fulfillments_with_one_line_empty_quantity(
         ]
     }
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     [fulfillment] = create_fulfillments(
         staff_user,
         None,
@@ -410,7 +410,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
         warehouse.pk: [{"order_line": order_line, "quantity": 2}]
     }
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     [fulfillment] = create_fulfillments(
         staff_user,
         None,
@@ -461,7 +461,7 @@ def test_create_fulfillments_without_allocations(
         ]
     }
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     [fulfillment] = create_fulfillments(
         staff_user,
         None,
@@ -524,7 +524,7 @@ def test_create_fulfillments_warehouse_without_stock(
             None,
             order,
             fulfillment_lines_for_warehouses,
-            get_plugins_manager(),
+            get_plugins_manager(allow_replica=False),
             site_settings,
             True,
         )
@@ -579,7 +579,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
             None,
             order,
             fulfillment_lines_for_warehouses,
-            get_plugins_manager(),
+            get_plugins_manager(allow_replica=False),
             site_settings,
             True,
         )
@@ -624,7 +624,7 @@ def test_create_fullfilment_with_out_of_stock_webhook(
             {"order_line": order_line2, "quantity": 2},
         ]
     }
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     create_fulfillments(
         user=staff_user,
         app=None,
@@ -654,7 +654,7 @@ def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
             {"order_line": order_line2, "quantity": 1},
         ]
     }
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     create_fulfillments(
         user=staff_user,
         app=None,
@@ -710,7 +710,7 @@ def test_create_fulfillments_quantity_allocated_lower_than_line_quantity(
             {"order_line": order_line2, "quantity": line_2_qty},
         ]
     }
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     [fulfillment] = create_fulfillments(

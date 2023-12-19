@@ -155,6 +155,7 @@ def test_mutation_update_warehouse_trigger_webhook(
         [any_webhook],
         warehouse,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
