@@ -3,7 +3,6 @@ from unittest.mock import patch
 import graphene
 import pytest
 
-from .....product.models import Collection
 from ....tests.utils import get_graphql_content
 from ...mutations.collection.collection_create import CollectionCreate
 from ...mutations.collection.collection_delete import CollectionDelete
@@ -390,26 +389,11 @@ def test_collection_bulk_delete(
 @pytest.mark.count_queries(autouse=False)
 def test_collections_for_federation_query_count(
     api_client,
+    published_collections,
+    channel_USD,
     django_assert_num_queries,
     count_queries,
 ):
-    collections = Collection.objects.bulk_create(
-        [
-            Collection(
-                name="collection 1",
-                slug="collection-1",
-            ),
-            Collection(
-                name="collection 2",
-                slug="collection-2",
-            ),
-            Collection(
-                name="collection 3",
-                slug="collection-3",
-            ),
-        ]
-    )
-
     query = """
         query GetCollectionInFederation($representations: [_Any]) {
             _entities(representations: $representations) {
@@ -426,7 +410,10 @@ def test_collections_for_federation_query_count(
         "representations": [
             {
                 "__typename": "Collection",
-                "id": graphene.Node.to_global_id("Collection", collections[0].pk),
+                "id": graphene.Node.to_global_id(
+                    "Collection", published_collections[0].pk
+                ),
+                "channel": channel_USD.slug,
             },
         ],
     }
@@ -435,14 +422,17 @@ def test_collections_for_federation_query_count(
         response = api_client.post_graphql(query, variables)
         content = get_graphql_content(response)
         assert len(content["data"]["_entities"]) == 1
+        for collection_data in content["data"]["_entities"]:
+            assert collection_data is not None
 
     variables = {
         "representations": [
             {
                 "__typename": "Collection",
                 "id": graphene.Node.to_global_id("Collection", collection.pk),
+                "channel": channel_USD.slug,
             }
-            for collection in collections
+            for collection in published_collections
         ],
     }
 
@@ -450,6 +440,8 @@ def test_collections_for_federation_query_count(
         response = api_client.post_graphql(query, variables)
         content = get_graphql_content(response)
         assert len(content["data"]["_entities"]) == 3
+        for collection_data in content["data"]["_entities"]:
+            assert collection_data is not None
 
 
 @patch(

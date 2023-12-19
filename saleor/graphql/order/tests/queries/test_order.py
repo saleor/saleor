@@ -348,7 +348,7 @@ def test_order_query(
     assert len(order_data["payments"]) == order.payments.count()
 
     expected_methods = ShippingMethod.objects.applicable_shipping_methods(
-        price=order.get_subtotal().gross,
+        price=order.subtotal.gross,
         weight=order.get_total_weight(),
         country_code=order.shipping_address.country.code,
         channel_id=order.channel_id,
@@ -996,7 +996,7 @@ def test_order_query_in_pln_channel(
     assert len(order_data["payments"]) == order.payments.count()
 
     expected_methods = ShippingMethod.objects.applicable_shipping_methods(
-        price=order.get_subtotal().gross,
+        price=order.subtotal.gross,
         weight=order.get_total_weight(),
         country_code=order.shipping_address.country.code,
         channel_id=order.channel_id,

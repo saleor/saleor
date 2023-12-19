@@ -98,6 +98,7 @@ from ..order.utils import (
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
+from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment, TransactionEvent, TransactionItem
 from ..payment.transaction_item_calculations import recalculate_transaction_amounts
 from ..payment.utils import create_manual_adjustment_events
@@ -126,6 +127,7 @@ from ..product.models import (
 )
 from ..product.search import prepare_product_search_vector_value
 from ..product.tests.utils import create_image
+from ..product.utils.variants import fetch_variants_for_promotion_rules
 from ..shipping.models import (
     ShippingMethod,
     ShippingMethodChannelListing,
@@ -4629,6 +4631,7 @@ def recalculate_order(order):
     total -= discount
 
     order.total = total
+    order.subtotal = get_subtotal(order.lines.all(), order.currency)
     order.undiscounted_total = undiscounted_total
 
     if discount:
@@ -5568,6 +5571,7 @@ def promotion(channel_USD, product, collection):
     )
     for rule in rules:
         rule.channels.add(channel_USD)
+    fetch_variants_for_promotion_rules(promotion.rules.all())
     return promotion
 
 
@@ -5597,6 +5601,7 @@ def promotion_with_single_rule(catalogue_predicate, channel_USD):
 
 @pytest.fixture
 def promotion_list(channel_USD, product, collection):
+    collection.products.add(product)
     promotions = Promotion.objects.bulk_create(
         [
             Promotion(
@@ -5681,6 +5686,7 @@ def promotion_list(channel_USD, product, collection):
     )
     for rule in rules:
         rule.channels.add(channel_USD)
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
     return promotions
 
 
@@ -5755,6 +5761,7 @@ def promotion_converted_from_sale(catalogue_predicate, channel_USD):
         old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
     )
     rule.channels.add(channel_USD)
+    fetch_variants_for_promotion_rules(promotion.rules.all())
     return promotion
 
 
@@ -5772,6 +5779,7 @@ def promotion_converted_from_sale_with_many_channels(
         old_channel_listing_id=PromotionRule.get_old_channel_listing_ids(1)[0][0],
     )
     rule.channels.add(channel_PLN)
+    fetch_variants_for_promotion_rules(promotion.rules.all())
     return promotion
 
 

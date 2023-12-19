@@ -15,6 +15,7 @@ from .....order import OrderStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from .....order.models import Order, OrderEvent
+from .....payment.model_helpers import get_subtotal
 from .....product.models import ProductVariant
 from .....tax import TaxCalculationStrategy
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -70,6 +71,11 @@ DRAFT_ORDER_CREATE_MUTATION = """
                     voucherCode
                     customerNote
                     total {
+                        gross {
+                            amount
+                        }
+                    }
+                    subtotal {
                         gross {
                             amount
                         }
@@ -214,6 +220,9 @@ def test_draft_order_create_with_voucher(
     )
 
     order = Order.objects.first()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["gross"]["amount"] == subtotal.gross.amount
+
     assert order.voucher_code == voucher.code
     assert order.user == customer_user
     assert order.shipping_method == shipping_method
@@ -435,6 +444,8 @@ def test_draft_order_create_with_voucher_code(
     )
 
     order = Order.objects.first()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["gross"]["amount"] == subtotal.gross.amount
     assert order.voucher_code == voucher.code
     assert order.user == customer_user
     assert order.shipping_method == shipping_method
@@ -559,6 +570,8 @@ def test_draft_order_create_percentage_voucher(
     )
 
     order = Order.objects.first()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["gross"]["amount"] == subtotal.gross.amount
     assert order.user == customer_user
     assert order.shipping_method == shipping_method
     assert order.shipping_method_name == shipping_method.name
@@ -766,6 +779,8 @@ def test_draft_order_create_with_voucher_including_drafts_in_voucher_usage(
     )
 
     order = Order.objects.first()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["gross"]["amount"] == subtotal.gross.amount
 
     # Ensure order discount object was properly created
     assert order.discounts.count() == 1
@@ -916,6 +931,8 @@ def test_draft_order_create_with_voucher_code_including_drafts_in_voucher_usage(
     )
 
     order = Order.objects.first()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["gross"]["amount"] == subtotal.gross.amount
 
     # Ensure order discount object was properly created
     assert order.discounts.count() == 1
@@ -2075,6 +2092,7 @@ def test_draft_order_create_price_recalculation(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     fake_order = Mock()
     fake_order.total = zero_taxed_money(channel_PLN.currency_code)
+    fake_order.subtotal = zero_taxed_money(channel_PLN.currency_code)
     fake_order.undiscounted_total = zero_taxed_money(channel_PLN.currency_code)
     fake_order.shipping_price = zero_taxed_money(channel_PLN.currency_code)
     fetch_prices_response = Mock(return_value=(fake_order, None))

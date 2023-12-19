@@ -763,45 +763,6 @@ def test_order_bulk_create(
     assert OrderDiscount.objects.count() == discount_count + 1
 
 
-def test_order_bulk_create_with_voucher(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    order_bulk_input,
-):
-    # given
-    orders_count = Order.objects.count()
-    order_lines_count = OrderLine.objects.count()
-
-    code = order_bulk_input.pop("voucherCode")
-    order_bulk_input["voucher"] = code
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-    )
-    variables = {
-        "orders": [order_bulk_input],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 1
-    data = content["data"]["orderBulkCreate"]["results"]
-    assert not data[0]["errors"]
-    order = data[0]["order"]
-
-    assert order["lines"]
-    assert order["voucher"]["code"] == code
-    assert order["voucherCode"] == code
-    assert Order.objects.count() == orders_count + 1
-    assert OrderLine.objects.count() == order_lines_count + 1
-
-
 def test_order_bulk_create_multiple_orders(
     staff_api_client,
     permission_manage_orders,
@@ -1958,44 +1919,6 @@ def test_order_bulk_create_update_stocks_missing_stocks(
     )
     assert error["path"] == "lines.0"
     assert error["code"] == OrderBulkCreateErrorCode.NON_EXISTING_STOCK.name
-
-
-def test_order_bulk_create_both_voucher_and_voucher_code_given(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    order_bulk_input,
-):
-    # given
-    orders_count = Order.objects.count()
-    order_lines_count = OrderLine.objects.count()
-
-    code = order_bulk_input.get("voucherCode")
-    order_bulk_input["voucher"] = code
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-    )
-    variables = {
-        "orders": [order_bulk_input],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
-    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
-    assert error["message"] == "Cannot use both voucher and voucher_code."
-    assert error["path"] == "voucher_code"
-    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
-
-    assert Order.objects.count() == orders_count
-    assert OrderLine.objects.count() == order_lines_count
 
 
 @pytest.mark.parametrize(

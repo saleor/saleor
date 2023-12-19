@@ -1,7 +1,7 @@
 import json
 import logging
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 from celery import group
@@ -227,7 +227,7 @@ def send_webhook_request_async(self, event_delivery_id):
     clear_successful_delivery(delivery)
 
 
-def send_observability_events(webhooks: list[WebhookData], events: list[Any]):
+def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
     event_type = WebhookEventAsyncType.OBSERVABILITY
     for webhook in webhooks:
         scheme = urlparse(webhook.target_url).scheme.lower()
@@ -245,7 +245,7 @@ def send_observability_events(webhooks: list[WebhookData], events: list[Any]):
                         webhook.saleor_domain,
                         webhook.secret_key,
                         event_type,
-                        observability.dump_payload(event),
+                        event,
                     )
                     if response.status == EventDeliveryStatus.FAILED:
                         failed += 1
@@ -255,7 +255,7 @@ def send_observability_events(webhooks: list[WebhookData], events: list[Any]):
                     webhook.saleor_domain,
                     webhook.secret_key,
                     event_type,
-                    observability.dump_payload(events),
+                    observability.concatenate_json_events(events),
                 )
                 if response.status == EventDeliveryStatus.FAILED:
                     failed = len(events)

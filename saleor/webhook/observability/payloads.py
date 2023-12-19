@@ -67,8 +67,14 @@ def pretty_json(obj: Any) -> str:
     return json.dumps(obj, indent=2, ensure_ascii=True)
 
 
-def dump_payload(payload: Any) -> str:
-    return json.dumps(to_camel_case(payload), ensure_ascii=True, cls=CustomJsonEncoder)
+def dump_payload(payload: Any) -> bytes:
+    return json.dumps(
+        to_camel_case(payload), ensure_ascii=True, cls=CustomJsonEncoder
+    ).encode("utf-8")
+
+
+def concatenate_json_events(events: list[bytes]) -> bytes:
+    return b"[" + b", ".join(events) + b"]"
 
 
 TRUNC_PLACEHOLDER = JsonTruncText(truncated=False)
@@ -150,7 +156,7 @@ def generate_api_call_payload(
     response: HttpResponse,
     gql_operations: list["GraphQLOperationResponse"],
     bytes_limit: int,
-) -> ApiCallPayload:
+) -> bytes:
     payload = ApiCallPayload(
         event_type=ObservabilityEventTypes.API_CALL,
         request=ApiCallRequest(
@@ -182,7 +188,7 @@ def generate_api_call_payload(
     payload["gql_operations"] = serialize_gql_operation_results(
         gql_operations, remaining_bytes
     )
-    return payload
+    return dump_payload(payload)
 
 
 @traced_payload_generator
@@ -190,7 +196,7 @@ def generate_event_delivery_attempt_payload(
     attempt: "EventDeliveryAttempt",
     next_retry: Optional["datetime"],
     bytes_limit: int,
-) -> EventDeliveryAttemptPayload:
+) -> bytes:
     if not attempt.delivery:
         raise ValueError(
             f"EventDeliveryAttempt {attempt.id} is not assigned to delivery. "
@@ -266,4 +272,4 @@ def generate_event_delivery_attempt_payload(
     payload["event_delivery"]["payload"]["body"] = JsonTruncText.truncate(
         pretty_json(event_delivery_payload), remaining
     )
-    return payload
+    return dump_payload(payload)

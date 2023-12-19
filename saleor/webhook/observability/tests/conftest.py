@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 from unittest.mock import patch
 
@@ -72,3 +73,8 @@ def patch_connection_pool(redis_server):
 def buffer(patch_connection_pool):
     buffer = RedisBuffer(BROKER_URL, KEY, max_size=MAX_SIZE, batch_size=BATCH_SIZE)
     return buffer
+
+
+@pytest.fixture
+def event_data():
+    return json.dumps({"event": "data"}).encode("utf-8")

@@ -35,11 +35,9 @@ PROMOTION_RULE_DELETE_MUTATION = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.promotion_rule_deleted")
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_delete_by_staff_user(
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     promotion_rule_deleted_mock,
     staff_api_client,
     permission_group_manage_discounts,
@@ -61,17 +59,13 @@ def test_promotion_rule_delete_by_staff_user(
     with pytest.raises(rule._meta.model.DoesNotExist):
         rule.refresh_from_db()
 
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
+    update_discounted_prices_task_mock.assert_called_once_with([product.id])
     promotion_rule_deleted_mock.assert_called_once_with(rule)
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_delete_by_staff_app(
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     app_api_client,
     permission_manage_discounts,
     promotion,
@@ -95,16 +89,12 @@ def test_promotion_rule_delete_by_staff_app(
     with pytest.raises(rule._meta.model.DoesNotExist):
         rule.refresh_from_db()
 
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
+    update_discounted_prices_task_mock.assert_called_once_with([product.id])
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_delete_by_customer(
-    update_products_discounted_prices_for_promotion_task_mock, api_client, promotion
+    update_discounted_prices_task_mock, api_client, promotion
 ):
     # given
     rule = promotion.rules.first()
@@ -115,14 +105,12 @@ def test_promotion_rule_delete_by_customer(
 
     # then
     assert_no_permission(response)
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_delete_clears_old_sale_id(
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
     promotion_converted_from_sale,
@@ -147,9 +135,7 @@ def test_promotion_delete_clears_old_sale_id(
     with pytest.raises(rule._meta.model.DoesNotExist):
         rule.refresh_from_db()
 
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
+    update_discounted_prices_task_mock.assert_called_once_with([product.id])
 
     promotion.refresh_from_db()
     assert promotion.old_sale_id is None

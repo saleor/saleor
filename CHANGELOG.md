@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Highlights
 
 ### Breaking changes
+- Drop `OrderBulkCreateInput.voucher` field. Use `OrderBulkCreateInput.voucherCode` instead. - #14553 by @zedzior
 
 ### GraphQL API
 
@@ -20,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing descriptions to order module - #14845 by @DevilsAutumn
 - Unify how undiscounted prices are handled in orders and checkouts - #14780 by @jakubkuc
 - Drop demo - #14835 by @fowczarek
+- Add JSON serialization immediately after creating observability events to eliminate extra cPickle serialization and deserialization steps - #14992 by @przlada
 
 # 3.18.0
 

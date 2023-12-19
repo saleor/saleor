@@ -80,9 +80,8 @@ def test_order_get_subtotal(order_with_lines):
     fetch_order_prices_if_expired(
         order_with_lines, get_plugins_manager(allow_replica=False), force_update=True
     )
-
     target_subtotal = order_with_lines.total - order_with_lines.shipping_price
-    assert order_with_lines.get_subtotal() == target_subtotal
+    assert order_with_lines.subtotal == target_subtotal
 
 
 def test_recalculate_order_keeps_weight_unit(order_with_lines):
@@ -675,7 +674,7 @@ def test_get_voucher_discount_for_order_voucher_validation(
 ):
     order_with_lines.voucher = voucher
     order_with_lines.save()
-    subtotal = order_with_lines.get_subtotal()
+    subtotal = order_with_lines.subtotal
     quantity = order_with_lines.get_total_quantity()
     customer_email = order_with_lines.get_customer_email()
 
@@ -740,7 +739,7 @@ def test_value_voucher_order_discount(
     subtotal = Money(subtotal, "USD")
     subtotal = TaxedMoney(net=subtotal, gross=subtotal)
     order = Mock(
-        get_subtotal=Mock(return_value=subtotal),
+        subtotal=subtotal,
         voucher=voucher,
         shipping_address=address_usa,
         billing_address=address_usa,
@@ -833,7 +832,7 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
     price = Money(total, "USD")
     price = TaxedMoney(net=price, gross=price)
     order = Mock(
-        get_subtotal=Mock(return_value=price),
+        subtotal=price,
         get_total_quantity=Mock(return_value=total_quantity),
         shipping_address=address_usa,
         billing_address=address_usa,

@@ -3,8 +3,9 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from .....discount import RewardValueType, events, models
+from .....discount.utils import get_current_products_for_rules
 from .....permission.enums import DiscountPermissions
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from .....product.tasks import update_discounted_prices_task
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
@@ -79,7 +80,9 @@ class PromotionRuleUpdate(ModelMutation):
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
 
-        previous_products = get_products_for_rule(instance)
+        previous_products = get_current_products_for_rules(
+            models.PromotionRule.objects.filter(id=instance.id)
+        )
         previous_product_ids = set(previous_products.values_list("id", flat=True))
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
@@ -121,14 +124,14 @@ class PromotionRuleUpdate(ModelMutation):
         channel_currencies = set(
             instance.channels.values_list("currency_code", flat=True)
         )
-        if add_channels := cleaned_input.get("add_channels"):
-            channel_currencies.update(
-                [channel.currency_code for channel in add_channels]
-            )
         if remove_channels := cleaned_input.get("remove_channels"):
             channel_currencies = channel_currencies - {
                 channel.currency_code for channel in remove_channels
             }
+        if add_channels := cleaned_input.get("add_channels"):
+            channel_currencies.update(
+                [channel.currency_code for channel in add_channels]
+            )
 
         if "reward_value" in cleaned_input or "reward_value_type" in cleaned_input:
             reward_value = cleaned_input.get("reward_value") or instance.reward_value
@@ -194,12 +197,10 @@ class PromotionRuleUpdate(ModelMutation):
 
     @classmethod
     def post_save_actions(cls, info: ResolveInfo, instance, previous_product_ids):
-        products = get_products_for_rule(instance)
+        products = get_products_for_rule(instance, update_rule_variants=True)
         product_ids = set(products.values_list("id", flat=True)) | previous_product_ids
         if product_ids:
-            update_products_discounted_prices_for_promotion_task.delay(
-                list(product_ids)
-            )
+            update_discounted_prices_task.delay(list(product_ids))
         clear_promotion_old_sale_id(instance.promotion, save=True)
         app = get_app_promise(info.context).get()
         events.rule_updated_event(info.context.user, app, [instance])

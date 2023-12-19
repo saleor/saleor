@@ -203,9 +203,9 @@ class Checkout(models.Model):
 
     def get_total_gift_cards_balance(self) -> Money:
         """Return the total balance of the gift cards assigned to the checkout."""
-        balance = self.gift_cards.active(  # type: ignore[attr-defined] # problem with django-stubs detecting the correct manager # noqa: E501
-            date=date.today()
-        ).aggregate(models.Sum("current_balance_amount"))["current_balance_amount__sum"]
+        balance = self.gift_cards.active(date=date.today()).aggregate(
+            models.Sum("current_balance_amount")
+        )["current_balance_amount__sum"]
         if balance is None:
             return zero_money(currency=self.currency)
         return Money(balance, self.currency)
