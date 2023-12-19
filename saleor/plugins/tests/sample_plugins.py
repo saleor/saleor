@@ -246,6 +246,7 @@ class PluginSample(BasePlugin):
         sale: "Promotion",
         catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
+        webhooks,
     ):
         return sale, catalogue
 

@@ -784,10 +784,10 @@ class PluginsManager(PaymentInterface):
             "sale_updated", default_value, sale, previous_catalogue, current_catalogue
         )
 
-    def sale_toggle(self, sale: "Promotion", catalogue):
+    def sale_toggle(self, sale: "Promotion", catalogue, webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "sale_toggle", default_value, sale, catalogue
+            "sale_toggle", default_value, sale, catalogue, webhooks=webhooks
         )
 
     def promotion_created(self, promotion: "Promotion"):
@@ -808,15 +808,17 @@ class PluginsManager(PaymentInterface):
             "promotion_deleted", default_value, promotion, webhooks=webhooks
         )
 
-    def promotion_started(self, promotion: "Promotion"):
+    def promotion_started(self, promotion: "Promotion", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "promotion_started", default_value, promotion
+            "promotion_started", default_value, promotion, webhooks=webhooks
         )
 
-    def promotion_ended(self, promotion: "Promotion"):
+    def promotion_ended(self, promotion: "Promotion", webhooks=None):
         default_value = None
-        return self.__run_method_on_plugins("promotion_ended", default_value, promotion)
+        return self.__run_method_on_plugins(
+            "promotion_ended", default_value, promotion, webhooks=webhooks
+        )
 
     def promotion_rule_created(self, promotion_rule: "PromotionRule"):
         default_value = None
