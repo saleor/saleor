@@ -427,6 +427,7 @@ class ProductBulkCreate(BaseMutation):
         for index, media_input in enumerate(media_inputs):
             image = media_input.get("image")
             media_url = media_input.get("media_url")
+            alt = media_input.get("alt")
 
             if not image and not media_url:
                 index_error_map[product_index].append(
@@ -444,6 +445,16 @@ class ProductBulkCreate(BaseMutation):
                         path=f"media.{index}",
                         message="Either image or external URL is required.",
                         code=ProductBulkCreateErrorCode.DUPLICATED_INPUT_ITEM.value,
+                    )
+                )
+                continue
+
+            if alt and len(alt) > 250:
+                index_error_map[product_index].append(
+                    ProductBulkCreateError(
+                        path=f"media.{index}",
+                        message="Alt field exceeds the character limit of 250.",
+                        code=ProductBulkCreateErrorCode.INVALID.value,
                     )
                 )
                 continue
