@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from PIL import Image, UnidentifiedImageError
 
 from ....thumbnail import MIME_TYPE_TO_PIL_IDENTIFIER
+from ....thumbnail.utils import ProcessedImage
 from ..utils import add_hash_to_file_name
 
 Image.init()
@@ -79,6 +80,7 @@ def clean_image_file(cleaned_input, img_field_name, error_class):
     try:
         with Image.open(img_file) as image:
             _validate_image_exif(image, img_field_name, error_class)
+            img_file.seek(0)
     except (SyntaxError, TypeError, UnidentifiedImageError) as e:
         raise ValidationError(
             {
@@ -88,6 +90,14 @@ def clean_image_file(cleaned_input, img_field_name, error_class):
                     code=error_class.INVALID.value,
                 )
             }
+        )
+
+    try:
+        # validate if the image MIME type is supported
+        ProcessedImage.get_image_metadata_from_file(img_file)
+    except ValueError as e:
+        raise ValidationError(
+            {img_field_name: ValidationError(str(e), code=error_class.INVALID.value)}
         )
 
     add_hash_to_file_name(img_file)
