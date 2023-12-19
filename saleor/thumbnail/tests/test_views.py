@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import graphene
 from PIL import Image
 
@@ -254,6 +256,27 @@ def test_handle_thumbnail_view_object_does_not_exists(client):
 
     # then
     assert response.status_code == 404
+
+
+@patch("saleor.thumbnail.utils.magic.from_buffer")
+def test_handle_thumbnail_view_invalid_image_mime_type(
+    from_buffer_mock, client, category_with_image
+):
+    # given
+    size = 60
+    category_id = graphene.Node.to_global_id("Category", category_with_image.id)
+    thumbnail_count = Thumbnail.objects.count()
+
+    invalid_mime_type = "application/x-empty"
+    from_buffer_mock.return_value = invalid_mime_type
+
+    # when
+    response = client.get(f"/thumbnail/{category_id}/{size}/")
+
+    # then
+    assert response.status_code == 400
+    assert response.content.decode("utf-8") == "Invalid image."
+    assert Thumbnail.objects.count() == thumbnail_count
 
 
 def test_handle_icon_thumbnail_view_with_format(
