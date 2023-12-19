@@ -133,7 +133,8 @@ class ProcessedImage:
         image_format = self.get_image_metadata_from_file(image)
         return (Image.open(image), image_format)
 
-    def get_image_metadata_from_file(self, file_like):
+    @classmethod
+    def get_image_metadata_from_file(cls, file_like):
         """Return a image format and InMemoryUploadedFile-friendly save format.
 
         Receive a valid image file and returns a 2-tuple of two strings:
