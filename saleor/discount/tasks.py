@@ -21,6 +21,8 @@ from ..product.models import (
 )
 from ..product.tasks import update_products_discounted_prices_for_promotion_task
 from ..product.utils.variant_prices import update_discounted_prices_for_promotion
+from ..webhook.event_types import WebhookEventAsyncType
+from ..webhook.utils import get_webhooks_for_event
 from . import DiscountType
 from .models import (
     OrderDiscount,
@@ -66,12 +68,15 @@ def handle_promotion_toggle():
         promotions
     )
 
+    started_webhooks = get_webhooks_for_event(WebhookEventAsyncType.PROMOTION_STARTED)
     for starting_promo in starting_promotions:
-        manager.promotion_started(starting_promo)
+        manager.promotion_started(starting_promo, webhooks=started_webhooks)
 
+    ended_webhooks = get_webhooks_for_event(WebhookEventAsyncType.PROMOTION_ENDED)
     for ending_promo in ending_promotions:
-        manager.promotion_ended(ending_promo)
+        manager.promotion_ended(ending_promo, webhooks=ended_webhooks)
 
+    toggle_webhooks = get_webhooks_for_event(WebhookEventAsyncType.SALE_TOGGLE)
     # DEPRECATED: will be removed in Saleor 4.0.
     for promotion in promotions:
         variants = promotion_id_to_variants.get(promotion.id)
@@ -85,7 +90,7 @@ def handle_promotion_toggle():
             "categories": [],
             "collections": [],
         }
-        manager.sale_toggle(promotion, catalogues)
+        manager.sale_toggle(promotion, catalogues, webhooks=toggle_webhooks)
 
     if ending_promotions:
         clear_promotion_rule_variants_task.delay()
