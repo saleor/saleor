@@ -196,6 +196,20 @@ def collection_product_updated_task(product_ids):
         .filter(id__in=product_ids)
         .prefetched_for_webhook(single_object=False)
     )
+    replica_products_count = len(products)
+    if replica_products_count != len(product_ids):
+        products = list(
+            Product.objects.filter(id__in=product_ids).prefetched_for_webhook(
+                single_object=False
+            )
+        )
+        if len(products) != replica_products_count:
+            logger.warning(
+                "collection_product_updated_task fetched %s products from replica, "
+                "but %s from writer.",
+                replica_products_count,
+                len(products),
+            )
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED)
     for product in products:
         manager.product_updated(product, webhooks=webhooks)
