@@ -1867,8 +1867,8 @@ class PluginsManager(PaymentInterface):
 
 
 def get_plugins_manager(
+    allow_replica: bool,
     requestor_getter: Optional[Callable[[], "Requestor"]] = None,
-    allow_replica=True,
 ) -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
         return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)

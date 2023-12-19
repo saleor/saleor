@@ -10193,6 +10193,13 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   """
   order: Order
 
+  """
+  The related checkout.
+  
+  Added in Saleor 3.14.
+  """
+  checkout: Checkout
+
   """List of all transaction's events."""
   events: [TransactionEvent!]!
 

@@ -525,6 +525,7 @@ def test_channel_update_mutation_trigger_webhook(
         [any_webhook],
         channel_USD,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

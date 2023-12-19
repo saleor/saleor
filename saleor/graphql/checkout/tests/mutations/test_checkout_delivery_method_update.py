@@ -79,7 +79,7 @@ def test_checkout_delivery_method_update(
     mock_clean_delivery.return_value = is_valid_delivery_method
 
     checkout = checkout_with_item_for_cc
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -151,7 +151,7 @@ def test_checkout_delivery_method_update_no_checkout_metadata(
 
     checkout = checkout_with_item_for_cc
     checkout.metadata_storage.delete()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -475,7 +475,7 @@ def test_checkout_delivery_method_update_with_not_all_required_shipping_address_
     checkout = checkout_with_item_for_cc
     checkout.shipping_address = Address.objects.create(country="US")
     checkout.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -550,7 +550,7 @@ def test_checkout_delivery_method_update_with_not_valid_address_data(
         postal_code="53-601",
     )
     checkout.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 

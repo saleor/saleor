@@ -185,6 +185,7 @@ def test_update_page_trigger_webhook(
         page,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1101,7 +1102,7 @@ def test_update_page_change_attribute_values_ordering(
         page.attributes.first().pagevalueassignment.values_list("value_id", flat=True)
     ) == [attr_value_3.pk, attr_value_2.pk, attr_value_1.pk]
 
-    new_ref_order = [product_list[1], product_list[0], product_list[2]]
+    new_ref_order = [product_list[0], product_list[1], product_list[2]]
     variables = {
         "id": page_id,
         "input": {
@@ -1136,12 +1137,12 @@ def test_update_page_change_attribute_values_ordering(
     assert len(values) == 3
     assert [value["id"] for value in values] == [
         graphene.Node.to_global_id("AttributeValue", val.pk)
-        for val in [attr_value_2, attr_value_1, attr_value_3]
+        for val in [attr_value_1, attr_value_2, attr_value_3]
     ]
     page.refresh_from_db()
     assert list(
         page.attributes.first().pagevalueassignment.values_list("value_id", flat=True)
-    ) == [attr_value_2.pk, attr_value_1.pk, attr_value_3.pk]
+    ) == [attr_value_1.pk, attr_value_2.pk, attr_value_3.pk]
 
 
 def test_paginate_pages(user_api_client, page, page_type):

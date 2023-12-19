@@ -109,4 +109,5 @@ def test_update_voucher_trigger_webhook(
         [any_webhook],
         voucher,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )

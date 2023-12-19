@@ -52,7 +52,7 @@ def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
     checkout = checkout_with_single_item
     checkout.shipping_address = address
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     delivery_method = convert_to_shipping_method_data(
@@ -68,7 +68,7 @@ def test_clean_delivery_method_with_preorder_is_valid_for_enabled_warehouse(
     checkout = checkout_with_preorders_only
     checkout.shipping_address = address
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     is_valid_method = clean_delivery_method(checkout_info, lines, warehouses_for_cc[1])
@@ -83,7 +83,7 @@ def test_clean_delivery_method_does_nothing_if_no_shipping_method(
 
     checkout = checkout_with_single_item
     checkout.shipping_address = address
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     is_valid_method = clean_delivery_method(checkout_info, lines, None)
@@ -106,7 +106,7 @@ def test_update_checkout_shipping_method_if_invalid(
     shipping_method.shipping_zone = shipping_zone_without_countries
     shipping_method.save(update_fields=["shipping_zone"])
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
@@ -137,7 +137,7 @@ def test_update_checkout_shipping_method_if_invalid_no_checkout_metadata(
     shipping_method.shipping_zone = shipping_zone_without_countries
     shipping_method.save(update_fields=["shipping_zone"])
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -579,7 +579,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_method_and_discount
     """Ensure that price based shipping method is not returned when
     checkout with discounts subtotal is lower than minimal order price."""
     checkout_with_item.shipping_address = address
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
@@ -622,7 +622,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discou
     """Ensure that price based shipping method is returned when checkout
     has discount on shipping."""
     checkout_with_item.shipping_address = address
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
@@ -667,7 +667,7 @@ def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
 
     # given
     checkout_with_item.shipping_address = address
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
 
     line = checkout_with_item.lines.first()
@@ -1519,7 +1519,7 @@ def test_checkout_prices(user_api_client, checkout_with_item):
     assert data["token"] == str(checkout_with_item.token)
     assert len(data["lines"]) == checkout_with_item.lines.count()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
@@ -1594,7 +1594,7 @@ def test_checkout_prices_checkout_with_custom_prices(
     assert data["token"] == str(checkout_with_item.token)
     assert len(data["lines"]) == checkout_with_item.lines.count()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
@@ -1628,7 +1628,7 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
     query = QUERY_CHECKOUT_PRICES
     variables = {"id": to_global_id_or_none(checkout_with_item)}
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     # To properly apply a sale at checkout, we need to generate discount objects.
@@ -1748,7 +1748,7 @@ def test_checkout_prices_with_specific_voucher(
     assert data["token"] == str(checkout.token)
     assert len(data["lines"]) == checkout.lines.count()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1815,7 +1815,7 @@ def test_checkout_prices_with_voucher_once_per_order(
     # then
     assert data["token"] == str(checkout.token)
     assert len(data["lines"]) == checkout.lines.count()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.checkout_total(
@@ -1881,7 +1881,7 @@ def test_checkout_prices_with_voucher(user_api_client, checkout_with_item_and_vo
     # then
     assert data["token"] == str(checkout.token)
     assert len(data["lines"]) == checkout.lines.count()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.checkout_total(
@@ -2084,10 +2084,10 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     checkout.billing_address = address
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
@@ -2112,7 +2112,7 @@ def test_clean_checkout_no_shipping_method(checkout_with_item, address):
     checkout.shipping_address = address
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     with pytest.raises(ValidationError) as e:
@@ -2127,7 +2127,7 @@ def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method)
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     with pytest.raises(ValidationError) as e:
@@ -2145,7 +2145,7 @@ def test_clean_checkout_invalid_shipping_method(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     with pytest.raises(ValidationError) as e:
@@ -2164,7 +2164,7 @@ def test_clean_checkout_no_billing_address(
     checkout.shipping_method = shipping_method
     checkout.save()
     payment = checkout.get_last_active_payment()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -2183,7 +2183,7 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
     checkout.billing_address = address
     checkout.save()
     payment = checkout.get_last_active_payment()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 

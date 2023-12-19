@@ -308,7 +308,9 @@ def checkout_JPY(channel_JPY):
 @pytest.fixture
 def checkout_with_item(checkout, product):
     variant = product.variants.first()
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
@@ -338,7 +340,9 @@ def checkout_with_item_and_tax_exemption(checkout_with_item):
 @pytest.fixture
 def checkout_with_same_items_in_multiple_lines(checkout, product):
     variant = product.variants.first()
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 1)
     add_variant_to_checkout(checkout_info, variant, 1, force_new_line=True)
     checkout.save()
@@ -349,7 +353,7 @@ def checkout_with_same_items_in_multiple_lines(checkout, product):
 def checkout_with_item_and_voucher_specific_products(
     checkout_with_item, voucher_specific_product_type
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     add_voucher_to_checkout(
@@ -363,7 +367,7 @@ def checkout_with_item_and_voucher_specific_products(
 def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
     voucher.apply_once_per_order = True
     voucher.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
@@ -373,7 +377,7 @@ def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
 
 @pytest.fixture
 def checkout_with_item_and_voucher(checkout_with_item, voucher):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
@@ -389,7 +393,9 @@ def checkout_line(checkout_with_item):
 @pytest.fixture
 def checkout_with_item_total_0(checkout, product_price_0):
     variant = product_price_0.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 1)
     checkout.save()
     return checkout
@@ -398,7 +404,9 @@ def checkout_with_item_total_0(checkout, product_price_0):
 @pytest.fixture
 def checkout_JPY_with_item(checkout_JPY, product_in_channel_JPY):
     variant = product_in_channel_JPY.variants.get()
-    checkout_info = fetch_checkout_info(checkout_JPY, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout_JPY, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout_JPY.save()
     return checkout_JPY
@@ -460,7 +468,9 @@ def checkout_ready_to_complete(checkout_with_item, address, shipping_method, gif
 def checkout_with_digital_item(checkout, digital_content, address):
     """Create a checkout with a digital line."""
     variant = digital_content.product_variant
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 1)
     checkout.discount_amount = Decimal(0)
     checkout.billing_address = address
@@ -473,7 +483,9 @@ def checkout_with_digital_item(checkout, digital_content, address):
 def checkout_with_shipping_required(checkout_with_item, product):
     checkout = checkout_with_item
     variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
@@ -506,7 +518,9 @@ def other_shipping_method(shipping_zone, channel_USD):
 @pytest.fixture
 def checkout_without_shipping_required(checkout, product_without_shipping):
     variant = product_without_shipping.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 1)
     checkout.save()
     return checkout
@@ -515,7 +529,9 @@ def checkout_without_shipping_required(checkout, product_without_shipping):
 @pytest.fixture
 def checkout_with_single_item(checkout, product):
     variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 1)
     checkout.save()
     return checkout
@@ -526,7 +542,9 @@ def checkout_with_variant_without_inventory_tracking(
     checkout, variant_without_inventory_tracking, address, shipping_method
 ):
     variant = variant_without_inventory_tracking
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 1)
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -548,7 +566,9 @@ def checkout_with_variants(
     product_with_single_variant,
     product_with_two_variants,
 ):
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
 
     add_variant_to_checkout(
         checkout_info, product_with_default_variant.variants.get(), 1
@@ -617,7 +637,9 @@ def checkout_with_shipping_address_for_cc(checkout_with_variants_for_cc, address
 @pytest.fixture
 def checkout_with_items(checkout, product_list, product):
     variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 1)
     for prod in product_list:
         variant = prod.variants.get()
@@ -639,7 +661,9 @@ def checkout_with_items_and_shipping(checkout_with_items, address, shipping_meth
 @pytest.fixture
 def checkout_with_voucher(checkout, product, voucher):
     variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.voucher_code = voucher.code
     checkout.discount = Money("20.00", "USD")
@@ -650,7 +674,9 @@ def checkout_with_voucher(checkout, product, voucher):
 @pytest.fixture
 def checkout_with_voucher_percentage(checkout, product, voucher_percentage):
     variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.voucher_code = voucher_percentage.code
     checkout.discount = Money("3.00", "USD")
@@ -662,7 +688,7 @@ def checkout_with_voucher_percentage(checkout, product, voucher_percentage):
 def checkout_with_voucher_free_shipping(
     checkout_with_items_and_shipping, voucher_free_shipping
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_items_and_shipping)
     checkout_info = fetch_checkout_info(
         checkout_with_items_and_shipping, lines, manager
@@ -686,7 +712,9 @@ def checkout_with_preorders_only(
     preorder_variant_channel_threshold,
 ):
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, lines, get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
     add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
 
@@ -699,7 +727,9 @@ def checkout_with_preorders_and_regular_variant(
     checkout, stocks_for_cc, preorder_variant_with_end_date, product_variant_list
 ):
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, lines, get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
     add_variant_to_checkout(checkout_info, product_variant_list[0], 2)
 
@@ -711,7 +741,9 @@ def checkout_with_preorders_and_regular_variant(
 def checkout_with_gift_card_items(
     checkout, non_shippable_gift_card_product, shippable_gift_card_product
 ):
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     non_shippable_variant = non_shippable_gift_card_product.variants.get()
     shippable_variant = shippable_gift_card_product.variants.get()
     add_variant_to_checkout(checkout_info, non_shippable_variant, 1)
@@ -750,7 +782,9 @@ def checkout_with_payments(checkout):
 def checkout_with_item_and_preorder_item(
     checkout_with_item, product, preorder_variant_channel_threshold
 ):
-    checkout_info = fetch_checkout_info(checkout_with_item, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 1)
     return checkout_with_item
 
@@ -925,7 +959,9 @@ def user_checkout_PLN(customer_user, channel_PLN):
 
 @pytest.fixture
 def user_checkout_with_items(user_checkout, product_list):
-    checkout_info = fetch_checkout_info(user_checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        user_checkout, [], get_plugins_manager(allow_replica=False)
+    )
     for product in product_list:
         variant = product.variants.get()
         add_variant_to_checkout(checkout_info, variant, 1)
@@ -935,7 +971,9 @@ def user_checkout_with_items(user_checkout, product_list):
 
 @pytest.fixture
 def user_checkout_with_items_for_cc(user_checkout_for_cc, product_list):
-    checkout_info = fetch_checkout_info(user_checkout_for_cc, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        user_checkout_for_cc, [], get_plugins_manager(allow_replica=False)
+    )
     for product in product_list:
         variant = product.variants.get()
         add_variant_to_checkout(checkout_info, variant, 1)
@@ -3978,7 +4016,9 @@ def checkout_line_with_one_reservation(
 def checkout_line_with_preorder_item(
     checkout, product, preorder_variant_channel_threshold
 ):
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 1)
     return checkout.lines.last()
 
@@ -3987,7 +4027,9 @@ def checkout_line_with_preorder_item(
 def checkout_line_with_reserved_preorder_item(
     checkout, product, preorder_variant_channel_threshold
 ):
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
     checkout_line = checkout.lines.last()
 
@@ -4738,7 +4780,7 @@ def fulfilled_order(order_with_lines):
                 line=line_2, quantity=line_2.quantity, warehouse_pk=warehouse_2_pk
             ),
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
@@ -4765,7 +4807,7 @@ def fulfilled_order_without_inventory_tracking(
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
         [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
-        get_plugins_manager(),
+        get_plugins_manager(allow_replica=False),
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
@@ -4789,7 +4831,13 @@ def fulfilled_order_with_all_cancelled_fulfillments(
     fulfilled_order, staff_user, warehouse
 ):
     fulfillment = fulfilled_order.fulfillments.get()
-    cancel_fulfillment(fulfillment, staff_user, None, warehouse, get_plugins_manager())
+    cancel_fulfillment(
+        fulfillment,
+        staff_user,
+        None,
+        warehouse,
+        get_plugins_manager(allow_replica=False),
+    )
     return fulfilled_order
 
 
@@ -6676,7 +6724,7 @@ def checkout_with_prices(
     checkout_with_items.shipping_method = shipping_method
     checkout_with_items.save(update_fields=["shipping_method"])
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     channel = checkout_with_items.channel
     lines = checkout_with_items.lines.all()
     lines_info, _ = fetch_checkout_lines(checkout_with_items)

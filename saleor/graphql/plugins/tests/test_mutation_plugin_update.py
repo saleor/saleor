@@ -79,7 +79,7 @@ def test_plugin_configuration_update(
     staff_api_client_can_manage_plugins, settings, active, updated_configuration_item
 ):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     old_configuration = copy.deepcopy(plugin.configuration)
 
@@ -120,7 +120,7 @@ def test_plugin_configuration_update_value_not_given(
     staff_api_client_can_manage_plugins, settings
 ):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     old_configuration = copy.deepcopy(plugin.configuration)
 
@@ -171,7 +171,7 @@ def test_plugin_configuration_update_for_channel_configurations(
     staff_api_client_can_manage_plugins, settings, active, channel_PLN
 ):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(
         ChannelPluginSample.PLUGIN_ID, channel_slug=channel_PLN.slug
     )
@@ -212,7 +212,7 @@ def test_plugin_configuration_update_channel_slug_required(
     staff_api_client_can_manage_plugins, settings, channel_PLN
 ):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(
         ChannelPluginSample.PLUGIN_ID, channel_slug=channel_PLN.slug
     )
@@ -240,7 +240,7 @@ def test_plugin_configuration_update_unneeded_channel_slug(
     staff_api_client_can_manage_plugins, settings, channel_PLN
 ):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID, channel_slug=channel_PLN.slug)
 
     variables = {
@@ -285,7 +285,7 @@ def test_plugin_update_saves_boolean_as_boolean(
     staff_api_client_can_manage_plugins, settings
 ):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     use_sandbox = get_config_value("Use sandbox", plugin.configuration)
     variables = {
@@ -305,7 +305,7 @@ def test_plugin_update_saves_boolean_as_boolean(
 
 def test_plugin_configuration_update_as_customer_user(user_api_client, settings):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
 
     variables = {
@@ -327,7 +327,9 @@ def test_cannot_update_configuration_hidden_plugin(
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
 
     plugin_id = PluginSample.PLUGIN_ID
-    original_config = get_plugins_manager().get_plugin(plugin_id).configuration
+    original_config = (
+        get_plugins_manager(allow_replica=False).get_plugin(plugin_id).configuration
+    )
 
     variables = {
         "id": plugin_id,
@@ -346,7 +348,7 @@ def test_cannot_update_configuration_hidden_plugin(
     ]
 
     # Hidden plugin should be untouched
-    plugin = get_plugins_manager().get_plugin(plugin_id)
+    plugin = get_plugins_manager(allow_replica=False).get_plugin(plugin_id)
     assert plugin.active is True
     assert plugin.configuration == original_config
 
@@ -355,7 +357,7 @@ def test_cannot_update_configuration_hidden_plugin(
     assert response.status_code == 200
     content = get_graphql_content(response)
     assert content["data"]["pluginUpdate"]["pluginsErrors"] == []
-    plugin = get_plugins_manager().get_plugin(plugin_id)
+    plugin = get_plugins_manager(allow_replica=False).get_plugin(plugin_id)
     assert plugin.active is False
     assert plugin.configuration != original_config
 
@@ -371,7 +373,7 @@ def test_cannot_update_configuration_hidden_multi_channel_plugin(
 
     plugin_id = ChannelPluginSample.PLUGIN_ID
     original_config = (
-        get_plugins_manager()
+        get_plugins_manager(allow_replica=False)
         .get_plugin(plugin_id, channel_slug=channel_USD.slug)
         .configuration
     )
@@ -393,7 +395,9 @@ def test_cannot_update_configuration_hidden_multi_channel_plugin(
     ]
 
     # Hidden plugin should be untouched
-    plugin = get_plugins_manager().get_plugin(plugin_id, channel_slug=channel_USD.slug)
+    plugin = get_plugins_manager(allow_replica=False).get_plugin(
+        plugin_id, channel_slug=channel_USD.slug
+    )
     assert plugin.active is True
     assert plugin.configuration == original_config
 
@@ -402,6 +406,8 @@ def test_cannot_update_configuration_hidden_multi_channel_plugin(
     assert response.status_code == 200
     content = get_graphql_content(response)
     assert content["data"]["pluginUpdate"]["pluginsErrors"] == []
-    plugin = get_plugins_manager().get_plugin(plugin_id, channel_slug=channel_USD.slug)
+    plugin = get_plugins_manager(allow_replica=False).get_plugin(
+        plugin_id, channel_slug=channel_USD.slug
+    )
     assert plugin.active is False
     assert plugin.configuration != original_config

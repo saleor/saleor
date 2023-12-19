@@ -576,7 +576,7 @@ def create_fake_payment(mock_notify, order):
         total=order.total.gross.amount,
         currency=order.total.gross.currency,
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # Create authorization transaction
     gateway.authorize(payment, payment.token, manager, order.channel.slug)
@@ -612,7 +612,7 @@ def create_order_lines(order, discounts, how_many=10):
         lines.append(_get_new_order_line(order, variant, channel, discounts))
 
     lines = OrderLine.objects.bulk_create(lines)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     country = order.shipping_method.shipping_zone.countries[0]
     warehouses = Warehouse.objects.filter(
         shipping_zones__countries__contains=country
@@ -669,7 +669,7 @@ def create_order_lines_with_preorder(order, discounts, how_many=1):
         lines.append(_get_new_order_line(order, variant, channel, discounts))
 
     lines = OrderLine.objects.bulk_create(lines)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     preorder_allocations = []
     for line in lines:
@@ -1508,7 +1508,7 @@ def create_gift_cards(how_many=5):
 def add_address_to_admin(email):
     address = create_address()
     user = User.objects.get(email=email)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     store_user_address(user, address, AddressType.BILLING, manager)
     store_user_address(user, address, AddressType.SHIPPING, manager)
 
@@ -1578,7 +1578,9 @@ def prepare_checkout_info():
     channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
     checkout = Checkout.objects.create(currency=channel.currency_code, channel=channel)
     checkout.set_country(channel.default_country, commit=True)
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     return checkout_info
 
 

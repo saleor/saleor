@@ -198,7 +198,9 @@ def test_get_taxes_for_checkout_with_sync_subscription(
     tax_app,
 ):
     # given
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     mock_request.return_value = tax_data_response
     plugin = webhook_plugin()
     webhook = Webhook.objects.create(

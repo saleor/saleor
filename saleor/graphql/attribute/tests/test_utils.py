@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ....attribute import AttributeInputType
+from ....attribute.models import AttributeValue
 from ....page.error_codes import PageErrorCode
 from ....product.error_codes import ProductErrorCode
 from ..utils import (
@@ -2090,7 +2091,8 @@ def test_prepare_attribute_values(color_attribute):
     )
 
     # when
-    prepare_attribute_values(color_attribute, values.values)
+    values_to_create = prepare_attribute_values(color_attribute, values.values)[1]
+    AttributeValue.objects.bulk_create(values_to_create)
 
     # then
     color_attribute.refresh_from_db()
@@ -2121,7 +2123,8 @@ def test_prepare_attribute_values_prefer_the_slug_match(color_attribute):
     )
 
     # when
-    result = prepare_attribute_values(color_attribute, values.values)
+    result, values_to_create = prepare_attribute_values(color_attribute, values.values)
+    AttributeValue.objects.bulk_create(values_to_create)
 
     # then
     color_attribute.refresh_from_db()
@@ -2150,7 +2153,8 @@ def test_prepare_attribute_values_that_gives_the_same_slug(color_attribute):
     )
 
     # when
-    result = prepare_attribute_values(color_attribute, values.values)
+    result, values_to_create = prepare_attribute_values(color_attribute, values.values)
+    AttributeValue.objects.bulk_create(values_to_create)
 
     # then
     color_attribute.refresh_from_db()

@@ -108,7 +108,10 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                                 ],
                                 product=products_map[line.variant_id],
                                 product_type=product_types_map[line.variant_id],
-                                collections=collections_map[line.variant_id],
+                                collections=sorted(
+                                    collections_map[line.variant_id],
+                                    key=lambda collection: collection.slug,
+                                ),
                                 discounts=checkout_lines_discounts[line.id],
                                 tax_class=tax_class_map[line.variant_id],
                                 channel=channels[checkout.channel_id],
