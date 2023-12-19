@@ -2,7 +2,11 @@ from collections import namedtuple
 from typing import Optional
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponseNotFound, HttpResponseRedirect
+from django.http import (
+    HttpResponseBadRequest,
+    HttpResponseNotFound,
+    HttpResponseRedirect,
+)
 from graphql.error import GraphQLError
 
 from ..account.models import User
@@ -99,7 +103,10 @@ def handle_thumbnail(
         )
     else:
         processed_image = ProcessedImage(image.name, size_px, format)
-    thumbnail_file, _ = processed_image.create_thumbnail()
+    try:
+        thumbnail_file, _ = processed_image.create_thumbnail()
+    except ValueError as error:
+        return HttpResponseBadRequest(str(error))
 
     thumbnail_file_name = prepare_thumbnail_file_name(image.name, size_px, format)
 

@@ -143,6 +143,8 @@ class ProcessedImage:
         """
         mime_type = magic.from_buffer(file_like.read(1024), mime=True)
         file_like.seek(0)
+        if mime_type not in MIME_TYPE_TO_PIL_IDENTIFIER:
+            raise ValueError(f"Unsupported image MIME type: {mime_type}")
         image_format = MIME_TYPE_TO_PIL_IDENTIFIER[mime_type]
         return image_format
 
