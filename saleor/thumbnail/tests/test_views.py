@@ -275,10 +275,7 @@ def test_handle_thumbnail_view_invalid_image_mime_type(
 
     # then
     assert response.status_code == 400
-    assert (
-        response.content.decode("utf-8")
-        == f"Unsupported image MIME type: {invalid_mime_type}"
-    )
+    assert response.content.decode("utf-8") == "Invalid image."
     assert Thumbnail.objects.count() == thumbnail_count
 
 

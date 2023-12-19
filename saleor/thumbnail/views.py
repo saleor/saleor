@@ -1,3 +1,4 @@
+import logging
 from collections import namedtuple
 from typing import Optional
 
@@ -23,6 +24,8 @@ from .utils import (
     get_thumbnail_size,
     prepare_thumbnail_file_name,
 )
+
+logger = logging.getLogger(__name__)
 
 ModelData = namedtuple("ModelData", ["model", "image_field", "thumbnail_field"])
 
@@ -106,7 +109,8 @@ def handle_thumbnail(
     try:
         thumbnail_file, _ = processed_image.create_thumbnail()
     except ValueError as error:
-        return HttpResponseBadRequest(str(error))
+        logger.info(str(error))
+        return HttpResponseBadRequest("Invalid image.")
 
     thumbnail_file_name = prepare_thumbnail_file_name(image.name, size_px, format)
 
