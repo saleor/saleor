@@ -260,6 +260,7 @@ def test_install_app_created_app_trigger_webhook(
         [any_webhook],
         app,
         None,
+        allow_replica=True,
     )
 
 

@@ -22,13 +22,11 @@ PROMOTION_DELETE_MUTATION = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_deleted")
 def test_promotion_delete_by_staff_user(
     promotion_deleted_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
     promotion,
@@ -50,16 +48,14 @@ def test_promotion_delete_by_staff_user(
     with pytest.raises(promotion._meta.model.DoesNotExist):
         promotion.refresh_from_db()
 
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
+    update_discounted_prices_task_mock.assert_called_once()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_deleted")
 def test_promotion_delete_by_staff_app(
     promotion_deleted_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     app_api_client,
     permission_manage_discounts,
     promotion,
@@ -81,16 +77,14 @@ def test_promotion_delete_by_staff_app(
 
     with pytest.raises(promotion._meta.model.DoesNotExist):
         promotion.refresh_from_db()
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
+    update_discounted_prices_task_mock.assert_called_once()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_deleted")
 def test_promotion_delete_by_customer(
     promotion_deleted_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     api_client,
     promotion,
 ):
@@ -104,4 +98,4 @@ def test_promotion_delete_by_customer(
     assert_no_permission(response)
 
     promotion_deleted_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()

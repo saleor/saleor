@@ -165,6 +165,7 @@ def test_permission_group_create_mutation_trigger_webhook(
         [any_webhook],
         group,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

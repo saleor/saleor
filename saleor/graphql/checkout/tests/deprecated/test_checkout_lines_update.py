@@ -70,7 +70,7 @@ def test_checkout_lines_update(
     assert line.quantity == 1
     assert calculate_checkout_quantity(lines) == 1
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
@@ -111,7 +111,7 @@ def test_checkout_lines_update_with_token(
     assert line.quantity == 1
     assert calculate_checkout_quantity(lines) == 1
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)

@@ -3,12 +3,17 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
+from django.db.models import Exists, OuterRef
 from django.utils import timezone
 from freezegun import freeze_time
 
 from .. import RewardValueType
 from ..models import Promotion, PromotionRule
-from ..tasks import fetch_promotion_variants_and_product_ids, handle_promotion_toggle
+from ..tasks import (
+    clear_promotion_rule_variants_task,
+    fetch_promotion_variants_and_product_ids,
+    handle_promotion_toggle,
+)
 
 
 def test_fetch_promotion_variants_and_product_ids(
@@ -47,6 +52,7 @@ def test_fetch_promotion_variants_and_product_ids(
 
 
 @freeze_time("2020-03-18 12:00:00")
+@patch("saleor.discount.tasks.clear_promotion_rule_variants_task.delay")
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
@@ -58,6 +64,7 @@ def test_handle_promotion_toggle(
     promotion_ended_mock,
     sale_toggle_mock,
     mock_update_products_discounted_prices_for_promotion_task,
+    mock_clear_promotion_rule_variants_task,
     product_list,
 ):
     # given
@@ -177,3 +184,35 @@ def test_handle_promotion_toggle(
         product_list[0].id,
         product_list[2].id,
     }
+
+    assert {rule_id for rule_id in kwargs["rule_ids"]} == {
+        rules[0].id,
+        rules[2].id,
+    }
+
+    mock_clear_promotion_rule_variants_task.assert_called_once()
+
+
+def test_clear_promotion_rule_variants_task(promotion_list):
+    # given
+    expired_promotion = promotion_list[-1]
+    expired_promotion.start_date = timezone.now() - timedelta(days=5)
+    expired_promotion.end_date = timezone.now() - timedelta(days=1)
+    expired_promotion.save(update_fields=["start_date", "end_date"])
+
+    PromotionRuleVariant = PromotionRule.variants.through
+    expired_rules = PromotionRule.objects.filter(promotion_id=expired_promotion.id)
+    rule_variants_count = PromotionRuleVariant.objects.count()
+    expired_rule_variants_count = PromotionRuleVariant.objects.filter(
+        Exists(expired_rules.filter(pk=OuterRef("promotionrule_id")))
+    ).count()
+    assert expired_rule_variants_count > 0
+
+    # when
+    clear_promotion_rule_variants_task()
+
+    # then
+    assert (
+        PromotionRuleVariant.objects.count()
+        == rule_variants_count - expired_rule_variants_count
+    )

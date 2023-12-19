@@ -59,7 +59,7 @@ def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     delivery_method_info = checkout_info.delivery_method_info
@@ -111,7 +111,7 @@ def test_is_valid_delivery_method_external_method(
     checkout.save()
     checkout.metadata_storage.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     delivery_method_info = checkout_info.delivery_method_info
@@ -151,7 +151,7 @@ def test_is_valid_delivery_method_external_method_shipping_app_id_with_identifie
     checkout.save()
     checkout.metadata_storage.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     delivery_method_info = checkout_info.delivery_method_info
@@ -191,7 +191,7 @@ def test_is_valid_delivery_method_external_method_old_shipping_app_id(
     checkout.save()
     checkout.metadata_storage.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     delivery_method_info = checkout_info.delivery_method_info
@@ -224,7 +224,7 @@ def test_is_valid_delivery_method_external_method_no_longer_available(
     checkout.save()
     checkout.metadata_storage.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     delivery_method_info = checkout_info.delivery_method_info
@@ -235,7 +235,7 @@ def test_is_valid_delivery_method_external_method_no_longer_available(
 def test_clear_delivery_method(checkout, shipping_method):
     checkout.shipping_method = shipping_method
     checkout.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, [], manager)
     clear_delivery_method(checkout_info)
     checkout.refresh_from_db()
@@ -334,7 +334,7 @@ def test_get_discount_for_checkout_value_entire_order_voucher(
         )
         for line in checkout_with_items.lines.all()
     ]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     discount = get_voucher_discount_for_checkout(
@@ -491,7 +491,7 @@ def test_get_discount_for_checkout_value_specific_product_voucher(
         )
         for line in checkout_with_items.lines.all()
     ]
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     discount = get_voucher_discount_for_checkout(
@@ -511,11 +511,11 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
     mock_validate_voucher, voucher, checkout_with_voucher
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_voucher)
     quantity = calculate_checkout_quantity(lines)
     checkout_info = fetch_checkout_info(checkout_with_voucher, lines, manager)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     address = checkout_with_voucher.shipping_address
 
     # when
@@ -586,7 +586,7 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         valid_pick_up_points=[],
         all_shipping_methods=[],
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_checkout(manager, voucher, checkout_info, [], None)
 
@@ -622,7 +622,7 @@ def test_get_discount_for_checkout_specific_products_voucher(
         voucher.products.add(product)
     priced_checkout_with_items.voucher_code = voucher.code
     priced_checkout_with_items.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     lines, _ = fetch_checkout_lines(priced_checkout_with_items)
@@ -677,7 +677,7 @@ def test_get_discount_for_checkout_specific_products_voucher_apply_only_once(
         voucher.products.add(product)
     checkout_with_items.voucher_code = voucher.code
     checkout_with_items.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     lines, _ = fetch_checkout_lines(checkout_with_items)
@@ -734,7 +734,7 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         lambda *args: Money(total, "USD"),
     )
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
@@ -821,7 +821,7 @@ def test_get_discount_for_checkout_shipping_voucher(
     shipping_method,
     shipping_method_data,
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     tax = Decimal("1.23")
     shipping = TaxedMoney(
         Money(shipping_cost, "USD"), Money(shipping_cost * tax, "USD")
@@ -908,7 +908,7 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
         discount=Money(50, channel_USD.currency_code),
     )
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = CheckoutInfo(
         checkout=checkout,
         delivery_method_info=get_delivery_method_info(shipping_method_data),
@@ -966,7 +966,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         valid_pick_up_points=[],
         all_shipping_methods=[],
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_checkout(
             manager,
@@ -1094,7 +1094,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         min_checkout_items_quantity=min_checkout_items_quantity,
         countries=countries,
     )
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     VoucherChannelListing.objects.create(
         voucher=voucher,
         channel=channel_USD,
@@ -1124,7 +1124,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
 
 
 def test_get_voucher_for_checkout_info(checkout_with_voucher, voucher):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout_with_voucher, [], manager)
     checkout_voucher, code = get_voucher_for_checkout_info(checkout_info)
     assert checkout_voucher == voucher
@@ -1135,7 +1135,7 @@ def test_get_voucher_for_checkout_info_expired_voucher(checkout_with_voucher, vo
     date_yesterday = timezone.now() - datetime.timedelta(days=1)
     voucher.end_date = date_yesterday
     voucher.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout_with_voucher, [], manager)
     checkout_voucher, code = get_voucher_for_checkout_info(checkout_info)
     assert checkout_voucher is None
@@ -1143,7 +1143,7 @@ def test_get_voucher_for_checkout_info_expired_voucher(checkout_with_voucher, vo
 
 
 def test_get_voucher_for_checkout_info_no_voucher_code(checkout):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, [], manager)
     checkout_voucher, code = get_voucher_for_checkout_info(checkout_info)
     assert checkout_voucher is None
@@ -1173,7 +1173,7 @@ def test_recalculate_checkout_discount(
 ):
     voucher.channel_listings.filter(channel=channel_USD).update(discount_value=10)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_voucher)
     checkout_info = fetch_checkout_info(checkout_with_voucher, lines, manager)
 
@@ -1184,7 +1184,7 @@ def test_recalculate_checkout_discount(
 def test_recalculate_checkout_discount_percentage(
     priced_checkout_with_voucher_percentage,
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(priced_checkout_with_voucher_percentage)
     checkout_info = fetch_checkout_info(
         priced_checkout_with_voucher_percentage, lines, manager
@@ -1209,7 +1209,7 @@ def test_recalculate_checkout_discount_with_sale(
         .discount_value
     )
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1243,7 +1243,7 @@ def test_recalculate_checkout_discount_with_promotion(
 ):
     # given
     checkout = checkout_with_voucher_percentage
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1327,7 +1327,7 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
     checkout = checkout_with_voucher
     voucher.channel_listings.filter(channel=channel_USD).update(min_spent_amount=100)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     recalculate_checkout_discount(manager, checkout_info, lines)
@@ -1343,7 +1343,7 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
     voucher.end_date = date_yesterday
     voucher.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     recalculate_checkout_discount(manager, checkout_info, lines)
@@ -1359,7 +1359,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     channel_USD,
 ):
     checkout = checkout_with_voucher_free_shipping
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     channel_listing = shipping_method.channel_listings.get(channel_id=channel_USD.id)
@@ -1397,7 +1397,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     channel_USD,
 ):
     checkout = checkout_with_voucher_free_shipping
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     channel_listing = shipping_method.channel_listings.get(channel=channel_USD)
@@ -1433,7 +1433,7 @@ def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shippi
     checkout_with_voucher_percentage, voucher_free_shipping
 ):
     checkout = checkout_with_voucher_percentage
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     recalculate_checkout_discount(manager, checkout_info, lines)
@@ -1459,7 +1459,7 @@ def test_recalculate_checkout_discount_translate_discount_in_checkout_language(
 
     voucher.channel_listings.filter(channel=channel_USD).update(discount_value=10)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1471,7 +1471,7 @@ def test_recalculate_checkout_discount_translate_discount_in_checkout_language(
 
 
 def test_change_address_in_checkout(checkout, address):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1496,7 +1496,7 @@ def test_change_address_in_checkout_to_none(checkout, address):
     checkout.billing_address = address.get_copy()
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     shipping_updated_fields = change_shipping_address_in_checkout(
@@ -1522,7 +1522,7 @@ def test_change_address_in_checkout_to_same(checkout, address):
     shipping_address_id = checkout.shipping_address.id
     billing_address_id = checkout.billing_address.id
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     shipping_updated_fields = change_shipping_address_in_checkout(
@@ -1548,7 +1548,7 @@ def test_change_address_in_checkout_to_other(checkout, address):
     checkout.save(update_fields=["shipping_address", "billing_address"])
     other_address = Address.objects.create(country=Country("DE"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     shipping_updated_fields = change_shipping_address_in_checkout(
@@ -1578,7 +1578,7 @@ def test_change_address_in_checkout_from_user_address_to_other(
     checkout.save(update_fields=["shipping_address", "billing_address"])
     other_address = Address.objects.create(country=Country("DE"))
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     shipping_updated_fields = change_shipping_address_in_checkout(
@@ -1600,7 +1600,7 @@ def test_change_address_in_checkout_from_user_address_to_other(
 
 def test_add_voucher_to_checkout(checkout_with_item, voucher):
     assert checkout_with_item.voucher_code is None
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
@@ -1612,7 +1612,7 @@ def test_add_staff_voucher_to_anonymous_checkout(checkout_with_item, voucher):
     voucher.save()
 
     assert checkout_with_item.voucher_code is None
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     with pytest.raises(NotApplicable):
@@ -1628,7 +1628,7 @@ def test_add_staff_voucher_to_customer_checkout(
     voucher.save()
 
     assert checkout_with_item.voucher_code is None
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     with pytest.raises(NotApplicable):
@@ -1642,7 +1642,7 @@ def test_add_staff_voucher_to_staff_checkout(checkout_with_item, voucher, staff_
     voucher.save()
 
     assert checkout_with_item.voucher_code is None
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
@@ -1652,7 +1652,7 @@ def test_add_staff_voucher_to_staff_checkout(checkout_with_item, voucher, staff_
 def test_add_voucher_to_checkout_fail(
     checkout_with_item, voucher_with_high_min_spent_amount
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     with pytest.raises(NotApplicable):
@@ -1683,7 +1683,7 @@ def test_get_last_active_payment(checkout_with_payments):
 
 def test_is_fully_paid(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.checkout_total(
@@ -1705,7 +1705,7 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
 
 def test_is_fully_paid_mg_payments(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.checkout_total(
@@ -1735,7 +1735,7 @@ def test_is_fully_paid_mg_payments(checkout_with_item, payment_dummy):
 
 def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.checkout_total(
@@ -1757,7 +1757,7 @@ def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
 
 def test_is_fully_paid_no_payment(checkout_with_item):
     checkout = checkout_with_item
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     is_paid = is_fully_paid(manager, checkout_info, lines)
@@ -1781,7 +1781,7 @@ def test_checkout_without_delivery_method_creates_empty_delivery_method(
     checkout_with_item,
 ):
     checkout = checkout_with_item
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     delivery_method_info = checkout_info.delivery_method_info

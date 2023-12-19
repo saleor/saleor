@@ -38,7 +38,7 @@ def test_authorize_success(payment_dummy_credit_card):
     txn = gateway.authorize(
         payment=payment_dummy_credit_card,
         token="Fake",
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         channel_slug=payment_dummy_credit_card.order.channel.slug,
     )
     assert txn.is_success
@@ -71,7 +71,7 @@ def test_authorize_failed(is_active, charge_status, error, payment_dummy_credit_
         gateway.authorize(
             payment=payment,
             token="Fake",
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             channel_slug=payment_dummy_credit_card.order.channel.slug,
         )
 
@@ -86,7 +86,7 @@ def test_authorize_gateway_error(payment_dummy_credit_card, monkeypatch):
         gateway.authorize(
             payment=payment_dummy_credit_card,
             token="Fake",
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             channel_slug=payment_dummy_credit_card.order.channel.slug,
         )
 
@@ -119,7 +119,7 @@ def test_void_success(payment_txn_preauth):
     assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
     txn = gateway.void(
         payment=payment_txn_preauth,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         channel_slug=payment_txn_preauth.order.channel.slug,
     )
     assert txn.is_success
@@ -147,7 +147,7 @@ def test_void_failed(is_active, charge_status, error, payment_dummy_credit_card)
     with pytest.raises(PaymentError) as e:
         gateway.void(
             payment=payment,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             channel_slug=payment.order.channel.slug,
         )
 
@@ -164,7 +164,7 @@ def test_void_gateway_error(payment_txn_preauth, monkeypatch):
     with pytest.raises(PaymentError) as e:
         gateway.void(
             payment=payment_txn_preauth,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             channel_slug=payment_txn_preauth.order.channel.slug,
         )
 
@@ -203,7 +203,7 @@ def test_capture_success(amount, charge_status, token, payment_txn_preauth):
 
     txn = gateway.capture(
         payment=payment_txn_preauth,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         amount=Decimal(amount),
         channel_slug=payment_txn_preauth.order.channel.slug,
     )
@@ -236,7 +236,7 @@ def test_capture_failed(
     with pytest.raises(PaymentError) as e:
         gateway.capture(
             payment=payment,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             amount=amount,
             channel_slug=payment.order.channel.slug,
         )
@@ -258,7 +258,7 @@ def test_capture_error_in_response(token, error, payment_txn_preauth):
     with pytest.raises(PaymentError) as e:
         gateway.capture(
             payment=payment_txn_preauth,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             channel_slug=payment_txn_preauth.order.channel.slug,
         )
 
@@ -306,7 +306,7 @@ def test_refund_success(
     payment.save()
     txn = gateway.refund(
         payment=payment,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         amount=Decimal(refund_amount),
         channel_slug=payment.order.channel.slug,
     )
@@ -344,7 +344,7 @@ def test_refund_failed(
     with pytest.raises(PaymentError) as e:
         gateway.refund(
             payment=payment,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             amount=Decimal(refund_amount),
             channel_slug=payment.order.channel.slug,
         )
@@ -364,7 +364,7 @@ def test_refund_gateway_error(payment_txn_captured, monkeypatch):
     with pytest.raises(PaymentError):
         gateway.refund(
             payment=payment,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             amount=Decimal("80.00"),
             channel_slug=payment.order.channel.slug,
         )
@@ -384,7 +384,7 @@ def test_process_payment_success(token, payment_dummy_credit_card):
     txn = gateway.process_payment(
         payment=payment_dummy_credit_card,
         token=token,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         channel_slug=payment_dummy_credit_card.order.channel.slug,
     )
 
@@ -404,7 +404,7 @@ def test_process_payment_failed(token, error, payment_dummy_credit_card):
         gateway.process_payment(
             payment=payment_dummy_credit_card,
             token=token,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             channel_slug=payment_dummy_credit_card.order.channel.slug,
         )
 
@@ -442,7 +442,7 @@ def test_process_payment_pre_authorized(
     txn = gateway.process_payment(
         payment=payment_dummy_credit_card,
         token=token,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         channel_slug=payment_dummy_credit_card.order.channel.slug,
     )
 
@@ -471,7 +471,7 @@ def test_process_payment_pre_authorized_and_capture(
     txn = gateway.process_payment(
         payment=payment_dummy_credit_card,
         token=token,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         channel_slug=payment_dummy_credit_card.order.channel.slug,
     )
 
@@ -501,7 +501,7 @@ def test_process_payment_pre_authorized_and_capture_error(
         gateway.process_payment(
             payment=payment_dummy_credit_card,
             token=token,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             channel_slug=payment_dummy_credit_card.order.channel.slug,
         )
 

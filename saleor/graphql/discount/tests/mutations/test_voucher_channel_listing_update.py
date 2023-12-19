@@ -179,6 +179,7 @@ def test_voucher_channel_listing_update_trigger_webhook(
         [any_webhook],
         voucher,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
