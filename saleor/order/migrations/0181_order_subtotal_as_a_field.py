@@ -1,5 +1,5 @@
 from django.db import migrations
-from django.db.models import F, Func, OuterRef, Subquery
+from django.db.models import Exists, F, Func, OuterRef, Subquery
 
 # One batch took 0.1s and 10.54MB at its peak
 BATCH_SIZE = 1000
@@ -18,8 +18,11 @@ def update_order_subtotals(apps, schema_editor):
         # right here we need to find only Orders which was not populated
         # with subtotal in previous release, so the amount of rows to populate
         # shouldn't be big
+        lines = OrderLine.objects.all()
         queryset = Order.objects.order_by("number").filter(
-            number__gte=start_number, subtotal_gross_amount__exact=0
+            Exists(lines.filter(order_id=OuterRef("id"))),
+            number__gte=start_number,
+            subtotal_gross_amount__exact=0,
         )[:BATCH_SIZE]
         current_batch_order_numbers = list(queryset.values_list("number", flat=True))
 
