@@ -861,7 +861,7 @@ class ProductMedia(SortableModel, ModelWithMetadata):
         blank=True,
     )
     image = models.ImageField(upload_to="products", blank=True, null=True)
-    alt = models.CharField(max_length=128, blank=True)
+    alt = models.CharField(max_length=250, blank=True)
     type = models.CharField(
         max_length=32,
         choices=ProductMediaTypes.CHOICES,

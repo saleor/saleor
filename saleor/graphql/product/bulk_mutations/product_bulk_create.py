@@ -54,6 +54,8 @@ from .product_variant_bulk_create import (
     ProductVariantBulkCreateInput,
 )
 
+ALT_CHAR_LIMIT = 250
+
 
 def get_results(instances_data_with_errors_list, reject_everything=False):
     if reject_everything:
@@ -427,6 +429,7 @@ class ProductBulkCreate(BaseMutation):
         for index, media_input in enumerate(media_inputs):
             image = media_input.get("image")
             media_url = media_input.get("media_url")
+            alt = media_input.get("alt")
 
             if not image and not media_url:
                 index_error_map[product_index].append(
@@ -444,6 +447,17 @@ class ProductBulkCreate(BaseMutation):
                         path=f"media.{index}",
                         message="Either image or external URL is required.",
                         code=ProductBulkCreateErrorCode.DUPLICATED_INPUT_ITEM.value,
+                    )
+                )
+                continue
+
+            if alt and len(alt) > ALT_CHAR_LIMIT:
+                index_error_map[product_index].append(
+                    ProductBulkCreateError(
+                        path=f"media.{index}",
+                        message=f"Alt field exceeds the character "
+                        f"limit of {ALT_CHAR_LIMIT}.",
+                        code=ProductBulkCreateErrorCode.INVALID.value,
                     )
                 )
                 continue

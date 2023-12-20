@@ -60,6 +60,7 @@ class ProductMediaCreate(BaseMutation):
     def validate_input(cls, data):
         image = data.get("image")
         media_url = data.get("media_url")
+        alt = data.get("alt")
 
         if not image and not media_url:
             raise ValidationError(
@@ -76,6 +77,16 @@ class ProductMediaCreate(BaseMutation):
                     "input": ValidationError(
                         "Either image or external URL is required.",
                         code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+                    )
+                }
+            )
+
+        if alt and len(alt) > 250:
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        "Alt field exceeds the character limit of 250.",
+                        code=ProductErrorCode.INVALID.value,
                     )
                 }
             )
