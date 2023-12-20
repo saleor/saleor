@@ -46,10 +46,9 @@ def set_identifier_for_local_apps(apps, _schema_editor):
         if not apps:
             break
 
-        app_ids = []
         for app in apps:
             app.identifier = graphene.Node.to_global_id("App", app.pk)
-            app_ids.append(app.pk)
+
         App.objects.bulk_update(apps, ["identifier"])
 
 
