@@ -162,9 +162,7 @@ def test_product_bulk_create_with_base_data(
     assert args == {product.id for product in products}
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
 def test_product_bulk_create_with_base_data_and_collections(
-    update_products_discounted_price_task_mock,
     staff_api_client,
     product_type,
     collection_list,
