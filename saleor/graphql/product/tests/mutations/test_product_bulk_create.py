@@ -12,6 +12,7 @@ from .....attribute import AttributeInputType
 from .....product.error_codes import ProductBulkCreateErrorCode
 from .....product.models import Product
 from .....product.tests.utils import create_image
+from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import (
     get_graphql_content,
     get_multipart_request_body_with_multiple_files,
@@ -20,8 +21,9 @@ from ....tests.utils import (
 PRODUCT_BULK_CREATE_MUTATION = """
     mutation ProductBulkCreate(
         $products: [ProductBulkCreateInput!]!
+        $errorPolicy: ErrorPolicyEnum
     ) {
-        productBulkCreate(products: $products) {
+        productBulkCreate(products: $products, errorPolicy: $errorPolicy) {
             results {
                 errors {
                     path
@@ -2119,3 +2121,50 @@ def test_product_bulk_create_with_variants_and_channel_listings_with_wrong_price
     assert errors[1]["path"] == "variants.0.channelListings.0.costPrice"
     assert errors[1]["code"] == ProductBulkCreateErrorCode.INVALID_PRICE.name
     assert errors[1]["channels"] == [channel_id]
+
+
+def test_product_bulk_create_with_collections_and_invalid_product_data(
+    staff_api_client,
+    product_type,
+    collection,
+    category,
+    description_json,
+    permission_manage_products,
+):
+    # given
+    description_json_string = json.dumps(description_json)
+    invalid_product_type_id = graphene.Node.to_global_id("ProductType", -999)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    product_name_1 = "test name 1"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    products = [
+        {
+            "productType": invalid_product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "collections": [collection_id],
+            "weight": 2,
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products, "errorPolicy": ErrorPolicyEnum.REJECT_FAILED_ROWS.name},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    assert data["results"][0]["errors"]
+    error = data["results"][0]["errors"][0]
+    assert error["code"] == ProductBulkCreateErrorCode.NOT_FOUND.name
+    assert error["path"] == "productType"

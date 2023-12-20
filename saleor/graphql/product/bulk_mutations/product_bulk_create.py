@@ -766,6 +766,9 @@ class ProductBulkCreate(BaseMutation):
         product_collections = []
         for instance_data in instances_data:
             product = instance_data["instance"]
+            if not product:
+                continue
+
             cleaned_input = instance_data["cleaned_input"]
             if collections := cleaned_input.get("collections"):
                 for collection in collections:
