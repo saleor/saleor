@@ -130,6 +130,7 @@ class TransactionSessionData:
     source_object: Union["Checkout", "Order"]
     action: TransactionProcessActionData
     payment_gateway_data: PaymentGatewayData
+    idempotency_key: Optional[str] = None
 
 
 @dataclass

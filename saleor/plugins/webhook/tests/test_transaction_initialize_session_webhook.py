@@ -1,4 +1,5 @@
 import json
+import uuid
 from decimal import Decimal
 from unittest import mock
 
@@ -28,6 +29,7 @@ subscription {
         actionType
       }
       data
+      idempotencyKey
       sourceObject{
         __typename
         ... on Checkout{
@@ -53,6 +55,7 @@ def _assert_with_subscription(
     expected_response,
     response,
     mock_request,
+    idempotency_key,
 ):
     object_id = graphene.Node.to_global_id(
         source_object.__class__.__name__, source_object.pk
@@ -67,6 +70,7 @@ def _assert_with_subscription(
             "actionType": action_type.upper(),
             "currency": transaction.currency,
         },
+        "idempotencyKey": idempotency_key,
         "sourceObject": {
             "__typename": source_object.__class__.__name__,
             "id": object_id,
@@ -288,6 +292,7 @@ def test_transaction_initialize_checkout_without_request_data(
         message=None,
     )
     action_type = TransactionFlowStrategy.CHARGE
+    idempotency_key = str(uuid.uuid4())
 
     # when
     response = plugin.transaction_initialize_session(
@@ -302,6 +307,7 @@ def test_transaction_initialize_checkout_without_request_data(
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
+            idempotency_key=idempotency_key,
         ),
         previous_value=None,
     )
@@ -317,6 +323,7 @@ def test_transaction_initialize_checkout_without_request_data(
         expected_response_data,
         response,
         mock_request,
+        idempotency_key,
     )
 
 
@@ -357,6 +364,7 @@ def test_transaction_initialize_checkout_with_request_data(
         message=None,
     )
     action_type = TransactionFlowStrategy.CHARGE
+    idempotency_key = str(uuid.uuid4())
 
     # when
     response = plugin.transaction_initialize_session(
@@ -371,6 +379,7 @@ def test_transaction_initialize_checkout_with_request_data(
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
+            idempotency_key=idempotency_key,
         ),
         previous_value=None,
     )
@@ -386,6 +395,7 @@ def test_transaction_initialize_checkout_with_request_data(
         expected_response_data,
         response,
         mock_request,
+        idempotency_key,
     )
 
 
@@ -624,6 +634,7 @@ def test_transaction_initialize_order_without_request_data(
         message=None,
     )
     action_type = TransactionFlowStrategy.CHARGE
+    idempotency_key = str(uuid.uuid4())
 
     # when
     response = plugin.transaction_initialize_session(
@@ -638,6 +649,7 @@ def test_transaction_initialize_order_without_request_data(
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=None, error=None
             ),
+            idempotency_key=idempotency_key,
         ),
         previous_value=None,
     )
@@ -653,6 +665,7 @@ def test_transaction_initialize_order_without_request_data(
         expected_response_data,
         response,
         mock_request,
+        idempotency_key,
     )
 
 
@@ -693,6 +706,7 @@ def test_transaction_initialize_order_with_request_data(
         message=None,
     )
     action_type = TransactionFlowStrategy.CHARGE
+    idempotency_key = str(uuid.uuid4())
 
     # when
     response = plugin.transaction_initialize_session(
@@ -707,6 +721,7 @@ def test_transaction_initialize_order_with_request_data(
             payment_gateway_data=PaymentGatewayData(
                 app_identifier=webhook_app.identifier, data=data, error=None
             ),
+            idempotency_key=idempotency_key,
         ),
         previous_value=None,
     )
@@ -722,4 +737,5 @@ def test_transaction_initialize_order_with_request_data(
         expected_response_data,
         response,
         mock_request,
+        idempotency_key,
     )
