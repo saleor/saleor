@@ -1,7 +1,7 @@
 import pytest
 
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import (
     checkout_create,
@@ -14,26 +14,22 @@ from .utils import (
 def test_should_not_be_able_to_make_purchase_with_no_payment_CORE_0113(
     e2e_staff_api_client,
     e2e_not_logged_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
+
     variant_price = 10
 
     (
@@ -67,7 +63,6 @@ def test_should_not_be_able_to_make_purchase_with_no_payment_CORE_0113(
     assert checkout_data["isShippingRequired"] is True
     assert checkout_data["deliveryMethod"] is None
     assert checkout_data["shippingMethod"] is None
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     # Step 2 - Set shipping address and DeliveryMethod for checkout
 

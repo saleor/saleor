@@ -15,6 +15,9 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
           gross {
             amount
           }
+          tax {
+            amount
+          }
         }
         unitPrice {
           gross {

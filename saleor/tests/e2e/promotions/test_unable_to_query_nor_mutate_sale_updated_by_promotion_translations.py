@@ -8,7 +8,7 @@ from ..sales.utils import (
     raw_create_sale_channel_listing,
     sale_catalogues_add,
 )
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import promotions_query, translate_promotion
 
@@ -16,16 +16,14 @@ from .utils import promotions_query, translate_promotion
 def prepare_sale(e2e_staff_api_client):
     price = 10
 
-    (
-        warehouse_id,
-        channel_id,
-        _channel_slug,
-        _shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
 
     (
         product_id,
-        product_variant_id,
+        _product_variant_id,
         _product_variant_price,
     ) = prepare_product(
         e2e_staff_api_client,
@@ -62,6 +60,7 @@ def prepare_sale(e2e_staff_api_client):
 
     return (
         channel_id,
+        channel_slug,
         sale_name,
         sale_id,
     )
@@ -70,18 +69,14 @@ def prepare_sale(e2e_staff_api_client):
 @pytest.mark.e2e
 def test_unable_to_query_nor_mutate_sale_updated_by_promotion_translations_CORE_2120(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_discounts,
     permission_manage_translations,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
         permission_manage_translations,
@@ -90,6 +85,7 @@ def test_unable_to_query_nor_mutate_sale_updated_by_promotion_translations_CORE_
 
     (
         channel_id,
+        channel_slug,
         sale_name,
         sale_id,
     ) = prepare_sale(e2e_staff_api_client)

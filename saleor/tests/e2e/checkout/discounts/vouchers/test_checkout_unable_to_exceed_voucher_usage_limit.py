@@ -1,7 +1,7 @@
 import pytest
 
 from ....product.utils.preparing_product import prepare_product
-from ....shop.utils.preparing_shop import prepare_shop
+from ....shop.utils import prepare_default_shop
 from ....utils import assign_permissions
 from ....vouchers.utils import (
     create_voucher,
@@ -57,30 +57,25 @@ def test_checkout_unable_to_exceed_voucher_usage_limit_CORE_0909(
     e2e_not_logged_api_client,
     e2e_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
     permission_manage_checkouts,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
         permission_manage_checkouts,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
 
     (
         product_id,
@@ -120,7 +115,6 @@ def test_checkout_unable_to_exceed_voucher_usage_limit_CORE_0909(
     )
     checkout_id = checkout["id"]
     checkout_lines = checkout["lines"][0]
-    shipping_method_id = checkout["shippingMethods"][0]["id"]
     unit_price = float(product_variant_price)
     total_gross_amount = checkout["totalPrice"]["gross"]["amount"]
     assert checkout["isShippingRequired"] is True

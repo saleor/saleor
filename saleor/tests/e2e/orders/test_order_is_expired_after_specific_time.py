@@ -5,7 +5,6 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ....order.tasks import expire_orders_task
-from ..channel.utils import update_channel
 from ..checkout.utils import checkout_create, checkout_delivery_method_update
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_shop
@@ -17,19 +16,16 @@ from .utils import order_create_from_checkout, order_query
 def test_order_is_expired_after_specific_time_CORE_0214(
     e2e_staff_api_client,
     e2e_app_api_client,
-    permission_manage_products,
     permission_manage_channels,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_orders,
     permission_manage_payments,
     permission_handle_checkouts,
+    shop_permissions,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
     ]
@@ -44,28 +40,27 @@ def test_order_is_expired_after_specific_time_CORE_0214(
 
     price = 10
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
-
-    expire_order_after_in_minutes = 1
-    channel_update_input = {
-        "orderSettings": {
-            "allowUnpaidOrders": True,
-            "automaticallyFulfillNonShippableGiftCard": True,
-            "automaticallyConfirmAllNewOrders": True,
-            "expireOrdersAfter": expire_order_after_in_minutes,
-        }
-    }
-
-    update_channel(
+    shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
-        channel_id,
-        channel_update_input,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [{}],
+                    },
+                ],
+                "order_settings": {
+                    "expireOrdersAfter": 1,
+                },
+            }
+        ],
+        shop_settings={},
     )
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+    shipping_method_id = shop_data[0]["shipping_zones"][0]["shipping_methods"][0]["id"]
+    expire_order_after_in_minutes = shop_data[0]["order_settings"]["expireOrdersAfter"]
 
     (
         _product_id,
@@ -97,7 +92,6 @@ def test_order_is_expired_after_specific_time_CORE_0214(
     assert checkout_id is not None
     assert checkout_data["isShippingRequired"] is True
     assert len(checkout_data["shippingMethods"]) == 1
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     # Step 2 - Assign shipping method
     checkout_data = checkout_delivery_method_update(

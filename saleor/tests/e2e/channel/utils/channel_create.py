@@ -1,3 +1,5 @@
+import uuid
+
 from ...utils import get_graphql_content
 
 CHANNEL_CREATE_MUTATION = """
@@ -16,9 +18,28 @@ mutation ChannelCreate($input: ChannelCreateInput!) {
       defaultCountry {
         code
       }
+      warehouses {
+        id
+        slug
+        shippingZones(first: 10) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+      stockSettings {
+        allocationStrategy
+      }
       isActive
       orderSettings {
+        markAsPaidStrategy
         automaticallyConfirmAllNewOrders
+        allowUnpaidOrders
+        automaticallyConfirmAllNewOrders
+        expireOrdersAfter
+        deleteExpiredOrdersAfter
       }
     }
   }
@@ -30,18 +51,18 @@ def create_channel(
     staff_api_client,
     warehouse_ids=None,
     channel_name="Test channel",
-    slug="test-slug",
+    slug=None,
     currency="USD",
     country="US",
+    shipping_zones=None,
     is_active=True,
-    automatically_fulfill_non_shippable_giftcard=False,
-    allow_unpaid_orders=False,
-    automatically_confirm_all_new_orders=True,
-    mark_as_paid_strategy="PAYMENT_FLOW",
-    expire_orders_after=0,
+    order_settings={},
 ):
     if not warehouse_ids:
         warehouse_ids = []
+
+    if slug is None:
+        slug = f"channel_slug_{uuid.uuid4()}"
 
     variables = {
         "input": {
@@ -51,16 +72,15 @@ def create_channel(
             "defaultCountry": country,
             "isActive": is_active,
             "addWarehouses": warehouse_ids,
+            "addShippingZones": shipping_zones,
             "orderSettings": {
-                "markAsPaidStrategy": mark_as_paid_strategy,
-                "automaticallyFulfillNonShippableGiftCard": (
-                    automatically_fulfill_non_shippable_giftcard
-                ),
-                "allowUnpaidOrders": allow_unpaid_orders,
-                "automaticallyConfirmAllNewOrders": (
-                    automatically_confirm_all_new_orders
-                ),
-                "expireOrdersAfter": expire_orders_after,
+                "markAsPaidStrategy": "PAYMENT_FLOW",
+                "automaticallyFulfillNonShippableGiftCard": False,
+                "allowUnpaidOrders": False,
+                "automaticallyConfirmAllNewOrders": True,
+                "expireOrdersAfter": 60,
+                "deleteExpiredOrdersAfter": 1,
+                **order_settings,
             },
         }
     }

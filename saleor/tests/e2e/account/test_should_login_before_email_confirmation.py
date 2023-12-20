@@ -1,7 +1,6 @@
 import pytest
 
-from ..channel.utils import create_channel
-from ..shop.utils import update_shop_settings
+from ..shop.utils import prepare_shop
 from ..utils import assign_permissions
 from .utils import account_register, token_create
 
@@ -10,22 +9,36 @@ from .utils import account_register, token_create
 def test_should_login_before_email_confirmation_core_1510(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_channels,
-    permission_manage_settings,
+    permission_manage_product_types_and_attributes,
+    shop_permissions,
 ):
     # Before
-    permissions = [permission_manage_channels, permission_manage_settings]
+    permissions = [
+        permission_manage_product_types_and_attributes,
+        *shop_permissions,
+    ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    channel_data = create_channel(e2e_staff_api_client)
-    channel_slug = channel_data["slug"]
-
-    input_data = {
-        "enableAccountConfirmationByEmail": True,
-        "allowLoginWithoutConfirmation": True,
-    }
-
-    update_shop_settings(e2e_staff_api_client, input_data)
+    shop_data, _tax_config = prepare_shop(
+        e2e_staff_api_client,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [
+                            {},
+                        ],
+                    },
+                ],
+                "order_settings": {},
+            },
+        ],
+        shop_settings={
+            "enableAccountConfirmationByEmail": True,
+            "allowLoginWithoutConfirmation": True,
+        },
+    )
+    channel_slug = shop_data[0]["slug"]
 
     test_email = "user@saleor.io"
     test_password = "Password!"

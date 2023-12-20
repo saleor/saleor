@@ -30,6 +30,17 @@ query Checkout($checkoutId: ID!){
         amount
       }
     }
+    shippingPrice {
+      tax {
+        amount
+      }
+      net {
+        amount
+      }
+      gross {
+        amount
+      }
+    }
   }
 }
 """

@@ -1,7 +1,7 @@
 import pytest
 
 from ..attributes.utils import attribute_create
-from ..shop.utils import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import (
     create_category,
@@ -63,25 +63,19 @@ def prepare_attributes_and_product_type(e2e_staff_api_client):
 def test_should_create_product_with_few_variants_core_0301(
     e2e_staff_api_client,
     permission_manage_product_types_and_attributes,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
+    shop_permissions,
 ):
     # Before
     permissions = [
         permission_manage_product_types_and_attributes,
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        _shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
 
     (
         attribute_product_id,

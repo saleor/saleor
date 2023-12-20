@@ -1,7 +1,7 @@
 import pytest
 
 from ....product.utils.preparing_product import prepare_product
-from ....shop.utils.preparing_shop import prepare_shop
+from ....shop.utils import prepare_default_shop
 from ....utils import assign_permissions
 from ....vouchers.utils import create_voucher, create_voucher_channel_listing
 from ...utils import (
@@ -48,28 +48,23 @@ def prepare_percentage_voucher(
 def test_checkout_use_percentage_voucher_core_0902(
     e2e_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
 
     (
         _product_id,
@@ -108,7 +103,6 @@ def test_checkout_use_percentage_voucher_core_0902(
     )
     checkout_id = checkout["id"]
     checkout_lines = checkout["lines"][0]
-    shipping_method_id = checkout["shippingMethods"][0]["id"]
     unit_price = float(product_variant_price)
     assert checkout["isShippingRequired"] is True
     assert checkout_lines["unitPrice"]["gross"]["amount"] == unit_price

@@ -1,68 +1,43 @@
 import pytest
 
-from ..channel.utils import create_channel
 from ..product.utils.preparing_product import prepare_product
-from ..shipping_zone.utils import create_shipping_zone
+from ..shop.utils import prepare_shop
 from ..utils import assign_permissions
-from ..warehouse.utils import create_warehouse, update_warehouse
 from .utils import checkout_create, raw_checkout_dummy_payment_create
-
-
-def prepare_shop_with_no_shipping_method(
-    e2e_staff_api_client,
-):
-    warehouse_data = create_warehouse(e2e_staff_api_client)
-    warehouse_id = warehouse_data["id"]
-    warehouse_ids = [warehouse_id]
-
-    update_warehouse(
-        e2e_staff_api_client,
-        warehouse_data["id"],
-    )
-
-    channel_data = create_channel(
-        e2e_staff_api_client,
-        slug="test___0e00",
-        warehouse_ids=warehouse_ids,
-    )
-    channel_id = channel_data["id"]
-    channel_ids = [channel_id]
-    channel_slug = channel_data["slug"]
-
-    create_shipping_zone(
-        e2e_staff_api_client,
-        warehouse_ids=warehouse_ids,
-        channel_ids=channel_ids,
-    )
-
-    return channel_id, channel_slug, warehouse_id
 
 
 @pytest.mark.e2e
 def test_unlogged_customer_unable_to_buy_product_without_shipping_option_CORE_0106(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
+    shop_permissions,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
         permission_manage_product_types_and_attributes,
-        permission_manage_shipping,
+        *shop_permissions,
     ]
 
     assign_permissions(e2e_staff_api_client, permissions)
-    (
-        channel_id,
-        channel_slug,
-        warehouse_id,
-    ) = prepare_shop_with_no_shipping_method(
+    shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [],
+                    },
+                ],
+                "order_settings": {},
+            }
+        ],
+        shop_settings={},
     )
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+
     variant_price = 10
 
     (
