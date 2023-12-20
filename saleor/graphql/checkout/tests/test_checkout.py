@@ -2250,9 +2250,9 @@ QUERY_CHECKOUT_TRANSACTIONS = """
     """
 
 
-def test_checkout_transactions_missing_permission(api_client, checkout):
+def test_checkout_transactions(api_client, checkout):
     # given
-    checkout.payment_transactions.create(
+    transaction_item = checkout.payment_transactions.create(
         status="Authorized",
         name="Credit card",
         psp_reference="123",
@@ -2267,65 +2267,11 @@ def test_checkout_transactions_missing_permission(api_client, checkout):
     response = api_client.post_graphql(query, variables)
 
     # then
-    assert_no_permission(response)
-
-
-def test_checkout_transactions_with_manage_checkouts(
-    staff_api_client, checkout, permission_manage_checkouts
-):
-    # given
-    transaction = checkout.payment_transactions.create(
-        status="Authorized",
-        name="Credit card",
-        psp_reference="123",
-        currency="USD",
-        authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
-    )
-    query = QUERY_CHECKOUT_TRANSACTIONS
-    variables = {"id": to_global_id_or_none(checkout)}
-
-    # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_checkouts]
-    )
-
-    # then
     content = get_graphql_content(response)
     assert len(content["data"]["checkout"]["transactions"]) == 1
-    transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
-    assert transaction_id == graphene.Node.to_global_id(
-        "TransactionItem", transaction.token
-    )
-
-
-def test_checkout_transactions_with_handle_payments(
-    staff_api_client, checkout, permission_manage_payments
-):
-    # given
-    transaction = checkout.payment_transactions.create(
-        status="Authorized",
-        name="Credit card",
-        psp_reference="123",
-        currency="USD",
-        authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
-    )
-    query = QUERY_CHECKOUT_TRANSACTIONS
-    variables = {"id": to_global_id_or_none(checkout)}
-
-    # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    assert len(content["data"]["checkout"]["transactions"]) == 1
-    transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
-    assert transaction_id == graphene.Node.to_global_id(
-        "TransactionItem", transaction.token
-    )
+    assert content["data"]["checkout"]["transactions"][0][
+        "id"
+    ] == graphene.Node.to_global_id("TransactionItem", transaction_item.token)
 
 
 QUERY_CHECKOUT_STATUSES_AND_BALANCE = """

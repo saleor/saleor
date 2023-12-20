@@ -12,11 +12,7 @@ from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.taxes import zero_money, zero_taxed_money
 from ...core.utils.lazyobjects import unwrap_lazy
-from ...permission.enums import (
-    AccountPermissions,
-    CheckoutPermissions,
-    PaymentPermissions,
-)
+from ...permission.enums import AccountPermissions
 from ...shipping.interface import ShippingMethodData
 from ...tax.utils import get_display_gross_prices
 from ...warehouse import models as warehouse_models
@@ -44,7 +40,6 @@ from ..core.scalars import UUID
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import str_to_enum
-from ..decorators import one_of_permissions_required
 from ..giftcard.dataloaders import GiftCardsByCheckoutIdLoader
 from ..giftcard.types import GiftCard
 from ..meta import resolvers as MetaResolvers
@@ -479,10 +474,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     transactions = NonNullList(
         TransactionItem,
         description=(
-            "List of transactions for the checkout. Requires one of the "
-            "following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS."
-            + ADDED_IN_34
-            + PREVIEW_FEATURE
+            "List of transactions for the checkout." + ADDED_IN_34 + PREVIEW_FEATURE
         ),
     )
     display_gross_prices = graphene.Boolean(
@@ -744,9 +736,6 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
 
     @staticmethod
-    @one_of_permissions_required(
-        [CheckoutPermissions.MANAGE_CHECKOUTS, PaymentPermissions.HANDLE_PAYMENTS]
-    )
     def resolve_transactions(root: models.Checkout, info: ResolveInfo):
         return TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
 

@@ -7,7 +7,11 @@ from graphene import relay
 
 from ...core.exceptions import PermissionDenied
 from ...payment import models
-from ...permission.enums import OrderPermissions
+from ...permission.enums import (
+    CheckoutPermissions,
+    OrderPermissions,
+    PaymentPermissions,
+)
 from ..account.dataloaders import UserByUserIdLoader
 from ..app.dataloaders import ActiveAppsByAppIdentifierLoader, AppByIdLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader
@@ -26,9 +30,10 @@ from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import JSONString, PermissionsField
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList
+from ..decorators import one_of_permissions_required
 from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
-from ..meta.types import MetadataItem, ObjectWithMetadata
+from ..meta.types import Metadata, MetadataItem, ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
@@ -517,6 +522,31 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         required=True,
     )
 
+    metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description=(
+            "List of public metadata items. Requires one of the "
+            "following permissions: MANAGE_ORDERS, MANAGE_CHECKOUTS, HANDLE_PAYMENTS."
+        ),
+    )
+    metafield = graphene.String(
+        args={"key": graphene.NonNull(graphene.String)},
+        description=(
+            "A single key from public metadata.\n\n"
+            "Tip: Use GraphQL aliases to fetch multiple keys. Requires one of the "
+            "following permissions: MANAGE_ORDERS, MANAGE_CHECKOUTS, HANDLE_PAYMENTS."
+        ),
+    )
+    metafields = Metadata(
+        args={"keys": NonNullList(graphene.String)},
+        description=(
+            "Public metadata. Use `keys` to control which fields you want to include. "
+            "The default is to include everything. Requires one of the "
+            "following permissions: MANAGE_ORDERS, MANAGE_CHECKOUTS, HANDLE_PAYMENTS."
+        ),
+    )
+
     class Meta:
         description = (
             "Represents a payment transaction." + ADDED_IN_34 + PREVIEW_FEATURE
@@ -662,3 +692,40 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
             return model.objects.get(lookup)
         except model.DoesNotExist:
             return None
+
+    @staticmethod
+    @one_of_permissions_required(
+        [
+            OrderPermissions.MANAGE_ORDERS,
+            CheckoutPermissions.MANAGE_CHECKOUTS,
+            PaymentPermissions.HANDLE_PAYMENTS,
+        ]
+    )
+    def resolve_metadata(root: models.TransactionItem, info: ResolveInfo):
+        return ObjectWithMetadata.resolve_metadata(root, info)
+
+    @staticmethod
+    @one_of_permissions_required(
+        [
+            OrderPermissions.MANAGE_ORDERS,
+            CheckoutPermissions.MANAGE_CHECKOUTS,
+            PaymentPermissions.HANDLE_PAYMENTS,
+        ]
+    )
+    def resolve_metafield(
+        root: models.TransactionItem, _info: ResolveInfo, *, key: str
+    ) -> Optional[str]:
+        return ObjectWithMetadata.resolve_metafield(root, _info, key=key)
+
+    @staticmethod
+    @one_of_permissions_required(
+        [
+            OrderPermissions.MANAGE_ORDERS,
+            CheckoutPermissions.MANAGE_CHECKOUTS,
+            PaymentPermissions.HANDLE_PAYMENTS,
+        ]
+    )
+    def resolve_metafields(
+        root: models.TransactionItem, _info: ResolveInfo, *, keys=None
+    ):
+        return ObjectWithMetadata.resolve_metafields(root, _info, keys=keys)

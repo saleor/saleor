@@ -9674,7 +9674,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   languageCode: LanguageCodeEnum!
 
   """
-  List of transactions for the checkout. Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
+  List of transactions for the checkout.
   
   Added in Saleor 3.4.
   
@@ -10079,13 +10079,15 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """List of public metadata items. Can be accessed without permissions."""
+  """
+  List of public metadata items. Requires one of the following permissions: MANAGE_ORDERS, MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
+  """
   metadata: [MetadataItem!]!
 
   """
   A single key from public metadata.
   
-  Tip: Use GraphQL aliases to fetch multiple keys.
+  Tip: Use GraphQL aliases to fetch multiple keys. Requires one of the following permissions: MANAGE_ORDERS, MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
   
   Added in Saleor 3.3.
   
@@ -10094,7 +10096,7 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   metafield(key: String!): String
 
   """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything. Requires one of the following permissions: MANAGE_ORDERS, MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
   
   Added in Saleor 3.3.
   
@@ -10376,7 +10378,7 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   taxExemption: Boolean!
 
   """
-  List of transactions for the order. Requires one of the following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS.
+  List of transactions for the order.
   
   Added in Saleor 3.4.
   """

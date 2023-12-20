@@ -37,7 +37,6 @@ from ...permission.enums import (
     AccountPermissions,
     AppPermission,
     OrderPermissions,
-    PaymentPermissions,
     ProductPermissions,
 )
 from ...permission.utils import has_one_of_permissions
@@ -97,7 +96,6 @@ from ..core.types import (
     Weight,
 )
 from ..core.utils import str_to_enum
-from ..decorators import one_of_permissions_required
 from ..discount.dataloaders import OrderDiscountsByOrderIDLoader, VoucherByIdLoader
 from ..discount.enums import DiscountValueTypeEnum
 from ..discount.types import Voucher
@@ -1116,10 +1114,7 @@ class Order(ModelObjectType[models.Order]):
     )
     transactions = NonNullList(
         TransactionItem,
-        description=(
-            "List of transactions for the order. Requires one of the "
-            "following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS." + ADDED_IN_34
-        ),
+        description=("List of transactions for the order." + ADDED_IN_34),
         required=True,
     )
     payments = NonNullList(
@@ -1763,9 +1758,6 @@ class Order(ModelObjectType[models.Order]):
         return PaymentsByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
-    @one_of_permissions_required(
-        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
-    )
     def resolve_transactions(root: models.Order, info):
         return TransactionItemsByOrderIDLoader(info.context).load(root.id)
 

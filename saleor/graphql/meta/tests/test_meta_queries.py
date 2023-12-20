@@ -1153,6 +1153,9 @@ def test_query_public_meta_for_transaction_item_as_app_with_permission(
 def test_query_public_meta_for_transaction_item_as_app_without_permission(
     app_api_client, order
 ):
+    # given
+    order.payment_transactions.create(metadata={PUBLIC_KEY: PUBLIC_VALUE})
+
     # when
     response = execute_query_public_metadata_for_transaction_item(app_api_client, order)
 
@@ -2792,7 +2795,7 @@ def test_query_private_meta_for_transaction_item_as_customer(
     order.payment_transactions.create(private_metadata={PRIVATE_KEY: PRIVATE_VALUE})
 
     # when
-    response = execute_query_public_metadata_for_transaction_item(
+    response = execute_query_private_metadata_for_transaction_item(
         user_api_client,
         order,
         permissions=[],
@@ -2864,6 +2867,8 @@ def test_query_private_meta_for_transaction_item_as_app_with_permission(
 def test_query_private_meta_for_transaction_item_as_app_without_permission(
     app_api_client, order
 ):
+    order.payment_transactions.create(private_metadata={PRIVATE_KEY: PRIVATE_VALUE})
+
     # when
     response = execute_query_private_metadata_for_transaction_item(
         app_api_client, order
