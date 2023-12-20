@@ -1,4 +1,4 @@
-from django.db.models import F, Func, OuterRef, Subquery
+from django.db.models import Exists, F, Func, OuterRef, Subquery
 
 from ....celeryconf import app
 from ...models import Order, OrderLine
@@ -16,9 +16,10 @@ def update_order_subtotals(start_number=None):
         start_number = first_order.number
 
     # Get the orders for the current batch based on order numbers
-    queryset = Order.objects.order_by("number").filter(number__gte=start_number)[
-        :BATCH_SIZE
-    ]
+    lines = OrderLine.objects.all()
+    queryset = Order.objects.order_by("number").filter(
+        Exists(lines.filter(order_id=OuterRef("id"))), number__gte=start_number
+    )[:BATCH_SIZE]
     current_batch_order_numbers = list(queryset.values_list("number", flat=True))
 
     # If there are no orders in the range, exit the task
