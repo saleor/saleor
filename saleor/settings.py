@@ -27,6 +27,7 @@ from sentry_sdk.integrations.logging import ignore_logger
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_sale_webhook_schedule
+from saleor_gs.saleor.salingo.utils import get_aws_secret
 
 django_stubs_ext.monkeypatch()
 
@@ -44,6 +45,8 @@ def get_bool_from_env(name, default_value):
             raise ValueError("{} is an invalid value for {}".format(value, name)) from e
     return default_value
 
+
+APP_ENVIRONMENT = os.environ.get("APP_ENVIRONMENT")
 
 DEBUG = get_bool_from_env("DEBUG", True)
 
@@ -171,10 +174,11 @@ loaders = [
 ]
 
 TEMPLATES_DIR = os.path.join(PROJECT_ROOT, "templates")
+EXTERNAL_TEMPLATES_DIR = os.path.join(PROJECT_ROOT, "saleor_gs/templates/salingo")
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [TEMPLATES_DIR],
+        "DIRS": [EXTERNAL_TEMPLATES_DIR, TEMPLATES_DIR],
         "OPTIONS": {
             "debug": DEBUG,
             "context_processors": context_processors,
@@ -205,6 +209,11 @@ RSA_PRIVATE_PASSWORD = os.environ.get("RSA_PRIVATE_PASSWORD", None)
 JWT_MANAGER_PATH = os.environ.get(
     "JWT_MANAGER_PATH", "saleor.core.jwt_manager.JWTManager"
 )
+AWS_SECRET_ID = os.environ.get("AWS_SECRET_ID", None)
+if AWS_SECRET_ID:
+    RSA_PRIVATE_KEY = get_aws_secret(AWS_SECRET_ID)
+else:
+    RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -256,6 +265,8 @@ INSTALLED_APPS = [
     "django_countries",
     "django_filters",
     "phonenumber_field",
+    "saleor_gs.saleor.salingo",
+    "saleor_gs.saleor.wms"
 ]
 
 ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)
@@ -399,6 +410,7 @@ DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "US")
 DEFAULT_DECIMAL_PLACES = 3
 DEFAULT_MAX_DIGITS = 12
 DEFAULT_CURRENCY_CODE_LENGTH = 3
+DEFAULT_CURRENCY = 'PLN'
 
 # The default max length for the display name of the
 # sender email address.
@@ -407,6 +419,7 @@ DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 
 COUNTRIES_OVERRIDE = {"EU": "European Union"}
 
+API_URI = os.environ.get("API_URI", "http://localhost:8000/graphql/")
 
 def get_host():
     from django.contrib.sites.models import Site
@@ -436,6 +449,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # See https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_LOCATION = os.environ.get("AWS_LOCATION", "")
+AWS_BACKUP_BUCKET_NAME = os.environ.get("AWS_BACKUP_BUCKET_NAME")
 AWS_MEDIA_BUCKET_NAME = os.environ.get("AWS_MEDIA_BUCKET_NAME")
 AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get("AWS_MEDIA_CUSTOM_DOMAIN")
 AWS_QUERYSTRING_AUTH = get_bool_from_env("AWS_QUERYSTRING_AUTH", False)
@@ -529,6 +543,8 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
+CELERY_TASK_DEFAULT_QUEUE = os.environ.get("CELERY_TASK_DEFAULT_QUEUE", "default")
+CELERY_LONG_TASKS_QUEUE = os.environ.get("CELERY_LONG_TASKS_QUEUE", "long_tasks_queue")
 CELERY_TASK_ROUTES = {
     "saleor.plugins.webhook.tasks.observability_reporter_task": {
         "queue": "observability"
@@ -557,66 +573,112 @@ CELERY_BEAT_SCHEDULE = {
     "delete-empty-allocations": {
         "task": "saleor.warehouse.tasks.delete_empty_allocations_task",
         "schedule": timedelta(days=1),
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
     "deactivate-preorder-for-variants": {
         "task": "saleor.product.tasks.deactivate_preorder_for_variants_task",
         "schedule": timedelta(hours=1),
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
     "delete-expired-reservations": {
         "task": "saleor.warehouse.tasks.delete_expired_reservations_task",
         "schedule": timedelta(days=1),
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
     "delete-expired-checkouts": {
         "task": "saleor.checkout.tasks.delete_expired_checkouts",
         "schedule": crontab(hour=0, minute=0),
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
     "delete_expired_orders": {
         "task": "saleor.order.tasks.delete_expired_orders_task",
         "schedule": crontab(hour=2, minute=0),
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
     "delete-outdated-event-data": {
         "task": "saleor.core.tasks.delete_event_payloads_task",
         "schedule": timedelta(days=1),
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
     "deactivate-expired-gift-cards": {
         "task": "saleor.giftcard.tasks.deactivate_expired_cards_task",
         "schedule": crontab(hour=0, minute=0),
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
     "update-stocks-quantity-allocated": {
         "task": "saleor.warehouse.tasks.update_stocks_quantity_allocated_task",
         "schedule": crontab(hour=0, minute=0),
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
     "delete-old-export-files": {
         "task": "saleor.csv.tasks.delete_old_export_files",
         "schedule": crontab(hour=1, minute=0),
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
     "handle-sale-toggle": {
         "task": "saleor.discount.tasks.handle_sale_toggle",
         "schedule": initiated_sale_webhook_schedule,
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
     "update-products-search-vectors": {
         "task": "saleor.product.tasks.update_products_search_vector_task",
         "schedule": timedelta(seconds=20),
-        "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
+        "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC, "queue": CELERY_TASK_DEFAULT_QUEUE},
     },
     "update-gift-cards-search-vectors": {
         "task": "saleor.giftcard.tasks.update_gift_cards_search_vector_task",
         "schedule": timedelta(seconds=20),
-        "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
+        "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC, "queue": CELERY_TASK_DEFAULT_QUEUE},
     },
     "expire-orders": {
         "task": "saleor.order.tasks.expire_orders_task",
         "schedule": BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA,
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
     "remove-apps-marked-as-removed": {
         "task": "saleor.app.tasks.remove_apps_task",
         "schedule": crontab(hour=3, minute=0),
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
     "release-funds-for-abandoned-checkouts": {
         "task": "saleor.payment.tasks.transaction_release_funds_for_checkout_task",
         "schedule": timedelta(minutes=10),
+        "options": {"queue": CELERY_TASK_DEFAULT_QUEUE}
     },
 }
+
+if APP_ENVIRONMENT in ['production']:
+    CELERY_BEAT_SCHEDULE.update({
+        'refresh_token_task': {
+            'task': 'saleor_gs.saleor.plugins.allegro.tasks.refresh_token_task',
+            'schedule': 1800.0,
+            'options': {'queue': CELERY_TASK_DEFAULT_QUEUE}
+        },
+        'publication_flow': {
+            'task': 'saleor_gs.saleor.salingo.tasks.publication_flow',
+            'schedule': crontab(minute=30, hour=0),
+            "options": {"queue": CELERY_LONG_TASKS_QUEUE}
+        },
+        'save_allegro_orders_task': {
+            'task': 'saleor_gs.saleor.plugins.allegro.tasks.save_allegro_orders_task',
+            'schedule': 600.0,
+            "options": {"queue": CELERY_TASK_DEFAULT_QUEUE},
+            'args': (
+                {
+                    'salingo-man': "2022-09-28T19:00:00",
+                    'salingo-woman': "2022-10-04T13:58:00",
+                    'salingo-kids': "2022-10-04T09:57:00",
+                    'allegro': '2022-10-25T14:00:00',
+                    'salingo-hurt': '2023-01-01T14:00:00'
+                },
+            )
+        },
+        'synchronize_allegro_offers': {
+            'task': 'saleor_gs.saleor.plugins.allegro.tasks.synchronize_allegro_offers_task',
+            'schedule': crontab(minute=30, hour=2),
+            "options": {"queue": CELERY_LONG_TASKS_QUEUE}
+        }
+    })
 
 # The maximum wait time between each is_due() call on schedulers
 # It needs to be higher than the frequency of the schedulers to avoid unnecessary
@@ -733,7 +795,24 @@ BUILTIN_PLUGINS = [
 ]
 
 # Plugin discovery
-EXTERNAL_PLUGINS = []
+EXTERNAL_PLUGINS = [
+    "saleor_gs.saleor.plugins.allegro.plugin.AllegroPlugin",
+    "saleor_gs.saleor.plugins.sumi.plugin.StockPlugin",
+    "saleor_gs.saleor.plugins.wms.plugin.WMSPlugin",
+    "saleor_gs.saleor.plugins.dpd.plugin.DpdPlugin",
+    "saleor_gs.saleor.plugins.salingo_routing.plugin.SalingoRoutingPlugin",
+    "saleor_gs.saleor.plugins.salingo_pricing.plugin.SalingoPricingPlugin",
+    "saleor_gs.saleor.plugins.salingo_pricing_global.plugin.SalingoPricingGlobalPlugin",
+    "saleor_gs.saleor.plugins.allegro_global.plugin.AllegroGlobalPlugin",
+    "saleor_gs.saleor.plugins.inpost.plugin.InpostPlugin",
+    "saleor_gs.saleor.plugins.gls.plugin.GlsPlugin",
+    "saleor_gs.saleor.plugins.product_listing.plugin.ProductListingPlugin",
+    "saleor_gs.saleor.plugins.printservers.plugin.PrintserversPlugin",
+    "saleor_gs.saleor.plugins.cod.plugin.CodGatewayPlugin",
+    "saleor_gs.saleor.plugins.payu.plugin.PayuGatewayPlugin",
+    "saleor_gs.saleor.plugins.erp_next.plugin.ErpNextPlugin",
+    "saleor_gs.saleor.plugins.invoicing.plugin.InvoicingPlugin"
+]
 installed_plugins = pkg_resources.iter_entry_points("saleor.plugins")
 for entry_point in installed_plugins:
     plugin_path = "{}.{}".format(entry_point.module_name, entry_point.attrs[0])
@@ -863,3 +942,7 @@ CONFIRMATION_EMAIL_LOCK_TIME = parse(
 OAUTH_UPDATE_LAST_LOGIN_THRESHOLD = parse(
     os.environ.get("OAUTH_UPDATE_LAST_LOGIN_THRESHOLD", "15 minutes")
 )
+
+REMOVER_API_URL = os.environ.get("REMOVER_API_URL")
+REMOVER_API_KEY = os.environ.get("REMOVER_API_KEY")
+REMOVER_SALEOR_API_KEY = os.environ.get("REMOVER_SALEOR_API_KEY")

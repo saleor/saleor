@@ -1,0 +1,3 @@
+[submodule "saleor_gs"]
+	path = saleor_gs
+	url = https://github.com/tgarbowski/saleor-gs

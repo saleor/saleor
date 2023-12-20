@@ -14,6 +14,7 @@ from .plugins.views import (
 )
 from .product.views import digital_product
 from .thumbnail.views import handle_thumbnail
+from saleor_gs.saleor.urls import urlpatterns as external_urls
 
 urlpatterns = [
     re_path(r"^graphql/$", csrf_exempt(GraphQLView.as_view(schema=schema)), name="api"),
@@ -48,6 +49,8 @@ urlpatterns = [
     ),
     re_path(r"^\.well-known/jwks.json$", jwks, name="jwks"),
 ]
+
+urlpatterns += external_urls
 
 if settings.DEBUG:
     import warnings

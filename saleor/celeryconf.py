@@ -3,6 +3,7 @@ import os
 
 from celery import Celery
 from celery.signals import setup_logging
+from celery.worker.control import inspect_command
 from django.conf import settings
 
 from .plugins import discover_plugins_modules
@@ -19,6 +20,14 @@ def setup_celery_logging(loglevel=None, **kwargs):
     """
     if loglevel:
         logging.getLogger(CELERY_LOGGER_NAME).setLevel(loglevel)
+
+
+@inspect_command(
+    alias='dump_conf',
+    signature='[include_defaults=False]'
+)
+def conf(state, with_defaults=False, **kwargs):
+    return {'error': 'Config inspection has been disabled.'}
 
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saleor.settings")
