@@ -27422,6 +27422,8 @@ enum PromotionCreateErrorCode {
   INVALID
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
+  MIXED_PREDICATES
+  MIXED_PROMOTION_PREDICATES
 }
 
 input PromotionCreateInput @doc(category: "Discounts") {

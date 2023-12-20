@@ -20,6 +20,8 @@ class PromotionCreateErrorCode(Enum):
     INVALID = "invalid"
     MULTIPLE_CURRENCIES_NOT_ALLOWED = "multiple_currencies_not_allowed"
     INVALID_PRECISION = "invalid_precision"
+    MIXED_PREDICATES = "mixed_predicates"
+    MIXED_PROMOTION_PREDICATES = "mixed_promotion_predicates"
 
 
 class PromotionUpdateErrorCode(Enum):
