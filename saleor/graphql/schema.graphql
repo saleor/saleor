@@ -11665,6 +11665,13 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   Added in Saleor 3.13.
   """
   createdBy: UserOrApp
+
+  """
+  Idempotency key assigned to the event.
+  
+  Added in Saleor 3.14.
+  """
+  idempotencyKey: String
 }
 
 """
@@ -14664,6 +14671,13 @@ type Mutation {
 
     """The ID of the checkout or order."""
     id: ID!
+
+    """
+    The idempotency key assigned to the action. It will be passed to the payment app to discover potential duplicate actions. If not provided, the default one will be generated. If empty string provided, INVALID error code will be raised.
+    
+    Added in Saleor 3.14.
+    """
+    idempotencyKey: String
 
     """Payment gateway used to initialize the transaction."""
     paymentGateway: PaymentGatewayToInitialize!
@@ -21614,6 +21628,7 @@ enum TransactionInitializeErrorCode @doc(category: "Payments") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
+  UNIQUE
 }
 
 """
@@ -30302,6 +30317,13 @@ type TransactionInitializeSession implements Event @doc(category: "Payments") {
 
   """Action to proceed for the transaction"""
   action: TransactionProcessAction!
+
+  """
+  Idempotency key assigned to the transaction initialize.
+  
+  Added in Saleor 3.14.
+  """
+  idempotencyKey: String!
 }
 
 type TransactionProcessAction @doc(category: "Payments") {

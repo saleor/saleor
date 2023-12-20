@@ -72,6 +72,7 @@ class TransactionInitializeErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_FOUND = "not_found"
+    UNIQUE = "unique"
 
 
 class TransactionProcessErrorCode(Enum):

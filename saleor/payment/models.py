@@ -163,6 +163,12 @@ class TransactionItem(ModelWithMetadata):
             # Orders filtering by status index
             GinIndex(fields=["order_id", "status"]),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["app_identifier", "idempotency_key"],
+                name="unique_transaction_idempotency",
+            ),
+        ]
 
 
 class TransactionEvent(models.Model):
@@ -215,6 +221,12 @@ class TransactionEvent(models.Model):
 
     class Meta:
         ordering = ("pk",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["transaction_id", "idempotency_key"],
+                name="unique_transaction_event_idempotency",
+            )
+        ]
 
 
 class Payment(ModelWithMetadata):

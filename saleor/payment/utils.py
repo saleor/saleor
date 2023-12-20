@@ -10,7 +10,7 @@ from aniso8601 import parse_datetime
 from babel.numbers import get_currency_precision
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.utils import timezone
 
@@ -36,6 +36,7 @@ from . import (
     StorePaymentMethod,
     TransactionAction,
     TransactionEventType,
+    TransactionItemIdempotencyUniqueError,
     TransactionKind,
 )
 from .error_codes import PaymentErrorCode
@@ -1482,7 +1483,7 @@ def create_manual_adjustment_events(
     return []
 
 
-def create_transaction_item(
+def get_transaction_item_params(
     source_object: Union[Checkout, Order],
     user: Optional[User],
     app: Optional[App],
@@ -1490,17 +1491,19 @@ def create_transaction_item(
     available_actions: Optional[list[str]] = None,
     name: str = "",
 ):
-    return TransactionItem.objects.create(
-        name=name,
-        checkout_id=source_object.pk if isinstance(source_object, Checkout) else None,
-        order_id=source_object.pk if isinstance(source_object, Order) else None,
-        currency=source_object.currency,
-        app=app,
-        app_identifier=app.identifier if app else None,
-        user=user,
-        psp_reference=psp_reference,
-        available_actions=available_actions if available_actions else [],
-    )
+    return {
+        "name": name,
+        "checkout_id": source_object.pk
+        if isinstance(source_object, Checkout)
+        else None,
+        "order_id": source_object.pk if isinstance(source_object, Order) else None,
+        "currency": source_object.currency,
+        "app": app,
+        "app_identifier": app.identifier if app else None,
+        "user": user,
+        "psp_reference": psp_reference,
+        "available_actions": available_actions if available_actions else [],
+    }
 
 
 def create_transaction_for_order(
@@ -1512,7 +1515,7 @@ def create_transaction_for_order(
     available_actions: Optional[list[str]] = None,
     name: str = "",
 ) -> TransactionItem:
-    transaction = create_transaction_item(
+    transaction_defaults = get_transaction_item_params(
         source_object=order,
         user=user,
         app=app,
@@ -1520,14 +1523,15 @@ def create_transaction_for_order(
         available_actions=available_actions,
         name=name,
     )
+    transaction_item = TransactionItem.objects.create(**transaction_defaults)
     create_manual_adjustment_events(
-        transaction=transaction,
+        transaction=transaction_item,
         money_data={"charged_value": charged_value},
         user=user,
         app=app,
     )
-    recalculate_transaction_amounts(transaction=transaction)
-    return transaction
+    recalculate_transaction_amounts(transaction=transaction_item)
+    return transaction_item
 
 
 def handle_transaction_initialize_session(
@@ -1537,10 +1541,44 @@ def handle_transaction_initialize_session(
     action: str,
     app: App,
     manager: PluginsManager,
+    idempotency_key: str,
 ):
-    transaction_item = create_transaction_item(
+    transaction_item_defaults = get_transaction_item_params(
         source_object=source_object, user=None, app=app, psp_reference=None
     )
+
+    try:
+        transaction_item, _ = TransactionItem.objects.get_or_create(
+            idempotency_key=idempotency_key,
+            order_id=transaction_item_defaults["order_id"],
+            checkout_id=transaction_item_defaults["checkout_id"],
+            defaults=transaction_item_defaults,
+        )
+
+        if action == TransactionFlowStrategy.CHARGE:
+            event_type = TransactionEventType.CHARGE_REQUEST
+        else:
+            event_type = TransactionEventType.AUTHORIZATION_REQUEST
+
+        request_event, _ = TransactionEvent.objects.get_or_create(
+            idempotency_key=idempotency_key,
+            transaction=transaction_item,
+            type=event_type,
+            currency=transaction_item.currency,
+            amount_value=amount,
+            defaults={
+                "include_in_calculations": False,
+                "type": TransactionEventType.CHARGE_REQUEST
+                if action == TransactionFlowStrategy.CHARGE
+                else TransactionEventType.AUTHORIZATION_REQUEST,
+                "currency": transaction_item.currency,
+                "amount_value": amount,
+                "idempotency_key": idempotency_key,
+            },
+        )
+    except IntegrityError:
+        raise TransactionItemIdempotencyUniqueError()
+
     session_data = TransactionSessionData(
         transaction=transaction_item,
         source_object=source_object,
@@ -1548,16 +1586,9 @@ def handle_transaction_initialize_session(
         action=TransactionProcessActionData(
             action_type=action, currency=source_object.currency, amount=amount
         ),
+        idempotency_key=idempotency_key,
     )
 
-    request_event = transaction_item.events.create(
-        include_in_calculations=False,
-        type=TransactionEventType.CHARGE_REQUEST
-        if action == TransactionFlowStrategy.CHARGE
-        else TransactionEventType.AUTHORIZATION_REQUEST,
-        currency=transaction_item.currency,
-        amount_value=amount,
-    )
     response = manager.transaction_initialize_session(session_data)
 
     response_data = response.data if response else None
