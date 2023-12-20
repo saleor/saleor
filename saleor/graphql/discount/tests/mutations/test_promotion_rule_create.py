@@ -1091,9 +1091,10 @@ def test_promotion_rule_create_missing_reward_type(
     description_json,
     channel_USD,
     product,
-    promotion,
+    promotion_without_rules,
 ):
     # given
+    promotion = promotion_without_rules
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
     name = "test promotion rule"
@@ -1192,9 +1193,10 @@ def test_promotion_rule_create_checkout_and_order_predicate(
     permission_group_manage_discounts,
     description_json,
     channel_USD,
-    promotion,
+    promotion_without_rules,
 ):
     # given
+    promotion = promotion_without_rules
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
     name = "test promotion rule"

@@ -15,7 +15,7 @@ def clean_promotion_rule(
     cleaned_input, errors, error_class, index=None, predicate_type=None
 ):
     clean_predicates(
-        cleaned_input, errors, error_class, index=None, predicate_type=predicate_type
+        cleaned_input, errors, error_class, index=index, predicate_type=predicate_type
     )
     if not errors.get(None):
         clean_reward(cleaned_input, errors, error_class, index)
@@ -50,7 +50,9 @@ def clean_predicates(
                 params={"index": index} if index is not None else {},
             )
         )
-    elif catalogue_predicate and predicate_type == PredicateType.ORDER:
+    elif (
+        catalogue_predicate and predicate_type and predicate_type == PredicateType.ORDER
+    ):
         errors["catalogue_predicate"].append(
             ValidationError(
                 message=(
@@ -61,7 +63,9 @@ def clean_predicates(
                 params={"index": index} if index is not None else {},
             )
         )
-    elif order_predicate and predicate_type == PredicateType.CATALOGUE:
+    elif (
+        order_predicate and predicate_type and predicate_type == PredicateType.CATALOGUE
+    ):
         errors["checkout_and_order_predicate"].append(
             ValidationError(
                 message=(
