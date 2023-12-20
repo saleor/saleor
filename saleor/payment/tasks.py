@@ -1,4 +1,5 @@
 import logging
+import uuid
 from datetime import datetime
 
 import pytz
@@ -87,6 +88,7 @@ def transaction_release_funds_for_checkout_task():
                     currency=transaction.currency,
                     type=TransactionEventType.CANCEL_REQUEST,
                     transaction_id=transaction.id,
+                    idempotency_key=str(uuid.uuid4()),
                 )
                 transactions_with_cancel_request_events.append((transaction, event))
 
@@ -97,6 +99,7 @@ def transaction_release_funds_for_checkout_task():
                     currency=transaction.currency,
                     type=TransactionEventType.REFUND_REQUEST,
                     transaction_id=transaction.id,
+                    idempotency_key=str(uuid.uuid4()),
                 )
                 transactions_with_charge_request_events.append((transaction, event))
 
