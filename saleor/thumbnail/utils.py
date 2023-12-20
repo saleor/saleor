@@ -133,7 +133,8 @@ class ProcessedImage:
         image_format = self.get_image_metadata_from_file(image)
         return (Image.open(image), image_format)
 
-    def get_image_metadata_from_file(self, file_like):
+    @classmethod
+    def get_image_metadata_from_file(cls, file_like):
         """Return a image format and InMemoryUploadedFile-friendly save format.
 
         Receive a valid image file and returns a 2-tuple of two strings:
@@ -143,6 +144,8 @@ class ProcessedImage:
         """
         mime_type = magic.from_buffer(file_like.read(1024), mime=True)
         file_like.seek(0)
+        if mime_type not in MIME_TYPE_TO_PIL_IDENTIFIER:
+            raise ValueError(f"Unsupported image MIME type: {mime_type}")
         image_format = MIME_TYPE_TO_PIL_IDENTIFIER[mime_type]
         return image_format
 
