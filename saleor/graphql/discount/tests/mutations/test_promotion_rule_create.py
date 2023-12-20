@@ -294,9 +294,17 @@ def test_promotion_rule_create_missing_predicate(
     errors = data["errors"]
 
     assert not data["promotionRule"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleCreateErrorCode.REQUIRED.name
-    assert errors[0]["field"] is None
+    assert len(errors) == 2
+    assert {
+        "code": PromotionRuleCreateErrorCode.REQUIRED.name,
+        "field": "cataloguePredicate",
+        "message": ANY,
+    } in errors
+    assert {
+        "code": PromotionRuleCreateErrorCode.REQUIRED.name,
+        "field": "checkoutAndOrderPredicate",
+        "message": ANY,
+    } in errors
     assert promotion.rules.count() == rules_count
 
 
@@ -980,9 +988,17 @@ def test_promotion_rule_create_multiple_predicates(
     errors = data["errors"]
 
     assert not data["promotionRule"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleCreateErrorCode.MIXED_PREDICATES.name
-    assert errors[0]["field"] is None
+    assert len(errors) == 2
+    assert {
+        "code": PromotionRuleCreateErrorCode.MIXED_PREDICATES.name,
+        "field": "cataloguePredicate",
+        "message": ANY,
+    } in errors
+    assert {
+        "code": PromotionRuleCreateErrorCode.MIXED_PREDICATES.name,
+        "field": "checkoutAndOrderPredicate",
+        "message": ANY,
+    } in errors
     assert promotion.rules.count() == rules_count
 
 
@@ -1031,7 +1047,10 @@ def test_promotion_rule_create_mixed_predicates_checkout_and_order(
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleCreateErrorCode.MIXED_PREDICATES.name
+    assert (
+        errors[0]["code"]
+        == PromotionRuleCreateErrorCode.MIXED_PROMOTION_PREDICATES.name
+    )
     assert errors[0]["field"] == "checkoutAndOrderPredicate"
     assert promotion.rules.count() == rules_count
 
@@ -1080,7 +1099,10 @@ def test_promotion_rule_create_mixed_predicates_catalogue(
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleCreateErrorCode.MIXED_PREDICATES.name
+    assert (
+        errors[0]["code"]
+        == PromotionRuleCreateErrorCode.MIXED_PROMOTION_PREDICATES.name
+    )
     assert errors[0]["field"] == "cataloguePredicate"
     assert promotion.rules.count() == rules_count
 

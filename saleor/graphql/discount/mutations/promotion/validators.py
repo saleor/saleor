@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 def clean_promotion_rule(
     cleaned_input, errors, error_class, index=None, predicate_type=None
 ):
-    clean_predicates(
+    invalid_predicates = clean_predicates(
         cleaned_input, errors, error_class, index=index, predicate_type=predicate_type
     )
-    if not errors.get(None):
+    if not invalid_predicates:
         clean_reward(cleaned_input, errors, error_class, index)
         clean_catalogue_predicate(cleaned_input, errors, error_class, index)
         clean_checkout_and_order_predicate(cleaned_input, errors, error_class, index)
@@ -25,31 +25,37 @@ def clean_promotion_rule(
 
 def clean_predicates(
     cleaned_input, errors, error_class, index=None, predicate_type=None
-):
+) -> bool:
+    invalid_predicates = False
     catalogue_predicate = cleaned_input.get("catalogue_predicate")
     order_predicate = cleaned_input.get("checkout_and_order_predicate")
     if not catalogue_predicate and not order_predicate:
-        errors[None].append(
-            ValidationError(
-                message=(
-                    "At least one of predicates is required: "
-                    "'cataloguePredicate' or 'checkoutAndOrderPredicate'."
-                ),
-                code=error_class.REQUIRED.value,
-                params={"index": index} if index is not None else {},
+        for field in ["catalogue_predicate", "checkout_and_order_predicate"]:
+            errors[field].append(
+                ValidationError(
+                    message=(
+                        "At least one of predicates is required: "
+                        "'cataloguePredicate' or 'checkoutAndOrderPredicate'."
+                    ),
+                    code=error_class.REQUIRED.value,
+                    params={"index": index} if index is not None else {},
+                )
             )
-        )
+        invalid_predicates = True
     elif catalogue_predicate and order_predicate:
-        errors[None].append(
-            ValidationError(
-                message=(
-                    "Only one of predicates can be provided: "
-                    "cataloguePredicate or checkoutAndOrderPredicate."
-                ),
-                code=error_class.MIXED_PREDICATES.value,
-                params={"index": index} if index is not None else {},
+        for field in ["catalogue_predicate", "checkout_and_order_predicate"]:
+            errors[field].append(
+                ValidationError(
+                    message=(
+                        "Only one of predicates can be provided: "
+                        "cataloguePredicate or checkoutAndOrderPredicate."
+                    ),
+                    code=error_class.MIXED_PREDICATES.value,
+                    params={"index": index} if index is not None else {},
+                )
             )
-        )
+        invalid_predicates = True
+    # the Promotion can have only rules with catalogue or checkoutAndOrder predicate
     elif (
         catalogue_predicate and predicate_type and predicate_type == PredicateType.ORDER
     ):
@@ -59,10 +65,11 @@ def clean_predicates(
                     "Predicate types can't be mixed. Given promotion already "
                     "have a rule with checkoutAndOrderPredicate defined."
                 ),
-                code=error_class.MIXED_PREDICATES.value,
+                code=error_class.MIXED_PROMOTION_PREDICATES.value,
                 params={"index": index} if index is not None else {},
             )
         )
+        invalid_predicates = True
     elif (
         order_predicate and predicate_type and predicate_type == PredicateType.CATALOGUE
     ):
@@ -72,60 +79,68 @@ def clean_predicates(
                     "Predicate types can't be mixed. Given promotion already "
                     "have a rule with cataloguePredicate defined."
                 ),
-                code=error_class.MIXED_PREDICATES.value,
+                code=error_class.MIXED_PROMOTION_PREDICATES.value,
                 params={"index": index} if index is not None else {},
             )
         )
+        invalid_predicates = True
+    return invalid_predicates
 
 
 def clean_catalogue_predicate(cleaned_input, errors, error_class, index=None):
-    if catalogue_predicate := cleaned_input.get("catalogue_predicate"):
-        reward_type = cleaned_input.get("reward_type")
-        if reward_type:
-            errors["reward_type"].append(
-                ValidationError(
-                    message=(
-                        "The rewardType can't be provided togather "
-                        "with cataloguePredicate."
-                    ),
-                    code=error_class.INVALID.value,
-                    params={"index": index} if index is not None else {},
-                )
+    catalogue_predicate = cleaned_input.get("catalogue_predicate")
+    if not catalogue_predicate:
+        return
+
+    reward_type = cleaned_input.get("reward_type")
+    if reward_type:
+        errors["reward_type"].append(
+            ValidationError(
+                message=(
+                    "The rewardType can't be provided together "
+                    "with cataloguePredicate."
+                ),
+                code=error_class.INVALID.value,
+                params={"index": index} if index is not None else {},
             )
-        else:
-            try:
-                cleaned_input["catalogue_predicate"] = clean_predicate(
-                    catalogue_predicate,
-                    error_class,
-                    index,
-                )
-            except ValidationError as error:
-                errors["catalogue_predicate"].append(error)
+        )
+    else:
+        try:
+            cleaned_input["catalogue_predicate"] = clean_predicate(
+                catalogue_predicate,
+                error_class,
+                index,
+            )
+        except ValidationError as error:
+            errors["catalogue_predicate"].append(error)
 
 
 def clean_checkout_and_order_predicate(cleaned_input, errors, error_class, index=None):
-    if order_predicate := cleaned_input.get("checkout_and_order_predicate"):
-        reward_type = cleaned_input.get("reward_type")
-        if not reward_type:
-            errors["reward_type"].append(
-                ValidationError(
-                    message=(
-                        "The rewardType is required when "
-                        "checkoutAndOrderPredicate is provided."
-                    ),
-                    code=error_class.REQUIRED.value,
-                    params={"index": index} if index is not None else {},
-                )
+    order_predicate = cleaned_input.get("checkout_and_order_predicate")
+    if not order_predicate:
+        return
+
+    reward_type = cleaned_input.get("reward_type")
+    if not reward_type:
+        errors["reward_type"].append(
+            ValidationError(
+                message=(
+                    "The rewardType is required when "
+                    "checkoutAndOrderPredicate is provided."
+                ),
+                code=error_class.REQUIRED.value,
+                params={"index": index} if index is not None else {},
             )
-        else:
-            try:
-                cleaned_input["checkout_and_order_predicate"] = clean_predicate(
-                    order_predicate,
-                    error_class,
-                    index,
-                )
-            except ValidationError as error:
-                errors["checkout_and_order_predicate"].append(error)
+        )
+    else:
+        try:
+            cleaned_input["checkout_and_order_predicate"] = clean_predicate(
+                order_predicate,
+                error_class,
+                index,
+            )
+        except ValidationError as error:
+            errors["checkout_and_order_predicate"].append(error)
 
 
 def clean_reward(cleaned_input, errors, error_class, index=None):
