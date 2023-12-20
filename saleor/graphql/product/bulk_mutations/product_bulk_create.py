@@ -54,6 +54,8 @@ from .product_variant_bulk_create import (
     ProductVariantBulkCreateInput,
 )
 
+ALT_CHAR_LIMIT = 250
+
 
 def get_results(instances_data_with_errors_list, reject_everything=False):
     if reject_everything:
@@ -449,11 +451,12 @@ class ProductBulkCreate(BaseMutation):
                 )
                 continue
 
-            if alt and len(alt) > 250:
+            if alt and len(alt) > ALT_CHAR_LIMIT:
                 index_error_map[product_index].append(
                     ProductBulkCreateError(
                         path=f"media.{index}",
-                        message="Alt field exceeds the character limit of 250.",
+                        message=f"Alt field exceeds the character "
+                        f"limit of {ALT_CHAR_LIMIT}.",
                         code=ProductBulkCreateErrorCode.INVALID.value,
                     )
                 )
