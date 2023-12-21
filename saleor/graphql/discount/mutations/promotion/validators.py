@@ -29,11 +29,19 @@ def clean_promotion_rule(
         error_class,
         index=index,
         predicate_type=predicate_type,
+        instance=instance,
     )
     if not invalid_predicates:
-        clean_catalogue_predicate(cleaned_input, errors, error_class, index, instance)
+        clean_catalogue_predicate(
+            cleaned_input, catalogue_predicate, errors, error_class, index, instance
+        )
         clean_checkout_and_order_predicate(
-            cleaned_input, errors, error_class, index, instance
+            cleaned_input,
+            checkout_and_order_predicate,
+            errors,
+            error_class,
+            index,
+            instance,
         )
         clean_reward(
             cleaned_input,
@@ -74,11 +82,7 @@ def clean_predicates(
     if catalogue_predicate and checkout_and_order_predicate:
         error_fields = ["catalogue_predicate", "checkout_and_order_predicate"]
         if instance:
-            error_fields = (
-                ["catalogue_predicate"]
-                if "catalogue_predicate" in cleaned_input
-                else ["checkout_and_order_predicate"]
-            )
+            error_fields = [field for field in error_fields if field in cleaned_input]
         for field in error_fields:
             errors[field].append(
                 ValidationError(
@@ -128,14 +132,13 @@ def clean_predicates(
 
 
 def clean_catalogue_predicate(
-    cleaned_input, errors, error_class, index=None, instance=None
+    cleaned_input, catalogue_predicate, errors, error_class, index=None, instance=None
 ):
-    catalogue_predicate = cleaned_input.get("catalogue_predicate")
-    if catalogue_predicate is None:
+    if not catalogue_predicate:
         return
 
     reward_type = cleaned_input.get("reward_type")
-    if instance:
+    if instance and "reward_type" not in cleaned_input:
         reward_type = reward_type or instance.reward_type
     if reward_type:
         errors["reward_type"].append(
@@ -149,6 +152,8 @@ def clean_catalogue_predicate(
             )
         )
     else:
+        if "catalogue_predicate" not in cleaned_input:
+            return
         try:
             cleaned_input["catalogue_predicate"] = clean_predicate(
                 catalogue_predicate,
@@ -160,14 +165,18 @@ def clean_catalogue_predicate(
 
 
 def clean_checkout_and_order_predicate(
-    cleaned_input, errors, error_class, index=None, instance=None
+    cleaned_input,
+    checkout_and_order_predicate,
+    errors,
+    error_class,
+    index=None,
+    instance=None,
 ):
-    checkout_and_order_predicate = cleaned_input.get("checkout_and_order_predicate")
-    if checkout_and_order_predicate is None:
+    if not checkout_and_order_predicate:
         return
 
     reward_type = cleaned_input.get("reward_type")
-    if instance:
+    if "reward_type" not in cleaned_input and instance:
         reward_type = reward_type or instance.reward_type
     if not reward_type:
         errors["reward_type"].append(
@@ -181,6 +190,8 @@ def clean_checkout_and_order_predicate(
             )
         )
     else:
+        if "checkout_and_order_predicate" not in cleaned_input:
+            return
         try:
             cleaned_input["checkout_and_order_predicate"] = clean_predicate(
                 checkout_and_order_predicate,
@@ -217,8 +228,14 @@ def clean_reward(
     reward_value = cleaned_input.get("reward_value")
     reward_value_type = cleaned_input.get("reward_value_type")
     if instance:
-        reward_value = reward_value or instance.reward_value
-        reward_value_type = reward_value_type or instance.reward_value_type
+        reward_value = (
+            reward_value if "reward_value" in cleaned_input else instance.reward_value
+        )
+        reward_value_type = (
+            reward_value_type
+            if "reward_value_type" in cleaned_input
+            else instance.reward_value_type
+        )
 
     if reward_value_type is None and (
         catalogue_predicate or checkout_and_order_predicate
