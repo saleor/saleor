@@ -715,7 +715,7 @@ def test_promotion_rule_create_fixed_reward_no_channels(
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleCreateErrorCode.REQUIRED.name
+    assert errors[0]["code"] == PromotionRuleCreateErrorCode.MISSING_CHANNELS.name
     assert errors[0]["field"] == "channels"
     assert promotion.rules.count() == rules_count
 

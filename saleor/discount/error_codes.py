@@ -22,6 +22,7 @@ class PromotionCreateErrorCode(Enum):
     INVALID_PRECISION = "invalid_precision"
     MIXED_PREDICATES = "mixed_predicates"
     MIXED_PROMOTION_PREDICATES = "mixed_promotion_predicates"
+    MISSING_CHANNELS = "missing_channels"
 
 
 class PromotionUpdateErrorCode(Enum):
@@ -45,12 +46,14 @@ class PromotionRuleCreateErrorCode(Enum):
     INVALID_PRECISION = "invalid_precision"
     MIXED_PREDICATES = "mixed_predicates"
     MIXED_PROMOTION_PREDICATES = "mixed_promotion_predicates"
+    MISSING_CHANNELS = "missing_channels"
 
 
 class PromotionRuleUpdateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     INVALID = "invalid"
+    REQUIRED = "required"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     MISSING_CHANNELS = "missing_channels"
     MULTIPLE_CURRENCIES_NOT_ALLOWED = "multiple_currencies_not_allowed"

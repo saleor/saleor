@@ -27424,6 +27424,7 @@ enum PromotionCreateErrorCode {
   INVALID_PRECISION
   MIXED_PREDICATES
   MIXED_PROMOTION_PREDICATES
+  MISSING_CHANNELS
 }
 
 input PromotionCreateInput @doc(category: "Discounts") {
@@ -27662,6 +27663,7 @@ enum PromotionRuleCreateErrorCode {
   INVALID_PRECISION
   MIXED_PREDICATES
   MIXED_PROMOTION_PREDICATES
+  MISSING_CHANNELS
 }
 
 input PromotionRuleCreateInput {
@@ -27749,6 +27751,7 @@ enum PromotionRuleUpdateErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   INVALID
+  REQUIRED
   DUPLICATED_INPUT_ITEM
   MISSING_CHANNELS
   MULTIPLE_CURRENCIES_NOT_ALLOWED
