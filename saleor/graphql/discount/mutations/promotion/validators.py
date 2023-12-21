@@ -66,6 +66,11 @@ def _clean_predicates(
     predicate_type,
     instance,
 ):
+    """Validate if predicates are provided and if they are mixed.
+
+    - At least one predicate is required - `catalogue` or `checkoutAndOrder` predicate.
+    - Promotion can have only one predicate type, raise error if there are mixed.
+    """
     if catalogue_predicate is None and checkout_and_order_predicate is None:
         for field in ["catalogue_predicate", "checkout_and_order_predicate"]:
             errors[field].append(
@@ -134,6 +139,11 @@ def _clean_predicates(
 def _clean_catalogue_predicate(
     cleaned_input, catalogue_predicate, errors, error_class, index, instance
 ):
+    """Clean and validate catalogue predicate.
+
+    - Reward type can't be specified for rule with catalogue predicate.
+    """
+
     if not catalogue_predicate:
         return
 
@@ -172,6 +182,10 @@ def _clean_checkout_and_order_predicate(
     index,
     instance,
 ):
+    """Clean and validate checkoutAndOrder predicate.
+
+    - Reward type is required for rule with checkoutAndOrder predicate.
+    """
     if not checkout_and_order_predicate:
         return
 
@@ -276,6 +290,7 @@ def _clean_reward(
 
 
 def _get_channel_currencies(cleaned_input, instance):
+    """Get currencies for which the rules apply."""
     if not instance:
         channels = cleaned_input.get("channels", [])
         return {channel.currency_code for channel in channels}
@@ -301,6 +316,12 @@ def _clean_reward_value(
     index,
     instance,
 ):
+    """Validate reward value and reward value type.
+
+    - The Fixed reward value type requires channels with the same currency code.
+    - Validate price precision for fixed reward value.
+    - Check if percentage reward value is not above 100.
+    """
     if reward_value_type == RewardValueType.FIXED:
         if "channels" in errors:
             return
