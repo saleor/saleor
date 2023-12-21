@@ -11,6 +11,17 @@ from .models import Checkout
 from .payment_utils import update_refundable_for_checkout
 
 
+def update_last_transaction_modified_at_for_checkout(
+    checkout: Checkout, transaction: TransactionItem
+):
+    if (
+        not checkout.last_transaction_modified_at
+        or checkout.last_transaction_modified_at < transaction.modified_at
+    ):
+        checkout.last_transaction_modified_at = transaction.modified_at
+        checkout.save(update_fields=["last_transaction_modified_at"])
+
+
 def transaction_amounts_for_checkout_updated(
     transaction: TransactionItem,
     manager: "PluginsManager",
@@ -31,12 +42,7 @@ def transaction_amounts_for_checkout_updated(
         CheckoutChargeStatus.OVERCHARGED,
     ]
 
-    if (
-        not checkout.last_transaction_modified_at
-        or checkout.last_transaction_modified_at < transaction.modified_at
-    ):
-        checkout.last_transaction_modified_at = transaction.modified_at
-        checkout.save(update_fields=["last_transaction_modified_at"])
+    update_last_transaction_modified_at_for_checkout(checkout, transaction)
 
     refundable = transaction.last_refund_success and (
         transaction.authorized_value > Decimal(0)
