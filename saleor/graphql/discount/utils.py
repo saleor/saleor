@@ -30,7 +30,7 @@ PREDICATE_OPERATOR_DATA_T = list[dict[str, Union[list, dict, str, bool]]]
 
 class PredicateType(Enum):
     CATALOGUE = "catalogue"
-    ORDER = "order"
+    CHECKOUT_AND_ORDER = "checkout_and_order"
 
 
 class Operators(Enum):
@@ -444,5 +444,5 @@ def get_predicate_type(promotion: Promotion) -> Optional[PredicateType]:
         if rule.catalogue_predicate:
             return PredicateType.CATALOGUE
         elif rule.checkout_and_order_predicate:
-            return PredicateType.ORDER
+            return PredicateType.CHECKOUT_AND_ORDER
     return None

@@ -93,7 +93,9 @@ def clean_predicates(
         return True
     # the Promotion can have only rules with catalogue or checkoutAndOrder predicate
     elif (
-        catalogue_predicate and predicate_type and predicate_type == PredicateType.ORDER
+        catalogue_predicate
+        and predicate_type
+        and predicate_type == PredicateType.CHECKOUT_AND_ORDER
     ):
         errors["catalogue_predicate"].append(
             ValidationError(
@@ -192,7 +194,7 @@ def clean_checkout_and_order_predicate(
 def clean_reward(
     cleaned_input,
     catalogue_predicate,
-    order_predicate,
+    checkout_and_order_predicate,
     errors,
     error_class,
     index=None,
@@ -218,7 +220,9 @@ def clean_reward(
         reward_value = reward_value or instance.reward_value
         reward_value_type = reward_value_type or instance.reward_value_type
 
-    if reward_value_type is None and (catalogue_predicate or order_predicate):
+    if reward_value_type is None and (
+        catalogue_predicate or checkout_and_order_predicate
+    ):
         errors["reward_value_type"].append(
             ValidationError(
                 message=(
@@ -229,7 +233,7 @@ def clean_reward(
                 params={"index": index} if index is not None else {},
             )
         )
-    if reward_value is None and (catalogue_predicate or order_predicate):
+    if reward_value is None and (catalogue_predicate or checkout_and_order_predicate):
         errors["reward_value"].append(
             ValidationError(
                 message=(
