@@ -1927,6 +1927,117 @@ def test_create_transaction_event_updates_transaction_modified_at(
     assert checkout.last_transaction_modified_at == calculation_time
 
 
+def test_create_transaction_event_for_transaction_session_failure_set_psp_reference(
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+    plugins_manager,
+):
+    # given
+    expected_psp_reference = "ABC"
+    expected_amount = Decimal("15")
+    response = transaction_session_response.copy()
+    response["result"] = TransactionEventType.CHARGE_FAILURE.upper()
+    response["amount"] = expected_amount
+    response["pspReference"] = expected_psp_reference
+
+    transaction = transaction_item_generator(available_actions=["charge"])
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction,
+        include_in_calculations=False,
+        amount_value=expected_amount,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    # when
+    create_transaction_event_for_transaction_session(
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        transaction_webhook_response=response,
+    )
+
+    # then
+    transaction.refresh_from_db()
+    assert transaction.events.count() == 2
+    failure_event = transaction.events.last()
+    assert failure_event.psp_reference == expected_psp_reference
+    assert failure_event.type == TransactionEventType.CHARGE_FAILURE
+    assert transaction.psp_reference == expected_psp_reference
+
+
+def test_create_transaction_event_for_transaction_session_when_psp_ref_missing(
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+    plugins_manager,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_session_response.copy()
+    response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
+    response["amount"] = expected_amount
+    response["pspReference"] = None
+
+    transaction = transaction_item_generator(available_actions=["charge"])
+    current_psp_reference = transaction.psp_reference
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction,
+        include_in_calculations=False,
+        amount_value=expected_amount,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    # when
+    create_transaction_event_for_transaction_session(
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        transaction_webhook_response=response,
+    )
+
+    # then
+    transaction.refresh_from_db()
+    assert transaction.events.count() == 2
+    assert transaction.psp_reference == current_psp_reference
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_updates_transaction_modified_at_for_failure(
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+    plugins_manager,
+    checkout,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_session_response.copy()
+    response["amount"] = expected_amount
+    response["result"] = TransactionEventType.CHARGE_FAILURE.upper()
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction, include_in_calculations=False
+    )
+
+    # when
+    with freeze_time("2023-03-18 12:00:00"):
+        calculation_time = datetime.now(pytz.UTC)
+        create_transaction_event_for_transaction_session(
+            request_event,
+            webhook_app,
+            manager=plugins_manager,
+            transaction_webhook_response=response,
+        )
+
+    # then
+    transaction.refresh_from_db()
+    checkout.refresh_from_db()
+    assert transaction.modified_at == calculation_time
+    assert checkout.last_transaction_modified_at == calculation_time
+
+
 def test_recalculate_refundable_for_checkout_with_request_refund(
     transaction_item_generator, checkout
 ):
