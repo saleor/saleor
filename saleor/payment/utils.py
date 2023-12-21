@@ -17,7 +17,10 @@ from django.utils import timezone
 from ..account.models import User
 from ..app.models import App
 from ..channel import TransactionFlowStrategy
-from ..checkout.actions import transaction_amounts_for_checkout_updated
+from ..checkout.actions import (
+    transaction_amounts_for_checkout_updated,
+    update_last_transaction_modified_at_for_checkout,
+)
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..checkout.payment_utils import update_refundable_for_checkout
@@ -1235,13 +1238,13 @@ def create_transaction_event_for_transaction_session(
     if request_event_update_fields:
         request_event.save(update_fields=request_event_update_fields)
 
+    transaction_item = event.transaction
     if event.type in [
         TransactionEventType.AUTHORIZATION_REQUEST,
         TransactionEventType.AUTHORIZATION_SUCCESS,
         TransactionEventType.CHARGE_REQUEST,
         TransactionEventType.CHARGE_SUCCESS,
     ]:
-        transaction_item = event.transaction
         previous_authorized_value = transaction_item.authorized_value
         previous_charged_value = transaction_item.charged_value
         previous_refunded_value = transaction_item.refunded_value
@@ -1286,6 +1289,13 @@ def create_transaction_event_for_transaction_session(
             )
         elif transaction_item.checkout_id:
             transaction_amounts_for_checkout_updated(transaction_item, manager)
+    elif event.psp_reference and transaction_item.psp_reference != event.psp_reference:
+        transaction_item.psp_reference = event.psp_reference
+        transaction_item.save(update_fields=["psp_reference", "modified_at"])
+        if transaction_item.checkout_id:
+            checkout = cast(Checkout, transaction_item.checkout)
+            update_last_transaction_modified_at_for_checkout(checkout, transaction_item)
+
     return event
 
 
