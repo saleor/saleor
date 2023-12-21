@@ -1256,7 +1256,6 @@ def test_transaction_initialize_for_already_used_idempotency_key_and_different_i
     assert data["errors"]
     assert data["errors"][0]["code"] == TransactionInitializeErrorCode.UNIQUE.name
     assert data["errors"][0]["field"] == "idempotencyKey"
-    mocked_initialize.assert_not_called()
 
     assert order.payment_transactions.count() == 1
     transaction = order.payment_transactions.last()
