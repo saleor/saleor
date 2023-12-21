@@ -21,21 +21,21 @@ def clean_promotion_rule(
         checkout_and_order_predicate = (
             checkout_and_order_predicate or instance.checkout_and_order_predicate
         )
-    invalid_predicates = clean_predicates(
+    invalid_predicates = _clean_predicates(
         cleaned_input,
         catalogue_predicate,
         checkout_and_order_predicate,
         errors,
         error_class,
-        index=index,
-        predicate_type=predicate_type,
-        instance=instance,
+        index,
+        predicate_type,
+        instance,
     )
     if not invalid_predicates:
-        clean_catalogue_predicate(
+        _clean_catalogue_predicate(
             cleaned_input, catalogue_predicate, errors, error_class, index, instance
         )
-        clean_checkout_and_order_predicate(
+        _clean_checkout_and_order_predicate(
             cleaned_input,
             checkout_and_order_predicate,
             errors,
@@ -43,7 +43,7 @@ def clean_promotion_rule(
             index,
             instance,
         )
-        clean_reward(
+        _clean_reward(
             cleaned_input,
             catalogue_predicate,
             checkout_and_order_predicate,
@@ -56,15 +56,15 @@ def clean_promotion_rule(
     return cleaned_input
 
 
-def clean_predicates(
+def _clean_predicates(
     cleaned_input,
     catalogue_predicate,
     checkout_and_order_predicate,
     errors,
     error_class,
-    index=None,
-    predicate_type=None,
-    instance=None,
+    index,
+    predicate_type,
+    instance,
 ):
     if catalogue_predicate is None and checkout_and_order_predicate is None:
         for field in ["catalogue_predicate", "checkout_and_order_predicate"]:
@@ -131,8 +131,8 @@ def clean_predicates(
     return False
 
 
-def clean_catalogue_predicate(
-    cleaned_input, catalogue_predicate, errors, error_class, index=None, instance=None
+def _clean_catalogue_predicate(
+    cleaned_input, catalogue_predicate, errors, error_class, index, instance
 ):
     if not catalogue_predicate:
         return
@@ -164,13 +164,13 @@ def clean_catalogue_predicate(
             errors["catalogue_predicate"].append(error)
 
 
-def clean_checkout_and_order_predicate(
+def _clean_checkout_and_order_predicate(
     cleaned_input,
     checkout_and_order_predicate,
     errors,
     error_class,
-    index=None,
-    instance=None,
+    index,
+    instance,
 ):
     if not checkout_and_order_predicate:
         return
@@ -202,14 +202,14 @@ def clean_checkout_and_order_predicate(
             errors["checkout_and_order_predicate"].append(error)
 
 
-def clean_reward(
+def _clean_reward(
     cleaned_input,
     catalogue_predicate,
     checkout_and_order_predicate,
     errors,
     error_class,
-    index=None,
-    instance=None,
+    index,
+    instance,
 ):
     """Validate reward value and reward value type.
 
@@ -263,7 +263,7 @@ def clean_reward(
         )
     if reward_value and reward_value_type:
         currencies = _get_channel_currencies(cleaned_input, instance)
-        clean_reward_value(
+        _clean_reward_value(
             cleaned_input,
             reward_value,
             reward_value_type,
@@ -291,15 +291,15 @@ def _get_channel_currencies(cleaned_input, instance):
     return channel_currencies
 
 
-def clean_reward_value(
+def _clean_reward_value(
     cleaned_input,
     reward_value,
     reward_value_type,
     channel_currencies,
     errors,
     error_class,
-    index=None,
-    instance=None,
+    index,
+    instance,
 ):
     if reward_value_type == RewardValueType.FIXED:
         if "channels" in errors:
