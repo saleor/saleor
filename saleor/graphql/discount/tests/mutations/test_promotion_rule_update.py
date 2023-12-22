@@ -981,3 +981,40 @@ def test_promotion_rule_update_clear_reward_type_for_checkout_and_order_predicat
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleUpdateErrorCode.REQUIRED.name
     assert errors[0]["field"] == "rewardType"
+
+
+def test_promotion_rule_update_add_invalid_channels_for_checkout_and_order_rule(
+    app_api_client,
+    permission_manage_discounts,
+    promotion_with_checkout_and_order_rule,
+    channel_PLN,
+):
+    # given
+    promotion = promotion_with_checkout_and_order_rule
+    rule = promotion.rules.first()
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
+    variables = {
+        "id": rule_id,
+        "input": {"addChannels": [channel_id]},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["code"]
+        == PromotionRuleUpdateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.name
+    )
+    assert errors[0]["field"] == "addChannels"

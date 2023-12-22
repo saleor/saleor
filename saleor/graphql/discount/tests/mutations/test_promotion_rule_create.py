@@ -1264,3 +1264,60 @@ def test_promotion_rule_create_checkout_and_order_predicate(
     assert promotion.rules.count() == rules_count + 1
     rule = promotion.rules.last()
     promotion_rule_created_mock.assert_called_once_with(rule)
+
+
+def test_promotion_rule_create_mixed_currencies_for_price_based_predicate(
+    staff_api_client,
+    permission_group_manage_discounts,
+    description_json,
+    channel_USD,
+    channel_PLN,
+    promotion_without_rules,
+):
+    # given
+    promotion = promotion_without_rules
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    name = "test promotion rule"
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
+    reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    checkout_and_order_predicate = {
+        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": "100"}}}
+    }
+    channel_ids = [
+        graphene.Node.to_global_id("Channel", channel.pk)
+        for channel in [channel_USD, channel_PLN]
+    ]
+
+    rules_count = promotion.rules.count()
+
+    variables = {
+        "input": {
+            "name": name,
+            "promotion": promotion_id,
+            "description": description_json,
+            "channels": channel_ids,
+            "rewardValueType": reward_value_type,
+            "rewardValue": reward_value,
+            "rewardType": reward_type,
+            "checkoutAndOrderPredicate": checkout_and_order_predicate,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleCreate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["code"]
+        == PromotionRuleCreateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.name
+    )
+    assert errors[0]["field"] == "channels"
+    assert promotion.rules.count() == rules_count

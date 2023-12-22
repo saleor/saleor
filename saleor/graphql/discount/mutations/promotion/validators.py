@@ -32,12 +32,14 @@ def clean_promotion_rule(
         instance,
     )
     if not invalid_predicates:
+        channel_currencies = _get_channel_currencies(cleaned_input, instance)
         _clean_catalogue_predicate(
             cleaned_input, catalogue_predicate, errors, error_class, index, instance
         )
         _clean_checkout_and_order_predicate(
             cleaned_input,
             checkout_and_order_predicate,
+            channel_currencies,
             errors,
             error_class,
             index,
@@ -47,6 +49,7 @@ def clean_promotion_rule(
             cleaned_input,
             catalogue_predicate,
             checkout_and_order_predicate,
+            channel_currencies,
             errors,
             error_class,
             index,
@@ -177,6 +180,7 @@ def _clean_catalogue_predicate(
 def _clean_checkout_and_order_predicate(
     cleaned_input,
     checkout_and_order_predicate,
+    channel_currencies,
     errors,
     error_class,
     index,
@@ -185,6 +189,7 @@ def _clean_checkout_and_order_predicate(
     """Clean and validate checkoutAndOrder predicate.
 
     - Reward type is required for rule with checkoutAndOrder predicate.
+    - Price based predicates are allowed only for rules with one currency
     """
     if not checkout_and_order_predicate:
         return
@@ -203,23 +208,50 @@ def _clean_checkout_and_order_predicate(
                 params={"index": index} if index is not None else {},
             )
         )
-    else:
-        if "checkout_and_order_predicate" not in cleaned_input:
-            return
-        try:
-            cleaned_input["checkout_and_order_predicate"] = clean_predicate(
-                checkout_and_order_predicate,
-                error_class,
-                index,
+        return
+
+    price_based_predicate = any(
+        field in str(checkout_and_order_predicate)
+        for field in ["subtotal_price", "subtotalPrice", "total_price", "totalPrice"]
+    )
+    if len(channel_currencies) > 1 and price_based_predicate:
+        error_field = "channels"
+        if instance:
+            error_field = (
+                "add_channels"
+                if "add_channels" in cleaned_input
+                else "checkout_and_order_predicate"
             )
-        except ValidationError as error:
-            errors["checkout_and_order_predicate"].append(error)
+        errors[error_field].append(
+            ValidationError(
+                message=(
+                    "For price based predicates, all channels must have "
+                    "the same currency."
+                ),
+                code=error_class.MULTIPLE_CURRENCIES_NOT_ALLOWED.value,
+                params={"index": index} if index is not None else {},
+            )
+        )
+        return
+
+    if "checkout_and_order_predicate" not in cleaned_input:
+        return
+
+    try:
+        cleaned_input["checkout_and_order_predicate"] = clean_predicate(
+            checkout_and_order_predicate,
+            error_class,
+            index,
+        )
+    except ValidationError as error:
+        errors["checkout_and_order_predicate"].append(error)
 
 
 def _clean_reward(
     cleaned_input,
     catalogue_predicate,
     checkout_and_order_predicate,
+    currencies,
     errors,
     error_class,
     index,
@@ -276,7 +308,6 @@ def _clean_reward(
             )
         )
     if reward_value and reward_value_type:
-        currencies = _get_channel_currencies(cleaned_input, instance)
         _clean_reward_value(
             cleaned_input,
             reward_value,
@@ -289,7 +320,7 @@ def _clean_reward(
         )
 
 
-def _get_channel_currencies(cleaned_input, instance):
+def _get_channel_currencies(cleaned_input, instance) -> set[str]:
     """Get currencies for which the rules apply."""
     if not instance:
         channels = cleaned_input.get("channels", [])
