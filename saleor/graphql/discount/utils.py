@@ -6,7 +6,6 @@ from typing import Optional, Union, cast
 import graphene
 from django.db import transaction
 from django.db.models import Exists, OuterRef, QuerySet
-from graphene.utils.str_converters import to_camel_case
 
 from ...discount.models import Promotion, PromotionRule
 from ...product.managers import ProductsQueryset, ProductVariantQueryset
@@ -36,22 +35,6 @@ class PredicateType(Enum):
 class Operators(Enum):
     AND = "and"
     OR = "or"
-
-
-# TODO: move to validators in promotion dir
-def clean_predicate(predicate: Union[dict[str, Union[dict, list]], list]):
-    """Convert camel cases keys into snake case."""
-    if isinstance(predicate, list):
-        return [
-            clean_predicate(item) if isinstance(item, (dict, list)) else item
-            for item in predicate
-        ]
-    return {
-        to_camel_case(key): clean_predicate(value)
-        if isinstance(value, (dict, list))
-        else value
-        for key, value in predicate.items()
-    }
 
 
 def get_products_for_promotion(
