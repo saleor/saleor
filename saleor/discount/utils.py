@@ -559,7 +559,7 @@ def get_variants_to_promotions_map(
 def fetch_promotion_rules_for_checkout(
     checkout: Checkout,
 ):
-    from ..graphql.discount.utils import PredicateType, filter_qs_by_predicate
+    from ..graphql.discount.utils import PredicateObjectType, filter_qs_by_predicate
 
     rules_per_promotion_id = defaultdict(list)
     promotions = Promotion.objects.active()
@@ -582,7 +582,7 @@ def fetch_promotion_rules_for_checkout(
         checkouts = filter_qs_by_predicate(
             rule.checkout_and_order_predicate,
             checkout_qs,
-            PredicateType.CHECKOUT,
+            PredicateObjectType.CHECKOUT,
             currency,
         )
         if checkouts.exists():
