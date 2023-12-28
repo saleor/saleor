@@ -55,9 +55,8 @@ def plugin_manager_promise(context: SaleorContext, app) -> Promise[PluginsManage
 
 
 def get_plugin_manager_promise(context: SaleorContext) -> Promise[PluginsManager]:
-    return get_app_promise(context).then(
-        partial(plugin_manager_promise, context)  # type: ignore[arg-type] # mypy incorrectly assumes the return type to be a promise of a promise # noqa: E501
-    )
+    app = get_app_promise(context).get()
+    return plugin_manager_promise(context, app)
 
 
 def plugin_manager_promise_callback(func):
