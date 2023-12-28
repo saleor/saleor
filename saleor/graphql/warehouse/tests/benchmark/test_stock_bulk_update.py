@@ -14,6 +14,12 @@ STOCKS_BULK_UPDATE_MUTATION = """
                     code
                 }
                 stock{
+                    warehouse{
+                        id
+                    }
+                    productVariant{
+                        id
+                    }
                     id
                     quantity
                 }
@@ -65,7 +71,7 @@ def test_stocks_bulk_update_queries_count(
     ]
 
     # test number of queries when single object is updated
-    with django_assert_num_queries(10):
+    with django_assert_num_queries(12):
         staff_api_client.user.user_permissions.add(permission_manage_products)
         response = staff_api_client.post_graphql(
             STOCKS_BULK_UPDATE_MUTATION, {"stocks": stocks_input}
@@ -101,7 +107,7 @@ def test_stocks_bulk_update_queries_count(
     ]
 
     # Test number of queries when multiple objects are updated
-    with django_assert_num_queries(10):
+    with django_assert_num_queries(12):
         staff_api_client.user.user_permissions.add(permission_manage_products)
         response = staff_api_client.post_graphql(
             STOCKS_BULK_UPDATE_MUTATION, {"stocks": stocks_input}
