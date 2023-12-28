@@ -81,7 +81,6 @@ def test_product_image_update_mutation_alt_over_char_limit(
     content = get_graphql_content(response)
 
     # then
-    print(content)
     errors = content["data"]["productMediaUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "input"
