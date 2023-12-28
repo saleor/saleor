@@ -851,6 +851,11 @@ ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = os.environ.get(
 )
 
 
+# Queue name for execution of collection product_updated events
+COLLECTION_PRODUCT_UPDATED_QUEUE_NAME = os.environ.get(
+    "COLLECTION_PRODUCT_UPDATED_QUEUE_NAME", None
+)
+
 # Lock time for request password reset mutation per user (seconds)
 RESET_PASSWORD_LOCK_TIME = parse(
     os.environ.get("RESET_PASSWORD_LOCK_TIME", "15 minutes")
