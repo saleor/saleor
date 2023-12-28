@@ -5,6 +5,7 @@ import logging
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Union
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db.models import QuerySet
 from graphql import GraphQLError
@@ -19,7 +20,7 @@ from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import ExcludedShippingMethod
 from ..const import APP_ID_PREFIX
-from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
+from .const import CACHE_EXCLUDED_SHIPPING_TIME
 from .tasks import trigger_webhook_sync
 
 logger = logging.getLogger(__name__)
@@ -129,7 +130,7 @@ def get_excluded_shipping_methods_or_fetch(
             webhook,
             allow_replica,
             subscribable_object=subscribable_object,
-            timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+            timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         )
         if response_data and type(response_data) is dict:
             excluded_methods.extend(
