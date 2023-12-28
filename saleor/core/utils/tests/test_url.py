@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 
 from django.conf import settings
 
-from ..utils.url import get_default_storage_root_url, prepare_url
+from ..url import get_default_storage_root_url, prepare_url
 
 
 def test_prepare_url():

@@ -24,6 +24,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop demo - #14835 by @fowczarek
 - Add JSON serialization immediately after creating observability events to eliminate extra cPickle serialization and deserialization steps - #14992 by @przlada
 
+- Added caching of GraphQL documents for common queries to improve performance - #14843 by @patrys
+
 # 3.18.0
 
 ### Highlights

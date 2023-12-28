@@ -13,7 +13,7 @@ from django.db.backends.postgresql.base import DatabaseWrapper
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
-from graphql import GraphQLDocument, get_default_backend
+from graphql import GraphQLBackend, GraphQLDocument, GraphQLSchema
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
@@ -55,10 +55,11 @@ class GraphQLView(View):
     # - file upload (https://github.com/lmcgartland/graphene-file-upload)
     # - query batching
 
-    schema = None
+    schema: GraphQLSchema = None  # type: ignore[assignment]
     executor = None
     middleware = None
     root_value = None
+    backend: GraphQLBackend = None  # type: ignore[assignment]
 
     HANDLED_EXCEPTIONS = (
         GraphQLError,
@@ -69,15 +70,13 @@ class GraphQLView(View):
 
     def __init__(
         self,
-        schema=None,
+        schema: GraphQLSchema,
+        backend: GraphQLBackend,
         executor=None,
         middleware: Optional[list[str]] = None,
         root_value=None,
-        backend=None,
     ):
         super().__init__()
-        if backend is None:
-            backend = get_default_backend()
         if middleware is None:
             middleware = settings.GRAPHQL_MIDDLEWARE
             if middleware:
@@ -85,7 +84,7 @@ class GraphQLView(View):
                     self.import_middleware(middleware_name)
                     for middleware_name in middleware
                 ]
-        self.schema = self.schema or schema
+        self.schema = schema
         if middleware is not None:
             self.middleware = list(instantiate_middleware(middleware))
         self.executor = executor

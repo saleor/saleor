@@ -2,7 +2,6 @@ import decimal
 
 import graphene
 from graphene.types.generic import GenericScalar
-from graphql.error import GraphQLError
 from graphql.language import ast
 from measurement.measures import Weight
 
@@ -47,9 +46,7 @@ class PositiveDecimal(Decimal):
     def parse_value(value):
         value = super(PositiveDecimal, PositiveDecimal).parse_value(value)
         if value and value < 0:
-            raise GraphQLError(
-                f"Value cannot be lower than 0. Unsupported value: {value}"
-            )
+            return None
         return value
 
 
@@ -63,7 +60,7 @@ class JSON(GenericScalar):
             }
         elif isinstance(node, ast.ListValue):
             return [GenericScalar.parse_literal(value) for value in node.values]
-        raise GraphQLError("JSON scalar needs to receive a correct JSON structure.")
+        return None
 
     @staticmethod
     def parse_value(value):
@@ -71,7 +68,7 @@ class JSON(GenericScalar):
             return value
         if isinstance(value, list):
             return [GenericScalar.parse_value(v) for v in value]
-        raise GraphQLError("JSON scalar needs to receive a correct JSON structure.")
+        return None
 
 
 class WeightScalar(graphene.Scalar):
@@ -81,8 +78,6 @@ class WeightScalar(graphene.Scalar):
             weight = Weight(**{value["unit"]: value["value"]})
         else:
             weight = WeightScalar.parse_decimal(value)
-        if weight is None:
-            raise GraphQLError(f"Unsupported value: {value}")
         return weight
 
     @staticmethod
@@ -98,8 +93,6 @@ class WeightScalar(graphene.Scalar):
             weight = WeightScalar.parse_literal_object(node)
         else:
             weight = WeightScalar.parse_decimal(node.value)
-        if weight is None:
-            raise GraphQLError(f"Unsupported value: {node.value}")
         return weight
 
     @staticmethod
@@ -121,7 +114,7 @@ class WeightScalar(graphene.Scalar):
                 try:
                     value = decimal.Decimal(field.value.value)
                 except decimal.DecimalException:
-                    raise GraphQLError(f"Unsupported value: {field.value.value}")
+                    return None
             if field.name.value == "unit":
                 unit = field.value.value
         return Weight(**{unit: value})
@@ -136,15 +129,15 @@ class UUID(graphene.UUID):
     def parse_literal(node):
         try:
             return super(UUID, UUID).parse_literal(node)
-        except ValueError as e:
-            raise GraphQLError(str(e))
+        except ValueError:
+            return None
 
     @staticmethod
     def parse_value(value):
         try:
             return super(UUID, UUID).parse_value(value)
-        except ValueError as e:
-            raise GraphQLError(str(e))
+        except ValueError:
+            return None
 
 
 # The custom Date scalar is needed as the currently used graphene 2 version is not
