@@ -1,7 +1,11 @@
+from unittest.mock import patch
+
 import graphene
 import pytest
 
 from ....tests.utils import get_graphql_content
+from ...mutations.collection.collection_create import CollectionCreate
+from ...mutations.collection.collection_delete import CollectionDelete
 
 
 @pytest.mark.django_db
@@ -438,3 +442,95 @@ def test_collections_for_federation_query_count(
         assert len(content["data"]["_entities"]) == 3
         for collection_data in content["data"]["_entities"]:
             assert collection_data is not None
+
+
+@patch(
+    "saleor.graphql.product.mutations.collection.collection_delete."
+    "PRODUCTS_BATCH_SIZE",
+    2,
+)
+@patch(
+    "saleor.graphql.product.mutations.collection.collection_create."
+    "PRODUCTS_BATCH_SIZE",
+    2,
+)
+@pytest.mark.parametrize(
+    "mutation_class",
+    [
+        CollectionCreate,
+        CollectionDelete,
+    ],
+)
+def test_collection_batching_not_even(mutation_class):
+    ids = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    batches = list(mutation_class.batch_product_ids(ids))
+    assert batches == [[1, 2], [3, 4], [5, 6], [7, 8], [9]]
+
+
+@patch(
+    "saleor.graphql.product.mutations.collection.collection_delete."
+    "PRODUCTS_BATCH_SIZE",
+    2,
+)
+@patch(
+    "saleor.graphql.product.mutations.collection.collection_create."
+    "PRODUCTS_BATCH_SIZE",
+    2,
+)
+@pytest.mark.parametrize(
+    "mutation_class",
+    [
+        CollectionCreate,
+        CollectionDelete,
+    ],
+)
+def test_collection_batching_even(mutation_class):
+    ids = [1, 2, 3, 4, 5, 6, 7, 8]
+    batches = list(mutation_class.batch_product_ids(ids))
+    assert batches == [[1, 2], [3, 4], [5, 6], [7, 8]]
+
+
+@patch(
+    "saleor.graphql.product.mutations.collection.collection_delete."
+    "PRODUCTS_BATCH_SIZE",
+    2,
+)
+@patch(
+    "saleor.graphql.product.mutations.collection.collection_create."
+    "PRODUCTS_BATCH_SIZE",
+    2,
+)
+@pytest.mark.parametrize(
+    "mutation_class",
+    [
+        CollectionCreate,
+        CollectionDelete,
+    ],
+)
+def test_collection_batching_smaller_than_batch_size(mutation_class):
+    ids = [1]
+    batches = list(mutation_class.batch_product_ids(ids))
+    assert batches == [[1]]
+
+
+@patch(
+    "saleor.graphql.product.mutations.collection.collection_delete."
+    "PRODUCTS_BATCH_SIZE",
+    2,
+)
+@patch(
+    "saleor.graphql.product.mutations.collection.collection_create."
+    "PRODUCTS_BATCH_SIZE",
+    2,
+)
+@pytest.mark.parametrize(
+    "mutation_class",
+    [
+        CollectionCreate,
+        CollectionDelete,
+    ],
+)
+def test_collection_batching_no_ids(mutation_class):
+    ids = []
+    batches = list(mutation_class.batch_product_ids(ids))
+    assert batches == []
