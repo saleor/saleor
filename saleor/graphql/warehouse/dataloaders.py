@@ -226,7 +226,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                 )
                 .values("warehouse_id")
             )
-            warehouses = Warehouse.objects.filter(
+            warehouses = Warehouse.objects.using(self.database_connection_name).filter(
                 Exists(warehouse_channels.filter(warehouse_id=OuterRef("id"))),
                 click_and_collect_option__in=[
                     WarehouseClickAndCollectOption.LOCAL_STOCK,
