@@ -1607,9 +1607,11 @@ class PluginsManager(PaymentInterface):
     def _get_all_plugin_configs(self):
         with opentracing.global_tracer().start_active_span("_get_all_plugin_configs"):
             if not hasattr(self, "_plugin_configs"):
-                plugin_configurations = PluginConfiguration.objects.prefetch_related(
-                    "channel"
-                ).all()
+                plugin_configurations = (
+                    PluginConfiguration.objects.using(self.database)
+                    .prefetch_related("channel")
+                    .all()
+                )
                 self._plugin_configs_per_channel: DefaultDict[
                     Channel, Dict
                 ] = defaultdict(dict)

@@ -203,7 +203,9 @@ class ProductsQueryset(models.QuerySet["Product"]):
     def published(self, channel_slug: str):
         today = datetime.datetime.now(pytz.UTC)
         if channel := (
-            Channel.objects.filter(slug=str(channel_slug), is_active=True).first()
+            Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(slug=str(channel_slug), is_active=True)
+            .first()
         ):
             channel_listings = ProductChannelListing.objects.filter(
                 Q(published_at__lte=today) | Q(published_at__isnull=True),
