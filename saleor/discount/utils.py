@@ -341,6 +341,14 @@ def apply_discount_to_value(
 
 
 def create_or_update_discount_objects_from_promotion_for_checkout(
+    checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
+):
+    create_discount_objects_for_catalogue_promotions(lines_info)
+    create_discount_objects_for_checkout_and_order_promotions(checkout_info, lines_info)
+
+
+def create_discount_objects_for_catalogue_promotions(
     lines_info: Iterable["CheckoutLineInfo"],
 ):
     line_discounts_to_create = []
@@ -617,3 +625,10 @@ def get_current_products_for_rules(rules: "QuerySet[PromotionRule]"):
         Exists(rule_variants.filter(productvariant_id=OuterRef("id")))
     )
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
+
+
+def create_discount_objects_for_checkout_and_order_promotions(
+    checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
+):
+    pass

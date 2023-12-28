@@ -247,6 +247,11 @@ def _fetch_checkout_prices_if_expired(
     should_charge_tax = charge_taxes and not checkout.tax_exemption
 
     create_or_update_discount_objects_from_promotion_for_checkout(lines)
+    # TODO: maybe here we should chose the best promotion rule
+    # and create for that the CheckoutDiscount object
+    # We can set the proper type of CheckoutDiscount to distinguish
+    # which is coming from catalogue and which from checkoutAndOrderDiscount
+    # Then in total calculation we need to apply this discount on CheckoutLine.
 
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to

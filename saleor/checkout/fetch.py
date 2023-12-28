@@ -76,6 +76,10 @@ class CheckoutInfo:
     valid_pick_up_points: list["Warehouse"]
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
+    # TODO: consider adding rules_info here for checkoutAndOrderPredicate
+    # maybe the name of the field should be different, as we would like to have
+    # such objects on CheckoutLineInfo too.
+    # available_checkout_rule_infos ?
 
     @property
     def valid_shipping_methods(self) -> list["ShippingMethodData"]:

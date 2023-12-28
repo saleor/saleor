@@ -103,6 +103,11 @@ def calculate_checkout_line_total(
         checkout_line_info,
         checkout_info.channel,
     )
+    # TODO:
+    # if not checkout_info.checkout.voucher_code:
+    # apply checkoutAndOrderPredicate discount if applicable
+    # Consider extending the apply_checkout_discount_on_checkout_line
+    # method to handle this case
     total_price = base_calculations.apply_checkout_discount_on_checkout_line(
         checkout_info,
         lines,
