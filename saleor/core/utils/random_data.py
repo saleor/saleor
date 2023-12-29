@@ -14,7 +14,6 @@ from unittest.mock import patch
 import graphene
 from django.conf import settings
 from django.core.files import File
-from django.db import connection
 from django.db.models import F
 from django.utils import timezone
 from django.utils.text import slugify
@@ -515,11 +514,7 @@ def create_fake_user(user_password, save=True):
     except User.DoesNotExist:
         pass
 
-    _, max_user_id = connection.ops.integer_field_range(
-        User.id.field.get_internal_type()
-    )
     user = User(
-        id=fake.random_int(min=1, max=max_user_id),
         first_name=address.first_name,
         last_name=address.last_name,
         email=email,
