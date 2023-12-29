@@ -68,7 +68,9 @@ def invalidate_checkout_prices(
     checkout = checkout_info.checkout
 
     if recalculate_discount:
-        create_or_update_discount_objects_from_promotion_for_checkout(lines)
+        create_or_update_discount_objects_from_promotion_for_checkout(
+            checkout_info, lines
+        )
         recalculate_checkout_discount(manager, checkout_info, lines)
 
     checkout.price_expiration = timezone.now()

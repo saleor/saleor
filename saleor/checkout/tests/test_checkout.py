@@ -327,6 +327,7 @@ def test_get_discount_for_checkout_value_entire_order_voucher(
         valid_pick_up_points=[],
         delivery_method_info=get_delivery_method_info(None, None),
         all_shipping_methods=[],
+        discounts=[],
     )
     lines = [
         CheckoutLineInfo(
@@ -491,6 +492,7 @@ def test_get_discount_for_checkout_value_specific_product_voucher(
         valid_pick_up_points=[],
         delivery_method_info=get_delivery_method_info(None, None),
         all_shipping_methods=[],
+        discounts=[],
     )
     lines = [
         CheckoutLineInfo(
@@ -606,6 +608,7 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         tax_configuration=channel_USD.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     manager = get_plugins_manager(allow_replica=False)
     with pytest.raises(NotApplicable):
@@ -785,6 +788,7 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         tax_configuration=channel_USD.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_checkout(manager, voucher, checkout_info, [], None)
@@ -892,6 +896,7 @@ def test_get_discount_for_checkout_shipping_voucher(
         tax_configuration=channel_USD.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
 
     discount = get_voucher_discount_for_checkout(
@@ -944,6 +949,7 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
         tax_configuration=channel_USD.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     discount = get_voucher_discount_for_checkout(
         manager, voucher, checkout_info, [], None
@@ -990,6 +996,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         tax_configuration=channel_USD.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     manager = get_plugins_manager(allow_replica=False)
     with pytest.raises(NotApplicable):
@@ -1145,6 +1152,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         tax_configuration=channel_USD.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_checkout(

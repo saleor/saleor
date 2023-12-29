@@ -27,7 +27,12 @@ if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
     from ..discount.interface import VariantPromotionRuleInfo, VoucherInfo
-    from ..discount.models import CheckoutLineDiscount, Voucher, VoucherCode
+    from ..discount.models import (
+        CheckoutDiscount,
+        CheckoutLineDiscount,
+        Voucher,
+        VoucherCode,
+    )
     from ..plugins.manager import PluginsManager
     from ..product.models import (
         Collection,
@@ -74,12 +79,10 @@ class CheckoutInfo:
     all_shipping_methods: list["ShippingMethodData"]
     tax_configuration: "TaxConfiguration"
     valid_pick_up_points: list["Warehouse"]
+    # TODO: add fetching current discounts?
+    discounts: list["CheckoutDiscount"]
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
-    # TODO: consider adding rules_info here for checkoutAndOrderPredicate
-    # maybe the name of the field should be different, as we would like to have
-    # such objects on CheckoutLineInfo too.
-    # available_checkout_rule_infos ?
 
     @property
     def valid_shipping_methods(self) -> list["ShippingMethodData"]:
@@ -443,6 +446,7 @@ def fetch_checkout_info(
         tax_configuration=tax_configuration,
         all_shipping_methods=[],
         valid_pick_up_points=[],
+        discounts=[],
         voucher=voucher,
         voucher_code=voucher_code,
     )

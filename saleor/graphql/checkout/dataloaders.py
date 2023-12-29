@@ -540,6 +540,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             ],
                             valid_pick_up_points=[],
                             all_shipping_methods=[],
+                            discounts=[],
                             voucher=voucher_code.voucher if voucher_code else None,
                             voucher_code=voucher_code,
                         )

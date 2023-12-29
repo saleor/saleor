@@ -17,13 +17,18 @@ from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
+from ..checkout.base_calculations import (
+    base_checkout_delivery_price,
+    base_checkout_subtotal,
+)
 from ..checkout.models import Checkout
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
 from ..discount.models import VoucherCustomer
 from ..product.models import Product, ProductVariant
-from . import DiscountType, PromotionRuleInfo
+from . import DiscountType, PromotionRuleInfo, RewardType
 from .models import (
+    CheckoutDiscount,
     CheckoutLineDiscount,
     DiscountValueType,
     NotApplicable,
@@ -513,6 +518,58 @@ def _update_line_discount(
         updated_fields.append("translated_name")
 
 
+def create_discount_objects_for_checkout_and_order_promotions(
+    checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
+):
+    checkout = checkout_info.checkout
+    # Discount from checkout and order rules is applied only when the voucher is not set
+    if checkout.voucher_code:
+        # TODO: check if any discounts for checkout and order promotion exists
+        # if yes - delete
+        return
+    rules = fetch_promotion_rules_for_checkout(checkout)
+    if not rules:
+        return
+    subtotal = base_checkout_subtotal(
+        lines_info, checkout_info.channel, checkout.currency
+    )
+    shipping_price = base_checkout_delivery_price(checkout_info, lines_info)
+    total = subtotal + shipping_price
+    currency_code = checkout_info.channel.currency_code
+    rule_with_discount_amount = []
+    for rule in rules:
+        discount = rule.get_discount(currency_code)
+        price = zero_money(currency_code)
+        if rule.reward_type == RewardType.SUBTOTAL_DISCOUNT:
+            price = subtotal
+        elif rule.reward_type == RewardType.TOTAL_DISCOUNT:
+            price = total
+        discount_amount = price - discount(price)
+        rule_with_discount_amount.append((rule, discount_amount))
+
+    best_rule, best_discount_amount = max(rule_with_discount_amount, key=lambda x: x[1])
+    promotion = best_rule.promotion
+    # TODO: check if any exist - update existing one or create new one
+    # TODO: handle two scenario when this method is called almost in the same time
+    # we need get_or_create probably and transaction
+    discount_name = get_discount_name(best_rule, promotion)
+    checkout_discount = CheckoutDiscount.objects.create(
+        checkout=checkout,
+        promotion_rule=best_rule,
+        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+        value_type=best_rule.reward_value_type,
+        value=best_rule.reward_value,
+        amount_value=best_discount_amount.amount,
+        currency=currency_code,
+        name=discount_name,
+        reason=prepare_promotion_discount_reason(promotion, get_sale_id(promotion)),
+    )
+    checkout_info.discounts = [checkout_discount]
+    checkout.discount_amount = best_discount_amount
+    checkout.discount_name = discount_name
+
+
 def get_variants_to_promotions_map(
     variant_qs: "ProductVariantQueryset",
 ) -> dict[int, dict[UUID, list[PromotionRuleInfo]]]:
@@ -569,7 +626,7 @@ def fetch_promotion_rules_for_checkout(
 ):
     from ..graphql.discount.utils import PredicateObjectType, filter_qs_by_predicate
 
-    rules_per_promotion_id = defaultdict(list)
+    applicable_rules = []
     promotions = Promotion.objects.active()
     rules = (
         PromotionRule.objects.filter(
@@ -594,9 +651,9 @@ def fetch_promotion_rules_for_checkout(
             currency,
         )
         if checkouts.exists():
-            rules_per_promotion_id[rule.promotion_id].append(rule)
+            applicable_rules.append(rule)
 
-    return rules_per_promotion_id
+    return applicable_rules
 
 
 def _get_rule_to_channel_ids_map(rules: QuerySet):
@@ -625,10 +682,3 @@ def get_current_products_for_rules(rules: "QuerySet[PromotionRule]"):
         Exists(rule_variants.filter(productvariant_id=OuterRef("id")))
     )
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
-
-
-def create_discount_objects_for_checkout_and_order_promotions(
-    checkout_info: "CheckoutInfo",
-    lines_info: Iterable["CheckoutLineInfo"],
-):
-    pass

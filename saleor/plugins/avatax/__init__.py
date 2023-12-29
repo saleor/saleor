@@ -511,26 +511,7 @@ def generate_request_data_from_checkout(
     if not lines:
         return {}
 
-    discount_amount = Decimal("0")
-    if voucher := checkout_info.voucher:
-        # for apply_once_per_order vouchers the discount is already applied on lines
-        applicable_discount = (
-            voucher.type != VoucherType.SPECIFIC_PRODUCT
-            and not voucher.apply_once_per_order
-        )
-
-        if voucher.type == VoucherType.SHIPPING:
-            # when the taxes are not calculated on shipping method, the shipping
-            # discount cannot by applied by plugin
-            applicable_discount = applicable_discount and SHIPPING_ITEM_CODE in {
-                line["itemCode"] for line in lines
-            }
-
-        discount_amount = (
-            checkout_info.checkout.discount.amount
-            if applicable_discount
-            else Decimal("0")
-        )
+    discount_amount = _get_checkout_discount_amount(checkout_info, lines)
 
     currency = checkout_info.checkout.currency
     customer_email = cast(str, checkout_info.get_customer_email())
@@ -545,6 +526,38 @@ def generate_request_data_from_checkout(
         currency=currency,
     )
     return data
+
+
+def _get_checkout_discount_amount(checkout_info, lines):
+    """Return the discount amount for the checkout.
+
+    Return the discount amount from the entire order or shipping voucher, or from
+    checkout and order promotion discount if there is no voucher and any promotion
+    is eligible.
+    """
+    discount_amount = Decimal("0")
+    if voucher := checkout_info.voucher or checkout_info.discounts:
+        # for apply_once_per_order vouchers the discount is already applied on lines
+        applicable_discount = True
+        if voucher:
+            applicable_discount = (
+                voucher.type != VoucherType.SPECIFIC_PRODUCT
+                and not voucher.apply_once_per_order
+            )
+
+            if voucher.type == VoucherType.SHIPPING:
+                # when the taxes are not calculated on shipping method, the shipping
+                # discount cannot by applied by plugin
+                applicable_discount = applicable_discount and SHIPPING_ITEM_CODE in {
+                    line["itemCode"] for line in lines
+                }
+
+        discount_amount = (
+            checkout_info.checkout.discount_amount
+            if applicable_discount
+            else Decimal("0")
+        )
+    return discount_amount
 
 
 def _fetch_new_taxes_data(

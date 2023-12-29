@@ -12710,6 +12710,7 @@ enum OrderDiscountType @doc(category: "Discounts") {
   VOUCHER
   MANUAL
   PROMOTION
+  CHECKOUT_AND_ORDER_PROMOTION
 }
 
 type OrderError @doc(category: "Orders") {

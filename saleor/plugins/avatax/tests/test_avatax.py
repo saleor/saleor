@@ -2002,7 +2002,7 @@ def test_calculate_checkout_subtotal_with_promotion(
     update_discounted_prices_for_promotion(Product.objects.all())
 
     lines, _ = fetch_checkout_lines(checkout)
-    create_or_update_discount_objects_from_promotion_for_checkout(lines)
+    create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
 
     # when
     total = manager.calculate_checkout_subtotal(checkout_info, lines, address)
@@ -3367,6 +3367,7 @@ def test_get_checkout_line_tax_rate(
         tax_configuration=checkout_with_item.channel.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
@@ -3432,6 +3433,7 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
         tax_configuration=checkout_with_item.channel.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
@@ -3506,6 +3508,7 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
         tax_configuration=checkout_with_item.channel.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     add_variant_to_checkout(checkout_info, variant2, 1)
 

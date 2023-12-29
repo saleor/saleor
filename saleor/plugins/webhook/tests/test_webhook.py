@@ -26,7 +26,7 @@ from ....account.notifications import (
     send_account_confirmation,
 )
 from ....app.models import App
-from ....checkout.fetch import fetch_checkout_lines
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
@@ -1059,6 +1059,8 @@ def test_checkout_payload_includes_promotions(
     # given
     checkout = checkout_with_item
     checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 
     variant = checkout_lines[0].variant
     channel_listing = variant.channel_listings.first()
@@ -1097,7 +1099,9 @@ def test_checkout_payload_includes_promotions(
         )
     ]
 
-    create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines)
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines
+    )
 
     variant_price_with_sale = variant.get_price(
         channel_listing=channel_listing,

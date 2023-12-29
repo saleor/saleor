@@ -235,10 +235,13 @@ def test_serialize_checkout_lines_with_promotion(checkout_with_item_on_promotion
     checkout = checkout_with_item_on_promotion
     channel = checkout.channel
     checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
-
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
     variant = checkout_lines[0].variant
 
-    create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines)
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines
+    )
 
     # when
     checkout_lines_data = serialize_checkout_lines(checkout)
@@ -351,7 +354,7 @@ def test_serialize_checkout_lines_for_tax_calculation_with_promotion(
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    create_or_update_discount_objects_from_promotion_for_checkout(lines)
+    create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
 
     tax_configuration = checkout_info.tax_configuration
     tax_configuration.country_exceptions.all().delete()

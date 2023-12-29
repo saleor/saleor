@@ -16,6 +16,8 @@ from ..core.taxes import zero_money
 from ..discount import DiscountValueType, VoucherType
 
 if TYPE_CHECKING:
+    from decimal import Decimal
+
     from ..channel.models import Channel
     from .fetch import CheckoutInfo, CheckoutLineInfo, ShippingMethodInfo
 
@@ -245,13 +247,13 @@ def checkout_total(
     shipping_price = base_checkout_delivery_price(checkout_info, lines)
     discount = checkout_info.checkout.discount
 
-    # only entire_order discount with apply_once_per_order set to False is not
-    # already included in the total price
-    discount_not_included = (
-        checkout_info.voucher.type == VoucherType.ENTIRE_ORDER
+    # checkout and order promotion discount and entire_order discount with
+    # apply_once_per_order set to False is not already included in the total price
+    discounted_object_promotion = bool(checkout_info.discounts)
+    discount_not_included = discounted_object_promotion or (
+        checkout_info.voucher
+        and checkout_info.voucher.type == VoucherType.ENTIRE_ORDER
         and not checkout_info.voucher.apply_once_per_order
-        if checkout_info.voucher
-        else False
     )
     # Discount is subtracted from both gross and net values, which may cause negative
     # net value if we are having a discount that covers whole price.
@@ -268,21 +270,44 @@ def apply_checkout_discount_on_checkout_line(
 ):
     """Calculate the checkout line price with discounts.
 
-    Include the entire order voucher discount.
+    Include the entire order voucher discount or discount from checkout and order
+    promotion (this discount is applied only when voucher code is not set).
     The discount amount is calculated for every line proportionally to
     the rate of total line price to checkout total price.
     """
     voucher = checkout_info.voucher
-    if (
-        not voucher
-        or voucher.apply_once_per_order
+    if voucher and (
+        voucher.apply_once_per_order
         or voucher.type in [VoucherType.SHIPPING, VoucherType.SPECIFIC_PRODUCT]
     ):
         return line_total_price
 
+    if not voucher and not checkout_info.discounts:
+        return line_total_price
+
     total_discount_amount = checkout_info.checkout.discount_amount
-    line_total_price = line_total_price
-    currency = checkout_info.checkout.currency
+    return _get_discounted_checkout_line_price(
+        checkout_line_info,
+        lines,
+        line_total_price,
+        total_discount_amount,
+        checkout_info.channel,
+    )
+
+
+def _get_discounted_checkout_line_price(
+    checkout_line_info: "CheckoutLineInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    line_total_price: Money,
+    total_discount_amount: "Decimal",
+    channel: "Channel",
+):
+    """Apply checkout discount on checkout line price.
+
+    Propagate the discount amount proportionally to total prices of items.
+    Ensure that the sum of discounts is equal to the discount amount.
+    """
+    currency = channel.currency_code
 
     lines = list(lines)
 
@@ -299,7 +324,7 @@ def apply_checkout_discount_on_checkout_line(
     lines_total_prices = [
         calculate_base_line_total_price(
             line_info,
-            checkout_info.channel,
+            channel,
         ).amount
         for line_info in lines
         if line_info.line.id != checkout_line_info.line.id

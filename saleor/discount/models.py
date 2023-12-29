@@ -440,7 +440,7 @@ class BaseDiscount(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     type = models.CharField(
-        max_length=10,
+        max_length=64,
         choices=DiscountType.CHOICES,
         default=DiscountType.MANUAL,
     )
