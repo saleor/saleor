@@ -18,6 +18,7 @@ class DiscountValueType:
 class DiscountType:
     SALE = "sale"
     PROMOTION = "promotion"
+    DISCOUNTED_OBJECT_PROMOTION = "discounted_object_promotion"
     VOUCHER = "voucher"
     MANUAL = "manual"
     CHOICES = [
@@ -52,9 +53,11 @@ class RewardValueType:
 
 class RewardType:
     SUBTOTAL_DISCOUNT = "subtotal_discount"
+    TOTAL_DISCOUNT = "total_discount"
 
     CHOICES = [
         (SUBTOTAL_DISCOUNT, "subtotal_discount"),
+        (TOTAL_DISCOUNT, "total_discount"),
     ]
 
 

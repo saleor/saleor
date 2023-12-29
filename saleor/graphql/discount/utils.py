@@ -29,9 +29,13 @@ from ..product.filters import (
 PREDICATE_OPERATOR_DATA_T = list[dict[str, Union[list, dict, str, bool]]]
 
 
-class PredicateObjectType(Enum):
+class PredicateType(Enum):
     CATALOGUE = "catalogue"
     CHECKOUT_AND_ORDER = "checkout_and_order"
+
+
+class PredicateObjectType(Enum):
+    CATALOGUE = "catalogue"
     CHECKOUT = "checkout"
     ORDER = "order"
 

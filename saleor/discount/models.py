@@ -526,6 +526,25 @@ class OrderLineDiscount(BaseDiscount):
         ordering = ("created_at", "id")
 
 
+class CheckoutDiscount(BaseDiscount):
+    checkout = models.ForeignKey(
+        "checkout.Checkout",
+        related_name="discounts",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        indexes = [
+            BTreeIndex(fields=["promotion_rule"], name="checkoutdiscount_rule_idx"),
+            # Orders searching index
+            GinIndex(fields=["name", "translated_name"]),
+            GinIndex(fields=["voucher_code"], name="checkoutdiscount_voucher_idx"),
+        ]
+        ordering = ("created_at", "id")
+
+
 class CheckoutLineDiscount(BaseDiscount):
     line = models.ForeignKey(
         "checkout.CheckoutLine",

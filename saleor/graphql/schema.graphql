@@ -14306,6 +14306,7 @@ enum RewardValueTypeEnum @doc(category: "Discounts") {
 """An enumeration."""
 enum RewardTypeEnum @doc(category: "Discounts") {
   SUBTOTAL_DISCOUNT
+  TOTAL_DISCOUNT
 }
 
 union PromotionEvent = PromotionCreatedEvent | PromotionUpdatedEvent | PromotionStartedEvent | PromotionEndedEvent | PromotionRuleCreatedEvent | PromotionRuleUpdatedEvent | PromotionRuleDeletedEvent
