@@ -747,17 +747,6 @@ for entry_point in installed_plugins:
 
 PLUGINS = BUILTIN_PLUGINS + EXTERNAL_PLUGINS
 
-# Default timeout (sec) for establishing a connection when performing external requests.
-REQUESTS_CONN_EST_TIMEOUT = 2
-
-# Default timeout for external requests.
-COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
-
-# Timeouts for webhook requests. Sync webhooks (eg. payment webhook) need more time
-# for getting response from the server.
-WEBHOOK_TIMEOUT = 10
-WEBHOOK_SYNC_TIMEOUT = COMMON_REQUESTS_TIMEOUT
-
 # When `True`, HTTP requests made from arbitrary URLs will be rejected (e.g., webhooks).
 # if they try to access private IP address ranges, and loopback ranges (unless
 # `HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS=False`).
@@ -882,3 +871,13 @@ CONFIRMATION_EMAIL_LOCK_TIME = parse(
 OAUTH_UPDATE_LAST_LOGIN_THRESHOLD = parse(
     os.environ.get("OAUTH_UPDATE_LAST_LOGIN_THRESHOLD", "15 minutes")
 )
+
+
+# Default timeout (sec) for establishing a connection when performing external requests.
+REQUESTS_CONN_EST_TIMEOUT = 2
+
+# Default timeout for external requests.
+COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
+
+WEBHOOK_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
+WEBHOOK_SYNC_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
