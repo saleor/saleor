@@ -14,6 +14,7 @@ from unittest.mock import patch
 import graphene
 from django.conf import settings
 from django.core.files import File
+from django.db import connection
 from django.db.models import F
 from django.utils import timezone
 from django.utils.text import slugify
@@ -504,7 +505,7 @@ def create_address(save=True, **kwargs):
     return address
 
 
-def create_fake_user(user_password, save=True):
+def create_fake_user(user_password, save=True, generate_id=False):
     address = create_address(save=save)
     email = get_email(address.first_name, address.last_name)
 
@@ -514,15 +515,25 @@ def create_fake_user(user_password, save=True):
     except User.DoesNotExist:
         pass
 
+    user_params = {
+        "first_name": address.first_name,
+        "last_name": address.last_name,
+        "email": email,
+        "default_billing_address": address,
+        "default_shipping_address": address,
+        "is_active": True,
+        "note": fake.paragraph(),
+        "date_joined": fake.date_time(tzinfo=timezone.get_current_timezone()),
+    }
+
+    if generate_id:
+        _, max_user_id = connection.ops.integer_field_range(
+            User.id.field.get_internal_type()
+        )
+        user_params["id"] = fake.random_int(min=1, max=max_user_id)
+
     user = User(
-        first_name=address.first_name,
-        last_name=address.last_name,
-        email=email,
-        default_billing_address=address,
-        default_shipping_address=address,
-        is_active=True,
-        note=fake.paragraph(),
-        date_joined=fake.date_time(tzinfo=timezone.get_current_timezone()),
+        **user_params,
     )
     user.search_document = _prepare_search_document_value(user, address)
 
