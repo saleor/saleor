@@ -128,7 +128,7 @@ class StockBulkUpdate(BaseMutation):
                     )
                     errors_count += 1
                 else:
-                    stock_input["variant_id"] = variant_db_id
+                    stock_input["product_variant_id"] = variant_db_id
             except Exception:
                 index_error_map[index].append(
                     StockBulkUpdateError(
@@ -206,14 +206,14 @@ class StockBulkUpdate(BaseMutation):
                     else "warehouse_external_reference"
                 )
                 variant_selector = (
-                    "variant_id"
+                    "product_variant_id"
                     if cleaned_inputs_map[0].get("variant_id")
                     else "variant_external_reference"
                 )
                 break
 
         if not warehouse_selector or not variant_selector:
-            return "warehouse_id", "variant_id"
+            return "warehouse_id", "product_variant_id"
 
         # check if all inputs have same selectors
         if not all(warehouse_selector in s for s in cleaned_inputs_map.values() if s):
@@ -278,9 +278,6 @@ class StockBulkUpdate(BaseMutation):
     def _get_stock(
         cls, warehouse_selector, variant_selector, warehouse_value, variant_value
     ):
-        if variant_selector == "variant_id":
-            variant_selector = "product_variant_id"
-
         return (
             lambda stock: str(getattr(stock, warehouse_selector)) == warehouse_value
             and str(getattr(stock, variant_selector)) == variant_value
@@ -291,7 +288,7 @@ class StockBulkUpdate(BaseMutation):
         cls, cleaned_inputs_map, warehouse_selector, variant_selector, index_error_map
     ):
         instances_data_and_errors_list: list = []
-        stocks_list = cls.get_stocks(
+        selectors_stock_map = cls.get_stocks(
             cleaned_inputs_map, warehouse_selector, variant_selector
         )
 
@@ -305,21 +302,12 @@ class StockBulkUpdate(BaseMutation):
             warehouse_value = cleaned_input.get(warehouse_selector)
             variant_value = cleaned_input.get(variant_selector)
 
-            filter_stock = list(
-                filter(
-                    cls._get_stock(
-                        warehouse_selector,
-                        variant_selector,
-                        warehouse_value,
-                        variant_value,
-                    ),
-                    stocks_list,
-                )
-            )
+            filter_stock = selectors_stock_map.get(f"{variant_value}_{warehouse_value}")
+
             if filter_stock:
-                filter_stock[0].quantity = cleaned_input["quantity"]
+                filter_stock.quantity = cleaned_input["quantity"]
                 instances_data_and_errors_list.append(
-                    {"instance": filter_stock[0], "errors": index_error_map[index]}
+                    {"instance": filter_stock, "errors": index_error_map[index]}
                 )
             else:
                 index_error_map[index].append(
@@ -337,7 +325,7 @@ class StockBulkUpdate(BaseMutation):
     @classmethod
     def get_stocks(
         cls, cleaned_inputs_map: dict, warehouse_selector: str, variant_selector: str
-    ) -> list[models.Stock]:
+    ) -> dict[str, models.Stock]:
         warehouses = (
             stock_input[warehouse_selector]
             for stock_input in cleaned_inputs_map.values()
@@ -351,14 +339,14 @@ class StockBulkUpdate(BaseMutation):
         )
 
         if not warehouses or not variants:
-            return []
+            return {}
 
         if warehouse_selector == "warehouse_id":
             warehouse_lookup = Q(warehouse_id__in=warehouses)
         else:
             warehouse_lookup = Q(warehouse__external_reference__in=warehouses)
 
-        if variant_selector == "variant_id":
+        if variant_selector == "product_variant_id":
             variant_lookup = Q(product_variant_id__in=variants)
         else:
             variant_lookup = Q(product_variant__external_reference__in=variants)
@@ -369,17 +357,20 @@ class StockBulkUpdate(BaseMutation):
             variant_external_reference=F("product_variant__external_reference"),
             warehouse_external_reference=F("warehouse__external_reference"),
         )
-        return list(stocks)
+
+        selectors_stock_map = {
+            f"{getattr(s, variant_selector)}_{getattr(s, warehouse_selector)}": s
+            for s in stocks
+        }
+        return selectors_stock_map
 
     @classmethod
     def save_stocks(cls, instances_data_with_errors_list):
-        stocks_to_update = []
-
-        for stock_data in instances_data_with_errors_list:
-            stock = stock_data["instance"]
-            if not stock:
-                continue
-            stocks_to_update.append(stock)
+        stocks_to_update = [
+            stock_data["instance"]
+            for stock_data in instances_data_with_errors_list
+            if stock_data["instance"]
+        ]
 
         models.Stock.objects.bulk_update(stocks_to_update, fields=["quantity"])
 
