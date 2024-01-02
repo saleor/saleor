@@ -182,7 +182,7 @@ def send_webhook_using_http(
 
 def send_webhook_using_aws_sqs(
     target_url, message, domain, signature, event_type, **kwargs
-):
+) -> WebhookResponse:
     parts = urlparse(target_url)
     region = "us-east-1"
     hostname_parts = parts.hostname.split(".")
@@ -236,7 +236,7 @@ def send_webhook_using_aws_sqs(
             return WebhookResponse(
                 content=str(e), status=EventDeliveryStatus.FAILED, duration=duration()
             )
-        return WebhookResponse(content=response, duration=duration())
+        return WebhookResponse(content=str(response), duration=duration())
 
 
 def send_webhook_using_google_cloud_pubsub(
