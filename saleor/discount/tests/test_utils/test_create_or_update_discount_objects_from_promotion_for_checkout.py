@@ -7,10 +7,11 @@ from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
+from ....checkout.base_calculations import base_checkout_total
 from ....discount.interface import VariantPromotionRuleInfo
 from ....product.models import VariantChannelListingPromotionRule
 from ... import DiscountType, RewardType, RewardValueType
-from ...models import CheckoutLineDiscount, PromotionRule
+from ...models import CheckoutDiscount, CheckoutLineDiscount, PromotionRule
 from ...utils import create_or_update_discount_objects_from_promotion_for_checkout
 
 
@@ -1351,3 +1352,133 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
     assert checkout_info.checkout.discounts.count() == 1
     assert len(checkout_info.discounts) == 1
     assert checkout_info.discounts[0].promotion_rule == rules[0]
+    discount = checkout_info.discounts[0]
+    assert discount.promotion_rule == rules[0]
+    assert discount.type == DiscountType.CHECKOUT_AND_ORDER_PROMOTION
+    assert discount.value_type == RewardValueType.FIXED
+    assert discount.value == rules[0].reward_value
+    assert discount.amount_value == rules[0].reward_value
+    assert discount.name == f"{promotion.name}: {rules[0].name}"
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    assert discount.reason == f"Promotion: {promotion_id}"
+
+
+def test_create_or_update_discount_from_promotion_voucher_code_set_checkout_discount(
+    checkout_info,
+    checkout_lines_info,
+    promotion_without_rules,
+    voucher,
+):
+    # given
+    promotion = promotion_without_rules
+    checkout = checkout_info.checkout
+    checkout_info.voucher = voucher
+    checkout_info.checkout.voucher_code = voucher.code
+
+    price = Money("30", checkout_info.checkout.currency)
+    checkout.total = TaxedMoney(net=price, gross=price)
+    checkout.subtotal = TaxedMoney(net=price, gross=price)
+    checkout.save(
+        update_fields=[
+            "total_net_amount",
+            "total_gross_amount",
+            "subtotal_net_amount",
+            "subtotal_gross_amount",
+        ]
+    )
+
+    rule = PromotionRule.objects.create(
+        name="Checkout and order promotion rule 1",
+        promotion=promotion,
+        checkout_and_order_predicate={
+            "total_price": {
+                "range": {
+                    "gte": 10,
+                }
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("25"),
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule.channels.add(checkout_info.channel)
+    discount = CheckoutDiscount.objects.create(
+        checkout=checkout,
+        promotion_rule=rule,
+        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+    )
+    checkout_info.discounts = [discount]
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines_info
+    )
+
+    # then
+    assert checkout_info.discounts == []
+    assert not checkout.discounts.all()
+    with pytest.raises(CheckoutDiscount.DoesNotExist):
+        discount.refresh_from_db()
+
+
+def test_create_or_update_discount_from_promotion_checkout_discount_updated(
+    checkout_info,
+    checkout_lines_info,
+    promotion_without_rules,
+    promotion_rule,
+):
+    # given
+    promotion = promotion_without_rules
+    checkout = checkout_info.checkout
+
+    checkout_total = base_checkout_total(checkout_info, checkout_lines_info)
+    checkout.total = TaxedMoney(net=checkout_total, gross=checkout_total)
+    checkout.subtotal = TaxedMoney(net=checkout_total, gross=checkout_total)
+    checkout.save(
+        update_fields=[
+            "total_net_amount",
+            "total_gross_amount",
+            "subtotal_net_amount",
+            "subtotal_gross_amount",
+        ]
+    )
+
+    rule = PromotionRule.objects.create(
+        name="Checkout and order promotion rule 1",
+        promotion=promotion,
+        checkout_and_order_predicate={
+            "total_price": {
+                "range": {
+                    "gte": 10,
+                }
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("25"),
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule.channels.add(checkout_info.channel)
+    discount = CheckoutDiscount.objects.create(
+        checkout=checkout,
+        promotion_rule=promotion_rule,
+        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+    )
+    checkout_info.discounts = [discount]
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines_info
+    )
+
+    # then
+    assert checkout_info.discounts == [discount]
+    assert checkout.discounts.count() == 1
+    discount = checkout_info.discounts[0]
+    assert discount.promotion_rule_id == rule.id
+    assert discount.type == DiscountType.CHECKOUT_AND_ORDER_PROMOTION
+    assert discount.value_type == rule.reward_value_type
+    assert discount.value == rule.reward_value
+    assert discount.amount_value == (checkout_total * rule.reward_value / 100).amount
+    assert discount.name == f"{promotion.name}: {rule.name}"
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    assert discount.reason == f"Promotion: {promotion_id}"
