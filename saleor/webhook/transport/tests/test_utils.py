@@ -1,4 +1,5 @@
 import datetime
+import json
 from unittest.mock import MagicMock
 
 import boto3
@@ -163,4 +164,4 @@ def test_send_webhook_using_aws_sqs(
         expected_call_args.update({"MessageGroupId": domain})
     mocked_client.send_message.assert_called_once_with(**expected_call_args)
     assert webhook_response.status == EventDeliveryStatus.SUCCESS
-    assert webhook_response.content == str(sqs_response)
+    assert webhook_response.content == json.dumps(sqs_response)
