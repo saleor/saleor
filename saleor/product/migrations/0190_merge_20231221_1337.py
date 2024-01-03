@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('product', '0186_alter_productmedia_alt'),
-        ('product', '0189_merge_20230929_0857'),
+        ("product", "0186_alter_productmedia_alt"),
+        ("product", "0189_merge_20230929_0857"),
     ]
 
-    operations = [
-    ]
+    operations = []
