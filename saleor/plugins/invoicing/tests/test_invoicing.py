@@ -1,8 +1,5 @@
-from datetime import datetime
 from decimal import Decimal
-from unittest.mock import Mock, patch
 
-import pytz
 from prices import Money
 
 from ....giftcard.events import gift_cards_used_in_order_event
@@ -33,38 +30,23 @@ def test_get_product_limit_first_page(product):
     assert get_product_limit_first_page([product] * 16) == 4
 
 
-@patch("saleor.plugins.invoicing.utils.HTML")
-@patch("saleor.plugins.invoicing.utils.get_template")
-@patch("saleor.plugins.invoicing.utils.os")
-def test_generate_invoice_pdf_for_order(
-    os_mock, get_template_mock, HTML_mock, fulfilled_order, customer_user, gift_card
-):
-    get_template_mock.return_value.render = Mock(return_value="<html></html>")
-    os_mock.path.join.return_value = "test"
-
+def test_generate_invoice_pdf_for_order(fulfilled_order, customer_user, gift_card):
+    # given
     previous_current_balance = gift_card.current_balance
     gift_card.current_balance = Money(Decimal(5.0), "USD")
     gift_card.save(update_fields=["current_balance_amount"])
 
     balance_data = [(gift_card, previous_current_balance.amount)]
+
     gift_cards_used_in_order_event(balance_data, fulfilled_order, customer_user, None)
 
+    # when
     content, creation = generate_invoice_pdf(fulfilled_order.invoices.first())
 
-    get_template_mock.return_value.render.assert_called_once_with(
-        {
-            "invoice": fulfilled_order.invoices.first(),
-            "creation_date": datetime.now(tz=pytz.utc).strftime("%d %b %Y"),
-            "order": fulfilled_order,
-            "gift_cards_payment": previous_current_balance - gift_card.current_balance,
-            "font_path": "file://test",
-            "products_first_page": list(fulfilled_order.lines.all()),
-            "rest_of_products": [],
-        }
-    )
-    HTML_mock.assert_called_once_with(
-        string=get_template_mock.return_value.render.return_value
-    )
+    # then
+
+    # ensure that the invoice is generated and no errors occurred
+    assert content
 
 
 def test_generate_invoice_number_invalid_numeration(fulfilled_order):

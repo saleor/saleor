@@ -141,7 +141,7 @@ def test_graphql_execution_exception(monkeypatch, api_client):
     def mocked_execute(*args, **kwargs):
         raise OSError("Spanish inquisition")
 
-    monkeypatch.setattr("graphql.backend.core.execute_and_validate", mocked_execute)
+    monkeypatch.setattr("saleor.graphql.api.execute", mocked_execute)
     response = api_client.post_graphql("{ shop { name }}")
     assert response.status_code == 400
     content = get_graphql_content_from_response(response)
