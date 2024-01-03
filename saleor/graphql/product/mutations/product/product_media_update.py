@@ -1,7 +1,9 @@
 import graphene
+from django.core.exceptions import ValidationError
 
 from .....permission.enums import ProductPermissions
 from .....product import models
+from .....product.error_codes import ProductErrorCode
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -9,6 +11,7 @@ from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
+from ...utils import ALT_CHAR_LIMIT
 
 
 class ProductMediaUpdateInput(BaseInputObjectType):
@@ -45,6 +48,16 @@ class ProductMediaUpdate(BaseMutation):
         )
         alt = input.get("alt")
         if alt is not None:
+            if len(alt) > ALT_CHAR_LIMIT:
+                raise ValidationError(
+                    {
+                        "input": ValidationError(
+                            f"Alt field exceeds the character "
+                            f"limit of {ALT_CHAR_LIMIT}.",
+                            code=ProductErrorCode.INVALID.value,
+                        )
+                    }
+                )
             media.alt = alt
             media.save(update_fields=["alt"])
         manager = get_plugin_manager_promise(info.context).get()
