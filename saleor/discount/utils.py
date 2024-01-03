@@ -546,14 +546,16 @@ def create_discount_objects_for_checkout_and_order_promotions(
             if discount.type != DiscountType.CHECKOUT_AND_ORDER_PROMOTION
         ]
         return
-    rules = fetch_promotion_rules_for_checkout(checkout)
-    if not rules:
-        return
     subtotal = base_checkout_subtotal(
         lines_info, checkout_info.channel, checkout.currency
     )
     shipping_price = base_checkout_delivery_price(checkout_info, lines_info)
     total = subtotal + shipping_price
+
+    rules = fetch_promotion_rules_for_checkout(checkout)
+    if not rules:
+        # TODO: we should remove CheckoutDiscount here
+        return
     currency_code = checkout_info.channel.currency_code
     rule_with_discount_amount = []
     for rule in rules:
@@ -629,7 +631,7 @@ def _create_or_update_checkout_discount(
         )
     checkout_info.discounts = [checkout_discount]
 
-    checkout.discount_amount = best_discount_amount
+    checkout.discount = best_discount_amount
     checkout.discount_name = checkout_discount.name
 
 

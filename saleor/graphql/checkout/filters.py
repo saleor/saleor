@@ -195,11 +195,11 @@ def _filter_total_price(qs, _, value, currency):
     if total_price_gte:
         qs = qs.filter(
             currency=currency,
-            total_gross_amount__gte=total_price_gte,
+            base_total_amount__gte=total_price_gte,
         )
     if total_price_lte:
         qs = qs.filter(
             currency=currency,
-            total_gross_amount__lte=total_price_lte,
+            base_total_amount__lte=total_price_lte,
         )
     return qs

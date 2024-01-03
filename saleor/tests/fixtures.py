@@ -60,6 +60,7 @@ from ..discount import (
 )
 from ..discount.interface import VariantPromotionRuleInfo
 from ..discount.models import (
+    CheckoutDiscount,
     CheckoutLineDiscount,
     NotApplicable,
     Promotion,
@@ -400,6 +401,41 @@ def checkout_with_item_on_promotion(checkout_with_item):
         amount_value=reward_value * line.quantity,
         currency=channel.currency_code,
         promotion_rule=rule,
+    )
+
+    return checkout_with_item
+
+
+@pytest.fixture
+def checkout_with_item_with_checkout_and_order_discount(
+    checkout_with_item, promotion_without_rules
+):
+    channel = checkout_with_item.channel
+
+    reward_value = Decimal("5")
+
+    rule = promotion_without_rules.rules.create(
+        checkout_and_order_predicate={
+            "total_price": {
+                "range": {
+                    "gte": 20,
+                }
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+        reward_type=RewardType.TOTAL_DISCOUNT,
+    )
+    rule.channels.add(channel)
+
+    CheckoutDiscount.objects.create(
+        checkout=checkout_with_item,
+        promotion_rule=rule,
+        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+        value_type=rule.reward_value_type,
+        value=rule.reward_value,
+        amount_value=rule.reward_value,
+        currency=channel.currency_code,
     )
 
     return checkout_with_item

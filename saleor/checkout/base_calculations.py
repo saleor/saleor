@@ -43,6 +43,7 @@ def calculate_base_line_unit_price(
 def calculate_base_line_total_price(
     line_info: "CheckoutLineInfo",
     channel: "Channel",
+    include_voucher: bool = True,
 ) -> Money:
     """Calculate line total price including discounts and vouchers.
 
@@ -64,7 +65,7 @@ def calculate_base_line_total_price(
         discount_amount = Money(discount.amount_value, line_info.line.currency)
         total_price -= discount_amount
 
-    if line_info.voucher:
+    if include_voucher and line_info.voucher:
         if not line_info.voucher.apply_once_per_order:
             if line_info.voucher.discount_value_type == DiscountValueType.PERCENTAGE:
                 voucher_discount_amount = line_info.voucher.get_discount_amount_for(
@@ -129,6 +130,7 @@ def calculate_undiscounted_base_line_unit_price(
 def base_checkout_delivery_price(
     checkout_info: "CheckoutInfo",
     lines: Optional[Iterable["CheckoutLineInfo"]] = None,
+    include_voucher: bool = True,
 ) -> Money:
     """Calculate base (untaxed) price for any kind of delivery method."""
     currency = checkout_info.checkout.currency
@@ -137,7 +139,7 @@ def base_checkout_delivery_price(
 
     is_shipping_voucher = (
         checkout_info.voucher.type == VoucherType.SHIPPING
-        if checkout_info.voucher
+        if include_voucher and checkout_info.voucher
         else False
     )
 
@@ -216,6 +218,7 @@ def base_checkout_subtotal(
     checkout_lines: Iterable["CheckoutLineInfo"],
     channel: "Channel",
     currency: str,
+    include_voucher: bool = True,
 ) -> Money:
     """Return the checkout subtotal value.
 
@@ -227,6 +230,7 @@ def base_checkout_subtotal(
         calculate_base_line_total_price(
             line,
             channel,
+            include_voucher=include_voucher,
         )
         for line in checkout_lines
     ]

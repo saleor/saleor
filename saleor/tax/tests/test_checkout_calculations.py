@@ -3,10 +3,12 @@ from decimal import Decimal
 import pytest
 from prices import Money, TaxedMoney
 
+from ...checkout.calculations import _set_checkout_base_prices
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import add_variant_to_checkout
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
+from ...discount.utils import create_discount_objects_for_checkout_and_order_promotions
 from ...plugins.manager import get_plugins_manager
 from ...tax.models import TaxClassCountryRate
 from .. import TaxCalculationStrategy
@@ -765,6 +767,55 @@ def test_calculate_checkout_line_total_with_shipping_voucher(
     assert line_total_price == TaxedMoney(
         net=quantize_price(expected_total_line_price / Decimal("1.23"), currency),
         gross=expected_total_line_price,
+    )
+
+
+def test_calculate_checkout_line_total_discount_from_checkout_and_order_promotion(
+    checkout_with_item_with_checkout_and_order_discount, shipping_zone, address
+):
+    # given
+    manager = get_plugins_manager(allow_replica=False)
+    checkout = checkout_with_item_with_checkout_and_order_discount
+
+    rate = Decimal(23)
+    prices_entered_with_tax = True
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+
+    line = checkout.lines.first()
+    assert line.quantity > 1
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    variant = line.variant
+    product = variant.product
+    product.tax_class.country_rates.update_or_create(country=address.country, rate=rate)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_line_info = lines[0]
+    _set_checkout_base_prices(checkout_info, lines)
+    create_discount_objects_for_checkout_and_order_promotions(checkout_info, lines)
+
+    # when
+    line_price = calculate_checkout_line_total(
+        checkout_info, lines, checkout_line_info, rate, prices_entered_with_tax
+    )
+
+    # then
+    variant_listing = variant.channel_listings.get(channel=checkout.channel)
+    unit_price = variant.get_price(variant_listing)
+    total_price = unit_price * line.quantity
+    rule = checkout.discounts.first().promotion_rule
+    rule_reward = Money(rule.reward_value, checkout.currency)
+    assert line_price == TaxedMoney(
+        net=quantize_price(
+            (total_price - rule_reward) / Decimal("1.23"), checkout.currency
+        ),
+        gross=total_price - rule_reward,
     )
 
 
