@@ -1,4 +1,3 @@
-import graphene
 import pytest
 from django.db import connection
 
@@ -15,6 +14,12 @@ STOCKS_BULK_UPDATE_MUTATION = """
                     code
                 }
                 stock{
+                    warehouse{
+                        id
+                    }
+                    productVariant{
+                        id
+                    }
                     id
                     quantity
                 }
@@ -51,27 +56,22 @@ def test_stocks_bulk_update_queries_count(
         warehouse=warehouse_no_shipping_zone, product_variant=variant, quantity=4
     )
 
-    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.pk)
-
     stocks = variant.stocks.all()
     stock_1 = stocks[0]
     stock_2 = stocks[1]
 
     new_quantity = 999
 
-    warehouse_1_id = graphene.Node.to_global_id("Warehouse", stock_1.warehouse_id)
-    warehouse_4_id = graphene.Node.to_global_id("Warehouse", stock_4.warehouse_id)
-
     stocks_input = [
         {
-            "variantId": variant_1_id,
-            "warehouseId": warehouse_1_id,
+            "variantExternalReference": variant_1.external_reference,
+            "warehouseExternalReference": stock_1.warehouse.external_reference,
             "quantity": new_quantity,
         }
     ]
 
     # test number of queries when single object is updated
-    with django_assert_num_queries(10):
+    with django_assert_num_queries(12):
         staff_api_client.user.user_permissions.add(permission_manage_products)
         response = staff_api_client.post_graphql(
             STOCKS_BULK_UPDATE_MUTATION, {"stocks": stocks_input}
@@ -90,7 +90,7 @@ def test_stocks_bulk_update_queries_count(
 
     stocks_input += [
         {
-            "variantId": variant_1_id,
+            "variantExternalReference": variant_1.external_reference,
             "warehouseExternalReference": stock_2.warehouse.external_reference,
             "quantity": new_quantity,
         },
@@ -101,13 +101,13 @@ def test_stocks_bulk_update_queries_count(
         },
         {
             "variantExternalReference": variant_2.external_reference,
-            "warehouseId": warehouse_4_id,
+            "warehouseExternalReference": stock_4.warehouse.external_reference,
             "quantity": new_quantity,
         },
     ]
 
     # Test number of queries when multiple objects are updated
-    with django_assert_num_queries(10):
+    with django_assert_num_queries(12):
         staff_api_client.user.user_permissions.add(permission_manage_products)
         response = staff_api_client.post_graphql(
             STOCKS_BULK_UPDATE_MUTATION, {"stocks": stocks_input}
