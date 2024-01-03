@@ -2,6 +2,7 @@ import datetime
 from typing import Union
 
 import pytz
+from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.db.models import (
@@ -33,7 +34,9 @@ class ProductsQueryset(models.QuerySet):
 
         today = datetime.datetime.now(pytz.UTC)
         if channel := (
-            Channel.objects.filter(slug=str(channel_slug), is_active=True).first()
+            Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(slug=str(channel_slug), is_active=True)
+            .first()
         ):
             channel_listings = ProductChannelListing.objects.filter(
                 Q(published_at__lte=today) | Q(published_at__isnull=True),
