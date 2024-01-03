@@ -16,6 +16,7 @@ from ....core.types import BaseInputObjectType, ProductError, Upload
 from ....core.validators.file import clean_image_file, is_image_url, validate_image_url
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
+from ...utils import ALT_CHAR_LIMIT
 
 
 class ProductMediaCreateInput(BaseInputObjectType):
@@ -59,6 +60,7 @@ class ProductMediaCreate(BaseMutation):
     def validate_input(cls, data):
         image = data.get("image")
         media_url = data.get("media_url")
+        alt = data.get("alt")
 
         if not image and not media_url:
             raise ValidationError(
@@ -75,6 +77,17 @@ class ProductMediaCreate(BaseMutation):
                     "input": ValidationError(
                         "Either image or external URL is required.",
                         code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+                    )
+                }
+            )
+
+        if alt and len(alt) > ALT_CHAR_LIMIT:
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        f"Alt field exceeds the character "
+                        f"limit of {ALT_CHAR_LIMIT}.",
+                        code=ProductErrorCode.INVALID.value,
                     )
                 }
             )
