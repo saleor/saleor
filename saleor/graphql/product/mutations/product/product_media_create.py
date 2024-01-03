@@ -16,8 +16,8 @@ from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError, Upload
 from ....core.validators.file import clean_image_file, is_image_url, validate_image_url
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ...bulk_mutations.product_bulk_create import ALT_CHAR_LIMIT
 from ...types import Product, ProductMedia
+from ...utils import ALT_CHAR_LIMIT
 
 
 class ProductMediaCreateInput(BaseInputObjectType):

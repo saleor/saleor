@@ -49,12 +49,11 @@ from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
 from ..types import Product
+from ..utils import ALT_CHAR_LIMIT
 from .product_variant_bulk_create import (
     ProductVariantBulkCreate,
     ProductVariantBulkCreateInput,
 )
-
-ALT_CHAR_LIMIT = 250
 
 
 def get_results(instances_data_with_errors_list, reject_everything=False):
