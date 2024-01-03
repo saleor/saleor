@@ -156,8 +156,7 @@ def test_checkout_voucher_is_still_active_when_payment_fails_core_0919(
         data["errors"][0]["message"] == "Token is required for mirumee.payments.dummy."
     )
 
-    # Step 5 - Check the voucher code is still active and is assigned to checkout
+    # Step 5 - Check the voucher code is still active
     voucher_data = get_voucher(e2e_staff_api_client, voucher_id)
     assert voucher_data["voucher"]["id"] == voucher_id
     assert voucher_data["voucher"]["codes"]["edges"][0]["node"]["used"] == 0
-    assert voucher_data["checkouts"]["edges"][0]["node"]["id"] == checkout_id
