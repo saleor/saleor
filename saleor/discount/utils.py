@@ -532,21 +532,25 @@ def _update_discount(
 def create_discount_objects_for_checkout_and_order_promotions(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
+    *,
+    save: bool = False,
 ):
+    # The base prices are required for checkoutAndOrder promotion
+    # discount qualification.
+    _set_checkout_base_prices(checkout_info, lines_info)
+
     checkout = checkout_info.checkout
+
     # Discount from checkout and order rules is applied only when the voucher is not set
     if checkout.voucher_code:
-        _clear_checkout_discount(checkout_info)
+        _clear_checkout_discount(checkout_info, save)
         return
-    subtotal = base_checkout_subtotal(
-        lines_info, checkout_info.channel, checkout.currency
-    )
-    shipping_price = base_checkout_delivery_price(checkout_info, lines_info)
-    total = subtotal + shipping_price
+    subtotal = checkout.base_subtotal
+    total = checkout.base_total
 
     rules = fetch_promotion_rules_for_checkout(checkout)
     if not rules:
-        _clear_checkout_discount(checkout_info)
+        _clear_checkout_discount(checkout_info, save)
         return
     currency_code = checkout_info.channel.currency_code
     rule_with_discount_amount = []
@@ -570,10 +574,26 @@ def create_discount_objects_for_checkout_and_order_promotions(
         best_discount_amount,
         currency_code,
         promotion,
+        save,
     )
 
 
-def _clear_checkout_discount(checkout_info):
+def _set_checkout_base_prices(checkout_info, lines_info):
+    """Set base checkout prices that includes only catalogue discounts."""
+    checkout = checkout_info.checkout
+    subtotal = base_checkout_subtotal(
+        lines_info, checkout_info.channel, checkout.currency, include_voucher=False
+    )
+    shipping_price = base_checkout_delivery_price(
+        checkout_info, lines_info, include_voucher=False
+    )
+    total = subtotal + shipping_price
+    checkout.base_subtotal = subtotal
+    checkout.base_total = total
+    checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
+
+
+def _clear_checkout_discount(checkout_info, save):
     CheckoutDiscount.objects.filter(
         checkout=checkout_info.checkout,
         type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
@@ -583,6 +603,19 @@ def _clear_checkout_discount(checkout_info):
         for discount in checkout_info.discounts
         if discount.type != DiscountType.CHECKOUT_AND_ORDER_PROMOTION
     ]
+    if not checkout_info.voucher_code:
+        checkout_info.checkout.discount_amount = 0
+        checkout_info.checkout.discount_name = None
+        checkout_info.checkout.translated_discount_name = None
+
+    if save:
+        checkout_info.checkout.save(
+            update_fields=[
+                "discount_amount",
+                "discount_name",
+                "translated_discount_name",
+            ]
+        )
 
 
 def _create_or_update_checkout_discount(
@@ -592,6 +625,7 @@ def _create_or_update_checkout_discount(
     best_discount_amount: Money,
     currency_code: str,
     promotion: "Promotion",
+    save: bool,
 ):
     # TODO: handle two scenario when this method is called almost in the same time
     # we need get_or_create probably and transaction
@@ -637,6 +671,15 @@ def _create_or_update_checkout_discount(
 
     checkout.discount = best_discount_amount
     checkout.discount_name = checkout_discount.name
+    checkout.translated_discount_name = checkout_discount.translated_name
+    if save:
+        checkout.save(
+            update_fields=[
+                "discount_amount",
+                "discount_name",
+                "translated_discount_name",
+            ]
+        )
 
 
 def get_variants_to_promotions_map(

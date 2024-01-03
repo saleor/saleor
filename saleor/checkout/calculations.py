@@ -246,7 +246,6 @@ def _fetch_checkout_prices_if_expired(
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     should_charge_tax = charge_taxes and not checkout.tax_exemption
 
-    _set_checkout_base_prices(checkout_info, lines)
     create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
 
     if prices_entered_with_tax:
@@ -314,24 +313,6 @@ def _fetch_checkout_prices_if_expired(
         ],
     )
     return checkout_info, lines
-
-
-def _set_checkout_base_prices(checkout_info, lines_info):
-    """Set base checkout prices that includes only catalogue discounts.
-
-    The base prices are required for checkoutAndOrder promotion discount qualification.
-    """
-    checkout = checkout_info.checkout
-    subtotal = base_calculations.base_checkout_subtotal(
-        lines_info, checkout_info.channel, checkout.currency, include_voucher=False
-    )
-    shipping_price = base_calculations.base_checkout_delivery_price(
-        checkout_info, lines_info, include_voucher=False
-    )
-    total = subtotal + shipping_price
-    checkout.base_subtotal = subtotal
-    checkout.base_total = total
-    checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
 
 
 def _calculate_and_add_tax(
