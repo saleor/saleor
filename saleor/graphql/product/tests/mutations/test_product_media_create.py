@@ -260,3 +260,35 @@ def test_invalid_product_media_create_mutation(
     ]
     product.refresh_from_db()
     assert product.media.count() == 0
+
+
+def test_product_media_create_mutation_alt_character_limit(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    alt_260_chars = """
+    Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+    Aenean commodo ligula eget dolor. Aenean massa. Cym sociis natoque penatibus et
+    magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies
+    nec, pellentesque eu, pretium quis, sem.
+    """
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    image_file, image_name = create_image()
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "alt": alt_260_chars,
+        "image": image_name,
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+
+    errors = content["data"]["productMediaCreate"]["errors"]
+    assert errors[0]["field"] == "input"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
