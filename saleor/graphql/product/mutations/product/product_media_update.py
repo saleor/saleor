@@ -10,6 +10,7 @@ from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ...bulk_mutations.product_bulk_create import ALT_CHAR_LIMIT
 from ...types import Product, ProductMedia
 
 
@@ -47,11 +48,12 @@ class ProductMediaUpdate(BaseMutation):
         )
         alt = input.get("alt")
         if alt is not None:
-            if len(alt) > 250:
+            if len(alt) > ALT_CHAR_LIMIT:
                 raise ValidationError(
                     {
                         "input": ValidationError(
-                            "Alt field exceeds the character limit of 250.",
+                            f"Alt field exceeds the character "
+                            f"limit of {ALT_CHAR_LIMIT}.",
                             code=ProductErrorCode.INVALID.value,
                         )
                     }
