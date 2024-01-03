@@ -69,7 +69,7 @@ def _clean_predicates(
     predicate_type,
     instance,
 ):
-    """Validate if predicates are provided and if they are mixed.
+    """Validate if predicates are provided and if they aren't mixed.
 
     - At least one predicate is required - `catalogue` or `checkoutAndOrder` predicate.
     - Promotion can have only one predicate type, raise error if there are mixed.
@@ -96,7 +96,7 @@ def _clean_predicates(
                 ValidationError(
                     message=(
                         "Only one of predicates can be provided: "
-                        "cataloguePredicate or checkoutAndOrderPredicate."
+                        "'cataloguePredicate' or 'checkoutAndOrderPredicate'."
                     ),
                     code=error_class.MIXED_PREDICATES.value,
                     params={"index": index} if index is not None else {},
@@ -113,7 +113,7 @@ def _clean_predicates(
             ValidationError(
                 message=(
                     "Predicate types can't be mixed. Given promotion already "
-                    "have a rule with checkoutAndOrderPredicate defined."
+                    "have a rule with 'checkoutAndOrderPredicate' defined."
                 ),
                 code=error_class.MIXED_PROMOTION_PREDICATES.value,
                 params={"index": index} if index is not None else {},
@@ -129,7 +129,7 @@ def _clean_predicates(
             ValidationError(
                 message=(
                     "Predicate types can't be mixed. Given promotion already "
-                    "have a rule with cataloguePredicate defined."
+                    "have a rule with 'cataloguePredicate' defined."
                 ),
                 code=error_class.MIXED_PROMOTION_PREDICATES.value,
                 params={"index": index} if index is not None else {},
