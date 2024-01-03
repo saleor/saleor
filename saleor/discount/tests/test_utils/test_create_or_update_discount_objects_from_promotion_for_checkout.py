@@ -1482,3 +1482,59 @@ def test_create_or_update_discount_from_promotion_checkout_discount_updated(
     assert discount.name == f"{promotion.name}: {rule.name}"
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     assert discount.reason == f"Promotion: {promotion_id}"
+
+
+def test_create_or_update_discount_from_promotion_rule_not_applies_anymore(
+    checkout_info,
+    checkout_lines_info,
+    promotion_without_rules,
+    promotion_rule,
+):
+    # given
+    promotion = promotion_without_rules
+    checkout = checkout_info.checkout
+
+    checkout_total = base_checkout_total(checkout_info, checkout_lines_info)
+    checkout.total = TaxedMoney(net=checkout_total, gross=checkout_total)
+    checkout.subtotal = TaxedMoney(net=checkout_total, gross=checkout_total)
+    checkout.save(
+        update_fields=[
+            "total_net_amount",
+            "total_gross_amount",
+            "subtotal_net_amount",
+            "subtotal_gross_amount",
+        ]
+    )
+
+    rule = PromotionRule.objects.create(
+        name="Checkout and order promotion rule 1",
+        promotion=promotion,
+        checkout_and_order_predicate={
+            "total_price": {
+                "range": {
+                    "gte": 200,
+                }
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("25"),
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule.channels.add(checkout_info.channel)
+    discount = CheckoutDiscount.objects.create(
+        checkout=checkout,
+        promotion_rule=promotion_rule,
+        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+    )
+    checkout_info.discounts = [discount]
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines_info
+    )
+
+    # then
+    assert checkout_info.discounts == []
+    assert not checkout.discounts.all()
+    with pytest.raises(CheckoutDiscount.DoesNotExist):
+        discount.refresh_from_db()

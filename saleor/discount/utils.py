@@ -536,15 +536,7 @@ def create_discount_objects_for_checkout_and_order_promotions(
     checkout = checkout_info.checkout
     # Discount from checkout and order rules is applied only when the voucher is not set
     if checkout.voucher_code:
-        CheckoutDiscount.objects.filter(
-            checkout=checkout,
-            type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
-        ).delete()
-        checkout_info.discounts = [
-            discount
-            for discount in checkout_info.discounts
-            if discount.type != DiscountType.CHECKOUT_AND_ORDER_PROMOTION
-        ]
+        _clear_checkout_discount(checkout_info)
         return
     subtotal = base_checkout_subtotal(
         lines_info, checkout_info.channel, checkout.currency
@@ -554,7 +546,7 @@ def create_discount_objects_for_checkout_and_order_promotions(
 
     rules = fetch_promotion_rules_for_checkout(checkout)
     if not rules:
-        # TODO: we should remove CheckoutDiscount here
+        _clear_checkout_discount(checkout_info)
         return
     currency_code = checkout_info.channel.currency_code
     rule_with_discount_amount = []
@@ -579,6 +571,18 @@ def create_discount_objects_for_checkout_and_order_promotions(
         currency_code,
         promotion,
     )
+
+
+def _clear_checkout_discount(checkout_info):
+    CheckoutDiscount.objects.filter(
+        checkout=checkout_info.checkout,
+        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+    ).delete()
+    checkout_info.discounts = [
+        discount
+        for discount in checkout_info.discounts
+        if discount.type != DiscountType.CHECKOUT_AND_ORDER_PROMOTION
+    ]
 
 
 def _create_or_update_checkout_discount(
