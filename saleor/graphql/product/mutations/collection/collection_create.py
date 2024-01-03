@@ -8,6 +8,7 @@ from .....core.utils.date_time import convert_to_utc_date_time
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import CollectionErrorCode
+from .....product.tasks import collection_product_updated_task
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
@@ -111,14 +112,23 @@ class CollectionCreate(ModelMutation):
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
+    @staticmethod
+    def batch_product_ids(ids):
+        # Batch size of 25k ids, assuming their pks are at least 7 digits each
+        # after json serialization, weights 225kB of payload.
+        BATCH_SIZE = 25000
+        _length = len(ids)
+        for i in range(0, _length, BATCH_SIZE):
+            yield ids[i : min(i + BATCH_SIZE, _length)]
+
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.collection_created, instance)
 
-        products = instance.products.prefetched_for_webhook(single_object=False)
-        for product in products:
-            cls.call_event(manager.product_updated, product)
+        product_ids = list(instance.products.values_list("id", flat=True))
+        for ids_batch in cls.batch_product_ids(product_ids):
+            collection_product_updated_task.delay(ids_batch)
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **kwargs):
