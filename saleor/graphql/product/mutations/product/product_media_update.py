@@ -10,8 +10,8 @@ from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ...bulk_mutations.product_bulk_create import ALT_CHAR_LIMIT
 from ...types import Product, ProductMedia
+from ...utils import ALT_CHAR_LIMIT
 
 
 class ProductMediaUpdateInput(BaseInputObjectType):

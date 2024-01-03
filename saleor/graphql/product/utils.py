@@ -24,6 +24,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+ALT_CHAR_LIMIT = 250
+
+
 def get_used_attribute_values_for_variant(variant):
     """Create a dict of attributes values for variant.
 
