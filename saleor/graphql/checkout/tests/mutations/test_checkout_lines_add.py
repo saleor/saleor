@@ -928,6 +928,94 @@ def test_checkout_lines_add_existing_variant_override_previous_custom_price(
     assert line.price_override == price
 
 
+def test_checkout_lines_add_custom_price_and_checkout_and_order_fixed_discount(
+    app_api_client,
+    checkout_with_item_with_checkout_and_order_discount,
+    permission_handle_checkouts,
+):
+    # given
+    checkout = checkout_with_item_with_checkout_and_order_discount
+    line = checkout.lines.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    price = Decimal("13.11")
+    discount_amount = checkout.discount_amount
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1, "price": price}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    checkout.refresh_from_db()
+    line = checkout.lines.last()
+    total_price = price * line.quantity
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    assert data["checkout"]["discount"]["amount"] == discount_amount
+    assert line.price_override == price
+    assert checkout.discount_amount == discount_amount
+    assert checkout.subtotal.gross.amount == total_price - discount_amount
+    assert checkout.total.gross.amount == total_price - discount_amount
+
+
+def test_checkout_lines_add_custom_price_and_checkout_and_order_percentage_discount(
+    app_api_client,
+    checkout_with_item_with_checkout_and_order_discount,
+    permission_handle_checkouts,
+):
+    # given
+    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout_discount = checkout.discounts.first()
+    rule = checkout_discount.promotion_rule
+    rule.reward_value = 50
+    rule.reward_value_type = RewardValueType.PERCENTAGE
+    rule.save(update_fields=["reward_value", "reward_value_type"])
+
+    line = checkout.lines.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    price = Decimal("13.11")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 7, "price": price}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    checkout.refresh_from_db()
+    line = checkout.lines.last()
+    total_price = price * line.quantity
+    discount_amount = total_price * Decimal("0.5")
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    assert Decimal(str(data["checkout"]["discount"]["amount"])) == Decimal(
+        discount_amount
+    )
+    assert line.price_override == price
+    assert checkout.discount_amount == discount_amount
+    assert checkout.subtotal.gross.amount == total_price - discount_amount
+    assert checkout.total.gross.amount == total_price - discount_amount
+
+
 def test_checkout_lines_add_custom_price_app_no_perm(app_api_client, checkout, stock):
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
