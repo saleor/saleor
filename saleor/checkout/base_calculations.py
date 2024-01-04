@@ -49,7 +49,8 @@ def calculate_base_line_total_price(
 
     The price includes sales, specific product and applied once per order
     voucher discounts.
-    The price does not include the entire order discount.
+    The price does not include the entire order discount and
+    checkout and order discount.
     """
     variant = line_info.variant
     currency = line_info.channel_listing.currency
