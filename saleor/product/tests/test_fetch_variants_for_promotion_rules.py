@@ -8,7 +8,11 @@ from ..utils.variants import fetch_variants_for_promotion_rules
 
 
 def test_fetch_variants_for_promotion_rules_discount(
-    promotion_without_rules, product, product_with_two_variants, channel_USD
+    promotion_without_rules,
+    product,
+    product_with_two_variants,
+    channel_USD,
+    product_variant_list,
 ):
     # given
     variant = product.variants.first()
@@ -40,6 +44,10 @@ def test_fetch_variants_for_promotion_rules_discount(
     )
     rule_1.channels.add(channel_USD)
     rule_2.channels.add(channel_USD)
+
+    # Variants not present in rules predicate should be deleted
+    rule_1.variants.add(*product_variant_list)
+    rule_2.variants.add(*product_variant_list)
 
     # when
     fetch_variants_for_promotion_rules(PromotionRule.objects.all())

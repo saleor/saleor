@@ -64,6 +64,7 @@ def fetch_variants_for_promotion_rules(
     existing_rule_variant_set = set(
         (rv.promotionrule_id, rv.productvariant_id) for rv in existing_rules_variants
     )
+
     new_rules_variants = []
     for rule in list(rules.iterator()):
         variants = get_variants_for_predicate(rule.catalogue_predicate)
