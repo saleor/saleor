@@ -437,6 +437,8 @@ def checkout_with_item_with_checkout_and_order_discount(
         amount_value=rule.reward_value,
         currency=channel.currency_code,
     )
+    checkout_with_item.discount_amount = reward_value
+    checkout_with_item.save(update_fields=["discount_amount"])
 
     return checkout_with_item
 

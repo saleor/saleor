@@ -3,7 +3,6 @@ from decimal import Decimal
 import pytest
 from prices import Money, TaxedMoney
 
-from ...checkout.calculations import _set_checkout_base_prices
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import add_variant_to_checkout
 from ...core.prices import quantize_price
@@ -797,7 +796,6 @@ def test_calculate_checkout_line_total_discount_from_checkout_and_order_promotio
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = lines[0]
-    _set_checkout_base_prices(checkout_info, lines)
     create_discount_objects_for_checkout_and_order_promotions(checkout_info, lines)
 
     # when
