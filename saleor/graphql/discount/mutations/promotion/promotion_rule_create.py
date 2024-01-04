@@ -61,7 +61,9 @@ class PromotionRuleCreate(ModelMutation):
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
         promotion = cleaned_input["promotion"]
-        predicate_type = get_predicate_type(promotion)
+        rule = promotion.rules.first()
+        predicate_type = get_predicate_type(rule)
+
         clean_promotion_rule(
             cleaned_input,
             errors,
