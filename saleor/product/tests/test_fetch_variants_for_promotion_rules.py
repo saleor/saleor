@@ -24,7 +24,12 @@ def test_fetch_variants_for_promotion_rules_discount(
         name="Percentage promotion rule",
         catalogue_predicate={
             "variantPredicate": {
-                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+                "ids": [
+                    graphene.Node.to_global_id("ProductVariant", variant.id),
+                    graphene.Node.to_global_id(
+                        "ProductVariant", product_variant_list[0].id
+                    ),
+                ]
             }
         },
         reward_value_type=RewardValueType.PERCENTAGE,
@@ -54,8 +59,10 @@ def test_fetch_variants_for_promotion_rules_discount(
 
     # then
     rule_1.refresh_from_db()
-    assert rule_1.variants.count() == 1
-    assert rule_1.variants.first() == variant
+    rule_1_variants = rule_1.variants.all()
+    assert len(rule_1_variants) == 2
+    assert variant in rule_1_variants
+    assert product_variant_list[0] in rule_1_variants
 
     rule_2.refresh_from_db()
     assert rule_2.variants.count() == product_with_two_variants.variants.count()
