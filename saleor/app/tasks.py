@@ -82,7 +82,7 @@ def remove_apps_task():
         # Saleor use batch size here to prevent timeous on database.
         # Batch size determine how many deliveries will be removed,
         # each delivery contains attempts and payloads.
-        batch_size = 10000
+        batch_size = 1000
         last_id = 0
         while True:
             deliveries_ids = list(
