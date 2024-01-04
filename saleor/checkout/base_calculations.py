@@ -205,7 +205,8 @@ def base_checkout_total(
 
     The price includes sales, shipping, specific product and applied once per order
     voucher discounts.
-    The price does not include the entire order discount.
+    The price does not include the entire order discount and checkout
+    and order discount.
     """
     currency = checkout_info.checkout.currency
     subtotal = base_checkout_subtotal(lines, checkout_info.channel, currency)
