@@ -430,7 +430,7 @@ def fetch_checkout_info(
     if shipping_channel_listings is None:
         shipping_channel_listings = channel.shipping_method_listings.all()
 
-    if not voucher:
+    if not voucher or not voucher_code:
         voucher, voucher_code = get_voucher_for_checkout(
             checkout, channel_slug=channel.slug
         )

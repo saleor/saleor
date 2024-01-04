@@ -1181,12 +1181,22 @@ def test_create_or_update_discount_objects_from_promotion_for_checkout_voucher_s
     assert not checkout_info.checkout.discounts.all()
 
 
+@patch("saleor.discount.utils.base_checkout_delivery_price")
+@patch("saleor.discount.utils.base_checkout_subtotal")
 def test_create_or_update_discount_objects_from_promotion_no_applicable_rules(
-    checkout_info, checkout_lines_info, checkout_and_order_promotion_rule, voucher
+    base_checkout_subtotal_mock,
+    base_checkout_delivery_price_mock,
+    checkout_info,
+    checkout_lines_info,
+    checkout_and_order_promotion_rule,
+    voucher,
 ):
     # given
     checkout = checkout_info.checkout
-    price = Money("10", checkout_info.checkout.currency)
+    currency = checkout.currency
+    price = Money("10", currency)
+    base_checkout_subtotal_mock.return_value = price
+    base_checkout_delivery_price_mock.return_value = Money("0", currency)
     checkout.total = TaxedMoney(net=price, gross=price)
 
     # when
