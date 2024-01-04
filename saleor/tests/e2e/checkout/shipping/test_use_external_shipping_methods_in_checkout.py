@@ -3,7 +3,7 @@ import vcr
 
 from ...apps.utils import add_app
 from ...product.utils.preparing_product import prepare_product
-from ...shop.utils.preparing_shop import prepare_shop
+from ...shop.utils.preparing_shop import prepare_default_shop
 from ...utils import assign_permissions, request_matcher
 from ...webhooks.utils import create_webhook
 from ..utils import (
@@ -41,12 +41,10 @@ def test_use_external_shipping_methods_in_checkout_core_1652(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        _shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    warehouse_id = shop_data["warehouse"]["id"]
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
 
     app_input = {"name": "external_shipping", "permissions": ["MANAGE_SHIPPING"]}
     app_data = add_app(e2e_staff_api_client, app_input)
