@@ -58,23 +58,37 @@ def fetch_variants_for_promotion_rules(
     from ...graphql.discount.utils import get_variants_for_predicate
 
     PromotionRuleVariant = PromotionRule.variants.through
-    promotion_rule_variants = []
+    existing_rules_variants = PromotionRuleVariant.objects.filter(
+        Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+    ).all()
+    existing_rule_variant_set = set(
+        (rv.promotionrule_id, rv.productvariant_id) for rv in existing_rules_variants
+    )
+    new_rules_variants = []
     for rule in list(rules.iterator()):
         variants = get_variants_for_predicate(rule.catalogue_predicate)
-        promotion_rule_variants.extend(
+        new_rules_variants.extend(
             [
                 PromotionRuleVariant(
                     promotionrule_id=rule.pk, productvariant_id=variant_id
                 )
                 for variant_id in set(variants.values_list("pk", flat=True))
+                if (rule.pk, variant_id) not in existing_rule_variant_set
             ]
         )
 
     with transaction.atomic():
         # Clear existing variants assigned to promotion rules
-        PromotionRuleVariant.objects.filter(
-            Exists(rules.filter(pk=OuterRef("promotionrule_id")))
-        ).delete()
+        new_rule_variant_set = set(
+            (rv.promotionrule_id, rv.productvariant_id) for rv in new_rules_variants
+        )
+        rule_variants_to_delete_ids = [
+            rv.id
+            for rv in existing_rules_variants
+            if (rv.promotionrule_id, rv.productvariant_id) not in new_rule_variant_set
+        ]
+        PromotionRuleVariant.objects.filter(id__in=rule_variants_to_delete_ids).delete()
+
         PromotionRuleVariant.objects.bulk_create(
-            promotion_rule_variants, ignore_conflicts=True
+            new_rules_variants, ignore_conflicts=True
         )
