@@ -4,11 +4,11 @@ from enum import Enum
 from typing import DefaultDict, Dict, List, Optional, Set, Union, cast
 
 import graphene
-from django.db import transaction
 from django.db.models import Exists, OuterRef, QuerySet
 from graphene.utils.str_converters import to_camel_case
 
 from ...discount.models import Promotion, PromotionRule
+from ...discount.utils import update_rule_variant_relation
 from ...product.managers import ProductsQueryset, ProductVariantQueryset
 from ...product.models import (
     Category,
@@ -76,8 +76,8 @@ def get_variants_for_promotion(
     queryset = ProductVariant.objects.none()
     promotion_rule_variants = []
     PromotionRuleVariant = PromotionRule.variants.through
-    rules = promotion.rules
-    for rule in list(rules.iterator()):
+    rules = promotion.rules.all()
+    for rule in rules:
         variants = get_variants_for_predicate(rule.catalogue_predicate)
         queryset |= variants
         if update_rule_variants:
@@ -90,12 +90,8 @@ def get_variants_for_promotion(
                 ]
             )
     if promotion_rule_variants:
-        with transaction.atomic():
-            # Clear existing variants assigned to promotion rules
-            PromotionRuleVariant.objects.filter(
-                Exists(rules.filter(pk=OuterRef("promotionrule_id")))
-            ).delete()
-            PromotionRuleVariant.objects.bulk_create(promotion_rule_variants)
+        update_rule_variant_relation(rules, promotion_rule_variants)
+
     return queryset
 
 
