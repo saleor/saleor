@@ -44,6 +44,12 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
       }
       shippingMethods {
         id
+        name
+        price {
+          amount
+          currency
+        }
+        maximumDeliveryDays
       }
       deliveryMethod {
         ... on ShippingMethod {
