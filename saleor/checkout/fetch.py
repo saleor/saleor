@@ -79,7 +79,6 @@ class CheckoutInfo:
     all_shipping_methods: list["ShippingMethodData"]
     tax_configuration: "TaxConfiguration"
     valid_pick_up_points: list["Warehouse"]
-    # TODO: add fetching current discounts?
     discounts: list["CheckoutDiscount"]
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
@@ -446,7 +445,7 @@ def fetch_checkout_info(
         tax_configuration=tax_configuration,
         all_shipping_methods=[],
         valid_pick_up_points=[],
-        discounts=[],
+        discounts=list(checkout.discounts.all()),
         voucher=voucher,
         voucher_code=voucher_code,
     )
