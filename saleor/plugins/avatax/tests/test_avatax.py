@@ -236,6 +236,65 @@ def test_calculate_checkout_line_total_with_variant_on_promotion(
 
 
 @pytest.mark.vcr
+@pytest.mark.parametrize(
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
+    [
+        ("20.33", "25.00", True),
+        ("25.00", "30.75", False),
+    ],
+)
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_total_with_checkout_and_order_promotion(
+    expected_net,
+    expected_gross,
+    prices_entered_with_tax,
+    checkout_with_item_with_checkout_and_order_discount,
+    ship_to_pl_address,
+    monkeypatch,
+    shipping_zone,
+    plugin_configuration,
+):
+    # given
+    checkout = checkout_with_item_with_checkout_and_order_discount
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+
+    checkout.shipping_address = ship_to_pl_address
+    checkout.shipping_method = shipping_zone.shipping_methods.get()
+    checkout.save()
+
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.charge_taxes = True
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    line = checkout.lines.first()
+    product = line.variant.product
+    product.metadata = {}
+    product.save()
+    product.product_type.save()
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_line_info = lines[0]
+
+    # when
+    total = manager.calculate_checkout_line_total(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout.shipping_address,
+    )
+
+    # then
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_checkout_line_total_with_voucher(
     checkout_with_item,
@@ -2751,6 +2810,112 @@ def test_calculate_checkout_line_unit_price_with_variant_on_promotion(
     assert line_price == TaxedMoney(
         net=Money(Decimal("4.07"), currency), gross=Money(Decimal("5.00"), currency)
     )
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_unit_price_checkout_and_order_promotion_charge_taxes(
+    checkout_with_item_with_checkout_and_order_discount,
+    shipping_zone,
+    address,
+    plugin_configuration,
+):
+    # given
+    plugin_configuration()
+    checkout = checkout_with_item_with_checkout_and_order_discount
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_line = lines[0]
+    discount_amount = checkout.discount_amount
+
+    manager = get_plugins_manager(allow_replica=False)
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = True
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    line_price = manager.calculate_checkout_line_unit_price(
+        checkout_info,
+        lines,
+        checkout_line,
+        checkout.shipping_address,
+    )
+
+    # then
+    line = lines[0].line
+    unit_price = checkout_line.variant.get_price(checkout_line.channel_listing)
+    total_price_amount = (unit_price * line.quantity).amount - discount_amount
+    discounted_unit_amount = total_price_amount / line.quantity
+    expected_line_price = TaxedMoney(
+        net=Money(
+            round(discounted_unit_amount / Decimal("1.23"), 2), checkout.currency
+        ),
+        gross=Money(round(discounted_unit_amount, 2), checkout.currency),
+    )
+    assert line_price == expected_line_price
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_unit_price_checkout_promotion_do_not_charge_taxes(
+    checkout_with_item_with_checkout_and_order_discount,
+    shipping_zone,
+    address,
+    plugin_configuration,
+):
+    # given
+    plugin_configuration()
+    checkout = checkout_with_item_with_checkout_and_order_discount
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_line = lines[0]
+    discount_amount = checkout.discount_amount
+
+    manager = get_plugins_manager(allow_replica=False)
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = True
+    tax_configuration.charge_taxes = False
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    line_price = manager.calculate_checkout_line_unit_price(
+        checkout_info,
+        lines,
+        checkout_line,
+        checkout.shipping_address,
+    )
+
+    # then
+    line = lines[0].line
+    unit_price = checkout_line.variant.get_price(checkout_line.channel_listing)
+    total_price_amount = (unit_price * line.quantity).amount - discount_amount
+    discounted_unit_amount = round(total_price_amount / line.quantity, 2)
+    expected_line_price = TaxedMoney(
+        net=Money(discounted_unit_amount, checkout.currency),
+        gross=Money(discounted_unit_amount, checkout.currency),
+    )
+    assert line_price == expected_line_price
 
 
 @pytest.mark.vcr

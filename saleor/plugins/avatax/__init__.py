@@ -294,6 +294,9 @@ def generate_request_data_from_checkout_lines(
         if voucher and not voucher.apply_once_per_order
         else False
     )
+    applicable_checkout_discount = (
+        bool(checkout_info.discounts) or is_entire_order_discount
+    )
 
     for line_info in lines_info:
         product = line_info.product
@@ -302,9 +305,9 @@ def generate_request_data_from_checkout_lines(
 
         tax_override_data = {}
         if not charge_taxes:
-            if not is_entire_order_discount:
+            if not applicable_checkout_discount:
                 continue
-            # if there is a voucher for the entire order we need to attach this line
+            # if there is a checkout discount we need to attach this line
             # with 0 tax to propagate discount through all lines
             tax_override_data = {
                 "type": "taxAmount",
@@ -339,7 +342,7 @@ def generate_request_data_from_checkout_lines(
             "item_code": item_code,
             "name": name,
             "prices_entered_with_tax": prices_entered_with_tax,
-            "discounted": is_entire_order_discount,
+            "discounted": applicable_checkout_discount,
             "tax_override_data": tax_override_data,
         }
 
@@ -536,7 +539,7 @@ def _get_checkout_discount_amount(checkout_info, lines):
     is eligible.
     """
     discount_amount = Decimal("0")
-    if voucher := checkout_info.voucher or checkout_info.discounts:
+    if (voucher := checkout_info.voucher) or checkout_info.discounts:
         # for apply_once_per_order vouchers the discount is already applied on lines
         applicable_discount = True
         if voucher:
