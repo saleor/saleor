@@ -47,6 +47,10 @@ mutation DraftOrderComplete($id: ID!) {
       }
       displayGrossPrices
       status
+      voucher {
+        id
+        code
+      }
       paymentStatus
       isPaid
       channel {
