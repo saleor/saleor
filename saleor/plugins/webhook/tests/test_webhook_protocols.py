@@ -233,6 +233,7 @@ def test_trigger_webhooks_with_http(
     permission_manage_orders,
     permission_manage_users,
     permission_manage_products,
+    settings,
 ):
     mock_request.return_value = MagicMock(
         text="{response: body}",
@@ -274,14 +275,14 @@ def test_trigger_webhooks_with_http(
         webhook.target_url,
         data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
-        timeout=10,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         allow_redirects=False,
     )
 
 
 @patch.object(HTTPSession, "request")
 def test_trigger_webhooks_with_http_and_secret_key(
-    mock_request, webhook, order_with_lines, permission_manage_orders
+    mock_request, webhook, order_with_lines, permission_manage_orders, settings
 ):
     mock_request.return_value = MagicMock(
         text="{response: body}",
@@ -323,14 +324,14 @@ def test_trigger_webhooks_with_http_and_secret_key(
         webhook.target_url,
         data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
-        timeout=10,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         allow_redirects=False,
     )
 
 
 @patch.object(HTTPSession, "request")
 def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
-    mock_request, webhook, order_with_lines, permission_manage_orders
+    mock_request, webhook, order_with_lines, permission_manage_orders, settings
 ):
     mock_request.return_value = MagicMock(
         text="{response: body}",
@@ -376,7 +377,7 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
         webhook.target_url,
         data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
-        timeout=10,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         allow_redirects=False,
     )
 
