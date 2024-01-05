@@ -1,6 +1,7 @@
 from uuid import UUID
 
 import django_filters
+from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef, Q
 
 from ...account.models import User
@@ -22,7 +23,7 @@ from ..core.types import DateRangeInput, FilterInputObjectType
 from ..core.types.filter_input import DecimalFilterInput
 from ..core.utils import from_global_id_or_error
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_range_field
+from ..utils.filters import filter_range_field, filter_where_by_numeric_field
 from .enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 
 
@@ -171,36 +172,12 @@ class CheckoutDiscountedObjectWhere(WhereFilterSet):
         return _filter_total_price(queryset, name, value, currency)
 
 
-# TODO: will be fixed in separate PR; issue #14943
 def _filter_total_price(qs, _, value, currency):
     # We will have single channel/currency as the rule can applied only
     # on channels with the same currencies
-    # TODO: maybe we should have `currency` as a filter argument instead
-    # of `channel_slug`?
-
-    # TODO: handle `oneOf` as well
-    range = value.get("range")
-    if not range:
-        return qs._meta.model.objects.none()
-
-    # TODO: raise a ValidationError if `currency` is not provided
-    total_price_lte = range.get("lte")
-    total_price_gte = range.get("gte")
-    # qs could contains all orders from all channels with given currencies
-    # so we cannot filter by channel
-    # from other side - this method is per channel and a setting deciding
-    # if price entered with taxes included or not is per channel
-
-    # TODO: this is temporary solution - we should use gross or net, depending on
-    # order channel tax configuration - prices_entered_with_tax
-    if total_price_gte:
-        qs = qs.filter(
-            currency=currency,
-            base_total_amount__gte=total_price_gte,
+    if not currency:
+        raise ValidationError(
+            "You must provide a currency to filter the total price.", code="required"
         )
-    if total_price_lte:
-        qs = qs.filter(
-            currency=currency,
-            base_total_amount__lte=total_price_lte,
-        )
-    return qs
+    qs = qs.filter(currency=currency)
+    return filter_where_by_numeric_field(qs, "base_total_amount", value)
