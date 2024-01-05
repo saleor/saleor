@@ -391,6 +391,7 @@ class PromotionRule(models.Model):
         max_length=255, choices=RewardType.CHOICES, blank=True, null=True
     )
     old_channel_listing_id = models.IntegerField(blank=True, null=True, unique=True)
+    variants_dirty = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("name", "pk")

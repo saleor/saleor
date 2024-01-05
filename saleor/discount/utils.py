@@ -1,5 +1,5 @@
 from collections import defaultdict
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterator
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
 from typing import (
@@ -7,14 +7,16 @@ from typing import (
     Callable,
     Optional,
     Union,
-    cast,
 )
-from uuid import UUID
 
 import graphene
 from django.db.models import Exists, F, OuterRef, QuerySet
+from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
+
+from typing import cast, Iterable
+from uuid import UUID
 
 from ..channel.models import Channel
 from ..core.taxes import zero_money
@@ -581,3 +583,25 @@ def get_current_products_for_rules(rules: "QuerySet[PromotionRule]"):
         Exists(rule_variants.filter(productvariant_id=OuterRef("id")))
     )
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
+
+
+def update_promotion_rules_variants_dirty(rules, fields):
+    rules_to_update = []
+    for rule in rules:
+        rule.variants_dirty = False
+        rules_to_update.append(rule)
+    PromotionRule.objects.bulk_update(rules_to_update, fields)
+
+
+def get_active_promotion_rules():
+    promotions = Promotion.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).active()
+    return (
+        PromotionRule.objects.order_by("id")
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id"))),
+            catalogue_predicate__isnull=False,
+        )
+    )
