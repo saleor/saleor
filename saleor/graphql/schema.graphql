@@ -14267,6 +14267,11 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   """
   channels: [Channel!]
 
+  """
+  The reward value of the promotion rule. Defines the discount value applied when the rule conditions are met.
+  """
+  rewardValue: PositiveDecimal
+
   """The type of reward value of the promotion rule."""
   rewardValueType: RewardValueTypeEnum
 
@@ -14274,9 +14279,22 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   cataloguePredicate: JSON
 
   """
-  The reward value of the promotion rule. Defines the discount value applied when the rule conditions are met.
+  The checkout/order predicate that must be met to apply the rule reward.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  rewardValue: PositiveDecimal
+  checkoutAndOrderPredicate: JSON
+
+  """
+  The reward type of the promotion rule.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  rewardType: RewardTypeEnum
 
   """Returns translated promotion rule fields for the given language code."""
   translation(
@@ -14289,6 +14307,11 @@ type PromotionRule implements Node @doc(category: "Discounts") {
 enum RewardValueTypeEnum @doc(category: "Discounts") {
   FIXED
   PERCENTAGE
+}
+
+"""An enumeration."""
+enum RewardTypeEnum @doc(category: "Discounts") {
+  SUBTOTAL_DISCOUNT
 }
 
 union PromotionEvent = PromotionCreatedEvent | PromotionUpdatedEvent | PromotionStartedEvent | PromotionEndedEvent | PromotionRuleCreatedEvent | PromotionRuleUpdatedEvent | PromotionRuleDeletedEvent
@@ -27407,6 +27430,9 @@ enum PromotionCreateErrorCode {
   INVALID
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
+  MIXED_PREDICATES
+  MIXED_PROMOTION_PREDICATES
+  MISSING_CHANNELS
 }
 
 input PromotionCreateInput @doc(category: "Discounts") {
@@ -27448,6 +27474,24 @@ input PromotionRuleInput @doc(category: "Discounts") {
   """
   rewardValue: PositiveDecimal
 
+  """
+  Defines the conditions on the checkout/order level that must be met for the reward to be applied.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutAndOrderPredicate: CheckoutAndOrderPredicateInput
+
+  """
+  Defines the reward type of the promotion rule.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  rewardType: RewardTypeEnum
+
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
 }
@@ -27470,6 +27514,31 @@ input CataloguePredicateInput @doc(category: "Discounts") {
 
   """A list of conditions of which at least one must be met."""
   OR: [CataloguePredicateInput!]
+}
+
+input CheckoutAndOrderPredicateInput @doc(category: "Discounts") {
+  """Defines the conditions related to checkout and order objects."""
+  discountedObjectPredicate: DiscountedObjectPredicateInput
+
+  """List of conditions that must be met."""
+  AND: [CheckoutAndOrderPredicateInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CheckoutAndOrderPredicateInput!]
+}
+
+input DiscountedObjectPredicateInput @doc(category: "Discounts") {
+  """Subtotal price range condition."""
+  subtotalPrice: DecimalFilterInput
+
+  """Total price range condition."""
+  totalPrice: DecimalFilterInput
+
+  """List of conditions that must be met."""
+  AND: [DiscountedObjectPredicateInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [DiscountedObjectPredicateInput!]
 }
 
 """
@@ -27600,6 +27669,9 @@ enum PromotionRuleCreateErrorCode {
   INVALID
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
+  MIXED_PREDICATES
+  MIXED_PROMOTION_PREDICATES
+  MISSING_CHANNELS
 }
 
 input PromotionRuleCreateInput {
@@ -27623,6 +27695,24 @@ input PromotionRuleCreateInput {
   Defines the discount value. Required when catalogue predicate is provided.
   """
   rewardValue: PositiveDecimal
+
+  """
+  Defines the conditions on the checkout/order level that must be met for the reward to be applied.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutAndOrderPredicate: CheckoutAndOrderPredicateInput
+
+  """
+  Defines the reward type of the promotion rule.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  rewardType: RewardTypeEnum
 
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
@@ -27669,10 +27759,12 @@ enum PromotionRuleUpdateErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   INVALID
+  REQUIRED
   DUPLICATED_INPUT_ITEM
   MISSING_CHANNELS
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
+  MIXED_PREDICATES
 }
 
 input PromotionRuleUpdateInput {
@@ -27696,6 +27788,24 @@ input PromotionRuleUpdateInput {
   Defines the discount value. Required when catalogue predicate is provided.
   """
   rewardValue: PositiveDecimal
+
+  """
+  Defines the conditions on the checkout/order level that must be met for the reward to be applied.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutAndOrderPredicate: CheckoutAndOrderPredicateInput
+
+  """
+  Defines the reward type of the promotion rule.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  rewardType: RewardTypeEnum
 
   """List of channel ids to add."""
   addChannels: [ID!]

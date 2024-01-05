@@ -20,6 +20,16 @@ class Migration(migrations.Migration):
                 encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
             ),
         ),
+        migrations.AddField(
+            model_name="promotionrule",
+            name="reward_type",
+            field=models.CharField(
+                blank=True,
+                choices=[("subtotal_discount", "subtotal_discount")],
+                max_length=255,
+                null=True,
+            ),
+        ),
         migrations.RunSQL(
             "ALTER TABLE discount_promotionrule ALTER COLUMN checkout_and_order_predicate SET DEFAULT '{}';",
             migrations.RunSQL.noop,

@@ -5,7 +5,6 @@ from typing import Optional, Union, cast
 
 import graphene
 from django.db.models import Exists, OuterRef, QuerySet
-from graphene.utils.str_converters import to_camel_case
 
 from ...discount.models import Promotion, PromotionRule
 from ...discount.utils import update_rule_variant_relation
@@ -30,28 +29,12 @@ PREDICATE_OPERATOR_DATA_T = list[dict[str, Union[list, dict, str, bool]]]
 
 class PredicateType(Enum):
     CATALOGUE = "catalogue"
-    ORDER = "order"
+    CHECKOUT_AND_ORDER = "checkout_and_order"
 
 
 class Operators(Enum):
     AND = "and"
     OR = "or"
-
-
-# TODO: move to validators in promotion dir
-def clean_predicate(predicate: Union[dict[str, Union[dict, list]], list]):
-    """Convert camel cases keys into snake case."""
-    if isinstance(predicate, list):
-        return [
-            clean_predicate(item) if isinstance(item, (dict, list)) else item
-            for item in predicate
-        ]
-    return {
-        to_camel_case(key): clean_predicate(value)
-        if isinstance(value, (dict, list))
-        else value
-        for key, value in predicate.items()
-    }
 
 
 def get_products_for_promotion(
@@ -433,3 +416,12 @@ def create_catalogue_predicate(collection_ids, category_ids, product_ids, varian
         predicate = {}
 
     return predicate
+
+
+def get_predicate_type(rule: Optional[PromotionRule]) -> Optional[PredicateType]:
+    if rule:
+        if rule.catalogue_predicate:
+            return PredicateType.CATALOGUE
+        elif rule.checkout_and_order_predicate:
+            return PredicateType.CHECKOUT_AND_ORDER
+    return None

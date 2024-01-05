@@ -1,15 +1,17 @@
 import graphene
 
+from ..core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import BaseInputObjectType, NonNullList
+from ..core.types.filter_input import DecimalFilterInput
 from ..product.filters import (
     CategoryWhereInput,
     CollectionWhereInput,
     ProductVariantWhereInput,
     ProductWhereInput,
 )
-from .enums import RewardValueTypeEnum
+from .enums import RewardTypeEnum, RewardValueTypeEnum
 
 
 class PredicateInputObjectType(BaseInputObjectType):
@@ -63,6 +65,28 @@ class CataloguePredicateInput(PredicateInputObjectType):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
 
+class DiscountedObjectPredicateInput(PredicateInputObjectType):
+    subtotal_price = graphene.Field(
+        DecimalFilterInput, description="Subtotal price range condition."
+    )
+    total_price = graphene.Field(
+        DecimalFilterInput, description="Total price range condition."
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+
+
+class CheckoutAndOrderPredicateInput(PredicateInputObjectType):
+    discounted_object_predicate = graphene.Field(
+        DiscountedObjectPredicateInput,
+        description="Defines the conditions related to checkout and order objects.",
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+
+
 class PromotionRuleBaseInput(BaseInputObjectType):
     name = graphene.String(description="Promotion rule name.")
     description = JSON(description="Promotion rule description.")
@@ -82,4 +106,16 @@ class PromotionRuleBaseInput(BaseInputObjectType):
         description=(
             "Defines the discount value. Required when catalogue predicate is provided."
         ),
+    )
+    checkout_and_order_predicate = graphene.Field(
+        CheckoutAndOrderPredicateInput,
+        description=(
+            "Defines the conditions on the checkout/order level that must be met "
+            "for the reward to be applied." + ADDED_IN_319 + PREVIEW_FEATURE
+        ),
+    )
+    reward_type = RewardTypeEnum(
+        description="Defines the reward type of the promotion rule."
+        + ADDED_IN_319
+        + PREVIEW_FEATURE
     )
