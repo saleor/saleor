@@ -629,6 +629,7 @@ def _create_or_update_checkout_discount(
 ):
     # TODO: handle two scenario when this method is called almost in the same time
     # we need get_or_create probably and transaction
+    # Will be resolved in #15178
     checkout_discount = checkout.discounts.filter(
         type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION
     ).first()

@@ -171,6 +171,7 @@ class CheckoutDiscountedObjectWhere(WhereFilterSet):
         return _filter_total_price(queryset, name, value, currency)
 
 
+# TODO: will be fixed in separate PR; issue #14943
 def _filter_total_price(qs, _, value, currency):
     # We will have single channel/currency as the rule can applied only
     # on channels with the same currencies

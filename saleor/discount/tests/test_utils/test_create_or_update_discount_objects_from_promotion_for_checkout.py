@@ -1373,6 +1373,71 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
     assert discount.reason == f"Promotion: {promotion_id}"
 
 
+@patch("saleor.discount.utils.base_checkout_delivery_price")
+@patch("saleor.discount.utils.base_checkout_subtotal")
+def test_create_or_update_discount_objects_from_promotion_total_price_discount(
+    subtotal_mock,
+    delivery_price_mock,
+    checkout_info,
+    checkout_lines_info,
+    promotion_without_rules,
+):
+    # given
+    promotion = promotion_without_rules
+    checkout = checkout_info.checkout
+
+    delivery_price = Money("10", checkout_info.checkout.currency)
+    price = Money("30", checkout_info.checkout.currency)
+    checkout.base_subtotal = price
+    checkout.base_total = price + delivery_price
+    checkout.save(
+        update_fields=[
+            "base_total_amount",
+            "base_subtotal_amount",
+        ]
+    )
+
+    subtotal_mock.return_value = price
+    delivery_price_mock.return_value = delivery_price
+
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                name="Checkout and order promotion rule 2",
+                promotion=promotion,
+                checkout_and_order_predicate={
+                    "total_price": {
+                        "range": {
+                            "gte": 20,
+                        }
+                    }
+                },
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=Decimal("50"),
+                reward_type=RewardType.TOTAL_DISCOUNT,
+            ),
+        ]
+    )
+    for rule in rules:
+        rule.channels.add(checkout_info.channel)
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines_info
+    )
+
+    # then
+    assert checkout_info.checkout.discounts.count() == 1
+    assert len(checkout_info.discounts) == 1
+    assert checkout_info.discounts[0].promotion_rule == rules[0]
+    discount = checkout_info.discounts[0]
+    assert (
+        discount.amount_value
+        == checkout.base_total.amount * Decimal("0.5")
+        == (delivery_price + price).amount * Decimal("0.5")
+    )
+
+
 def test_create_or_update_discount_from_promotion_voucher_code_set_checkout_discount(
     checkout_info,
     checkout_lines_info,

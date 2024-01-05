@@ -430,6 +430,48 @@ def test_calculate_checkout_subtotal_with_promotion_prices_not_entered_with_tax(
     )
 
 
+def test_calculate_checkout_subtotal_with_checkout_and_order_promotion(
+    checkout_with_item_with_checkout_and_order_discount,
+    address,
+    shipping_zone,
+    stock,
+):
+    # given
+    checkout = checkout_with_item_with_checkout_and_order_discount
+    prices_entered_with_tax = True
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+    discount_amount = checkout.discounts.first().amount_value
+
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_zone.shipping_methods.get()
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
+    lines, _ = fetch_checkout_lines(checkout)
+
+    # when
+    update_checkout_prices_with_flat_rates(
+        checkout,
+        checkout_info,
+        lines,
+        prices_entered_with_tax,
+        address,
+    )
+
+    # then
+    subtotal = Decimal("0.00")
+    for line_info in lines:
+        subtotal += (
+            line_info.channel_listing.discounted_price_amount * line_info.line.quantity
+        )
+    discounted_subtotal = subtotal - discount_amount
+    assert checkout.subtotal == TaxedMoney(
+        net=Money(round(discounted_subtotal / Decimal("1.23"), 2), "USD"),
+        gross=Money(discounted_subtotal, "USD"),
+    )
+
+
 def test_calculate_checkout_line_total(checkout_with_item, shipping_zone, address):
     manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item
