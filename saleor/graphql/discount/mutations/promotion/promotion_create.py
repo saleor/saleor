@@ -1,8 +1,10 @@
 from collections import defaultdict
 from datetime import datetime
+from typing import Optional
 
 import graphene
 import pytz
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from graphql.error import GraphQLError
@@ -21,13 +23,14 @@ from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import JSON
 from ....core.types import BaseInputObjectType, Error, NonNullList
-from ....core.utils import WebhookEventInfo
+from ....core.utils import WebhookEventInfo, raise_validation_error
 from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils import get_nodes
 from ...enums import PromotionCreateErrorCode
 from ...inputs import PromotionRuleBaseInput
 from ...types import Promotion
+from ...utils import PredicateType
 from .validators import clean_promotion_rule
 
 
@@ -122,7 +125,19 @@ class PromotionCreate(ModelMutation):
         errors: defaultdict[str, list[ValidationError]],
     ) -> tuple[list, defaultdict[str, list[ValidationError]]]:
         cleaned_rules = []
-        cls.check_predicate_types(rules_data)
+        predicate_type = cls.check_predicate_types(rules_data)
+        if predicate_type and predicate_type == PredicateType.CHECKOUT_AND_ORDER:
+            rules_limit = settings.CHECKOUT_AND_ORDER_RULES_LIMIT
+            if len(rules_data) > rules_limit:
+                raise_validation_error(
+                    message=(
+                        f"Number of rules has reached the limit of {rules_limit} "
+                        f"rules per single promotion."
+                    ),
+                    code=PromotionCreateErrorCode.RULES_NUMBER_LIMIT.value,
+                    field="rules",
+                )
+
         for index, rule_data in enumerate(rules_data):
             if channel_ids := rule_data.get("channels"):
                 channels = cls.clean_channels(info, channel_ids, index, errors)
@@ -133,7 +148,7 @@ class PromotionCreate(ModelMutation):
         return cleaned_rules, errors
 
     @classmethod
-    def check_predicate_types(cls, rules_data: dict):
+    def check_predicate_types(cls, rules_data: dict) -> Optional[PredicateType]:
         """Validate that all rules have the same predicate types."""
         catalogue_predicates = False
         order_predicates = False
@@ -156,6 +171,11 @@ class PromotionCreate(ModelMutation):
                         code=PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value,
                     )
                 order_predicates = True
+
+        if checkout_and_order_predicates:
+            return PredicateType.CHECKOUT_AND_ORDER
+        if catalogue_predicates:
+            return PredicateType.CATALOGUE
 
     @classmethod
     def clean_channels(

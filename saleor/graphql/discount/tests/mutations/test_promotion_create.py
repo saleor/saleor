@@ -3,6 +3,7 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -1394,6 +1395,59 @@ def test_promotion_create_invalid_catalogue_predicate(
     assert errors[0]["code"] == PromotionCreateErrorCode.INVALID.name
     assert errors[0]["field"] == "cataloguePredicate"
     assert errors[0]["index"] == 1
+
+
+@override_settings(CHECKOUT_AND_ORDER_RULES_LIMIT=1)
+def test_promotion_create_exceeds_rules_number_limit(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    product,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    start_date = timezone.now() - timedelta(days=30)
+    end_date = timezone.now() + timedelta(days=30)
+
+    promotion_name = "test promotion"
+    checkout_and_order_predicate = {
+        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+    }
+    rule_name = "test promotion rule 1"
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
+    reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+    rule_input = {
+        "name": rule_name,
+        "channels": [channel_id],
+        "rewardValueType": reward_value_type,
+        "rewardValue": reward_value,
+        "rewardType": reward_type,
+        "checkoutAndOrderPredicate": checkout_and_order_predicate,
+    }
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "rules": [rule_input, rule_input],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    errors = data["errors"]
+
+    assert not data["promotion"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionCreateErrorCode.RULES_NUMBER_LIMIT.name
+    assert errors[0]["field"] == "rules"
 
 
 PROMOTION_CREATE_WITH_EVENTS = """

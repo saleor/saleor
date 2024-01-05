@@ -243,21 +243,20 @@ def _clean_order_predicate(
         errors["order_predicate"].append(error)
         return
 
-    promotion = cleaned_input["promotion"]
-    rules_count = promotion.rules.count()
-    rules_limit = settings.CHECKOUT_AND_ORDER_RULES_LIMIT
-    if rules_count >= rules_limit:
-        errors["checkout_and_order_predicate"].append(
-            ValidationError(
-                message=(
-                    f"Number of rules has reached the limit of {rules_limit} "
-                    f"rules per single promotion."
-                ),
-                code=error_class.RULES_NUMBER_LIMIT.value,
-                params={"index": index} if index is not None else {},
+    if promotion := cleaned_input.get("promotion"):
+        rules_count = promotion.rules.count()
+        rules_limit = settings.CHECKOUT_AND_ORDER_RULES_LIMIT
+        if rules_count >= rules_limit:
+            errors["checkout_and_order_predicate"].append(
+                ValidationError(
+                    message=(
+                        f"Number of rules has reached the limit of {rules_limit} "
+                        f"rules per single promotion."
+                    ),
+                    code=error_class.RULES_NUMBER_LIMIT.value,
+                )
             )
-        )
-        return
+            return
 
 
 def _clean_reward(
