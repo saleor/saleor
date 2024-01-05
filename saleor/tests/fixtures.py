@@ -54,6 +54,7 @@ from ..discount import (
     DiscountType,
     DiscountValueType,
     PromotionEvents,
+    RewardType,
     RewardValueType,
     VoucherType,
 )
@@ -5594,6 +5595,23 @@ def promotion_with_single_rule(catalogue_predicate, channel_USD):
         catalogue_predicate=catalogue_predicate,
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),
+    )
+    rule.channels.add(channel_USD)
+    return promotion
+
+
+@pytest.fixture
+def promotion_with_checkout_and_order_rule(catalogue_predicate, channel_USD):
+    promotion = Promotion.objects.create(name="Promotion with checkout and order rule")
+    rule = PromotionRule.objects.create(
+        name="Promotion rule",
+        promotion=promotion,
+        checkout_and_order_predicate={
+            "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
     rule.channels.add(channel_USD)
     return promotion

@@ -27,6 +27,7 @@ from . import (
     DiscountType,
     DiscountValueType,
     PromotionEvents,
+    RewardType,
     RewardValueType,
     VoucherType,
 )
@@ -385,6 +386,9 @@ class PromotionRule(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         null=True,
         blank=True,
+    )
+    reward_type = models.CharField(
+        max_length=255, choices=RewardType.CHOICES, blank=True, null=True
     )
     old_channel_listing_id = models.IntegerField(blank=True, null=True, unique=True)
 

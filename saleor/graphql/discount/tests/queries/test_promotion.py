@@ -29,6 +29,7 @@ QUERY_PROMOTION_BY_ID = """
                 rewardValueType
                 rewardValue
                 cataloguePredicate
+                rewardType
             }
         }
     }
@@ -53,6 +54,7 @@ def _assert_promotion_data(promotion, content_data):
             "rewardValueType": rule.reward_value_type.upper(),
             "rewardValue": rule.reward_value,
             "cataloguePredicate": rule.catalogue_predicate,
+            "rewardType": rule.reward_type,
         }
         assert rule_data in promotion_data["rules"]
 

@@ -10,7 +10,7 @@ from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionCreateErrorCode
 from .....discount.models import Promotion, PromotionEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import RewardValueTypeEnum
+from ...enums import RewardTypeEnum, RewardValueTypeEnum
 
 PROMOTION_CREATE_MUTATION = """
     mutation promotionCreate($input: PromotionCreateInput!) {
@@ -300,6 +300,68 @@ def test_promotion_create_by_customer(
     promotion_created_mock.assert_not_called()
     promotion_started_mock.assert_not_called()
     update_products_discounted_prices_of_promotion_task_mock.assert_not_called()
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_promotion_create_with_checkout_and_order_rule(
+    staff_api_client,
+    permission_group_manage_discounts,
+    description_json,
+    channel_USD,
+    channel_PLN,
+    product,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    start_date = timezone.now() - timedelta(days=30)
+    end_date = timezone.now() + timedelta(days=30)
+
+    promotion_name = "test promotion"
+    checkout_and_order_predicate = {
+        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+    }
+    rule_name = "test promotion rule 1"
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.FIXED.name
+    reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
+    channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "description": description_json,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "rules": [
+                {
+                    "name": rule_name,
+                    "description": description_json,
+                    "channels": channel_ids,
+                    "rewardValueType": reward_value_type,
+                    "rewardValue": reward_value,
+                    "rewardType": reward_type,
+                    "checkoutAndOrderPredicate": checkout_and_order_predicate,
+                },
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    promotion_data = data["promotion"]
+
+    assert not data["errors"]
+    assert promotion_data["name"] == promotion_name
+    assert promotion_data["description"] == description_json
+    assert promotion_data["startDate"] == start_date.isoformat()
+    assert promotion_data["endDate"] == end_date.isoformat()
+
+    promotion = Promotion.objects.filter(name=promotion_name).get()
+    assert promotion.last_notification_scheduled_at == timezone.now()
 
 
 def test_promotion_create_fixed_reward_value_multiple_currencies(
@@ -674,7 +736,7 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_promotion_create_missing_catalogue_predicate(
+def test_promotion_create_missing_predicate(
     staff_api_client,
     permission_group_manage_discounts,
     description_json,
@@ -735,10 +797,19 @@ def test_promotion_create_missing_catalogue_predicate(
     errors = data["errors"]
 
     assert not data["promotion"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == PromotionCreateErrorCode.REQUIRED.name
-    assert errors[0]["field"] == "cataloguePredicate"
-    assert errors[0]["index"] == 1
+    assert len(errors) == 2
+    assert {
+        "code": PromotionCreateErrorCode.REQUIRED.name,
+        "field": "cataloguePredicate",
+        "index": 1,
+        "message": ANY,
+    } in errors
+    assert {
+        "code": PromotionCreateErrorCode.REQUIRED.name,
+        "field": "checkoutAndOrderPredicate",
+        "index": 1,
+        "message": ANY,
+    } in errors
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -951,6 +1022,144 @@ def test_promotion_create_invalid_channel_id(
     assert not data["promotion"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionCreateErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["field"] == "channels"
+    assert errors[0]["index"] == 0
+
+
+def test_promotion_create_mixed_catalogue_and_checkout_and_order_rules(
+    staff_api_client,
+    permission_group_manage_discounts,
+    description_json,
+    channel_USD,
+    channel_PLN,
+    variant,
+    product,
+    collection,
+    category,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    start_date = timezone.now() - timedelta(days=30)
+    end_date = timezone.now() + timedelta(days=30)
+
+    rule_1_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    rule_2_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
+    promotion_name = "test promotion"
+    catalogue_predicate = {
+        "productPredicate": {"ids": [graphene.Node.to_global_id("Product", product.id)]}
+    }
+    checkout_and_order_predicate = {
+        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+    }
+    rule_1_name = "test promotion rule 1"
+    rule_2_name = "test promotion rule 2"
+    reward_value = Decimal("10")
+    reward_value_type_1 = RewardValueTypeEnum.FIXED.name
+    reward_value_type_2 = RewardValueTypeEnum.PERCENTAGE.name
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "description": description_json,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "rules": [
+                {
+                    "name": rule_1_name,
+                    "description": description_json,
+                    "channels": rule_1_channel_ids,
+                    "rewardValueType": reward_value_type_1,
+                    "rewardValue": reward_value,
+                    "cataloguePredicate": catalogue_predicate,
+                },
+                {
+                    "name": rule_2_name,
+                    "description": description_json,
+                    "channels": rule_2_channel_ids,
+                    "rewardValueType": reward_value_type_2,
+                    "rewardValue": reward_value,
+                    "checkoutAndOrderPredicate": checkout_and_order_predicate,
+                },
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    errors = data["errors"]
+
+    assert not data["promotion"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.name
+    assert errors[0]["field"] is None
+    assert errors[0]["index"] is None
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_promotion_create_mixed_currencies_for_price_based_predicate(
+    staff_api_client,
+    permission_group_manage_discounts,
+    description_json,
+    channel_USD,
+    channel_PLN,
+    product,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    start_date = timezone.now() - timedelta(days=30)
+    end_date = timezone.now() + timedelta(days=30)
+
+    promotion_name = "test promotion"
+    checkout_and_order_predicate = {
+        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+    }
+    rule_name = "test promotion rule 1"
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
+    reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
+    channel_ids = [
+        graphene.Node.to_global_id("Channel", channel.pk)
+        for channel in [channel_USD, channel_PLN]
+    ]
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "description": description_json,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "rules": [
+                {
+                    "name": rule_name,
+                    "description": description_json,
+                    "channels": channel_ids,
+                    "rewardValueType": reward_value_type,
+                    "rewardValue": reward_value,
+                    "rewardType": reward_type,
+                    "checkoutAndOrderPredicate": checkout_and_order_predicate,
+                },
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    errors = data["errors"]
+
+    assert not data["promotion"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["code"]
+        == PromotionCreateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.name
+    )
     assert errors[0]["field"] == "channels"
     assert errors[0]["index"] == 0
 

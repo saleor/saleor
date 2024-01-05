@@ -50,6 +50,14 @@ class RewardValueType:
     ]
 
 
+class RewardType:
+    SUBTOTAL_DISCOUNT = "subtotal_discount"
+
+    CHOICES = [
+        (SUBTOTAL_DISCOUNT, "subtotal_discount"),
+    ]
+
+
 class PromotionEvents:
     PROMOTION_CREATED = "promotion_created"
     PROMOTION_UPDATED = "promotion_updated"

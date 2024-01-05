@@ -122,6 +122,7 @@ class PromotionCreate(ModelMutation):
         errors: defaultdict[str, list[ValidationError]],
     ) -> tuple[list, defaultdict[str, list[ValidationError]]]:
         cleaned_rules = []
+        cls.check_predicate_types(rules_data)
         for index, rule_data in enumerate(rules_data):
             if channel_ids := rule_data.get("channels"):
                 channels = cls.clean_channels(info, channel_ids, index, errors)
@@ -130,6 +131,31 @@ class PromotionCreate(ModelMutation):
             cleaned_rules.append(rule_data)
 
         return cleaned_rules, errors
+
+    @classmethod
+    def check_predicate_types(cls, rules_data: dict):
+        """Validate that all rules have the same predicate types."""
+        catalogue_predicates = False
+        checkout_and_order_predicates = False
+        error_message = (
+            "Predicate types can't be mixed. All promotion rules must have "
+            "catalogue or checkoutAndOrderPredicate defined."
+        )
+        for rule_data in rules_data:
+            if rule_data.get("catalogue_predicate"):
+                if checkout_and_order_predicates:
+                    raise ValidationError(
+                        error_message,
+                        code=PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value,
+                    )
+                catalogue_predicates = True
+            elif rule_data.get("checkout_and_order_predicate"):
+                if catalogue_predicates:
+                    raise ValidationError(
+                        error_message,
+                        code=PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value,
+                    )
+                checkout_and_order_predicates = True
 
     @classmethod
     def clean_channels(

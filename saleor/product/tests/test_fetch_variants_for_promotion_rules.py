@@ -56,6 +56,29 @@ def test_fetch_variants_for_promotion_rules_discount(
     )
 
 
+def test_fetch_variants_for_promotion_rules_empty_catalogue_predicate(
+    promotion_without_rules, product, product_with_two_variants, channel_USD
+):
+    # given
+    promotion = promotion_without_rules
+
+    percentage_reward_value = Decimal("10")
+    rule_1 = promotion.rules.create(
+        name="Percentage promotion rule",
+        catalogue_predicate={},
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=percentage_reward_value,
+    )
+    rule_1.channels.add(channel_USD)
+
+    # when
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
+
+    # then
+    rule_1.refresh_from_db()
+    assert rule_1.variants.count() == 0
+
+
 def test_fetch_variants_for_promotion_rules_no_applicable_variants(
     promotion_without_rules, category, channel_USD
 ):

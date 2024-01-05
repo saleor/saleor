@@ -1,8 +1,10 @@
+from collections import defaultdict
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from .....discount import RewardValueType, events, models
+from .....discount import events, models
 from .....discount.utils import get_current_products_for_rules
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_discounted_prices_task
@@ -19,12 +21,10 @@ from ....utils.validators import check_for_duplicates
 from ...enums import PromotionRuleUpdateErrorCode
 from ...inputs import PromotionRuleBaseInput
 from ...types import PromotionRule
-from ...utils import get_products_for_rule
+from ...utils import PredicateType, get_products_for_rule
 from ..utils import clear_promotion_old_sale_id
 from .validators import (
-    clean_fixed_discount_value,
-    clean_percentage_discount_value,
-    clean_predicate,
+    clean_promotion_rule,
 )
 
 
@@ -102,89 +102,22 @@ class PromotionRuleUpdate(ModelMutation):
             error.code = PromotionRuleUpdateErrorCode.DUPLICATED_INPUT_ITEM.value
             raise ValidationError({"addChannels": error, "removeChannels": error})
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
-        cls.clean_reward(instance, cleaned_input)
-        if catalogue_predicate := cleaned_input.get("catalogue_predicate"):
-            try:
-                cleaned_input["catalogue_predicate"] = clean_predicate(
-                    catalogue_predicate, PromotionRuleUpdateErrorCode
-                )
-            except ValidationError as error:
-                raise ValidationError({"catalogue_predicate": error})
-        return cleaned_input
-
-    @classmethod
-    def clean_reward(cls, instance, cleaned_input):
-        """Validate reward value and reward value type.
-
-        - Fixed reward value type requires channels with the same currency code
-        to be specified.
-        - Validate price precision for fixed reward value.
-        - Check if percentage reward value is not above 100.
-        """
-        channel_currencies = set(
-            instance.channels.values_list("currency_code", flat=True)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
+        predicate_type = (
+            PredicateType.CATALOGUE
+            if instance.catalogue_predicate
+            else PredicateType.CHECKOUT_AND_ORDER
         )
-        if remove_channels := cleaned_input.get("remove_channels"):
-            channel_currencies = channel_currencies - {
-                channel.currency_code for channel in remove_channels
-            }
-        if add_channels := cleaned_input.get("add_channels"):
-            channel_currencies.update(
-                [channel.currency_code for channel in add_channels]
-            )
-
-        if "reward_value" in cleaned_input or "reward_value_type" in cleaned_input:
-            reward_value = cleaned_input.get("reward_value") or instance.reward_value
-            reward_value_type = (
-                cleaned_input.get("reward_value_type") or instance.reward_value_type
-            )
-            if reward_value_type == RewardValueType.FIXED:
-                if not channel_currencies:
-                    field = (
-                        "reward_value_type"
-                        if "reward_value_type" in cleaned_input
-                        else "remove_channels"
-                    )
-                    raise ValidationError(
-                        {
-                            field: ValidationError(
-                                "Channels must be specified for FIXED rewardValueType.",
-                                code=PromotionRuleUpdateErrorCode.MISSING_CHANNELS.value,
-                            )
-                        }
-                    )
-                if len(channel_currencies) > 1:
-                    field = (
-                        "reward_value_type"
-                        if "reward_value_type" in cleaned_input
-                        else "add_channels"
-                    )
-                    error_code = PromotionRuleUpdateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.value
-                    raise ValidationError(
-                        {
-                            field: ValidationError(
-                                "Channels must have the same currency code "
-                                "for FIXED rewardValueType.",
-                                code=error_code,
-                            )
-                        }
-                    )
-                currency = channel_currencies.pop()
-                try:
-                    clean_fixed_discount_value(
-                        reward_value,
-                        PromotionRuleUpdateErrorCode.INVALID_PRECISION.value,
-                        currency,
-                    )
-                except ValidationError as error:
-                    raise ValidationError({"reward_value": error})
-            elif reward_value_type == RewardValueType.PERCENTAGE:
-                try:
-                    clean_percentage_discount_value(
-                        reward_value, PromotionRuleUpdateErrorCode.INVALID.value
-                    )
-                except ValidationError as error:
-                    raise ValidationError({"reward_value": error})
+        cleaned_input = clean_promotion_rule(
+            cleaned_input,
+            errors,
+            PromotionRuleUpdateErrorCode,
+            predicate_type=predicate_type,
+            instance=instance,
+        )
+        if errors:
+            raise ValidationError(errors)
+        return cleaned_input
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
