@@ -207,6 +207,7 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
         null=True,
         on_delete=models.SET_NULL,
     )
+    discounted_price_dirty = models.BooleanField(default=False)
 
     objects = managers.ProductManager()
 

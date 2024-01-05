@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, List, Set
 
 from django.db import transaction
 from django.db.models import Exists, OuterRef, QuerySet
@@ -54,11 +54,12 @@ def get_variant_selection_attributes(
 
 def fetch_variants_for_promotion_rules(
     rules: QuerySet[PromotionRule],
-):
+) -> List[int]:
     from ...graphql.discount.utils import get_variants_for_catalogue_predicate
 
     PromotionRuleVariant = PromotionRule.variants.through
     promotion_rule_variants = []
+    variant_ids: List[int] = []
     for rule in list(rules.iterator()):
         variants = get_variants_for_catalogue_predicate(rule.catalogue_predicate)
         promotion_rule_variants.extend(
@@ -69,6 +70,7 @@ def fetch_variants_for_promotion_rules(
                 for variant_id in set(variants.values_list("pk", flat=True))
             ]
         )
+        variant_ids += variants.values_list("id", flat=True)
 
     with transaction.atomic():
         # Clear existing variants assigned to promotion rules
@@ -78,3 +80,5 @@ def fetch_variants_for_promotion_rules(
         PromotionRuleVariant.objects.bulk_create(
             promotion_rule_variants, ignore_conflicts=True
         )
+
+    return list(set(variant_ids))

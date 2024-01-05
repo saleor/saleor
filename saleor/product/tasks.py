@@ -9,11 +9,15 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Exists, OuterRef
 from django.utils import timezone
 
+from .utils.product import mark_products_for_recalculate_discounted_price
 from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
 from ..discount.models import Promotion, PromotionRule
-from ..discount.utils import get_current_products_for_rules
+from ..discount.utils import (
+    get_current_products_for_rules,
+    update_promotion_rules_variants_dirty,
+)
 from ..warehouse.management import deactivate_preorder_for_variant
 from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
@@ -132,6 +136,54 @@ def update_products_discounted_prices_for_promotion_task(
         # when all promotion rules variants are up to date, call discounted prices
         # recalculation for products
         update_discounted_prices_task.delay(product_ids)
+
+
+@app.task
+def update_promotion_rules_mark_products_for_price_recalculation_task(
+    product_ids: Iterable[int] = [],
+    start_id: Optional[UUID] = None,
+):
+    """Update PromotionRule and ProductVariant.
+
+    Mark the Product discounted prices for recalculation when all PromotionRules
+    are updated.
+    """
+    promotions = Promotion.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).active()
+    kwargs = {"id__gt": start_id} if start_id else {}
+    rules = (
+        PromotionRule.objects.order_by("id")
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id"))),
+            variants_dirty=True,
+            **kwargs,
+        )[:PROMOTION_RULE_BATCH_SIZE]
+    )
+    if ids := list(rules.values_list("pk", flat=True)):
+        qs = PromotionRule.objects.filter(pk__in=ids)
+        product_ids = fetch_variants_for_promotion_rules(rules=qs)
+        update_promotion_rules_variants_dirty(False)
+        update_products_discounted_prices_for_promotion_task.delay(product_ids, ids[-1])
+    else:
+        # when all promotion rules variants are up to date, mark products for
+        if product_ids:
+            mark_products_for_recalculate_discounted_price(product_ids)
+
+
+@app.task
+def recalculate_discounted_price_for_products_task():
+    """Recalculate discounted price for products"""
+    products_ids = list(
+        Product.objects.filter(discounted_price_dirty=True)
+        .order_by("id")
+        .values_list("id", flat=True)
+    )[:DISCOUNTED_PRODUCT_BATCH]
+    if products := Product.objects.filter(id__in=products_ids):
+        update_discounted_prices_for_promotion(products)
+        products.update(discounted_price_dirty=False)
+        recalculate_discounted_price_for_products_task.delay()
 
 
 @app.task
