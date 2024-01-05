@@ -5,6 +5,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
+import pytest
 from django.utils import timezone
 
 from ...discount import RewardValueType
@@ -128,12 +129,14 @@ def test_update_products_discounted_prices_for_promotion_task_with_rules_id(
     ) == {rule_id}
 
 
+@pytest.mark.parametrize("reward_value", [None, 0])
 @patch("saleor.product.tasks.PROMOTION_RULE_BATCH_SIZE", 1)
 @patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.product.utils.variants.fetch_variants_for_promotion_rules")
 def test_update_products_discounted_prices_for_promotion_task_with_empty_reward_value(
     fetch_variants_for_promotion_rules_mock,
     update_discounted_prices_task_mock,
+    reward_value,
     promotion_list,
     collection,
     product_list,
@@ -146,7 +149,7 @@ def test_update_products_discounted_prices_for_promotion_task_with_empty_reward_
     collection.products.add(*product_list[1:])
 
     rule = PromotionRule.objects.first()
-    rule.reward_value = 0
+    rule.reward_value = reward_value
     rule.save(update_fields=["reward_value"])
     rule_id = PromotionRule.objects.first().id
     product_ids = [product.id for product in product_list]
