@@ -1353,6 +1353,69 @@ def test_calculate_checkout_total(
 
 
 @pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_total_with_checkout_and_order_promotion(
+    checkout_with_item_with_checkout_and_order_discount,
+    shipping_zone,
+    ship_to_pl_address,
+    monkeypatch,
+    plugin_configuration,
+):
+    # given
+    checkout = checkout_with_item_with_checkout_and_order_discount
+    discount_amount = checkout.discount_amount
+
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PS081282": "desc", TAX_CODE_NON_TAXABLE_PRODUCT: "desc"},
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
+    )
+    manager = get_plugins_manager(allow_replica=False)
+    checkout.shipping_address = ship_to_pl_address
+    checkout.save()
+
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = True
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    shipping_method = shipping_zone.shipping_methods.get()
+    checkout.shipping_method = shipping_method
+    checkout.save(update_fields=["shipping_method"])
+
+    line = checkout.lines.first()
+    product = line.variant.product
+
+    manager.assign_tax_code_to_object_meta(product.tax_class, "PS081282")
+    product.save()
+    product.tax_class.save()
+
+    checkout_info = fetch_checkout_info(checkout, [], manager)
+    lines, _ = fetch_checkout_lines(checkout)
+
+    # when
+    total = manager.calculate_checkout_total(checkout_info, lines, ship_to_pl_address)
+
+    # then
+    total = quantize_price(total, total.currency)
+    line_info = lines[0]
+    unit_price = line_info.variant.get_price(line_info.channel_listing)
+    subtotal_price_amount = (unit_price * line.quantity).amount - discount_amount
+    shipping_price = shipping_method.channel_listings.get(
+        channel=checkout.channel
+    ).price
+    total_price_amount = subtotal_price_amount + shipping_price.amount
+    assert total == TaxedMoney(
+        net=Money(round(total_price_amount / Decimal("1.23"), 2), checkout.currency),
+        gross=Money(total_price_amount, "USD"),
+    )
+
+
+@pytest.mark.vcr
 @pytest.mark.parametrize(
     ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
