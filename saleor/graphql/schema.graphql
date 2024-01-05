@@ -27435,6 +27435,7 @@ enum PromotionCreateErrorCode {
   MIXED_PREDICATES
   MIXED_PROMOTION_PREDICATES
   MISSING_CHANNELS
+  RULES_NUMBER_LIMIT
 }
 
 input PromotionCreateInput @doc(category: "Discounts") {
@@ -27668,6 +27669,7 @@ enum PromotionRuleCreateErrorCode {
   MIXED_PREDICATES
   MIXED_PROMOTION_PREDICATES
   MISSING_CHANNELS
+  RULES_NUMBER_LIMIT
 }
 
 input PromotionRuleCreateInput {

@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Union
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from graphene.utils.str_converters import to_camel_case
 
@@ -183,7 +184,8 @@ def _clean_order_predicate(
     """Clean and validate order predicate.
 
     - Reward type is required for rule with order predicate.
-    - Price based predicates are allowed only for rules with one currency
+    - Price based predicates are allowed only for rules with one currency.
+    - Rules number with order predicate doesn't exceed the limit.
     """
     if not order_predicate:
         return
@@ -194,7 +196,7 @@ def _clean_order_predicate(
     if not reward_type:
         errors["reward_type"].append(
             ValidationError(
-                message=("The rewardType is required when orderPredicate is provided."),
+                message="The rewardType is required when orderPredicate is provided.",
                 code=error_class.REQUIRED.value,
                 params={"index": index} if index is not None else {},
             )
@@ -239,6 +241,22 @@ def _clean_order_predicate(
         )
     except ValidationError as error:
         errors["order_predicate"].append(error)
+        return
+
+    rules_count = instance.promotion.rules.count()
+    rules_limit = settings.CHECKOUT_AND_ORDER_RULES_LIMIT
+    if rules_count >= rules_limit:
+        errors["checkout_and_order_predicate"].append(
+            ValidationError(
+                message=(
+                    f"Number of rules has reached the limit of {rules_limit} "
+                    f"rules per single promotion."
+                ),
+                code=error_class.RULES_NUMBER_LIMIT.value,
+                params={"index": index} if index is not None else {},
+            )
+        )
+        return
 
 
 def _clean_reward(
