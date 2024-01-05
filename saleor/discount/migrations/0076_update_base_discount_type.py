@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0076_checkout_discount"),
+        ("discount", "0075_checkout_discount"),
     ]
 
     operations = [

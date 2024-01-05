@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             "checkout",
             "0062_update_checkout_last_transaction_modified_at_and_refundable",
         ),
-        ("discount", "0075_promotionrule_reward_type"),
+        ("discount", "0074_promotionrule_checkout_and_order_predicate"),
     ]
 
     operations = [
