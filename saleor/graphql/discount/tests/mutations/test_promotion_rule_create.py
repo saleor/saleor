@@ -2,6 +2,7 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
+from django.test import override_settings
 
 from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionRuleCreateErrorCode
@@ -1381,4 +1382,62 @@ def test_promotion_rule_create_mixed_currencies_for_price_based_predicate(
         == PromotionRuleCreateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.name
     )
     assert errors[0]["field"] == "channels"
+    assert promotion.rules.count() == rules_count
+
+
+@override_settings(CHECKOUT_AND_ORDER_RULES_LIMIT=1)
+def test_promotion_rule_create_exceeds_rules_number_limit(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    promotion_without_rules,
+):
+    # given
+    promotion = promotion_without_rules
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
+    reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    checkout_and_order_predicate = {
+        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": "100"}}}
+    }
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+
+    promotion.rules.create(
+        name="existing promotion rule",
+        promotion=promotion,
+        checkout_and_order_predicate=checkout_and_order_predicate,
+        reward_value_type=reward_value_type,
+        reward_value=reward_value,
+        reward_type=reward_type,
+    )
+
+    rules_count = promotion.rules.count()
+    assert rules_count == 1
+
+    variables = {
+        "input": {
+            "promotion": promotion_id,
+            "channels": [channel_id],
+            "rewardValueType": reward_value_type,
+            "rewardValue": reward_value,
+            "rewardType": reward_type,
+            "checkoutAndOrderPredicate": checkout_and_order_predicate,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleCreate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleCreateErrorCode.RULES_NUMBER_LIMIT.name
+    assert errors[0]["field"] == "checkoutAndOrderPredicate"
     assert promotion.rules.count() == rules_count
