@@ -87,13 +87,15 @@ class VoucherCodeBulkDelete(BaseMutation):
 
         count = len(code_instances)
 
-        codes_ids = [code.id for code in code_instances]
-        codes = [code for code in code_instances]
+        # Copy deleted instance and reassign the original IDs
+        ids_and_codes_tuple = [(code.id, code) for code in code_instances]
         code_instances.delete()
 
-        for id, code in zip(codes_ids, codes):
+        for id, code in ids_and_codes_tuple:
             code.id = id
 
-        cls.post_save_actions(info, codes)
+        cls.post_save_actions(
+            info, [id_and_code[1] for id_and_code in ids_and_codes_tuple]
+        )
 
         return VoucherCodeBulkDelete(count=count)

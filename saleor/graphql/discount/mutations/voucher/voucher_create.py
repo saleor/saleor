@@ -262,13 +262,15 @@ class VoucherCreate(ModelMutation):
     def post_save_action(  # type: ignore[override]
         cls, info: ResolveInfo, instance, codes_instances, cleaned_input
     ):
+        last_code = codes_instances[-1].code if codes_instances else None
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.voucher_created, instance, codes_instances[-1].code)
+
         if codes_instances:
             cls.call_event(
                 manager.voucher_codes_created,
                 codes_instances,
             )
+        cls.call_event(manager.voucher_created, instance, last_code)
 
     @classmethod
     def success_response(cls, instance):

@@ -130,11 +130,9 @@ class WebhookDryRun(BaseMutation):
                 WebhookEventAsyncType.VOUCHER_CODES_CREATED,
                 WebhookEventAsyncType.VOUCHER_CODES_DELETED,
             ]:
-                payload = generate_payload_from_subscription(
-                    event_type, [object], query, request
-                )
-            else:
-                payload = generate_payload_from_subscription(
-                    event_type, object, query, request
-                )
+                object = [object]
+
+            payload = generate_payload_from_subscription(
+                event_type, object, query, request
+            )
         return WebhookDryRun(payload=payload)
