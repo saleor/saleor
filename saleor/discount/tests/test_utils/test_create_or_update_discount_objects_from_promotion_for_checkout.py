@@ -1324,7 +1324,7 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
                 name="Order promotion rule 2",
                 promotion=promotion,
                 order_predicate={
-                    "total_price": {
+                    "subtotal_price": {
                         "range": {
                             "gte": 20,
                         }

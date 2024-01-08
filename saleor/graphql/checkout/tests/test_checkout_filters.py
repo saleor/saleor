@@ -697,7 +697,7 @@ def test_filtering_checkout_discounted_object_where_by_total_price_one_of(
     assert result.first() == another_checkout
 
 
-def test_filtering_checkout_discounted_object_where_currency_not_given(
+def test_filtering_checkout_discounted_object_where_by_total_currency_not_given(
     checkout_with_item,
 ):
     # given
@@ -721,6 +721,133 @@ def test_filtering_checkout_discounted_object_where_currency_not_given(
     qs = Checkout.objects.all()
     predicate_data = {
         "total_price": {
+            "range": {
+                "gte": 20,
+            }
+        }
+    }
+
+    # when
+    with pytest.raises(ValidationError) as validation_error:
+        where_filter_qs(
+            qs,
+            {},
+            CheckoutDiscountedObjectWhere,
+            predicate_data,
+            None,
+        )
+
+    # then
+    assert validation_error.value.code == "required"
+
+
+def test_filtering_checkout_discounted_object_where_by_subtotal_price_range(
+    checkout_with_item,
+):
+    # given
+    checkout = checkout_with_item
+
+    currency = checkout.currency
+    subtotal_price = Money("20", currency)
+    total_price = Money("30", currency)
+    checkout.base_total = total_price
+    checkout.base_subtotal = subtotal_price
+    checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
+
+    another_checkout = Checkout.objects.create(
+        currency=currency,
+        user=checkout.user,
+        channel=checkout.channel,
+        base_total=Money("15", currency),
+        base_subtotal=Money("10", currency),
+    )
+
+    qs = Checkout.objects.all()
+    predicate_data = {
+        "currency": currency,
+        "subtotal_price": {
+            "range": {
+                "lte": 12,
+            }
+        },
+    }
+
+    # when
+    result = where_filter_qs(
+        qs,
+        {},
+        CheckoutDiscountedObjectWhere,
+        predicate_data,
+        None,
+    )
+
+    # then
+    assert result.count() == 1
+    assert result.first() == another_checkout
+
+
+def test_filtering_checkout_discounted_object_where_by_subtotal_price_one_of(
+    checkout_with_item,
+):
+    # given
+    checkout = checkout_with_item
+
+    currency = checkout.currency
+    subtotal_price = Money("20", currency)
+    total_price = Money("30", currency)
+    checkout.base_total = total_price
+    checkout.base_subtotal = subtotal_price
+    checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
+
+    Checkout.objects.create(
+        currency=currency,
+        user=checkout.user,
+        channel=checkout.channel,
+        base_total=Money("15", currency),
+        base_subtotal=Money("10", currency),
+    )
+
+    qs = Checkout.objects.all()
+    predicate_data = {"currency": currency, "subtotal_price": {"one_of": [15, 20]}}
+
+    # when
+    result = where_filter_qs(
+        qs,
+        {},
+        CheckoutDiscountedObjectWhere,
+        predicate_data,
+        None,
+    )
+
+    # then
+    assert result.count() == 1
+    assert result.first() == checkout
+
+
+def test_filtering_checkout_discounted_object_where_by_subtotal_currency_not_given(
+    checkout_with_item,
+):
+    # given
+    checkout = checkout_with_item
+
+    currency = checkout.currency
+    subtotal_price = Money("20", currency)
+    total_price = Money("30", currency)
+    checkout.base_total = total_price
+    checkout.base_subtotal = subtotal_price
+    checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
+
+    Checkout.objects.create(
+        currency=currency,
+        user=checkout.user,
+        channel=checkout.channel,
+        base_total=Money("15", currency),
+        base_subtotal=Money("10", currency),
+    )
+
+    qs = Checkout.objects.all()
+    predicate_data = {
+        "subtotal_price": {
             "range": {
                 "gte": 20,
             }

@@ -156,28 +156,38 @@ class CheckoutFilterInput(FilterInputObjectType):
 
 
 class CheckoutDiscountedObjectWhere(WhereFilterSet):
+    subtotal_price = OperationObjectTypeWhereFilter(
+        input_class=DecimalFilterInput,
+        method="filter_subtotal_price",
+        field_name="filter_subtotal_price",
+        help_text="Filter by the checkout base subtotal price.",
+    )
     total_price = OperationObjectTypeWhereFilter(
         input_class=DecimalFilterInput,
         method="filter_total_price",
         field_name="filter_total_price",
-        help_text="Filter by the checkout total price.",
+        help_text="Filter by the checkout base total price.",
     )
 
     class Meta:
         model = Checkout
-        fields = ["total_price"]
+        fields = ["subtotal_price", "total_price"]
+
+    def filter_subtotal_price(self, queryset, name, value):
+        currency = get_currency_from_filter_data(self.data)
+        return _filter_price(queryset, name, "base_subtotal_amount", value, currency)
 
     def filter_total_price(self, queryset, name, value):
         currency = get_currency_from_filter_data(self.data)
-        return _filter_total_price(queryset, name, value, currency)
+        return _filter_price(queryset, name, "base_total_amount", value, currency)
 
 
-def _filter_total_price(qs, _, value, currency):
+def _filter_price(qs, _, field_name, value, currency):
     # We will have single channel/currency as the rule can applied only
     # on channels with the same currencies
     if not currency:
         raise ValidationError(
-            "You must provide a currency to filter the total price.", code="required"
+            "You must provide a currency to filter by price field.", code="required"
         )
     qs = qs.filter(currency=currency)
-    return filter_where_by_numeric_field(qs, "base_total_amount", value)
+    return filter_where_by_numeric_field(qs, field_name, value)
