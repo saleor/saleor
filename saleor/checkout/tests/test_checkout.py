@@ -1409,46 +1409,39 @@ def test_recalculate_checkout_discount_with_checkout_discount_voucher_not_applic
 
 
 def test_recalculate_checkout_discount_with_checkout_discount_voucher_added(
-    checkout_with_voucher_percentage,
+    checkout_with_item_with_checkout_and_order_discount,
     voucher_percentage,
-    promotion_without_rules,
 ):
-    # TODO: to fix
     # given
-    checkout = checkout_with_voucher_percentage
+    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout_discount = checkout.discounts.first()
     channel = checkout.channel
-    voucher_percentage.channel_listings.filter(channel=channel).update(
-        min_spent_amount=100
-    )
+    discount_value = voucher_percentage.channel_listings.get(
+        channel=channel
+    ).discount_value
+    checkout.voucher_code = voucher_percentage.code
+    checkout.save(update_fields=["voucher_code"])
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    line_info = lines[0]
-    reward_value = Decimal("1")
-    rule = promotion_without_rules.rules.create(
-        name="Fixed promotion rule",
-        checkout_and_order_predicate={
-            "total_price": {
-                "range": {
-                    "gte": 20,
-                }
-            }
-        },
-        reward_value_type=RewardValueType.FIXED,
-        reward_value=reward_value,
-        reward_type=RewardType.TOTAL_DISCOUNT,
-    )
-    rule.channels.add(line_info.channel)
-
     # when
     recalculate_checkout_discount(manager, checkout_info, lines)
 
     # then
-    assert checkout.discount_amount == reward_value
-    assert checkout.discount_name
-    assert not checkout.voucher_code
+    line_info = lines[0]
+    total_price = (
+        line_info.variant.get_price(line_info.channel_listing) * line_info.line.quantity
+    )
+
+    checkout.refresh_from_db()
+    assert checkout.discount_amount == total_price.amount * discount_value / 100
+    assert checkout.discount_name == voucher_percentage.name
+    assert checkout.voucher_code
+    assert not checkout.discounts.all()
+    with pytest.raises(checkout_discount._meta.model.DoesNotExist):
+        checkout_discount.refresh_from_db()
 
 
 def test_recalculate_checkout_discount_voucher_not_applicable(
