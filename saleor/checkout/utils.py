@@ -18,9 +18,9 @@ from ..core.utils.promo_code import (
     promo_code_is_voucher,
 )
 from ..core.utils.translations import get_translation
-from ..discount import VoucherType
+from ..discount import DiscountType, VoucherType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
-from ..discount.models import NotApplicable, Voucher, VoucherCode
+from ..discount.models import CheckoutDiscount, NotApplicable, Voucher, VoucherCode
 from ..discount.utils import (
     create_discount_objects_for_catalogue_promotions,
     create_discount_objects_for_checkout_and_order_promotions,
@@ -747,6 +747,13 @@ def add_voucher_to_checkout(
     )
     checkout_info.voucher = voucher
     checkout_info.voucher_code = voucher_code
+
+    # delete discounts from checkout and order promotions as cannot be mixed
+    # with vouchers
+    CheckoutDiscount.objects.filter(
+        checkout=checkout_info.checkout,
+        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+    ).delete()
 
 
 def remove_promo_code_from_checkout(
