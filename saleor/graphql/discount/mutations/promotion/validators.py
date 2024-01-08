@@ -246,7 +246,9 @@ def _clean_order_predicate(
     if promotion := cleaned_input.get("promotion"):
         rules_count = promotion.rules.count()
         rules_limit = settings.CHECKOUT_AND_ORDER_RULES_LIMIT
-        if rules_count >= rules_limit:
+        # TODO: check the limit only for active promotions
+        # https://github.com/saleor/saleor/issues/15201
+        if rules_count >= int(rules_limit):
             errors["checkout_and_order_predicate"].append(
                 ValidationError(
                     message=(
@@ -256,7 +258,6 @@ def _clean_order_predicate(
                     code=error_class.RULES_NUMBER_LIMIT.value,
                 )
             )
-            return
 
 
 def _clean_reward(

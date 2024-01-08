@@ -128,7 +128,7 @@ class PromotionCreate(ModelMutation):
         predicate_type = cls.check_predicate_types(rules_data)
         if predicate_type and predicate_type == PredicateType.CHECKOUT_AND_ORDER:
             rules_limit = settings.CHECKOUT_AND_ORDER_RULES_LIMIT
-            if len(rules_data) > rules_limit:
+            if len(rules_data) > int(rules_limit):
                 raise_validation_error(
                     message=(
                         f"Number of rules has reached the limit of {rules_limit} "
@@ -176,6 +176,7 @@ class PromotionCreate(ModelMutation):
             return PredicateType.CHECKOUT_AND_ORDER
         if catalogue_predicates:
             return PredicateType.CATALOGUE
+        return None
 
     @classmethod
     def clean_channels(
