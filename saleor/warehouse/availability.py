@@ -25,6 +25,7 @@ from .reservations import get_listings_reservations
 if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutLineInfo
     from ..checkout.models import CheckoutLine
+    from ..order.models import OrderLine
     from ..product.models import Product, ProductVariant
 
 
@@ -68,6 +69,7 @@ def check_stock_and_preorder_quantity(
     quantity: int,
     checkout_lines: Optional[List["CheckoutLine"]] = None,
     check_reservations: bool = False,
+    order_line: Optional["OrderLine"] = None,
 ):
     """Validate if there is stock/preorder available for given variant.
 
@@ -86,6 +88,7 @@ def check_stock_and_preorder_quantity(
             quantity,
             checkout_lines,
             check_reservations,
+            order_line,
         )
 
 
@@ -96,6 +99,7 @@ def check_stock_quantity(
     quantity: int,
     checkout_lines: Optional[List["CheckoutLine"]] = None,
     check_reservations: bool = False,
+    order_line: Optional["OrderLine"] = None,
 ):
     """Validate if there is stock available for given variant in given country.
 
@@ -108,7 +112,11 @@ def check_stock_quantity(
         )
         if not stocks:
             raise InsufficientStock(
-                [InsufficientStockData(variant=variant, available_quantity=0)]
+                [
+                    InsufficientStockData(
+                        variant=variant, available_quantity=0, order_line=order_line
+                    )
+                ]
             )
 
         available_quantity = _get_available_quantity(
@@ -116,7 +124,11 @@ def check_stock_quantity(
         )
         if quantity > available_quantity:
             raise InsufficientStock(
-                [InsufficientStockData(variant=variant, available_quantity=0)]
+                [
+                    InsufficientStockData(
+                        variant=variant, available_quantity=0, order_line=order_line
+                    )
+                ]
             )
 
 
