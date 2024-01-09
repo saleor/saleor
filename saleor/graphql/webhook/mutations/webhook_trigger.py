@@ -139,6 +139,12 @@ class WebhookTrigger(BaseMutation):
         delivery = None
 
         if all([event_type, object, webhook]):
+            if event_type in [
+                WebhookEventAsyncType.VOUCHER_CODES_CREATED,
+                WebhookEventAsyncType.VOUCHER_CODES_DELETED,
+            ]:
+                object = [object]
+
             deliveries = create_deliveries_for_subscriptions(
                 event_type, object, [webhook]
             )

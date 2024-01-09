@@ -1,6 +1,6 @@
 import json
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import graphene
 from django.utils import timezone
@@ -125,9 +125,7 @@ def test_create_voucher_trigger_webhook(
     content = get_graphql_content(response)
     voucher = Voucher.objects.last()
 
-    # then
-    assert content["data"]["voucherCreate"]["voucher"]
-    mocked_webhook_trigger.assert_called_once_with(
+    voucher_created = call(
         json.dumps(
             {
                 "id": graphene.Node.to_global_id("Voucher", voucher.id),
@@ -147,6 +145,10 @@ def test_create_voucher_trigger_webhook(
         SimpleLazyObject(lambda: staff_api_client.user),
         allow_replica=False,
     )
+
+    # then
+    assert content["data"]["voucherCreate"]["voucher"]
+    assert voucher_created in mocked_webhook_trigger.call_args_list
 
 
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):

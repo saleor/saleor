@@ -57,5 +57,6 @@ class VoucherDelete(ModelDeleteMutation):
         # After the instance is deleted, set its ID to the original database's
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id
+
         cls.post_save_action(info, instance, code)
         return cls.success_response(instance)

@@ -8341,6 +8341,8 @@ def async_subscription_webhooks_with_root_objects(
     subscription_voucher_created_webhook,
     subscription_voucher_updated_webhook,
     subscription_voucher_deleted_webhook,
+    subscription_voucher_codes_created_webhook,
+    subscription_voucher_codes_deleted_webhook,
     subscription_voucher_webhook_with_meta,
     subscription_voucher_metadata_updated_webhook,
     subscription_voucher_code_export_completed_webhook,
@@ -8380,6 +8382,7 @@ def async_subscription_webhooks_with_root_objects(
     page_type = page.page_type
     transaction_item_created_by_app.use_old_id = True
     transaction_item_created_by_app.save()
+    voucher_code = voucher.codes.first()
 
     return {
         events.ACCOUNT_DELETED: [
@@ -8668,6 +8671,14 @@ def async_subscription_webhooks_with_root_objects(
         events.VOUCHER_CREATED: [subscription_voucher_created_webhook, voucher],
         events.VOUCHER_UPDATED: [subscription_voucher_updated_webhook, voucher],
         events.VOUCHER_DELETED: [subscription_voucher_deleted_webhook, voucher],
+        events.VOUCHER_CODES_CREATED: [
+            subscription_voucher_codes_created_webhook,
+            voucher_code,
+        ],
+        events.VOUCHER_CODES_DELETED: [
+            subscription_voucher_codes_deleted_webhook,
+            voucher_code,
+        ],
         events.VOUCHER_METADATA_UPDATED: [
             subscription_voucher_metadata_updated_webhook,
             voucher,

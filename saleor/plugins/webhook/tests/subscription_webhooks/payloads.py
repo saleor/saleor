@@ -412,6 +412,22 @@ def generate_voucher_payload(voucher, voucher_global_id):
     )
 
 
+def generate_voucher_code_payload(voucher_codes):
+    return json.dumps(
+        {
+            "voucherCodes": [
+                {
+                    "id": graphene.Node.to_global_id("VoucherCode", code.id),
+                    "code": code.code,
+                    "used": code.used,
+                    "isActive": code.is_active,
+                }
+                for code in voucher_codes
+            ]
+        }
+    )
+
+
 def generate_voucher_created_payload_with_meta(
     voucher, voucher_global_id, requestor, requestor_type, webhook_app
 ):
