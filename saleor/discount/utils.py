@@ -637,20 +637,21 @@ def _create_or_update_checkout_discount(
         promotion_translation=promotion_translation,
         rule_translation=rule_translation,
     )
-
-    checkout_discount, created = checkout.discounts.filter(
-        type=DiscountType.ORDER_PROMOTION
-    ).get_or_create(
-        checkout=checkout,
-        promotion_rule=best_rule,
+    checkout_discount, created = checkout.discounts.get_or_create(
         type=DiscountType.ORDER_PROMOTION,
-        value_type=best_rule.reward_value_type,
-        value=best_rule.reward_value,
-        amount_value=best_discount_amount.amount,
-        currency=currency_code,
-        name=get_discount_name(best_rule, promotion),
-        translated_name=get_discount_translated_name(rule_info),
-        reason=prepare_promotion_discount_reason(promotion, get_sale_id(promotion)),
+        defaults={
+            "checkout": checkout,
+            "promotion_rule": best_rule,
+            "value_type": best_rule.reward_value_type,
+            "value": best_rule.reward_value,
+            "amount_value": best_discount_amount.amount,
+            "currency": currency_code,
+            "name": get_discount_name(best_rule, promotion),
+            "translated_name": get_discount_translated_name(rule_info),
+            "reason": prepare_promotion_discount_reason(
+                promotion, get_sale_id(promotion)
+            ),
+        },
     )
 
     if not created:

@@ -1613,3 +1613,64 @@ def test_create_or_update_discount_from_promotion_rule_not_applies_anymore(
     assert not checkout.discounts.all()
     with pytest.raises(CheckoutDiscount.DoesNotExist):
         discount.refresh_from_db()
+
+
+def test_zzz(
+    checkout_info,
+    checkout_lines_info,
+    promotion_without_rules,
+):
+    # given
+    promotion = promotion_without_rules
+    checkout = checkout_info.checkout
+    channel = checkout_info.channel
+
+    applied_rule = promotion.rules.create(
+        checkout_and_order_predicate={
+            "total_price": {
+                "range": {
+                    "gte": 20,
+                }
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal("1"),
+        reward_type=RewardType.TOTAL_DISCOUNT,
+    )
+    applied_rule.channels.add(channel)
+
+    current_discount = CheckoutDiscount.objects.create(
+        checkout=checkout,
+        promotion_rule=applied_rule,
+        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+        value_type=applied_rule.reward_value_type,
+        value=applied_rule.reward_value,
+        amount_value=applied_rule.reward_value,
+        currency=channel.currency_code,
+    )
+
+    better_rule = promotion.rules.create(
+        checkout_and_order_predicate={
+            "total_price": {
+                "range": {
+                    "gte": 20,
+                }
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal("2"),
+        reward_type=RewardType.TOTAL_DISCOUNT,
+    )
+    better_rule.channels.add(channel)
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines_info
+    )
+
+    # then
+    discounts = list(checkout_info.checkout.discounts.all())
+    assert len(discounts) == 1
+    assert current_discount in discounts
+    current_discount.refresh_from_db()
+    assert current_discount.promotion_rule == better_rule
