@@ -1,4 +1,4 @@
-from saleor.product.models import ProductVariant
+from ...product.models import ProductVariant
 
 
 def test_available_quantity_with_no_allocations(variant, allocations):

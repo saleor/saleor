@@ -13,6 +13,7 @@ from uuid import UUID
 
 import graphene
 from django.db import transaction
+from django.conf import settings
 from django.db.models import Exists, F, OuterRef, QuerySet
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
@@ -624,3 +625,20 @@ def update_rule_variant_relation(
         PromotionRuleVariant.objects.bulk_create(
             rules_variants_to_add, ignore_conflicts=True
         )
+
+def get_active_promotion_rules(
+    allow_replica: bool = False,
+) -> "QuerySet[PromotionRule]":
+    promotions = Promotion.objects.active()
+    if allow_replica:
+        promotions = promotions.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+    rules = (
+        PromotionRule.objects.order_by("id")
+        .filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id"))),
+        )
+        .exclude(catalogue_predicate={})
+    )
+    if allow_replica:
+        rules = rules.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+    return rules
