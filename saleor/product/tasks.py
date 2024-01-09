@@ -21,6 +21,7 @@ from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
 from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
+from .utils.product import mark_products_for_recalculate_discounted_price
 from .utils.variant_prices import update_discounted_prices_for_promotion
 from .utils.variants import (
     fetch_variants_for_promotion_rules,
@@ -141,6 +142,54 @@ def update_products_discounted_prices_for_promotion_task(
         # when all promotion rules variants are up to date, call discounted prices
         # recalculation for products
         update_discounted_prices_task.delay(product_ids)
+
+
+@app.task
+def update_promotion_rules_mark_products_for_price_recalculation_task(
+    product_ids: Iterable[int] = [],
+    start_id: Optional[UUID] = None,
+):
+    """Update PromotionRule and ProductVariant.
+
+    Mark the Product discounted prices for recalculation when all PromotionRules
+    are updated.
+    """
+    promotions = Promotion.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).active()
+    kwargs = {"id__gt": start_id} if start_id else {}
+    rules = (
+        PromotionRule.objects.order_by("id")
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id"))),
+            variants_dirty=True,
+            **kwargs,
+        )[:PROMOTION_RULE_BATCH_SIZE]
+    )
+    if ids := list(rules.values_list("pk", flat=True)):
+        qs = PromotionRule.objects.filter(pk__in=ids)
+        product_ids = fetch_variants_for_promotion_rules(rules=qs)
+        qs.update(variants_dirty=False)
+        update_products_discounted_prices_for_promotion_task.delay(product_ids, ids[-1])
+    else:
+        # when all promotion rules variants are up to date, mark products for
+        if product_ids:
+            mark_products_for_recalculate_discounted_price(product_ids)
+
+
+@app.task
+def recalculate_discounted_price_for_products_task():
+    """Recalculate discounted price for products."""
+    products_ids = list(
+        Product.objects.filter(discounted_price_dirty=True)
+        .order_by("id")
+        .values_list("id", flat=True)
+    )[:DISCOUNTED_PRODUCT_BATCH]
+    if products := Product.objects.filter(id__in=products_ids):
+        update_discounted_prices_for_promotion(products)
+        products.update(discounted_price_dirty=False)
+        recalculate_discounted_price_for_products_task.delay()
 
 
 @app.task
