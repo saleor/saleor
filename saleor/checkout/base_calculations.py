@@ -254,7 +254,7 @@ def checkout_total(
     discount = checkout_info.checkout.discount
 
     # checkout and order promotion discount and entire_order discount with
-    # apply_once_per_order set to False is not already included in the total price
+    # apply_once_per_order set to False are not included in the total price yet
     discounted_object_promotion = bool(checkout_info.discounts)
     discount_not_included = discounted_object_promotion or (
         checkout_info.voucher

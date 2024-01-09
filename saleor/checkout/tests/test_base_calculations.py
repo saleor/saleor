@@ -935,7 +935,7 @@ def test_checkout_total_checkout_and_order_discount(
     channel_listing = variant.channel_listings.get(channel=channel)
     net = variant.get_price(channel_listing)
     shipping_channel_listings = shipping_method.channel_listings.get(channel=channel)
-    # checkout and order discount shouldn't be included
+    # checkout and order discount should be included
     expected_price = (
         net * checkout.lines.first().quantity
         + shipping_channel_listings.price
