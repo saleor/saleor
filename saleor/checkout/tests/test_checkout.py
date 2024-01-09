@@ -12,7 +12,13 @@ from prices import Money, TaxedMoney
 
 from ...account.models import Address
 from ...core.taxes import zero_money
-from ...discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
+from ...discount import (
+    DiscountType,
+    DiscountValueType,
+    RewardType,
+    RewardValueType,
+    VoucherType,
+)
 from ...discount.interface import VariantPromotionRuleInfo
 from ...discount.models import (
     CheckoutLineDiscount,
@@ -327,6 +333,7 @@ def test_get_discount_for_checkout_value_entire_order_voucher(
         valid_pick_up_points=[],
         delivery_method_info=get_delivery_method_info(None, None),
         all_shipping_methods=[],
+        discounts=[],
     )
     lines = [
         CheckoutLineInfo(
@@ -491,6 +498,7 @@ def test_get_discount_for_checkout_value_specific_product_voucher(
         valid_pick_up_points=[],
         delivery_method_info=get_delivery_method_info(None, None),
         all_shipping_methods=[],
+        discounts=[],
     )
     lines = [
         CheckoutLineInfo(
@@ -606,6 +614,7 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         tax_configuration=channel_USD.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     manager = get_plugins_manager(allow_replica=False)
     with pytest.raises(NotApplicable):
@@ -785,6 +794,7 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         tax_configuration=channel_USD.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_checkout(manager, voucher, checkout_info, [], None)
@@ -892,6 +902,7 @@ def test_get_discount_for_checkout_shipping_voucher(
         tax_configuration=channel_USD.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
 
     discount = get_voucher_discount_for_checkout(
@@ -944,6 +955,7 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
         tax_configuration=channel_USD.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     discount = get_voucher_discount_for_checkout(
         manager, voucher, checkout_info, [], None
@@ -990,6 +1002,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         tax_configuration=channel_USD.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     manager = get_plugins_manager(allow_replica=False)
     with pytest.raises(NotApplicable):
@@ -1145,6 +1158,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         tax_configuration=channel_USD.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_checkout(
@@ -1350,6 +1364,48 @@ def test_recalculate_checkout_discount_with_promotion(
         ).gross.amount
         == discounted_subtotal - voucher_discount
     )
+
+
+def test_recalculate_checkout_discount_with_checkout_discount_voucher_not_applicable(
+    checkout_with_voucher_percentage,
+    voucher_percentage,
+    promotion_without_rules,
+):
+    # given
+    checkout = checkout_with_voucher_percentage
+    channel = checkout.channel
+    voucher_percentage.channel_listings.filter(channel=channel).update(
+        min_spent_amount=100
+    )
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    line_info = lines[0]
+    reward_value = Decimal("1")
+    rule = promotion_without_rules.rules.create(
+        name="Fixed promotion rule",
+        checkout_and_order_predicate={
+            "total_price": {
+                "range": {
+                    "gte": 20,
+                }
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+        reward_type=RewardType.TOTAL_DISCOUNT,
+    )
+    rule.channels.add(line_info.channel)
+
+    # when
+    recalculate_checkout_discount(manager, checkout_info, lines)
+
+    # then
+    assert checkout.discount_amount == reward_value
+    assert checkout.discount_name
+    assert not checkout.voucher_code
 
 
 def test_recalculate_checkout_discount_voucher_not_applicable(

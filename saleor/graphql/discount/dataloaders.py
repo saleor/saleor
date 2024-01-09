@@ -8,6 +8,7 @@ from promise import Promise
 from ...channel.models import Channel
 from ...discount.interface import VoucherInfo
 from ...discount.models import (
+    CheckoutDiscount,
     CheckoutLineDiscount,
     OrderDiscount,
     Promotion,
@@ -241,6 +242,21 @@ class CheckoutLineDiscountsByCheckoutLineIdLoader(DataLoader):
         for discount in discounts:
             discount_map[discount.line_id].append(discount)
         return [discount_map.get(checkout_line_id, []) for checkout_line_id in keys]
+
+
+class CheckoutDiscountByCheckoutIdLoader(DataLoader):
+    context_key = "checkout_discount_by_checkout_id"
+
+    def batch_load(self, keys):
+        checkout_line_discounts = CheckoutDiscount.objects.using(
+            self.database_connection_name
+        ).filter(checkout_id__in=keys)
+        checkout_line_discounts_map = defaultdict(list)
+        for discount in checkout_line_discounts:
+            checkout_line_discounts_map[discount.checkout_id].append(discount)
+        return [
+            checkout_line_discounts_map.get(checkout_id, []) for checkout_id in keys
+        ]
 
 
 class PromotionRulesByPromotionIdLoader(DataLoader):

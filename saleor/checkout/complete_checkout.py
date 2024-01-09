@@ -1319,7 +1319,7 @@ def create_order_from_checkout(
         # ensure that we are processing checkout on the current data.
         checkout_lines, _ = fetch_checkout_lines(checkout, voucher=voucher)
         checkout_info = fetch_checkout_info(
-            checkout, checkout_lines, manager, voucher=voucher
+            checkout, checkout_lines, manager, voucher=voucher, voucher_code=code
         )
         assign_checkout_user(user, checkout_info)
 

@@ -1283,15 +1283,13 @@ def generate_checkout_payload_for_tax_calculation(
         user_id = graphene.Node.to_global_id("User", user.id)
         user_public_metadata = user.metadata
 
-    # Prepare discount data
-    # total_amount include the specific product and apply once per order discounts,
-    # so we need to attach only entire order discount here with once per order flag
-    # set to False
-    discount_not_included = (
-        checkout_info.voucher.type == VoucherType.ENTIRE_ORDER
-        and checkout_info.voucher.apply_once_per_order is False
-        if checkout_info.voucher
-        else False
+    # checkout and order promotion discount and entire_order discount with
+    # apply_once_per_order set to False is not already included in the total price
+    discounted_object_promotion = bool(checkout_info.discounts)
+    discount_not_included = discounted_object_promotion or (
+        checkout_info.voucher
+        and checkout_info.voucher.type == VoucherType.ENTIRE_ORDER
+        and not checkout_info.voucher.apply_once_per_order
     )
     discount_amount = quantize_price(checkout.discount_amount, checkout.currency)
     discount_name = checkout.discount_name

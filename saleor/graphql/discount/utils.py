@@ -6,6 +6,7 @@ from typing import Optional, Union, cast
 import graphene
 from django.db.models import Exists, OuterRef, QuerySet
 
+from ...checkout.models import Checkout
 from ...discount.models import Promotion, PromotionRule
 from ...discount.utils import update_rule_variant_relation
 from ...product.managers import ProductsQueryset, ProductVariantQueryset
@@ -16,6 +17,7 @@ from ...product.models import (
     Product,
     ProductVariant,
 )
+from ..checkout.filters import CheckoutDiscountedObjectWhere
 from ..core.connection import where_filter_qs
 from ..product.filters import (
     CategoryWhere,
@@ -30,6 +32,12 @@ PREDICATE_OPERATOR_DATA_T = list[dict[str, Union[list, dict, str, bool]]]
 class PredicateType(Enum):
     CATALOGUE = "catalogue"
     CHECKOUT_AND_ORDER = "checkout_and_order"
+
+
+class PredicateObjectType(Enum):
+    CATALOGUE = "catalogue"
+    CHECKOUT = "checkout"
+    ORDER = "order"
 
 
 class Operators(Enum):
@@ -167,13 +175,14 @@ def get_variants_for_catalogue_predicate(
         return ProductVariant.objects.none()
     if queryset is None:
         queryset = ProductVariant.objects.all()
-    return filter_qs_by_predicate(predicate, queryset, PredicateType.CATALOGUE)
+    return filter_qs_by_predicate(predicate, queryset, PredicateObjectType.CATALOGUE)
 
 
 def filter_qs_by_predicate(
     predicate: dict,
     base_qs: QuerySet,
-    predicate_type: PredicateType,
+    predicate_type: PredicateObjectType,
+    currency: Optional[str] = None,
     *,
     result_qs: Optional[QuerySet] = None,
 ) -> QuerySet:
@@ -184,6 +193,8 @@ def filter_qs_by_predicate(
         result_qs: QuerySet that contains results of previous conditions
         base_qs: QuerySet that contains all objects that can be filtered
         predicate_type: type of predicate (catalogue or order)
+        currency: currency used for filtering by checkoutAndOrder predicates
+            with price conditions
     """
     if not predicate:
         return base_qs.model.objects.none()
@@ -197,14 +208,16 @@ def filter_qs_by_predicate(
     or_data: Optional[list[dict]] = predicate.pop("OR", None)
 
     if and_data:
-        result_qs = _handle_and_data(result_qs, base_qs, and_data, predicate_type)
-
+        result_qs = _handle_and_data(
+            result_qs, base_qs, and_data, predicate_type, currency
+        )
     if or_data:
-        result_qs = _handle_or_data(result_qs, base_qs, or_data, predicate_type)
-
+        result_qs = _handle_or_data(
+            result_qs, base_qs, or_data, predicate_type, currency
+        )
     if predicate:
         result_qs = _handle_predicate(
-            result_qs, base_qs, predicate, Operators.AND, predicate_type
+            result_qs, base_qs, predicate, Operators.AND, predicate_type, currency
         )
 
     return result_qs
@@ -214,16 +227,22 @@ def _handle_and_data(
     result_qs: QuerySet,
     base_qs: QuerySet,
     data: PREDICATE_OPERATOR_DATA_T,
-    predicate_type: PredicateType,
+    predicate_type: PredicateObjectType,
+    currency: Optional[str] = None,
 ) -> QuerySet:
     for predicate_data in data:
         if contains_filter_operator(predicate_data):
             result_qs &= filter_qs_by_predicate(
-                predicate_data, base_qs, predicate_type, result_qs=result_qs
+                predicate_data, base_qs, predicate_type, currency, result_qs=result_qs
             )
         else:
             result_qs = _handle_predicate(
-                result_qs, base_qs, predicate_data, Operators.AND, predicate_type
+                result_qs,
+                base_qs,
+                predicate_data,
+                Operators.AND,
+                predicate_type,
+                currency,
             )
     return result_qs
 
@@ -232,17 +251,18 @@ def _handle_or_data(
     result_qs: QuerySet,
     base_qs: QuerySet,
     data: PREDICATE_OPERATOR_DATA_T,
-    predicate_type: PredicateType,
+    predicate_type: PredicateObjectType,
+    currency: Optional[str] = None,
 ) -> QuerySet:
     qs = result_qs.model.objects.none()
     for predicate_data in data:
         if contains_filter_operator(predicate_data):
             qs |= filter_qs_by_predicate(
-                predicate_data, base_qs, predicate_type, result_qs=result_qs
+                predicate_data, base_qs, predicate_type, currency, result_qs=result_qs
             )
         else:
             qs = _handle_predicate(
-                qs, base_qs, predicate_data, Operators.OR, predicate_type
+                qs, base_qs, predicate_data, Operators.OR, predicate_type, currency
             )
     result_qs &= qs
     return result_qs
@@ -257,11 +277,15 @@ def _handle_predicate(
     base_qs: QuerySet,
     predicate_data: dict[str, Union[dict, str, list, bool]],
     operator: Operators,
-    predicate_type: PredicateType,
+    predicate_type: PredicateObjectType,
+    currency: Optional[str] = None,
 ):
-    if predicate_type == PredicateType.CATALOGUE:
+    if predicate_type == PredicateObjectType.CATALOGUE:
         return _handle_catalogue_predicate(result_qs, base_qs, predicate_data, operator)
-    return result_qs
+    elif predicate_type == PredicateObjectType.CHECKOUT:
+        return _handle_checkout_predicate(
+            result_qs, base_qs, predicate_data, operator, currency
+        )
 
 
 def _handle_catalogue_predicate(
@@ -277,6 +301,30 @@ def _handle_catalogue_predicate(
                 result_qs &= handle_method(field_data, base_qs)
             else:
                 result_qs |= handle_method(field_data, base_qs)
+    return result_qs
+
+
+def _handle_checkout_predicate(
+    result_qs: QuerySet,
+    base_qs: QuerySet,
+    predicate_data: dict[str, Union[dict, str, list, bool]],
+    operator,
+    currency: Optional[str] = None,
+):
+    if currency:
+        predicate_data["currency"] = currency
+
+    orders = where_filter_qs(
+        Checkout.objects.filter(pk__in=base_qs.values("pk")),
+        {},
+        CheckoutDiscountedObjectWhere,
+        predicate_data,
+        None,
+    )
+    if operator == Operators.AND:
+        result_qs &= orders
+    else:
+        result_qs |= orders
     return result_qs
 
 

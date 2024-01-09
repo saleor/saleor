@@ -25,7 +25,10 @@ class Migration(migrations.Migration):
             name="reward_type",
             field=models.CharField(
                 blank=True,
-                choices=[("subtotal_discount", "subtotal_discount")],
+                choices=[
+                    ("subtotal_discount", "subtotal_discount"),
+                    ("total_discount", "total_discount"),
+                ],
                 max_length=255,
                 null=True,
             ),

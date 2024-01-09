@@ -21,6 +21,7 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountType, DiscountValueType
+from ...discount.models import CheckoutDiscount
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import FulfillmentLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
@@ -1831,6 +1832,114 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
             )
         ),
         "shipping_amount": shipping_price,
+    }
+    mocked_fetch_checkout.assert_not_called()
+    mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(
+        checkout_info,
+        lines,
+    )
+
+
+@patch("saleor.webhook.payloads.serialize_checkout_lines_for_tax_calculation")
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
+def test_generate_checkout_payload_for_tax_calculation_checkout_and_order_discount(
+    mocked_serialize_checkout_lines_for_tax_calculation,
+    mocked_fetch_checkout,
+    checkout_with_prices,
+    prices_entered_with_tax,
+    checkout_and_order_promotion_rule,
+):
+    checkout = checkout_with_prices
+    rule = checkout_and_order_promotion_rule
+    currency = checkout.currency
+
+    discount_amount = Decimal("5.00")
+    CheckoutDiscount.objects.create(
+        checkout=checkout,
+        promotion_rule=rule,
+        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+        value_type=rule.reward_value_type,
+        value=rule.reward_value,
+        amount_value=discount_amount,
+        currency=checkout.currency,
+    )
+
+    checkout.discount_amount = discount_amount
+    checkout.discount_name = rule.name
+    checkout.save(update_fields=["discount_amount", "discount_name"])
+
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    mocked_serialized_checkout_lines = {"data": "checkout_lines_data"}
+    mocked_serialize_checkout_lines_for_tax_calculation.return_value = (
+        mocked_serialized_checkout_lines
+    )
+
+    # when
+    lines, _ = fetch_checkout_lines(checkout_with_prices)
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout_with_prices, lines, manager)
+    payload = json.loads(
+        generate_checkout_payload_for_tax_calculation(checkout_info, lines)
+    )[0]
+    address = checkout.shipping_address
+
+    # then
+    subtotal_price = Money(0, currency)
+    for line_info in lines:
+        variant = line_info.variant
+        variant_listing = line_info.channel_listing
+        unit_price = variant.get_price(variant_listing)
+        subtotal_price += unit_price * line_info.line.quantity
+    shipping_price = quantize_price(
+        checkout.shipping_method.channel_listings.get(
+            channel_id=checkout.channel_id
+        ).price.amount,
+        currency,
+    )
+    total_price_amount = subtotal_price.amount + shipping_price
+    assert payload == {
+        "type": "Checkout",
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+        "address": {
+            "type": "Address",
+            "id": graphene.Node.to_global_id("Address", address.pk),
+            "first_name": address.first_name,
+            "last_name": address.last_name,
+            "company_name": address.company_name,
+            "street_address_1": address.street_address_1,
+            "street_address_2": address.street_address_2,
+            "city": address.city,
+            "city_area": address.city_area,
+            "postal_code": address.postal_code,
+            "country": address.country.code,
+            "country_area": address.country_area,
+            "phone": str(address.phone),
+        },
+        "channel": {
+            "type": "Channel",
+            "id": graphene.Node.to_global_id("Channel", checkout.channel_id),
+            "currency_code": checkout.channel.currency_code,
+            "slug": checkout.channel.slug,
+        },
+        "currency": currency,
+        "discounts": [{"amount": str(discount_amount), "name": rule.name}],
+        "included_taxes_in_prices": prices_entered_with_tax,
+        "lines": mocked_serialized_checkout_lines,
+        "metadata": {"meta_key": "meta_value"},
+        "shipping_name": checkout.shipping_method.name,
+        "user_id": graphene.Node.to_global_id("User", checkout.user.pk),
+        "user_public_metadata": {"user_public_meta_key": "user_public_meta_value"},
+        "total_amount": str(
+            quantize_price(
+                total_price_amount,
+                currency,
+            )
+        ),
+        "shipping_amount": str(shipping_price),
     }
     mocked_fetch_checkout.assert_not_called()
     mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(

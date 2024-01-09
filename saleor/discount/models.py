@@ -440,7 +440,7 @@ class BaseDiscount(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     type = models.CharField(
-        max_length=10,
+        max_length=64,
         choices=DiscountType.CHOICES,
         default=DiscountType.MANUAL,
     )
@@ -522,6 +522,25 @@ class OrderLineDiscount(BaseDiscount):
                 fields=["promotion_rule"], name="orderlinedisc_promotion_rule_idx"
             ),
             GinIndex(fields=["voucher_code"], name="orderlinedisc_voucher_code_idx"),
+        ]
+        ordering = ("created_at", "id")
+
+
+class CheckoutDiscount(BaseDiscount):
+    checkout = models.ForeignKey(
+        "checkout.Checkout",
+        related_name="discounts",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        indexes = [
+            BTreeIndex(fields=["promotion_rule"], name="checkoutdiscount_rule_idx"),
+            # Orders searching index
+            GinIndex(fields=["name", "translated_name"]),
+            GinIndex(fields=["voucher_code"], name="checkoutdiscount_voucher_idx"),
         ]
         ordering = ("created_at", "id")
 
